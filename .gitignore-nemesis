@@ -1,0 +1,226 @@
+# NEMESIS Project .gitignore
+# Add this to your main .gitignore or use it for NEMESIS-specific ignores
+
+# ============================================================================
+# SENSITIVE FILES - NEVER COMMIT
+# ============================================================================
+
+# Environment variables and API keys
+.env
+.env.local
+.env.*.local
+*.env
+
+# Except templates
+!.env.example
+!.env.template
+
+# ============================================================================
+# LOGS
+# ============================================================================
+
+# Application logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Installation logs
+nemesis_logs/
+install_*.log
+errors_*.log
+
+# MCP logs
+mcp/logs/
+*.pid
+
+# ============================================================================
+# DEPENDENCIES
+# ============================================================================
+
+# Node.js
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ============================================================================
+# DATA & DATABASES
+# ============================================================================
+
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Data directories
+data/
+backups/
+*.backup
+
+# ============================================================================
+# BUILD & DIST
+# ============================================================================
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+
+# Compiled files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# ============================================================================
+# OS FILES
+# ============================================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ============================================================================
+# IDE & EDITORS
+# ============================================================================
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+Session.vim
+Temporary_Items
+.netrwhist
+*~
+tags
+[._]*.un~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ============================================================================
+# TEMP & CACHE
+# ============================================================================
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+*.cache
+
+# Cache directories
+.cache/
+.npm/
+.yarn/
+
+# ============================================================================
+# SECURITY
+# ============================================================================
+
+# Private keys
+*.pem
+*.key
+*.cert
+*.crt
+id_rsa*
+id_dsa*
+
+# Credentials
+credentials.json
+secrets.json
+.secrets
+.credentials
+
+# ============================================================================
+# PROJECT SPECIFIC
+# ============================================================================
+
+# NEMESIS runtime
+server.pid
+*.pid
+
+# Configuration backups
+*.bak
+*.old
+*.orig
+
+# Test outputs
+test-results/
+coverage/
+.nyc_output/
+
+# ============================================================================
+# END
+# ============================================================================
