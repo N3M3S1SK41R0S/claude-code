@@ -1,0 +1,140 @@
+{
+  "name": "NEMESIS - Stability AI Image Generation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "stability-webhook",
+      "name": "Image Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "stability-ai"
+    },
+    {
+      "parameters": {
+        "url": "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/text-to-image",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Content-Type", "value": "application/json" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text_prompts: [{ text: $json.prompt, weight: 1 }, { text: $json.negative_prompt || 'blurry, bad quality, distorted', weight: -1 }], cfg_scale: $json.cfg_scale || 7, height: $json.height || 1024, width: $json.width || 1024, samples: $json.samples || 1, steps: $json.steps || 30, style_preset: $json.style || 'photographic' }) }}",
+        "options": { "timeout": 120000 }
+      },
+      "id": "text-to-image",
+      "name": "Text to Image (SDXL)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 300],
+      "credentials": { "httpHeaderAuth": { "id": "stability-cred", "name": "Stability AI" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.stability.ai/v1/generation/stable-diffusion-xl-1024-v1-0/image-to-image",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "init_image", "value": "={{ $json.init_image }}" },
+            { "name": "text_prompts[0][text]", "value": "={{ $json.prompt }}" },
+            { "name": "text_prompts[0][weight]", "value": "1" },
+            { "name": "image_strength", "value": "={{ $json.strength || 0.35 }}" },
+            { "name": "cfg_scale", "value": "={{ $json.cfg_scale || 7 }}" },
+            { "name": "steps", "value": "={{ $json.steps || 30 }}" }
+          ]
+        },
+        "options": { "timeout": 120000 }
+      },
+      "id": "image-to-image",
+      "name": "Image to Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 500],
+      "credentials": { "httpHeaderAuth": { "id": "stability-cred", "name": "Stability AI" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.stability.ai/v1/generation/esrgan-v1-x2plus/image-to-image/upscale",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "image", "value": "={{ $json.image }}" },
+            { "name": "width", "value": "={{ $json.width || 2048 }}" }
+          ]
+        },
+        "options": { "timeout": 180000 }
+      },
+      "id": "upscale",
+      "name": "Upscale Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 400],
+      "credentials": { "httpHeaderAuth": { "id": "stability-cred", "name": "Stability AI" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.stability.ai/v1/user/balance",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "check-balance",
+      "name": "Check Credits",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 600],
+      "credentials": { "httpHeaderAuth": { "id": "stability-cred", "name": "Stability AI" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process Stability AI response\nconst response = $input.first().json;\n\nconst result = {\n  request_id: 'STAB-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  success: true,\n  images: []\n};\n\nif (response.artifacts) {\n  result.images = response.artifacts.map((art, i) => ({\n    index: i,\n    base64: art.base64,\n    seed: art.seed,\n    finish_reason: art.finishReason\n  }));\n  result.count = result.images.length;\n} else if (response.credits) {\n  result.type = 'balance';\n  result.credits = response.credits;\n} else if (response.message) {\n  result.success = false;\n  result.error = response.message;\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "process-result",
+      "name": "Process Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Images",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 400]
+    }
+  ],
+  "connections": {
+    "Image Request": {
+      "main": [[{ "node": "Text to Image (SDXL)", "type": "main", "index": 0 }]]
+    },
+    "Text to Image (SDXL)": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Image to Image": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Upscale Image": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Check Credits": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Process Result": {
+      "main": [[{ "node": "Return Images", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "stability", "sdxl", "image", "generation"]
+}

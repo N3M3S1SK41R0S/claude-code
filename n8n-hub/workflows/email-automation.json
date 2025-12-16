@@ -1,0 +1,138 @@
+{
+  "name": "NEMESIS - Email Automation (Gmail/SMTP)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "email-webhook",
+      "name": "Email Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "email-automation"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "to": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "={{ $json.html ? 'html' : 'text' }}",
+        "message": "={{ $json.body || $json.message }}",
+        "options": {
+          "ccEmail": "={{ $json.cc }}",
+          "bccEmail": "={{ $json.bcc }}",
+          "replyTo": "={{ $json.reply_to }}"
+        }
+      },
+      "id": "send-gmail",
+      "name": "Send via Gmail",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [500, 300],
+      "credentials": { "gmailOAuth2": { "id": "gmail-cred", "name": "Gmail OAuth2" } }
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $json.from || $env.SMTP_FROM }}",
+        "toEmail": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "={{ $json.html ? 'html' : 'text' }}",
+        "text": "={{ $json.body }}",
+        "html": "={{ $json.html_body }}",
+        "options": {
+          "ccEmail": "={{ $json.cc }}",
+          "bccEmail": "={{ $json.bcc }}",
+          "replyTo": "={{ $json.reply_to }}"
+        }
+      },
+      "id": "send-smtp",
+      "name": "Send via SMTP",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [500, 500],
+      "credentials": { "smtp": { "id": "smtp-cred", "name": "SMTP" } }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": "={{ $json.limit || 50 }}",
+        "filters": {
+          "labelIds": ["INBOX"],
+          "q": "={{ $json.query || '' }}"
+        },
+        "options": {}
+      },
+      "id": "read-gmail",
+      "name": "Read Gmail Inbox",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [750, 300],
+      "credentials": { "gmailOAuth2": { "id": "gmail-cred", "name": "Gmail OAuth2" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Email Template Engine\nconst request = $input.first().json;\n\nconst templates = {\n  welcome: {\n    subject: 'Bienvenue {{name}}!',\n    body: `<h1>Bienvenue {{name}}!</h1><p>Nous sommes ravis de vous avoir parmi nous.</p>`\n  },\n  notification: {\n    subject: 'Notification: {{title}}',\n    body: `<h2>{{title}}</h2><p>{{message}}</p><p>Date: {{date}}</p>`\n  },\n  alert: {\n    subject: '⚠️ Alerte: {{title}}',\n    body: `<div style=\"background:#ff4444;color:white;padding:20px\"><h1>{{title}}</h1><p>{{message}}</p></div>`\n  },\n  report: {\n    subject: 'Rapport: {{title}} - {{date}}',\n    body: `<h1>{{title}}</h1><p>Généré le {{date}}</p><hr>{{content}}`\n  }\n};\n\nconst templateName = request.template || 'notification';\nconst template = templates[templateName] || templates.notification;\nconst data = request.data || request;\n\n// Replace placeholders\nlet subject = template.subject;\nlet body = template.body;\n\nfor (const [key, value] of Object.entries(data)) {\n  const regex = new RegExp(`{{${key}}}`, 'g');\n  subject = subject.replace(regex, value || '');\n  body = body.replace(regex, value || '');\n}\n\n// Add default date if not provided\nsubject = subject.replace(/{{date}}/g, new Date().toLocaleDateString('fr-FR'));\nbody = body.replace(/{{date}}/g, new Date().toLocaleDateString('fr-FR'));\n\nreturn [{ json: { ...request, subject, html_body: body, html: true } }];"
+      },
+      "id": "template-engine",
+      "name": "Template Engine",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 700]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Batch email sender\nconst request = $input.first().json;\nconst recipients = request.recipients || [];\n\nconst emails = recipients.map((recipient, i) => ({\n  json: {\n    to: recipient.email || recipient,\n    name: recipient.name || recipient.email?.split('@')[0] || 'User',\n    subject: request.subject,\n    body: request.body,\n    template: request.template,\n    data: { ...request.data, name: recipient.name },\n    batch_index: i,\n    batch_total: recipients.length\n  }\n}));\n\nreturn emails;"
+      },
+      "id": "batch-sender",
+      "name": "Batch Sender",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Email result processor\nconst items = $input.all();\n\nconst result = {\n  request_id: 'EMAIL-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  sent: 0,\n  failed: 0,\n  details: []\n};\n\nfor (const item of items) {\n  if (item.json.error) {\n    result.failed++;\n    result.details.push({ status: 'error', error: item.json.error });\n  } else {\n    result.sent++;\n    result.details.push({ status: 'sent', id: item.json.id || item.json.messageId });\n  }\n}\n\nresult.success = result.failed === 0;\n\nreturn [{ json: result }];"
+      },
+      "id": "process-result",
+      "name": "Process Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 400]
+    }
+  ],
+  "connections": {
+    "Email Request": {
+      "main": [[{ "node": "Template Engine", "type": "main", "index": 0 }]]
+    },
+    "Template Engine": {
+      "main": [[{ "node": "Send via Gmail", "type": "main", "index": 0 }]]
+    },
+    "Send via Gmail": {
+      "main": [[{ "node": "Process Results", "type": "main", "index": 0 }]]
+    },
+    "Send via SMTP": {
+      "main": [[{ "node": "Process Results", "type": "main", "index": 0 }]]
+    },
+    "Batch Sender": {
+      "main": [[{ "node": "Template Engine", "type": "main", "index": 0 }]]
+    },
+    "Process Results": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "email", "gmail", "smtp", "automation"]
+}

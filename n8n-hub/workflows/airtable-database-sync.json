@@ -1,0 +1,158 @@
+{
+  "name": "NEMESIS - Airtable/Supabase Database Sync",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "db-webhook",
+      "name": "Database Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "database-sync"
+    },
+    {
+      "parameters": {
+        "operation": "list",
+        "application": "={{ $json.base_id || $env.AIRTABLE_BASE_ID }}",
+        "table": "={{ $json.table }}",
+        "returnAll": true,
+        "options": {
+          "view": "={{ $json.view }}",
+          "filterByFormula": "={{ $json.filter }}"
+        }
+      },
+      "id": "airtable-read",
+      "name": "Read Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [500, 250],
+      "credentials": { "airtableTokenApi": { "id": "airtable-cred", "name": "Airtable Token" } }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "application": "={{ $json.base_id || $env.AIRTABLE_BASE_ID }}",
+        "table": "={{ $json.table }}",
+        "options": {}
+      },
+      "id": "airtable-create",
+      "name": "Create Airtable Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [500, 450],
+      "credentials": { "airtableTokenApi": { "id": "airtable-cred", "name": "Airtable Token" } }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "application": "={{ $json.base_id || $env.AIRTABLE_BASE_ID }}",
+        "table": "={{ $json.table }}",
+        "id": "={{ $json.record_id }}",
+        "options": {}
+      },
+      "id": "airtable-update",
+      "name": "Update Airtable Record",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [500, 650],
+      "credentials": { "airtableTokenApi": { "id": "airtable-cred", "name": "Airtable Token" } }
+    },
+    {
+      "parameters": {
+        "url": "{{ $env.SUPABASE_URL }}/rest/v1/{{ $json.table }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_KEY }}" },
+            { "name": "Prefer", "value": "return=representation" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "select", "value": "*" },
+            { "name": "limit", "value": "={{ $json.limit || 100 }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "supabase-read",
+      "name": "Read Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 250]
+    },
+    {
+      "parameters": {
+        "url": "{{ $env.SUPABASE_URL }}/rest/v1/{{ $json.table }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_KEY }}" },
+            { "name": "Prefer", "value": "return=representation" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.data) }}",
+        "options": {}
+      },
+      "id": "supabase-create",
+      "name": "Create Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 450]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Sync Airtable <-> Supabase\nconst airtableData = $('Read Airtable').all();\nconst supabaseData = $('Read Supabase').all();\n\nconst sync = {\n  request_id: 'SYNC-DB-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  airtable: { count: airtableData.length, records: airtableData.map(r => r.json) },\n  supabase: { count: supabaseData.length, records: supabaseData },\n  actions: {\n    to_create_in_supabase: [],\n    to_create_in_airtable: [],\n    to_update: []\n  }\n};\n\n// Simple sync logic - compare by ID\nconst supabaseIds = new Set(supabaseData.map(r => r.id || r.airtable_id));\nconst airtableIds = new Set(airtableData.map(r => r.json.id));\n\nfor (const record of airtableData) {\n  if (!supabaseIds.has(record.json.id)) {\n    sync.actions.to_create_in_supabase.push(record.json);\n  }\n}\n\nfor (const record of supabaseData) {\n  if (!airtableIds.has(record.airtable_id)) {\n    sync.actions.to_create_in_airtable.push(record);\n  }\n}\n\nsync.summary = {\n  to_supabase: sync.actions.to_create_in_supabase.length,\n  to_airtable: sync.actions.to_create_in_airtable.length\n};\n\nreturn [{ json: sync }];"
+      },
+      "id": "sync-logic",
+      "name": "Sync Logic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 350]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 400]
+    }
+  ],
+  "connections": {
+    "Database Request": {
+      "main": [[
+        { "node": "Read Airtable", "type": "main", "index": 0 },
+        { "node": "Read Supabase", "type": "main", "index": 0 }
+      ]]
+    },
+    "Read Airtable": {
+      "main": [[{ "node": "Sync Logic", "type": "main", "index": 0 }]]
+    },
+    "Read Supabase": {
+      "main": [[{ "node": "Sync Logic", "type": "main", "index": 0 }]]
+    },
+    "Airtable Create": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Supabase Create": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Sync Logic": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "airtable", "supabase", "database", "sync"]
+}

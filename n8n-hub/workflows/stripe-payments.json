@@ -1,0 +1,164 @@
+{
+  "name": "NEMESIS - Stripe Payment Processing",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "payment-webhook",
+      "name": "Payment Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "stripe-payments"
+    },
+    {
+      "parameters": {
+        "resource": "charge",
+        "operation": "create",
+        "amount": "={{ $json.amount }}",
+        "currency": "={{ $json.currency || 'eur' }}",
+        "source": "={{ $json.token || $json.source }}",
+        "additionalFields": {
+          "description": "={{ $json.description }}",
+          "metadata": "={{ $json.metadata }}",
+          "receiptEmail": "={{ $json.email }}"
+        }
+      },
+      "id": "create-charge",
+      "name": "Create Charge",
+      "type": "n8n-nodes-base.stripe",
+      "typeVersion": 1,
+      "position": [500, 200],
+      "credentials": { "stripeApi": { "id": "stripe-cred", "name": "Stripe API" } }
+    },
+    {
+      "parameters": {
+        "resource": "customer",
+        "operation": "create",
+        "email": "={{ $json.email }}",
+        "additionalFields": {
+          "name": "={{ $json.name }}",
+          "description": "={{ $json.description }}",
+          "phone": "={{ $json.phone }}",
+          "metadata": "={{ $json.metadata }}"
+        }
+      },
+      "id": "create-customer",
+      "name": "Create Customer",
+      "type": "n8n-nodes-base.stripe",
+      "typeVersion": 1,
+      "position": [500, 400],
+      "credentials": { "stripeApi": { "id": "stripe-cred", "name": "Stripe API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.stripe.com/v1/checkout/sessions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "success_url", "value": "={{ $json.success_url || 'https://example.com/success' }}" },
+            { "name": "cancel_url", "value": "={{ $json.cancel_url || 'https://example.com/cancel' }}" },
+            { "name": "mode", "value": "={{ $json.mode || 'payment' }}" },
+            { "name": "line_items[0][price_data][currency]", "value": "={{ $json.currency || 'eur' }}" },
+            { "name": "line_items[0][price_data][product_data][name]", "value": "={{ $json.product_name }}" },
+            { "name": "line_items[0][price_data][unit_amount]", "value": "={{ $json.amount }}" },
+            { "name": "line_items[0][quantity]", "value": "={{ $json.quantity || 1 }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-checkout",
+      "name": "Create Checkout Session",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 600],
+      "credentials": { "httpHeaderAuth": { "id": "stripe-cred", "name": "Stripe API" } }
+    },
+    {
+      "parameters": {
+        "resource": "charge",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": "={{ $json.limit || 100 }}",
+        "filters": {}
+      },
+      "id": "list-charges",
+      "name": "List Charges",
+      "type": "n8n-nodes-base.stripe",
+      "typeVersion": 1,
+      "position": [750, 300],
+      "credentials": { "stripeApi": { "id": "stripe-cred", "name": "Stripe API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.stripe.com/v1/refunds",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "charge", "value": "={{ $json.charge_id }}" },
+            { "name": "amount", "value": "={{ $json.refund_amount }}" },
+            { "name": "reason", "value": "={{ $json.reason || 'requested_by_customer' }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-refund",
+      "name": "Create Refund",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 500],
+      "credentials": { "httpHeaderAuth": { "id": "stripe-cred", "name": "Stripe API" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process Stripe response\nconst response = $input.first().json;\n\nconst result = {\n  request_id: 'PAY-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  success: true,\n  type: 'payment'\n};\n\nif (response.id) {\n  result.stripe_id = response.id;\n  result.status = response.status;\n  result.amount = response.amount;\n  result.currency = response.currency;\n}\n\nif (response.url) {\n  result.type = 'checkout';\n  result.checkout_url = response.url;\n  result.session_id = response.id;\n}\n\nif (response.error) {\n  result.success = false;\n  result.error = response.error.message;\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "process-result",
+      "name": "Process Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 400]
+    }
+  ],
+  "connections": {
+    "Payment Request": {
+      "main": [[{ "node": "Create Checkout Session", "type": "main", "index": 0 }]]
+    },
+    "Create Charge": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Create Customer": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Create Checkout Session": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "List Charges": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Create Refund": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Process Result": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "stripe", "payments", "checkout", "commerce"]
+}

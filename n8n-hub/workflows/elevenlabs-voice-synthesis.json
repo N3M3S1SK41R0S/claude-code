@@ -1,0 +1,158 @@
+{
+  "name": "NEMESIS - ElevenLabs Voice Synthesis",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "voice-webhook",
+      "name": "Voice Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "voice-synthesis"
+    },
+    {
+      "parameters": {
+        "url": "https://api.elevenlabs.io/v1/voices",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "list-voices",
+      "name": "List Voices",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 200],
+      "credentials": { "httpHeaderAuth": { "id": "elevenlabs-cred", "name": "ElevenLabs API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.elevenlabs.io/v1/text-to-speech/{{ $json.voice_id || '21m00Tcm4TlvDq8ikWAM' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Accept", "value": "audio/mpeg" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ text: $json.text, model_id: $json.model || 'eleven_multilingual_v2', voice_settings: { stability: $json.stability || 0.5, similarity_boost: $json.similarity || 0.75, style: $json.style || 0, use_speaker_boost: $json.speaker_boost !== false } }) }}",
+        "options": { "timeout": 120000, "response": { "response": { "fullResponse": true } } }
+      },
+      "id": "text-to-speech",
+      "name": "Text to Speech",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 400],
+      "credentials": { "httpHeaderAuth": { "id": "elevenlabs-cred", "name": "ElevenLabs API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.elevenlabs.io/v1/speech-to-speech/{{ $json.voice_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "audio", "value": "={{ $json.audio_file }}" },
+            { "name": "model_id", "value": "eleven_english_sts_v2" }
+          ]
+        },
+        "options": { "timeout": 180000 }
+      },
+      "id": "speech-to-speech",
+      "name": "Speech to Speech",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 600],
+      "credentials": { "httpHeaderAuth": { "id": "elevenlabs-cred", "name": "ElevenLabs API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.elevenlabs.io/v1/voices/add",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "name", "value": "={{ $json.voice_name }}" },
+            { "name": "files", "value": "={{ $json.audio_samples }}" },
+            { "name": "description", "value": "={{ $json.description || 'Custom voice' }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "clone-voice",
+      "name": "Clone Voice",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 300],
+      "credentials": { "httpHeaderAuth": { "id": "elevenlabs-cred", "name": "ElevenLabs API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.elevenlabs.io/v1/user/subscription",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "check-quota",
+      "name": "Check Quota",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 500],
+      "credentials": { "httpHeaderAuth": { "id": "elevenlabs-cred", "name": "ElevenLabs API" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process voice synthesis result\nconst response = $input.first();\n\nconst result = {\n  request_id: 'VOICE-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  success: true,\n  type: 'audio/mpeg'\n};\n\nif (response.binary) {\n  result.audio_data = response.binary;\n  result.size_bytes = response.binary?.data?.length || 0;\n} else if (response.json?.voices) {\n  result.type = 'voice_list';\n  result.voices = response.json.voices.map(v => ({\n    id: v.voice_id,\n    name: v.name,\n    category: v.category,\n    labels: v.labels\n  }));\n} else if (response.json?.character_count_change_from) {\n  result.type = 'quota';\n  result.quota = {\n    used: response.json.character_count,\n    limit: response.json.character_limit,\n    remaining: response.json.character_limit - response.json.character_count\n  };\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "process-result",
+      "name": "Process Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Audio",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 400]
+    }
+  ],
+  "connections": {
+    "Voice Request": {
+      "main": [[{ "node": "Text to Speech", "type": "main", "index": 0 }]]
+    },
+    "List Voices": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Text to Speech": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Speech to Speech": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Clone Voice": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Check Quota": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Process Result": {
+      "main": [[{ "node": "Return Audio", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "elevenlabs", "voice", "tts", "audio"]
+}

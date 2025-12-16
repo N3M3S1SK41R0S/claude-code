@@ -1,0 +1,99 @@
+{
+  "name": "NEMESIS - Advanced Queue Manager",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "queue-webhook",
+      "name": "Queue Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "queue-manager"
+    },
+    {
+      "parameters": {
+        "functionCode": "// NEMESIS Queue Manager\n// Handles job queuing, prioritization, and rate limiting\n\nconst request = $input.first().json;\n\n// Initialize queue state (in memory - for demo)\nif (!global.nemesisQueue) {\n  global.nemesisQueue = {\n    jobs: [],\n    processing: [],\n    completed: [],\n    failed: [],\n    stats: { total: 0, processed: 0, failed: 0 },\n    config: {\n      maxConcurrent: 5,\n      rateLimit: { requests: 100, window: 60000 },\n      retryAttempts: 3,\n      retryDelay: 5000\n    }\n  };\n}\n\nconst queue = global.nemesisQueue;\nconst action = request.action || 'add';\n\nconst result = {\n  request_id: 'QUEUE-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  action: action,\n  success: true\n};\n\nswitch (action) {\n  case 'add':\n    const job = {\n      id: 'JOB-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9),\n      type: request.type || 'generic',\n      priority: request.priority || 5,\n      payload: request.payload || request.data,\n      callback_url: request.callback_url,\n      created_at: new Date().toISOString(),\n      status: 'pending',\n      attempts: 0\n    };\n    queue.jobs.push(job);\n    queue.jobs.sort((a, b) => a.priority - b.priority);\n    queue.stats.total++;\n    result.job = job;\n    result.position = queue.jobs.findIndex(j => j.id === job.id) + 1;\n    break;\n\n  case 'status':\n    const jobId = request.job_id;\n    let found = queue.jobs.find(j => j.id === jobId) ||\n                queue.processing.find(j => j.id === jobId) ||\n                queue.completed.find(j => j.id === jobId) ||\n                queue.failed.find(j => j.id === jobId);\n    if (found) {\n      result.job = found;\n    } else {\n      result.success = false;\n      result.error = 'Job not found';\n    }\n    break;\n\n  case 'list':\n    result.queued = queue.jobs.length;\n    result.processing = queue.processing.length;\n    result.completed = queue.completed.length;\n    result.failed = queue.failed.length;\n    result.jobs = queue.jobs.slice(0, request.limit || 50);\n    break;\n\n  case 'cancel':\n    const cancelIdx = queue.jobs.findIndex(j => j.id === request.job_id);\n    if (cancelIdx > -1) {\n      queue.jobs.splice(cancelIdx, 1);\n      result.cancelled = true;\n    } else {\n      result.success = false;\n      result.error = 'Job not found or already processing';\n    }\n    break;\n\n  case 'clear':\n    queue.jobs = [];\n    queue.completed = [];\n    queue.failed = [];\n    result.cleared = true;\n    break;\n\n  case 'stats':\n    result.stats = queue.stats;\n    result.config = queue.config;\n    result.current = {\n      queued: queue.jobs.length,\n      processing: queue.processing.length,\n      completed: queue.completed.length,\n      failed: queue.failed.length\n    };\n    break;\n\n  case 'process':\n    // Process next job in queue\n    if (queue.jobs.length > 0 && queue.processing.length < queue.config.maxConcurrent) {\n      const nextJob = queue.jobs.shift();\n      nextJob.status = 'processing';\n      nextJob.started_at = new Date().toISOString();\n      queue.processing.push(nextJob);\n      result.processing = nextJob;\n    } else {\n      result.message = queue.jobs.length === 0 ? 'Queue empty' : 'Max concurrent reached';\n    }\n    break;\n\n  default:\n    result.success = false;\n    result.error = 'Unknown action: ' + action;\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "queue-logic",
+      "name": "Queue Logic",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "seconds", "secondsInterval": 10 }] }
+      },
+      "id": "process-trigger",
+      "name": "Process Queue (10s)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process queued jobs\nif (!global.nemesisQueue) return [];\n\nconst queue = global.nemesisQueue;\nconst jobsToProcess = [];\n\nwhile (queue.jobs.length > 0 && queue.processing.length < queue.config.maxConcurrent) {\n  const job = queue.jobs.shift();\n  job.status = 'processing';\n  job.started_at = new Date().toISOString();\n  job.attempts++;\n  queue.processing.push(job);\n  jobsToProcess.push({ json: job });\n}\n\nif (jobsToProcess.length === 0) {\n  return [{ json: { message: 'No jobs to process', queue_size: queue.jobs.length } }];\n}\n\nreturn jobsToProcess;"
+      },
+      "id": "get-next-jobs",
+      "name": "Get Next Jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 600]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.callback_url || 'http://localhost:5678/webhook/relay' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ job_id: $json.id, type: $json.type, payload: $json.payload }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "execute-job",
+      "name": "Execute Job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 600],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// Update job status after execution\nconst result = $input.first().json;\nconst job = $('Get Next Jobs').first().json;\n\nif (!global.nemesisQueue) return [{ json: { error: 'Queue not initialized' } }];\n\nconst queue = global.nemesisQueue;\nconst jobIdx = queue.processing.findIndex(j => j.id === job.id);\n\nif (jobIdx > -1) {\n  const processedJob = queue.processing.splice(jobIdx, 1)[0];\n  processedJob.completed_at = new Date().toISOString();\n  processedJob.duration_ms = new Date(processedJob.completed_at) - new Date(processedJob.started_at);\n\n  if (result.error) {\n    processedJob.status = 'failed';\n    processedJob.error = result.error;\n    \n    if (processedJob.attempts < queue.config.retryAttempts) {\n      processedJob.status = 'pending';\n      queue.jobs.unshift(processedJob);\n    } else {\n      queue.failed.push(processedJob);\n      queue.stats.failed++;\n    }\n  } else {\n    processedJob.status = 'completed';\n    processedJob.result = result;\n    queue.completed.push(processedJob);\n    queue.stats.processed++;\n  }\n\n  return [{ json: processedJob }];\n}\n\nreturn [{ json: { error: 'Job not found in processing queue' } }];"
+      },
+      "id": "update-status",
+      "name": "Update Job Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 600]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [750, 400]
+    }
+  ],
+  "connections": {
+    "Queue Request": {
+      "main": [[{ "node": "Queue Logic", "type": "main", "index": 0 }]]
+    },
+    "Queue Logic": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Process Queue (10s)": {
+      "main": [[{ "node": "Get Next Jobs", "type": "main", "index": 0 }]]
+    },
+    "Get Next Jobs": {
+      "main": [[{ "node": "Execute Job", "type": "main", "index": 0 }]]
+    },
+    "Execute Job": {
+      "main": [[{ "node": "Update Job Status", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "queue", "jobs", "manager", "scheduling"]
+}

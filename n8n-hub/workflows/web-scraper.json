@@ -1,0 +1,105 @@
+{
+  "name": "NEMESIS - Web Scraper & Data Extractor",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "scraper-webhook",
+      "name": "Scrape Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "web-scraper"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 30000,
+          "allowUnauthorizedCerts": true,
+          "followRedirect": true
+        }
+      },
+      "id": "fetch-page",
+      "name": "Fetch Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Advanced HTML Parser\nconst cheerio = require('cheerio');\nconst html = $input.first().json.data || $input.first().json;\nconst config = $('Scrape Request').first().json;\n\nconst $ = cheerio.load(typeof html === 'string' ? html : JSON.stringify(html));\n\nconst result = {\n  request_id: 'SCRAPE-' + Date.now(),\n  url: config.url,\n  timestamp: new Date().toISOString(),\n  data: {}\n};\n\n// Extract based on selectors provided\nconst selectors = config.selectors || {};\n\nif (Object.keys(selectors).length > 0) {\n  for (const [name, selector] of Object.entries(selectors)) {\n    const elements = $(selector);\n    if (elements.length === 1) {\n      result.data[name] = elements.text().trim();\n    } else if (elements.length > 1) {\n      result.data[name] = [];\n      elements.each((i, el) => {\n        result.data[name].push($(el).text().trim());\n      });\n    }\n  }\n} else {\n  // Default extraction\n  result.data.title = $('title').text().trim();\n  result.data.description = $('meta[name=\"description\"]').attr('content') || '';\n  result.data.h1 = [];\n  $('h1').each((i, el) => result.data.h1.push($(el).text().trim()));\n  result.data.h2 = [];\n  $('h2').each((i, el) => result.data.h2.push($(el).text().trim()));\n  result.data.links = [];\n  $('a[href]').slice(0, 50).each((i, el) => {\n    result.data.links.push({\n      text: $(el).text().trim(),\n      href: $(el).attr('href')\n    });\n  });\n  result.data.images = [];\n  $('img[src]').slice(0, 20).each((i, el) => {\n    result.data.images.push({\n      alt: $(el).attr('alt') || '',\n      src: $(el).attr('src')\n    });\n  });\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "parse-html",
+      "name": "Parse HTML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract structured data (JSON-LD, OpenGraph, etc.)\nconst cheerio = require('cheerio');\nconst html = $input.first().json.data || '';\nconst $ = cheerio.load(html);\n\nconst structured = {\n  jsonld: [],\n  opengraph: {},\n  twitter: {},\n  meta: {}\n};\n\n// JSON-LD\n$('script[type=\"application/ld+json\"]').each((i, el) => {\n  try {\n    structured.jsonld.push(JSON.parse($(el).html()));\n  } catch(e) {}\n});\n\n// OpenGraph\n$('meta[property^=\"og:\"]').each((i, el) => {\n  const prop = $(el).attr('property').replace('og:', '');\n  structured.opengraph[prop] = $(el).attr('content');\n});\n\n// Twitter Cards\n$('meta[name^=\"twitter:\"]').each((i, el) => {\n  const name = $(el).attr('name').replace('twitter:', '');\n  structured.twitter[name] = $(el).attr('content');\n});\n\n// Other meta\n$('meta[name]').each((i, el) => {\n  const name = $(el).attr('name');\n  if (!name.startsWith('twitter:')) {\n    structured.meta[name] = $(el).attr('content');\n  }\n});\n\nreturn [{ json: structured }];"
+      },
+      "id": "extract-structured",
+      "name": "Extract Structured Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 500]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Multi-page scraper\nconst config = $input.first().json;\nconst urls = config.urls || [config.url];\n\nconst requests = urls.map((url, i) => ({\n  json: {\n    url,\n    index: i,\n    total: urls.length,\n    selectors: config.selectors || {}\n  }\n}));\n\nreturn requests;"
+      },
+      "id": "multi-page",
+      "name": "Multi-Page Setup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Aggregate scraping results\nconst items = $input.all();\n\nconst aggregated = {\n  request_id: 'SCRAPE-BATCH-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  total_pages: items.length,\n  success: 0,\n  failed: 0,\n  results: []\n};\n\nfor (const item of items) {\n  if (item.json.error) {\n    aggregated.failed++;\n  } else {\n    aggregated.success++;\n  }\n  aggregated.results.push(item.json);\n}\n\nreturn [{ json: aggregated }];"
+      },
+      "id": "aggregate",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Data",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 400]
+    }
+  ],
+  "connections": {
+    "Scrape Request": {
+      "main": [[{ "node": "Fetch Page", "type": "main", "index": 0 }]]
+    },
+    "Fetch Page": {
+      "main": [[
+        { "node": "Parse HTML", "type": "main", "index": 0 },
+        { "node": "Extract Structured Data", "type": "main", "index": 0 }
+      ]]
+    },
+    "Parse HTML": {
+      "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]]
+    },
+    "Extract Structured Data": {
+      "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]]
+    },
+    "Multi-Page Setup": {
+      "main": [[{ "node": "Fetch Page", "type": "main", "index": 0 }]]
+    },
+    "Aggregate Results": {
+      "main": [[{ "node": "Return Data", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "scraper", "web", "extraction", "data"]
+}
