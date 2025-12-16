@@ -1,0 +1,241 @@
+{
+  "name": "NEMESIS ORCHESTRATOR - Central Command",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "cmd-webhook",
+      "name": "Command Center",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 500],
+      "webhookId": "orchestrator"
+    },
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "minutes", "minutesInterval": 1 }] }
+      },
+      "id": "heartbeat",
+      "name": "Heartbeat 1min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 700]
+    },
+    {
+      "parameters": {
+        "functionCode": "// NEMESIS ORCHESTRATOR - Central Command\n// Master controller for all workflows\n\nconst input = $input.first().json;\nconst isHeartbeat = !input.command;\n\nconst orchestrator = {\n  request_id: 'CMD-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  type: isHeartbeat ? 'heartbeat' : 'command',\n  command: input.command || 'status',\n  params: input.params || {},\n  source: input.source || 'internal',\n  \n  // Available commands\n  commands: {\n    status: { handler: 'check_all_systems', description: 'Get system status' },\n    sync: { handler: 'trigger_sync', description: 'Sync all platforms' },\n    backup: { handler: 'trigger_backup', description: 'Run backup' },\n    test: { handler: 'run_tests', description: 'Test all connections' },\n    report: { handler: 'generate_report', description: 'Generate full report' },\n    notify: { handler: 'send_notification', description: 'Send notification' },\n    ai: { handler: 'ai_generate', description: 'Generate AI content' },\n    etl: { handler: 'run_etl', description: 'Run ETL pipeline' }\n  },\n  \n  // All webhook endpoints\n  endpoints: {\n    hub_master: 'http://localhost:5678/webhook/nemesis-hub-master',\n    dashboard: 'http://localhost:5678/webhook/dashboard',\n    sync: 'http://localhost:5678/webhook/unified-sync',\n    backup: 'http://localhost:5678/webhook/backup',\n    test: 'http://localhost:5678/webhook/connection-test',\n    error: 'http://localhost:5678/webhook/error-handler',\n    relay: 'http://localhost:5678/webhook/relay',\n    mcp: 'http://localhost:5678/webhook/mcp-bridge',\n    etl: 'http://localhost:5678/webhook/etl-pipeline',\n    ai: 'http://localhost:5678/webhook/ai-content',\n    social: 'http://localhost:5678/webhook/social-post',\n    notion: 'http://localhost:5678/webhook/notion-sync',\n    discord: 'http://localhost:5678/webhook/discord-bot',\n    github: 'http://localhost:5678/webhook/github-events',\n    heygen: 'http://localhost:5678/webhook/heygen-video',\n    midjourney: 'http://localhost:5678/webhook/midjourney-gen',\n    bubble: 'http://localhost:5678/webhook/bubble-connector',\n    make: 'http://localhost:5678/webhook/make-zapier-in',\n    google_ai: 'http://localhost:5678/webhook/google-ai-studio'\n  }\n};\n\nreturn [{ json: orchestrator }];"
+      },
+      "id": "parse-command",
+      "name": "Parse Command",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 600]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.command }}", "operation": "equals", "value2": "status" }
+          ]
+        }
+      },
+      "id": "route-status",
+      "name": "Status?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.command }}", "operation": "equals", "value2": "sync" }
+          ]
+        }
+      },
+      "id": "route-sync",
+      "name": "Sync?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.command }}", "operation": "equals", "value2": "backup" }
+          ]
+        }
+      },
+      "id": "route-backup",
+      "name": "Backup?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 700]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.command }}", "operation": "equals", "value2": "test" }
+          ]
+        }
+      },
+      "id": "route-test",
+      "name": "Test?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 900]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.endpoints.dashboard }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"action\": \"get_status\" }",
+        "options": { "timeout": 10000 }
+      },
+      "id": "call-status",
+      "name": "Get Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 250],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.endpoints.sync }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ mode: $json.params.mode || 'full', force: $json.params.force || false }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "call-sync",
+      "name": "Trigger Sync",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 450],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.endpoints.backup }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"type\": \"full\" }",
+        "options": { "timeout": 120000 }
+      },
+      "id": "call-backup",
+      "name": "Trigger Backup",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 650],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.endpoints.test }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"full_test\": true }",
+        "options": { "timeout": 60000 }
+      },
+      "id": "call-test",
+      "name": "Run Tests",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 850],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// System Status Check (Heartbeat)\nconst orchestrator = $('Parse Command').first().json;\n\nconst systemStatus = {\n  orchestrator_id: orchestrator.request_id,\n  timestamp: new Date().toISOString(),\n  type: 'heartbeat',\n  status: 'operational',\n  uptime: process.uptime(),\n  memory: process.memoryUsage(),\n  endpoints_count: Object.keys(orchestrator.endpoints).length,\n  commands_available: Object.keys(orchestrator.commands).length,\n  message: 'NEMESIS Hub operational'\n};\n\nreturn [{ json: systemStatus }];"
+      },
+      "id": "heartbeat-check",
+      "name": "Heartbeat Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 1050]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Aggregate all responses\nconst items = $input.all();\nconst orchestrator = $('Parse Command').first().json;\n\nconst response = {\n  request_id: orchestrator.request_id,\n  command: orchestrator.command,\n  completed_at: new Date().toISOString(),\n  success: true,\n  results: []\n};\n\nfor (const item of items) {\n  if (item.json.error) {\n    response.success = false;\n    response.results.push({ status: 'error', error: item.json.error });\n  } else {\n    response.results.push({ status: 'ok', data: item.json });\n  }\n}\n\nreturn [{ json: response }];"
+      },
+      "id": "aggregate",
+      "name": "Aggregate Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 600]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1500, 600]
+    }
+  ],
+  "connections": {
+    "Command Center": {
+      "main": [[{ "node": "Parse Command", "type": "main", "index": 0 }]]
+    },
+    "Heartbeat 1min": {
+      "main": [[{ "node": "Parse Command", "type": "main", "index": 0 }]]
+    },
+    "Parse Command": {
+      "main": [[
+        { "node": "Status?", "type": "main", "index": 0 },
+        { "node": "Sync?", "type": "main", "index": 0 },
+        { "node": "Backup?", "type": "main", "index": 0 },
+        { "node": "Test?", "type": "main", "index": 0 }
+      ]]
+    },
+    "Status?": {
+      "main": [
+        [{ "node": "Get Status", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Sync?": {
+      "main": [
+        [{ "node": "Trigger Sync", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Backup?": {
+      "main": [
+        [{ "node": "Trigger Backup", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Test?": {
+      "main": [
+        [{ "node": "Run Tests", "type": "main", "index": 0 }],
+        [{ "node": "Heartbeat Check", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Status": {
+      "main": [[{ "node": "Aggregate Response", "type": "main", "index": 0 }]]
+    },
+    "Trigger Sync": {
+      "main": [[{ "node": "Aggregate Response", "type": "main", "index": 0 }]]
+    },
+    "Trigger Backup": {
+      "main": [[{ "node": "Aggregate Response", "type": "main", "index": 0 }]]
+    },
+    "Run Tests": {
+      "main": [[{ "node": "Aggregate Response", "type": "main", "index": 0 }]]
+    },
+    "Heartbeat Check": {
+      "main": [[{ "node": "Aggregate Response", "type": "main", "index": 0 }]]
+    },
+    "Aggregate Response": {
+      "main": [[{ "node": "Return Response", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "orchestrator", "master", "command"]
+}

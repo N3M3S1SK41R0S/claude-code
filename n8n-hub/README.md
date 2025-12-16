@@ -1,6 +1,14 @@
-# NEMESIS HUB - Centre de Commande Multi-Plateformes
+# NEMESIS HUB v2.0 - Centre de Commande Multi-Plateformes
 
-Hub n8n complet pour connecter et automatiser toutes vos plateformes.
+Hub n8n complet pour connecter et automatiser toutes vos plateformes - **20 workflows intégrés**.
+
+## Installation Ultra-Rapide (1 clic)
+
+```batch
+NEMESIS-ULTIMATE-INSTALLER.bat
+```
+
+C'est tout ! Le script fait TOUT automatiquement.
 
 ## Plateformes Supportées
 
@@ -15,103 +23,105 @@ Hub n8n complet pour connecter et automatiser toutes vos plateformes.
 | **Bubble.io** | No-Code | CRUD, Workflows |
 | **Make** | Automatisation | Scénarios, Webhooks |
 | **Zapier** | Automatisation | Zaps, Webhooks |
+| **Slack** | Communication | Messages, Channels |
 
-## Installation Rapide
-
-### Windows (Double-clic)
-```
-NEMESIS-HUB-SETUP.bat
-```
-
-### PowerShell (Admin)
-```powershell
-.\NEMESIS-HUB-SETUP.ps1
-```
-
-## Structure des Fichiers
+## Structure du Hub
 
 ```
 n8n-hub/
-├── NEMESIS-HUB-SETUP.bat       # Installateur Windows
-├── NEMESIS-HUB-SETUP.ps1       # Installateur PowerShell
-├── README.md                    # Ce fichier
+├── NEMESIS-ULTIMATE-INSTALLER.bat  # Installation 100% automatique
+├── NEMESIS-HUB-SETUP.bat           # Installateur standard
+├── NEMESIS-HUB-SETUP.ps1           # Version PowerShell
+├── README.md
 ├── config/
-│   └── credentials-template.json   # Template des clés API
-└── workflows/
-    ├── NEMESIS-HUB-MASTER.json        # Orchestrateur central
-    ├── google-ai-studio-connector.json # Google Gemini
-    ├── notion-sync-hub.json           # Notion
-    ├── discord-bot-automation.json    # Discord
-    ├── github-integration.json        # GitHub
-    ├── heygen-video-generator.json    # HeyGen
-    ├── midjourney-automation.json     # Midjourney
-    ├── bubble-connector.json          # Bubble.io
-    └── make-zapier-bridge.json        # Make/Zapier
+│   ├── .env                        # Variables environnement (généré)
+│   └── credentials-template.json   # Template clés API
+└── workflows/                      # 20 workflows
+    ├── NEMESIS-ORCHESTRATOR.json       # Commande centrale
+    ├── NEMESIS-HUB-MASTER.json         # Hub principal
+    ├── unified-sync-controller.json    # Sync auto /30min
+    ├── nemesis-dashboard.json          # Monitoring temps réel
+    ├── connection-validator.json       # Tests API horaires
+    ├── error-handler-global.json       # Gestion erreurs + retry
+    ├── backup-recovery-system.json     # Backup quotidien
+    ├── webhook-relay-system.json       # Routeur webhooks
+    ├── claude-mcp-bridge.json          # Bridge MCP Claude
+    ├── data-pipeline-etl.json          # ETL données
+    ├── ai-content-pipeline.json        # Génération IA
+    ├── social-media-automation.json    # Cross-post social
+    ├── google-ai-studio-connector.json # API Gemini
+    ├── notion-sync-hub.json            # Sync Notion
+    ├── discord-bot-automation.json     # Bot Discord
+    ├── github-integration.json         # CI/CD GitHub
+    ├── heygen-video-generator.json     # Vidéos HeyGen
+    ├── midjourney-automation.json      # Images Midjourney
+    ├── bubble-connector.json           # Apps Bubble
+    └── make-zapier-bridge.json         # Bridge Make/Zapier
 ```
 
-## Configuration des Clés API
+## Webhooks Disponibles (20)
 
-1. Copiez `config/credentials-template.json` vers `credentials.json`
-2. Remplissez vos clés API
-3. Importez dans n8n
+| Webhook | URL | Fonction |
+|---------|-----|----------|
+| **orchestrator** | `/webhook/orchestrator` | Commande centrale |
+| **nemesis-hub-master** | `/webhook/nemesis-hub-master` | Hub principal |
+| **dashboard** | `/webhook/dashboard` | Monitoring |
+| **unified-sync** | `/webhook/unified-sync` | Sync plateformes |
+| **backup** | `/webhook/backup` | Backup manuel |
+| **connection-test** | `/webhook/connection-test` | Test APIs |
+| **error-handler** | `/webhook/error-handler` | Erreurs |
+| **relay** | `/webhook/relay` | Routeur |
+| **mcp-bridge** | `/webhook/mcp-bridge` | Claude MCP |
+| **etl-pipeline** | `/webhook/etl-pipeline` | ETL |
+| **ai-content** | `/webhook/ai-content` | Gen IA |
+| **social-post** | `/webhook/social-post` | Social media |
+| **notion-sync** | `/webhook/notion-sync` | Notion |
+| **discord-bot** | `/webhook/discord-bot` | Discord |
+| **github-events** | `/webhook/github-events` | GitHub |
+| **heygen-video** | `/webhook/heygen-video` | HeyGen |
+| **midjourney-gen** | `/webhook/midjourney-gen` | Midjourney |
+| **bubble-connector** | `/webhook/bubble-connector` | Bubble |
+| **make-zapier-in** | `/webhook/make-zapier-in` | Make/Zapier |
+| **google-ai-studio** | `/webhook/google-ai-studio` | Gemini |
 
-### Obtenir les Clés API
+## Commandes Orchestrator
 
-| Plateforme | URL |
-|------------|-----|
-| Google AI | https://aistudio.google.com/app/apikey |
-| Notion | https://www.notion.so/my-integrations |
-| Discord | https://discord.com/developers/applications |
-| GitHub | https://github.com/settings/tokens |
-| HeyGen | https://app.heygen.com/settings |
-| Midjourney | https://www.goapi.ai (proxy) |
-| Bubble | Settings > API dans votre app |
-| Make | Profile > API |
+Envoyez une requête POST à `http://localhost:5678/webhook/orchestrator` :
 
-## Utilisation
-
-### Démarrer le Hub
-```batch
-NEMESIS-HUB-Start.bat
+```json
+{ "command": "status" }   // Statut système
+{ "command": "sync" }     // Sync toutes plateformes
+{ "command": "backup" }   // Lancer backup
+{ "command": "test" }     // Tester connexions
 ```
 
-### Importer les Workflows
-1. Ouvrez http://localhost:5678
-2. Workflows > Import from File
-3. Sélectionnez les fichiers JSON
+## Automatisations Intégrées
 
-### Webhooks Disponibles
+- **Heartbeat** : Vérification système chaque minute
+- **Health Check** : Test APIs toutes les heures
+- **Sync** : Synchronisation toutes les 30 minutes
+- **Backup** : Sauvegarde quotidienne automatique
+- **Error Retry** : Retry automatique avec backoff exponentiel
+- **Discord Alerts** : Notifications temps réel
 
-| Workflow | Webhook URL |
-|----------|-------------|
-| Hub Master | http://localhost:5678/webhook/nemesis-hub-master |
-| Google AI | http://localhost:5678/webhook/google-ai-studio |
-| Notion | http://localhost:5678/webhook/notion-sync |
-| Discord | http://localhost:5678/webhook/discord-bot |
-| GitHub | http://localhost:5678/webhook/github-events |
-| HeyGen | http://localhost:5678/webhook/heygen-video |
-| Midjourney | http://localhost:5678/webhook/midjourney-gen |
-| Bubble | http://localhost:5678/webhook/bubble-connector |
-| Make/Zapier | http://localhost:5678/webhook/make-zapier-in |
+## Configuration
 
-## Serveurs MCP Claude Desktop
+### 1. Variables d'environnement
+Éditez `config/.env` avec vos clés API.
 
-Après installation, Claude Desktop aura accès à :
+### 2. Credentials n8n
+- Ouvrez http://localhost:5678
+- Settings > Credentials > Add
+- Ajoutez chaque service
 
-- **n8n** - Automatisation workflows
-- **filesystem** - Accès fichiers locaux
-- **fetch** - Requêtes HTTP
-- **memory** - Mémoire persistante
-- **github** - Repos et issues
-- **google-drive** - Documents Google
-- **slack** - Messages Slack
-- **notion** - Bases Notion
-- **sequential-thinking** - Raisonnement avancé
+### 3. Activer les workflows
+- Ouvrez chaque workflow
+- Toggle "Active" ON
 
 ## Support
 
-- n8n Docs: https://docs.n8n.io
-- MCP Protocol: https://modelcontextprotocol.io
+- n8n: https://docs.n8n.io
+- MCP: https://modelcontextprotocol.io
 
 ---
-**NEMESIS HUB v1.0** - Automatisation Multi-Plateformes
+**NEMESIS HUB v2.0** - 20 workflows - 10 plateformes - 100% automatisé
