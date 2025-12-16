@@ -1,0 +1,136 @@
+{
+  "name": "NEMESIS - Google Sheets Sync Hub",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "sheets-webhook",
+      "name": "Sheets Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "google-sheets"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "sheetId": { "__rl": true, "mode": "id", "value": "={{ $json.spreadsheet_id }}" },
+        "range": "={{ $json.range || 'A:Z' }}",
+        "options": { "valueRenderMode": "FORMATTED_VALUE" }
+      },
+      "id": "read-sheet",
+      "name": "Read Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [500, 200],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "gsheets-cred", "name": "Google Sheets OAuth" } }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "sheetId": { "__rl": true, "mode": "id", "value": "={{ $json.spreadsheet_id }}" },
+        "range": "={{ $json.sheet_name || 'Sheet1' }}",
+        "options": { "valueInputMode": "USER_ENTERED" }
+      },
+      "id": "append-rows",
+      "name": "Append Rows",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [500, 400],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "gsheets-cred", "name": "Google Sheets OAuth" } }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "sheetId": { "__rl": true, "mode": "id", "value": "={{ $json.spreadsheet_id }}" },
+        "range": "={{ $json.range }}",
+        "options": { "valueInputMode": "USER_ENTERED" }
+      },
+      "id": "update-cells",
+      "name": "Update Cells",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [500, 600],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "gsheets-cred", "name": "Google Sheets OAuth" } }
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "sheetId": { "__rl": true, "mode": "id", "value": "={{ $json.spreadsheet_id }}" },
+        "range": "={{ $json.range }}",
+        "options": {}
+      },
+      "id": "clear-range",
+      "name": "Clear Range",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [750, 300],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "gsheets-cred", "name": "Google Sheets OAuth" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Batch operations for Google Sheets\nconst input = $input.first().json;\nconst operation = input.operation || 'read';\n\nconst batch = {\n  request_id: 'SHEETS-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  spreadsheet_id: input.spreadsheet_id,\n  operation: operation,\n  success: true\n};\n\nif (operation === 'batch_read') {\n  batch.ranges = input.ranges || [];\n  batch.results = [];\n}\n\nif (operation === 'batch_update') {\n  batch.updates = input.updates || [];\n  batch.updated_count = 0;\n}\n\nif (operation === 'sync_to_db') {\n  batch.target = input.target_table;\n  batch.rows_processed = 0;\n}\n\nreturn [{ json: batch }];"
+      },
+      "id": "batch-ops",
+      "name": "Batch Operations",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 500]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Transform sheet data to different formats\nconst data = $input.first().json;\nconst format = $('Sheets Request').first().json.output_format || 'json';\n\nconst result = {\n  request_id: 'SHEETS-TRANSFORM-' + Date.now(),\n  format: format,\n  row_count: 0,\n  data: null\n};\n\nif (Array.isArray(data)) {\n  result.row_count = data.length;\n  \n  switch(format) {\n    case 'csv':\n      if (data.length > 0) {\n        const headers = Object.keys(data[0]);\n        const csv = [headers.join(',')];\n        for (const row of data) {\n          csv.push(headers.map(h => JSON.stringify(row[h] || '')).join(','));\n        }\n        result.data = csv.join('\\n');\n      }\n      break;\n    case 'array':\n      result.data = data.map(row => Object.values(row));\n      break;\n    case 'records':\n      result.data = data;\n      break;\n    default:\n      result.data = data;\n  }\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "transform-data",
+      "name": "Transform Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Create new spreadsheet\nconst config = $input.first().json;\n\nreturn [{\n  json: {\n    title: config.title || 'NEMESIS Export - ' + new Date().toISOString().split('T')[0],\n    sheets: config.sheets || ['Sheet1'],\n    data: config.initial_data || []\n  }\n}];"
+      },
+      "id": "create-sheet",
+      "name": "Create Spreadsheet Setup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 800]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 400]
+    }
+  ],
+  "connections": {
+    "Sheets Request": {
+      "main": [[{ "node": "Read Sheet", "type": "main", "index": 0 }]]
+    },
+    "Read Sheet": {
+      "main": [[{ "node": "Transform Data", "type": "main", "index": 0 }]]
+    },
+    "Append Rows": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Update Cells": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Clear Range": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Batch Operations": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Transform Data": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "google", "sheets", "spreadsheet", "sync"]
+}

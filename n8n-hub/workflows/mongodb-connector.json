@@ -1,0 +1,158 @@
+{
+  "name": "NEMESIS - MongoDB/PostgreSQL Database Connector",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "db-webhook",
+      "name": "Database Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "database"
+    },
+    {
+      "parameters": {
+        "operation": "find",
+        "collection": "={{ $json.collection }}",
+        "query": "={{ $json.query || '{}' }}",
+        "options": {
+          "limit": "={{ $json.limit || 100 }}",
+          "skip": "={{ $json.skip || 0 }}",
+          "sort": "={{ $json.sort || '{}' }}"
+        }
+      },
+      "id": "mongo-find",
+      "name": "MongoDB Find",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [500, 200],
+      "credentials": { "mongoDb": { "id": "mongo-cred", "name": "MongoDB" } }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "={{ $json.collection }}",
+        "fields": "={{ JSON.stringify($json.document) }}"
+      },
+      "id": "mongo-insert",
+      "name": "MongoDB Insert",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [500, 400],
+      "credentials": { "mongoDb": { "id": "mongo-cred", "name": "MongoDB" } }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "collection": "={{ $json.collection }}",
+        "updateKey": "_id",
+        "fields": "={{ JSON.stringify($json.update) }}"
+      },
+      "id": "mongo-update",
+      "name": "MongoDB Update",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [500, 600],
+      "credentials": { "mongoDb": { "id": "mongo-cred", "name": "MongoDB" } }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "collection": "={{ $json.collection }}",
+        "query": "={{ JSON.stringify($json.filter) }}"
+      },
+      "id": "mongo-delete",
+      "name": "MongoDB Delete",
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1,
+      "position": [750, 200],
+      "credentials": { "mongoDb": { "id": "mongo-cred", "name": "MongoDB" } }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "={{ $json.sql }}",
+        "options": {}
+      },
+      "id": "postgres-query",
+      "name": "PostgreSQL Query",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [750, 400],
+      "credentials": { "postgres": { "id": "postgres-cred", "name": "PostgreSQL" } }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "={{ $json.table }}",
+        "columns": "={{ $json.columns }}",
+        "options": { "returnFields": "*" }
+      },
+      "id": "postgres-insert",
+      "name": "PostgreSQL Insert",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [750, 600],
+      "credentials": { "postgres": { "id": "postgres-cred", "name": "PostgreSQL" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Database aggregation pipeline\nconst config = $input.first().json;\n\nconst pipeline = {\n  request_id: 'DB-AGG-' + Date.now(),\n  collection: config.collection,\n  stages: []\n};\n\nif (config.match) {\n  pipeline.stages.push({ $match: config.match });\n}\n\nif (config.group) {\n  pipeline.stages.push({ $group: config.group });\n}\n\nif (config.sort) {\n  pipeline.stages.push({ $sort: config.sort });\n}\n\nif (config.limit) {\n  pipeline.stages.push({ $limit: config.limit });\n}\n\nif (config.project) {\n  pipeline.stages.push({ $project: config.project });\n}\n\nreturn [{ json: pipeline }];"
+      },
+      "id": "aggregation",
+      "name": "Build Aggregation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 800]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process database response\nconst response = $input.first().json;\nconst request = $('Database Request').first().json;\n\nconst result = {\n  request_id: 'DB-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  database: request.database || 'mongodb',\n  operation: request.operation,\n  success: true\n};\n\nif (Array.isArray(response)) {\n  result.count = response.length;\n  result.data = response;\n} else if (response.acknowledged !== undefined) {\n  result.acknowledged = response.acknowledged;\n  result.modified_count = response.modifiedCount;\n  result.inserted_id = response.insertedId;\n} else if (response.rowCount !== undefined) {\n  result.row_count = response.rowCount;\n  result.rows = response.rows;\n} else {\n  result.data = response;\n}\n\nif (response.error) {\n  result.success = false;\n  result.error = response.error;\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "process-result",
+      "name": "Process Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 400]
+    }
+  ],
+  "connections": {
+    "Database Request": {
+      "main": [[{ "node": "MongoDB Find", "type": "main", "index": 0 }]]
+    },
+    "MongoDB Find": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "MongoDB Insert": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "MongoDB Update": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "MongoDB Delete": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "PostgreSQL Query": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "PostgreSQL Insert": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Process Result": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "mongodb", "postgresql", "database", "nosql", "sql"]
+}

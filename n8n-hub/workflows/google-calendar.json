@@ -1,0 +1,146 @@
+{
+  "name": "NEMESIS - Google Calendar Integration",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "calendar-webhook",
+      "name": "Calendar Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "google-calendar"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "calendarId": "={{ $json.calendar_id || 'primary' }}",
+        "returnAll": false,
+        "limit": "={{ $json.limit || 50 }}",
+        "options": {
+          "timeMin": "={{ $json.start_date || new Date().toISOString() }}",
+          "timeMax": "={{ $json.end_date }}",
+          "singleEvents": true,
+          "orderBy": "startTime"
+        }
+      },
+      "id": "list-events",
+      "name": "List Events",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [500, 200],
+      "credentials": { "googleCalendarOAuth2Api": { "id": "gcal-cred", "name": "Google Calendar OAuth" } }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "calendarId": "={{ $json.calendar_id || 'primary' }}",
+        "start": "={{ $json.start }}",
+        "end": "={{ $json.end }}",
+        "additionalFields": {
+          "summary": "={{ $json.title }}",
+          "description": "={{ $json.description }}",
+          "location": "={{ $json.location }}",
+          "colorId": "={{ $json.color }}",
+          "attendees": "={{ $json.attendees }}",
+          "sendUpdates": "all"
+        }
+      },
+      "id": "create-event",
+      "name": "Create Event",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [500, 400],
+      "credentials": { "googleCalendarOAuth2Api": { "id": "gcal-cred", "name": "Google Calendar OAuth" } }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "calendarId": "={{ $json.calendar_id || 'primary' }}",
+        "eventId": "={{ $json.event_id }}",
+        "updateFields": {
+          "summary": "={{ $json.title }}",
+          "description": "={{ $json.description }}",
+          "start": "={{ $json.start }}",
+          "end": "={{ $json.end }}",
+          "location": "={{ $json.location }}"
+        }
+      },
+      "id": "update-event",
+      "name": "Update Event",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [500, 600],
+      "credentials": { "googleCalendarOAuth2Api": { "id": "gcal-cred", "name": "Google Calendar OAuth" } }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "calendarId": "={{ $json.calendar_id || 'primary' }}",
+        "eventId": "={{ $json.event_id }}",
+        "options": { "sendUpdates": "all" }
+      },
+      "id": "delete-event",
+      "name": "Delete Event",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [750, 200],
+      "credentials": { "googleCalendarOAuth2Api": { "id": "gcal-cred", "name": "Google Calendar OAuth" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Find free/busy time slots\nconst config = $input.first().json;\nconst events = $('List Events').all().map(e => e.json);\n\nconst startDate = new Date(config.start_date || new Date());\nconst endDate = new Date(config.end_date || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));\nconst slotDuration = config.slot_duration || 60; // minutes\n\nconst busySlots = events.map(e => ({\n  start: new Date(e.start?.dateTime || e.start?.date),\n  end: new Date(e.end?.dateTime || e.end?.date)\n}));\n\nconst freeSlots = [];\nlet current = new Date(startDate);\n\n// Working hours: 9 AM to 6 PM\nwhile (current < endDate) {\n  const hour = current.getHours();\n  if (hour >= 9 && hour < 18) {\n    const slotEnd = new Date(current.getTime() + slotDuration * 60000);\n    const isBusy = busySlots.some(b => \n      (current >= b.start && current < b.end) ||\n      (slotEnd > b.start && slotEnd <= b.end)\n    );\n    \n    if (!isBusy && slotEnd.getHours() <= 18) {\n      freeSlots.push({\n        start: current.toISOString(),\n        end: slotEnd.toISOString(),\n        duration: slotDuration\n      });\n    }\n  }\n  current = new Date(current.getTime() + 30 * 60000); // 30 min increments\n}\n\nreturn [{ json: {\n  request_id: 'CAL-FREE-' + Date.now(),\n  free_slots: freeSlots.slice(0, 20),\n  total_slots: freeSlots.length\n}}];"
+      },
+      "id": "find-free",
+      "name": "Find Free Slots",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Sync with external calendar (ICS)\nconst config = $input.first().json;\n\nconst result = {\n  request_id: 'CAL-SYNC-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  source: config.ics_url || 'google',\n  action: config.sync_action || 'import',\n  events_processed: 0\n};\n\n// ICS format template\nif (config.export) {\n  const events = $('List Events').all().map(e => e.json);\n  let ics = 'BEGIN:VCALENDAR\\nVERSION:2.0\\nPRODID:-//NEMESIS//Calendar//EN\\n';\n  \n  for (const event of events) {\n    ics += 'BEGIN:VEVENT\\n';\n    ics += `UID:${event.id}@nemesis\\n`;\n    ics += `SUMMARY:${event.summary || ''}\\n`;\n    ics += `DTSTART:${event.start?.dateTime?.replace(/[-:]/g, '').split('.')[0]}Z\\n`;\n    ics += `DTEND:${event.end?.dateTime?.replace(/[-:]/g, '').split('.')[0]}Z\\n`;\n    ics += 'END:VEVENT\\n';\n    result.events_processed++;\n  }\n  \n  ics += 'END:VCALENDAR';\n  result.ics_data = ics;\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "sync-calendar",
+      "name": "Sync Calendar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 600]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 400]
+    }
+  ],
+  "connections": {
+    "Calendar Request": {
+      "main": [[{ "node": "List Events", "type": "main", "index": 0 }]]
+    },
+    "List Events": {
+      "main": [[{ "node": "Find Free Slots", "type": "main", "index": 0 }]]
+    },
+    "Create Event": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Update Event": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Delete Event": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Find Free Slots": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Sync Calendar": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "google", "calendar", "events", "scheduling"]
+}

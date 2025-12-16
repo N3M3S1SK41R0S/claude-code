@@ -1,0 +1,139 @@
+{
+  "name": "NEMESIS - Twilio SMS & Voice Automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "sms-webhook",
+      "name": "SMS Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "twilio-sms"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "from": "={{ $env.TWILIO_PHONE_NUMBER }}",
+        "to": "={{ $json.to }}",
+        "message": "={{ $json.message }}"
+      },
+      "id": "send-sms",
+      "name": "Send SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [500, 200],
+      "credentials": { "twilioApi": { "id": "twilio-cred", "name": "Twilio" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_ACCOUNT_SID }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "PageSize", "value": "={{ $json.limit || 50 }}" },
+            { "name": "DateSent>", "value": "={{ $json.from_date }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "list-messages",
+      "name": "List Messages",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 400],
+      "credentials": { "httpBasicAuth": { "id": "twilio-basic", "name": "Twilio Basic Auth" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Bulk SMS sender\nconst config = $input.first().json;\nconst recipients = config.recipients || [];\nconst message = config.message;\n\nconst batch = {\n  request_id: 'SMS-BULK-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  total: recipients.length,\n  messages: []\n};\n\nfor (const recipient of recipients) {\n  batch.messages.push({\n    to: recipient.phone || recipient,\n    message: message.replace(/{{name}}/g, recipient.name || ''),\n    status: 'queued'\n  });\n}\n\nreturn [{ json: batch }];"
+      },
+      "id": "bulk-sms",
+      "name": "Bulk SMS Setup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 600]
+    },
+    {
+      "parameters": {
+        "url": "https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_ACCOUNT_SID }}/Calls.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "From", "value": "={{ $env.TWILIO_PHONE_NUMBER }}" },
+            { "name": "To", "value": "={{ $json.to }}" },
+            { "name": "Url", "value": "={{ $json.twiml_url }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "make-call",
+      "name": "Make Voice Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 200],
+      "credentials": { "httpBasicAuth": { "id": "twilio-basic", "name": "Twilio Basic Auth" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate TwiML for voice calls\nconst config = $input.first().json;\n\nlet twiml = '<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response>';\n\nif (config.say) {\n  const voice = config.voice || 'alice';\n  const language = config.language || 'en-US';\n  twiml += `<Say voice=\"${voice}\" language=\"${language}\">${config.say}</Say>`;\n}\n\nif (config.play) {\n  twiml += `<Play>${config.play}</Play>`;\n}\n\nif (config.gather) {\n  twiml += `<Gather input=\"${config.gather.input || 'dtmf'}\" timeout=\"${config.gather.timeout || 5}\">`;\n  if (config.gather.say) {\n    twiml += `<Say>${config.gather.say}</Say>`;\n  }\n  twiml += '</Gather>';\n}\n\nif (config.record) {\n  twiml += `<Record maxLength=\"${config.record.max_length || 60}\" />`;\n}\n\nif (config.dial) {\n  twiml += `<Dial>${config.dial}</Dial>`;\n}\n\ntwiml += '</Response>';\n\nreturn [{ json: { twiml, request_id: 'TWIML-' + Date.now() } }];"
+      },
+      "id": "generate-twiml",
+      "name": "Generate TwiML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Handle incoming SMS webhook\nconst incoming = $input.first().json;\n\nconst sms = {\n  request_id: 'SMS-IN-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  from: incoming.From,\n  to: incoming.To,\n  body: incoming.Body,\n  media_urls: [],\n  num_media: parseInt(incoming.NumMedia) || 0\n};\n\n// Extract media URLs if present\nfor (let i = 0; i < sms.num_media; i++) {\n  if (incoming[`MediaUrl${i}`]) {\n    sms.media_urls.push(incoming[`MediaUrl${i}`]);\n  }\n}\n\n// Auto-response logic\nconst body = sms.body.toLowerCase();\nif (body.includes('help') || body.includes('aide')) {\n  sms.auto_response = 'NEMESIS Bot - Commands: HELP, STATUS, INFO';\n} else if (body.includes('status')) {\n  sms.auto_response = 'All systems operational. NEMESIS Hub active.';\n}\n\nreturn [{ json: sms }];"
+      },
+      "id": "handle-incoming",
+      "name": "Handle Incoming SMS",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 600]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 400]
+    }
+  ],
+  "connections": {
+    "SMS Request": {
+      "main": [[{ "node": "Send SMS", "type": "main", "index": 0 }]]
+    },
+    "Send SMS": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "List Messages": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Bulk SMS Setup": {
+      "main": [[{ "node": "Send SMS", "type": "main", "index": 0 }]]
+    },
+    "Make Voice Call": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Generate TwiML": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Handle Incoming SMS": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "twilio", "sms", "voice", "messaging"]
+}

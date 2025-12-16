@@ -1,0 +1,164 @@
+{
+  "name": "NEMESIS - HubSpot CRM Integration",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "crm-webhook",
+      "name": "CRM Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "hubspot-crm"
+    },
+    {
+      "parameters": {
+        "resource": "contact",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": "={{ $json.limit || 100 }}",
+        "filters": {},
+        "options": {}
+      },
+      "id": "list-contacts",
+      "name": "List Contacts",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [500, 150],
+      "credentials": { "hubspotApi": { "id": "hubspot-cred", "name": "HubSpot API" } }
+    },
+    {
+      "parameters": {
+        "resource": "contact",
+        "operation": "create",
+        "email": "={{ $json.email }}",
+        "additionalFields": {
+          "firstName": "={{ $json.first_name }}",
+          "lastName": "={{ $json.last_name }}",
+          "phone": "={{ $json.phone }}",
+          "company": "={{ $json.company }}",
+          "website": "={{ $json.website }}"
+        }
+      },
+      "id": "create-contact",
+      "name": "Create Contact",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [500, 350],
+      "credentials": { "hubspotApi": { "id": "hubspot-cred", "name": "HubSpot API" } }
+    },
+    {
+      "parameters": {
+        "resource": "deal",
+        "operation": "create",
+        "name": "={{ $json.deal_name }}",
+        "stage": "={{ $json.stage || 'appointmentscheduled' }}",
+        "additionalFields": {
+          "amount": "={{ $json.amount }}",
+          "closeDate": "={{ $json.close_date }}",
+          "pipeline": "={{ $json.pipeline || 'default' }}"
+        }
+      },
+      "id": "create-deal",
+      "name": "Create Deal",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [500, 550],
+      "credentials": { "hubspotApi": { "id": "hubspot-cred", "name": "HubSpot API" } }
+    },
+    {
+      "parameters": {
+        "resource": "deal",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": "={{ $json.limit || 100 }}",
+        "filters": {},
+        "options": {}
+      },
+      "id": "list-deals",
+      "name": "List Deals",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [750, 150],
+      "credentials": { "hubspotApi": { "id": "hubspot-cred", "name": "HubSpot API" } }
+    },
+    {
+      "parameters": {
+        "resource": "company",
+        "operation": "create",
+        "name": "={{ $json.company_name }}",
+        "additionalFields": {
+          "domain": "={{ $json.domain }}",
+          "industry": "={{ $json.industry }}",
+          "phone": "={{ $json.phone }}",
+          "city": "={{ $json.city }}",
+          "country": "={{ $json.country }}"
+        }
+      },
+      "id": "create-company",
+      "name": "Create Company",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [750, 350],
+      "credentials": { "hubspotApi": { "id": "hubspot-cred", "name": "HubSpot API" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// CRM Pipeline Analytics\nconst deals = $input.all().map(d => d.json);\n\nconst analytics = {\n  request_id: 'CRM-ANALYTICS-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  total_deals: deals.length,\n  total_value: 0,\n  by_stage: {},\n  by_pipeline: {},\n  close_rate: 0,\n  avg_deal_size: 0\n};\n\nlet closedWon = 0;\nlet closedLost = 0;\n\nfor (const deal of deals) {\n  const stage = deal.properties?.dealstage || 'unknown';\n  const pipeline = deal.properties?.pipeline || 'default';\n  const amount = parseFloat(deal.properties?.amount) || 0;\n  \n  analytics.total_value += amount;\n  \n  // Count by stage\n  analytics.by_stage[stage] = (analytics.by_stage[stage] || 0) + 1;\n  \n  // Count by pipeline\n  analytics.by_pipeline[pipeline] = (analytics.by_pipeline[pipeline] || 0) + 1;\n  \n  // Track closed deals\n  if (stage === 'closedwon') closedWon++;\n  if (stage === 'closedlost') closedLost++;\n}\n\nif (closedWon + closedLost > 0) {\n  analytics.close_rate = ((closedWon / (closedWon + closedLost)) * 100).toFixed(2) + '%';\n}\n\nif (deals.length > 0) {\n  analytics.avg_deal_size = (analytics.total_value / deals.length).toFixed(2);\n}\n\nreturn [{ json: analytics }];"
+      },
+      "id": "pipeline-analytics",
+      "name": "Pipeline Analytics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 550]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Lead scoring automation\nconst contact = $input.first().json;\n\nlet score = 0;\nconst factors = [];\n\n// Email domain scoring\nconst email = contact.properties?.email || '';\nif (email.includes('@gmail.') || email.includes('@yahoo.') || email.includes('@hotmail.')) {\n  score += 5;\n  factors.push({ factor: 'personal_email', points: 5 });\n} else if (email) {\n  score += 15;\n  factors.push({ factor: 'business_email', points: 15 });\n}\n\n// Company info\nif (contact.properties?.company) {\n  score += 10;\n  factors.push({ factor: 'has_company', points: 10 });\n}\n\n// Phone number\nif (contact.properties?.phone) {\n  score += 10;\n  factors.push({ factor: 'has_phone', points: 10 });\n}\n\n// Website\nif (contact.properties?.website) {\n  score += 15;\n  factors.push({ factor: 'has_website', points: 15 });\n}\n\n// Determine grade\nlet grade = 'D';\nif (score >= 40) grade = 'A';\nelse if (score >= 30) grade = 'B';\nelse if (score >= 20) grade = 'C';\n\nreturn [{ json: {\n  contact_id: contact.id,\n  email: email,\n  score: score,\n  grade: grade,\n  factors: factors,\n  qualified: score >= 30\n}}];"
+      },
+      "id": "lead-scoring",
+      "name": "Lead Scoring",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 750]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 400]
+    }
+  ],
+  "connections": {
+    "CRM Request": {
+      "main": [[{ "node": "List Contacts", "type": "main", "index": 0 }]]
+    },
+    "List Contacts": {
+      "main": [[{ "node": "Lead Scoring", "type": "main", "index": 0 }]]
+    },
+    "Create Contact": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Create Deal": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "List Deals": {
+      "main": [[{ "node": "Pipeline Analytics", "type": "main", "index": 0 }]]
+    },
+    "Create Company": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Pipeline Analytics": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Lead Scoring": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "hubspot", "crm", "sales", "leads"]
+}

@@ -1,0 +1,194 @@
+{
+  "name": "NEMESIS - Shopify E-Commerce Integration",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "shop-webhook",
+      "name": "Shop Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "shopify"
+    },
+    {
+      "parameters": {
+        "resource": "product",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": "={{ $json.limit || 50 }}",
+        "options": {}
+      },
+      "id": "list-products",
+      "name": "List Products",
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [500, 150],
+      "credentials": { "shopifyApi": { "id": "shopify-cred", "name": "Shopify API" } }
+    },
+    {
+      "parameters": {
+        "resource": "product",
+        "operation": "create",
+        "title": "={{ $json.title }}",
+        "additionalFields": {
+          "bodyHtml": "={{ $json.description }}",
+          "vendor": "={{ $json.vendor }}",
+          "productType": "={{ $json.product_type }}",
+          "tags": "={{ $json.tags }}",
+          "status": "={{ $json.status || 'active' }}"
+        }
+      },
+      "id": "create-product",
+      "name": "Create Product",
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [500, 350],
+      "credentials": { "shopifyApi": { "id": "shopify-cred", "name": "Shopify API" } }
+    },
+    {
+      "parameters": {
+        "resource": "order",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": "={{ $json.limit || 50 }}",
+        "options": {
+          "status": "={{ $json.order_status || 'any' }}",
+          "financialStatus": "={{ $json.financial_status }}",
+          "fulfillmentStatus": "={{ $json.fulfillment_status }}"
+        }
+      },
+      "id": "list-orders",
+      "name": "List Orders",
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [500, 550],
+      "credentials": { "shopifyApi": { "id": "shopify-cred", "name": "Shopify API" } }
+    },
+    {
+      "parameters": {
+        "resource": "order",
+        "operation": "get",
+        "orderId": "={{ $json.order_id }}"
+      },
+      "id": "get-order",
+      "name": "Get Order",
+      "type": "n8n-nodes-base.shopify",
+      "typeVersion": 1,
+      "position": [750, 150],
+      "credentials": { "shopifyApi": { "id": "shopify-cred", "name": "Shopify API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://{{ $env.SHOPIFY_STORE }}.myshopify.com/admin/api/2024-01/inventory_levels.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "inventory_item_ids", "value": "={{ $json.inventory_item_ids }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "check-inventory",
+      "name": "Check Inventory",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 350],
+      "credentials": { "httpHeaderAuth": { "id": "shopify-header", "name": "Shopify Header Auth" } }
+    },
+    {
+      "parameters": {
+        "url": "https://{{ $env.SHOPIFY_STORE }}.myshopify.com/admin/api/2024-01/inventory_levels/set.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ inventory_item_id: $json.inventory_item_id, location_id: $json.location_id, available: $json.quantity }) }}",
+        "options": {}
+      },
+      "id": "update-inventory",
+      "name": "Update Inventory",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 550],
+      "credentials": { "httpHeaderAuth": { "id": "shopify-header", "name": "Shopify Header Auth" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Sales Analytics Dashboard\nconst orders = $input.all().map(o => o.json);\n\nconst analytics = {\n  request_id: 'SHOP-ANALYTICS-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  period: 'all_time',\n  total_orders: orders.length,\n  total_revenue: 0,\n  avg_order_value: 0,\n  by_status: {},\n  by_fulfillment: {},\n  top_products: {},\n  currency: 'EUR'\n};\n\nfor (const order of orders) {\n  const total = parseFloat(order.total_price) || 0;\n  analytics.total_revenue += total;\n  \n  // By status\n  const status = order.financial_status || 'unknown';\n  analytics.by_status[status] = (analytics.by_status[status] || 0) + 1;\n  \n  // By fulfillment\n  const fulfillment = order.fulfillment_status || 'unfulfilled';\n  analytics.by_fulfillment[fulfillment] = (analytics.by_fulfillment[fulfillment] || 0) + 1;\n  \n  // Top products\n  for (const item of (order.line_items || [])) {\n    const title = item.title;\n    if (!analytics.top_products[title]) {\n      analytics.top_products[title] = { quantity: 0, revenue: 0 };\n    }\n    analytics.top_products[title].quantity += item.quantity;\n    analytics.top_products[title].revenue += parseFloat(item.price) * item.quantity;\n  }\n}\n\nif (orders.length > 0) {\n  analytics.avg_order_value = (analytics.total_revenue / orders.length).toFixed(2);\n}\n\n// Sort top products\nanalytics.top_products = Object.entries(analytics.top_products)\n  .sort((a, b) => b[1].revenue - a[1].revenue)\n  .slice(0, 10)\n  .reduce((obj, [k, v]) => ({ ...obj, [k]: v }), {});\n\nreturn [{ json: analytics }];"
+      },
+      "id": "sales-analytics",
+      "name": "Sales Analytics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 750]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Abandoned cart recovery\nconst config = $input.first().json;\n\nconst recovery = {\n  request_id: 'SHOP-CART-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  operation: 'abandoned_cart_recovery',\n  settings: {\n    send_after_hours: config.delay_hours || 24,\n    discount_code: config.discount_code,\n    discount_percent: config.discount_percent || 10,\n    email_subject: config.email_subject || 'You left something behind!',\n    email_template: config.email_template || 'abandoned_cart'\n  }\n};\n\n// Template for recovery email\nrecovery.email_html = `\n<div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;\">\n  <h2>Complete Your Purchase</h2>\n  <p>Hi {{customer_name}},</p>\n  <p>You left some items in your cart. We've saved them for you!</p>\n  <div style=\"background: #f5f5f5; padding: 20px; margin: 20px 0;\">\n    {{cart_items}}\n  </div>\n  ${config.discount_code ? `<p><strong>Use code ${config.discount_code} for ${config.discount_percent || 10}% off!</strong></p>` : ''}\n  <a href=\"{{checkout_url}}\" style=\"background: #000; color: #fff; padding: 15px 30px; text-decoration: none; display: inline-block;\">Complete Purchase</a>\n  <p style=\"margin-top: 30px; color: #888;\">NEMESIS Shop</p>\n</div>\n`;\n\nreturn [{ json: recovery }];"
+      },
+      "id": "cart-recovery",
+      "name": "Cart Recovery Setup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 750]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Product sync with external systems\nconst products = $input.all().map(p => p.json);\n\nconst sync = {\n  request_id: 'SHOP-SYNC-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  total_products: products.length,\n  products: products.map(p => ({\n    id: p.id,\n    sku: p.variants?.[0]?.sku || '',\n    title: p.title,\n    price: p.variants?.[0]?.price,\n    compare_price: p.variants?.[0]?.compare_at_price,\n    inventory: p.variants?.[0]?.inventory_quantity,\n    status: p.status,\n    tags: p.tags,\n    type: p.product_type,\n    vendor: p.vendor,\n    images: (p.images || []).map(i => i.src)\n  }))\n};\n\nreturn [{ json: sync }];"
+      },
+      "id": "product-sync",
+      "name": "Product Sync",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 950]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 400]
+    }
+  ],
+  "connections": {
+    "Shop Request": {
+      "main": [[{ "node": "List Products", "type": "main", "index": 0 }]]
+    },
+    "List Products": {
+      "main": [[{ "node": "Product Sync", "type": "main", "index": 0 }]]
+    },
+    "Create Product": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "List Orders": {
+      "main": [[{ "node": "Sales Analytics", "type": "main", "index": 0 }]]
+    },
+    "Get Order": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Check Inventory": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Update Inventory": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Sales Analytics": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Cart Recovery Setup": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Product Sync": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "shopify", "ecommerce", "products", "orders"]
+}

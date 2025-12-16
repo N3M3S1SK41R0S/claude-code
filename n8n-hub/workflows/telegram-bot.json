@@ -1,0 +1,159 @@
+{
+  "name": "NEMESIS - Telegram Bot Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message", "callback_query", "inline_query"]
+      },
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "credentials": { "telegramApi": { "id": "telegram-cred", "name": "Telegram Bot" } }
+    },
+    {
+      "parameters": {},
+      "id": "telegram-webhook",
+      "name": "Telegram Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 500],
+      "webhookId": "telegram-bot"
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{ $json.message?.chat?.id || $json.chat_id }}",
+        "text": "={{ $json.reply || $json.text || $json.message }}",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "disable_notification": false
+        }
+      },
+      "id": "send-message",
+      "name": "Send Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [750, 300],
+      "credentials": { "telegramApi": { "id": "telegram-cred", "name": "Telegram Bot" } }
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $json.chat_id }}",
+        "file": "={{ $json.photo_url }}",
+        "additionalFields": {
+          "caption": "={{ $json.caption }}"
+        }
+      },
+      "id": "send-photo",
+      "name": "Send Photo",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [750, 500],
+      "credentials": { "telegramApi": { "id": "telegram-cred", "name": "Telegram Bot" } }
+    },
+    {
+      "parameters": {
+        "operation": "sendDocument",
+        "chatId": "={{ $json.chat_id }}",
+        "file": "={{ $json.document_url }}",
+        "additionalFields": {
+          "caption": "={{ $json.caption }}"
+        }
+      },
+      "id": "send-document",
+      "name": "Send Document",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [750, 700],
+      "credentials": { "telegramApi": { "id": "telegram-cred", "name": "Telegram Bot" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Telegram Command Handler\nconst msg = $input.first().json;\nconst text = msg.message?.text || msg.text || '';\nconst chatId = msg.message?.chat?.id || msg.chat_id;\nconst userId = msg.message?.from?.id || msg.from?.id;\nconst username = msg.message?.from?.username || msg.from?.username;\n\nconst response = {\n  chat_id: chatId,\n  user_id: userId,\n  username: username,\n  original_text: text,\n  command: null,\n  args: [],\n  reply: ''\n};\n\n// Parse commands\nif (text.startsWith('/')) {\n  const parts = text.slice(1).split(' ');\n  response.command = parts[0].toLowerCase();\n  response.args = parts.slice(1);\n\n  switch (response.command) {\n    case 'start':\n      response.reply = `👋 <b>Bienvenue ${username || 'ami'}!</b>\\n\\nJe suis NEMESIS Bot. Commandes:\\n/help - Aide\\n/status - Statut système\\n/ai [prompt] - Demander à l'IA\\n/translate [texte] - Traduire\\n/weather [ville] - Météo`;\n      break;\n    case 'help':\n      response.reply = `📚 <b>Commandes disponibles:</b>\\n\\n/start - Démarrer\\n/help - Cette aide\\n/status - Statut NEMESIS\\n/ai [prompt] - Question IA\\n/translate [texte] - Traduire\\n/image [prompt] - Générer image\\n/voice [texte] - Synthèse vocale`;\n      break;\n    case 'status':\n      response.reply = `✅ <b>NEMESIS Status</b>\\n\\n🟢 Bot: Online\\n🟢 n8n: Running\\n🟢 APIs: Connected\\n\\n⏰ ${new Date().toLocaleString('fr-FR')}`;\n      break;\n    case 'ai':\n      response.action = 'call_ai';\n      response.prompt = response.args.join(' ');\n      response.reply = '🤔 Je réfléchis...';\n      break;\n    case 'translate':\n      response.action = 'translate';\n      response.text_to_translate = response.args.join(' ');\n      response.reply = '🌍 Traduction en cours...';\n      break;\n    default:\n      response.reply = `❓ Commande inconnue: /${response.command}\\nTapez /help pour la liste des commandes.`;\n  }\n} else {\n  // Regular message - forward to AI\n  response.action = 'call_ai';\n  response.prompt = text;\n  response.reply = '💬 Message reçu, traitement...';\n}\n\nreturn [{ json: response }];"
+      },
+      "id": "command-handler",
+      "name": "Command Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.action }}", "operation": "equals", "value2": "call_ai" }]
+        }
+      },
+      "id": "check-ai",
+      "name": "Needs AI?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/webhook/ai-gateway",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ provider: 'auto', prompt: $json.prompt, max_tokens: 500 }) }}",
+        "options": { "timeout": 30000 }
+      },
+      "id": "call-ai",
+      "name": "Call AI Gateway",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Format AI response for Telegram\nconst aiResponse = $input.first().json;\nconst original = $('Command Handler').first().json;\n\nconst reply = {\n  chat_id: original.chat_id,\n  text: aiResponse.text || aiResponse.error || 'Erreur de traitement'\n};\n\n// Truncate if too long\nif (reply.text.length > 4000) {\n  reply.text = reply.text.substring(0, 3997) + '...';\n}\n\nreturn [{ json: reply }];"
+      },
+      "id": "format-ai-reply",
+      "name": "Format AI Reply",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1500, 300]
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": { "parse_mode": "HTML" }
+      },
+      "id": "send-ai-reply",
+      "name": "Send AI Reply",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1750, 300],
+      "credentials": { "telegramApi": { "id": "telegram-cred", "name": "Telegram Bot" } }
+    }
+  ],
+  "connections": {
+    "Telegram Trigger": {
+      "main": [[{ "node": "Command Handler", "type": "main", "index": 0 }]]
+    },
+    "Telegram Webhook": {
+      "main": [[{ "node": "Command Handler", "type": "main", "index": 0 }]]
+    },
+    "Command Handler": {
+      "main": [[
+        { "node": "Send Message", "type": "main", "index": 0 },
+        { "node": "Needs AI?", "type": "main", "index": 0 }
+      ]]
+    },
+    "Needs AI?": {
+      "main": [[{ "node": "Call AI Gateway", "type": "main", "index": 0 }], []]
+    },
+    "Call AI Gateway": {
+      "main": [[{ "node": "Format AI Reply", "type": "main", "index": 0 }]]
+    },
+    "Format AI Reply": {
+      "main": [[{ "node": "Send AI Reply", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "telegram", "bot", "messaging", "ai"]
+}

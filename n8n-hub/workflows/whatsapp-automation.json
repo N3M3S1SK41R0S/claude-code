@@ -1,0 +1,134 @@
+{
+  "name": "NEMESIS - WhatsApp Business Automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "whatsapp-webhook",
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "whatsapp"
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.to, type: 'text', text: { body: $json.message } }) }}",
+        "options": {}
+      },
+      "id": "send-text",
+      "name": "Send Text Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 300],
+      "credentials": { "httpHeaderAuth": { "id": "whatsapp-cred", "name": "WhatsApp Token" } }
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.to, type: 'template', template: { name: $json.template_name, language: { code: $json.language || 'fr' }, components: $json.components || [] } }) }}",
+        "options": {}
+      },
+      "id": "send-template",
+      "name": "Send Template",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 500],
+      "credentials": { "httpHeaderAuth": { "id": "whatsapp-cred", "name": "WhatsApp Token" } }
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.to, type: 'image', image: { link: $json.image_url, caption: $json.caption || '' } }) }}",
+        "options": {}
+      },
+      "id": "send-image",
+      "name": "Send Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 700],
+      "credentials": { "httpHeaderAuth": { "id": "whatsapp-cred", "name": "WhatsApp Token" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// WhatsApp Message Handler\nconst webhook = $input.first().json;\n\nconst result = {\n  request_id: 'WA-' + Date.now(),\n  timestamp: new Date().toISOString()\n};\n\n// Parse incoming webhook\nif (webhook.entry && webhook.entry[0]?.changes) {\n  const change = webhook.entry[0].changes[0];\n  const value = change.value;\n  \n  if (value.messages && value.messages[0]) {\n    const msg = value.messages[0];\n    result.type = 'incoming';\n    result.from = msg.from;\n    result.message_id = msg.id;\n    result.timestamp_wa = msg.timestamp;\n    result.message_type = msg.type;\n    \n    if (msg.type === 'text') {\n      result.text = msg.text.body;\n    } else if (msg.type === 'image') {\n      result.media_id = msg.image.id;\n      result.caption = msg.image.caption;\n    } else if (msg.type === 'interactive') {\n      result.button_reply = msg.interactive.button_reply;\n      result.list_reply = msg.interactive.list_reply;\n    }\n    \n    // Auto-response logic\n    const text = (result.text || '').toLowerCase();\n    if (text.includes('bonjour') || text.includes('salut') || text.includes('hello')) {\n      result.auto_reply = 'Bonjour! 👋 Comment puis-je vous aider?';\n    } else if (text.includes('aide') || text.includes('help')) {\n      result.auto_reply = '📚 Je peux vous aider avec:\\n• Information produits\\n• Suivi commandes\\n• Support technique\\n\\nTapez votre question!';\n    } else if (text.includes('merci')) {\n      result.auto_reply = 'Avec plaisir! 😊 N\\'hésitez pas si vous avez d\\'autres questions.';\n    }\n  }\n  \n  if (value.statuses && value.statuses[0]) {\n    const status = value.statuses[0];\n    result.type = 'status';\n    result.message_id = status.id;\n    result.status = status.status;\n    result.recipient = status.recipient_id;\n  }\n} else {\n  // Outgoing message request\n  result.type = 'outgoing';\n  result.to = webhook.to;\n  result.message = webhook.message;\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "message-handler",
+      "name": "Message Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.auto_reply }}", "operation": "isNotEmpty" }]
+        }
+      },
+      "id": "check-auto-reply",
+      "name": "Auto Reply?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.from, type: 'text', text: { body: $json.auto_reply } }) }}",
+        "options": {}
+      },
+      "id": "send-auto-reply",
+      "name": "Send Auto Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1250, 300],
+      "credentials": { "httpHeaderAuth": { "id": "whatsapp-cred", "name": "WhatsApp Token" } }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Acknowledge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 500]
+    }
+  ],
+  "connections": {
+    "WhatsApp Webhook": {
+      "main": [[{ "node": "Message Handler", "type": "main", "index": 0 }]]
+    },
+    "Message Handler": {
+      "main": [[{ "node": "Check Auto Reply?", "type": "main", "index": 0 }]]
+    },
+    "Check Auto Reply?": {
+      "main": [
+        [{ "node": "Send Auto Reply", "type": "main", "index": 0 }],
+        [{ "node": "Acknowledge", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Auto Reply": {
+      "main": [[{ "node": "Acknowledge", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "whatsapp", "messaging", "automation"]
+}

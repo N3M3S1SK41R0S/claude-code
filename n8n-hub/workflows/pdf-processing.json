@@ -1,0 +1,124 @@
+{
+  "name": "NEMESIS - PDF Processing & Generation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "pdf-webhook",
+      "name": "PDF Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "pdf-processing"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.pdf_url }}",
+        "options": { "response": { "response": { "responseFormat": "file" } } }
+      },
+      "id": "download-pdf",
+      "name": "Download PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract text from PDF using pdf-parse\nconst pdfParse = require('pdf-parse');\nconst binary = $input.first().binary;\n\nif (!binary || !binary.data) {\n  return [{ json: { error: 'No PDF data received' } }];\n}\n\nconst buffer = Buffer.from(binary.data.data, 'base64');\nconst data = await pdfParse(buffer);\n\nreturn [{ json: {\n  request_id: 'PDF-EXTRACT-' + Date.now(),\n  text: data.text,\n  num_pages: data.numpages,\n  info: data.info,\n  metadata: data.metadata\n}}];"
+      },
+      "id": "extract-text",
+      "name": "Extract Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate PDF from HTML using puppeteer or html-pdf\nconst config = $input.first().json;\n\nconst pdfConfig = {\n  request_id: 'PDF-GEN-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  type: config.type || 'html',\n  options: {\n    format: config.format || 'A4',\n    margin: config.margin || { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' },\n    printBackground: true,\n    landscape: config.landscape || false\n  }\n};\n\nif (config.html) {\n  pdfConfig.html = config.html;\n}\n\nif (config.template) {\n  // Template substitution\n  let html = config.template;\n  for (const [key, value] of Object.entries(config.data || {})) {\n    html = html.replace(new RegExp(`{{${key}}}`, 'g'), value);\n  }\n  pdfConfig.html = html;\n}\n\nreturn [{ json: pdfConfig }];"
+      },
+      "id": "generate-config",
+      "name": "Generate PDF Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Merge multiple PDFs\nconst config = $input.first().json;\n\nconst result = {\n  request_id: 'PDF-MERGE-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  operation: 'merge',\n  input_count: config.pdfs?.length || 0,\n  status: 'processing'\n};\n\n// This would typically use pdf-lib or similar\n// For now, return the config for external processing\nresult.pdfs_to_merge = config.pdfs || [];\nresult.output_name = config.output_name || 'merged.pdf';\n\nreturn [{ json: result }];"
+      },
+      "id": "merge-pdfs",
+      "name": "Merge PDFs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Split PDF by pages\nconst config = $input.first().json;\n\nconst result = {\n  request_id: 'PDF-SPLIT-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  operation: 'split',\n  pages: config.pages || 'all',\n  status: 'processing'\n};\n\nif (config.range) {\n  result.page_range = config.range; // e.g., \"1-5\" or \"1,3,5,7\"\n}\n\nif (config.split_every) {\n  result.split_every = config.split_every; // Split every N pages\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "split-pdf",
+      "name": "Split PDF",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Add watermark or stamp to PDF\nconst config = $input.first().json;\n\nconst result = {\n  request_id: 'PDF-STAMP-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  operation: 'watermark',\n  watermark: {\n    text: config.watermark_text || 'CONFIDENTIAL',\n    opacity: config.opacity || 0.3,\n    rotation: config.rotation || 45,\n    position: config.position || 'center',\n    font_size: config.font_size || 48,\n    color: config.color || '#888888'\n  },\n  pages: config.pages || 'all'\n};\n\nreturn [{ json: result }];"
+      },
+      "id": "add-watermark",
+      "name": "Add Watermark",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// PDF invoice/document template\nconst data = $input.first().json;\n\nconst invoice = {\n  request_id: 'PDF-INV-' + Date.now(),\n  template: 'invoice',\n  html: `\n<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { font-family: Arial, sans-serif; margin: 40px; }\n    .header { display: flex; justify-content: space-between; margin-bottom: 40px; }\n    .company { font-size: 24px; font-weight: bold; color: #333; }\n    .invoice-title { font-size: 32px; color: #666; }\n    .details { margin-bottom: 30px; }\n    table { width: 100%; border-collapse: collapse; margin: 20px 0; }\n    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }\n    th { background: #f5f5f5; }\n    .total { font-size: 18px; font-weight: bold; text-align: right; margin-top: 20px; }\n    .footer { margin-top: 50px; text-align: center; color: #888; font-size: 12px; }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <div class=\"company\">${data.company || 'NEMESIS Corp'}</div>\n    <div class=\"invoice-title\">INVOICE</div>\n  </div>\n  <div class=\"details\">\n    <p><strong>Invoice #:</strong> ${data.invoice_number || 'INV-' + Date.now()}</p>\n    <p><strong>Date:</strong> ${data.date || new Date().toLocaleDateString()}</p>\n    <p><strong>Client:</strong> ${data.client_name || 'Client'}</p>\n    <p><strong>Email:</strong> ${data.client_email || ''}</p>\n  </div>\n  <table>\n    <thead>\n      <tr><th>Description</th><th>Qty</th><th>Price</th><th>Total</th></tr>\n    </thead>\n    <tbody>\n      ${(data.items || []).map(item => `\n        <tr>\n          <td>${item.description}</td>\n          <td>${item.quantity}</td>\n          <td>${item.price} ${data.currency || 'EUR'}</td>\n          <td>${(item.quantity * item.price).toFixed(2)} ${data.currency || 'EUR'}</td>\n        </tr>\n      `).join('')}\n    </tbody>\n  </table>\n  <div class=\"total\">\n    Total: ${(data.items || []).reduce((sum, i) => sum + i.quantity * i.price, 0).toFixed(2)} ${data.currency || 'EUR'}\n  </div>\n  <div class=\"footer\">\n    Generated by NEMESIS Automation System\n  </div>\n</body>\n</html>\n  `\n};\n\nreturn [{ json: invoice }];"
+      },
+      "id": "invoice-template",
+      "name": "Invoice Template",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 800]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 400]
+    }
+  ],
+  "connections": {
+    "PDF Request": {
+      "main": [[{ "node": "Generate PDF Config", "type": "main", "index": 0 }]]
+    },
+    "Download PDF": {
+      "main": [[{ "node": "Extract Text", "type": "main", "index": 0 }]]
+    },
+    "Extract Text": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Generate PDF Config": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Merge PDFs": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Split PDF": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Add Watermark": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    },
+    "Invoice Template": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "pdf", "document", "generation", "processing"]
+}

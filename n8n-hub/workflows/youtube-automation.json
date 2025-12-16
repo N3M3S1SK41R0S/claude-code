@@ -1,0 +1,170 @@
+{
+  "name": "NEMESIS - YouTube Automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "youtube-webhook",
+      "name": "YouTube Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "youtube"
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "part", "value": "snippet" },
+            { "name": "q", "value": "={{ $json.query }}" },
+            { "name": "type", "value": "={{ $json.type || 'video' }}" },
+            { "name": "maxResults", "value": "={{ $json.limit || 10 }}" },
+            { "name": "order", "value": "={{ $json.order || 'relevance' }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "search-videos",
+      "name": "Search Videos",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 200],
+      "credentials": { "httpQueryAuth": { "id": "youtube-cred", "name": "YouTube API Key" } }
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/videos",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "part", "value": "snippet,statistics,contentDetails" },
+            { "name": "id", "value": "={{ $json.video_id }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-video-details",
+      "name": "Get Video Details",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 400],
+      "credentials": { "httpQueryAuth": { "id": "youtube-cred", "name": "YouTube API Key" } }
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/channels",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "part", "value": "snippet,statistics,brandingSettings" },
+            { "name": "id", "value": "={{ $json.channel_id }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-channel",
+      "name": "Get Channel Info",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 600],
+      "credentials": { "httpQueryAuth": { "id": "youtube-cred", "name": "YouTube API Key" } }
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/commentThreads",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "part", "value": "snippet" },
+            { "name": "videoId", "value": "={{ $json.video_id }}" },
+            { "name": "maxResults", "value": "={{ $json.limit || 50 }}" },
+            { "name": "order", "value": "relevance" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-comments",
+      "name": "Get Comments",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 400],
+      "credentials": { "httpQueryAuth": { "id": "youtube-cred", "name": "YouTube API Key" } }
+    },
+    {
+      "parameters": {
+        "url": "https://www.googleapis.com/youtube/v3/captions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "part", "value": "snippet" },
+            { "name": "videoId", "value": "={{ $json.video_id }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-captions",
+      "name": "Get Captions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 600],
+      "credentials": { "httpQueryAuth": { "id": "youtube-cred", "name": "YouTube API Key" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process YouTube API responses\nconst response = $input.first().json;\n\nconst result = {\n  request_id: 'YT-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  success: true\n};\n\nif (response.items) {\n  result.count = response.items.length;\n  result.items = response.items.map(item => {\n    const data = {\n      id: item.id?.videoId || item.id?.channelId || item.id,\n      type: item.id?.kind?.split('#')[1] || 'video'\n    };\n    \n    if (item.snippet) {\n      data.title = item.snippet.title;\n      data.description = item.snippet.description;\n      data.channel = item.snippet.channelTitle;\n      data.published = item.snippet.publishedAt;\n      data.thumbnail = item.snippet.thumbnails?.high?.url;\n    }\n    \n    if (item.statistics) {\n      data.stats = {\n        views: parseInt(item.statistics.viewCount) || 0,\n        likes: parseInt(item.statistics.likeCount) || 0,\n        comments: parseInt(item.statistics.commentCount) || 0,\n        subscribers: parseInt(item.statistics.subscriberCount) || 0\n      };\n    }\n    \n    if (item.contentDetails) {\n      data.duration = item.contentDetails.duration;\n    }\n    \n    return data;\n  });\n}\n\nif (response.error) {\n  result.success = false;\n  result.error = response.error.message;\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "process-response",
+      "name": "Process Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 400]
+    }
+  ],
+  "connections": {
+    "YouTube Request": {
+      "main": [[{ "node": "Search Videos", "type": "main", "index": 0 }]]
+    },
+    "Search Videos": {
+      "main": [[{ "node": "Process Response", "type": "main", "index": 0 }]]
+    },
+    "Get Video Details": {
+      "main": [[{ "node": "Process Response", "type": "main", "index": 0 }]]
+    },
+    "Get Channel Info": {
+      "main": [[{ "node": "Process Response", "type": "main", "index": 0 }]]
+    },
+    "Get Comments": {
+      "main": [[{ "node": "Process Response", "type": "main", "index": 0 }]]
+    },
+    "Get Captions": {
+      "main": [[{ "node": "Process Response", "type": "main", "index": 0 }]]
+    },
+    "Process Response": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "youtube", "video", "search", "analytics"]
+}
