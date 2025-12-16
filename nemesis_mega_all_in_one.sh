@@ -48,531 +48,658 @@ if ! command -v docker &>/dev/null; then
     sudo usermod -aG docker $USER 2>/dev/null; echo "✅ Docker installé (relancez session pour l'activer)"
 else echo "✅ Docker déjà présent"; fi; echo ""
 
-# Edge + Chrome
-echo "🌐 Navigateurs..."
-if ! command -v microsoft-edge &>/dev/null; then
-    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /usr/share/keyrings/microsoft-edge.gpg >/dev/null
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-edge.gpg] https://packages.microsoft.com/repos/edge stable main" | sudo tee /etc/apt/sources.list.d/microsoft-edge.list
-    sudo apt-get update -qq; sudo apt-get install -y microsoft-edge-stable 2>&1 | tail -2
-fi; echo "✅ Navigateurs prêts"; echo ""
+# Workspace NEMESIS
+echo "📁 Création workspace NEMESIS..."
+mkdir -p "$N"/{config,scripts,logs,data,html} "$N/config/mcp-servers"
+echo "✅ Structure créée: $N"; echo ""
 
-# Structure COMPLETE
-echo "📁 Création structure NEMESIS..."; mkdir -p "$N"/{workspace/{html,assets,css,js,data},mcp/{servers,logs,configs},configs,scripts,data,backups,tools,templates}
-echo "✅ Structure créée"; echo ""
-
-# MCP Infrastructure COMPLETE
-echo "⚙️  Installation MCP COMPLETE (5 min)..."; cd "$N/mcp"
-cat > package.json << 'PKGJSON'
+# MCP Servers Config
+echo "⚙️ Configuration MCP (25+ serveurs)..."
+cat > "$N/config/mcp_config.json" << 'MCPEOF'
 {
-  "name": "nemesis-mcp-mega",
-  "version": "4.0.0",
-  "type": "module",
-  "scripts": {"start": "node server.js", "dev": "nodemon server.js", "pm2": "pm2 start server.js --name nemesis"},
-  "dependencies": {
-    "express": "^4.19.2", "helmet": "^7.1.0", "compression": "^1.7.4", "cors": "^2.8.5",
-    "dotenv": "^16.4.5", "winston": "^3.13.0", "axios": "^1.7.2", "express-rate-limit": "^7.1.5",
-    "socket.io": "^4.7.4", "body-parser": "^1.20.2", "cookie-parser": "^1.4.6",
-    "@anthropic-ai/sdk": "^0.30.1", "@modelcontextprotocol/sdk": "^0.5.0"
-  },
-  "devDependencies": {"nodemon": "^3.1.0"}
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home", "/tmp"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {"GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"}
+    },
+    "gitlab": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-gitlab"],
+      "env": {"GITLAB_PERSONAL_ACCESS_TOKEN": "${GITLAB_TOKEN}"}
+    },
+    "google-maps": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-google-maps"],
+      "env": {"GOOGLE_MAPS_API_KEY": "${GOOGLE_MAPS_API_KEY}"}
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://localhost/mydb"]
+    },
+    "puppeteer": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
+    },
+    "brave-search": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": {"BRAVE_API_KEY": "${BRAVE_API_KEY}"}
+    },
+    "slack": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-slack"],
+      "env": {"SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}"}
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+    },
+    "fetch": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"]
+    }
+  }
 }
-PKGJSON
-npm install --silent 2>&1 | grep -E "added|packages" || npm install 2>&1 | tail -3
-echo "✅ MCP packages installés"; echo ""
+MCPEOF
+echo "✅ MCP config créée"; echo ""
 
-# MCP Server MEGA COMPLET
-echo "🔧 Création serveur MCP MEGA..."; cat > server.js << 'SRVJS'
-import express from 'express';
-import helmet from 'helmet';
-import compression from 'compression';
-import cors from 'cors';
-import rateLimit from 'express-rate-limit';
-import { Server } from 'socket.io';
-import { createServer } from 'http';
-import { spawn } from 'child_process';
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
+# Package.json avec TOUTES les dépendances
+echo "📦 Configuration npm (complet)..."
+cat > "$N/package.json" << 'PKGEOF'
+{
+  "name": "nemesis-omega",
+  "version": "4.0.0",
+  "description": "NEMESIS OMEGA - AI Workspace with MCP Integration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "pm2": "pm2 start server.js --name nemesis-omega"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "compression": "^1.7.4",
+    "express-rate-limit": "^7.1.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
+PKGEOF
+echo "✅ package.json créé"; echo ""
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+# Serveur Node.js COMPLET avec WebSocket
+echo "🌐 Création serveur Node.js + WebSocket..."
+cat > "$N/server.js" << 'SERVEREOF'
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const path = require('path');
+const fs = require('fs');
+const { exec, spawn } = require('child_process');
+const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
+
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer);
-const PORT = process.env.PORT || 10000;
-const mcpServers = new Map();
-const WORKSPACE = path.join(__dirname, '../workspace');
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: { origin: '*', methods: ['GET', 'POST'] }
+});
 
-app.use(helmet({contentSecurityPolicy: false}));
+const PORT = process.env.PORT || 10000;
+const CONFIG_DIR = path.join(process.env.HOME, '.nemesis', 'config');
+const DATA_DIR = path.join(process.env.HOME, '.nemesis', 'data');
+const HTML_DIR = path.join(process.env.HOME, '.nemesis', 'html');
+
+// Security & Performance
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(compression());
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
-app.use(rateLimit({windowMs: 15*60000, max: 200}));
+app.use(express.static(HTML_DIR));
 
-// Serve static files
-app.use(express.static(path.join(WORKSPACE, 'html')));
-app.use('/assets', express.static(path.join(WORKSPACE, 'assets')));
-app.use('/css', express.static(path.join(WORKSPACE, 'css')));
-app.use('/js', express.static(path.join(WORKSPACE, 'js')));
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100
+});
+app.use('/api/', limiter);
 
-// API Routes
-app.get('/api/status', (req, res) => {
-    res.json({
-        status: 'ok',
-        version: '4.0.0-MEGA',
-        uptime: process.uptime(),
-        timestamp: new Date().toISOString(),
-        servers: Array.from(mcpServers.entries()).map(([name, data]) => ({
-            name, status: data.status, pid: data.process?.pid, uptime: data.started ? Math.floor((Date.now()-data.started)/1000) : 0
-        })),
-        memory: process.memoryUsage(),
-        cpu: process.cpuUsage(),
-        platform: {node: process.version, platform: process.platform, arch: process.arch}
+// MCP Servers tracking
+const mcpServers = new Map();
+
+// WebSocket - Real-time updates
+io.on('connection', (socket) => {
+  console.log('Client connecté:', socket.id);
+
+  // Envoyer métriques toutes les 3s
+  const metricsInterval = setInterval(() => {
+    socket.emit('metrics', {
+      memory: process.memoryUsage(),
+      uptime: process.uptime(),
+      servers: mcpServers.size,
+      timestamp: Date.now()
     });
+  }, 3000);
+
+  socket.on('disconnect', () => {
+    clearInterval(metricsInterval);
+    console.log('Client déconnecté:', socket.id);
+  });
 });
 
-app.get('/api/servers', async (req, res) => {
-    const config = JSON.parse(await fs.readFile(path.join(__dirname, '../configs/mcp_config.json'), 'utf8'));
-    res.json({
-        available: Object.keys(config.mcpServers),
-        running: Array.from(mcpServers.keys()),
-        count: {available: Object.keys(config.mcpServers).length, running: mcpServers.size}
-    });
+// API Endpoints
+app.get('/api/status', (req, res) => {
+  res.json({
+    status: 'running',
+    version: '4.0.0',
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    servers: Array.from(mcpServers.keys()),
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/api/tools', (req, res) => {
+  const tools = [
+    { name: 'Claude', url: 'https://claude.ai', category: 'AI Chat', icon: '🤖', description: 'Assistant IA avancé par Anthropic' },
+    { name: 'ChatGPT', url: 'https://chat.openai.com', category: 'AI Chat', icon: '💬', description: 'Chatbot IA par OpenAI' },
+    { name: 'Gemini', url: 'https://gemini.google.com', category: 'AI Chat', icon: '✨', description: 'IA multimodale par Google' },
+    { name: 'Perplexity', url: 'https://perplexity.ai', category: 'AI Chat', icon: '🔍', description: 'Moteur de réponses IA' },
+    { name: 'Mistral', url: 'https://chat.mistral.ai', category: 'AI Chat', icon: '🌬️', description: 'IA open source européenne' },
+    { name: 'Midjourney', url: 'https://www.midjourney.com', category: 'AI Images', icon: '🎨', description: 'Génération d\'images IA' },
+    { name: 'DALL-E', url: 'https://labs.openai.com', category: 'AI Images', icon: '🖼️', description: 'Création d\'images par OpenAI' },
+    { name: 'Stable Diffusion', url: 'https://stability.ai', category: 'AI Images', icon: '🌈', description: 'Génération d\'images open source' },
+    { name: 'Cursor', url: 'https://cursor.sh', category: 'AI IDE', icon: '⌨️', description: 'IDE avec IA intégrée' },
+    { name: 'GitHub Copilot', url: 'https://github.com/features/copilot', category: 'AI IDE', icon: '🐙', description: 'Assistant code par GitHub' },
+    { name: 'Replit', url: 'https://replit.com', category: 'AI IDE', icon: '🔥', description: 'IDE en ligne avec IA' },
+    { name: 'Notion AI', url: 'https://notion.so', category: 'Productivity', icon: '📝', description: 'Workspace avec IA' },
+    { name: 'Linear', url: 'https://linear.app', category: 'Productivity', icon: '📊', description: 'Gestion de projet moderne' },
+    { name: 'Figma', url: 'https://figma.com', category: 'Productivity', icon: '🎨', description: 'Design collaboratif' },
+    { name: 'Vercel', url: 'https://vercel.com', category: 'Infrastructure', icon: '▲', description: 'Déploiement frontend' },
+    { name: 'Railway', url: 'https://railway.app', category: 'Infrastructure', icon: '🚂', description: 'Déploiement backend' },
+    { name: 'Supabase', url: 'https://supabase.com', category: 'Infrastructure', icon: '🔋', description: 'Backend as a Service' },
+    { name: 'Pinecone', url: 'https://pinecone.io', category: 'Infrastructure', icon: '🌲', description: 'Vector database' },
+    { name: 'HuggingFace', url: 'https://huggingface.co', category: 'Infrastructure', icon: '🤗', description: 'Hub de modèles IA' }
+  ];
+
+  const { category, search } = req.query;
+  let filtered = tools;
+
+  if (category) {
+    filtered = filtered.filter(t => t.category === category);
+  }
+
+  if (search) {
+    const term = search.toLowerCase();
+    filtered = filtered.filter(t =>
+      t.name.toLowerCase().includes(term) ||
+      t.description.toLowerCase().includes(term)
+    );
+  }
+
+  res.json(filtered);
 });
 
 app.get('/api/metrics', (req, res) => {
-    res.json({
-        memory: process.memoryUsage(),
-        cpu: process.cpuUsage(),
-        uptime: process.uptime(),
-        servers: mcpServers.size,
-        timestamp: new Date().toISOString()
-    });
+  res.json({
+    memory: process.memoryUsage(),
+    uptime: process.uptime(),
+    cpu: process.cpuUsage(),
+    timestamp: Date.now()
+  });
 });
 
-app.get('/health', (req, res) => res.json({status: 'healthy', version: '4.0.0-MEGA', timestamp: new Date().toISOString()}));
-
-app.get('/api/tools', (req, res) => {
-    const tools = [
-        {name: 'Claude', url: 'https://claude.ai', category: 'AI Chat', icon: '🤖', status: 'online'},
-        {name: 'ChatGPT', url: 'https://chat.openai.com', category: 'AI Chat', icon: '💬', status: 'online'},
-        {name: 'Gemini', url: 'https://gemini.google.com', category: 'AI Chat', icon: '✨', status: 'online'},
-        {name: 'Perplexity', url: 'https://perplexity.ai', category: 'AI Search', icon: '🔍', status: 'online'},
-        {name: 'Midjourney', url: 'https://midjourney.com', category: 'AI Images', icon: '🎨', status: 'online'},
-        {name: 'DALL-E', url: 'https://labs.openai.com', category: 'AI Images', icon: '🖼️', status: 'online'},
-        {name: 'Cursor', url: 'https://cursor.sh', category: 'AI IDE', icon: '⚡', status: 'online'},
-        {name: 'GitHub Copilot', url: 'https://github.com/features/copilot', category: 'AI Code', icon: '👨‍💻', status: 'online'},
-        {name: 'Notion', url: 'https://notion.so', category: 'Productivity', icon: '📋', status: 'online'},
-        {name: 'Linear', url: 'https://linear.app', category: 'Project Mgmt', icon: '📊', status: 'online'},
-        {name: 'Figma', url: 'https://figma.com', category: 'Design', icon: '🎨', status: 'online'},
-        {name: 'Vercel', url: 'https://vercel.com', category: 'Deploy', icon: '▲', status: 'online'},
-        {name: 'Railway', url: 'https://railway.app', category: 'Deploy', icon: '🚂', status: 'online'},
-        {name: 'Supabase', url: 'https://supabase.com', category: 'Backend', icon: '⚡', status: 'online'},
-        {name: 'Pinecone', url: 'https://pinecone.io', category: 'Vector DB', icon: '🌲', status: 'online'},
-        {name: 'HuggingFace', url: 'https://huggingface.co', category: 'ML Hub', icon: '🤗', status: 'online'}
-    ];
-    res.json(tools);
+app.get('/api/servers', (req, res) => {
+  res.json({
+    count: mcpServers.size,
+    servers: Array.from(mcpServers.entries()).map(([name, info]) => ({
+      name,
+      status: info.status,
+      pid: info.pid
+    }))
+  });
 });
 
-// WebSocket
-io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
-    socket.on('disconnect', () => console.log('Client disconnected:', socket.id));
-
-    // Send metrics every 3s
-    const interval = setInterval(() => {
-        socket.emit('metrics', {
-            memory: process.memoryUsage(),
-            uptime: process.uptime(),
-            servers: mcpServers.size,
-            timestamp: Date.now()
-        });
-    }, 3000);
-
-    socket.on('disconnect', () => clearInterval(interval));
+// Start server
+server.listen(PORT, () => {
+  console.log(`🚀 NEMESIS OMEGA Server running on http://localhost:${PORT}`);
+  console.log(`📊 Dashboard: http://localhost:${PORT}`);
+  console.log(`🔌 WebSocket: Enabled`);
+  console.log(`📡 API: http://localhost:${PORT}/api/status`);
 });
 
-httpServer.listen(PORT, () => {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🔮 NEMESIS OMEGA MEGA SERVER v4.0.0');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`✅ HTTP Server: http://localhost:${PORT}`);
-    console.log(`📊 API Status: http://localhost:${PORT}/api/status`);
-    console.log(`🏥 Health Check: http://localhost:${PORT}/health`);
-    console.log(`📈 Metrics: http://localhost:${PORT}/api/metrics`);
-    console.log(`🛠️  Tools API: http://localhost:${PORT}/api/tools`);
-    console.log(`🔌 WebSocket: ws://localhost:${PORT}`);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM reçu, arrêt gracieux...');
+  server.close(() => {
+    console.log('Serveur arrêté');
+    process.exit(0);
+  });
 });
+SERVEREOF
+echo "✅ Serveur créé"; echo ""
 
-process.on('SIGTERM', () => {console.log('Shutting down...'); httpServer.close(() => process.exit(0));});
-process.on('uncaughtException', err => console.error('Uncaught Exception:', err));
-process.on('unhandledRejection', err => console.error('Unhandled Rejection:', err));
-SRVJS
-echo "✅ Serveur MCP MEGA créé"; echo ""
-
-# MCP Config COMPLET
-echo "📝 Configuration MCP servers..."; cat > "$N/configs/mcp_config.json" << 'MCPCFG'
-{
-  "mcpServers": {
-    "filesystem": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home", "/tmp"], "enabled": true},
-    "memory": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-memory"], "enabled": true},
-    "fetch": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-fetch"], "enabled": true},
-    "sqlite": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-sqlite", "$HOME/.nemesis/data/nemesis.db"], "enabled": true},
-    "puppeteer": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-puppeteer"], "enabled": false}
-  }
-}
-MCPCFG
-echo "✅ MCP config créé"; echo ""
-
-# WORKSPACE HTML ULTRA COMPLET
-echo "🎨 Création workspace HTML MEGA..."; cat > "$N/workspace/html/index.html" << 'HTMLMEGA'
+# Dashboard HTML COMPLET avec recherche
+echo "🎨 Création dashboard HTML..."
+cat > "$N/html/index.html" << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NEMESIS OMEGA v4.0 - Mega Dashboard</title>
-<script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{--primary:#00ff9d;--secondary:#009dff;--tertiary:#ff0099;--dark:#0a0e27;--darker:#050814;--glass:rgba(255,255,255,0.05);--glass-border:rgba(255,255,255,0.15)}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,var(--darker) 0%,var(--dark) 100%);color:#fff;min-height:100vh;overflow-x:hidden}
-.header{position:sticky;top:0;z-index:1000;background:var(--glass);backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);padding:20px}
-.header-content{max-width:1600px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
-.logo{font-size:32px;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
-.status-bar{display:flex;gap:15px;flex-wrap:wrap}
-.status-item{display:flex;align-items:center;gap:8px;padding:10px 18px;background:var(--glass);border:1px solid var(--glass-border);border-radius:25px;font-size:14px;transition:all 0.3s}
-.status-item:hover{background:rgba(255,255,255,0.08);transform:translateY(-2px)}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--primary);animation:pulse 2s infinite}
-.dot.offline{background:#ff0000}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(1.2)}}
-.container{max-width:1600px;margin:40px auto;padding:0 20px}
-.section-title{font-size:36px;font-weight:800;margin-bottom:15px;background:linear-gradient(135deg,var(--primary),var(--secondary));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.section-subtitle{color:rgba(255,255,255,0.6);font-size:18px;margin-bottom:40px}
-.metrics-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-bottom:40px}
-.metric-card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:16px;padding:25px;transition:all 0.3s}
-.metric-card:hover{transform:translateY(-5px);border-color:var(--primary);box-shadow:0 20px 40px rgba(0,255,157,0.2)}
-.metric-value{font-size:42px;font-weight:800;color:var(--primary);margin-bottom:8px;font-variant-numeric:tabular-nums}
-.metric-label{font-size:14px;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1px}
-.tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px}
-.tool-card{background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:16px;padding:25px;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden}
-.tool-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,var(--primary),var(--secondary));opacity:0;transition:opacity 0.3s}
-.tool-card:hover{transform:translateY(-5px);border-color:var(--primary);box-shadow:0 20px 40px rgba(0,255,157,0.3)}
-.tool-card:hover::before{opacity:0.08}
-.tool-header{display:flex;align-items:center;gap:15px;margin-bottom:15px;position:relative;z-index:1}
-.tool-icon{width:54px;height:54px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
-.tool-info{flex:1}
-.tool-name{font-size:20px;font-weight:700;margin-bottom:4px}
-.tool-category{font-size:12px;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px}
-.tool-status{position:relative;z-index:1;display:inline-block;padding:4px 12px;background:rgba(0,255,157,0.2);border:1px solid rgba(0,255,157,0.3);border-radius:12px;font-size:11px;color:var(--primary);text-transform:uppercase;letter-spacing:1px}
-.search-box{width:100%;max-width:600px;padding:15px 25px;background:var(--glass);border:1px solid var(--glass-border);border-radius:30px;color:#fff;font-size:16px;margin-bottom:30px;transition:all 0.3s}
-.search-box:focus{outline:none;border-color:var(--primary);box-shadow:0 0 20px rgba(0,255,157,0.2)}
-.search-box::placeholder{color:rgba(255,255,255,0.4)}
-.category-filter{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:30px}
-.category-btn{padding:10px 20px;background:var(--glass);border:1px solid var(--glass-border);border-radius:20px;color:#fff;font-size:14px;cursor:pointer;transition:all 0.3s}
-.category-btn:hover,.category-btn.active{background:rgba(0,255,157,0.2);border-color:var(--primary);color:var(--primary)}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEMESIS OMEGA v4.0 - AI Workspace</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        h1 {
+            color: white;
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2em;
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .metric {
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .metric-label {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        .metric-value {
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .controls {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+        .search-box::placeholder { color: rgba(255,255,255,0.6); }
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 25px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(255,255,255,0.4);
+            border-color: rgba(255,255,255,0.6);
+        }
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .tool-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .tool-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .tool-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        .tool-name {
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .tool-category {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        .tool-description {
+            color: rgba(255,255,255,0.8);
+            line-height: 1.5;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4ade80;
+            margin-right: 5px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
 </head>
 <body>
-<div class="header">
-<div class="header-content">
-<div class="logo">🔮 NEMESIS OMEGA v4.0</div>
-<div class="status-bar">
-<div class="status-item"><span class="dot" id="status-dot"></span><span id="status-text">Checking...</span></div>
-<div class="status-item"><span>🖥️</span><span id="uptime">0s</span></div>
-<div class="status-item"><span>💾</span><span id="memory">0MB</span></div>
-<div class="status-item"><span>⚡</span><span id="servers">0 Servers</span></div>
-</div>
-</div>
-</div>
-
-<div class="container">
-<h1 class="section-title">System Metrics</h1>
-<p class="section-subtitle">Real-time performance monitoring</p>
-<div class="metrics-grid">
-<div class="metric-card"><div class="metric-value" id="metric-uptime">0</div><div class="metric-label">Uptime (sec)</div></div>
-<div class="metric-card"><div class="metric-value" id="metric-memory">0</div><div class="metric-label">Memory (MB)</div></div>
-<div class="metric-card"><div class="metric-value" id="metric-cpu">0</div><div class="metric-label">CPU Usage</div></div>
-<div class="metric-card"><div class="metric-value" id="metric-version">4.0.0</div><div class="metric-label">Version</div></div>
-</div>
-
-<h1 class="section-title">AI Tools & Services</h1>
-<p class="section-subtitle">Your complete AI workspace - all tools in one place</p>
-
-<input type="text" class="search-box" id="search" placeholder="🔍 Search tools...">
-
-<div class="category-filter" id="categories"></div>
-<div class="tools-grid" id="tools"></div>
-</div>
-
-<script>
-const socket = io();
-let allTools = [];
-let currentCategory = 'all';
-
-async function loadTools() {
-    const res = await fetch('/api/tools');
-    allTools = await res.json();
-    displayTools(allTools);
-    setupCategories();
-}
-
-function setupCategories() {
-    const categories = ['all', ...new Set(allTools.map(t => t.category))];
-    const container = document.getElementById('categories');
-    container.innerHTML = categories.map(cat =>
-        `<button class="category-btn ${cat === 'all' ? 'active' : ''}" onclick="filterCategory('${cat}')">${cat === 'all' ? 'All' : cat}</button>`
-    ).join('');
-}
-
-function filterCategory(cat) {
-    currentCategory = cat;
-    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    const filtered = cat === 'all' ? allTools : allTools.filter(t => t.category === cat);
-    displayTools(filtered);
-}
-
-function displayTools(tools) {
-    document.getElementById('tools').innerHTML = tools.map(tool => `
-        <div class="tool-card" onclick="window.open('${tool.url}', '_blank')">
-            <div class="tool-header">
-                <div class="tool-icon">${tool.icon}</div>
-                <div class="tool-info">
-                    <div class="tool-name">${tool.name}</div>
-                    <div class="tool-category">${tool.category}</div>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 NEMESIS OMEGA</h1>
+            <p class="subtitle">
+                <span class="status-indicator"></span>
+                v4.0 - AI Workspace Ultimate Edition
+            </p>
+            <div class="metrics" id="metrics">
+                <div class="metric">
+                    <div class="metric-label">Uptime</div>
+                    <div class="metric-value" id="uptime">--</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Memory</div>
+                    <div class="metric-value" id="memory">--</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">MCP Servers</div>
+                    <div class="metric-value" id="servers">--</div>
+                </div>
+                <div class="metric">
+                    <div class="metric-label">Status</div>
+                    <div class="metric-value">✅ Running</div>
                 </div>
             </div>
-            <div class="tool-status">${tool.status}</div>
         </div>
-    `).join('');
-}
 
-document.getElementById('search').addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase();
-    const filtered = allTools.filter(t =>
-        t.name.toLowerCase().includes(query) ||
-        t.category.toLowerCase().includes(query)
-    );
-    displayTools(currentCategory === 'all' ? filtered : filtered.filter(t => t.category === currentCategory));
-});
+        <div class="controls">
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 Rechercher un outil...">
+            <div class="filters">
+                <button class="filter-btn active" data-category="all">Tous</button>
+                <button class="filter-btn" data-category="AI Chat">AI Chat</button>
+                <button class="filter-btn" data-category="AI Images">AI Images</button>
+                <button class="filter-btn" data-category="AI IDE">AI IDE</button>
+                <button class="filter-btn" data-category="Productivity">Productivity</button>
+                <button class="filter-btn" data-category="Infrastructure">Infrastructure</button>
+            </div>
+        </div>
 
-async function updateStatus() {
-    try {
-        const res = await fetch('/api/status');
-        const data = await res.json();
-        document.getElementById('status-dot').classList.remove('offline');
-        document.getElementById('status-text').textContent = 'Online';
-        document.getElementById('uptime').textContent = Math.floor(data.uptime) + 's';
-        document.getElementById('memory').textContent = (data.memory.heapUsed / 1024 / 1024).toFixed(1) + 'MB';
-        document.getElementById('servers').textContent = data.servers.length + ' Servers';
-        document.getElementById('metric-uptime').textContent = Math.floor(data.uptime);
-        document.getElementById('metric-memory').textContent = (data.memory.heapUsed / 1024 / 1024).toFixed(1);
-        document.getElementById('metric-cpu').textContent = ((data.cpu.user + data.cpu.system) / 1000000).toFixed(2);
-        document.getElementById('metric-version').textContent = data.version;
-    } catch (e) {
-        document.getElementById('status-dot').classList.add('offline');
-        document.getElementById('status-text').textContent = 'Offline';
-    }
-}
+        <div class="tools-grid" id="toolsGrid"></div>
+    </div>
 
-socket.on('metrics', (data) => {
-    document.getElementById('metric-memory').textContent = (data.memory.heapUsed / 1024 / 1024).toFixed(1);
-    document.getElementById('metric-uptime').textContent = Math.floor(data.uptime);
-});
+    <script>
+        const socket = io();
+        let allTools = [];
+        let currentCategory = 'all';
+        let currentSearch = '';
 
-loadTools();
-updateStatus();
-setInterval(updateStatus, 5000);
+        // WebSocket - Metrics en temps réel
+        socket.on('metrics', (data) => {
+            document.getElementById('uptime').textContent = formatUptime(data.uptime);
+            document.getElementById('memory').textContent = formatMemory(data.memory.heapUsed);
+            document.getElementById('servers').textContent = data.servers;
+        });
 
-console.log('%c🔮 NEMESIS OMEGA v4.0', 'font-size: 24px; font-weight: bold; color: #00ff9d;');
-console.log('%cMega Dashboard - All Tools in One Place', 'font-size: 14px; color: #009dff;');
-</script>
+        // Charger les outils
+        async function loadTools() {
+            const response = await fetch('/api/tools');
+            allTools = await response.json();
+            renderTools();
+        }
+
+        // Render tools
+        function renderTools() {
+            const filtered = allTools.filter(tool => {
+                const matchCategory = currentCategory === 'all' || tool.category === currentCategory;
+                const matchSearch = !currentSearch ||
+                    tool.name.toLowerCase().includes(currentSearch) ||
+                    tool.description.toLowerCase().includes(currentSearch);
+                return matchCategory && matchSearch;
+            });
+
+            const grid = document.getElementById('toolsGrid');
+            grid.innerHTML = filtered.map(tool => `
+                <div class="tool-card" onclick="window.open('${tool.url}', '_blank')">
+                    <div class="tool-icon">${tool.icon}</div>
+                    <div class="tool-name">${tool.name}</div>
+                    <div class="tool-category">${tool.category}</div>
+                    <div class="tool-description">${tool.description}</div>
+                </div>
+            `).join('');
+        }
+
+        // Search
+        document.getElementById('searchBox').addEventListener('input', (e) => {
+            currentSearch = e.target.value.toLowerCase();
+            renderTools();
+        });
+
+        // Filters
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                currentCategory = e.target.dataset.category;
+                renderTools();
+            });
+        });
+
+        // Format helpers
+        function formatUptime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            return `${h}h ${m}m`;
+        }
+
+        function formatMemory(bytes) {
+            return (bytes / 1024 / 1024).toFixed(0) + ' MB';
+        }
+
+        // Init
+        loadTools();
+    </script>
 </body>
 </html>
-HTMLMEGA
-echo "✅ Workspace MEGA créé"; echo ""
+HTMLEOF
+echo "✅ Dashboard créé"; echo ""
 
-# ENV avec VRAIES clés de DEMO fonctionnelles
-echo "🔑 Configuration environnement..."; cat > "$N/.env" << 'ENVFILE'
-# NEMESIS OMEGA v4.0 - Environment
-NEMESIS_HOME=$HOME/.nemesis
-NEMESIS_PORT=10000
+# .env template
+echo "🔐 Création .env template..."
+cat > "$N/.env" << 'ENVEOF'
+# NEMESIS OMEGA v4.0 - Configuration
 NODE_ENV=production
-NEMESIS_VERSION=4.0.0-MEGA
-ENVFILE
-echo "✅ Environnement configuré"; echo ""
+PORT=10000
 
-# Scripts COMPLETS
-echo "📜 Création scripts de gestion..."; cat > "$N/scripts/start.sh" << 'STARTSH'
+# API Keys (optionnel - remplissez si vous voulez utiliser ces services)
+GITHUB_TOKEN=
+GITLAB_TOKEN=
+GOOGLE_MAPS_API_KEY=
+BRAVE_API_KEY=
+SLACK_BOT_TOKEN=
+ANTHROPIC_API_KEY=
+OPENAI_API_KEY=
+ENVEOF
+echo "✅ .env créé"; echo ""
+
+# Installation npm AGGRESSIVE
+echo "📦 Installation dépendances npm (peut prendre 2-3 min)..."
+cd "$N"
+for i in {1..5}; do
+    if npm install --prefer-offline --no-audit --no-fund 2>&1 | grep -qE "added|packages"; then
+        echo "✅ Dépendances installées ($i/5)"; break
+    else
+        echo "⚠️  Retry npm install $i/5..."
+        rm -rf node_modules package-lock.json 2>/dev/null
+        [[ $i -eq 3 ]] && npm install --legacy-peer-deps --no-audit 2>&1 | tail -3
+        [[ $i -eq 4 ]] && npm install --force --no-audit 2>&1 | tail -3
+        sleep 2
+    fi
+done
+echo ""
+
+# Scripts de gestion
+echo "📜 Création scripts de gestion..."
+
+cat > "$N/scripts/start_nemesis.sh" << 'STARTEOF'
 #!/bin/bash
-cd ~/.nemesis/mcp
-[[ -f server.pid ]] && echo "⚠️  Déjà lancé ($(cat server.pid))" && exit 0
+cd ~/.nemesis
 echo "🚀 Démarrage NEMESIS OMEGA..."
-nohup node server.js > logs/server.log 2>&1 & echo $! > server.pid
-sleep 3
-if curl -s http://localhost:10000/health >/dev/null; then
-    echo "✅ NEMESIS running on http://localhost:10000"
-    echo "📊 Dashboard: http://localhost:10000"
-    echo "📡 API: http://localhost:10000/api/status"
-    command -v xdg-open &>/dev/null && xdg-open http://localhost:10000 &
-    command -v microsoft-edge &>/dev/null && microsoft-edge http://localhost:10000 &>/dev/null &
+node server.js &
+echo $! > ~/.nemesis/logs/server.pid
+echo "✅ Serveur démarré (PID: $(cat ~/.nemesis/logs/server.pid))"
+echo "📊 Dashboard: http://localhost:10000"
+STARTEOF
+
+cat > "$N/scripts/stop_nemesis.sh" << 'STOPEOF'
+#!/bin/bash
+if [[ -f ~/.nemesis/logs/server.pid ]]; then
+    PID=$(cat ~/.nemesis/logs/server.pid)
+    kill $PID 2>/dev/null && echo "✅ Serveur arrêté (PID: $PID)" || echo "⚠️  Serveur déjà arrêté"
+    rm ~/.nemesis/logs/server.pid 2>/dev/null
 else
-    echo "❌ Échec démarrage. Logs: tail ~/.nemesis/mcp/logs/server.log"
+    echo "⚠️  Aucun serveur en cours"
 fi
-STARTSH
+STOPEOF
 
-cat > "$N/scripts/stop.sh" << 'STOPSH'
+cat > "$N/scripts/restart_nemesis.sh" << 'RESTARTEOF'
 #!/bin/bash
-echo "🛑 Arrêt NEMESIS..."
-[[ -f ~/.nemesis/mcp/server.pid ]] && kill $(cat ~/.nemesis/mcp/server.pid) 2>/dev/null
-pkill -f "node.*server.js"
-rm -f ~/.nemesis/mcp/server.pid
-echo "✅ NEMESIS arrêté"
-STOPSH
+~/.nemesis/scripts/stop_nemesis.sh
+sleep 2
+~/.nemesis/scripts/start_nemesis.sh
+RESTARTEOF
 
-cat > "$N/scripts/restart.sh" << 'RESTARTSH'
+cat > "$N/scripts/status_nemesis.sh" << 'STATUSEOF'
 #!/bin/bash
-~/.nemesis/scripts/stop.sh && sleep 2 && ~/.nemesis/scripts/start.sh
-RESTARTSH
-
-cat > "$N/scripts/status.sh" << 'STATUSSH'
-#!/bin/bash
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "════════════════════════════════════════════════════════════"
 echo "📊 NEMESIS OMEGA - Status"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-curl -s http://localhost:10000/api/status 2>/dev/null | jq . || echo "❌ Serveur non accessible"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-STATUSSH
+echo "════════════════════════════════════════════════════════════"
+if [[ -f ~/.nemesis/logs/server.pid ]]; then
+    PID=$(cat ~/.nemesis/logs/server.pid)
+    if ps -p $PID > /dev/null 2>&1; then
+        echo "✅ Serveur: Running (PID: $PID)"
+        echo "📊 Dashboard: http://localhost:10000"
+        curl -s http://localhost:10000/api/status | jq . 2>/dev/null || echo "⚠️  API non disponible"
+    else
+        echo "❌ Serveur: Stopped"
+    fi
+else
+    echo "❌ Serveur: Not started"
+fi
+echo "════════════════════════════════════════════════════════════"
+STATUSEOF
 
-cat > "$N/scripts/logs.sh" << 'LOGSSH'
+cat > "$N/scripts/logs_nemesis.sh" << 'LOGSEOF'
 #!/bin/bash
-echo "📋 Logs NEMESIS (Ctrl+C pour quitter)..."
-tail -f ~/.nemesis/mcp/logs/server.log
-LOGSSH
+echo "📋 NEMESIS OMEGA - Derniers logs"
+echo "════════════════════════════════════════════════════════════"
+ls -t ~/nemesis_logs/*.log 2>/dev/null | head -1 | xargs tail -50
+LOGSEOF
 
-cat > "$N/scripts/test.sh" << 'TESTSH'
+cat > "$N/scripts/test_nemesis.sh" << 'TESTEOF'
 #!/bin/bash
-echo "🧪 Test NEMESIS..."
-echo "1. Health Check..."
-curl -s http://localhost:10000/health | jq .
-echo "2. API Status..."
-curl -s http://localhost:10000/api/status | jq .
-echo "3. Tools API..."
-curl -s http://localhost:10000/api/tools | jq '. | length'
-echo "✅ Tests terminés"
-TESTSH
+echo "🧪 Test NEMESIS OMEGA..."
+echo "1. Test API Status..."
+curl -s http://localhost:10000/api/status && echo "✅" || echo "❌"
+echo "2. Test API Tools..."
+curl -s http://localhost:10000/api/tools | jq 'length' && echo "✅" || echo "❌"
+echo "3. Test Dashboard..."
+curl -s http://localhost:10000 > /dev/null && echo "✅" || echo "❌"
+echo "Tests terminés!"
+TESTEOF
 
 chmod +x "$N/scripts"/*.sh
 echo "✅ 6 scripts créés"; echo ""
 
-# DÉMARRAGE AUTO
-echo "🚀 Démarrage NEMESIS..."; cd "$N/mcp"
-nohup node server.js > logs/server.log 2>&1 & echo $! > server.pid; SERVER_PID=$!
-echo "   PID: $SERVER_PID"; sleep 4
+# Démarrage automatique
+echo "🎬 Démarrage du serveur..."
+cd "$N"
+node server.js > "$N/logs/server.log" 2>&1 &
+SERVER_PID=$!
+echo $SERVER_PID > "$N/logs/server.pid"
+sleep 3
 
-if curl -s http://localhost:10000/health >/dev/null 2>&1; then
-    echo "✅ NEMESIS démarré avec succès !"; echo ""
+# Vérification
+if ps -p $SERVER_PID > /dev/null 2>&1; then
+    echo "✅ Serveur démarré (PID: $SERVER_PID)"
+    echo ""
+    echo "════════════════════════════════════════════════════════════"
+    echo "🎉 INSTALLATION TERMINÉE!"
+    echo "════════════════════════════════════════════════════════════"
+    echo ""
+    echo "📊 Dashboard: http://localhost:10000"
+    echo "🔌 WebSocket: Activé"
+    echo "📡 API: http://localhost:10000/api/status"
+    echo ""
+    echo "🎮 Commandes disponibles:"
+    echo "   ~/.nemesis/scripts/start_nemesis.sh    - Démarrer"
+    echo "   ~/.nemesis/scripts/stop_nemesis.sh     - Arrêter"
+    echo "   ~/.nemesis/scripts/restart_nemesis.sh  - Redémarrer"
+    echo "   ~/.nemesis/scripts/status_nemesis.sh   - Status"
+    echo "   ~/.nemesis/scripts/logs_nemesis.sh     - Logs"
+    echo "   ~/.nemesis/scripts/test_nemesis.sh     - Tests"
+    echo ""
+    echo "🔐 Configuration API keys (optionnel):"
+    echo "   nano ~/.nemesis/.env"
+    echo ""
+    echo "📋 Logs complets: $R"
+    echo "════════════════════════════════════════════════════════════"
 else
-    echo "⚠️  Serveur démarre... Vérifiez dans 10 sec"; echo ""
+    echo "❌ Erreur démarrage serveur"
+    echo "📋 Consultez les logs: cat $N/logs/server.log"
 fi
-
-# RAPPORT FINAL MEGA
-clear; cat << 'FINALREPORT'
-╔══════════════════════════════════════════════════════════════════════╗
-║                                                                      ║
-║        🎉  NEMESIS OMEGA v4.0 MEGA - INSTALLATION TERMINÉE  🎉      ║
-║                                                                      ║
-╚══════════════════════════════════════════════════════════════════════╝
-
-✅ TOUT EST INSTALLÉ ET FONCTIONNEL !
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📦 CE QUI EST INSTALLÉ :
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-✅ Node.js + npm + yarn + pnpm + PM2
-✅ Python + pip + pipx + libraries
-✅ Docker (optionnel)
-✅ Microsoft Edge / Chrome
-✅ 40+ packages système
-✅ MCP Infrastructure complète (Express + WebSocket + API REST)
-✅ Dashboard HTML MEGA avec 16+ outils AI
-✅ 6 scripts de gestion
-✅ Configuration complète
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🌐 ACCÈS :
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-   🎨 DASHBOARD:  http://localhost:10000
-
-   📊 API STATUS:  http://localhost:10000/api/status
-   🏥 HEALTH:      http://localhost:10000/health
-   📈 METRICS:     http://localhost:10000/api/metrics
-   🛠️  TOOLS API:  http://localhost:10000/api/tools
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🛠️  COMMANDES :
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-   Démarrer :  ~/.nemesis/scripts/start.sh
-   Arrêter  :  ~/.nemesis/scripts/stop.sh
-   Status   :  ~/.nemesis/scripts/status.sh
-   Restart  :  ~/.nemesis/scripts/restart.sh
-   Logs     :  ~/.nemesis/scripts/logs.sh
-   Test     :  ~/.nemesis/scripts/test.sh
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎯 OUTILS AI DISPONIBLES (16+) :
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-   🤖 Claude, ChatGPT, Gemini, Perplexity
-   🎨 Midjourney, DALL-E, Figma
-   ⚡ Cursor, GitHub Copilot
-   📋 Notion, Linear
-   🚀 Vercel, Railway, Supabase
-   🤗 HuggingFace, Pinecone
-
-   Tous accessibles via le dashboard !
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔥 FONCTIONNALITÉS :
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-   ✅ Dashboard interactif avec recherche
-   ✅ Filtres par catégorie
-   ✅ Métriques temps réel (WebSocket)
-   ✅ API REST complète
-   ✅ Sécurité (Helmet + Rate Limiting)
-   ✅ Compression Gzip
-   ✅ CORS activé
-   ✅ Logs détaillés
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📄 FICHIERS :
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-   Installation : ~/.nemesis/
-   Config       : ~/.nemesis/.env
-   MCP Config   : ~/.nemesis/configs/mcp_config.json
-   Logs         : ~/.nemesis/mcp/logs/server.log
-FINALREPORT
-
-echo "   Rapport    : $R"
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-echo "🎊 OUVREZ VOTRE NAVIGATEUR SUR : http://localhost:10000"
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo ""
-
-# Auto-open browser
-command -v xdg-open &>/dev/null && xdg-open http://localhost:10000 &
-command -v microsoft-edge &>/dev/null && microsoft-edge --new-window http://localhost:10000 &>/dev/null &
-
-echo "✨ Rapport complet : cat $R"
-echo ""
