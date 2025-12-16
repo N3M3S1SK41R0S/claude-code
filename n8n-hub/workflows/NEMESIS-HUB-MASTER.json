@@ -1,0 +1,221 @@
+{
+  "name": "NEMESIS HUB MASTER - Central Orchestrator",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "nemesis-hub-master"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "minutes", "minutesInterval": 15 }]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.platform }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "router",
+      "name": "Platform Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "url": "https://api.notion.com/v1/databases/{{ $json.notion_database_id }}/query",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "notionApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Notion-Version", "value": "2022-06-28" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "notion-query",
+      "name": "Notion Query",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $json.discord_channel_id }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "content", "value": "={{ $json.message }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "discord-send",
+      "name": "Discord Send",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 350]
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/{{ $json.github_owner }}/{{ $json.github_repo }}/issues",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ title: $json.issue_title, body: $json.issue_body }) }}",
+        "options": {}
+      },
+      "id": "github-create-issue",
+      "name": "GitHub Create Issue",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 500]
+    },
+    {
+      "parameters": {
+        "url": "https://hook.eu1.make.com/{{ $json.make_webhook_id }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.make_payload) }}",
+        "options": {}
+      },
+      "id": "make-trigger",
+      "name": "Make/Integromat Trigger",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 650]
+    },
+    {
+      "parameters": {
+        "url": "https://api.heygen.com/v2/video/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ video_inputs: [{ character: { type: 'avatar', avatar_id: $json.avatar_id }, voice: { type: 'text', input_text: $json.script } }], dimension: { width: 1920, height: 1080 } }) }}",
+        "options": {}
+      },
+      "id": "heygen-generate",
+      "name": "HeyGen Generate Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://api.midjourney.com/v1/imagine",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: $json.mj_prompt }) }}",
+        "options": {}
+      },
+      "id": "midjourney-imagine",
+      "name": "Midjourney Imagine",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 350]
+    },
+    {
+      "parameters": {
+        "url": "https://{{ $json.bubble_app }}.bubbleapps.io/api/1.1/wf/{{ $json.bubble_workflow }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.bubble_data) }}",
+        "options": {}
+      },
+      "id": "bubble-workflow",
+      "name": "Bubble Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 500]
+    },
+    {
+      "parameters": {
+        "functionCode": "// NEMESIS HUB - Central Data Processor\nconst items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const processed = {\n    timestamp: new Date().toISOString(),\n    source: item.json.platform || 'unknown',\n    data: item.json,\n    status: 'processed'\n  };\n  results.push({ json: processed });\n}\n\nreturn results;"
+      },
+      "id": "data-processor",
+      "name": "Data Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({ success: true, processed: $json.data, timestamp: $json.timestamp }) }}"
+      },
+      "id": "response",
+      "name": "Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1500, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [[{ "node": "Platform Router", "type": "main", "index": 0 }]]
+    },
+    "Schedule Trigger": {
+      "main": [[{ "node": "Platform Router", "type": "main", "index": 0 }]]
+    },
+    "Platform Router": {
+      "main": [
+        [{ "node": "Notion Query", "type": "main", "index": 0 }],
+        [{ "node": "Discord Send", "type": "main", "index": 0 }],
+        [{ "node": "GitHub Create Issue", "type": "main", "index": 0 }],
+        [{ "node": "Make/Integromat Trigger", "type": "main", "index": 0 }]
+      ]
+    },
+    "Notion Query": {
+      "main": [[{ "node": "Data Processor", "type": "main", "index": 0 }]]
+    },
+    "Discord Send": {
+      "main": [[{ "node": "Data Processor", "type": "main", "index": 0 }]]
+    },
+    "GitHub Create Issue": {
+      "main": [[{ "node": "Data Processor", "type": "main", "index": 0 }]]
+    },
+    "Make/Integromat Trigger": {
+      "main": [[{ "node": "Data Processor", "type": "main", "index": 0 }]]
+    },
+    "HeyGen Generate Video": {
+      "main": [[{ "node": "Data Processor", "type": "main", "index": 0 }]]
+    },
+    "Midjourney Imagine": {
+      "main": [[{ "node": "Data Processor", "type": "main", "index": 0 }]]
+    },
+    "Bubble Workflow": {
+      "main": [[{ "node": "Data Processor", "type": "main", "index": 0 }]]
+    },
+    "Data Processor": {
+      "main": [[{ "node": "Response", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["nemesis", "hub", "automation"]
+}

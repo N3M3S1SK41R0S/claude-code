@@ -1,0 +1,146 @@
+{
+  "name": "NEMESIS - Bubble.io Connector",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook",
+      "name": "Bubble Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "bubble-connector"
+    },
+    {
+      "parameters": {
+        "url": "https://{{ $json.app_name }}.bubbleapps.io/api/1.1/obj/{{ $json.data_type }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "constraints", "value": "={{ JSON.stringify($json.constraints || []) }}" },
+            { "name": "limit", "value": "={{ $json.limit || 100 }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-data",
+      "name": "Get Bubble Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 200],
+      "credentials": { "httpHeaderAuth": { "id": "bubble-cred", "name": "Bubble API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://{{ $json.app_name }}.bubbleapps.io/api/1.1/obj/{{ $json.data_type }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.data) }}",
+        "options": {}
+      },
+      "id": "create-data",
+      "name": "Create Bubble Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 400],
+      "credentials": { "httpHeaderAuth": { "id": "bubble-cred", "name": "Bubble API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://{{ $json.app_name }}.bubbleapps.io/api/1.1/obj/{{ $json.data_type }}/{{ $json.record_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "PATCH",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.updates) }}",
+        "options": {}
+      },
+      "id": "update-data",
+      "name": "Update Bubble Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 600],
+      "credentials": { "httpHeaderAuth": { "id": "bubble-cred", "name": "Bubble API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://{{ $json.app_name }}.bubbleapps.io/api/1.1/obj/{{ $json.data_type }}/{{ $json.record_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "DELETE",
+        "options": {}
+      },
+      "id": "delete-data",
+      "name": "Delete Bubble Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 400],
+      "credentials": { "httpHeaderAuth": { "id": "bubble-cred", "name": "Bubble API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://{{ $json.app_name }}.bubbleapps.io/api/1.1/wf/{{ $json.workflow_name }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.workflow_params || {}) }}",
+        "options": {}
+      },
+      "id": "trigger-workflow",
+      "name": "Trigger Bubble Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 600],
+      "credentials": { "httpHeaderAuth": { "id": "bubble-cred", "name": "Bubble API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://{{ $json.app_name }}.bubbleapps.io/api/1.1/obj/{{ $json.data_type }}/bulk",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.bulk_data) }}",
+        "options": {}
+      },
+      "id": "bulk-create",
+      "name": "Bulk Create",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 300],
+      "credentials": { "httpHeaderAuth": { "id": "bubble-cred", "name": "Bubble API" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Bubble Data Transformer\nconst response = $input.first().json;\nconst results = response.response?.results || [];\n\nconst transformed = results.map(item => ({\n  id: item._id,\n  created: item.Created_Date,\n  modified: item.Modified_Date,\n  ...item\n}));\n\nreturn transformed.map(item => ({ json: item }));"
+      },
+      "id": "transform",
+      "name": "Transform Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 200]
+    }
+  ],
+  "connections": {
+    "Bubble Webhook": {
+      "main": [[
+        { "node": "Get Bubble Data", "type": "main", "index": 0 },
+        { "node": "Create Bubble Data", "type": "main", "index": 0 },
+        { "node": "Update Bubble Data", "type": "main", "index": 0 }
+      ]]
+    },
+    "Get Bubble Data": {
+      "main": [[{ "node": "Transform Data", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "bubble", "nocode", "database"]
+}

@@ -1,0 +1,129 @@
+{
+  "name": "NEMESIS - Notion Sync Hub",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "minutes", "minutesInterval": 5 }] }
+      },
+      "id": "schedule",
+      "name": "Sync Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {},
+      "id": "webhook",
+      "name": "Notion Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 500],
+      "webhookId": "notion-sync"
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "getAll",
+        "databaseId": "={{ $json.database_id || $env.NOTION_DATABASE_ID }}",
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "notion-read",
+      "name": "Read Notion Database",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [500, 300],
+      "credentials": { "notionApi": { "id": "notion-cred", "name": "Notion API" } }
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "operation": "create",
+        "databaseId": "={{ $json.target_database_id }}",
+        "propertiesUi": {
+          "propertyValues": [
+            { "key": "Name", "title": "={{ $json.title }}" },
+            { "key": "Status", "select": "={{ $json.status }}" },
+            { "key": "Tags", "multiSelect": "={{ $json.tags }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "notion-create",
+      "name": "Create Notion Page",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [750, 400],
+      "credentials": { "notionApi": { "id": "notion-cred", "name": "Notion API" } }
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "operation": "update",
+        "pageId": "={{ $json.page_id }}",
+        "propertiesUi": {
+          "propertyValues": [
+            { "key": "Status", "select": "={{ $json.new_status }}" },
+            { "key": "LastSync", "date": "={{ new Date().toISOString() }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "notion-update",
+      "name": "Update Notion Page",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [750, 200],
+      "credentials": { "notionApi": { "id": "notion-cred", "name": "Notion API" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Notion Data Transformer\nconst items = $input.all();\nconst transformed = items.map(item => {\n  const props = item.json.properties || {};\n  return {\n    json: {\n      id: item.json.id,\n      title: props.Name?.title?.[0]?.text?.content || '',\n      status: props.Status?.select?.name || '',\n      tags: props.Tags?.multi_select?.map(t => t.name) || [],\n      created: item.json.created_time,\n      updated: item.json.last_edited_time,\n      url: item.json.url\n    }\n  };\n});\nreturn transformed;"
+      },
+      "id": "transform",
+      "name": "Transform Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 500]
+    },
+    {
+      "parameters": {
+        "url": "https://api.notion.com/v1/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "notionApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Notion-Version", "value": "2022-06-28" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: $json.search_query, filter: { property: 'object', value: 'page' } }) }}",
+        "options": {}
+      },
+      "id": "notion-search",
+      "name": "Search Notion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 600]
+    }
+  ],
+  "connections": {
+    "Sync Schedule": {
+      "main": [[{ "node": "Read Notion Database", "type": "main", "index": 0 }]]
+    },
+    "Notion Webhook": {
+      "main": [[{ "node": "Transform Data", "type": "main", "index": 0 }]]
+    },
+    "Read Notion Database": {
+      "main": [[{ "node": "Update Notion Page", "type": "main", "index": 0 }]]
+    },
+    "Transform Data": {
+      "main": [[
+        { "node": "Create Notion Page", "type": "main", "index": 0 },
+        { "node": "Search Notion", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "notion", "sync", "database"]
+}

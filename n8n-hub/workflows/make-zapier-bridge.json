@@ -1,0 +1,113 @@
+{
+  "name": "NEMESIS - Make/Zapier Bridge",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook-in",
+      "name": "Receive from Make/Zapier",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "make-zapier-in"
+    },
+    {
+      "parameters": {
+        "url": "https://hook.eu1.make.com/{{ $json.make_webhook_id }}",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {}
+      },
+      "id": "send-to-make",
+      "name": "Send to Make",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://hooks.zapier.com/hooks/catch/{{ $json.zapier_account_id }}/{{ $json.zapier_hook_id }}/",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {}
+      },
+      "id": "send-to-zapier",
+      "name": "Send to Zapier",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "url": "https://hook.eu2.make.com/{{ $json.make_webhook_id }}",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ action: 'trigger_scenario', scenario_id: $json.scenario_id, input_data: $json.data }) }}",
+        "options": {}
+      },
+      "id": "trigger-make-scenario",
+      "name": "Trigger Make Scenario",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Cross-Platform Data Transformer\nconst input = $input.first().json;\nconst targetPlatform = input.target || 'make';\n\nlet transformed = {\n  source: 'n8n',\n  timestamp: new Date().toISOString(),\n  original_data: input.data || input\n};\n\nif (targetPlatform === 'make') {\n  // Make/Integromat format\n  transformed.payload = {\n    records: Array.isArray(input.data) ? input.data : [input.data],\n    metadata: {\n      source: 'nemesis-n8n',\n      workflow: input.workflow_name || 'unknown'\n    }\n  };\n} else if (targetPlatform === 'zapier') {\n  // Zapier format (flattened)\n  transformed.payload = {\n    ...input.data,\n    _meta_source: 'nemesis-n8n',\n    _meta_time: transformed.timestamp\n  };\n}\n\nreturn [{ json: transformed }];"
+      },
+      "id": "transform",
+      "name": "Transform for Target",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.target }}", "value2": "make" }]
+        }
+      },
+      "id": "router",
+      "name": "Route to Platform",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Scenario Status Monitor\nconst scenarios = $input.all();\nconst status = [];\n\nfor (const s of scenarios) {\n  status.push({\n    platform: s.json.platform || 'unknown',\n    scenario_id: s.json.scenario_id,\n    status: s.json.status || 'triggered',\n    response_time: s.json.response_time,\n    timestamp: new Date().toISOString()\n  });\n}\n\nreturn [{ json: { scenarios: status, total: status.length } }];"
+      },
+      "id": "monitor",
+      "name": "Monitor Status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 400]
+    }
+  ],
+  "connections": {
+    "Receive from Make/Zapier": {
+      "main": [[{ "node": "Transform for Target", "type": "main", "index": 0 }]]
+    },
+    "Transform for Target": {
+      "main": [[{ "node": "Router to Platform", "type": "main", "index": 0 }]]
+    },
+    "Route to Platform": {
+      "main": [
+        [{ "node": "Send to Make", "type": "main", "index": 0 }],
+        [{ "node": "Send to Zapier", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send to Make": {
+      "main": [[{ "node": "Monitor Status", "type": "main", "index": 0 }]]
+    },
+    "Send to Zapier": {
+      "main": [[{ "node": "Monitor Status", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "make", "zapier", "integration"]
+}

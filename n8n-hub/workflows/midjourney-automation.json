@@ -1,0 +1,145 @@
+{
+  "name": "NEMESIS - Midjourney Automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook",
+      "name": "Image Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "midjourney-gen"
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $env.MJ_CHANNEL_ID }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: '/imagine prompt: ' + $json.prompt + ' ' + ($json.params || '--v 6 --ar 16:9 --q 2') }) }}",
+        "options": {}
+      },
+      "id": "send-imagine",
+      "name": "Send Imagine Command",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.goapi.ai/mj/v2/imagine",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ prompt: $json.prompt, aspect_ratio: $json.aspect_ratio || '16:9', process_mode: $json.mode || 'fast', webhook_endpoint: $json.webhook_url, webhook_secret: $json.webhook_secret }) }}",
+        "options": {}
+      },
+      "id": "goapi-imagine",
+      "name": "GoAPI Imagine",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 500],
+      "credentials": { "httpHeaderAuth": { "id": "goapi-cred", "name": "GoAPI Key" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.goapi.ai/mj/v2/upscale",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ origin_task_id: $json.task_id, index: $json.upscale_index || '1' }) }}",
+        "options": {}
+      },
+      "id": "upscale",
+      "name": "Upscale Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 400],
+      "credentials": { "httpHeaderAuth": { "id": "goapi-cred", "name": "GoAPI Key" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.goapi.ai/mj/v2/variation",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ origin_task_id: $json.task_id, index: $json.variation_index || '1' }) }}",
+        "options": {}
+      },
+      "id": "variation",
+      "name": "Create Variation",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 600],
+      "credentials": { "httpHeaderAuth": { "id": "goapi-cred", "name": "GoAPI Key" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.goapi.ai/mj/v2/fetch",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ task_id: $json.task_id }) }}",
+        "options": {}
+      },
+      "id": "fetch-result",
+      "name": "Fetch Result",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 500],
+      "credentials": { "httpHeaderAuth": { "id": "goapi-cred", "name": "GoAPI Key" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Midjourney Result Processor\nconst data = $input.first().json;\n\nconst result = {\n  task_id: data.task_id,\n  status: data.status,\n  progress: data.progress || 0,\n  prompt: data.meta?.prompt || data.prompt,\n  image_url: data.task_result?.image_url || null,\n  image_urls: data.task_result?.image_urls || [],\n  created_at: new Date().toISOString(),\n  platform: 'midjourney'\n};\n\nif (data.status === 'finished' && result.image_url) {\n  result.ready = true;\n  result.download_url = result.image_url;\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "process-result",
+      "name": "Process Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 500]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Prompt Enhancer for Midjourney\nconst input = $input.first().json;\nlet prompt = input.prompt || '';\n\n// Add quality parameters if not present\nif (!prompt.includes('--q')) prompt += ' --q 2';\nif (!prompt.includes('--v')) prompt += ' --v 6';\n\n// Add style modifiers\nconst style = input.style || 'photorealistic';\nconst styleMap = {\n  'photorealistic': 'photorealistic, 8k, ultra detailed, cinematic lighting',\n  'artistic': 'artistic, digital art, trending on artstation',\n  'anime': 'anime style, studio ghibli, vibrant colors',\n  'minimal': 'minimalist, clean, simple design',\n  '3d': '3D render, octane render, unreal engine 5'\n};\n\nif (styleMap[style]) {\n  prompt = styleMap[style] + ', ' + prompt;\n}\n\nreturn [{ json: { ...input, enhanced_prompt: prompt } }];"
+      },
+      "id": "enhance-prompt",
+      "name": "Enhance Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 700]
+    }
+  ],
+  "connections": {
+    "Image Request": {
+      "main": [[
+        { "node": "Enhance Prompt", "type": "main", "index": 0 },
+        { "node": "GoAPI Imagine", "type": "main", "index": 0 }
+      ]]
+    },
+    "GoAPI Imagine": {
+      "main": [[{ "node": "Fetch Result", "type": "main", "index": 0 }]]
+    },
+    "Fetch Result": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Upscale Image": {
+      "main": [[{ "node": "Fetch Result", "type": "main", "index": 0 }]]
+    },
+    "Variation": {
+      "main": [[{ "node": "Fetch Result", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "midjourney", "ai", "images"]
+}

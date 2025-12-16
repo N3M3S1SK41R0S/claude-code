@@ -1,0 +1,129 @@
+{
+  "name": "NEMESIS - Discord Bot Automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "discord-trigger",
+      "name": "Discord Trigger",
+      "type": "n8n-nodes-base.discordTrigger",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "credentials": { "discordBotApi": { "id": "discord-cred", "name": "Discord Bot" } }
+    },
+    {
+      "parameters": {},
+      "id": "webhook",
+      "name": "External Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 500],
+      "webhookId": "discord-bot"
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $json.channel_id }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $json.message, embeds: $json.embeds || [] }) }}",
+        "options": {}
+      },
+      "id": "send-message",
+      "name": "Send Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $json.channel_id }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ embeds: [{ title: $json.embed_title, description: $json.embed_description, color: parseInt($json.embed_color || '5814783'), fields: $json.embed_fields || [], thumbnail: { url: $json.thumbnail_url }, footer: { text: 'NEMESIS Hub - ' + new Date().toLocaleString() } }] }) }}",
+        "options": {}
+      },
+      "id": "send-embed",
+      "name": "Send Rich Embed",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 500]
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/guilds/{{ $json.guild_id }}/channels",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "options": {}
+      },
+      "id": "get-channels",
+      "name": "Get Channels",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/guilds/{{ $json.guild_id }}/members",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendQuery": true,
+        "queryParameters": { "parameters": [{ "name": "limit", "value": "100" }] },
+        "options": {}
+      },
+      "id": "get-members",
+      "name": "Get Members",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $json.channel_id }}/threads",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ name: $json.thread_name, auto_archive_duration: 1440, type: 11 }) }}",
+        "options": {}
+      },
+      "id": "create-thread",
+      "name": "Create Thread",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Discord Command Handler\nconst message = $input.first().json;\nconst content = message.content || '';\n\nlet response = { action: 'none' };\n\nif (content.startsWith('!status')) {\n  response = {\n    action: 'send_embed',\n    embed_title: 'NEMESIS Status',\n    embed_description: 'All systems operational',\n    embed_color: '65280',\n    embed_fields: [\n      { name: 'n8n', value: 'Running', inline: true },\n      { name: 'Workflows', value: 'Active', inline: true }\n    ]\n  };\n} else if (content.startsWith('!help')) {\n  response = {\n    action: 'send_message',\n    message: '**NEMESIS Commands:**\\n!status - Check system status\\n!sync - Trigger sync\\n!notify - Send notification'\n  };\n} else if (content.startsWith('!sync')) {\n  response = { action: 'trigger_sync', platform: 'all' };\n}\n\nreturn [{ json: { ...message, ...response } }];"
+      },
+      "id": "command-handler",
+      "name": "Command Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 700]
+    }
+  ],
+  "connections": {
+    "Discord Trigger": {
+      "main": [[{ "node": "Command Handler", "type": "main", "index": 0 }]]
+    },
+    "External Webhook": {
+      "main": [[
+        { "node": "Send Message", "type": "main", "index": 0 },
+        { "node": "Send Rich Embed", "type": "main", "index": 0 }
+      ]]
+    },
+    "Command Handler": {
+      "main": [[
+        { "node": "Send Message", "type": "main", "index": 0 },
+        { "node": "Send Rich Embed", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "discord", "bot", "automation"]
+}

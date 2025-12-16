@@ -1,0 +1,147 @@
+{
+  "name": "NEMESIS - GitHub Integration",
+  "nodes": [
+    {
+      "parameters": {
+        "events": ["push", "pull_request", "issues", "issue_comment"],
+        "options": {}
+      },
+      "id": "github-trigger",
+      "name": "GitHub Trigger",
+      "type": "n8n-nodes-base.githubTrigger",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "credentials": { "githubApi": { "id": "github-cred", "name": "GitHub API" } }
+    },
+    {
+      "parameters": {},
+      "id": "webhook",
+      "name": "GitHub Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 500],
+      "webhookId": "github-events"
+    },
+    {
+      "parameters": {
+        "resource": "issue",
+        "operation": "create",
+        "owner": "={{ $json.owner }}",
+        "repository": "={{ $json.repo }}",
+        "title": "={{ $json.issue_title }}",
+        "body": "={{ $json.issue_body }}",
+        "labels": "={{ $json.labels }}",
+        "assignees": "={{ $json.assignees }}"
+      },
+      "id": "create-issue",
+      "name": "Create Issue",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1,
+      "position": [500, 200],
+      "credentials": { "githubApi": { "id": "github-cred", "name": "GitHub API" } }
+    },
+    {
+      "parameters": {
+        "resource": "repository",
+        "operation": "getIssues",
+        "owner": "={{ $json.owner }}",
+        "repository": "={{ $json.repo }}",
+        "returnAll": true,
+        "filters": { "state": "open" }
+      },
+      "id": "get-issues",
+      "name": "Get Open Issues",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1,
+      "position": [500, 400],
+      "credentials": { "githubApi": { "id": "github-cred", "name": "GitHub API" } }
+    },
+    {
+      "parameters": {
+        "resource": "release",
+        "operation": "create",
+        "owner": "={{ $json.owner }}",
+        "repository": "={{ $json.repo }}",
+        "releaseTag": "={{ $json.tag }}",
+        "additionalFields": {
+          "name": "={{ $json.release_name }}",
+          "body": "={{ $json.release_notes }}",
+          "draft": false,
+          "prerelease": "={{ $json.prerelease || false }}"
+        }
+      },
+      "id": "create-release",
+      "name": "Create Release",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1,
+      "position": [500, 600],
+      "credentials": { "githubApi": { "id": "github-cred", "name": "GitHub API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/{{ $json.owner }}/{{ $json.repo }}/pulls",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ title: $json.pr_title, body: $json.pr_body, head: $json.head_branch, base: $json.base_branch || 'main' }) }}",
+        "options": {}
+      },
+      "id": "create-pr",
+      "name": "Create Pull Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/{{ $json.owner }}/{{ $json.repo }}/actions/workflows",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "options": {}
+      },
+      "id": "list-workflows",
+      "name": "List Workflows",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 500]
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/{{ $json.owner }}/{{ $json.repo }}/actions/workflows/{{ $json.workflow_id }}/dispatches",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ ref: $json.ref || 'main', inputs: $json.inputs || {} }) }}",
+        "options": {}
+      },
+      "id": "trigger-workflow",
+      "name": "Trigger Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 700]
+    },
+    {
+      "parameters": {
+        "functionCode": "// GitHub Event Processor\nconst event = $input.first().json;\nconst action = event.action || '';\nconst eventType = event.event || '';\n\nlet notification = {\n  platform: 'github',\n  type: eventType,\n  action: action,\n  timestamp: new Date().toISOString()\n};\n\nif (eventType === 'push') {\n  notification.commits = event.commits?.length || 0;\n  notification.branch = event.ref?.replace('refs/heads/', '');\n  notification.message = `${notification.commits} commits pushed to ${notification.branch}`;\n} else if (eventType === 'pull_request') {\n  notification.pr_number = event.number;\n  notification.pr_title = event.pull_request?.title;\n  notification.message = `PR #${notification.pr_number}: ${notification.pr_title} - ${action}`;\n} else if (eventType === 'issues') {\n  notification.issue_number = event.issue?.number;\n  notification.issue_title = event.issue?.title;\n  notification.message = `Issue #${notification.issue_number}: ${notification.issue_title} - ${action}`;\n}\n\nreturn [{ json: notification }];"
+      },
+      "id": "event-processor",
+      "name": "Event Processor",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 800]
+    }
+  ],
+  "connections": {
+    "GitHub Trigger": {
+      "main": [[{ "node": "Event Processor", "type": "main", "index": 0 }]]
+    },
+    "GitHub Webhook": {
+      "main": [[{ "node": "Event Processor", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "github", "ci-cd", "automation"]
+}

@@ -1,0 +1,134 @@
+{
+  "name": "NEMESIS - HeyGen Video Generator",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook",
+      "name": "Video Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "heygen-video"
+    },
+    {
+      "parameters": {
+        "url": "https://api.heygen.com/v2/video/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ video_inputs: [{ character: { type: 'avatar', avatar_id: $json.avatar_id || 'Daisy-inskirt-20220818' }, voice: { type: 'text', input_text: $json.script, voice_id: $json.voice_id || 'en-US-JennyNeural' } }], dimension: { width: 1920, height: 1080 }, test: $json.test_mode || false }) }}",
+        "options": {}
+      },
+      "id": "generate-video",
+      "name": "Generate Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 300],
+      "credentials": { "httpHeaderAuth": { "id": "heygen-cred", "name": "HeyGen API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.heygen.com/v1/video_status.get",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": { "parameters": [{ "name": "video_id", "value": "={{ $json.video_id }}" }] },
+        "options": {}
+      },
+      "id": "check-status",
+      "name": "Check Video Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 300],
+      "credentials": { "httpHeaderAuth": { "id": "heygen-cred", "name": "HeyGen API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.heygen.com/v2/avatars",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "list-avatars",
+      "name": "List Avatars",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 500],
+      "credentials": { "httpHeaderAuth": { "id": "heygen-cred", "name": "HeyGen API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.heygen.com/v2/voices",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "list-voices",
+      "name": "List Voices",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 700],
+      "credentials": { "httpHeaderAuth": { "id": "heygen-cred", "name": "HeyGen API" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// HeyGen Video Status Poller\nconst videoId = $input.first().json.data?.video_id || $input.first().json.video_id;\n\nif (!videoId) {\n  return [{ json: { error: 'No video_id found', success: false } }];\n}\n\nconst result = {\n  video_id: videoId,\n  status: $input.first().json.data?.status || 'pending',\n  video_url: $input.first().json.data?.video_url || null,\n  thumbnail_url: $input.first().json.data?.thumbnail_url || null,\n  duration: $input.first().json.data?.duration || null,\n  created_at: new Date().toISOString()\n};\n\nreturn [{ json: result }];"
+      },
+      "id": "process-result",
+      "name": "Process Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.status }}", "value2": "completed" }]
+        }
+      },
+      "id": "if-completed",
+      "name": "If Completed",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "id": "wait",
+      "name": "Wait 10s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1250, 500]
+    }
+  ],
+  "connections": {
+    "Video Request": {
+      "main": [[{ "node": "Generate Video", "type": "main", "index": 0 }]]
+    },
+    "Generate Video": {
+      "main": [[{ "node": "Check Video Status", "type": "main", "index": 0 }]]
+    },
+    "Check Video Status": {
+      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    },
+    "Process Result": {
+      "main": [[{ "node": "If Completed", "type": "main", "index": 0 }]]
+    },
+    "If Completed": {
+      "main": [
+        [],
+        [{ "node": "Wait 10s", "type": "main", "index": 0 }]
+      ]
+    },
+    "Wait 10s": {
+      "main": [[{ "node": "Check Video Status", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "heygen", "video", "ai"]
+}

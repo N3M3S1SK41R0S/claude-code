@@ -1,0 +1,106 @@
+{
+  "name": "NEMESIS - Google AI Studio Connector",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "webhook",
+      "name": "AI Request Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "google-ai-studio"
+    },
+    {
+      "parameters": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: $json.prompt }] }], generationConfig: { temperature: $json.temperature || 0.7, maxOutputTokens: $json.max_tokens || 2048 } }) }}",
+        "options": {}
+      },
+      "id": "gemini-pro",
+      "name": "Gemini Pro API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: $json.prompt }, { inline_data: { mime_type: $json.mime_type, data: $json.image_base64 } }] }] }) }}",
+        "options": {}
+      },
+      "id": "gemini-vision",
+      "name": "Gemini Vision API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/embedding-001:embedContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'models/embedding-001', content: { parts: [{ text: $json.text }] } }) }}",
+        "options": {}
+      },
+      "id": "embedding",
+      "name": "Text Embedding API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process Google AI Studio Response\nconst response = $input.first().json;\n\nlet result = {\n  success: true,\n  model: 'gemini-pro',\n  timestamp: new Date().toISOString()\n};\n\nif (response.candidates && response.candidates[0]) {\n  result.text = response.candidates[0].content.parts[0].text;\n  result.finishReason = response.candidates[0].finishReason;\n}\n\nif (response.embedding) {\n  result.embedding = response.embedding.values;\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "process-response",
+      "name": "Process Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1000, 400]
+    }
+  ],
+  "connections": {
+    "AI Request Webhook": {
+      "main": [[
+        { "node": "Gemini Pro API", "type": "main", "index": 0 },
+        { "node": "Gemini Vision API", "type": "main", "index": 0 },
+        { "node": "Text Embedding API", "type": "main", "index": 0 }
+      ]]
+    },
+    "Gemini Pro API": {
+      "main": [[{ "node": "Process Response", "type": "main", "index": 0 }]]
+    },
+    "Gemini Vision API": {
+      "main": [[{ "node": "Process Response", "type": "main", "index": 0 }]]
+    },
+    "Text Embedding API": {
+      "main": [[{ "node": "Process Response", "type": "main", "index": 0 }]]
+    },
+    "Process Response": {
+      "main": [[{ "node": "Respond", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "google", "ai", "gemini"]
+}
