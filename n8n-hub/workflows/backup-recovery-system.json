@@ -1,0 +1,174 @@
+{
+  "name": "NEMESIS - Backup & Recovery System",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "days", "daysInterval": 1 }] }
+      },
+      "id": "daily-backup",
+      "name": "Daily Backup",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {},
+      "id": "manual-backup",
+      "name": "Manual Backup",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 500],
+      "webhookId": "backup"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Initialize backup job\nconst backup = {\n  backup_id: 'BACKUP-' + new Date().toISOString().split('T')[0].replace(/-/g, '') + '-' + Date.now(),\n  started_at: new Date().toISOString(),\n  type: $input.first().json.type || 'full',\n  targets: [\n    { name: 'n8n_workflows', type: 'api', status: 'pending' },\n    { name: 'n8n_credentials', type: 'api', status: 'pending' },\n    { name: 'notion_databases', type: 'api', status: 'pending' },\n    { name: 'config_files', type: 'local', status: 'pending' }\n  ],\n  stats: {\n    total: 0,\n    success: 0,\n    failed: 0\n  }\n};\n\nreturn [{ json: backup }];"
+      },
+      "id": "init-backup",
+      "name": "Initialize Backup",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/api/v1/workflows",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "backup-workflows",
+      "name": "Backup n8n Workflows",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 200],
+      "credentials": { "httpHeaderAuth": { "id": "n8n-cred", "name": "n8n API Key" } }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/api/v1/credentials",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "backup-credentials",
+      "name": "Backup n8n Credentials",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 400],
+      "credentials": { "httpHeaderAuth": { "id": "n8n-cred", "name": "n8n API Key" } }
+    },
+    {
+      "parameters": {
+        "url": "https://api.notion.com/v1/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "notionApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "Notion-Version", "value": "2022-06-28" }]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"filter\": { \"property\": \"object\", \"value\": \"database\" } }",
+        "options": {}
+      },
+      "id": "backup-notion",
+      "name": "Backup Notion Structure",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Aggregate backup data\nconst items = $input.all();\nconst backupInfo = $('Initialize Backup').first().json;\n\nconst backupData = {\n  backup_id: backupInfo.backup_id,\n  completed_at: new Date().toISOString(),\n  duration_ms: Date.now() - new Date(backupInfo.started_at).getTime(),\n  data: {\n    workflows: [],\n    credentials: [],\n    notion_databases: []\n  },\n  stats: {\n    total_items: 0,\n    total_size_bytes: 0\n  }\n};\n\nfor (const item of items) {\n  if (item.json.data && Array.isArray(item.json.data)) {\n    // n8n workflows or credentials\n    if (item.json.data[0]?.nodes) {\n      backupData.data.workflows = item.json.data;\n      backupData.stats.total_items += item.json.data.length;\n    } else {\n      backupData.data.credentials = item.json.data.map(c => ({ id: c.id, name: c.name, type: c.type }));\n    }\n  } else if (item.json.results) {\n    // Notion databases\n    backupData.data.notion_databases = item.json.results.map(d => ({\n      id: d.id,\n      title: d.title?.[0]?.text?.content || 'Untitled',\n      created: d.created_time\n    }));\n    backupData.stats.total_items += item.json.results.length;\n  }\n}\n\nbackupData.stats.total_size_bytes = JSON.stringify(backupData.data).length;\n\nreturn [{ json: backupData }];"
+      },
+      "id": "aggregate-backup",
+      "name": "Aggregate Backup Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "operation": "create",
+        "databaseId": "={{ $env.NOTION_BACKUP_DB }}",
+        "propertiesUi": {
+          "propertyValues": [
+            { "key": "Name", "title": "={{ $json.backup_id }}" },
+            { "key": "Type", "select": "Full" },
+            { "key": "Items", "number": "={{ $json.stats.total_items }}" },
+            { "key": "Size", "number": "={{ Math.round($json.stats.total_size_bytes / 1024) }}" },
+            { "key": "Date", "date": "={{ $json.completed_at }}" }
+          ]
+        }
+      },
+      "id": "log-backup",
+      "name": "Log Backup to Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [1250, 300],
+      "credentials": { "notionApi": { "id": "notion-cred", "name": "Notion API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $env.DISCORD_LOG_CHANNEL }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ embeds: [{ title: '💾 Backup Complete', description: 'Daily backup finished successfully', color: 65280, fields: [{ name: 'Backup ID', value: $json.backup_id, inline: true }, { name: 'Items', value: String($json.stats.total_items), inline: true }, { name: 'Size', value: Math.round($json.stats.total_size_bytes / 1024) + ' KB', inline: true }, { name: 'Duration', value: $json.duration_ms + 'ms', inline: true }], footer: { text: 'NEMESIS Backup System' }, timestamp: $json.completed_at }] }) }}",
+        "options": {}
+      },
+      "id": "notify-complete",
+      "name": "Notify Backup Complete",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1250, 500]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({ success: true, backup_id: $json.backup_id, items: $json.stats.total_items, size_kb: Math.round($json.stats.total_size_bytes / 1024) }) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1500, 400]
+    }
+  ],
+  "connections": {
+    "Daily Backup": {
+      "main": [[{ "node": "Initialize Backup", "type": "main", "index": 0 }]]
+    },
+    "Manual Backup": {
+      "main": [[{ "node": "Initialize Backup", "type": "main", "index": 0 }]]
+    },
+    "Initialize Backup": {
+      "main": [[
+        { "node": "Backup n8n Workflows", "type": "main", "index": 0 },
+        { "node": "Backup n8n Credentials", "type": "main", "index": 0 },
+        { "node": "Backup Notion Structure", "type": "main", "index": 0 }
+      ]]
+    },
+    "Backup n8n Workflows": {
+      "main": [[{ "node": "Aggregate Backup Data", "type": "main", "index": 0 }]]
+    },
+    "Backup n8n Credentials": {
+      "main": [[{ "node": "Aggregate Backup Data", "type": "main", "index": 0 }]]
+    },
+    "Backup Notion Structure": {
+      "main": [[{ "node": "Aggregate Backup Data", "type": "main", "index": 0 }]]
+    },
+    "Aggregate Backup Data": {
+      "main": [[
+        { "node": "Log Backup to Notion", "type": "main", "index": 0 },
+        { "node": "Notify Backup Complete", "type": "main", "index": 0 },
+        { "node": "Return Result", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "backup", "recovery", "maintenance"]
+}

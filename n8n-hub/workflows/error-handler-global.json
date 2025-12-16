@@ -1,0 +1,186 @@
+{
+  "name": "NEMESIS - Global Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "error-webhook",
+      "name": "Error Receiver",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "error-handler"
+    },
+    {
+      "parameters": {
+        "functionCode": "// NEMESIS Global Error Handler\n// Categorize and process all workflow errors\n\nconst error = $input.first().json;\n\nconst errorReport = {\n  error_id: 'ERR-' + Date.now(),\n  received_at: new Date().toISOString(),\n  source: {\n    workflow_id: error.workflow?.id || error.workflowId || 'unknown',\n    workflow_name: error.workflow?.name || error.workflowName || 'Unknown Workflow',\n    node_name: error.node?.name || error.nodeName || 'unknown',\n    node_type: error.node?.type || error.nodeType || 'unknown',\n    execution_id: error.execution?.id || error.executionId || 'unknown'\n  },\n  error: {\n    message: error.message || error.error?.message || 'Unknown error',\n    code: error.code || error.error?.code || null,\n    stack: error.stack || error.error?.stack || null\n  },\n  severity: 'medium',\n  category: 'unknown',\n  auto_retry: false,\n  actions: []\n};\n\n// Categorize error\nconst msg = errorReport.error.message.toLowerCase();\n\nif (msg.includes('timeout') || msg.includes('timed out')) {\n  errorReport.category = 'timeout';\n  errorReport.severity = 'low';\n  errorReport.auto_retry = true;\n  errorReport.actions.push('auto_retry');\n} else if (msg.includes('401') || msg.includes('unauthorized') || msg.includes('authentication')) {\n  errorReport.category = 'authentication';\n  errorReport.severity = 'high';\n  errorReport.actions.push('check_credentials', 'notify_admin');\n} else if (msg.includes('403') || msg.includes('forbidden')) {\n  errorReport.category = 'permission';\n  errorReport.severity = 'high';\n  errorReport.actions.push('check_permissions', 'notify_admin');\n} else if (msg.includes('404') || msg.includes('not found')) {\n  errorReport.category = 'not_found';\n  errorReport.severity = 'medium';\n  errorReport.actions.push('verify_endpoint');\n} else if (msg.includes('429') || msg.includes('rate limit')) {\n  errorReport.category = 'rate_limit';\n  errorReport.severity = 'low';\n  errorReport.auto_retry = true;\n  errorReport.actions.push('wait_and_retry');\n} else if (msg.includes('500') || msg.includes('internal server')) {\n  errorReport.category = 'server_error';\n  errorReport.severity = 'medium';\n  errorReport.auto_retry = true;\n  errorReport.actions.push('auto_retry', 'log_incident');\n} else if (msg.includes('network') || msg.includes('connection') || msg.includes('econnrefused')) {\n  errorReport.category = 'network';\n  errorReport.severity = 'high';\n  errorReport.auto_retry = true;\n  errorReport.actions.push('check_connectivity', 'auto_retry');\n} else {\n  errorReport.category = 'application';\n  errorReport.actions.push('manual_review');\n}\n\nreturn [{ json: errorReport }];"
+      },
+      "id": "categorize-error",
+      "name": "Categorize Error",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.severity }}", "operation": "equals", "value2": "high" }
+          ]
+        }
+      },
+      "id": "check-severity",
+      "name": "Is High Severity?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $env.DISCORD_ERROR_CHANNEL }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ embeds: [{ title: '🚨 HIGH SEVERITY ERROR', description: $json.error.message, color: 16711680, fields: [{ name: 'Workflow', value: $json.source.workflow_name, inline: true }, { name: 'Node', value: $json.source.node_name, inline: true }, { name: 'Category', value: $json.category, inline: true }, { name: 'Actions', value: $json.actions.join(', '), inline: false }], footer: { text: $json.error_id }, timestamp: $json.received_at }] }) }}",
+        "options": {}
+      },
+      "id": "alert-high",
+      "name": "Alert High Severity",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $env.DISCORD_LOG_CHANNEL }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ embeds: [{ title: '⚠️ Error Logged', description: $json.error.message.substring(0, 200), color: 16776960, fields: [{ name: 'Workflow', value: $json.source.workflow_name, inline: true }, { name: 'Category', value: $json.category, inline: true }], footer: { text: $json.error_id } }] }) }}",
+        "options": {}
+      },
+      "id": "log-normal",
+      "name": "Log Normal Error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            { "value1": "={{ $json.auto_retry }}", "value2": true }
+          ]
+        }
+      },
+      "id": "check-retry",
+      "name": "Should Retry?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "wait-retry",
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1500, 300]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/api/v1/executions/{{ $json.source.execution_id }}/retry",
+        "requestMethod": "POST",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "retry-execution",
+      "name": "Retry Execution",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1750, 300],
+      "credentials": { "httpHeaderAuth": { "id": "n8n-cred", "name": "n8n API Key" } },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "operation": "create",
+        "databaseId": "={{ $env.NOTION_ERROR_LOG_DB }}",
+        "propertiesUi": {
+          "propertyValues": [
+            { "key": "Name", "title": "={{ $json.error_id }}" },
+            { "key": "Workflow", "richText": "={{ $json.source.workflow_name }}" },
+            { "key": "Category", "select": "={{ $json.category }}" },
+            { "key": "Severity", "select": "={{ $json.severity }}" },
+            { "key": "Date", "date": "={{ $json.received_at }}" }
+          ]
+        },
+        "blockUi": {
+          "blockValues": [
+            { "type": "paragraph", "richText": [{ "textContent": "={{ $json.error.message }}" }] }
+          ]
+        }
+      },
+      "id": "log-notion",
+      "name": "Log to Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [1250, 600],
+      "credentials": { "notionApi": { "id": "notion-cred", "name": "Notion API" } }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({ handled: true, error_id: $json.error_id, actions_taken: $json.actions, retry_scheduled: $json.auto_retry }) }}"
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1500, 600]
+    }
+  ],
+  "connections": {
+    "Error Receiver": {
+      "main": [[{ "node": "Categorize Error", "type": "main", "index": 0 }]]
+    },
+    "Categorize Error": {
+      "main": [[{ "node": "Is High Severity?", "type": "main", "index": 0 }]]
+    },
+    "Is High Severity?": {
+      "main": [
+        [{ "node": "Alert High Severity", "type": "main", "index": 0 }],
+        [{ "node": "Log Normal Error", "type": "main", "index": 0 }]
+      ]
+    },
+    "Alert High Severity": {
+      "main": [[{ "node": "Should Retry?", "type": "main", "index": 0 }]]
+    },
+    "Log Normal Error": {
+      "main": [[{ "node": "Should Retry?", "type": "main", "index": 0 }]]
+    },
+    "Should Retry?": {
+      "main": [
+        [{ "node": "Wait 30s", "type": "main", "index": 0 }],
+        [{ "node": "Log to Notion", "type": "main", "index": 0 }]
+      ]
+    },
+    "Wait 30s": {
+      "main": [[{ "node": "Retry Execution", "type": "main", "index": 0 }]]
+    },
+    "Retry Execution": {
+      "main": [[{ "node": "Log to Notion", "type": "main", "index": 0 }]]
+    },
+    "Log to Notion": {
+      "main": [[{ "node": "Respond", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1", "errorWorkflow": "" },
+  "tags": ["nemesis", "error", "handler", "logging", "retry"]
+}

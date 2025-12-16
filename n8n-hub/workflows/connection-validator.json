@@ -1,0 +1,174 @@
+{
+  "name": "NEMESIS - Connection Validator & API Tester",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "test-webhook",
+      "name": "Run Tests",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "connection-test"
+    },
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "hours", "hoursInterval": 1 }] }
+      },
+      "id": "hourly-check",
+      "name": "Hourly Health Check",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// NEMESIS Connection Validator - Test all API connections\n\nconst tests = [\n  {\n    name: 'n8n_local',\n    type: 'internal',\n    url: 'http://localhost:5678/api/v1/workflows',\n    method: 'GET',\n    headers: { 'X-N8N-API-KEY': process.env.N8N_API_KEY || '' },\n    expected_status: [200, 401]\n  },\n  {\n    name: 'notion',\n    type: 'api',\n    url: 'https://api.notion.com/v1/users/me',\n    method: 'GET',\n    headers: {\n      'Authorization': 'Bearer ' + (process.env.NOTION_API_KEY || ''),\n      'Notion-Version': '2022-06-28'\n    },\n    expected_status: [200, 401]\n  },\n  {\n    name: 'discord',\n    type: 'api',\n    url: 'https://discord.com/api/v10/users/@me',\n    method: 'GET',\n    headers: { 'Authorization': 'Bot ' + (process.env.DISCORD_BOT_TOKEN || '') },\n    expected_status: [200, 401]\n  },\n  {\n    name: 'github',\n    type: 'api',\n    url: 'https://api.github.com/user',\n    method: 'GET',\n    headers: { 'Authorization': 'Bearer ' + (process.env.GITHUB_TOKEN || '') },\n    expected_status: [200, 401]\n  },\n  {\n    name: 'google_ai',\n    type: 'api',\n    url: 'https://generativelanguage.googleapis.com/v1beta/models?key=' + (process.env.GOOGLE_AI_API_KEY || ''),\n    method: 'GET',\n    headers: {},\n    expected_status: [200, 400]\n  },\n  {\n    name: 'heygen',\n    type: 'api',\n    url: 'https://api.heygen.com/v2/avatars',\n    method: 'GET',\n    headers: { 'X-Api-Key': process.env.HEYGEN_API_KEY || '' },\n    expected_status: [200, 401]\n  },\n  {\n    name: 'goapi_midjourney',\n    type: 'api',\n    url: 'https://api.goapi.ai/mj/v2/account',\n    method: 'GET',\n    headers: { 'X-API-KEY': process.env.GOAPI_KEY || '' },\n    expected_status: [200, 401]\n  },\n  {\n    name: 'make_webhook',\n    type: 'webhook',\n    url: process.env.MAKE_WEBHOOK_URL || 'https://hook.eu1.make.com/test',\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: { test: true, timestamp: new Date().toISOString() },\n    expected_status: [200, 202, 204]\n  }\n];\n\nreturn tests.map(t => ({ json: t }));"
+      },
+      "id": "get-tests",
+      "name": "Get Test Configurations",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 500]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": "={{ Object.entries($json.headers).map(([name, value]) => ({ name, value })) }}"
+        },
+        "sendBody": "={{ $json.body ? true : false }}",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body || {}) }}",
+        "options": {
+          "timeout": 10000,
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "run-test",
+      "name": "Execute API Test",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 500],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process test results\nconst items = $input.all();\nconst testConfigs = $('Get Test Configurations').all();\n\nconst report = {\n  test_id: 'TEST-' + Date.now(),\n  executed_at: new Date().toISOString(),\n  summary: {\n    total: items.length,\n    passed: 0,\n    failed: 0,\n    warnings: 0\n  },\n  results: [],\n  recommendations: []\n};\n\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i].json;\n  const config = testConfigs[i]?.json || {};\n  \n  const result = {\n    name: config.name || 'unknown',\n    type: config.type || 'unknown',\n    status: 'unknown',\n    response_code: item.statusCode || item.code || null,\n    response_time_ms: null,\n    error: null\n  };\n\n  if (item.error) {\n    result.status = 'failed';\n    result.error = item.error.message || 'Connection failed';\n    report.summary.failed++;\n    report.recommendations.push(`Fix ${config.name}: ${result.error}`);\n  } else if (config.expected_status?.includes(item.statusCode)) {\n    if (item.statusCode === 401) {\n      result.status = 'auth_required';\n      report.summary.warnings++;\n      report.recommendations.push(`Configure API key for ${config.name}`);\n    } else {\n      result.status = 'passed';\n      report.summary.passed++;\n    }\n  } else {\n    result.status = 'unexpected';\n    report.summary.warnings++;\n  }\n\n  report.results.push(result);\n}\n\n// Overall status\nreport.overall_status = report.summary.failed === 0 \n  ? (report.summary.warnings === 0 ? 'all_passed' : 'warnings')\n  : 'has_failures';\n\nreturn [{ json: report }];"
+      },
+      "id": "process-results",
+      "name": "Process Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.overall_status }}", "operation": "equals", "value2": "has_failures" }
+          ]
+        }
+      },
+      "id": "check-failures",
+      "name": "Has Failures?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1250, 500]
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $env.DISCORD_ALERT_CHANNEL }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ embeds: [{ title: '🔴 API Connection Failures Detected', description: 'Some API connections are not working', color: 16711680, fields: $json.results.filter(r => r.status === 'failed').map(r => ({ name: r.name, value: r.error || 'Failed', inline: true })), footer: { text: $json.test_id }, timestamp: $json.executed_at }] }) }}",
+        "options": {}
+      },
+      "id": "alert-failures",
+      "name": "Alert Failures",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1500, 400]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "operation": "create",
+        "databaseId": "={{ $env.NOTION_HEALTH_DB }}",
+        "propertiesUi": {
+          "propertyValues": [
+            { "key": "Name", "title": "={{ $json.test_id }}" },
+            { "key": "Status", "select": "={{ $json.overall_status }}" },
+            { "key": "Passed", "number": "={{ $json.summary.passed }}" },
+            { "key": "Failed", "number": "={{ $json.summary.failed }}" },
+            { "key": "Date", "date": "={{ $json.executed_at }}" }
+          ]
+        }
+      },
+      "id": "log-notion",
+      "name": "Log to Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [1500, 600],
+      "credentials": { "notionApi": { "id": "notion-cred", "name": "Notion API" } }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Report",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1750, 500]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate HTML Report\nconst report = $input.first().json;\n\nconst statusColors = {\n  passed: '#00ff00',\n  failed: '#ff0000',\n  auth_required: '#ffaa00',\n  warnings: '#ffff00'\n};\n\nconst html = `\n<!DOCTYPE html>\n<html>\n<head>\n  <title>NEMESIS Connection Test Report</title>\n  <style>\n    body { font-family: 'Segoe UI', sans-serif; background: #0d1117; color: #c9d1d9; padding: 20px; }\n    h1 { color: #58a6ff; }\n    .summary { display: flex; gap: 20px; margin: 20px 0; }\n    .stat { background: #161b22; padding: 15px 25px; border-radius: 8px; text-align: center; }\n    .stat-value { font-size: 2em; font-weight: bold; }\n    .passed { color: #3fb950; }\n    .failed { color: #f85149; }\n    .warnings { color: #d29922; }\n    table { width: 100%; border-collapse: collapse; margin: 20px 0; }\n    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #30363d; }\n    th { background: #161b22; }\n    .status-badge { padding: 4px 12px; border-radius: 12px; font-size: 0.85em; }\n    .badge-passed { background: #238636; }\n    .badge-failed { background: #da3633; }\n    .badge-auth { background: #9e6a03; }\n  </style>\n</head>\n<body>\n  <h1>🔌 NEMESIS Connection Test Report</h1>\n  <p>Test ID: ${report.test_id} | Executed: ${report.executed_at}</p>\n  \n  <div class=\"summary\">\n    <div class=\"stat\"><div class=\"stat-value passed\">${report.summary.passed}</div><div>Passed</div></div>\n    <div class=\"stat\"><div class=\"stat-value failed\">${report.summary.failed}</div><div>Failed</div></div>\n    <div class=\"stat\"><div class=\"stat-value warnings\">${report.summary.warnings}</div><div>Warnings</div></div>\n  </div>\n\n  <table>\n    <tr><th>Service</th><th>Type</th><th>Status</th><th>Details</th></tr>\n    ${report.results.map(r => `\n      <tr>\n        <td><strong>${r.name}</strong></td>\n        <td>${r.type}</td>\n        <td><span class=\"status-badge badge-${r.status === 'passed' ? 'passed' : r.status === 'auth_required' ? 'auth' : 'failed'}\">${r.status}</span></td>\n        <td>${r.error || (r.status === 'auth_required' ? 'Configure API key' : 'OK')}</td>\n      </tr>\n    `).join('')}\n  </table>\n\n  ${report.recommendations.length > 0 ? `\n    <h2>📋 Recommendations</h2>\n    <ul>${report.recommendations.map(r => `<li>${r}</li>`).join('')}</ul>\n  ` : ''}\n</body>\n</html>\n`;\n\nreturn [{ json: { ...report, html } }];"
+      },
+      "id": "generate-html",
+      "name": "Generate HTML Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 700]
+    }
+  ],
+  "connections": {
+    "Run Tests": {
+      "main": [[{ "node": "Get Test Configurations", "type": "main", "index": 0 }]]
+    },
+    "Hourly Health Check": {
+      "main": [[{ "node": "Get Test Configurations", "type": "main", "index": 0 }]]
+    },
+    "Get Test Configurations": {
+      "main": [[{ "node": "Execute API Test", "type": "main", "index": 0 }]]
+    },
+    "Execute API Test": {
+      "main": [[{ "node": "Process Results", "type": "main", "index": 0 }]]
+    },
+    "Process Results": {
+      "main": [[
+        { "node": "Has Failures?", "type": "main", "index": 0 },
+        { "node": "Generate HTML Report", "type": "main", "index": 0 }
+      ]]
+    },
+    "Has Failures?": {
+      "main": [
+        [{ "node": "Alert Failures", "type": "main", "index": 0 }],
+        [{ "node": "Log to Notion", "type": "main", "index": 0 }]
+      ]
+    },
+    "Alert Failures": {
+      "main": [[{ "node": "Log to Notion", "type": "main", "index": 0 }]]
+    },
+    "Log to Notion": {
+      "main": [[{ "node": "Return Report", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "health", "validation", "testing", "api"]
+}

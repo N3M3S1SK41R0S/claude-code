@@ -1,0 +1,215 @@
+{
+  "name": "NEMESIS - Unified Sync Controller",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "minutes", "minutesInterval": 30 }] }
+      },
+      "id": "sync-schedule",
+      "name": "Auto Sync Every 30min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 400]
+    },
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Sync Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 600],
+      "webhookId": "unified-sync"
+    },
+    {
+      "parameters": {
+        "functionCode": "// NEMESIS Unified Sync Controller\n// Orchestrates data sync across all platforms\n\nconst syncConfig = {\n  timestamp: new Date().toISOString(),\n  platforms: [\n    { name: 'notion', enabled: true, priority: 1 },\n    { name: 'github', enabled: true, priority: 2 },\n    { name: 'discord', enabled: true, priority: 3 },\n    { name: 'google_ai', enabled: true, priority: 4 },\n    { name: 'bubble', enabled: true, priority: 5 },\n    { name: 'make', enabled: true, priority: 6 }\n  ],\n  mode: $input.first().json.mode || 'full',\n  force: $input.first().json.force || false\n};\n\n// Generate sync tasks\nconst tasks = syncConfig.platforms\n  .filter(p => p.enabled)\n  .sort((a, b) => a.priority - b.priority)\n  .map(p => ({\n    platform: p.name,\n    action: 'sync',\n    timestamp: syncConfig.timestamp,\n    mode: syncConfig.mode\n  }));\n\nreturn tasks.map(t => ({ json: t }));"
+      },
+      "id": "sync-controller",
+      "name": "Sync Controller",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.platform }}", "operation": "equals", "value2": "notion" }
+          ]
+        }
+      },
+      "id": "route-notion",
+      "name": "Route Notion",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.platform }}", "operation": "equals", "value2": "github" }
+          ]
+        }
+      },
+      "id": "route-github",
+      "name": "Route GitHub",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.platform }}", "operation": "equals", "value2": "discord" }
+          ]
+        }
+      },
+      "id": "route-discord",
+      "name": "Route Discord",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 600]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/webhook/notion-sync",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ action: 'sync', source: 'unified-controller', timestamp: $json.timestamp }) }}",
+        "options": {}
+      },
+      "id": "call-notion",
+      "name": "Sync Notion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 200]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/webhook/github-events",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ action: 'sync', source: 'unified-controller', timestamp: $json.timestamp }) }}",
+        "options": {}
+      },
+      "id": "call-github",
+      "name": "Sync GitHub",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/webhook/discord-bot",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ action: 'status_update', message: 'Sync completed at ' + $json.timestamp, source: 'unified-controller' }) }}",
+        "options": {}
+      },
+      "id": "call-discord",
+      "name": "Notify Discord",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Aggregate sync results\nconst results = $input.all();\n\nconst summary = {\n  sync_id: 'SYNC-' + Date.now(),\n  completed_at: new Date().toISOString(),\n  total_platforms: results.length,\n  successful: results.filter(r => r.json.success !== false).length,\n  failed: results.filter(r => r.json.success === false).length,\n  details: results.map(r => ({\n    platform: r.json.platform || 'unknown',\n    status: r.json.success !== false ? 'ok' : 'error',\n    response_time: r.json.response_time || null\n  }))\n};\n\nreturn [{ json: summary }];"
+      },
+      "id": "aggregate-results",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "operation": "create",
+        "databaseId": "={{ $env.NOTION_SYNC_LOG_DB }}",
+        "propertiesUi": {
+          "propertyValues": [
+            { "key": "Name", "title": "={{ 'Sync ' + $json.sync_id }}" },
+            { "key": "Status", "select": "={{ $json.failed === 0 ? 'Success' : 'Partial' }}" },
+            { "key": "Platforms", "number": "={{ $json.total_platforms }}" },
+            { "key": "Date", "date": "={{ $json.completed_at }}" }
+          ]
+        }
+      },
+      "id": "log-to-notion",
+      "name": "Log to Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [1500, 300],
+      "credentials": { "notionApi": { "id": "notion-cred", "name": "Notion API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $env.DISCORD_LOG_CHANNEL }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ embeds: [{ title: '🔄 Sync Complete', description: 'Unified sync finished', color: $json.failed === 0 ? 65280 : 16776960, fields: [{ name: 'Platforms', value: String($json.total_platforms), inline: true }, { name: 'Success', value: String($json.successful), inline: true }, { name: 'Failed', value: String($json.failed), inline: true }], footer: { text: $json.sync_id }, timestamp: $json.completed_at }] }) }}",
+        "options": {}
+      },
+      "id": "notify-discord-complete",
+      "name": "Discord Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1500, 500]
+    }
+  ],
+  "connections": {
+    "Auto Sync Every 30min": {
+      "main": [[{ "node": "Sync Controller", "type": "main", "index": 0 }]]
+    },
+    "Manual Sync Trigger": {
+      "main": [[{ "node": "Sync Controller", "type": "main", "index": 0 }]]
+    },
+    "Sync Controller": {
+      "main": [[
+        { "node": "Route Notion", "type": "main", "index": 0 },
+        { "node": "Route GitHub", "type": "main", "index": 0 },
+        { "node": "Route Discord", "type": "main", "index": 0 }
+      ]]
+    },
+    "Route Notion": {
+      "main": [
+        [{ "node": "Sync Notion", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Route GitHub": {
+      "main": [
+        [{ "node": "Sync GitHub", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Route Discord": {
+      "main": [
+        [{ "node": "Notify Discord", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Sync Notion": {
+      "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]]
+    },
+    "Sync GitHub": {
+      "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]]
+    },
+    "Notify Discord": {
+      "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]]
+    },
+    "Aggregate Results": {
+      "main": [[
+        { "node": "Log to Notion", "type": "main", "index": 0 },
+        { "node": "Discord Notification", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "sync", "unified", "automation"]
+}

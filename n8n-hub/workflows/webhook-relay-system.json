@@ -1,0 +1,190 @@
+{
+  "name": "NEMESIS - Webhook Relay & Router",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "main-relay",
+      "name": "Universal Relay",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "relay"
+    },
+    {
+      "parameters": {
+        "functionCode": "// NEMESIS Webhook Relay System\n// Routes incoming webhooks to appropriate handlers\n\nconst payload = $input.first().json;\nconst headers = $input.first().headers || {};\nconst query = $input.first().query || {};\n\nconst relay = {\n  relay_id: 'RELAY-' + Date.now(),\n  received_at: new Date().toISOString(),\n  source: {\n    ip: headers['x-forwarded-for'] || headers['x-real-ip'] || 'unknown',\n    user_agent: headers['user-agent'] || 'unknown',\n    origin: headers['origin'] || headers['referer'] || 'unknown'\n  },\n  routing: {\n    target: query.target || payload.target || 'hub',\n    action: query.action || payload.action || 'process',\n    priority: query.priority || payload.priority || 'normal'\n  },\n  payload: payload,\n  metadata: {\n    content_type: headers['content-type'] || 'unknown',\n    payload_size: JSON.stringify(payload).length\n  }\n};\n\n// Determine routing based on payload content\nif (payload.event || payload.type) {\n  relay.routing.event_type = payload.event || payload.type;\n}\n\n// Auto-detect source platform\nif (headers['x-github-event']) {\n  relay.source.platform = 'github';\n  relay.routing.target = 'github';\n} else if (headers['x-slack-signature']) {\n  relay.source.platform = 'slack';\n  relay.routing.target = 'slack';\n} else if (headers['x-notion-signature']) {\n  relay.source.platform = 'notion';\n  relay.routing.target = 'notion';\n} else if (payload.type?.startsWith('discord')) {\n  relay.source.platform = 'discord';\n  relay.routing.target = 'discord';\n} else if (payload.scenario_id || payload.hook_id) {\n  relay.source.platform = 'make';\n  relay.routing.target = 'make';\n}\n\nreturn [{ json: relay }];"
+      },
+      "id": "analyze-relay",
+      "name": "Analyze & Route",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.routing.target }}", "operation": "equals", "value2": "github" }
+          ]
+        }
+      },
+      "id": "route-github",
+      "name": "GitHub?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.routing.target }}", "operation": "equals", "value2": "discord" }
+          ]
+        }
+      },
+      "id": "route-discord",
+      "name": "Discord?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.routing.target }}", "operation": "equals", "value2": "notion" }
+          ]
+        }
+      },
+      "id": "route-notion",
+      "name": "Notion?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 600]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/webhook/github-events",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {}
+      },
+      "id": "forward-github",
+      "name": "Forward to GitHub Handler",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 150]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/webhook/discord-bot",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {}
+      },
+      "id": "forward-discord",
+      "name": "Forward to Discord Handler",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 350]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/webhook/notion-sync",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {}
+      },
+      "id": "forward-notion",
+      "name": "Forward to Notion Handler",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 550]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/webhook/nemesis-hub-master",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "forward-hub",
+      "name": "Forward to Hub Master",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 750]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Log relay activity\nconst relay = $('Analyze & Route').first().json;\n\nconst log = {\n  relay_id: relay.relay_id,\n  timestamp: new Date().toISOString(),\n  source_platform: relay.source.platform || 'unknown',\n  target: relay.routing.target,\n  action: relay.routing.action,\n  payload_size: relay.metadata.payload_size,\n  status: 'forwarded'\n};\n\nreturn [{ json: log }];"
+      },
+      "id": "log-relay",
+      "name": "Log Activity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({ received: true, relay_id: $json.relay_id, routed_to: $json.target }) }}"
+      },
+      "id": "respond",
+      "name": "Acknowledge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1500, 400]
+    }
+  ],
+  "connections": {
+    "Universal Relay": {
+      "main": [[{ "node": "Analyze & Route", "type": "main", "index": 0 }]]
+    },
+    "Analyze & Route": {
+      "main": [[
+        { "node": "GitHub?", "type": "main", "index": 0 },
+        { "node": "Discord?", "type": "main", "index": 0 },
+        { "node": "Notion?", "type": "main", "index": 0 }
+      ]]
+    },
+    "GitHub?": {
+      "main": [
+        [{ "node": "Forward to GitHub Handler", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Discord?": {
+      "main": [
+        [{ "node": "Forward to Discord Handler", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Notion?": {
+      "main": [
+        [{ "node": "Forward to Notion Handler", "type": "main", "index": 0 }],
+        [{ "node": "Forward to Hub Master", "type": "main", "index": 0 }]
+      ]
+    },
+    "Forward to GitHub Handler": {
+      "main": [[{ "node": "Log Activity", "type": "main", "index": 0 }]]
+    },
+    "Forward to Discord Handler": {
+      "main": [[{ "node": "Log Activity", "type": "main", "index": 0 }]]
+    },
+    "Forward to Notion Handler": {
+      "main": [[{ "node": "Log Activity", "type": "main", "index": 0 }]]
+    },
+    "Forward to Hub Master": {
+      "main": [[{ "node": "Log Activity", "type": "main", "index": 0 }]]
+    },
+    "Log Activity": {
+      "main": [[{ "node": "Acknowledge", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "webhook", "relay", "router"]
+}

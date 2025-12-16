@@ -1,0 +1,178 @@
+{
+  "name": "NEMESIS - Data Pipeline ETL",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "etl-webhook",
+      "name": "ETL Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "etl-pipeline"
+    },
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "hours", "hoursInterval": 2 }] }
+      },
+      "id": "scheduled-etl",
+      "name": "Scheduled ETL",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// ETL Pipeline Configuration\nconst config = $input.first().json;\n\nconst pipeline = {\n  pipeline_id: 'ETL-' + Date.now(),\n  started_at: new Date().toISOString(),\n  config: {\n    source: config.source || 'notion',\n    destination: config.destination || 'bubble',\n    transform: config.transform || 'standard',\n    options: {\n      batch_size: config.batch_size || 100,\n      upsert: config.upsert !== false,\n      validate: config.validate !== false\n    }\n  },\n  stages: [\n    { name: 'extract', status: 'pending', records: 0 },\n    { name: 'transform', status: 'pending', records: 0 },\n    { name: 'load', status: 'pending', records: 0 },\n    { name: 'validate', status: 'pending', records: 0 }\n  ]\n};\n\nreturn [{ json: pipeline }];"
+      },
+      "id": "init-pipeline",
+      "name": "Initialize Pipeline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 500]
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "getAll",
+        "databaseId": "={{ $json.config.source_id || $env.NOTION_DATA_SOURCE_DB }}",
+        "returnAll": true,
+        "options": {}
+      },
+      "id": "extract-notion",
+      "name": "Extract from Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [750, 400],
+      "credentials": { "notionApi": { "id": "notion-cred", "name": "Notion API" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Transform extracted data\nconst items = $input.all();\nconst pipeline = $('Initialize Pipeline').first().json;\n\nconst transformed = items.map((item, index) => {\n  const props = item.json.properties || {};\n  \n  // Standard transformation - flatten Notion properties\n  const record = {\n    _source_id: item.json.id,\n    _source: 'notion',\n    _transformed_at: new Date().toISOString(),\n    _index: index\n  };\n\n  // Extract common property types\n  for (const [key, value] of Object.entries(props)) {\n    if (value.title) {\n      record[key] = value.title[0]?.text?.content || '';\n    } else if (value.rich_text) {\n      record[key] = value.rich_text[0]?.text?.content || '';\n    } else if (value.number !== undefined) {\n      record[key] = value.number;\n    } else if (value.select) {\n      record[key] = value.select?.name || '';\n    } else if (value.multi_select) {\n      record[key] = value.multi_select.map(s => s.name);\n    } else if (value.date) {\n      record[key] = value.date?.start || '';\n    } else if (value.checkbox !== undefined) {\n      record[key] = value.checkbox;\n    } else if (value.email) {\n      record[key] = value.email;\n    } else if (value.url) {\n      record[key] = value.url;\n    }\n  }\n\n  return { json: record };\n});\n\nreturn transformed;"
+      },
+      "id": "transform-data",
+      "name": "Transform Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "batchSize": 50,
+        "options": {}
+      },
+      "id": "batch-data",
+      "name": "Batch Records",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "url": "https://{{ $env.BUBBLE_APP_NAME }}.bubbleapps.io/api/1.1/obj/{{ $json.config?.destination_type || 'data' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "load-bubble",
+      "name": "Load to Bubble",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1500, 300],
+      "credentials": { "httpHeaderAuth": { "id": "bubble-cred", "name": "Bubble API" } },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/webhook/make-zapier-in",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ target: 'make', payload: $json }) }}",
+        "options": {}
+      },
+      "id": "load-make",
+      "name": "Send to Make",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1500, 500],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// Validate and summarize ETL results\nconst items = $input.all();\nconst pipeline = $('Initialize Pipeline').first().json;\n\nconst summary = {\n  pipeline_id: pipeline.pipeline_id,\n  completed_at: new Date().toISOString(),\n  duration_ms: Date.now() - new Date(pipeline.started_at).getTime(),\n  source: pipeline.config.source,\n  destination: pipeline.config.destination,\n  stats: {\n    extracted: $('Extract from Notion').all().length,\n    transformed: $('Transform Data').all().length,\n    loaded: 0,\n    failed: 0,\n    skipped: 0\n  },\n  errors: []\n};\n\nfor (const item of items) {\n  if (item.json.error) {\n    summary.stats.failed++;\n    summary.errors.push(item.json.error.message || 'Unknown error');\n  } else if (item.json.id || item.json.status === 'success') {\n    summary.stats.loaded++;\n  } else {\n    summary.stats.skipped++;\n  }\n}\n\nsummary.success_rate = summary.stats.extracted > 0 \n  ? Math.round((summary.stats.loaded / summary.stats.extracted) * 100) \n  : 0;\n\nreturn [{ json: summary }];"
+      },
+      "id": "validate-results",
+      "name": "Validate & Summarize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1750, 400]
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $env.DISCORD_DATA_CHANNEL }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ embeds: [{ title: '📊 ETL Pipeline Complete', description: `${$json.source} → ${$json.destination}`, color: $json.stats.failed === 0 ? 65280 : 16776960, fields: [{ name: 'Extracted', value: String($json.stats.extracted), inline: true }, { name: 'Loaded', value: String($json.stats.loaded), inline: true }, { name: 'Failed', value: String($json.stats.failed), inline: true }, { name: 'Success Rate', value: $json.success_rate + '%', inline: true }, { name: 'Duration', value: $json.duration_ms + 'ms', inline: true }], footer: { text: $json.pipeline_id }, timestamp: $json.completed_at }] }) }}",
+        "options": {}
+      },
+      "id": "notify-etl",
+      "name": "Notify ETL Complete",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2000, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Summary",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2250, 400]
+    }
+  ],
+  "connections": {
+    "ETL Request": {
+      "main": [[{ "node": "Initialize Pipeline", "type": "main", "index": 0 }]]
+    },
+    "Scheduled ETL": {
+      "main": [[{ "node": "Initialize Pipeline", "type": "main", "index": 0 }]]
+    },
+    "Initialize Pipeline": {
+      "main": [[{ "node": "Extract from Notion", "type": "main", "index": 0 }]]
+    },
+    "Extract from Notion": {
+      "main": [[{ "node": "Transform Data", "type": "main", "index": 0 }]]
+    },
+    "Transform Data": {
+      "main": [[{ "node": "Batch Records", "type": "main", "index": 0 }]]
+    },
+    "Batch Records": {
+      "main": [[
+        { "node": "Load to Bubble", "type": "main", "index": 0 },
+        { "node": "Send to Make", "type": "main", "index": 0 }
+      ]]
+    },
+    "Load to Bubble": {
+      "main": [[{ "node": "Validate & Summarize", "type": "main", "index": 0 }]]
+    },
+    "Send to Make": {
+      "main": [[{ "node": "Validate & Summarize", "type": "main", "index": 0 }]]
+    },
+    "Validate & Summarize": {
+      "main": [[
+        { "node": "Notify ETL Complete", "type": "main", "index": 0 },
+        { "node": "Return Summary", "type": "main", "index": 0 }
+      ]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "etl", "pipeline", "data", "sync"]
+}

@@ -1,0 +1,141 @@
+{
+  "name": "NEMESIS - Central Dashboard",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "dashboard-webhook",
+      "name": "Dashboard API",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "dashboard"
+    },
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "minutes", "minutesInterval": 5 }] }
+      },
+      "id": "health-check",
+      "name": "Health Check Every 5min",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// NEMESIS Dashboard - Platform Health Check\n\nconst platforms = [\n  { name: 'n8n', url: 'http://localhost:5678', type: 'internal' },\n  { name: 'notion', url: 'https://api.notion.com/v1/users/me', type: 'external' },\n  { name: 'discord', url: 'https://discord.com/api/v10/users/@me', type: 'external' },\n  { name: 'github', url: 'https://api.github.com/user', type: 'external' },\n  { name: 'google_ai', url: 'https://generativelanguage.googleapis.com/v1beta/models', type: 'external' }\n];\n\nreturn platforms.map(p => ({ json: p }));"
+      },
+      "id": "get-platforms",
+      "name": "Get Platforms",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 500]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {
+          "timeout": 5000,
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "id": "check-health",
+      "name": "Check Platform Health",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 500],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process health check results\nconst items = $input.all();\n\nconst healthReport = {\n  generated_at: new Date().toISOString(),\n  overall_status: 'healthy',\n  platforms: [],\n  stats: {\n    total: 0,\n    healthy: 0,\n    degraded: 0,\n    down: 0\n  }\n};\n\nfor (const item of items) {\n  const platform = {\n    name: item.json.name || 'unknown',\n    url: item.json.url,\n    status: 'unknown',\n    response_time: null,\n    last_check: new Date().toISOString()\n  };\n\n  if (item.json.error) {\n    platform.status = 'down';\n    platform.error = item.json.error.message || 'Connection failed';\n    healthReport.stats.down++;\n  } else if (item.json.statusCode && item.json.statusCode < 400) {\n    platform.status = 'healthy';\n    healthReport.stats.healthy++;\n  } else if (item.json.statusCode && item.json.statusCode >= 400) {\n    platform.status = 'degraded';\n    healthReport.stats.degraded++;\n  } else {\n    platform.status = 'healthy';\n    healthReport.stats.healthy++;\n  }\n\n  healthReport.platforms.push(platform);\n  healthReport.stats.total++;\n}\n\n// Determine overall status\nif (healthReport.stats.down > 0) {\n  healthReport.overall_status = 'critical';\n} else if (healthReport.stats.degraded > 0) {\n  healthReport.overall_status = 'degraded';\n}\n\nreturn [{ json: healthReport }];"
+      },
+      "id": "process-health",
+      "name": "Process Health Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.overall_status }}", "operation": "equals", "value2": "critical" }
+          ]
+        }
+      },
+      "id": "check-critical",
+      "name": "Is Critical?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1250, 500]
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $env.DISCORD_ALERT_CHANNEL }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ embeds: [{ title: '🚨 ALERT: Platform Down', description: 'One or more platforms are not responding', color: 16711680, fields: $json.platforms.filter(p => p.status === 'down').map(p => ({ name: p.name, value: p.error || 'Not responding', inline: true })), footer: { text: 'NEMESIS Dashboard' }, timestamp: $json.generated_at }] }) }}",
+        "options": {}
+      },
+      "id": "send-alert",
+      "name": "Send Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1500, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "return-dashboard",
+      "name": "Return Dashboard",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1500, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate Dashboard HTML\nconst data = $input.first().json;\n\nconst statusColors = {\n  healthy: '#00ff00',\n  degraded: '#ffff00',\n  down: '#ff0000',\n  critical: '#ff0000'\n};\n\nconst html = `\n<!DOCTYPE html>\n<html>\n<head>\n  <title>NEMESIS Dashboard</title>\n  <style>\n    body { font-family: 'Segoe UI', sans-serif; background: #1a1a2e; color: #eee; padding: 20px; }\n    .header { text-align: center; margin-bottom: 30px; }\n    .header h1 { color: #00ff88; font-size: 2.5em; margin: 0; }\n    .status-badge { padding: 5px 15px; border-radius: 20px; font-weight: bold; }\n    .healthy { background: #00ff0033; color: #00ff00; }\n    .degraded { background: #ffff0033; color: #ffff00; }\n    .down { background: #ff000033; color: #ff0000; }\n    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }\n    .card { background: #16213e; border-radius: 10px; padding: 20px; }\n    .card h3 { margin: 0 0 10px 0; color: #00ff88; }\n    .stats { display: flex; justify-content: space-around; margin: 20px 0; }\n    .stat { text-align: center; }\n    .stat-value { font-size: 2em; font-weight: bold; }\n    .stat-label { color: #888; }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <h1>⚡ NEMESIS DASHBOARD</h1>\n    <p>Last update: ${data.generated_at}</p>\n    <span class=\"status-badge ${data.overall_status}\">${data.overall_status.toUpperCase()}</span>\n  </div>\n  <div class=\"stats\">\n    <div class=\"stat\"><div class=\"stat-value\" style=\"color:#00ff00\">${data.stats.healthy}</div><div class=\"stat-label\">Healthy</div></div>\n    <div class=\"stat\"><div class=\"stat-value\" style=\"color:#ffff00\">${data.stats.degraded}</div><div class=\"stat-label\">Degraded</div></div>\n    <div class=\"stat\"><div class=\"stat-value\" style=\"color:#ff0000\">${data.stats.down}</div><div class=\"stat-label\">Down</div></div>\n  </div>\n  <div class=\"grid\">\n    ${data.platforms.map(p => `\n      <div class=\"card\">\n        <h3>${p.name.toUpperCase()}</h3>\n        <span class=\"status-badge ${p.status}\">${p.status}</span>\n        <p>${p.error || 'Operating normally'}</p>\n      </div>\n    `).join('')}\n  </div>\n</body>\n</html>\n`;\n\nreturn [{ json: { html, ...data } }];"
+      },
+      "id": "generate-html",
+      "name": "Generate HTML Dashboard",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 700]
+    }
+  ],
+  "connections": {
+    "Dashboard API": {
+      "main": [[{ "node": "Get Platforms", "type": "main", "index": 0 }]]
+    },
+    "Health Check Every 5min": {
+      "main": [[{ "node": "Get Platforms", "type": "main", "index": 0 }]]
+    },
+    "Get Platforms": {
+      "main": [[{ "node": "Check Platform Health", "type": "main", "index": 0 }]]
+    },
+    "Check Platform Health": {
+      "main": [[{ "node": "Process Health Data", "type": "main", "index": 0 }]]
+    },
+    "Process Health Data": {
+      "main": [[
+        { "node": "Check Critical?", "type": "main", "index": 0 },
+        { "node": "Generate HTML Dashboard", "type": "main", "index": 0 }
+      ]]
+    },
+    "Check Critical?": {
+      "main": [
+        [{ "node": "Send Alert", "type": "main", "index": 0 }],
+        [{ "node": "Return Dashboard", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send Alert": {
+      "main": [[{ "node": "Return Dashboard", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "dashboard", "monitoring", "health"]
+}

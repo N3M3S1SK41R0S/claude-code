@@ -1,0 +1,218 @@
+{
+  "name": "NEMESIS - Claude MCP Bridge",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "mcp-webhook",
+      "name": "MCP Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "mcp-bridge"
+    },
+    {
+      "parameters": {
+        "functionCode": "// NEMESIS Claude MCP Bridge\n// Handles requests from Claude via MCP protocol\n\nconst request = $input.first().json;\n\nconst mcpRequest = {\n  request_id: 'MCP-' + Date.now(),\n  received_at: new Date().toISOString(),\n  method: request.method || request.action || 'unknown',\n  tool: request.tool || request.name || 'n8n',\n  params: request.params || request.arguments || request.input || {},\n  context: {\n    conversation_id: request.conversation_id || null,\n    user_id: request.user_id || null,\n    source: 'claude-desktop'\n  }\n};\n\n// Map MCP methods to n8n actions\nconst methodMap = {\n  'workflow.list': { action: 'list_workflows', target: 'n8n' },\n  'workflow.execute': { action: 'execute_workflow', target: 'n8n' },\n  'workflow.create': { action: 'create_workflow', target: 'n8n' },\n  'notion.query': { action: 'query', target: 'notion' },\n  'notion.create': { action: 'create_page', target: 'notion' },\n  'discord.send': { action: 'send_message', target: 'discord' },\n  'github.issue': { action: 'create_issue', target: 'github' },\n  'ai.generate': { action: 'generate', target: 'google_ai' },\n  'image.create': { action: 'imagine', target: 'midjourney' },\n  'video.create': { action: 'generate', target: 'heygen' }\n};\n\nconst mapping = methodMap[mcpRequest.method] || { action: mcpRequest.method, target: 'hub' };\nmcpRequest.routing = mapping;\n\nreturn [{ json: mcpRequest }];"
+      },
+      "id": "parse-mcp",
+      "name": "Parse MCP Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.routing.target }}", "operation": "equals", "value2": "n8n" }
+          ]
+        }
+      },
+      "id": "route-n8n",
+      "name": "n8n API?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.routing.target }}", "operation": "equals", "value2": "notion" }
+          ]
+        }
+      },
+      "id": "route-notion",
+      "name": "Notion API?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.routing.target }}", "operation": "equals", "value2": "discord" }
+          ]
+        }
+      },
+      "id": "route-discord",
+      "name": "Discord API?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 600]
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/api/v1/workflows",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "n8n-list-workflows",
+      "name": "List n8n Workflows",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 100],
+      "credentials": { "httpHeaderAuth": { "id": "n8n-cred", "name": "n8n API Key" } }
+    },
+    {
+      "parameters": {
+        "url": "http://localhost:5678/api/v1/workflows/{{ $json.params.workflow_id }}/execute",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.params.input || {}) }}",
+        "options": {}
+      },
+      "id": "n8n-execute",
+      "name": "Execute Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 250],
+      "credentials": { "httpHeaderAuth": { "id": "n8n-cred", "name": "n8n API Key" } }
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "getAll",
+        "databaseId": "={{ $json.params.database_id }}",
+        "returnAll": false,
+        "limit": "={{ $json.params.limit || 50 }}",
+        "options": {}
+      },
+      "id": "notion-query",
+      "name": "Query Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [1000, 400],
+      "credentials": { "notionApi": { "id": "notion-cred", "name": "Notion API" } }
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $json.params.channel_id }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $json.params.message || $json.params.content }) }}",
+        "options": {}
+      },
+      "id": "discord-send",
+      "name": "Send Discord Message",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 600]
+    },
+    {
+      "parameters": {
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: $json.params.prompt }] }], generationConfig: { temperature: $json.params.temperature || 0.7, maxOutputTokens: $json.params.max_tokens || 2048 } }) }}",
+        "options": {}
+      },
+      "id": "google-ai-generate",
+      "name": "Generate with Gemini",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 800],
+      "credentials": { "httpQueryAuth": { "id": "google-ai-cred", "name": "Google AI Key" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Format MCP Response\nconst result = $input.first().json;\nconst originalRequest = $('Parse MCP Request').first().json;\n\nconst mcpResponse = {\n  request_id: originalRequest.request_id,\n  success: true,\n  method: originalRequest.method,\n  result: null,\n  metadata: {\n    processed_at: new Date().toISOString(),\n    execution_time_ms: Date.now() - new Date(originalRequest.received_at).getTime()\n  }\n};\n\n// Format result based on target\nif (originalRequest.routing.target === 'n8n') {\n  if (result.data) {\n    mcpResponse.result = { workflows: result.data.map(w => ({ id: w.id, name: w.name, active: w.active })) };\n  } else {\n    mcpResponse.result = result;\n  }\n} else if (originalRequest.routing.target === 'notion') {\n  mcpResponse.result = { pages: result.results?.map(p => ({ id: p.id, title: p.properties?.Name?.title?.[0]?.text?.content })) || result };\n} else if (originalRequest.routing.target === 'discord') {\n  mcpResponse.result = { message_id: result.id, channel_id: result.channel_id };\n} else if (originalRequest.routing.target === 'google_ai') {\n  mcpResponse.result = { text: result.candidates?.[0]?.content?.parts?.[0]?.text || '' };\n} else {\n  mcpResponse.result = result;\n}\n\nreturn [{ json: mcpResponse }];"
+      },
+      "id": "format-response",
+      "name": "Format MCP Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return MCP Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1500, 400]
+    }
+  ],
+  "connections": {
+    "MCP Request": {
+      "main": [[{ "node": "Parse MCP Request", "type": "main", "index": 0 }]]
+    },
+    "Parse MCP Request": {
+      "main": [[
+        { "node": "n8n API?", "type": "main", "index": 0 },
+        { "node": "Notion API?", "type": "main", "index": 0 },
+        { "node": "Discord API?", "type": "main", "index": 0 }
+      ]]
+    },
+    "n8n API?": {
+      "main": [
+        [{ "node": "List n8n Workflows", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Notion API?": {
+      "main": [
+        [{ "node": "Query Notion", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Discord API?": {
+      "main": [
+        [{ "node": "Send Discord Message", "type": "main", "index": 0 }],
+        [{ "node": "Generate with Gemini", "type": "main", "index": 0 }]
+      ]
+    },
+    "List n8n Workflows": {
+      "main": [[{ "node": "Format MCP Response", "type": "main", "index": 0 }]]
+    },
+    "Execute Workflow": {
+      "main": [[{ "node": "Format MCP Response", "type": "main", "index": 0 }]]
+    },
+    "Query Notion": {
+      "main": [[{ "node": "Format MCP Response", "type": "main", "index": 0 }]]
+    },
+    "Send Discord Message": {
+      "main": [[{ "node": "Format MCP Response", "type": "main", "index": 0 }]]
+    },
+    "Generate with Gemini": {
+      "main": [[{ "node": "Format MCP Response", "type": "main", "index": 0 }]]
+    },
+    "Format MCP Response": {
+      "main": [[{ "node": "Return MCP Response", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "mcp", "claude", "bridge", "api"]
+}

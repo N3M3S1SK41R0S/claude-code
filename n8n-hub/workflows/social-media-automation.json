@@ -1,0 +1,211 @@
+{
+  "name": "NEMESIS - Social Media Automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "post-webhook",
+      "name": "Social Post Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 400],
+      "webhookId": "social-post"
+    },
+    {
+      "parameters": {
+        "rule": { "interval": [{ "field": "hours", "hoursInterval": 6 }] }
+      },
+      "id": "scheduled-post",
+      "name": "Scheduled Posts",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Social Media Post Planner\nconst input = $input.first().json;\n\nconst post = {\n  id: 'POST-' + Date.now(),\n  created_at: new Date().toISOString(),\n  content: input.content || input.text || input.message,\n  media_url: input.media_url || input.image || null,\n  platforms: input.platforms || ['discord'],\n  schedule: input.schedule || 'now',\n  hashtags: input.hashtags || [],\n  mentions: input.mentions || [],\n  settings: {\n    cross_post: input.cross_post !== false,\n    track_engagement: input.track_engagement !== false,\n    auto_reply: input.auto_reply || false\n  }\n};\n\n// Add hashtags to content if not present\nif (post.hashtags.length > 0 && !post.content.includes('#')) {\n  post.content += '\\n\\n' + post.hashtags.map(h => '#' + h).join(' ');\n}\n\nreturn [{ json: post }];"
+      },
+      "id": "plan-post",
+      "name": "Plan Post",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.platforms.includes('discord') }}", "value2": "true" }
+          ]
+        }
+      },
+      "id": "check-discord",
+      "name": "Post to Discord?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.platforms.includes('slack') }}", "value2": "true" }
+          ]
+        }
+      },
+      "id": "check-slack",
+      "name": "Post to Slack?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.platforms.includes('notion') }}", "value2": "true" }
+          ]
+        }
+      },
+      "id": "check-notion",
+      "name": "Log to Notion?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 700]
+    },
+    {
+      "parameters": {
+        "url": "https://discord.com/api/v10/channels/{{ $env.DISCORD_SOCIAL_CHANNEL }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "discordBotApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $json.content, embeds: $json.media_url ? [{ image: { url: $json.media_url } }] : [] }) }}",
+        "options": {}
+      },
+      "id": "post-discord",
+      "name": "Post to Discord",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 200]
+    },
+    {
+      "parameters": {
+        "url": "https://slack.com/api/chat.postMessage",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "slackApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ channel: $env.SLACK_SOCIAL_CHANNEL, text: $json.content, attachments: $json.media_url ? [{ image_url: $json.media_url }] : [] }) }}",
+        "options": {}
+      },
+      "id": "post-slack",
+      "name": "Post to Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 500]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "operation": "create",
+        "databaseId": "={{ $env.NOTION_SOCIAL_LOG_DB }}",
+        "propertiesUi": {
+          "propertyValues": [
+            { "key": "Name", "title": "={{ $json.id }}" },
+            { "key": "Content", "richText": "={{ $json.content.substring(0, 200) }}" },
+            { "key": "Platforms", "multiSelect": "={{ $json.platforms }}" },
+            { "key": "Date", "date": "={{ $json.created_at }}" },
+            { "key": "Status", "select": "Posted" }
+          ]
+        }
+      },
+      "id": "log-notion",
+      "name": "Log to Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [1000, 700],
+      "credentials": { "notionApi": { "id": "notion-cred", "name": "Notion API" } }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Aggregate posting results\nconst items = $input.all();\nconst originalPost = $('Plan Post').first().json;\n\nconst results = {\n  post_id: originalPost.id,\n  completed_at: new Date().toISOString(),\n  platforms_posted: [],\n  success: true,\n  details: []\n};\n\nfor (const item of items) {\n  if (item.json.id) {\n    // Discord response\n    results.platforms_posted.push('discord');\n    results.details.push({ platform: 'discord', message_id: item.json.id, success: true });\n  }\n  if (item.json.ok !== undefined) {\n    // Slack response\n    results.platforms_posted.push('slack');\n    results.details.push({ platform: 'slack', success: item.json.ok, ts: item.json.ts });\n    if (!item.json.ok) results.success = false;\n  }\n}\n\nreturn [{ json: results }];"
+      },
+      "id": "aggregate-results",
+      "name": "Aggregate Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify({ success: $json.success, post_id: $json.post_id, platforms: $json.platforms_posted, details: $json.details }) }}"
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1500, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate AI-enhanced social content\nconst input = $input.first().json;\n\nconst templates = {\n  announcement: '📢 {content}\\n\\n#announcement #news',\n  tip: '💡 Tip: {content}\\n\\n#tip #productivity',\n  question: '🤔 {content}\\n\\nPartagez votre avis! 👇',\n  celebration: '🎉 {content}\\n\\n#celebration #milestone',\n  update: '🔄 Update: {content}\\n\\n#update #changelog'\n};\n\nconst type = input.type || 'announcement';\nlet enhancedContent = templates[type] || '{content}';\nenhancedContent = enhancedContent.replace('{content}', input.content);\n\nreturn [{ json: { ...input, content: enhancedContent, enhanced: true } }];"
+      },
+      "id": "enhance-content",
+      "name": "Enhance Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Social Post Request": {
+      "main": [[{ "node": "Enhance Content", "type": "main", "index": 0 }]]
+    },
+    "Scheduled Posts": {
+      "main": [[{ "node": "Plan Post", "type": "main", "index": 0 }]]
+    },
+    "Enhance Content": {
+      "main": [[{ "node": "Plan Post", "type": "main", "index": 0 }]]
+    },
+    "Plan Post": {
+      "main": [[
+        { "node": "Post to Discord?", "type": "main", "index": 0 },
+        { "node": "Post to Slack?", "type": "main", "index": 0 },
+        { "node": "Log to Notion?", "type": "main", "index": 0 }
+      ]]
+    },
+    "Post to Discord?": {
+      "main": [
+        [{ "node": "Post to Discord", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Post to Slack?": {
+      "main": [
+        [{ "node": "Post to Slack", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Log to Notion?": {
+      "main": [
+        [{ "node": "Log to Notion", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Post to Discord": {
+      "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]]
+    },
+    "Post to Slack": {
+      "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]]
+    },
+    "Log to Notion": {
+      "main": [[{ "node": "Aggregate Results", "type": "main", "index": 0 }]]
+    },
+    "Aggregate Results": {
+      "main": [[{ "node": "Respond", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": ["nemesis", "social", "automation", "discord", "slack"]
+}
