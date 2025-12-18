@@ -1,10 +1,10 @@
 {
-  "name": "NEMESIS - WhatsApp Business Automation",
+  "name": "NEMESIS - WhatsApp via Twilio (FIXED)",
   "nodes": [
     {
       "parameters": {},
       "id": "whatsapp-webhook",
-      "name": "WhatsApp Webhook",
+      "name": "WhatsApp Request",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
       "position": [250, 400],
@@ -12,64 +12,71 @@
     },
     {
       "parameters": {
-        "url": "https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_ID }}/messages",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.to, type: 'text', text: { body: $json.message } }) }}",
-        "options": {}
+        "functionCode": "// WhatsApp Message Handler\n// FIXED: Uses Twilio WhatsApp API (easier setup than Meta Business API)\n// Meta API requires: Business verification, app review (weeks)\n// Twilio API requires: Account + WhatsApp sandbox (minutes)\n\nconst input = $input.first().json;\n\nconst request = {\n  request_id: 'WA-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  provider: input.provider || 'twilio',\n  action: input.action || 'send'\n};\n\n// Format phone number for WhatsApp\nlet to = input.to || input.phone || '';\nif (!to.startsWith('whatsapp:')) {\n  to = 'whatsapp:' + to.replace(/[^0-9+]/g, '');\n}\nrequest.to = to;\n\n// Twilio sender\nrequest.from = `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER || '+14155238886'}`;\n\n// Message content\nrequest.message = input.message || input.body || input.text || '';\nrequest.media_url = input.media_url || input.image_url;\n\n// Handle incoming webhook from Twilio\nif (input.From && input.Body) {\n  request.action = 'incoming';\n  request.from = input.From;\n  request.to = input.To;\n  request.message = input.Body;\n  request.message_sid = input.MessageSid;\n  request.num_media = parseInt(input.NumMedia) || 0;\n  \n  // Auto-reply logic\n  const body = request.message.toLowerCase();\n  if (body.includes('bonjour') || body.includes('hello') || body.includes('salut')) {\n    request.auto_reply = 'Bonjour! 👋 Comment puis-je vous aider?';\n  } else if (body.includes('aide') || body.includes('help')) {\n    request.auto_reply = '📚 Commandes disponibles:\\n• AIDE - Cette aide\\n• STATUS - État du système\\n• INFO - Informations';\n  } else if (body.includes('status')) {\n    request.auto_reply = '✅ Système NEMESIS opérationnel';\n  }\n}\n\nreturn [{ json: request }];"
       },
-      "id": "send-text",
-      "name": "Send Text Message",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [750, 300],
-      "credentials": { "httpHeaderAuth": { "id": "whatsapp-cred", "name": "WhatsApp Token" } }
-    },
-    {
-      "parameters": {
-        "url": "https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_ID }}/messages",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.to, type: 'template', template: { name: $json.template_name, language: { code: $json.language || 'fr' }, components: $json.components || [] } }) }}",
-        "options": {}
-      },
-      "id": "send-template",
-      "name": "Send Template",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [750, 500],
-      "credentials": { "httpHeaderAuth": { "id": "whatsapp-cred", "name": "WhatsApp Token" } }
-    },
-    {
-      "parameters": {
-        "url": "https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_ID }}/messages",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.to, type: 'image', image: { link: $json.image_url, caption: $json.caption || '' } }) }}",
-        "options": {}
-      },
-      "id": "send-image",
-      "name": "Send Image",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [750, 700],
-      "credentials": { "httpHeaderAuth": { "id": "whatsapp-cred", "name": "WhatsApp Token" } }
-    },
-    {
-      "parameters": {
-        "functionCode": "// WhatsApp Message Handler\nconst webhook = $input.first().json;\n\nconst result = {\n  request_id: 'WA-' + Date.now(),\n  timestamp: new Date().toISOString()\n};\n\n// Parse incoming webhook\nif (webhook.entry && webhook.entry[0]?.changes) {\n  const change = webhook.entry[0].changes[0];\n  const value = change.value;\n  \n  if (value.messages && value.messages[0]) {\n    const msg = value.messages[0];\n    result.type = 'incoming';\n    result.from = msg.from;\n    result.message_id = msg.id;\n    result.timestamp_wa = msg.timestamp;\n    result.message_type = msg.type;\n    \n    if (msg.type === 'text') {\n      result.text = msg.text.body;\n    } else if (msg.type === 'image') {\n      result.media_id = msg.image.id;\n      result.caption = msg.image.caption;\n    } else if (msg.type === 'interactive') {\n      result.button_reply = msg.interactive.button_reply;\n      result.list_reply = msg.interactive.list_reply;\n    }\n    \n    // Auto-response logic\n    const text = (result.text || '').toLowerCase();\n    if (text.includes('bonjour') || text.includes('salut') || text.includes('hello')) {\n      result.auto_reply = 'Bonjour! 👋 Comment puis-je vous aider?';\n    } else if (text.includes('aide') || text.includes('help')) {\n      result.auto_reply = '📚 Je peux vous aider avec:\\n• Information produits\\n• Suivi commandes\\n• Support technique\\n\\nTapez votre question!';\n    } else if (text.includes('merci')) {\n      result.auto_reply = 'Avec plaisir! 😊 N\\'hésitez pas si vous avez d\\'autres questions.';\n    }\n  }\n  \n  if (value.statuses && value.statuses[0]) {\n    const status = value.statuses[0];\n    result.type = 'status';\n    result.message_id = status.id;\n    result.status = status.status;\n    result.recipient = status.recipient_id;\n  }\n} else {\n  // Outgoing message request\n  result.type = 'outgoing';\n  result.to = webhook.to;\n  result.message = webhook.message;\n}\n\nreturn [{ json: result }];"
-      },
-      "id": "message-handler",
-      "name": "Message Handler",
+      "id": "prepare",
+      "name": "Prepare Request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [{ "value1": "={{ $json.action }}", "operation": "equals", "value2": "incoming" }]
+        }
+      },
+      "id": "check-incoming",
+      "name": "Incoming?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_ACCOUNT_SID }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "From", "value": "={{ $json.from }}" },
+            { "name": "To", "value": "={{ $json.to }}" },
+            { "name": "Body", "value": "={{ $json.message }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-twilio",
+      "name": "Send via Twilio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 500],
+      "credentials": { "httpBasicAuth": { "id": "twilio-auth", "name": "Twilio Auth" } }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $env.TWILIO_ACCOUNT_SID }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "From", "value": "={{ $json.to }}" },
+            { "name": "To", "value": "={{ $json.from }}" },
+            { "name": "Body", "value": "={{ $json.auto_reply }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "send-auto-reply",
+      "name": "Send Auto Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 250],
+      "credentials": { "httpBasicAuth": { "id": "twilio-auth", "name": "Twilio Auth" } }
     },
     {
       "parameters": {
@@ -78,27 +85,20 @@
         }
       },
       "id": "check-auto-reply",
-      "name": "Auto Reply?",
+      "name": "Has Auto Reply?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [1000, 400]
+      "position": [1000, 100]
     },
     {
       "parameters": {
-        "url": "https://graph.facebook.com/v18.0/{{ $env.WHATSAPP_PHONE_ID }}/messages",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.from, type: 'text', text: { body: $json.auto_reply } }) }}",
-        "options": {}
+        "functionCode": "// Process response\nconst response = $input.first().json;\nconst request = $('Prepare Request').first().json;\n\nconst result = {\n  request_id: request.request_id,\n  timestamp: new Date().toISOString(),\n  action: request.action,\n  provider: 'twilio'\n};\n\nif (response.sid) {\n  result.success = true;\n  result.message_sid = response.sid;\n  result.status = response.status;\n  result.to = response.to;\n} else if (response.code) {\n  result.success = false;\n  result.error = response.message;\n  result.error_code = response.code;\n} else if (request.action === 'incoming') {\n  result.success = true;\n  result.received = {\n    from: request.from,\n    message: request.message,\n    auto_replied: !!request.auto_reply\n  };\n}\n\nreturn [{ json: result }];"
       },
-      "id": "send-auto-reply",
-      "name": "Send Auto Reply",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [1250, 300],
-      "credentials": { "httpHeaderAuth": { "id": "whatsapp-cred", "name": "WhatsApp Token" } }
+      "id": "format-response",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 400]
     },
     {
       "parameters": {
@@ -106,29 +106,42 @@
         "jsonOutput": "={{ JSON.stringify($json) }}"
       },
       "id": "respond",
-      "name": "Acknowledge",
+      "name": "Return Result",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1250, 500]
+      "position": [1500, 400]
     }
   ],
   "connections": {
-    "WhatsApp Webhook": {
-      "main": [[{ "node": "Message Handler", "type": "main", "index": 0 }]]
+    "WhatsApp Request": {
+      "main": [[{ "node": "Prepare Request", "type": "main", "index": 0 }]]
     },
-    "Message Handler": {
-      "main": [[{ "node": "Check Auto Reply?", "type": "main", "index": 0 }]]
+    "Prepare Request": {
+      "main": [[{ "node": "Incoming?", "type": "main", "index": 0 }]]
     },
-    "Check Auto Reply?": {
+    "Incoming?": {
+      "main": [
+        [{ "node": "Has Auto Reply?", "type": "main", "index": 0 }],
+        [{ "node": "Send via Twilio", "type": "main", "index": 0 }]
+      ]
+    },
+    "Has Auto Reply?": {
       "main": [
         [{ "node": "Send Auto Reply", "type": "main", "index": 0 }],
-        [{ "node": "Acknowledge", "type": "main", "index": 0 }]
+        [{ "node": "Format Response", "type": "main", "index": 0 }]
       ]
     },
     "Send Auto Reply": {
-      "main": [[{ "node": "Acknowledge", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Format Response", "type": "main", "index": 0 }]]
+    },
+    "Send via Twilio": {
+      "main": [[{ "node": "Format Response", "type": "main", "index": 0 }]]
+    },
+    "Format Response": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
     }
   },
   "settings": { "executionOrder": "v1" },
-  "tags": ["nemesis", "whatsapp", "messaging", "automation"]
+  "tags": ["nemesis", "whatsapp", "twilio", "messaging", "fixed"],
+  "notes": "FIXED: Uses Twilio WhatsApp API instead of Meta Business API. Setup: 1) Create Twilio account 2) Enable WhatsApp Sandbox 3) Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_NUMBER"
 }

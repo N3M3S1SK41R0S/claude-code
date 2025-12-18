@@ -1,129 +1,141 @@
 {
-  "name": "NEMESIS - Discord Bot Automation",
+  "name": "NEMESIS - Discord Webhooks (FIXED - Outgoing Only)",
   "nodes": [
     {
       "parameters": {},
-      "id": "discord-trigger",
-      "name": "Discord Trigger",
-      "type": "n8n-nodes-base.discordTrigger",
-      "typeVersion": 1,
-      "position": [250, 300],
-      "credentials": { "discordBotApi": { "id": "discord-cred", "name": "Discord Bot" } }
-    },
-    {
-      "parameters": {},
       "id": "webhook",
-      "name": "External Webhook",
+      "name": "Send Request",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [250, 500],
-      "webhookId": "discord-bot"
+      "position": [250, 400],
+      "webhookId": "discord"
     },
     {
       "parameters": {
-        "url": "https://discord.com/api/v10/channels/{{ $json.channel_id }}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "discordBotApi",
+        "functionCode": "// Discord Webhook Handler\n// NOTE: This workflow can only SEND messages to Discord\n// Receiving messages requires a WebSocket bot (not supported in n8n)\n// For receiving: Use a separate Discord bot that calls this n8n webhook\n\nconst input = $input.first().json;\n\nconst request = {\n  request_id: 'DISCORD-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  action: input.action || 'send_message',\n  channel_id: input.channel_id,\n  guild_id: input.guild_id\n};\n\n// Validate required fields\nif (!input.channel_id && !input.webhook_url) {\n  request.valid = false;\n  request.error = 'Either channel_id or webhook_url is required';\n} else {\n  request.valid = true;\n}\n\n// Build message content\nif (input.action === 'send_embed' || input.embed) {\n  request.embed = {\n    title: input.embed_title || input.title,\n    description: input.embed_description || input.description || input.content,\n    color: parseInt(input.embed_color || input.color || '5814783'),\n    fields: input.embed_fields || input.fields || [],\n    footer: { text: input.footer || 'NEMESIS Hub' },\n    timestamp: new Date().toISOString()\n  };\n  if (input.thumbnail_url) request.embed.thumbnail = { url: input.thumbnail_url };\n  if (input.image_url) request.embed.image = { url: input.image_url };\n}\n\nif (input.message || input.content) {\n  request.content = input.message || input.content;\n}\n\n// Use Discord webhook URL directly if provided\nif (input.webhook_url) {\n  request.use_webhook = true;\n  request.webhook_url = input.webhook_url;\n}\n\nreturn [{ json: request }];"
+      },
+      "id": "prepare",
+      "name": "Prepare Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{ $json.use_webhook }}", "value2": true }]
+        }
+      },
+      "id": "check-method",
+      "name": "Use Webhook URL?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.webhook_url }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ content: $json.message, embeds: $json.embeds || [] }) }}",
+        "jsonBody": "={{ JSON.stringify({ content: $json.content || '', embeds: $json.embed ? [$json.embed] : [], username: 'NEMESIS Bot' }) }}",
         "options": {}
       },
-      "id": "send-message",
-      "name": "Send Message",
+      "id": "send-via-webhook",
+      "name": "Send via Webhook URL",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [500, 300]
+      "position": [1000, 250]
     },
     {
       "parameters": {
-        "url": "https://discord.com/api/v10/channels/{{ $json.channel_id }}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "discordBotApi",
+        "url": "=https://discord.com/api/v10/channels/{{ $json.channel_id }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bot {{ $env.DISCORD_BOT_TOKEN }}" }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ embeds: [{ title: $json.embed_title, description: $json.embed_description, color: parseInt($json.embed_color || '5814783'), fields: $json.embed_fields || [], thumbnail: { url: $json.thumbnail_url }, footer: { text: 'NEMESIS Hub - ' + new Date().toLocaleString() } }] }) }}",
+        "jsonBody": "={{ JSON.stringify({ content: $json.content || '', embeds: $json.embed ? [$json.embed] : [] }) }}",
         "options": {}
       },
-      "id": "send-embed",
-      "name": "Send Rich Embed",
+      "id": "send-via-bot",
+      "name": "Send via Bot Token",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [500, 500]
+      "position": [1000, 500]
     },
     {
       "parameters": {
-        "url": "https://discord.com/api/v10/guilds/{{ $json.guild_id }}/channels",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "discordBotApi",
+        "url": "=https://discord.com/api/v10/guilds/{{ $json.guild_id }}/channels",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "Bot {{ $env.DISCORD_BOT_TOKEN }}" }
+          ]
+        },
         "options": {}
       },
       "id": "get-channels",
       "name": "Get Channels",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [750, 200]
+      "position": [1000, 700]
     },
     {
       "parameters": {
-        "url": "https://discord.com/api/v10/guilds/{{ $json.guild_id }}/members",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "discordBotApi",
-        "sendQuery": true,
-        "queryParameters": { "parameters": [{ "name": "limit", "value": "100" }] },
-        "options": {}
+        "functionCode": "// Format Discord response\nconst response = $input.first().json;\nconst request = $('Prepare Message').first().json;\n\nconst result = {\n  request_id: request.request_id,\n  timestamp: new Date().toISOString(),\n  success: true\n};\n\nif (response.id) {\n  result.message_id = response.id;\n  result.channel_id = response.channel_id;\n} else if (response.code) {\n  result.success = false;\n  result.error = response.message;\n  result.error_code = response.code;\n}\n\nreturn [{ json: result }];"
       },
-      "id": "get-members",
-      "name": "Get Members",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [750, 400]
-    },
-    {
-      "parameters": {
-        "url": "https://discord.com/api/v10/channels/{{ $json.channel_id }}/threads",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "discordBotApi",
-        "requestMethod": "POST",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ name: $json.thread_name, auto_archive_duration: 1440, type: 11 }) }}",
-        "options": {}
-      },
-      "id": "create-thread",
-      "name": "Create Thread",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [750, 600]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Discord Command Handler\nconst message = $input.first().json;\nconst content = message.content || '';\n\nlet response = { action: 'none' };\n\nif (content.startsWith('!status')) {\n  response = {\n    action: 'send_embed',\n    embed_title: 'NEMESIS Status',\n    embed_description: 'All systems operational',\n    embed_color: '65280',\n    embed_fields: [\n      { name: 'n8n', value: 'Running', inline: true },\n      { name: 'Workflows', value: 'Active', inline: true }\n    ]\n  };\n} else if (content.startsWith('!help')) {\n  response = {\n    action: 'send_message',\n    message: '**NEMESIS Commands:**\\n!status - Check system status\\n!sync - Trigger sync\\n!notify - Send notification'\n  };\n} else if (content.startsWith('!sync')) {\n  response = { action: 'trigger_sync', platform: 'all' };\n}\n\nreturn [{ json: { ...message, ...response } }];"
-      },
-      "id": "command-handler",
-      "name": "Command Handler",
+      "id": "format-response",
+      "name": "Format Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [500, 700]
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1500, 400]
     }
   ],
   "connections": {
-    "Discord Trigger": {
-      "main": [[{ "node": "Command Handler", "type": "main", "index": 0 }]]
+    "Send Request": {
+      "main": [[{ "node": "Prepare Message", "type": "main", "index": 0 }]]
     },
-    "External Webhook": {
-      "main": [[
-        { "node": "Send Message", "type": "main", "index": 0 },
-        { "node": "Send Rich Embed", "type": "main", "index": 0 }
-      ]]
+    "Prepare Message": {
+      "main": [[{ "node": "Use Webhook URL?", "type": "main", "index": 0 }]]
     },
-    "Command Handler": {
-      "main": [[
-        { "node": "Send Message", "type": "main", "index": 0 },
-        { "node": "Send Rich Embed", "type": "main", "index": 0 }
-      ]]
+    "Use Webhook URL?": {
+      "main": [
+        [{ "node": "Send via Webhook URL", "type": "main", "index": 0 }],
+        [{ "node": "Send via Bot Token", "type": "main", "index": 0 }]
+      ]
+    },
+    "Send via Webhook URL": {
+      "main": [[{ "node": "Format Response", "type": "main", "index": 0 }]]
+    },
+    "Send via Bot Token": {
+      "main": [[{ "node": "Format Response", "type": "main", "index": 0 }]]
+    },
+    "Get Channels": {
+      "main": [[{ "node": "Format Response", "type": "main", "index": 0 }]]
+    },
+    "Format Response": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
     }
   },
   "settings": { "executionOrder": "v1" },
-  "tags": ["nemesis", "discord", "bot", "automation"]
+  "tags": ["nemesis", "discord", "webhooks", "messaging", "fixed"],
+  "notes": "OUTGOING ONLY - Can send messages to Discord via Bot Token or Webhook URL. Cannot receive messages (requires WebSocket bot). For receiving, set up a Discord bot that POSTs to this webhook."
 }

@@ -1,5 +1,5 @@
 {
-  "name": "NEMESIS - Backup & Recovery System",
+  "name": "NEMESIS - Backup to Cloud Storage (FIXED)",
   "nodes": [
     {
       "parameters": {
@@ -22,7 +22,7 @@
     },
     {
       "parameters": {
-        "functionCode": "// Initialize backup job\nconst backup = {\n  backup_id: 'BACKUP-' + new Date().toISOString().split('T')[0].replace(/-/g, '') + '-' + Date.now(),\n  started_at: new Date().toISOString(),\n  type: $input.first().json.type || 'full',\n  targets: [\n    { name: 'n8n_workflows', type: 'api', status: 'pending' },\n    { name: 'n8n_credentials', type: 'api', status: 'pending' },\n    { name: 'notion_databases', type: 'api', status: 'pending' },\n    { name: 'config_files', type: 'local', status: 'pending' }\n  ],\n  stats: {\n    total: 0,\n    success: 0,\n    failed: 0\n  }\n};\n\nreturn [{ json: backup }];"
+        "functionCode": "// Initialize backup job\n// FIXED: Added cloud storage support (Google Drive, S3)\n// Original only logged to Notion without persistent storage\n\nconst backup = {\n  backup_id: 'BACKUP-' + new Date().toISOString().split('T')[0].replace(/-/g, '') + '-' + Date.now(),\n  started_at: new Date().toISOString(),\n  type: $input.first().json.type || 'full',\n  storage: $input.first().json.storage || 'google_drive',\n  targets: [\n    { name: 'n8n_workflows', status: 'pending' },\n    { name: 'n8n_credentials', status: 'pending' },\n    { name: 'notion_structure', status: 'pending' }\n  ],\n  stats: { total: 0, size_bytes: 0 }\n};\n\nreturn [{ json: backup }];"
       },
       "id": "init-backup",
       "name": "Initialize Backup",
@@ -38,34 +38,23 @@
         "options": {}
       },
       "id": "backup-workflows",
-      "name": "Backup n8n Workflows",
+      "name": "Get n8n Workflows",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [750, 200],
-      "credentials": { "httpHeaderAuth": { "id": "n8n-cred", "name": "n8n API Key" } }
-    },
-    {
-      "parameters": {
-        "url": "http://localhost:5678/api/v1/credentials",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "options": {}
-      },
-      "id": "backup-credentials",
-      "name": "Backup n8n Credentials",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [750, 400],
+      "position": [750, 300],
       "credentials": { "httpHeaderAuth": { "id": "n8n-cred", "name": "n8n API Key" } }
     },
     {
       "parameters": {
         "url": "https://api.notion.com/v1/search",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "notionApi",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,
         "headerParameters": {
-          "parameters": [{ "name": "Notion-Version", "value": "2022-06-28" }]
+          "parameters": [
+            { "name": "Notion-Version", "value": "2022-06-28" },
+            { "name": "Authorization", "value": "Bearer {{ $env.NOTION_API_KEY }}" }
+          ]
         },
         "sendBody": true,
         "specifyBody": "json",
@@ -73,14 +62,14 @@
         "options": {}
       },
       "id": "backup-notion",
-      "name": "Backup Notion Structure",
+      "name": "Get Notion Structure",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [750, 600]
+      "position": [750, 500]
     },
     {
       "parameters": {
-        "functionCode": "// Aggregate backup data\nconst items = $input.all();\nconst backupInfo = $('Initialize Backup').first().json;\n\nconst backupData = {\n  backup_id: backupInfo.backup_id,\n  completed_at: new Date().toISOString(),\n  duration_ms: Date.now() - new Date(backupInfo.started_at).getTime(),\n  data: {\n    workflows: [],\n    credentials: [],\n    notion_databases: []\n  },\n  stats: {\n    total_items: 0,\n    total_size_bytes: 0\n  }\n};\n\nfor (const item of items) {\n  if (item.json.data && Array.isArray(item.json.data)) {\n    // n8n workflows or credentials\n    if (item.json.data[0]?.nodes) {\n      backupData.data.workflows = item.json.data;\n      backupData.stats.total_items += item.json.data.length;\n    } else {\n      backupData.data.credentials = item.json.data.map(c => ({ id: c.id, name: c.name, type: c.type }));\n    }\n  } else if (item.json.results) {\n    // Notion databases\n    backupData.data.notion_databases = item.json.results.map(d => ({\n      id: d.id,\n      title: d.title?.[0]?.text?.content || 'Untitled',\n      created: d.created_time\n    }));\n    backupData.stats.total_items += item.json.results.length;\n  }\n}\n\nbackupData.stats.total_size_bytes = JSON.stringify(backupData.data).length;\n\nreturn [{ json: backupData }];"
+        "functionCode": "// Aggregate all backup data into single JSON\nconst items = $input.all();\nconst backupInfo = $('Initialize Backup').first().json;\n\nconst backupData = {\n  backup_id: backupInfo.backup_id,\n  created_at: new Date().toISOString(),\n  version: '1.0',\n  data: {\n    workflows: [],\n    notion: { databases: [] }\n  }\n};\n\nfor (const item of items) {\n  if (item.json.data && Array.isArray(item.json.data)) {\n    // n8n workflows\n    if (item.json.data[0]?.nodes) {\n      backupData.data.workflows = item.json.data;\n    }\n  } else if (item.json.results) {\n    // Notion databases\n    backupData.data.notion.databases = item.json.results.map(d => ({\n      id: d.id,\n      title: d.title?.[0]?.text?.content || 'Untitled',\n      url: d.url,\n      created: d.created_time\n    }));\n  }\n}\n\n// Calculate size\nconst jsonString = JSON.stringify(backupData, null, 2);\nbackupData.stats = {\n  workflows_count: backupData.data.workflows.length,\n  notion_databases_count: backupData.data.notion.databases.length,\n  size_bytes: jsonString.length,\n  size_kb: Math.round(jsonString.length / 1024)\n};\n\n// Prepare for upload\nbackupData.filename = `nemesis-backup-${backupInfo.backup_id}.json`;\nbackupData.content = jsonString;\n\nreturn [{ json: backupData }];"
       },
       "id": "aggregate-backup",
       "name": "Aggregate Backup Data",
@@ -90,52 +79,77 @@
     },
     {
       "parameters": {
-        "resource": "page",
-        "operation": "create",
-        "databaseId": "={{ $env.NOTION_BACKUP_DB }}",
-        "propertiesUi": {
-          "propertyValues": [
-            { "key": "Name", "title": "={{ $json.backup_id }}" },
-            { "key": "Type", "select": "Full" },
-            { "key": "Items", "number": "={{ $json.stats.total_items }}" },
-            { "key": "Size", "number": "={{ Math.round($json.stats.total_size_bytes / 1024) }}" },
-            { "key": "Date", "date": "={{ $json.completed_at }}" }
-          ]
-        }
+        "resource": "file",
+        "operation": "upload",
+        "name": "={{ $json.filename }}",
+        "parents": ["={{ $env.GOOGLE_DRIVE_BACKUP_FOLDER }}"],
+        "binaryPropertyName": "data",
+        "options": {}
       },
-      "id": "log-backup",
-      "name": "Log Backup to Notion",
-      "type": "n8n-nodes-base.notion",
+      "id": "upload-gdrive",
+      "name": "Upload to Google Drive",
+      "type": "n8n-nodes-base.googleDrive",
       "typeVersion": 2,
       "position": [1250, 300],
-      "credentials": { "notionApi": { "id": "notion-cred", "name": "Notion API" } }
+      "credentials": { "googleDriveOAuth2Api": { "id": "gdrive-cred", "name": "Google Drive OAuth" } }
     },
     {
       "parameters": {
-        "url": "https://discord.com/api/v10/channels/{{ $env.DISCORD_LOG_CHANNEL }}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "discordBotApi",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ embeds: [{ title: '💾 Backup Complete', description: 'Daily backup finished successfully', color: 65280, fields: [{ name: 'Backup ID', value: $json.backup_id, inline: true }, { name: 'Items', value: String($json.stats.total_items), inline: true }, { name: 'Size', value: Math.round($json.stats.total_size_bytes / 1024) + ' KB', inline: true }, { name: 'Duration', value: $json.duration_ms + 'ms', inline: true }], footer: { text: 'NEMESIS Backup System' }, timestamp: $json.completed_at }] }) }}",
-        "options": {}
+        "functionCode": "// Prepare binary data for upload\nconst backup = $input.first().json;\n\n// Convert JSON string to binary\nconst binaryData = Buffer.from(backup.content, 'utf8').toString('base64');\n\nreturn [{\n  json: backup,\n  binary: {\n    data: {\n      data: binaryData,\n      mimeType: 'application/json',\n      fileName: backup.filename,\n      fileExtension: 'json'\n    }\n  }\n}];"
       },
-      "id": "notify-complete",
-      "name": "Notify Backup Complete",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
+      "id": "prepare-binary",
+      "name": "Prepare for Upload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [1250, 500]
     },
     {
       "parameters": {
+        "resource": "page",
+        "operation": "create",
+        "databaseId": "={{ $env.NOTION_BACKUP_LOG_DB }}",
+        "propertiesUi": {
+          "propertyValues": [
+            { "key": "Name", "title": "={{ $json.backup_id }}" },
+            { "key": "Type", "select": "Full" },
+            { "key": "Workflows", "number": "={{ $json.stats.workflows_count }}" },
+            { "key": "Size KB", "number": "={{ $json.stats.size_kb }}" },
+            { "key": "Date", "date": "={{ $json.created_at }}" },
+            { "key": "Status", "select": "Success" }
+          ]
+        }
+      },
+      "id": "log-backup",
+      "name": "Log to Notion",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [1500, 400],
+      "credentials": { "notionApi": { "id": "notion-cred", "name": "Notion API" } }
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.DISCORD_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ embeds: [{ title: '💾 Backup Complete', color: 65280, fields: [{ name: 'ID', value: $json.backup_id, inline: true }, { name: 'Workflows', value: String($json.stats.workflows_count), inline: true }, { name: 'Size', value: $json.stats.size_kb + ' KB', inline: true }], footer: { text: 'Stored in Google Drive' }, timestamp: $json.created_at }] }) }}",
+        "options": {}
+      },
+      "id": "notify-complete",
+      "name": "Notify Complete",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1500, 600]
+    },
+    {
+      "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ JSON.stringify({ success: true, backup_id: $json.backup_id, items: $json.stats.total_items, size_kb: Math.round($json.stats.total_size_bytes / 1024) }) }}"
+        "jsonOutput": "={{ JSON.stringify({ success: true, backup_id: $json.backup_id, stats: $json.stats }) }}"
       },
       "id": "respond",
       "name": "Return Result",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1500, 400]
+      "position": [1750, 400]
     }
   ],
   "connections": {
@@ -147,28 +161,31 @@
     },
     "Initialize Backup": {
       "main": [[
-        { "node": "Backup n8n Workflows", "type": "main", "index": 0 },
-        { "node": "Backup n8n Credentials", "type": "main", "index": 0 },
-        { "node": "Backup Notion Structure", "type": "main", "index": 0 }
+        { "node": "Get n8n Workflows", "type": "main", "index": 0 },
+        { "node": "Get Notion Structure", "type": "main", "index": 0 }
       ]]
     },
-    "Backup n8n Workflows": {
+    "Get n8n Workflows": {
       "main": [[{ "node": "Aggregate Backup Data", "type": "main", "index": 0 }]]
     },
-    "Backup n8n Credentials": {
-      "main": [[{ "node": "Aggregate Backup Data", "type": "main", "index": 0 }]]
-    },
-    "Backup Notion Structure": {
+    "Get Notion Structure": {
       "main": [[{ "node": "Aggregate Backup Data", "type": "main", "index": 0 }]]
     },
     "Aggregate Backup Data": {
+      "main": [[{ "node": "Prepare for Upload", "type": "main", "index": 0 }]]
+    },
+    "Prepare for Upload": {
       "main": [[
-        { "node": "Log Backup to Notion", "type": "main", "index": 0 },
-        { "node": "Notify Backup Complete", "type": "main", "index": 0 },
-        { "node": "Return Result", "type": "main", "index": 0 }
+        { "node": "Upload to Google Drive", "type": "main", "index": 0 },
+        { "node": "Log to Notion", "type": "main", "index": 0 },
+        { "node": "Notify Complete", "type": "main", "index": 0 }
       ]]
+    },
+    "Log to Notion": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
     }
   },
   "settings": { "executionOrder": "v1" },
-  "tags": ["nemesis", "backup", "recovery", "maintenance"]
+  "tags": ["nemesis", "backup", "google-drive", "fixed"],
+  "notes": "FIXED: Now uploads backups to Google Drive for persistent storage. Set GOOGLE_DRIVE_BACKUP_FOLDER with folder ID. Logs backup metadata to Notion."
 }

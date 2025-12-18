@@ -1,5 +1,5 @@
 {
-  "name": "NEMESIS - PDF Processing & Generation",
+  "name": "NEMESIS - PDF Processing via External API (FIXED)",
   "nodes": [
     {
       "parameters": {},
@@ -12,74 +12,123 @@
     },
     {
       "parameters": {
-        "url": "={{ $json.pdf_url }}",
-        "options": { "response": { "response": { "responseFormat": "file" } } }
+        "functionCode": "// PDF Processing Router\n// FIXED: Uses external APIs instead of require('pdf-parse')\n// n8n Code nodes cannot use npm packages like pdf-parse or pdf-lib\n// Options:\n//   1. pdf.co - Full PDF API ($50/month)\n//   2. CloudConvert - Convert/merge ($10/month)\n//   3. ILovePDF API - Basic operations (free tier)\n//   4. Adobe PDF Services - Enterprise\n\nconst input = $input.first().json;\n\nconst request = {\n  request_id: 'PDF-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  action: input.action || 'extract_text',\n  provider: input.provider || 'ilovepdf'\n};\n\n// Validate inputs\nif (request.action === 'extract_text' && !input.pdf_url && !input.file) {\n  request.error = 'pdf_url or file is required for text extraction';\n  request.valid = false;\n} else if (request.action === 'generate' && !input.html) {\n  request.error = 'html is required for PDF generation';\n  request.valid = false;\n} else {\n  request.valid = true;\n  request.pdf_url = input.pdf_url;\n  request.html = input.html;\n  request.options = {\n    format: input.format || 'A4',\n    margin: input.margin || '20mm',\n    landscape: input.landscape || false\n  };\n}\n\nreturn [{ json: request }];"
       },
-      "id": "download-pdf",
-      "name": "Download PDF",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [500, 200]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Extract text from PDF using pdf-parse\nconst pdfParse = require('pdf-parse');\nconst binary = $input.first().binary;\n\nif (!binary || !binary.data) {\n  return [{ json: { error: 'No PDF data received' } }];\n}\n\nconst buffer = Buffer.from(binary.data.data, 'base64');\nconst data = await pdfParse(buffer);\n\nreturn [{ json: {\n  request_id: 'PDF-EXTRACT-' + Date.now(),\n  text: data.text,\n  num_pages: data.numpages,\n  info: data.info,\n  metadata: data.metadata\n}}];"
-      },
-      "id": "extract-text",
-      "name": "Extract Text",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [750, 200]
-    },
-    {
-      "parameters": {
-        "functionCode": "// Generate PDF from HTML using puppeteer or html-pdf\nconst config = $input.first().json;\n\nconst pdfConfig = {\n  request_id: 'PDF-GEN-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  type: config.type || 'html',\n  options: {\n    format: config.format || 'A4',\n    margin: config.margin || { top: '20mm', bottom: '20mm', left: '15mm', right: '15mm' },\n    printBackground: true,\n    landscape: config.landscape || false\n  }\n};\n\nif (config.html) {\n  pdfConfig.html = config.html;\n}\n\nif (config.template) {\n  // Template substitution\n  let html = config.template;\n  for (const [key, value] of Object.entries(config.data || {})) {\n    html = html.replace(new RegExp(`{{${key}}}`, 'g'), value);\n  }\n  pdfConfig.html = html;\n}\n\nreturn [{ json: pdfConfig }];"
-      },
-      "id": "generate-config",
-      "name": "Generate PDF Config",
+      "id": "prepare",
+      "name": "Prepare Request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [500, 400]
     },
     {
       "parameters": {
-        "functionCode": "// Merge multiple PDFs\nconst config = $input.first().json;\n\nconst result = {\n  request_id: 'PDF-MERGE-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  operation: 'merge',\n  input_count: config.pdfs?.length || 0,\n  status: 'processing'\n};\n\n// This would typically use pdf-lib or similar\n// For now, return the config for external processing\nresult.pdfs_to_merge = config.pdfs || [];\nresult.output_name = config.output_name || 'merged.pdf';\n\nreturn [{ json: result }];"
+        "conditions": {
+          "string": [{ "value1": "={{ $json.action }}", "operation": "equals", "value2": "extract_text" }]
+        }
       },
-      "id": "merge-pdfs",
-      "name": "Merge PDFs",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [500, 600]
+      "id": "check-extract",
+      "name": "Extract Text?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 300]
     },
     {
       "parameters": {
-        "functionCode": "// Split PDF by pages\nconst config = $input.first().json;\n\nconst result = {\n  request_id: 'PDF-SPLIT-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  operation: 'split',\n  pages: config.pages || 'all',\n  status: 'processing'\n};\n\nif (config.range) {\n  result.page_range = config.range; // e.g., \"1-5\" or \"1,3,5,7\"\n}\n\nif (config.split_every) {\n  result.split_every = config.split_every; // Split every N pages\n}\n\nreturn [{ json: result }];"
+        "conditions": {
+          "string": [{ "value1": "={{ $json.action }}", "operation": "equals", "value2": "generate" }]
+        }
       },
-      "id": "split-pdf",
-      "name": "Split PDF",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [750, 400]
+      "id": "check-generate",
+      "name": "Generate PDF?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 500]
     },
     {
       "parameters": {
-        "functionCode": "// Add watermark or stamp to PDF\nconst config = $input.first().json;\n\nconst result = {\n  request_id: 'PDF-STAMP-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  operation: 'watermark',\n  watermark: {\n    text: config.watermark_text || 'CONFIDENTIAL',\n    opacity: config.opacity || 0.3,\n    rotation: config.rotation || 45,\n    position: config.position || 'center',\n    font_size: config.font_size || 48,\n    color: config.color || '#888888'\n  },\n  pages: config.pages || 'all'\n};\n\nreturn [{ json: result }];"
+        "url": "https://api.pdf.co/v1/pdf/convert/to/text",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.PDF_CO_API_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ url: $json.pdf_url, inline: true }) }}",
+        "options": { "timeout": 60000 }
       },
-      "id": "add-watermark",
-      "name": "Add Watermark",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [750, 600]
+      "id": "extract-pdfco",
+      "name": "Extract via PDF.co",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 200]
     },
     {
       "parameters": {
-        "functionCode": "// PDF invoice/document template\nconst data = $input.first().json;\n\nconst invoice = {\n  request_id: 'PDF-INV-' + Date.now(),\n  template: 'invoice',\n  html: `\n<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { font-family: Arial, sans-serif; margin: 40px; }\n    .header { display: flex; justify-content: space-between; margin-bottom: 40px; }\n    .company { font-size: 24px; font-weight: bold; color: #333; }\n    .invoice-title { font-size: 32px; color: #666; }\n    .details { margin-bottom: 30px; }\n    table { width: 100%; border-collapse: collapse; margin: 20px 0; }\n    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }\n    th { background: #f5f5f5; }\n    .total { font-size: 18px; font-weight: bold; text-align: right; margin-top: 20px; }\n    .footer { margin-top: 50px; text-align: center; color: #888; font-size: 12px; }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <div class=\"company\">${data.company || 'NEMESIS Corp'}</div>\n    <div class=\"invoice-title\">INVOICE</div>\n  </div>\n  <div class=\"details\">\n    <p><strong>Invoice #:</strong> ${data.invoice_number || 'INV-' + Date.now()}</p>\n    <p><strong>Date:</strong> ${data.date || new Date().toLocaleDateString()}</p>\n    <p><strong>Client:</strong> ${data.client_name || 'Client'}</p>\n    <p><strong>Email:</strong> ${data.client_email || ''}</p>\n  </div>\n  <table>\n    <thead>\n      <tr><th>Description</th><th>Qty</th><th>Price</th><th>Total</th></tr>\n    </thead>\n    <tbody>\n      ${(data.items || []).map(item => `\n        <tr>\n          <td>${item.description}</td>\n          <td>${item.quantity}</td>\n          <td>${item.price} ${data.currency || 'EUR'}</td>\n          <td>${(item.quantity * item.price).toFixed(2)} ${data.currency || 'EUR'}</td>\n        </tr>\n      `).join('')}\n    </tbody>\n  </table>\n  <div class=\"total\">\n    Total: ${(data.items || []).reduce((sum, i) => sum + i.quantity * i.price, 0).toFixed(2)} ${data.currency || 'EUR'}\n  </div>\n  <div class=\"footer\">\n    Generated by NEMESIS Automation System\n  </div>\n</body>\n</html>\n  `\n};\n\nreturn [{ json: invoice }];"
+        "url": "https://api.pdf.co/v1/pdf/convert/from/html",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.PDF_CO_API_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ html: $json.html, name: 'document.pdf', margins: $json.options.margin, paperSize: $json.options.format, orientation: $json.options.landscape ? 'Landscape' : 'Portrait' }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "generate-pdfco",
+      "name": "Generate via PDF.co",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "url": "https://api.pdf.co/v1/pdf/merge",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "x-api-key", "value": "={{ $env.PDF_CO_API_KEY }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ urls: $json.pdf_urls, name: $json.output_name || 'merged.pdf' }) }}",
+        "options": { "timeout": 60000 }
+      },
+      "id": "merge-pdfco",
+      "name": "Merge via PDF.co",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1000, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process PDF API response\nconst response = $input.first().json;\nconst request = $('Prepare Request').first().json;\n\nconst result = {\n  request_id: request.request_id,\n  timestamp: new Date().toISOString(),\n  action: request.action,\n  provider: 'pdf.co'\n};\n\nif (response.error) {\n  result.success = false;\n  result.error = response.message || response.error;\n} else {\n  result.success = true;\n  \n  if (request.action === 'extract_text') {\n    result.text = response.text || response.body;\n    result.page_count = response.pageCount;\n  } else if (request.action === 'generate') {\n    result.pdf_url = response.url;\n    result.expires_at = response.expirationDate;\n  } else if (request.action === 'merge') {\n    result.pdf_url = response.url;\n  }\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "process-response",
+      "name": "Process Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1250, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Invoice Template Generator\n// Generates HTML that can be converted to PDF\nconst data = $input.first().json;\n\nconst items = data.items || [];\nconst subtotal = items.reduce((sum, i) => sum + (i.quantity * i.price), 0);\nconst tax = subtotal * (data.tax_rate || 0.20);\nconst total = subtotal + tax;\n\nconst html = `\n<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\">\n  <style>\n    * { margin: 0; padding: 0; box-sizing: border-box; }\n    body { font-family: Arial, sans-serif; padding: 40px; color: #333; }\n    .header { display: flex; justify-content: space-between; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #333; }\n    .company { font-size: 28px; font-weight: bold; }\n    .invoice-title { font-size: 36px; color: #555; }\n    .info { margin-bottom: 30px; }\n    .info p { margin: 5px 0; }\n    table { width: 100%; border-collapse: collapse; margin: 30px 0; }\n    th { background: #333; color: white; padding: 12px; text-align: left; }\n    td { padding: 12px; border-bottom: 1px solid #ddd; }\n    .totals { text-align: right; margin-top: 20px; }\n    .totals p { margin: 8px 0; font-size: 16px; }\n    .total-final { font-size: 24px; font-weight: bold; color: #333; }\n    .footer { margin-top: 60px; text-align: center; color: #888; font-size: 11px; border-top: 1px solid #ddd; padding-top: 20px; }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <div class=\"company\">${data.company || 'NEMESIS Corp'}</div>\n    <div class=\"invoice-title\">FACTURE</div>\n  </div>\n  <div class=\"info\">\n    <p><strong>Facture N°:</strong> ${data.invoice_number || 'INV-' + Date.now()}</p>\n    <p><strong>Date:</strong> ${data.date || new Date().toLocaleDateString('fr-FR')}</p>\n    <p><strong>Client:</strong> ${data.client_name || 'Client'}</p>\n    <p><strong>Email:</strong> ${data.client_email || ''}</p>\n    <p><strong>Adresse:</strong> ${data.client_address || ''}</p>\n  </div>\n  <table>\n    <thead>\n      <tr><th>Description</th><th>Qté</th><th>Prix unitaire</th><th>Total</th></tr>\n    </thead>\n    <tbody>\n      ${items.map(item => `\n        <tr>\n          <td>${item.description}</td>\n          <td>${item.quantity}</td>\n          <td>${item.price.toFixed(2)} ${data.currency || 'EUR'}</td>\n          <td>${(item.quantity * item.price).toFixed(2)} ${data.currency || 'EUR'}</td>\n        </tr>\n      `).join('')}\n    </tbody>\n  </table>\n  <div class=\"totals\">\n    <p>Sous-total: ${subtotal.toFixed(2)} ${data.currency || 'EUR'}</p>\n    <p>TVA (${((data.tax_rate || 0.20) * 100).toFixed(0)}%): ${tax.toFixed(2)} ${data.currency || 'EUR'}</p>\n    <p class=\"total-final\">Total TTC: ${total.toFixed(2)} ${data.currency || 'EUR'}</p>\n  </div>\n  <div class=\"footer\">\n    <p>Merci pour votre confiance - Generated by NEMESIS Automation</p>\n  </div>\n</body>\n</html>\n`;\n\nreturn [{ json: {\n  action: 'generate',\n  html: html,\n  invoice_data: { subtotal, tax, total }\n}}];"
       },
       "id": "invoice-template",
       "name": "Invoice Template",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [500, 800]
+      "position": [500, 700]
     },
     {
       "parameters": {
@@ -90,35 +139,48 @@
       "name": "Return Result",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [1000, 400]
+      "position": [1500, 400]
     }
   ],
   "connections": {
     "PDF Request": {
-      "main": [[{ "node": "Generate PDF Config", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Prepare Request", "type": "main", "index": 0 }]]
     },
-    "Download PDF": {
-      "main": [[{ "node": "Extract Text", "type": "main", "index": 0 }]]
+    "Prepare Request": {
+      "main": [[
+        { "node": "Extract Text?", "type": "main", "index": 0 },
+        { "node": "Generate PDF?", "type": "main", "index": 0 }
+      ]]
     },
-    "Extract Text": {
-      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    "Extract Text?": {
+      "main": [
+        [{ "node": "Extract via PDF.co", "type": "main", "index": 0 }],
+        []
+      ]
     },
-    "Generate PDF Config": {
-      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    "Generate PDF?": {
+      "main": [
+        [{ "node": "Generate via PDF.co", "type": "main", "index": 0 }],
+        []
+      ]
     },
-    "Merge PDFs": {
-      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    "Extract via PDF.co": {
+      "main": [[{ "node": "Process Response", "type": "main", "index": 0 }]]
     },
-    "Split PDF": {
-      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    "Generate via PDF.co": {
+      "main": [[{ "node": "Process Response", "type": "main", "index": 0 }]]
     },
-    "Add Watermark": {
-      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
+    "Merge via PDF.co": {
+      "main": [[{ "node": "Process Response", "type": "main", "index": 0 }]]
     },
     "Invoice Template": {
+      "main": [[{ "node": "Generate via PDF.co", "type": "main", "index": 0 }]]
+    },
+    "Process Response": {
       "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
     }
   },
   "settings": { "executionOrder": "v1" },
-  "tags": ["nemesis", "pdf", "document", "generation", "processing"]
+  "tags": ["nemesis", "pdf", "document", "fixed"],
+  "notes": "FIXED: Uses PDF.co API instead of npm packages. Set PDF_CO_API_KEY in environment. Free tier: 100 credits/month. Alternatives: CloudConvert, ILovePDF API."
 }

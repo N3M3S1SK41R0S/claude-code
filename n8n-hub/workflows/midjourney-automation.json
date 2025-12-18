@@ -1,5 +1,5 @@
 {
-  "name": "NEMESIS - Midjourney Automation",
+  "name": "NEMESIS - Midjourney via GoAPI (FIXED)",
   "nodes": [
     {
       "parameters": {},
@@ -7,139 +7,79 @@
       "name": "Image Request",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [250, 300],
-      "webhookId": "midjourney-gen"
+      "position": [250, 400],
+      "webhookId": "midjourney"
     },
     {
       "parameters": {
-        "url": "https://discord.com/api/v10/channels/{{ $env.MJ_CHANNEL_ID }}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "discordBotApi",
-        "requestMethod": "POST",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ content: '/imagine prompt: ' + $json.prompt + ' ' + ($json.params || '--v 6 --ar 16:9 --q 2') }) }}",
-        "options": {}
+        "functionCode": "// Validate and prepare request\n// NOTE: Midjourney has NO official API\n// This uses GoAPI.ai ($9/month) as third-party provider\n// Alternative: mymidjourney.ai, useapi.net\n\nconst input = $input.first().json;\nconst action = input.action || 'imagine';\n\nconst request = {\n  request_id: 'MJ-' + Date.now(),\n  timestamp: new Date().toISOString(),\n  action: action,\n  provider: 'goapi.ai'\n};\n\nif (action === 'imagine') {\n  let prompt = input.prompt || '';\n  const ar = input.aspect_ratio || '16:9';\n  const style = input.style || 'raw';\n  const quality = input.quality || 2;\n  const version = input.version || 6;\n  \n  // Build full Midjourney prompt with parameters\n  if (!prompt.includes('--ar')) prompt += ` --ar ${ar}`;\n  if (!prompt.includes('--style')) prompt += ` --style ${style}`;\n  if (!prompt.includes('--q')) prompt += ` --q ${quality}`;\n  if (!prompt.includes('--v')) prompt += ` --v ${version}`;\n  \n  request.prompt = prompt;\n  request.body = {\n    prompt: prompt,\n    aspect_ratio: ar,\n    process_mode: input.mode || 'fast',\n    webhook_endpoint: '',\n    webhook_secret: ''\n  };\n  request.endpoint = 'https://api.goapi.ai/mj/v2/imagine';\n  \n} else if (action === 'upscale') {\n  request.body = {\n    origin_task_id: input.task_id,\n    index: String(input.index || 1)\n  };\n  request.endpoint = 'https://api.goapi.ai/mj/v2/upscale';\n  \n} else if (action === 'variation') {\n  request.body = {\n    origin_task_id: input.task_id,\n    index: String(input.index || 1)\n  };\n  request.endpoint = 'https://api.goapi.ai/mj/v2/variation';\n  \n} else if (action === 'describe') {\n  request.body = { image_url: input.image_url };\n  request.endpoint = 'https://api.goapi.ai/mj/v2/describe';\n  \n} else if (action === 'status' || action === 'fetch') {\n  request.task_id = input.task_id;\n  request.endpoint = `https://api.goapi.ai/mj/v2/fetch/${input.task_id}`;\n  request.method = 'GET';\n}\n\nreturn [{ json: request }];"
       },
-      "id": "send-imagine",
-      "name": "Send Imagine Command",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [500, 300]
-    },
-    {
-      "parameters": {
-        "url": "https://api.goapi.ai/mj/v2/imagine",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "requestMethod": "POST",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: $json.prompt, aspect_ratio: $json.aspect_ratio || '16:9', process_mode: $json.mode || 'fast', webhook_endpoint: $json.webhook_url, webhook_secret: $json.webhook_secret }) }}",
-        "options": {}
-      },
-      "id": "goapi-imagine",
-      "name": "GoAPI Imagine",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [500, 500],
-      "credentials": { "httpHeaderAuth": { "id": "goapi-cred", "name": "GoAPI Key" } }
-    },
-    {
-      "parameters": {
-        "url": "https://api.goapi.ai/mj/v2/upscale",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "requestMethod": "POST",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ origin_task_id: $json.task_id, index: $json.upscale_index || '1' }) }}",
-        "options": {}
-      },
-      "id": "upscale",
-      "name": "Upscale Image",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [750, 400],
-      "credentials": { "httpHeaderAuth": { "id": "goapi-cred", "name": "GoAPI Key" } }
-    },
-    {
-      "parameters": {
-        "url": "https://api.goapi.ai/mj/v2/variation",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "requestMethod": "POST",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ origin_task_id: $json.task_id, index: $json.variation_index || '1' }) }}",
-        "options": {}
-      },
-      "id": "variation",
-      "name": "Create Variation",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [750, 600],
-      "credentials": { "httpHeaderAuth": { "id": "goapi-cred", "name": "GoAPI Key" } }
-    },
-    {
-      "parameters": {
-        "url": "https://api.goapi.ai/mj/v2/fetch",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "requestMethod": "POST",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ task_id: $json.task_id }) }}",
-        "options": {}
-      },
-      "id": "fetch-result",
-      "name": "Fetch Result",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [1000, 500],
-      "credentials": { "httpHeaderAuth": { "id": "goapi-cred", "name": "GoAPI Key" } }
-    },
-    {
-      "parameters": {
-        "functionCode": "// Midjourney Result Processor\nconst data = $input.first().json;\n\nconst result = {\n  task_id: data.task_id,\n  status: data.status,\n  progress: data.progress || 0,\n  prompt: data.meta?.prompt || data.prompt,\n  image_url: data.task_result?.image_url || null,\n  image_urls: data.task_result?.image_urls || [],\n  created_at: new Date().toISOString(),\n  platform: 'midjourney'\n};\n\nif (data.status === 'finished' && result.image_url) {\n  result.ready = true;\n  result.download_url = result.image_url;\n}\n\nreturn [{ json: result }];"
-      },
-      "id": "process-result",
-      "name": "Process Result",
+      "id": "prepare",
+      "name": "Prepare Request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1250, 500]
+      "position": [500, 400]
     },
     {
       "parameters": {
-        "functionCode": "// Prompt Enhancer for Midjourney\nconst input = $input.first().json;\nlet prompt = input.prompt || '';\n\n// Add quality parameters if not present\nif (!prompt.includes('--q')) prompt += ' --q 2';\nif (!prompt.includes('--v')) prompt += ' --v 6';\n\n// Add style modifiers\nconst style = input.style || 'photorealistic';\nconst styleMap = {\n  'photorealistic': 'photorealistic, 8k, ultra detailed, cinematic lighting',\n  'artistic': 'artistic, digital art, trending on artstation',\n  'anime': 'anime style, studio ghibli, vibrant colors',\n  'minimal': 'minimalist, clean, simple design',\n  '3d': '3D render, octane render, unreal engine 5'\n};\n\nif (styleMap[style]) {\n  prompt = styleMap[style] + ', ' + prompt;\n}\n\nreturn [{ json: { ...input, enhanced_prompt: prompt } }];"
+        "url": "={{ $json.endpoint }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-API-Key", "value": "={{ $env.GOAPI_API_KEY }}" }
+          ]
+        },
+        "requestMethod": "={{ $json.method || 'POST' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body || {}) }}",
+        "options": { "timeout": 60000 }
       },
-      "id": "enhance-prompt",
-      "name": "Enhance Prompt",
+      "id": "call-api",
+      "name": "Call GoAPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [750, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Process GoAPI response\nconst response = $input.first().json;\nconst request = $('Prepare Request').first().json;\n\nconst result = {\n  request_id: request.request_id,\n  action: request.action,\n  timestamp: new Date().toISOString(),\n  provider: 'goapi.ai'\n};\n\n// Handle different response types\nif (response.task_id) {\n  result.task_id = response.task_id;\n  result.status = response.status || 'submitted';\n  result.progress = response.progress || 0;\n}\n\nif (response.status === 'finished' || response.status === 'completed') {\n  result.success = true;\n  result.status = 'completed';\n  result.image_url = response.task_result?.image_url || response.image_url;\n  result.image_urls = response.task_result?.image_urls || [];\n  result.seed = response.meta?.seed;\n  result.prompt = response.meta?.prompt || request.prompt;\n} else if (response.status === 'failed') {\n  result.success = false;\n  result.status = 'failed';\n  result.error = response.meta?.error_message || response.message || 'Unknown error';\n} else if (response.status === 'processing' || response.status === 'pending') {\n  result.success = null;\n  result.status = response.status;\n  result.message = 'Task in progress. Poll /webhook/midjourney with {\"action\": \"status\", \"task_id\": \"' + result.task_id + '\"}';\n} else if (response.error) {\n  result.success = false;\n  result.error = response.error;\n} else {\n  result.raw = response;\n}\n\nreturn [{ json: result }];"
+      },
+      "id": "process",
+      "name": "Process Response",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [500, 700]
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.stringify($json) }}"
+      },
+      "id": "respond",
+      "name": "Return Result",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1250, 400]
     }
   ],
   "connections": {
     "Image Request": {
-      "main": [[
-        { "node": "Enhance Prompt", "type": "main", "index": 0 },
-        { "node": "GoAPI Imagine", "type": "main", "index": 0 }
-      ]]
+      "main": [[{ "node": "Prepare Request", "type": "main", "index": 0 }]]
     },
-    "GoAPI Imagine": {
-      "main": [[{ "node": "Fetch Result", "type": "main", "index": 0 }]]
+    "Prepare Request": {
+      "main": [[{ "node": "Call GoAPI", "type": "main", "index": 0 }]]
     },
-    "Fetch Result": {
-      "main": [[{ "node": "Process Result", "type": "main", "index": 0 }]]
+    "Call GoAPI": {
+      "main": [[{ "node": "Process Response", "type": "main", "index": 0 }]]
     },
-    "Upscale Image": {
-      "main": [[{ "node": "Fetch Result", "type": "main", "index": 0 }]]
-    },
-    "Variation": {
-      "main": [[{ "node": "Fetch Result", "type": "main", "index": 0 }]]
+    "Process Response": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
     }
   },
   "settings": { "executionOrder": "v1" },
-  "tags": ["nemesis", "midjourney", "ai", "images"]
+  "tags": ["nemesis", "midjourney", "ai", "images", "goapi", "fixed"],
+  "notes": "IMPORTANT: Requires GoAPI.ai API key ($9/month). Set GOAPI_API_KEY in environment. Midjourney has NO official API - this uses a third-party provider."
 }

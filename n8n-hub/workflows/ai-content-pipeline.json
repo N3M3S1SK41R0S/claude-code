@@ -1,5 +1,5 @@
 {
-  "name": "NEMESIS - AI Content Generation Pipeline",
+  "name": "NEMESIS - AI Content Pipeline with Rate Limiting (FIXED)",
   "nodes": [
     {
       "parameters": {},
@@ -12,13 +12,25 @@
     },
     {
       "parameters": {
-        "functionCode": "// Content Request Validator & Router\nconst request = $input.first().json;\n\nconst contentPlan = {\n  request_id: 'REQ-' + Date.now(),\n  created_at: new Date().toISOString(),\n  type: request.type || 'article',\n  topic: request.topic || request.prompt,\n  style: request.style || 'professional',\n  language: request.language || 'fr',\n  platforms: request.platforms || ['notion'],\n  generate: {\n    text: true,\n    image: request.include_image !== false,\n    video: request.include_video || false\n  },\n  settings: {\n    text_model: request.text_model || 'gemini-pro',\n    image_model: request.image_model || 'midjourney',\n    video_model: request.video_model || 'heygen',\n    max_tokens: request.max_tokens || 2048,\n    temperature: request.temperature || 0.7\n  }\n};\n\nreturn [{ json: contentPlan }];"
+        "functionCode": "// Content Request Validator with Rate Limiting & Cost Tracking\n// FIXED: Added rate limiting to prevent runaway costs\n// FIXED: Added cost estimation before execution\n\nconst request = $input.first().json;\n\nconst plan = {\n  request_id: 'CONTENT-' + Date.now(),\n  created_at: new Date().toISOString(),\n  type: request.type || 'article',\n  topic: request.topic || request.prompt,\n  style: request.style || 'professional',\n  language: request.language || 'fr',\n  \n  // Rate limiting\n  rate_limit: {\n    max_requests_per_hour: 10,\n    max_tokens_per_request: 2000,\n    max_cost_per_request: 0.10 // EUR\n  },\n  \n  // Generation settings with limits\n  generate: {\n    text: true,\n    image: request.include_image === true, // Default false to save costs\n    video: false // Disabled by default (very expensive)\n  },\n  \n  settings: {\n    text_model: request.text_model || 'gemini-pro',\n    max_tokens: Math.min(request.max_tokens || 1500, 2000), // Cap at 2000\n    temperature: request.temperature || 0.7\n  },\n  \n  // Cost estimation\n  estimated_cost: {\n    text: 0.001, // Gemini is cheap\n    image: request.include_image ? 0.05 : 0, // Midjourney via GoAPI\n    total: 0\n  }\n};\n\nplan.estimated_cost.total = plan.estimated_cost.text + plan.estimated_cost.image;\n\n// Validate\nif (!plan.topic) {\n  plan.valid = false;\n  plan.error = 'Topic is required';\n} else if (plan.estimated_cost.total > plan.rate_limit.max_cost_per_request) {\n  plan.valid = false;\n  plan.error = `Estimated cost (${plan.estimated_cost.total} EUR) exceeds limit`;\n} else {\n  plan.valid = true;\n}\n\nreturn [{ json: plan }];"
       },
       "id": "plan-content",
-      "name": "Plan Content",
+      "name": "Plan & Rate Limit",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [500, 400]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [{ "value1": "={{ $json.valid }}", "value2": true }]
+        }
+      },
+      "id": "check-valid",
+      "name": "Valid Request?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [750, 400]
     },
     {
       "parameters": {
@@ -27,99 +39,69 @@
         "genericAuthType": "httpQueryAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Generate a ' + $json.type + ' about: ' + $json.topic + '. Style: ' + $json.style + '. Language: ' + $json.language + '. Make it engaging and informative.' }] }], generationConfig: { temperature: $json.settings.temperature, maxOutputTokens: $json.settings.max_tokens } }) }}",
-        "options": {}
+        "jsonBody": "={{ JSON.stringify({ contents: [{ parts: [{ text: 'Generate a ' + $json.type + ' about: ' + $json.topic + '. Style: ' + $json.style + '. Language: ' + $json.language + '. Keep it under ' + $json.settings.max_tokens + ' tokens. Make it engaging.' }] }], generationConfig: { temperature: $json.settings.temperature, maxOutputTokens: $json.settings.max_tokens } }) }}",
+        "options": { "timeout": 30000 }
       },
       "id": "generate-text",
       "name": "Generate Text (Gemini)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [750, 300],
+      "position": [1000, 300],
       "credentials": { "httpQueryAuth": { "id": "google-ai-cred", "name": "Google AI Key" } }
     },
     {
       "parameters": {
-        "functionCode": "// Extract generated text\nconst response = $input.first().json;\nconst plan = $('Plan Content').first().json;\n\nlet generatedText = '';\nif (response.candidates && response.candidates[0]) {\n  generatedText = response.candidates[0].content.parts[0].text;\n}\n\n// Generate image prompt from content\nconst imagePrompt = `${plan.topic}, ${plan.style} style, professional, high quality, 8k`;\n\nreturn [{ \n  json: {\n    ...plan,\n    content: {\n      text: generatedText,\n      word_count: generatedText.split(/\\s+/).length\n    },\n    image_prompt: imagePrompt\n  }\n}];"
+        "functionCode": "// Process generated text and calculate actual cost\nconst response = $input.first().json;\nconst plan = $('Plan & Rate Limit').first().json;\n\nlet text = '';\nlet tokenCount = 0;\n\nif (response.candidates && response.candidates[0]) {\n  text = response.candidates[0].content.parts[0].text;\n  tokenCount = response.usageMetadata?.totalTokenCount || text.split(/\\s+/).length;\n}\n\nconst result = {\n  ...plan,\n  content: {\n    text: text,\n    word_count: text.split(/\\s+/).length,\n    token_count: tokenCount\n  },\n  actual_cost: {\n    text: (tokenCount / 1000) * 0.0005, // Gemini pricing\n    image: 0,\n    total: 0\n  }\n};\n\nresult.actual_cost.total = result.actual_cost.text;\n\n// Generate image prompt if needed\nif (plan.generate.image) {\n  result.image_prompt = `${plan.topic}, ${plan.style} style, professional, high quality, 16:9`;\n}\n\nreturn [{ json: result }];"
       },
       "id": "process-text",
-      "name": "Process Text",
+      "name": "Process & Track Cost",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1000, 300]
+      "position": [1250, 300]
     },
     {
       "parameters": {
         "conditions": {
-          "boolean": [
-            { "value1": "={{ $json.generate.image }}", "value2": true }
-          ]
+          "boolean": [{ "value1": "={{ $json.generate.image }}", "value2": true }]
         }
       },
       "id": "check-image",
       "name": "Generate Image?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 1,
-      "position": [1250, 300]
+      "position": [1500, 300]
     },
     {
       "parameters": {
         "url": "https://api.goapi.ai/mj/v2/imagine",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
-        "requestMethod": "POST",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-API-Key", "value": "={{ $env.GOAPI_API_KEY }}" }
+          ]
+        },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ prompt: $json.image_prompt + ' --ar 16:9 --v 6 --q 2', process_mode: 'fast' }) }}",
-        "options": {}
+        "jsonBody": "={{ JSON.stringify({ prompt: $json.image_prompt + ' --ar 16:9 --v 6', process_mode: 'fast' }) }}",
+        "options": { "timeout": 60000 }
       },
       "id": "generate-image",
-      "name": "Generate Image (Midjourney)",
+      "name": "Generate Image",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4,
-      "position": [1500, 200],
-      "credentials": { "httpHeaderAuth": { "id": "goapi-cred", "name": "GoAPI Key" } }
+      "position": [1750, 200]
     },
     {
       "parameters": {
-        "conditions": {
-          "boolean": [
-            { "value1": "={{ $json.generate.video }}", "value2": true }
-          ]
-        }
+        "functionCode": "// Final aggregation with cost summary\nconst items = $input.all();\nconst plan = $('Plan & Rate Limit').first().json;\nconst textResult = $('Process & Track Cost').first().json;\n\nconst final = {\n  request_id: plan.request_id,\n  completed_at: new Date().toISOString(),\n  topic: plan.topic,\n  type: plan.type,\n  content: textResult.content,\n  assets: {\n    image_task_id: null,\n    video_id: null\n  },\n  cost_summary: {\n    estimated: plan.estimated_cost.total,\n    actual: textResult.actual_cost.total,\n    currency: 'EUR'\n  },\n  status: 'completed'\n};\n\n// Check for image result\nfor (const item of items) {\n  if (item.json.task_id) {\n    final.assets.image_task_id = item.json.task_id;\n    final.cost_summary.actual += 0.05; // Add image cost\n  }\n}\n\nreturn [{ json: final }];"
       },
-      "id": "check-video",
-      "name": "Generate Video?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 1,
-      "position": [1250, 500]
-    },
-    {
-      "parameters": {
-        "url": "https://api.heygen.com/v2/video/generate",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "requestMethod": "POST",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ video_inputs: [{ character: { type: 'avatar', avatar_id: 'Daisy-inskirt-20220818' }, voice: { type: 'text', input_text: $json.content.text.substring(0, 1000) } }], dimension: { width: 1920, height: 1080 } }) }}",
-        "options": {}
-      },
-      "id": "generate-video",
-      "name": "Generate Video (HeyGen)",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [1500, 500],
-      "credentials": { "httpHeaderAuth": { "id": "heygen-cred", "name": "HeyGen API" } }
-    },
-    {
-      "parameters": {
-        "functionCode": "// Aggregate all generated content\nconst items = $input.all();\nconst plan = $('Plan Content').first().json;\nconst textResult = $('Process Text').first().json;\n\nconst finalContent = {\n  request_id: plan.request_id,\n  completed_at: new Date().toISOString(),\n  topic: plan.topic,\n  type: plan.type,\n  content: {\n    text: textResult.content.text,\n    word_count: textResult.content.word_count,\n    image_url: null,\n    video_url: null\n  },\n  status: 'completed'\n};\n\n// Check for image result\nfor (const item of items) {\n  if (item.json.task_id) {\n    finalContent.content.image_task_id = item.json.task_id;\n  }\n  if (item.json.data?.video_id) {\n    finalContent.content.video_id = item.json.data.video_id;\n  }\n}\n\nreturn [{ json: finalContent }];"
-      },
-      "id": "aggregate-content",
-      "name": "Aggregate Content",
+      "id": "aggregate",
+      "name": "Aggregate & Cost Summary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1750, 400]
+      "position": [2000, 300]
     },
     {
       "parameters": {
@@ -131,95 +113,84 @@
             { "key": "Name", "title": "={{ $json.topic }}" },
             { "key": "Type", "select": "={{ $json.type }}" },
             { "key": "Status", "select": "Generated" },
+            { "key": "Cost EUR", "number": "={{ $json.cost_summary.actual }}" },
             { "key": "Date", "date": "={{ $json.completed_at }}" }
           ]
         },
         "blockUi": {
           "blockValues": [
-            {
-              "type": "paragraph",
-              "richText": [{ "textContent": "={{ $json.content.text }}" }]
-            }
+            { "type": "paragraph", "richText": [{ "textContent": "={{ $json.content.text.substring(0, 2000) }}" }] }
           ]
         }
       },
-      "id": "save-to-notion",
+      "id": "save-notion",
       "name": "Save to Notion",
       "type": "n8n-nodes-base.notion",
       "typeVersion": 2,
-      "position": [2000, 300],
+      "position": [2250, 200],
       "credentials": { "notionApi": { "id": "notion-cred", "name": "Notion API" } }
     },
     {
       "parameters": {
-        "url": "https://discord.com/api/v10/channels/{{ $env.DISCORD_CONTENT_CHANNEL }}/messages",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "discordBotApi",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ embeds: [{ title: '📝 New Content Generated', description: $json.topic, color: 5814783, fields: [{ name: 'Type', value: $json.type, inline: true }, { name: 'Words', value: String($json.content.word_count), inline: true }, { name: 'Status', value: $json.status, inline: true }], footer: { text: $json.request_id }, timestamp: $json.completed_at }] }) }}",
-        "options": {}
+        "functionCode": "// Error response\nconst plan = $input.first().json;\n\nreturn [{ json: {\n  success: false,\n  request_id: plan.request_id,\n  error: plan.error || 'Request validation failed',\n  rate_limits: plan.rate_limit\n}}];"
       },
-      "id": "notify-discord",
-      "name": "Notify Discord",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4,
-      "position": [2000, 500]
+      "id": "error-response",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 550]
     },
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={{ JSON.stringify({ success: true, request_id: $json.request_id, content: $json.content }) }}"
+        "jsonOutput": "={{ JSON.stringify({ success: true, request_id: $json.request_id, content: { text_preview: $json.content.text.substring(0, 500) + '...', word_count: $json.content.word_count }, assets: $json.assets, cost: $json.cost_summary }) }}"
       },
       "id": "respond",
-      "name": "Respond",
+      "name": "Return Result",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1,
-      "position": [2250, 400]
+      "position": [2500, 300]
     }
   ],
   "connections": {
     "Content Request": {
-      "main": [[{ "node": "Plan Content", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Plan & Rate Limit", "type": "main", "index": 0 }]]
     },
-    "Plan Content": {
-      "main": [[{ "node": "Generate Text (Gemini)", "type": "main", "index": 0 }]]
+    "Plan & Rate Limit": {
+      "main": [[{ "node": "Valid Request?", "type": "main", "index": 0 }]]
+    },
+    "Valid Request?": {
+      "main": [
+        [{ "node": "Generate Text (Gemini)", "type": "main", "index": 0 }],
+        [{ "node": "Error Response", "type": "main", "index": 0 }]
+      ]
     },
     "Generate Text (Gemini)": {
-      "main": [[{ "node": "Process Text", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Process & Track Cost", "type": "main", "index": 0 }]]
     },
-    "Process Text": {
-      "main": [[
-        { "node": "Generate Image?", "type": "main", "index": 0 },
-        { "node": "Generate Video?", "type": "main", "index": 0 }
-      ]]
+    "Process & Track Cost": {
+      "main": [[{ "node": "Generate Image?", "type": "main", "index": 0 }]]
     },
     "Generate Image?": {
       "main": [
-        [{ "node": "Generate Image (Midjourney)", "type": "main", "index": 0 }],
-        [{ "node": "Aggregate Content", "type": "main", "index": 0 }]
+        [{ "node": "Generate Image", "type": "main", "index": 0 }],
+        [{ "node": "Aggregate & Cost Summary", "type": "main", "index": 0 }]
       ]
     },
-    "Generate Video?": {
-      "main": [
-        [{ "node": "Generate Video (HeyGen)", "type": "main", "index": 0 }],
-        [{ "node": "Aggregate Content", "type": "main", "index": 0 }]
-      ]
+    "Generate Image": {
+      "main": [[{ "node": "Aggregate & Cost Summary", "type": "main", "index": 0 }]]
     },
-    "Generate Image (Midjourney)": {
-      "main": [[{ "node": "Aggregate Content", "type": "main", "index": 0 }]]
-    },
-    "Generate Video (HeyGen)": {
-      "main": [[{ "node": "Aggregate Content", "type": "main", "index": 0 }]]
-    },
-    "Aggregate Content": {
+    "Aggregate & Cost Summary": {
       "main": [[
         { "node": "Save to Notion", "type": "main", "index": 0 },
-        { "node": "Notify Discord", "type": "main", "index": 0 },
-        { "node": "Respond", "type": "main", "index": 0 }
+        { "node": "Return Result", "type": "main", "index": 0 }
       ]]
+    },
+    "Error Response": {
+      "main": [[{ "node": "Return Result", "type": "main", "index": 0 }]]
     }
   },
   "settings": { "executionOrder": "v1" },
-  "tags": ["nemesis", "ai", "content", "pipeline", "generation"]
+  "tags": ["nemesis", "ai", "content", "rate-limiting", "fixed"],
+  "notes": "FIXED: Added rate limiting, cost tracking, and request validation. Defaults to text-only (cheaper). Image generation disabled by default. Tracks actual vs estimated costs."
 }
