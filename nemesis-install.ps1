@@ -1,16 +1,25 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    NEMESIS OMEGA V5 - Installation automatisée de la stack IA locale
+    NEMESIS OMEGA V6 - Installation automatisée de la stack IA locale
 .DESCRIPTION
-    - GARANTI SANS FERMETURE (Bloc Finally robuste)
-    - CORRECTION WARNING DOCKER (Ignore le texte rouge non bloquant)
-    - CORRECTION NOM PROJET (Force le nom Nemesis pour éviter le warning)
-    - SUPPORT GPU NVIDIA & AMD (détection automatique)
-    - CONFIGURATION MCP (Claude Desktop integration)
+    Infrastructure IA complète avec:
+    - Open WebUI + Ollama (Chat IA local)
+    - N8N (Automatisation workflows)
+    - Prometheus + Grafana (Monitoring)
+    - Redis (Cache & Queue)
+    - Traefik (Reverse Proxy)
+    - Portainer (Gestion Docker)
+    - PostgreSQL (Base de données)
+    - MCP (Claude Desktop integration)
+
+    Fonctionnalités:
+    - Support GPU NVIDIA & AMD
+    - Backup/Restore automatisé
+    - Scripts de gestion (manager, uninstall)
 .NOTES
     Auteur: NEMESIS Project
-    Version: 5.0 OMEGA FINAL
+    Version: 6.0 OMEGA ULTIMATE
 #>
 
 # ╔════════════════════════════════════════════════════════════════════════════╗
@@ -86,7 +95,7 @@ Try {
       ██║╚██╔╝██║██╔══╝  ██║╚██╔╝██║██╔══╝  ╚════██║██║╚════██║
       ██║ ╚═╝ ██║███████╗██║ ╚═╝ ██║███████╗███████║██║███████║
       ╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝╚══════╝╚══════╝╚═╝╚══════╝
-                  V5 OMEGA - ANTI-CLOSE & ANTI-CRASH
+                  V6 OMEGA ULTIMATE - Full Stack IA
 
 "@ -ForegroundColor Magenta
 
@@ -206,13 +215,21 @@ Try {
 
     $Dirs = @(
         $NemesisHome,
+        "$NemesisHome\backups",
         "$ConfigDir\homepage",
         "$ConfigDir\postgres",
+        "$ConfigDir\prometheus",
+        "$ConfigDir\grafana\provisioning\datasources",
+        "$ConfigDir\grafana\provisioning\dashboards",
+        "$ConfigDir\traefik",
         "$DataDir\n8n",
         "$DataDir\postgres",
         "$DataDir\ollama",
         "$DataDir\open-webui",
-        "$DataDir\portainer"
+        "$DataDir\portainer",
+        "$DataDir\prometheus",
+        "$DataDir\grafana",
+        "$DataDir\redis"
     )
     foreach ($Dir in $Dirs) {
         New-Item -ItemType Directory -Force -Path $Dir -ErrorAction SilentlyContinue | Out-Null
@@ -303,6 +320,9 @@ volumes:
   ollama_data:
   open-webui_data:
   portainer_data:
+  prometheus_data:
+  grafana_data:
+  redis_data:
 
 services:
   homepage:
@@ -398,6 +418,77 @@ $GpuConfig
       - "9000:9000"
     networks: [nemesis-net]
     restart: unless-stopped
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: nemesis-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks: [nemesis-net]
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: nemesis-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=nemesis
+      - GF_SECURITY_ADMIN_PASSWORD=$($env:N8N_PASSWORD)
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+    ports:
+      - "3000:3000"
+    depends_on: [prometheus]
+    networks: [nemesis-net]
+    restart: unless-stopped
+
+  # Cache & Queue
+  redis:
+    image: redis:alpine
+    container_name: nemesis-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks: [nemesis-net]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  # Reverse Proxy (optionnel - ports 80/443)
+  traefik:
+    image: traefik:v3.0
+    container_name: nemesis-traefik
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:8080"
+      - "--entrypoints.websecure.address=:8443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik:/etc/traefik:ro
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+      - "8081:8080"
+    networks: [nemesis-net]
+    restart: unless-stopped
 "@
     Set-Content -Path "$NemesisHome\docker-compose.yml" -Value $Compose -Encoding UTF8
 
@@ -409,8 +500,113 @@ $GpuConfig
 -- Création de la base n8n
 CREATE DATABASE n8n OWNER nemesis;
 GRANT ALL PRIVILEGES ON DATABASE n8n TO nemesis;
+-- Création base Grafana
+CREATE DATABASE grafana OWNER nemesis;
+GRANT ALL PRIVILEGES ON DATABASE grafana TO nemesis;
 "@
     Set-Content -Path "$ConfigDir\postgres\init.sql" -Value $initSql -Encoding UTF8
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 7b : CONFIGURATION PROMETHEUS
+    # ══════════════════════════════════════════════════════════════════════════
+
+    Write-Step "📊" "Configuration Prometheus..." "Cyan"
+
+    $prometheusConfig = @"
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers: []
+
+rule_files: []
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+
+  - job_name: 'node'
+    static_configs:
+      - targets: ['host.docker.internal:9100']
+
+  - job_name: 'ollama'
+    static_configs:
+      - targets: ['nemesis-ollama:11434']
+    metrics_path: /metrics
+
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['nemesis-traefik:8080']
+"@
+    Set-Content -Path "$ConfigDir\prometheus\prometheus.yml" -Value $prometheusConfig -Encoding UTF8
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 7c : CONFIGURATION GRAFANA
+    # ══════════════════════════════════════════════════════════════════════════
+
+    Write-Step "📈" "Configuration Grafana..." "Cyan"
+
+    # Datasource Prometheus
+    $grafanaDatasource = @"
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://nemesis-prometheus:9090
+    isDefault: true
+    editable: false
+"@
+    Set-Content -Path "$ConfigDir\grafana\provisioning\datasources\prometheus.yml" -Value $grafanaDatasource -Encoding UTF8
+
+    # Dashboard provisioning
+    $grafanaDashboard = @"
+apiVersion: 1
+providers:
+  - name: 'default'
+    orgId: 1
+    folder: ''
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      path: /etc/grafana/provisioning/dashboards
+"@
+    Set-Content -Path "$ConfigDir\grafana\provisioning\dashboards\dashboard.yml" -Value $grafanaDashboard -Encoding UTF8
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 7d : CONFIGURATION TRAEFIK
+    # ══════════════════════════════════════════════════════════════════════════
+
+    Write-Step "🔀" "Configuration Traefik..." "Cyan"
+
+    $traefikConfig = @"
+api:
+  dashboard: true
+  insecure: true
+
+entryPoints:
+  web:
+    address: ":8080"
+  websecure:
+    address: ":8443"
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    network: nemesis-net
+
+log:
+  level: INFO
+"@
+    Set-Content -Path "$ConfigDir\traefik\traefik.yml" -Value $traefikConfig -Encoding UTF8
 
     # ══════════════════════════════════════════════════════════════════════════
     # ÉTAPE 8 : CONFIGURATION HOMEPAGE
@@ -443,6 +639,20 @@ GRANT ALL PRIVILEGES ON DATABASE n8n TO nemesis;
         server: my-docker
         container: nemesis-n8n
 
+- Monitoring:
+    - Grafana:
+        icon: si-grafana
+        href: http://${BaseUrl}:3000
+        description: Dashboards & Métriques
+        server: my-docker
+        container: nemesis-grafana
+    - Prometheus:
+        icon: si-prometheus
+        href: http://${BaseUrl}:9090
+        description: Collecte métriques
+        server: my-docker
+        container: nemesis-prometheus
+
 - Infrastructure:
     - Portainer:
         icon: si-portainer
@@ -450,11 +660,22 @@ GRANT ALL PRIVILEGES ON DATABASE n8n TO nemesis;
         description: Gestion Docker
         server: my-docker
         container: nemesis-portainer
+    - Traefik:
+        icon: si-traefikproxy
+        href: http://${BaseUrl}:8081
+        description: Reverse Proxy
+        server: my-docker
+        container: nemesis-traefik
     - PostgreSQL:
         icon: si-postgresql
         description: Base de données
         server: my-docker
         container: nemesis-postgres
+    - Redis:
+        icon: si-redis
+        description: Cache & Queue
+        server: my-docker
+        container: nemesis-redis
 "@
 
     $settings = @"
@@ -583,25 +804,32 @@ IconFile=%SystemRoot%\System32\shell32.dll,13
     Write-Host "╔══════════════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
     Write-Host "║                    🔱 NEMESIS EST OPÉRATIONNEL 🔱                        ║" -ForegroundColor Green
     Write-Host "╠══════════════════════════════════════════════════════════════════════════╣" -ForegroundColor Green
-    Write-Host "║                                                                          ║" -ForegroundColor Green
-    Write-Host "║   📊 Dashboard    : http://$($BaseUrl.PadRight(48))║" -ForegroundColor White
-    Write-Host "║   🧠 Chat IA      : http://$($BrainUrl):3001".PadRight(65) + "║" -ForegroundColor White
-    Write-Host "║   ⚡ N8N          : http://$($BaseUrl):5678".PadRight(65) + "║" -ForegroundColor White
-    Write-Host "║   🐳 Portainer    : http://$($BaseUrl):9000".PadRight(65) + "║" -ForegroundColor White
-    Write-Host "║                                                                          ║" -ForegroundColor Green
+    Write-Host "║  SERVICES PRINCIPAUX                                                     ║" -ForegroundColor Cyan
+    Write-Host "║   📊 Homepage     : http://$($BaseUrl.PadRight(47))║" -ForegroundColor White
+    Write-Host "║   🧠 Chat IA      : http://${BrainUrl}:3001                                     ║" -ForegroundColor White
+    Write-Host "║   ⚡ N8N          : http://${BaseUrl}:5678                                      ║" -ForegroundColor White
     Write-Host "╠══════════════════════════════════════════════════════════════════════════╣" -ForegroundColor Green
-    Write-Host "║   🔐 Identifiants N8N:                                                   ║" -ForegroundColor Green
-    Write-Host "║      Utilisateur : nemesis                                               ║" -ForegroundColor White
-    Write-Host "║      Mot de passe: $($env:N8N_PASSWORD.PadRight(46))║" -ForegroundColor Yellow
-    Write-Host "║                                                                          ║" -ForegroundColor Green
+    Write-Host "║  MONITORING                                                              ║" -ForegroundColor Cyan
+    Write-Host "║   📈 Grafana      : http://${BaseUrl}:3000                                      ║" -ForegroundColor White
+    Write-Host "║   📊 Prometheus   : http://${BaseUrl}:9090                                      ║" -ForegroundColor White
     Write-Host "╠══════════════════════════════════════════════════════════════════════════╣" -ForegroundColor Green
-    Write-Host "║   📁 Dossier     : $($NemesisHome.PadRight(46))║" -ForegroundColor Gray
+    Write-Host "║  INFRASTRUCTURE                                                          ║" -ForegroundColor Cyan
+    Write-Host "║   🐳 Portainer    : http://${BaseUrl}:9000                                      ║" -ForegroundColor White
+    Write-Host "║   🔀 Traefik      : http://${BaseUrl}:8081                                      ║" -ForegroundColor White
+    Write-Host "╠══════════════════════════════════════════════════════════════════════════╣" -ForegroundColor Green
+    Write-Host "║  🔐 IDENTIFIANTS (N8N & Grafana)                                         ║" -ForegroundColor Yellow
+    Write-Host "║     Utilisateur : nemesis                                                ║" -ForegroundColor White
+    Write-Host "║     Mot de passe: $($env:N8N_PASSWORD.PadRight(47))║" -ForegroundColor Yellow
+    Write-Host "╠══════════════════════════════════════════════════════════════════════════╣" -ForegroundColor Green
+    Write-Host "║   📁 Dossier     : $($NemesisHome.PadRight(47))║" -ForegroundColor Gray
     Write-Host "║   🤖 MCP Config  : claude_desktop_config.json                            ║" -ForegroundColor Gray
     Write-Host "╚══════════════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
     Write-Host ""
-    Write-Host "   💡 Commandes utiles:" -ForegroundColor Cyan
-    Write-Host "      docker compose -f $NemesisHome\docker-compose.yml logs -f" -ForegroundColor Gray
-    Write-Host "      docker exec nemesis-ollama ollama list" -ForegroundColor Gray
+    Write-Host "   💡 Commandes de gestion:" -ForegroundColor Cyan
+    Write-Host "      .\nemesis-manager.ps1 status      # État des services" -ForegroundColor Gray
+    Write-Host "      .\nemesis-manager.ps1 logs        # Voir les logs" -ForegroundColor Gray
+    Write-Host "      .\nemesis-manager.ps1 backup      # Sauvegarder" -ForegroundColor Gray
+    Write-Host "      .\nemesis-manager.ps1 help        # Aide complète" -ForegroundColor Gray
     Write-Host ""
 
     # Ouvrir le navigateur
