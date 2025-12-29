@@ -2,7 +2,7 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    NEMESIS V3.1 - Installation automatisée de la stack IA locale
+    NEMESIS V4 - Installation automatisée de la stack IA locale
 .DESCRIPTION
     Déploie une infrastructure complète avec Docker:
     - Open WebUI (interface chat IA)
@@ -11,9 +11,10 @@
     - PostgreSQL (base de données)
     - Portainer (gestion Docker)
     - Homepage (dashboard)
+    - MCP Servers (Claude Desktop integration)
 .NOTES
     Auteur: NEMESIS Project
-    Version: 3.1 STABLE
+    Version: 4.0 FINAL STABLE
 #>
 
 [CmdletBinding()]
@@ -139,7 +140,7 @@ function Show-Banner {
       ██║╚██╔╝██║██╔══╝  ██║╚██╔╝██║██╔══╝  ╚════██║██║╚════██║
       ██║ ╚═╝ ██║███████╗██║ ╚═╝ ██║███████╗███████║██║███████║
       ╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝╚══════╝╚══════╝╚═╝╚══════╝
-                    V3.1 STABLE - Infrastructure IA
+                    V4 FINAL STABLE - Infrastructure IA
 
 "@ -ForegroundColor Magenta
 }
@@ -347,6 +348,9 @@ function Initialize-Environment {
     foreach ($key in $Script:Secrets.Keys) {
         [Environment]::SetEnvironmentVariable($key, $Script:Secrets[$key], "Process")
     }
+
+    # Force la variable COMPOSE_PROJECT_NAME dans la session courante (fix warning Docker)
+    $env:COMPOSE_PROJECT_NAME = "nemesis"
 }
 
 function Get-GpuConfiguration {
@@ -683,6 +687,53 @@ my-docker:
     Write-Log "Configuration Homepage générée" -Level SUCCESS
 }
 
+function New-McpConfig {
+    Write-Log "Génération de la configuration MCP (Claude Desktop)..." -Level INFO
+
+    # Échapper les backslashes pour JSON
+    $safeHome = $Script:Config.NemesisHome.Replace('\', '\\')
+
+    $mcpConfig = @"
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx.cmd",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "$safeHome"]
+    },
+    "fetch": {
+      "command": "npx.cmd",
+      "args": ["-y", "@modelcontextprotocol/server-fetch"]
+    },
+    "memory": {
+      "command": "npx.cmd",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "brave-search": {
+      "command": "npx.cmd",
+      "args": ["-y", "@anthropic-ai/mcp-server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "YOUR_BRAVE_API_KEY"
+      }
+    }
+  }
+}
+"@
+
+    Set-Content -Path "$($Script:Config.NemesisHome)\claude_desktop_config.json" -Value $mcpConfig -Encoding UTF8
+
+    # Copier aussi vers l'emplacement Claude Desktop si disponible
+    $claudeConfigDir = "$env:APPDATA\Claude"
+    if (Test-Path $claudeConfigDir) {
+        Copy-Item -Path "$($Script:Config.NemesisHome)\claude_desktop_config.json" `
+                  -Destination "$claudeConfigDir\claude_desktop_config.json" `
+                  -Force -ErrorAction SilentlyContinue
+        Write-Log "Configuration MCP copiée vers Claude Desktop" -Level SUCCESS
+    } else {
+        Write-Log "Configuration MCP générée (Claude Desktop non détecté)" -Level INFO
+        Write-Log "Copiez manuellement vers: $claudeConfigDir\claude_desktop_config.json" -Level INFO
+    }
+}
+
 # ╔════════════════════════════════════════════════════════════════════════════╗
 # ║ 5. DÉPLOIEMENT                                                             ║
 # ╚════════════════════════════════════════════════════════════════════════════╝
@@ -809,6 +860,7 @@ function Show-Summary {
     Write-Host "║" -ForegroundColor Green
     Write-Host "║                                                                          ║" -ForegroundColor Green
     Write-Host "╠══════════════════════════════════════════════════════════════════════════╣" -ForegroundColor Green
+    Write-Host "║   🤖 MCP Config  : claude_desktop_config.json                            ║" -ForegroundColor Gray
     Write-Host "║   📁 Dossier     : $($Script:Config.NemesisHome.PadRight(45))  ║" -ForegroundColor Gray
     Write-Host "║   📋 Logs        : $($Script:Config.LogFile.PadRight(45))  ║" -ForegroundColor Gray
     Write-Host "╚══════════════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
@@ -842,6 +894,7 @@ function Main {
         New-DockerCompose
         New-PostgresInit
         New-HomepageConfig
+        New-McpConfig
 
         # Déploiement
         Start-Deployment
