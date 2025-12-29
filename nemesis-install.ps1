@@ -1,81 +1,37 @@
 #Requires -Version 5.1
-#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    NEMESIS V4 - Installation automatisée de la stack IA locale
+    NEMESIS OMEGA V5 - Installation automatisée de la stack IA locale
 .DESCRIPTION
-    Déploie une infrastructure complète avec Docker:
-    - Open WebUI (interface chat IA)
-    - Ollama (moteur LLM)
-    - N8N (automatisation)
-    - PostgreSQL (base de données)
-    - Portainer (gestion Docker)
-    - Homepage (dashboard)
-    - MCP Servers (Claude Desktop integration)
+    - GARANTI SANS FERMETURE (Bloc Finally robuste)
+    - CORRECTION WARNING DOCKER (Ignore le texte rouge non bloquant)
+    - CORRECTION NOM PROJET (Force le nom Nemesis pour éviter le warning)
+    - SUPPORT GPU NVIDIA & AMD (détection automatique)
+    - CONFIGURATION MCP (Claude Desktop integration)
 .NOTES
     Auteur: NEMESIS Project
-    Version: 4.0 FINAL STABLE
+    Version: 5.0 OMEGA FINAL
 #>
 
-[CmdletBinding()]
-param(
-    [switch]$SkipDockerInstall,
-    [switch]$SkipNodeInstall,
-    [switch]$Force,
-    [string]$Model = "llama3.2"
-)
-
 # ╔════════════════════════════════════════════════════════════════════════════╗
-# ║ 1. CONFIGURATION & FONCTIONS UTILITAIRES                                   ║
+# ║ 1. FONCTIONS UTILITAIRES                                                   ║
 # ╚════════════════════════════════════════════════════════════════════════════╝
 
-Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
-$ProgressPreference = "SilentlyContinue"  # Accélère les téléchargements
+function Pause-And-Exit {
+    param([int]$ExitCode = 0)
 
-# Configuration globale
-$Script:Config = @{
-    UserHome      = $env:USERPROFILE
-    NemesisHome   = "$env:USERPROFILE\Nemesis"
-    ConfigDir     = "$env:USERPROFILE\Nemesis\config"
-    DataDir       = "$env:USERPROFILE\Nemesis\data"
-    LogFile       = "$env:USERPROFILE\Nemesis\nemesis-install.log"
-    DockerTimeout = 90  # secondes
-    BaseUrl       = "localhost"
-    BrainUrl      = "localhost"
+    Write-Host ""
+    Write-Host "════════════════════════════════════════════════════════════════" -ForegroundColor Gray
+    Write-Host "$(if($ExitCode -eq 0){'✅ SCRIPT TERMINÉ'}else{'❌ SCRIPT INTERROMPU'})" -ForegroundColor $(if($ExitCode -eq 0){'Green'}else{'Red'})
+    Write-Host "👉 Appuyez sur [ENTRÉE] pour fermer cette fenêtre..." -ForegroundColor Cyan -NoNewline
+    $null = Read-Host
+    exit $ExitCode
 }
 
-function Write-Log {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)][string]$Message,
-        [ValidateSet("INFO", "WARN", "ERROR", "SUCCESS")][string]$Level = "INFO"
-    )
-
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $logEntry = "[$timestamp] [$Level] $Message"
-
-    # Couleurs selon le niveau
-    $colors = @{
-        "INFO"    = "Cyan"
-        "WARN"    = "Yellow"
-        "ERROR"   = "Red"
-        "SUCCESS" = "Green"
-    }
-
-    $prefix = switch ($Level) {
-        "INFO"    { "ℹ️ " }
-        "WARN"    { "⚠️ " }
-        "ERROR"   { "❌" }
-        "SUCCESS" { "✅" }
-    }
-
-    Write-Host "$prefix $Message" -ForegroundColor $colors[$Level]
-
-    # Écriture dans le fichier log
-    if (Test-Path (Split-Path $Script:Config.LogFile -Parent)) {
-        Add-Content -Path $Script:Config.LogFile -Value $logEntry -ErrorAction SilentlyContinue
-    }
+function Test-IsAdmin {
+    $Identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $Principal = [Security.Principal.WindowsPrincipal]$Identity
+    return $Principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
 function Get-RandomString {
@@ -84,12 +40,7 @@ function Get-RandomString {
     return -join (1..$Length | ForEach-Object { $chars[(Get-Random -Maximum $chars.Length)] })
 }
 
-function Test-CommandExists {
-    param([string]$Command)
-    return [bool](Get-Command $Command -ErrorAction SilentlyContinue)
-}
-
-function Test-DockerRunning {
+function Test-DockerReady {
     try {
         $null = docker info 2>&1
         return $LASTEXITCODE -eq 0
@@ -98,39 +49,34 @@ function Test-DockerRunning {
     }
 }
 
-function Wait-ForDocker {
-    param([int]$TimeoutSeconds = 90)
-
-    $elapsed = 0
-    $interval = 3
-
-    Write-Host "   Attente de Docker " -NoNewline -ForegroundColor Gray
-
-    while (-not (Test-DockerRunning) -and $elapsed -lt $TimeoutSeconds) {
-        Write-Host "." -NoNewline -ForegroundColor Gray
-        Start-Sleep -Seconds $interval
-        $elapsed += $interval
-    }
-
-    Write-Host ""
-
-    if ($elapsed -ge $TimeoutSeconds) {
-        throw "Timeout: Docker n'a pas démarré après $TimeoutSeconds secondes"
-    }
-
-    return $true
+function Write-Step {
+    param([string]$Icon, [string]$Message, [string]$Color = "Cyan")
+    Write-Host "$Icon $Message" -ForegroundColor $Color
 }
 
-function Pause-And-Exit {
-    param([int]$ExitCode = 0)
+# ╔════════════════════════════════════════════════════════════════════════════╗
+# ║ 2. VÉRIFICATION ADMIN                                                      ║
+# ╚════════════════════════════════════════════════════════════════════════════╝
 
+if (-not (Test-IsAdmin)) {
     Write-Host ""
-    Write-Host "Appuyez sur une touche pour quitter..." -ForegroundColor Gray
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-    exit $ExitCode
+    Write-Host "⛔ ERREUR : DROITS ADMINISTRATEUR REQUIS" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "   Solutions :" -ForegroundColor Yellow
+    Write-Host "   1. Clic-Droit sur PowerShell > Exécuter en tant qu'administrateur" -ForegroundColor White
+    Write-Host "   2. Ou lancez : Start-Process powershell -Verb RunAs" -ForegroundColor White
+    Write-Host ""
+    Pause-And-Exit -ExitCode 1
 }
 
-function Show-Banner {
+$ErrorActionPreference = "Stop"
+$ProgressPreference = "SilentlyContinue"
+
+# ╔════════════════════════════════════════════════════════════════════════════╗
+# ║ 3. SCRIPT PRINCIPAL                                                        ║
+# ╚════════════════════════════════════════════════════════════════════════════╝
+
+Try {
     Clear-Host
     Write-Host @"
 
@@ -140,230 +86,190 @@ function Show-Banner {
       ██║╚██╔╝██║██╔══╝  ██║╚██╔╝██║██╔══╝  ╚════██║██║╚════██║
       ██║ ╚═╝ ██║███████╗██║ ╚═╝ ██║███████╗███████║██║███████║
       ╚═╝     ╚═╝╚══════╝╚═╝     ╚═╝╚══════╝╚══════╝╚═╝╚══════╝
-                    V4 FINAL STABLE - Infrastructure IA
+                  V5 OMEGA - ANTI-CLOSE & ANTI-CRASH
 
 "@ -ForegroundColor Magenta
-}
 
-# ╔════════════════════════════════════════════════════════════════════════════╗
-# ║ 2. INSTALLATION DES DÉPENDANCES                                            ║
-# ╚════════════════════════════════════════════════════════════════════════════╝
+    # --- VARIABLES GLOBALES ---
+    $UserHome = $env:USERPROFILE
+    $NemesisHome = "$UserHome\Nemesis"
+    $ConfigDir = "$NemesisHome\config"
+    $DataDir = "$NemesisHome\data"
+    $LogFile = "$NemesisHome\install.log"
 
-function Install-Dependencies {
-    Write-Log "Vérification des dépendances..." -Level INFO
+    # Fix critique : Nom du projet Docker explicite
+    $env:COMPOSE_PROJECT_NAME = "nemesis"
 
-    # Docker
-    if (-not $SkipDockerInstall -and -not (Test-CommandExists "docker")) {
-        Write-Log "Installation de Docker Desktop..." -Level INFO
-        try {
-            $wingetArgs = @(
-                "install", "Docker.DockerDesktop",
-                "--accept-source-agreements",
-                "--accept-package-agreements",
-                "--disable-interactivity",
-                "--silent"
-            )
-            $process = Start-Process -FilePath "winget" -ArgumentList $wingetArgs -Wait -PassThru -NoNewWindow
-            if ($process.ExitCode -ne 0) {
-                Write-Log "Winget a retourné le code $($process.ExitCode). Vérifiez l'installation manuellement." -Level WARN
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 1 : INSTALLATION DÉPENDANCES
+    # ══════════════════════════════════════════════════════════════════════════
+
+    if (-not (Get-Command "docker" -ErrorAction SilentlyContinue)) {
+        Write-Step "📦" "Installation Docker Desktop..." "Yellow"
+        $wingetArgs = @(
+            "install", "Docker.DockerDesktop",
+            "--accept-source-agreements", "--accept-package-agreements",
+            "--disable-interactivity", "--silent"
+        )
+        Start-Process -FilePath "winget" -ArgumentList $wingetArgs -Wait -NoNewWindow
+    } else {
+        Write-Step "✅" "Docker déjà installé" "Green"
+    }
+
+    if (-not (Get-Command "node" -ErrorAction SilentlyContinue)) {
+        Write-Step "📦" "Installation Node.js LTS..." "Yellow"
+        $wingetArgs = @(
+            "install", "OpenJS.NodeJS.LTS",
+            "--accept-source-agreements", "--accept-package-agreements",
+            "--disable-interactivity", "--silent"
+        )
+        Start-Process -FilePath "winget" -ArgumentList $wingetArgs -Wait -NoNewWindow
+    } else {
+        Write-Step "✅" "Node.js déjà installé" "Green"
+    }
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 2 : DÉMARRAGE DOCKER DESKTOP
+    # ══════════════════════════════════════════════════════════════════════════
+
+    if (-not (Test-DockerReady)) {
+        $dockerPaths = @(
+            "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe",
+            "${env:ProgramFiles(x86)}\Docker\Docker\Docker Desktop.exe",
+            "$env:LOCALAPPDATA\Docker\Docker Desktop.exe"
+        )
+        $dockerExe = $dockerPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+        if ($dockerExe) {
+            Write-Step "⚡" "Démarrage Docker Desktop..." "Cyan"
+            Start-Process -FilePath $dockerExe
+
+            # Attente active avec timeout
+            $timeout = 120
+            $elapsed = 0
+            Write-Host "   Attente de Docker " -NoNewline -ForegroundColor Gray
+
+            while (-not (Test-DockerReady) -and $elapsed -lt $timeout) {
+                Write-Host "." -NoNewline -ForegroundColor Gray
+                Start-Sleep -Seconds 2
+                $elapsed += 2
             }
-        } catch {
-            Write-Log "Impossible d'installer Docker automatiquement: $_" -Level WARN
-            Write-Log "Téléchargez Docker Desktop depuis https://docker.com/products/docker-desktop" -Level INFO
+            Write-Host ""
+
+            if ($elapsed -ge $timeout) {
+                Write-Host "⚠️  Docker lent à démarrer, on continue..." -ForegroundColor Yellow
+            } else {
+                Write-Step "✅" "Docker prêt" "Green"
+            }
+        } else {
+            throw "Docker Desktop introuvable. Installez-le depuis https://docker.com"
         }
     } else {
-        Write-Log "Docker est déjà installé" -Level SUCCESS
+        Write-Step "✅" "Docker déjà opérationnel" "Green"
     }
 
-    # Node.js (optionnel, pour extensions futures)
-    if (-not $SkipNodeInstall -and -not (Test-CommandExists "node")) {
-        Write-Log "Installation de Node.js LTS..." -Level INFO
-        try {
-            $wingetArgs = @(
-                "install", "OpenJS.NodeJS.LTS",
-                "--accept-source-agreements",
-                "--accept-package-agreements",
-                "--disable-interactivity",
-                "--silent"
-            )
-            Start-Process -FilePath "winget" -ArgumentList $wingetArgs -Wait -NoNewWindow
-        } catch {
-            Write-Log "Installation Node.js échouée (non critique)" -Level WARN
-        }
-    }
-}
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 3 : CONFIGURATION DNS
+    # ══════════════════════════════════════════════════════════════════════════
 
-function Start-DockerDesktop {
-    Write-Log "Vérification de Docker Desktop..." -Level INFO
+    $BaseUrl = "localhost"
+    $BrainUrl = "localhost"
+    $HostsPath = "$env:windir\System32\drivers\etc\hosts"
 
-    # Vérifier si Docker est déjà en cours d'exécution
-    if (Test-DockerRunning) {
-        Write-Log "Docker est déjà opérationnel" -Level SUCCESS
-        return
-    }
+    Try {
+        [GC]::Collect(); [GC]::WaitForPendingFinalizers()
+        Start-Sleep -Milliseconds 300
 
-    # Trouver et lancer Docker Desktop
-    $dockerPaths = @(
-        "$env:ProgramFiles\Docker\Docker\Docker Desktop.exe",
-        "${env:ProgramFiles(x86)}\Docker\Docker\Docker Desktop.exe",
-        "$env:LOCALAPPDATA\Docker\Docker Desktop.exe"
-    )
-
-    $dockerExe = $dockerPaths | Where-Object { Test-Path $_ } | Select-Object -First 1
-
-    if (-not $dockerExe) {
-        throw "Docker Desktop introuvable. Veuillez l'installer depuis https://docker.com"
-    }
-
-    # Vérifier si le processus tourne déjà (même si docker info échoue)
-    $dockerProcess = Get-Process -Name "Docker Desktop" -ErrorAction SilentlyContinue
-    if (-not $dockerProcess) {
-        Write-Log "Démarrage de Docker Desktop..." -Level INFO
-        Start-Process -FilePath $dockerExe
-    }
-
-    # Attendre que Docker soit prêt
-    Wait-ForDocker -TimeoutSeconds $Script:Config.DockerTimeout
-    Write-Log "Docker est prêt" -Level SUCCESS
-}
-
-# ╔════════════════════════════════════════════════════════════════════════════╗
-# ║ 3. CONFIGURATION DNS                                                       ║
-# ╚════════════════════════════════════════════════════════════════════════════╝
-
-function Set-DnsConfiguration {
-    Write-Log "Configuration DNS..." -Level INFO
-
-    $hostsPath = "$env:windir\System32\drivers\etc\hosts"
-    $entries = @(
-        "127.0.0.1       nemesis.ai",
-        "127.0.0.1       brain.nemesis.ai"
-    )
-
-    try {
-        # Forcer la libération du fichier hosts
-        [GC]::Collect()
-        [GC]::WaitForPendingFinalizers()
-        Start-Sleep -Milliseconds 500
-
-        $hostsContent = Get-Content $hostsPath -Raw -ErrorAction Stop
-        $modified = $false
-
-        foreach ($entry in $entries) {
-            $domain = ($entry -split '\s+')[-1]
-            if ($hostsContent -notmatch [regex]::Escape($domain)) {
-                Add-Content -Path $hostsPath -Value $entry -ErrorAction Stop
-                $modified = $true
-            }
-        }
-
-        if ($modified) {
-            Write-Log "DNS configuré: nemesis.ai et brain.nemesis.ai" -Level SUCCESS
+        $HostsContent = Get-Content $HostsPath -Raw -ErrorAction Stop
+        if ($HostsContent -notmatch "nemesis\.ai") {
+            Add-Content -Path $HostsPath -Value "`r`n127.0.0.1       nemesis.ai" -ErrorAction Stop
+            Add-Content -Path $HostsPath -Value "127.0.0.1       brain.nemesis.ai" -ErrorAction Stop
+            Write-Step "✅" "DNS configuré : nemesis.ai" "Green"
         } else {
-            Write-Log "Configuration DNS déjà présente" -Level SUCCESS
+            Write-Step "✅" "DNS déjà configuré" "Green"
         }
-
-        $Script:Config.BaseUrl = "nemesis.ai"
-        $Script:Config.BrainUrl = "brain.nemesis.ai"
+        $BaseUrl = "nemesis.ai"
+        $BrainUrl = "brain.nemesis.ai"
 
         # Flush DNS cache
         $null = ipconfig /flushdns 2>&1
 
-    } catch {
-        Write-Log "Impossible de modifier le fichier hosts (protégé par antivirus?)" -Level WARN
-        Write-Log "Mode localhost activé - les URLs personnalisées ne seront pas disponibles" -Level WARN
-        $Script:Config.BaseUrl = "localhost"
-        $Script:Config.BrainUrl = "localhost"
+    } Catch {
+        Write-Step "⚠️" "DNS verrouillé (antivirus?) - Mode localhost" "Yellow"
     }
-}
 
-# ╔════════════════════════════════════════════════════════════════════════════╗
-# ║ 4. GÉNÉRATION DE LA CONFIGURATION                                          ║
-# ╚════════════════════════════════════════════════════════════════════════════╝
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 4 : CRÉATION ARBORESCENCE & SECRETS
+    # ══════════════════════════════════════════════════════════════════════════
 
-function Initialize-Directories {
-    Write-Log "Création de l'arborescence..." -Level INFO
+    Write-Step "📂" "Création de l'arborescence..." "Cyan"
 
-    $directories = @(
-        $Script:Config.NemesisHome,
-        "$($Script:Config.ConfigDir)\homepage",
-        "$($Script:Config.ConfigDir)\prometheus",
-        "$($Script:Config.DataDir)\n8n",
-        "$($Script:Config.DataDir)\postgres",
-        "$($Script:Config.DataDir)\ollama",
-        "$($Script:Config.DataDir)\open-webui",
-        "$($Script:Config.DataDir)\portainer"
+    $Dirs = @(
+        $NemesisHome,
+        "$ConfigDir\homepage",
+        "$ConfigDir\postgres",
+        "$DataDir\n8n",
+        "$DataDir\postgres",
+        "$DataDir\ollama",
+        "$DataDir\open-webui",
+        "$DataDir\portainer"
     )
-
-    foreach ($dir in $directories) {
-        if (-not (Test-Path $dir)) {
-            New-Item -ItemType Directory -Force -Path $dir | Out-Null
-        }
+    foreach ($Dir in $Dirs) {
+        New-Item -ItemType Directory -Force -Path $Dir -ErrorAction SilentlyContinue | Out-Null
     }
 
-    Write-Log "Arborescence créée dans $($Script:Config.NemesisHome)" -Level SUCCESS
-}
+    # Génération des secrets
+    $EnvFile = "$NemesisHome\.env"
+    if (-not (Test-Path $EnvFile)) {
+        $DbPassword = Get-RandomString -Length 20
+        $N8nPassword = Get-RandomString -Length 16
+        $EncryptionKey = Get-RandomString -Length 32
 
-function Initialize-Environment {
-    Write-Log "Configuration des variables d'environnement..." -Level INFO
+        $envContent = @"
+COMPOSE_PROJECT_NAME=nemesis
+DB_PASSWORD=$DbPassword
+N8N_PASSWORD=$N8nPassword
+N8N_ENCRYPTION_KEY=$EncryptionKey
+POSTGRES_USER=nemesis
+POSTGRES_DB=nemesis
+"@
+        Set-Content -Path $EnvFile -Value $envContent -Encoding UTF8
 
-    $envFile = "$($Script:Config.NemesisHome)\.env"
+        $env:DB_PASSWORD = $DbPassword
+        $env:N8N_PASSWORD = $N8nPassword
+        $env:N8N_ENCRYPTION_KEY = $EncryptionKey
 
-    if (-not (Test-Path $envFile) -or $Force) {
-        $secrets = @{
-            COMPOSE_PROJECT_NAME = "nemesis"
-            DB_PASSWORD          = Get-RandomString -Length 20
-            N8N_PASSWORD         = Get-RandomString -Length 16
-            N8N_ENCRYPTION_KEY   = Get-RandomString -Length 32
-            POSTGRES_USER        = "nemesis"
-            POSTGRES_DB          = "nemesis"
-        }
-
-        $envContent = $secrets.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }
-        Set-Content -Path $envFile -Value ($envContent -join "`n") -Encoding UTF8 -NoNewline
-
-        # Stocker les secrets pour l'affichage final
-        $Script:Secrets = $secrets
-
-        Write-Log "Secrets générés et sauvegardés" -Level SUCCESS
+        Write-Step "🔐" "Secrets générés" "Green"
     } else {
         # Charger les secrets existants
-        $Script:Secrets = @{}
-        Get-Content $envFile | ForEach-Object {
+        Get-Content $EnvFile | ForEach-Object {
             if ($_ -match "^([^#=]+)=(.*)$") {
-                $Script:Secrets[$matches[1].Trim()] = $matches[2].Trim()
+                [Environment]::SetEnvironmentVariable($matches[1].Trim(), $matches[2].Trim(), "Process")
             }
         }
 
         # Ajouter COMPOSE_PROJECT_NAME si manquant
-        if (-not $Script:Secrets.ContainsKey("COMPOSE_PROJECT_NAME")) {
-            Add-Content -Path $envFile -Value "`nCOMPOSE_PROJECT_NAME=nemesis"
-            $Script:Secrets["COMPOSE_PROJECT_NAME"] = "nemesis"
+        $content = Get-Content $EnvFile -Raw
+        if ($content -notmatch "COMPOSE_PROJECT_NAME") {
+            Add-Content -Path $EnvFile -Value "COMPOSE_PROJECT_NAME=nemesis"
         }
 
-        Write-Log "Secrets existants chargés" -Level SUCCESS
+        Write-Step "🔐" "Secrets chargés" "Green"
     }
 
-    # Exporter vers l'environnement du processus
-    foreach ($key in $Script:Secrets.Keys) {
-        [Environment]::SetEnvironmentVariable($key, $Script:Secrets[$key], "Process")
-    }
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 5 : DÉTECTION GPU
+    # ══════════════════════════════════════════════════════════════════════════
 
-    # Force la variable COMPOSE_PROJECT_NAME dans la session courante (fix warning Docker)
-    $env:COMPOSE_PROJECT_NAME = "nemesis"
-}
-
-function Get-GpuConfiguration {
-    Write-Log "Détection GPU..." -Level INFO
-
-    $gpuConfig = ""
+    $GpuConfig = ""
     $gpus = Get-CimInstance Win32_VideoController
 
-    # Détection NVIDIA
     $nvidia = $gpus | Where-Object { $_.Name -like "*NVIDIA*" }
+    $amd = $gpus | Where-Object { $_.Name -like "*AMD*" -or $_.Name -like "*Radeon*" }
+
     if ($nvidia) {
-        Write-Log "GPU NVIDIA détecté: $($nvidia.Name)" -Level SUCCESS
-        $gpuConfig = @"
+        Write-Step "🎮" "GPU NVIDIA détecté: $($nvidia.Name)" "Green"
+        $GpuConfig = @"
     deploy:
       resources:
         reservations:
@@ -372,36 +278,24 @@ function Get-GpuConfiguration {
               count: all
               capabilities: [gpu]
 "@
-    }
-    # Détection AMD (ROCm) - support expérimental
-    elseif ($gpus | Where-Object { $_.Name -like "*AMD*" -or $_.Name -like "*Radeon*" }) {
-        Write-Log "GPU AMD détecté (support ROCm expérimental)" -Level WARN
-        # ROCm nécessite une configuration différente sous Windows
-    }
-    else {
-        Write-Log "Aucun GPU dédié détecté - utilisation du CPU" -Level INFO
+    } elseif ($amd) {
+        Write-Step "🎮" "GPU AMD détecté (ROCm expérimental)" "Yellow"
+    } else {
+        Write-Step "💻" "Mode CPU (aucun GPU dédié)" "Gray"
     }
 
-    return $gpuConfig
-}
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 6 : GÉNÉRATION DOCKER-COMPOSE
+    # ══════════════════════════════════════════════════════════════════════════
 
-function New-DockerCompose {
-    Write-Log "Génération du docker-compose.yml..." -Level INFO
+    Write-Step "🐳" "Génération docker-compose.yml..." "Cyan"
 
-    $gpuConfig = Get-GpuConfiguration
-    $dbPassword = $Script:Secrets["DB_PASSWORD"]
-    $n8nPassword = $Script:Secrets["N8N_PASSWORD"]
-    $encryptionKey = $Script:Secrets["N8N_ENCRYPTION_KEY"]
-
-    $compose = @"
+    $Compose = @"
 version: '3.8'
 
 networks:
   nemesis-net:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.28.0.0/16
 
 volumes:
   postgres_data:
@@ -411,7 +305,6 @@ volumes:
   portainer_data:
 
 services:
-  # Dashboard principal
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: nemesis-cockpit
@@ -420,16 +313,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
       - "80:3000"
-    networks:
-      - nemesis-net
+    networks: [nemesis-net]
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
-  # Interface Chat IA
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: nemesis-brain
@@ -438,24 +324,14 @@ services:
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
       - WEBUI_AUTH=false
-      - ENABLE_SIGNUP=true
     ports:
       - "3001:8080"
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    networks:
-      - nemesis-net
-    depends_on:
-      ollama:
-        condition: service_started
+    networks: [nemesis-net]
+    depends_on: [ollama]
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
-  # Moteur LLM
   ollama:
     image: ollama/ollama:latest
     container_name: nemesis-ollama
@@ -463,17 +339,10 @@ services:
       - ollama_data:/root/.ollama
     ports:
       - "11434:11434"
-    networks:
-      - nemesis-net
+    networks: [nemesis-net]
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-$gpuConfig
+$GpuConfig
 
-  # Automatisation
   n8n:
     image: n8nio/n8n:latest
     container_name: nemesis-n8n
@@ -485,49 +354,39 @@ $gpuConfig
       - DB_POSTGRESDB_PORT=5432
       - DB_POSTGRESDB_DATABASE=n8n
       - DB_POSTGRESDB_USER=nemesis
-      - DB_POSTGRESDB_PASSWORD=$dbPassword
+      - DB_POSTGRESDB_PASSWORD=$($env:DB_PASSWORD)
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=nemesis
-      - N8N_BASIC_AUTH_PASSWORD=$n8nPassword
-      - N8N_ENCRYPTION_KEY=$encryptionKey
+      - N8N_BASIC_AUTH_PASSWORD=$($env:N8N_PASSWORD)
+      - N8N_ENCRYPTION_KEY=$($env:N8N_ENCRYPTION_KEY)
       - GENERIC_TIMEZONE=Europe/Paris
-      - TZ=Europe/Paris
     volumes:
       - n8n_data:/home/node/.n8n
     depends_on:
       postgres:
         condition: service_healthy
-    networks:
-      - nemesis-net
+    networks: [nemesis-net]
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5678/healthz"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
-  # Base de données
   postgres:
     image: postgres:16-alpine
     container_name: nemesis-postgres
     environment:
       POSTGRES_USER: nemesis
-      POSTGRES_PASSWORD: $dbPassword
+      POSTGRES_PASSWORD: $($env:DB_PASSWORD)
       POSTGRES_DB: nemesis
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./config/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    networks:
-      - nemesis-net
-    restart: unless-stopped
+    networks: [nemesis-net]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U nemesis -d nemesis"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
+    restart: unless-stopped
 
-  # Gestion Docker
   portainer:
     image: portainer/portainer-ce:latest
     container_name: nemesis-portainer
@@ -537,45 +396,27 @@ $gpuConfig
       - portainer_data:/data
     ports:
       - "9000:9000"
-    networks:
-      - nemesis-net
+    networks: [nemesis-net]
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9000/api/status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 "@
+    Set-Content -Path "$NemesisHome\docker-compose.yml" -Value $Compose -Encoding UTF8
 
-    Set-Content -Path "$($Script:Config.NemesisHome)\docker-compose.yml" -Value $compose -Encoding UTF8
-    Write-Log "docker-compose.yml généré" -Level SUCCESS
-}
-
-function New-PostgresInit {
-    Write-Log "Génération du script d'initialisation PostgreSQL..." -Level INFO
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 7 : CONFIGURATION POSTGRES
+    # ══════════════════════════════════════════════════════════════════════════
 
     $initSql = @"
--- Création de la base n8n si elle n'existe pas
-SELECT 'CREATE DATABASE n8n OWNER nemesis'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'n8n')\gexec
-
--- Permissions
+-- Création de la base n8n
+CREATE DATABASE n8n OWNER nemesis;
 GRANT ALL PRIVILEGES ON DATABASE n8n TO nemesis;
 "@
+    Set-Content -Path "$ConfigDir\postgres\init.sql" -Value $initSql -Encoding UTF8
 
-    $postgresConfigDir = "$($Script:Config.ConfigDir)\postgres"
-    if (-not (Test-Path $postgresConfigDir)) {
-        New-Item -ItemType Directory -Force -Path $postgresConfigDir | Out-Null
-    }
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 8 : CONFIGURATION HOMEPAGE
+    # ══════════════════════════════════════════════════════════════════════════
 
-    Set-Content -Path "$postgresConfigDir\init.sql" -Value $initSql -Encoding UTF8
-}
-
-function New-HomepageConfig {
-    Write-Log "Génération de la configuration Homepage..." -Level INFO
-
-    $baseUrl = $Script:Config.BaseUrl
-    $brainUrl = $Script:Config.BrainUrl
+    Write-Step "🏠" "Configuration Dashboard..." "Cyan"
 
     # Services
     $services = @"
@@ -583,30 +424,30 @@ function New-HomepageConfig {
 - Cerveau IA:
     - Open WebUI:
         icon: si-openai
-        href: http://${brainUrl}:3001
-        description: Interface de chat IA
+        href: http://${BrainUrl}:3001
+        description: Interface Chat IA
         server: my-docker
         container: nemesis-brain
     - Ollama:
         icon: si-ollama
-        href: http://${baseUrl}:11434
-        description: Moteur LLM local
+        href: http://${BaseUrl}:11434
+        description: Moteur LLM
         server: my-docker
         container: nemesis-ollama
 
 - Automatisation:
     - N8N:
         icon: si-n8n
-        href: http://${baseUrl}:5678
-        description: Workflows automatisés
+        href: http://${BaseUrl}:5678
+        description: Workflows
         server: my-docker
         container: nemesis-n8n
 
 - Infrastructure:
     - Portainer:
         icon: si-portainer
-        href: http://${baseUrl}:9000
-        description: Gestion des conteneurs
+        href: http://${BaseUrl}:9000
+        description: Gestion Docker
         server: my-docker
         container: nemesis-portainer
     - PostgreSQL:
@@ -616,29 +457,14 @@ function New-HomepageConfig {
         container: nemesis-postgres
 "@
 
-    # Settings
     $settings = @"
 ---
 title: NEMESIS Control Center
 theme: dark
 color: purple
-background:
-  image: https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920
-  opacity: 20
 headerStyle: clean
-layout:
-  Cerveau IA:
-    style: row
-    columns: 2
-  Automatisation:
-    style: row
-    columns: 1
-  Infrastructure:
-    style: row
-    columns: 2
 "@
 
-    # Widgets
     $widgets = @"
 ---
 - resources:
@@ -646,59 +472,33 @@ layout:
     cpu: true
     memory: true
     disk: /
-
-- datetime:
-    text_size: xl
-    format:
-      dateStyle: long
-      timeStyle: short
 "@
 
-    # Docker integration
     $docker = @"
 ---
 my-docker:
   socket: /var/run/docker.sock
 "@
 
-    # Bookmarks (optionnel)
-    $bookmarks = @"
----
-- Documentation:
-    - Ollama:
-        - icon: si-ollama
-          href: https://ollama.ai/library
-    - N8N:
-        - icon: si-n8n
-          href: https://docs.n8n.io
-    - Open WebUI:
-        - icon: si-openai
-          href: https://docs.openwebui.com
-"@
+    Set-Content -Path "$ConfigDir\homepage\services.yaml" -Value $services -Encoding UTF8
+    Set-Content -Path "$ConfigDir\homepage\settings.yaml" -Value $settings -Encoding UTF8
+    Set-Content -Path "$ConfigDir\homepage\widgets.yaml" -Value $widgets -Encoding UTF8
+    Set-Content -Path "$ConfigDir\homepage\docker.yaml" -Value $docker -Encoding UTF8
+    Set-Content -Path "$ConfigDir\homepage\bookmarks.yaml" -Value "---`n" -Encoding UTF8
 
-    $homepageDir = "$($Script:Config.ConfigDir)\homepage"
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 9 : CONFIGURATION MCP (CLAUDE DESKTOP)
+    # ══════════════════════════════════════════════════════════════════════════
 
-    Set-Content -Path "$homepageDir\services.yaml" -Value $services -Encoding UTF8
-    Set-Content -Path "$homepageDir\settings.yaml" -Value $settings -Encoding UTF8
-    Set-Content -Path "$homepageDir\widgets.yaml" -Value $widgets -Encoding UTF8
-    Set-Content -Path "$homepageDir\docker.yaml" -Value $docker -Encoding UTF8
-    Set-Content -Path "$homepageDir\bookmarks.yaml" -Value $bookmarks -Encoding UTF8
+    Write-Step "🤖" "Configuration MCP..." "Cyan"
 
-    Write-Log "Configuration Homepage générée" -Level SUCCESS
-}
-
-function New-McpConfig {
-    Write-Log "Génération de la configuration MCP (Claude Desktop)..." -Level INFO
-
-    # Échapper les backslashes pour JSON
-    $safeHome = $Script:Config.NemesisHome.Replace('\', '\\')
-
-    $mcpConfig = @"
+    $SafeHome = $NemesisHome.Replace('\', '\\')
+    $McpConfig = @"
 {
   "mcpServers": {
     "filesystem": {
       "command": "npx.cmd",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "$safeHome"]
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "$SafeHome"]
     },
     "fetch": {
       "command": "npx.cmd",
@@ -707,226 +507,121 @@ function New-McpConfig {
     "memory": {
       "command": "npx.cmd",
       "args": ["-y", "@modelcontextprotocol/server-memory"]
-    },
-    "brave-search": {
-      "command": "npx.cmd",
-      "args": ["-y", "@anthropic-ai/mcp-server-brave-search"],
-      "env": {
-        "BRAVE_API_KEY": "YOUR_BRAVE_API_KEY"
-      }
     }
   }
 }
 "@
+    Set-Content -Path "$NemesisHome\claude_desktop_config.json" -Value $McpConfig -Encoding UTF8
 
-    Set-Content -Path "$($Script:Config.NemesisHome)\claude_desktop_config.json" -Value $mcpConfig -Encoding UTF8
-
-    # Copier aussi vers l'emplacement Claude Desktop si disponible
+    # Copie vers Claude Desktop si disponible
     $claudeConfigDir = "$env:APPDATA\Claude"
     if (Test-Path $claudeConfigDir) {
-        Copy-Item -Path "$($Script:Config.NemesisHome)\claude_desktop_config.json" `
+        Copy-Item -Path "$NemesisHome\claude_desktop_config.json" `
                   -Destination "$claudeConfigDir\claude_desktop_config.json" `
                   -Force -ErrorAction SilentlyContinue
-        Write-Log "Configuration MCP copiée vers Claude Desktop" -Level SUCCESS
-    } else {
-        Write-Log "Configuration MCP générée (Claude Desktop non détecté)" -Level INFO
-        Write-Log "Copiez manuellement vers: $claudeConfigDir\claude_desktop_config.json" -Level INFO
-    }
-}
-
-# ╔════════════════════════════════════════════════════════════════════════════╗
-# ║ 5. DÉPLOIEMENT                                                             ║
-# ╚════════════════════════════════════════════════════════════════════════════╝
-
-function Start-Deployment {
-    Write-Log "Démarrage du déploiement..." -Level INFO
-
-    Push-Location $Script:Config.NemesisHome
-
-    try {
-        # Mode tolérant pour les warnings Docker (stderr)
-        $oldErrorAction = $ErrorActionPreference
-        $ErrorActionPreference = "Continue"
-
-        Write-Host ""
-        Write-Host "   🚀 Lancement de la Matrice NEMESIS..." -ForegroundColor Magenta
-        Write-Host ""
-
-        # Pull des images (peut prendre du temps)
-        Write-Log "Téléchargement des images Docker (patience...)..." -Level INFO
-        docker compose pull 2>&1 | ForEach-Object {
-            if ($_ -match "Pulling|Downloaded|Pull complete") {
-                Write-Host "   $_" -ForegroundColor Gray
-            }
-        }
-
-        # Démarrage des conteneurs
-        Write-Log "Démarrage des services..." -Level INFO
-        $output = docker compose up -d 2>&1
-
-        $ErrorActionPreference = $oldErrorAction
-
-        if ($LASTEXITCODE -ne 0) {
-            Write-Log "Sortie Docker: $output" -Level ERROR
-            throw "Docker Compose a échoué (code: $LASTEXITCODE)"
-        }
-
-        Write-Log "Services démarrés avec succès" -Level SUCCESS
-
-    } finally {
-        Pop-Location
-    }
-}
-
-function Start-ModelDownload {
-    param([string]$ModelName = "llama3.2")
-
-    Write-Log "Téléchargement du modèle $ModelName en arrière-plan..." -Level INFO
-
-    # Attendre qu'Ollama soit prêt
-    $retries = 0
-    $maxRetries = 30
-
-    while ($retries -lt $maxRetries) {
-        try {
-            $response = docker exec nemesis-ollama curl -s http://localhost:11434/api/tags 2>&1
-            if ($LASTEXITCODE -eq 0) { break }
-        } catch { }
-
-        Start-Sleep -Seconds 2
-        $retries++
+        Write-Step "✅" "MCP copié vers Claude Desktop" "Green"
     }
 
-    if ($retries -ge $maxRetries) {
-        Write-Log "Ollama n'est pas prêt - téléchargement du modèle différé" -Level WARN
-        return
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 10 : DÉPLOIEMENT DOCKER
+    # ══════════════════════════════════════════════════════════════════════════
+
+    Set-Location -Path $NemesisHome
+    Write-Host ""
+    Write-Step "🚀" "LANCEMENT DE LA MATRICE NEMESIS..." "Magenta"
+    Write-Host ""
+
+    # Mode tolérant : Docker écrit souvent en stderr même quand ça marche
+    $OriginalPref = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+
+    # Pull des images
+    Write-Host "   Téléchargement des images..." -ForegroundColor Gray
+    docker compose pull 2>&1 | Out-Null
+
+    # Démarrage
+    docker compose up -d 2>&1
+
+    if ($LASTEXITCODE -ne 0) {
+        $ErrorActionPreference = $OriginalPref
+        throw "Docker Compose a échoué (Code: $LASTEXITCODE). Docker est-il lancé ?"
     }
 
-    # Lancer le téléchargement en arrière-plan
-    Start-Job -Name "OllamaModelDownload" -ScriptBlock {
-        param($model)
-        docker exec nemesis-ollama ollama pull $model
-    } -ArgumentList $ModelName | Out-Null
+    $ErrorActionPreference = $OriginalPref
 
-    Write-Log "Le modèle $ModelName est en cours de téléchargement" -Level INFO
-    Write-Log "Vérifiez la progression avec: docker exec nemesis-ollama ollama list" -Level INFO
-}
+    Write-Step "✅" "Services démarrés" "Green"
 
-function New-DesktopShortcut {
-    Write-Log "Création du raccourci bureau..." -Level INFO
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 11 : TÉLÉCHARGEMENT MODÈLE IA
+    # ══════════════════════════════════════════════════════════════════════════
 
-    $shortcutPath = "$([Environment]::GetFolderPath('Desktop'))\NEMESIS.url"
-    $baseUrl = $Script:Config.BaseUrl
+    Write-Step "🧠" "Téléchargement du modèle llama3.2 en arrière-plan..." "Cyan"
+    Start-Job -Name "OllamaDownload" -ScriptBlock {
+        Start-Sleep -Seconds 10  # Attendre qu'Ollama soit prêt
+        docker exec nemesis-ollama ollama pull llama3.2
+    } | Out-Null
 
-    $shortcutContent = @"
+    # ══════════════════════════════════════════════════════════════════════════
+    # ÉTAPE 12 : RACCOURCI BUREAU
+    # ══════════════════════════════════════════════════════════════════════════
+
+    $ShortcutPath = "$([Environment]::GetFolderPath('Desktop'))\NEMESIS.url"
+    $ShortcutContent = @"
 [InternetShortcut]
-URL=http://$baseUrl
+URL=http://$BaseUrl
 IconIndex=0
 IconFile=%SystemRoot%\System32\shell32.dll,13
 "@
+    Set-Content -Path $ShortcutPath -Value $ShortcutContent -Encoding ASCII
+    Write-Step "🔗" "Raccourci bureau créé" "Green"
 
-    Set-Content -Path $shortcutPath -Value $shortcutContent -Encoding ASCII
-    Write-Log "Raccourci créé sur le bureau" -Level SUCCESS
-}
-
-function Show-Summary {
-    $baseUrl = $Script:Config.BaseUrl
-    $brainUrl = $Script:Config.BrainUrl
-    $n8nPassword = $Script:Secrets["N8N_PASSWORD"]
+    # ══════════════════════════════════════════════════════════════════════════
+    # RÉSUMÉ FINAL
+    # ══════════════════════════════════════════════════════════════════════════
 
     Write-Host ""
     Write-Host "╔══════════════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
-    Write-Host "║                  🔱 NEMESIS EST OPÉRATIONNEL 🔱                          ║" -ForegroundColor Green
+    Write-Host "║                    🔱 NEMESIS EST OPÉRATIONNEL 🔱                        ║" -ForegroundColor Green
     Write-Host "╠══════════════════════════════════════════════════════════════════════════╣" -ForegroundColor Green
     Write-Host "║                                                                          ║" -ForegroundColor Green
-    Write-Host "║   📊 Dashboard    : " -NoNewline -ForegroundColor Green
-    Write-Host ("http://{0}" -f $baseUrl).PadRight(45) -NoNewline -ForegroundColor White
-    Write-Host "║" -ForegroundColor Green
-    Write-Host "║   🧠 Chat IA      : " -NoNewline -ForegroundColor Green
-    Write-Host ("http://{0}:3001" -f $brainUrl).PadRight(45) -NoNewline -ForegroundColor White
-    Write-Host "║" -ForegroundColor Green
-    Write-Host "║   ⚡ N8N          : " -NoNewline -ForegroundColor Green
-    Write-Host ("http://{0}:5678" -f $baseUrl).PadRight(45) -NoNewline -ForegroundColor White
-    Write-Host "║" -ForegroundColor Green
-    Write-Host "║   🐳 Portainer    : " -NoNewline -ForegroundColor Green
-    Write-Host ("http://{0}:9000" -f $baseUrl).PadRight(45) -NoNewline -ForegroundColor White
-    Write-Host "║" -ForegroundColor Green
+    Write-Host "║   📊 Dashboard    : http://$($BaseUrl.PadRight(48))║" -ForegroundColor White
+    Write-Host "║   🧠 Chat IA      : http://$($BrainUrl):3001".PadRight(65) + "║" -ForegroundColor White
+    Write-Host "║   ⚡ N8N          : http://$($BaseUrl):5678".PadRight(65) + "║" -ForegroundColor White
+    Write-Host "║   🐳 Portainer    : http://$($BaseUrl):9000".PadRight(65) + "║" -ForegroundColor White
     Write-Host "║                                                                          ║" -ForegroundColor Green
     Write-Host "╠══════════════════════════════════════════════════════════════════════════╣" -ForegroundColor Green
     Write-Host "║   🔐 Identifiants N8N:                                                   ║" -ForegroundColor Green
     Write-Host "║      Utilisateur : nemesis                                               ║" -ForegroundColor White
-    Write-Host "║      Mot de passe: " -NoNewline -ForegroundColor White
-    Write-Host $n8nPassword.PadRight(46) -NoNewline -ForegroundColor Yellow
-    Write-Host "║" -ForegroundColor Green
+    Write-Host "║      Mot de passe: $($env:N8N_PASSWORD.PadRight(46))║" -ForegroundColor Yellow
     Write-Host "║                                                                          ║" -ForegroundColor Green
     Write-Host "╠══════════════════════════════════════════════════════════════════════════╣" -ForegroundColor Green
+    Write-Host "║   📁 Dossier     : $($NemesisHome.PadRight(46))║" -ForegroundColor Gray
     Write-Host "║   🤖 MCP Config  : claude_desktop_config.json                            ║" -ForegroundColor Gray
-    Write-Host "║   📁 Dossier     : $($Script:Config.NemesisHome.PadRight(45))  ║" -ForegroundColor Gray
-    Write-Host "║   📋 Logs        : $($Script:Config.LogFile.PadRight(45))  ║" -ForegroundColor Gray
     Write-Host "╚══════════════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
     Write-Host ""
     Write-Host "   💡 Commandes utiles:" -ForegroundColor Cyan
-    Write-Host "      docker compose -f $($Script:Config.NemesisHome)\docker-compose.yml logs -f" -ForegroundColor Gray
-    Write-Host "      docker compose -f $($Script:Config.NemesisHome)\docker-compose.yml restart" -ForegroundColor Gray
+    Write-Host "      docker compose -f $NemesisHome\docker-compose.yml logs -f" -ForegroundColor Gray
     Write-Host "      docker exec nemesis-ollama ollama list" -ForegroundColor Gray
     Write-Host ""
-}
 
-# ╔════════════════════════════════════════════════════════════════════════════╗
-# ║ 6. POINT D'ENTRÉE PRINCIPAL                                                ║
-# ╚════════════════════════════════════════════════════════════════════════════╝
+    # Ouvrir le navigateur
+    Start-Process "http://$BaseUrl"
 
-function Main {
-    try {
-        Show-Banner
+} Catch {
+    Write-Host ""
+    Write-Host "╔══════════════════════════════════════════════════════════════════════════╗" -ForegroundColor Red
+    Write-Host "║                         ❌ ERREUR D'INSTALLATION                         ║" -ForegroundColor Red
+    Write-Host "╚══════════════════════════════════════════════════════════════════════════╝" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "   Message : $($_.Exception.Message)" -ForegroundColor Yellow
+    Write-Host "   Ligne   : $($_.InvocationInfo.ScriptLineNumber)" -ForegroundColor Yellow
+    Write-Host ""
 
-        Write-Host "   Initialisation de NEMESIS..." -ForegroundColor Gray
-        Write-Host ""
+    Pause-And-Exit -ExitCode 1
 
-        # Étapes d'installation
-        Install-Dependencies
-        Start-DockerDesktop
-        Initialize-Directories
-        Initialize-Environment
-        Set-DnsConfiguration
-
-        # Génération de la configuration
-        New-DockerCompose
-        New-PostgresInit
-        New-HomepageConfig
-        New-McpConfig
-
-        # Déploiement
-        Start-Deployment
-        Start-ModelDownload -ModelName $Model
-        New-DesktopShortcut
-
-        # Résumé final
-        Show-Summary
-
-        # Ouvrir le navigateur
-        Start-Process "http://$($Script:Config.BaseUrl)"
-
-        Write-Log "Installation terminée avec succès!" -Level SUCCESS
-
-    } catch {
-        Write-Host ""
-        Write-Host "╔══════════════════════════════════════════════════════════════════════════╗" -ForegroundColor Red
-        Write-Host "║                         ❌ ERREUR D'INSTALLATION                         ║" -ForegroundColor Red
-        Write-Host "╚══════════════════════════════════════════════════════════════════════════╝" -ForegroundColor Red
-        Write-Host ""
-        Write-Log "Erreur: $($_.Exception.Message)" -Level ERROR
-        Write-Host "   Ligne: $($_.InvocationInfo.ScriptLineNumber)" -ForegroundColor Yellow
-        Write-Host "   Script: $($_.InvocationInfo.ScriptName)" -ForegroundColor Yellow
-        Write-Host ""
-        Write-Host "   Consultez le fichier log pour plus de détails:" -ForegroundColor Gray
-        Write-Host "   $($Script:Config.LogFile)" -ForegroundColor Gray
-        Write-Host ""
-
-        Pause-And-Exit -ExitCode 1
+} Finally {
+    # BLOC FINALLY : LA FENÊTRE NE SE FERMERA JAMAIS AUTOMATIQUEMENT
+    if ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) {
+        Pause-And-Exit -ExitCode 0
     }
 }
-
-# Exécution
-Main
-Pause-And-Exit -ExitCode 0
