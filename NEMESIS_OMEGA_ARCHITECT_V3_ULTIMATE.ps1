@@ -102,7 +102,7 @@
     https://github.com/pierre-tagnard/nemesis-omega
 #>
 
-#Requires -Version 7.0
+#Requires -Version 5.1
 #Requires -RunAsAdministrator
 
 [CmdletBinding(SupportsShouldProcess = $true)]
@@ -197,6 +197,14 @@ param(
 # STRICT MODE & ERROR HANDLING
 # ═══════════════════════════════════════════════════════════════════════════════
 Set-StrictMode -Version Latest
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# POWERSHELL 5.x COMPATIBILITY - Null Coalescing Function
+# ═══════════════════════════════════════════════════════════════════════════════
+function Get-ValueOrDefault {
+    param($Value, $Default)
+    if ($null -ne $Value -and $Value -ne '') { return $Value } else { return $Default }
+}
 $ErrorActionPreference = "Continue"
 $ProgressPreference = "SilentlyContinue"
 $PSDefaultParameterValues['*:Encoding'] = 'UTF8'
@@ -2337,8 +2345,8 @@ function Get-HardwareHealth {
 
     # Prometheus metrics
     Export-PrometheusMetric -Name "nemesis_health_score" -Value $health.HealthScore -Help "Overall system health score"
-    Export-PrometheusMetric -Name "nemesis_cpu_usage_percent" -Value ($health.CPU.CurrentLoad ?? 0) -Help "CPU usage percentage"
-    Export-PrometheusMetric -Name "nemesis_memory_usage_percent" -Value ($health.Memory.UsedPercent ?? 0) -Help "Memory usage percentage"
+    Export-PrometheusMetric -Name "nemesis_cpu_usage_percent" -Value (Get-ValueOrDefault $health.CPU.CurrentLoad 0) -Help "CPU usage percentage"
+    Export-PrometheusMetric -Name "nemesis_memory_usage_percent" -Value (Get-ValueOrDefault $health.Memory.UsedPercent 0) -Help "Memory usage percentage"
 
     # Résumé
     $scoreColor = if ($health.HealthScore -ge 80) { "Green" } elseif ($health.HealthScore -ge 60) { "Yellow" } else { "Red" }
@@ -2970,166 +2978,166 @@ function Invoke-Phase3-GenerateEnvMaster {
 # └─────────────────────────────────────────────────────────────────────────────┘
 
 # Anthropic Claude
-ANTHROPIC_API_KEY=$($envVars['ANTHROPIC_API_KEY'] ?? '# sk-ant-xxx')
+ANTHROPIC_API_KEY=$(Get-ValueOrDefault $envVars['ANTHROPIC_API_KEY'] '# sk-ant-xxx')
 
 # OpenAI GPT
-OPENAI_API_KEY=$($envVars['OPENAI_API_KEY'] ?? '# sk-xxx')
-OPENAI_ORG_ID=$($envVars['OPENAI_ORG_ID'] ?? '# org-xxx')
+OPENAI_API_KEY=$(Get-ValueOrDefault $envVars['OPENAI_API_KEY'] '# sk-xxx')
+OPENAI_ORG_ID=$(Get-ValueOrDefault $envVars['OPENAI_ORG_ID'] '# org-xxx')
 
 # Google Gemini
-GOOGLE_API_KEY=$($envVars['GOOGLE_API_KEY'] ?? '# AIzaxxx')
-GOOGLE_PROJECT_ID=$($envVars['GOOGLE_PROJECT_ID'] ?? '# project-id')
+GOOGLE_API_KEY=$(Get-ValueOrDefault $envVars['GOOGLE_API_KEY'] '# AIzaxxx')
+GOOGLE_PROJECT_ID=$(Get-ValueOrDefault $envVars['GOOGLE_PROJECT_ID'] '# project-id')
 
 # Azure OpenAI
-AZURE_OPENAI_API_KEY=$($envVars['AZURE_OPENAI_API_KEY'] ?? '# xxx')
-AZURE_OPENAI_ENDPOINT=$($envVars['AZURE_OPENAI_ENDPOINT'] ?? '# https://xxx.openai.azure.com')
+AZURE_OPENAI_API_KEY=$(Get-ValueOrDefault $envVars['AZURE_OPENAI_API_KEY'] '# xxx')
+AZURE_OPENAI_ENDPOINT=$(Get-ValueOrDefault $envVars['AZURE_OPENAI_ENDPOINT'] '# https://xxx.openai.azure.com')
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
 # │                           AI MODELS - TIER 2 (SPECIALIZED)                  │
 # └─────────────────────────────────────────────────────────────────────────────┘
 
 # Mistral AI
-MISTRAL_API_KEY=$($envVars['MISTRAL_API_KEY'] ?? '# xxx')
+MISTRAL_API_KEY=$(Get-ValueOrDefault $envVars['MISTRAL_API_KEY'] '# xxx')
 
 # xAI Grok
-XAI_API_KEY=$($envVars['XAI_API_KEY'] ?? '# xai-xxx')
+XAI_API_KEY=$(Get-ValueOrDefault $envVars['XAI_API_KEY'] '# xai-xxx')
 
 # Cohere
-COHERE_API_KEY=$($envVars['COHERE_API_KEY'] ?? '# xxx')
+COHERE_API_KEY=$(Get-ValueOrDefault $envVars['COHERE_API_KEY'] '# xxx')
 
 # DeepSeek
-DEEPSEEK_API_KEY=$($envVars['DEEPSEEK_API_KEY'] ?? '# sk-xxx')
+DEEPSEEK_API_KEY=$(Get-ValueOrDefault $envVars['DEEPSEEK_API_KEY'] '# sk-xxx')
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
 # │                           AI MODELS - TIER 3 (CLOUD INFERENCE)              │
 # └─────────────────────────────────────────────────────────────────────────────┘
 
 # Hugging Face
-HF_API_KEY=$($envVars['HF_API_KEY'] ?? $envVars['HUGGINGFACE_API_KEY'] ?? '# hf_xxx')
-HF_HOME=$($envVars['HF_HOME'] ?? 'D:\HuggingFace')
+HF_API_KEY=$(Get-ValueOrDefault (Get-ValueOrDefault $envVars['HF_API_KEY'] $envVars['HUGGINGFACE_API_KEY']) '# hf_xxx')
+HF_HOME=$(Get-ValueOrDefault $envVars['HF_HOME'] 'D:\HuggingFace')
 
 # Replicate
-REPLICATE_API_TOKEN=$($envVars['REPLICATE_API_TOKEN'] ?? '# r8_xxx')
+REPLICATE_API_TOKEN=$(Get-ValueOrDefault $envVars['REPLICATE_API_TOKEN'] '# r8_xxx')
 
 # Together AI
-TOGETHER_API_KEY=$($envVars['TOGETHER_API_KEY'] ?? '# xxx')
+TOGETHER_API_KEY=$(Get-ValueOrDefault $envVars['TOGETHER_API_KEY'] '# xxx')
 
 # Fireworks AI
-FIREWORKS_API_KEY=$($envVars['FIREWORKS_API_KEY'] ?? '# xxx')
+FIREWORKS_API_KEY=$(Get-ValueOrDefault $envVars['FIREWORKS_API_KEY'] '# xxx')
 
 # Groq
-GROQ_API_KEY=$($envVars['GROQ_API_KEY'] ?? '# gsk_xxx')
+GROQ_API_KEY=$(Get-ValueOrDefault $envVars['GROQ_API_KEY'] '# gsk_xxx')
 
 # Perplexity AI
-PERPLEXITY_API_KEY=$($envVars['PERPLEXITY_API_KEY'] ?? '# pplx-xxx')
+PERPLEXITY_API_KEY=$(Get-ValueOrDefault $envVars['PERPLEXITY_API_KEY'] '# pplx-xxx')
 
 # Anyscale
-ANYSCALE_API_KEY=$($envVars['ANYSCALE_API_KEY'] ?? '# xxx')
+ANYSCALE_API_KEY=$(Get-ValueOrDefault $envVars['ANYSCALE_API_KEY'] '# xxx')
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
 # │                          AI MODELS - TIER 4 (LOCAL)                         │
 # └─────────────────────────────────────────────────────────────────────────────┘
 
 # Ollama
-OLLAMA_HOST=$($envVars['OLLAMA_HOST'] ?? 'http://localhost:11434')
-OLLAMA_MODELS=$($envVars['OLLAMA_MODELS'] ?? 'D:\Ollama\models')
+OLLAMA_HOST=$(Get-ValueOrDefault $envVars['OLLAMA_HOST'] 'http://localhost:11434')
+OLLAMA_MODELS=$(Get-ValueOrDefault $envVars['OLLAMA_MODELS'] 'D:\Ollama\models')
 
 # LM Studio
-LMSTUDIO_HOST=$($envVars['LMSTUDIO_HOST'] ?? 'http://localhost:1234')
+LMSTUDIO_HOST=$(Get-ValueOrDefault $envVars['LMSTUDIO_HOST'] 'http://localhost:1234')
 
 # LocalAI
-LOCALAI_HOST=$($envVars['LOCALAI_HOST'] ?? 'http://localhost:8080')
+LOCALAI_HOST=$(Get-ValueOrDefault $envVars['LOCALAI_HOST'] 'http://localhost:8080')
 
 # Text Generation WebUI
-TEXTGEN_HOST=$($envVars['TEXTGEN_HOST'] ?? 'http://localhost:5000')
+TEXTGEN_HOST=$(Get-ValueOrDefault $envVars['TEXTGEN_HOST'] 'http://localhost:5000')
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
 # │                         TIER 5 - TOOLS & SERVICES                           │
 # └─────────────────────────────────────────────────────────────────────────────┘
 
 # Notion
-NOTION_API_KEY=$($envVars['NOTION_API_KEY'] ?? '# secret_xxx')
-NOTION_DATABASE_ID=$($envVars['NOTION_DATABASE_ID'] ?? '# xxx')
+NOTION_API_KEY=$(Get-ValueOrDefault $envVars['NOTION_API_KEY'] '# secret_xxx')
+NOTION_DATABASE_ID=$(Get-ValueOrDefault $envVars['NOTION_DATABASE_ID'] '# xxx')
 
 # GitHub
-GITHUB_TOKEN=$($envVars['GITHUB_TOKEN'] ?? '# ghp_xxx')
-GITHUB_USERNAME=$($envVars['GITHUB_USERNAME'] ?? '# username')
+GITHUB_TOKEN=$(Get-ValueOrDefault $envVars['GITHUB_TOKEN'] '# ghp_xxx')
+GITHUB_USERNAME=$(Get-ValueOrDefault $envVars['GITHUB_USERNAME'] '# username')
 
 # GitLab
-GITLAB_TOKEN=$($envVars['GITLAB_TOKEN'] ?? '# glpat-xxx')
+GITLAB_TOKEN=$(Get-ValueOrDefault $envVars['GITLAB_TOKEN'] '# glpat-xxx')
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
 # │                         TIER 6 - DATABASES & VECTORS                        │
 # └─────────────────────────────────────────────────────────────────────────────┘
 
 # PostgreSQL
-POSTGRES_HOST=$($envVars['POSTGRES_HOST'] ?? 'localhost')
-POSTGRES_PORT=$($envVars['POSTGRES_PORT'] ?? '5432')
-POSTGRES_USER=$($envVars['POSTGRES_USER'] ?? 'postgres')
-POSTGRES_PASSWORD=$($envVars['POSTGRES_PASSWORD'] ?? '# password')
-POSTGRES_DB=$($envVars['POSTGRES_DB'] ?? 'nemesis')
+POSTGRES_HOST=$(Get-ValueOrDefault $envVars['POSTGRES_HOST'] 'localhost')
+POSTGRES_PORT=$(Get-ValueOrDefault $envVars['POSTGRES_PORT'] '5432')
+POSTGRES_USER=$(Get-ValueOrDefault $envVars['POSTGRES_USER'] 'postgres')
+POSTGRES_PASSWORD=$(Get-ValueOrDefault $envVars['POSTGRES_PASSWORD'] '# password')
+POSTGRES_DB=$(Get-ValueOrDefault $envVars['POSTGRES_DB'] 'nemesis')
 
 # MongoDB
-MONGODB_URI=$($envVars['MONGODB_URI'] ?? '# mongodb://localhost:27017')
+MONGODB_URI=$(Get-ValueOrDefault $envVars['MONGODB_URI'] '# mongodb://localhost:27017')
 
 # Redis
-REDIS_HOST=$($envVars['REDIS_HOST'] ?? 'localhost')
-REDIS_PORT=$($envVars['REDIS_PORT'] ?? '6379')
-REDIS_PASSWORD=$($envVars['REDIS_PASSWORD'] ?? '# password')
+REDIS_HOST=$(Get-ValueOrDefault $envVars['REDIS_HOST'] 'localhost')
+REDIS_PORT=$(Get-ValueOrDefault $envVars['REDIS_PORT'] '6379')
+REDIS_PASSWORD=$(Get-ValueOrDefault $envVars['REDIS_PASSWORD'] '# password')
 
 # Qdrant
-QDRANT_HOST=$($envVars['QDRANT_HOST'] ?? 'localhost')
-QDRANT_PORT=$($envVars['QDRANT_PORT'] ?? '6333')
-QDRANT_API_KEY=$($envVars['QDRANT_API_KEY'] ?? '# xxx')
+QDRANT_HOST=$(Get-ValueOrDefault $envVars['QDRANT_HOST'] 'localhost')
+QDRANT_PORT=$(Get-ValueOrDefault $envVars['QDRANT_PORT'] '6333')
+QDRANT_API_KEY=$(Get-ValueOrDefault $envVars['QDRANT_API_KEY'] '# xxx')
 
 # Pinecone
-PINECONE_API_KEY=$($envVars['PINECONE_API_KEY'] ?? '# xxx')
-PINECONE_ENVIRONMENT=$($envVars['PINECONE_ENVIRONMENT'] ?? '# us-east-1')
+PINECONE_API_KEY=$(Get-ValueOrDefault $envVars['PINECONE_API_KEY'] '# xxx')
+PINECONE_ENVIRONMENT=$(Get-ValueOrDefault $envVars['PINECONE_ENVIRONMENT'] '# us-east-1')
 
 # Weaviate
-WEAVIATE_URL=$($envVars['WEAVIATE_URL'] ?? 'http://localhost:8080')
-WEAVIATE_API_KEY=$($envVars['WEAVIATE_API_KEY'] ?? '# xxx')
+WEAVIATE_URL=$(Get-ValueOrDefault $envVars['WEAVIATE_URL'] 'http://localhost:8080')
+WEAVIATE_API_KEY=$(Get-ValueOrDefault $envVars['WEAVIATE_API_KEY'] '# xxx')
 
 # ChromaDB
-CHROMA_HOST=$($envVars['CHROMA_HOST'] ?? 'http://localhost:8000')
+CHROMA_HOST=$(Get-ValueOrDefault $envVars['CHROMA_HOST'] 'http://localhost:8000')
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
 # │                         TIER 7 - AUTOMATION & WEBHOOKS                      │
 # └─────────────────────────────────────────────────────────────────────────────┘
 
 # Discord
-DISCORD_WEBHOOK_URL=$($envVars['DISCORD_WEBHOOK_URL'] ?? '# https://discord.com/api/webhooks/xxx')
-DISCORD_BOT_TOKEN=$($envVars['DISCORD_BOT_TOKEN'] ?? '# xxx')
+DISCORD_WEBHOOK_URL=$(Get-ValueOrDefault $envVars['DISCORD_WEBHOOK_URL'] '# https://discord.com/api/webhooks/xxx')
+DISCORD_BOT_TOKEN=$(Get-ValueOrDefault $envVars['DISCORD_BOT_TOKEN'] '# xxx')
 
 # Telegram
-TELEGRAM_BOT_TOKEN=$($envVars['TELEGRAM_BOT_TOKEN'] ?? '# xxx:xxx')
-TELEGRAM_CHAT_ID=$($envVars['TELEGRAM_CHAT_ID'] ?? '# xxx')
+TELEGRAM_BOT_TOKEN=$(Get-ValueOrDefault $envVars['TELEGRAM_BOT_TOKEN'] '# xxx:xxx')
+TELEGRAM_CHAT_ID=$(Get-ValueOrDefault $envVars['TELEGRAM_CHAT_ID'] '# xxx')
 
 # Slack
-SLACK_WEBHOOK_URL=$($envVars['SLACK_WEBHOOK_URL'] ?? '# https://hooks.slack.com/xxx')
-SLACK_BOT_TOKEN=$($envVars['SLACK_BOT_TOKEN'] ?? '# xoxb-xxx')
+SLACK_WEBHOOK_URL=$(Get-ValueOrDefault $envVars['SLACK_WEBHOOK_URL'] '# https://hooks.slack.com/xxx')
+SLACK_BOT_TOKEN=$(Get-ValueOrDefault $envVars['SLACK_BOT_TOKEN'] '# xoxb-xxx')
 
 # Teams
-TEAMS_WEBHOOK_URL=$($envVars['TEAMS_WEBHOOK_URL'] ?? '# https://outlook.office.com/webhook/xxx')
+TEAMS_WEBHOOK_URL=$(Get-ValueOrDefault $envVars['TEAMS_WEBHOOK_URL'] '# https://outlook.office.com/webhook/xxx')
 
 # PagerDuty
-PAGERDUTY_ROUTING_KEY=$($envVars['PAGERDUTY_ROUTING_KEY'] ?? '# xxx')
+PAGERDUTY_ROUTING_KEY=$(Get-ValueOrDefault $envVars['PAGERDUTY_ROUTING_KEY'] '# xxx')
 
 # Pushover
-PUSHOVER_USER_KEY=$($envVars['PUSHOVER_USER_KEY'] ?? '# xxx')
-PUSHOVER_API_TOKEN=$($envVars['PUSHOVER_API_TOKEN'] ?? '# xxx')
+PUSHOVER_USER_KEY=$(Get-ValueOrDefault $envVars['PUSHOVER_USER_KEY'] '# xxx')
+PUSHOVER_API_TOKEN=$(Get-ValueOrDefault $envVars['PUSHOVER_API_TOKEN'] '# xxx')
 
 # Make.com
-MAKE_API_KEY=$($envVars['MAKE_API_KEY'] ?? '# xxx')
-MAKE_WEBHOOK_URL=$($envVars['MAKE_WEBHOOK_URL'] ?? '# https://hook.eu2.make.com/xxx')
+MAKE_API_KEY=$(Get-ValueOrDefault $envVars['MAKE_API_KEY'] '# xxx')
+MAKE_WEBHOOK_URL=$(Get-ValueOrDefault $envVars['MAKE_WEBHOOK_URL'] '# https://hook.eu2.make.com/xxx')
 
 # Zapier
-ZAPIER_WEBHOOK_URL=$($envVars['ZAPIER_WEBHOOK_URL'] ?? '# https://hooks.zapier.com/xxx')
-ZAPIER_NLA_API_KEY=$($envVars['ZAPIER_NLA_API_KEY'] ?? '# xxx')
+ZAPIER_WEBHOOK_URL=$(Get-ValueOrDefault $envVars['ZAPIER_WEBHOOK_URL'] '# https://hooks.zapier.com/xxx')
+ZAPIER_NLA_API_KEY=$(Get-ValueOrDefault $envVars['ZAPIER_NLA_API_KEY'] '# xxx')
 
 # N8N
-N8N_HOST=$($envVars['N8N_HOST'] ?? 'http://localhost:5678')
-N8N_API_KEY=$($envVars['N8N_API_KEY'] ?? '# xxx')
+N8N_HOST=$(Get-ValueOrDefault $envVars['N8N_HOST'] 'http://localhost:5678')
+N8N_API_KEY=$(Get-ValueOrDefault $envVars['N8N_API_KEY'] '# xxx')
 
 # ┌─────────────────────────────────────────────────────────────────────────────┐
 # │                           NEMESIS CONFIGURATION                             │
@@ -3142,8 +3150,8 @@ NEMESIS_CONFIG=$($script:Config.Paths.Config)
 
 # Settings
 NEMESIS_VERSION=$($script:Config.Version)
-NEMESIS_DEBUG=$($envVars['NEMESIS_DEBUG'] ?? 'false')
-NEMESIS_LOG_LEVEL=$($envVars['NEMESIS_LOG_LEVEL'] ?? 'INFO')
+NEMESIS_DEBUG=$(Get-ValueOrDefault $envVars['NEMESIS_DEBUG'] 'false')
+NEMESIS_LOG_LEVEL=$(Get-ValueOrDefault $envVars['NEMESIS_LOG_LEVEL'] 'INFO')
 NEMESIS_LANGUAGE=$Language
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -3499,7 +3507,7 @@ NEMESIS_MEMORY/
 | Métrique | Valeur |
 |----------|--------|
 | Fichiers scannés | $($script:Statistics.FilesScanned) |
-| Score santé | $($script:HardwareHealth.HealthScore ?? 'N/A')/100 |
+| Score santé | $((Get-ValueOrDefault $script:HardwareHealth.HealthScore 'N/A'))/100 |
 | APIs valides | $($script:Statistics.APIsValid)/$($script:Statistics.APIsTested) |
 | Erreurs | $($script:Statistics.ErrorsEncountered) |
 
@@ -3570,7 +3578,7 @@ function Invoke-Phase6-SetupMCP {
                 command = "npx"
                 args = @("-y", "@modelcontextprotocol/server-github")
                 env = @{
-                    GITHUB_TOKEN = '$($env:GITHUB_TOKEN ?? "")'
+                    GITHUB_TOKEN = '$($(Get-ValueOrDefault $env:GITHUB_TOKEN ""))'
                 }
             }
 
@@ -3895,12 +3903,12 @@ function Invoke-Phase10-Dashboard {
     # === TRENDING DATA ===
     if ($EnableTrending) {
         Write-TrendingData -Metrics @{
-            HealthScore = $script:HardwareHealth.HealthScore ?? 0
-            CPUUsage = $script:HardwareHealth.CPU.CurrentLoad ?? 0
-            MemoryUsage = $script:HardwareHealth.Memory.UsedPercent ?? 0
-            DiskFreeC = $script:HardwareHealth.Disks["C:"].FreePercent ?? 0
-            DiskFreeD = $script:HardwareHealth.Disks["D:"].FreePercent ?? 0
-            DiskFreeE = $script:HardwareHealth.Disks["E:"].FreePercent ?? 0
+            HealthScore = (Get-ValueOrDefault $script:HardwareHealth.HealthScore 0)
+            CPUUsage = (Get-ValueOrDefault $script:HardwareHealth.CPU.CurrentLoad 0)
+            MemoryUsage = (Get-ValueOrDefault $script:HardwareHealth.Memory.UsedPercent 0)
+            DiskFreeC = (Get-ValueOrDefault $script:HardwareHealth.Disks["C:"].FreePercent 0)
+            DiskFreeD = (Get-ValueOrDefault $script:HardwareHealth.Disks["D:"].FreePercent 0)
+            DiskFreeE = (Get-ValueOrDefault $script:HardwareHealth.Disks["E:"].FreePercent 0)
             APIsValid = $script:Statistics.APIsValid
             ErrorCount = $script:Statistics.ErrorsEncountered
         }
@@ -4004,9 +4012,9 @@ function Invoke-Phase12-Finalization {
 
 ## 🏥 Santé Système
 
-- **Score**: $($script:HardwareHealth.HealthScore ?? 'N/A')/100
-- **CPU**: $($script:HardwareHealth.CPU.CurrentLoad ?? 'N/A')%
-- **RAM**: $($script:HardwareHealth.Memory.UsedPercent ?? 'N/A')%
+- **Score**: $((Get-ValueOrDefault $script:HardwareHealth.HealthScore 'N/A'))/100
+- **CPU**: $((Get-ValueOrDefault $script:HardwareHealth.CPU.CurrentLoad 'N/A'))%
+- **RAM**: $((Get-ValueOrDefault $script:HardwareHealth.Memory.UsedPercent 'N/A'))%
 
 ## 📊 Statistiques
 
@@ -4048,7 +4056,7 @@ $statusEmoji **NEMESIS V3 ULTIMATE - TERMINÉ**
 • APIs: $($script:Statistics.APIsValid)/$($script:Statistics.APIsTested)
 • Erreurs: $($script:Statistics.ErrorsEncountered)
 
-🏥 **Santé**: $($script:HardwareHealth.HealthScore ?? 'N/A')/100
+🏥 **Santé**: $((Get-ValueOrDefault $script:HardwareHealth.HealthScore 'N/A'))/100
 ⏱️ **Durée**: $(ConvertTo-HumanReadableDuration -Duration $elapsed)
 "@
 
@@ -4187,7 +4195,7 @@ function Invoke-NemesisOmegaArchitect {
         Write-Host "  🔄 Mises à jour          : $($script:Statistics.UpdatesInstalled)" -ForegroundColor Green
         Write-Host "  🔑 APIs valides          : $($script:Statistics.APIsValid)/$($script:Statistics.APIsTested)" -ForegroundColor Cyan
         Write-Host "  ❌ Erreurs               : $($script:Statistics.ErrorsEncountered)" -ForegroundColor $(if ($script:Statistics.ErrorsEncountered -gt 0) { "Red" } else { "Green" })
-        Write-Host "  🏥 Score santé           : $($script:HardwareHealth.HealthScore ?? 'N/A')/100" -ForegroundColor $(if (($script:HardwareHealth.HealthScore ?? 0) -ge 80) { "Green" } else { "Yellow" })
+        Write-Host "  🏥 Score santé           : $((Get-ValueOrDefault $script:HardwareHealth.HealthScore 'N/A'))/100" -ForegroundColor $(if (((Get-ValueOrDefault $script:HardwareHealth.HealthScore 0)) -ge 80) { "Green" } else { "Yellow" })
         Write-Host ""
         Write-Host "  ⏱️  Durée totale          : $(ConvertTo-HumanReadableDuration -Duration $elapsed)" -ForegroundColor Cyan
         Write-Host ""
