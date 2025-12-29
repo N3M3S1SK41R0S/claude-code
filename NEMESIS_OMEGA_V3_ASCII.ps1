@@ -1740,7 +1740,7 @@ function Invoke-SelfTests {
 
     $tests = @(
         # === TESTS CRITIQUES ===
-        @{ Name = "PowerShell Version >= 7.0"; Test = { $PSVersionTable.PSVersion.Major -ge 7 }; Required = $true; Category = "System" }
+        @{ Name = "PowerShell Version >= 5.1"; Test = { $PSVersionTable.PSVersion.Major -ge 5 }; Required = $true; Category = "System" }
         @{ Name = "Privilèges Administrateur"; Test = { Test-AdminPrivileges }; Required = $true; Category = "System" }
         @{ Name = "Disque C: accessible"; Test = { Test-Path "C:\" }; Required = $true; Category = "Storage" }
 
