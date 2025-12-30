@@ -223,10 +223,10 @@ $script:Config = @{
     # ---------------------------------------------------------------------------
     Paths = @{
         SystemDrive = "C:"
-        DataDrive = "D:"
-        ExternalDrive = "E:"
-        NemesisRoot = if ($CustomNemesisRoot) { $CustomNemesisRoot } else { "E:\MUSIC\Music_Music\MUSIC__Music\MUSIC__Music__6_0\MUSIC_Music_6_0_5\MUSIC_Music_6.1\MUSIC_MUSIC_6.9.3\MUSIC_MUSIC_6.10\MUSIC_MUSIC_6.10.9\MUSIC_MUSIC_6.11\MUSIC_MUSIC_7\MUSIC_MUSIC_7.0.1\MUSIC_7.0.5\MUSIC_7.0.5.2\MUSIC_7.0.5.3\MUSIC_MUSIC_7.0.6\NEMESIS_MEMORY" }
-        Workflows = "D:\MUSIC\Music_Music\MUSIC__Music\MUSIC__Music__6_0\MUSIC_Music_6_0_5\MUSIC_Music_6.1\MUSIC_MUSIC_6.9.3\MUSIC_MUSIC_6.10\MUSIC_MUSIC_6.10.9\MUSIC_MUSIC_6.11\MUSIC_MUSIC_7\MUSIC_MUSIC_7.0.1\MUSIC_7.0.5\MUSIC_7.0.5.2\MUSIC_7.0.5.3\MUSIC_MUSIC_7.0.6"
+        DataDrive = if (Test-Path "D:\") { "D:" } else { "C:" }
+        ExternalDrive = if (Test-Path "E:\") { "E:" } else { "C:" }
+        NemesisRoot = if ($CustomNemesisRoot) { $CustomNemesisRoot } else { "C:\NEMESIS_MEMORY" }
+        Workflows = "C:\NEMESIS_MEMORY\WORKFLOWS"
     }
 
     # ---------------------------------------------------------------------------
