@@ -22,6 +22,31 @@ Système complet de gestion du démarrage, arrêt et diagnostic de votre PC Wind
     ░░░░░░░░░░░▀▀▀▀▀▀▀▀▀▀▀░░░░░░░░░░
 ```
 
+---
+
+## 🚀 INSTALLATION RAPIDE (3 étapes)
+
+### Étape 1: Télécharger les fichiers
+Copiez tout le dossier `pc-manager` sur votre PC Windows.
+
+### Étape 2: Ouvrir PowerShell en Administrateur
+- Clic droit sur le menu Démarrer
+- Sélectionnez "Terminal Windows (Admin)" ou "PowerShell (Admin)"
+
+### Étape 3: Lancer le déploiement
+```powershell
+cd "C:\chemin\vers\pc-manager"
+.\Deploy.ps1
+```
+
+**C'est tout!** Le script va:
+- ✅ Créer l'icône Biohazard personnalisée
+- ✅ Installer un raccourci sur le Bureau
+- ✅ Ajouter au Menu Démarrer
+- ✅ Optionnellement configurer le démarrage auto
+
+---
+
 ## 📁 Contenu du Package
 
 | Fichier | Description |
