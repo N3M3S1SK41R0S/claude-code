@@ -70,13 +70,23 @@ async function closeIssueAsDuplicate(
   duplicateOfNumber: number,
   token: string
 ): Promise<void> {
+  // Close the issue without modifying labels (PATCH with labels array replaces all existing labels)
   await githubRequest(
     `/repos/${owner}/${repo}/issues/${issueNumber}`,
     token,
     'PATCH',
     {
       state: 'closed',
-      state_reason: 'duplicate',
+      state_reason: 'duplicate'
+    }
+  );
+
+  // Add the "duplicate" label using the labels endpoint (preserves existing labels)
+  await githubRequest(
+    `/repos/${owner}/${repo}/issues/${issueNumber}/labels`,
+    token,
+    'POST',
+    {
       labels: ['duplicate']
     }
   );
