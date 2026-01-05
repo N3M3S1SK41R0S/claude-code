@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Runtime files
+*.pid
+*.log
+n8n.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# N8N data (user should manage separately)
+.n8n/

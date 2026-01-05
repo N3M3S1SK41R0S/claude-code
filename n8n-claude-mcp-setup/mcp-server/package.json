@@ -1,0 +1,14 @@
+{
+  "name": "n8n-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for N8N integration with Claude",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "node-fetch": "^3.3.2"
+  }
+}
