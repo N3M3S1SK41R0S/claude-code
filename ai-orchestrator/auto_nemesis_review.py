@@ -101,30 +101,64 @@ def print_banner():
     """)
 
 def copy_to_clipboard(text):
-    """Copy text to clipboard."""
+    """Copy text to clipboard - supports Windows, macOS, and Linux."""
+    import platform
+    system = platform.system()
+
     try:
-        # Try xclip (Linux)
-        process = subprocess.Popen(['xclip', '-selection', 'clipboard'],
-                                   stdin=subprocess.PIPE)
-        process.communicate(text.encode('utf-8'))
-        return True
-    except:
-        try:
-            # Try xsel (Linux alternative)
-            process = subprocess.Popen(['xsel', '--clipboard', '--input'],
+        if system == 'Windows':
+            # Windows: use clip command
+            process = subprocess.Popen(['clip'], stdin=subprocess.PIPE, shell=True)
+            process.communicate(text.encode('utf-16-le'))
+            return True
+        elif system == 'Darwin':
+            # macOS: use pbcopy
+            process = subprocess.Popen(['pbcopy'], stdin=subprocess.PIPE)
+            process.communicate(text.encode('utf-8'))
+            return True
+        else:
+            # Linux: try xclip
+            process = subprocess.Popen(['xclip', '-selection', 'clipboard'],
                                        stdin=subprocess.PIPE)
             process.communicate(text.encode('utf-8'))
+            return True
+    except Exception as e:
+        # Fallback: try pyperclip if installed
+        try:
+            import pyperclip
+            pyperclip.copy(text)
             return True
         except:
             return False
 
 def open_ai_tabs():
-    """Open all AI service tabs."""
+    """Open all AI service tabs - with better Windows support."""
+    import platform
+    system = platform.system()
+
     print("\n📂 Ouverture des onglets IA...")
+
     for i, ai in enumerate(AI_SERVICES):
-        print(f"   [{i+1}/5] {ai['name']}: {ai['url']}")
-        webbrowser.open_new_tab(ai['url'])
-        time.sleep(0.5)  # Small delay between tabs
+        url = ai['url']
+        print(f"   [{i+1}/5] {ai['name']}: {url}")
+
+        try:
+            if system == 'Windows':
+                # Windows: use start command for more reliable browser opening
+                os.system(f'start "" "{url}"')
+            elif system == 'Darwin':
+                # macOS: use open command
+                os.system(f'open "{url}"')
+            else:
+                # Linux: use webbrowser
+                webbrowser.open_new_tab(url)
+
+            time.sleep(1.0)  # Longer delay for Windows
+        except Exception as e:
+            print(f"   ⚠️ Erreur ouverture {ai['name']}: {e}")
+            # Fallback to webbrowser
+            webbrowser.open_new_tab(url)
+
     print("   ✅ Tous les onglets ouverts!")
 
 def save_request_to_file():
