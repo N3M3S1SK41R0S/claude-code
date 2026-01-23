@@ -1,0 +1,141 @@
+# AI Orchestrator Configuration
+# Double-click launcher for multi-AI collaboration
+
+orchestrator:
+  name: "Claude AI Orchestrator"
+  version: "1.0.0"
+  language: "fr"  # Interface language
+
+# Chrome browser settings
+browser:
+  executable: "google-chrome"  # or "chromium", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+  profile_dir: "~/.config/google-chrome/Default"
+  headless: false
+  parallel_tabs: 8  # Max simultaneous tabs
+  tab_delay_ms: 500  # Delay between opening tabs
+
+# AI Services configuration
+ai_services:
+  # Primary orchestrator
+  claude_sonnet:
+    name: "Claude Sonnet 4.5"
+    url: "https://claude.ai/new"
+    model: "claude-sonnet-4-5-20250514"
+    role: "orchestrator"
+    max_tokens: 8192
+    priority: 1
+
+  claude_opus:
+    name: "Claude Opus 4.5"
+    url: "https://claude.ai/new"
+    model: "claude-opus-4-5-20251101"
+    role: "synthesis"
+    max_tokens: 8192
+    priority: 1
+
+  # Secondary AIs for parallel querying
+  chatgpt:
+    name: "ChatGPT-4"
+    url: "https://chat.openai.com/"
+    role: "researcher"
+    max_tokens: 4096
+    priority: 2
+
+  gemini:
+    name: "Google Gemini"
+    url: "https://gemini.google.com/"
+    role: "researcher"
+    max_tokens: 8192
+    priority: 2
+
+  mistral:
+    name: "Mistral AI"
+    url: "https://chat.mistral.ai/"
+    role: "researcher"
+    max_tokens: 4096
+    priority: 2
+
+  perplexity:
+    name: "Perplexity AI"
+    url: "https://www.perplexity.ai/"
+    role: "researcher"
+    max_tokens: 4096
+    priority: 2
+
+  copilot:
+    name: "Microsoft Copilot"
+    url: "https://copilot.microsoft.com/"
+    role: "researcher"
+    max_tokens: 4096
+    priority: 3
+
+# Code-specific tools
+code_tools:
+  cursor:
+    name: "Cursor AI"
+    type: "ide"
+    path: "cursor"
+
+  vscode:
+    name: "VS Code"
+    type: "ide"
+    path: "code"
+
+  antigravity:
+    name: "Google Antigravity (Firebase Studio)"
+    url: "https://studio.firebase.google.com/"
+    type: "app_builder"
+
+# MCP (Model Context Protocol) servers
+mcp_servers:
+  filesystem:
+    enabled: true
+    command: "npx"
+    args: ["-y", "@anthropic/mcp-server-filesystem"]
+
+  github:
+    enabled: true
+    command: "npx"
+    args: ["-y", "@anthropic/mcp-server-github"]
+
+# Workflow settings
+workflow:
+  # Initial clarification phase
+  clarification:
+    enabled: true
+    max_exchanges: 5
+
+  # Parallel research phase
+  research:
+    parallel_queries: true
+    timeout_seconds: 120
+    simulate_on_failure: true
+
+  # Synthesis rounds
+  synthesis:
+    rounds: 3
+    models: ["claude_sonnet", "claude_opus"]
+    saturation_check: true
+
+  # Output formatting
+  formatting:
+    respect_token_limits: true
+    include_process_explanation: true
+    target_specific_instructions: true
+
+# Memory/Project persistence
+memory:
+  database_path: "~/.ai-orchestrator/projects.db"
+  auto_save: true
+  backup_enabled: true
+
+# Notification settings
+notifications:
+  show_progress: true
+  critical_only_mode: false
+  sound_enabled: false
+
+# Logging
+logging:
+  level: "INFO"
+  file: "~/.ai-orchestrator/logs/orchestrator.log"
