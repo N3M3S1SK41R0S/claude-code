@@ -3,8 +3,30 @@
 AI Orchestrator - Multi-AI Collaboration System
 Double-click to launch intelligent AI workflow orchestration.
 
+SIMPLE EXPLANATION (for a 6-year-old):
+    Imagine you have a question and want to ask many smart robot friends.
+    This program helps you:
+    1. First, you tell Claude what you want (like telling a teacher)
+    2. Then it asks ALL the robots at the same time (super fast!)
+    3. The robots' answers get mixed together to make ONE great answer
+    4. Finally, it checks the answer is good and remembers everything
+
+TECHNICAL EXPLANATION (for experts):
+    Multi-agent orchestration system implementing:
+    - Phase 1: Request clarification with Claude Sonnet (interactive refinement)
+    - Phase 2: Parallel querying of multiple LLMs (GPT-4, Gemini, Mistral, etc.)
+    - Phase 3: Multi-round synthesis with saturation detection
+    - Phase 4: Output formatting respecting per-model token limits
+    - Phase 5: Verification feedback loop with project persistence
+
+    Architecture:
+    - Browser-based interaction (Chrome tabs) for web UIs
+    - Optional direct API integration via worker modules
+    - SQLite persistence for project history
+    - Async-capable with sync fallbacks
+
 Author: Claude AI Assistant
-Version: 1.0.0
+Version: 1.1.0 (Security & Robustness Update)
 """
 
 import asyncio
@@ -27,7 +49,29 @@ import queue
 import time
 import yaml
 
-# Configure logging
+# =============================================================================
+# CONSTANTS - Centralized configuration values
+# =============================================================================
+
+# Token estimation: ~4 characters per token (conservative estimate)
+CHARS_PER_TOKEN = 4
+
+# Maximum parallel browser tabs to prevent system overload
+MAX_PARALLEL_TABS = 8
+
+# Delay between opening tabs (ms) to avoid rate limiting
+TAB_DELAY_MS = 500
+
+# Synthesis rounds for idea saturation
+DEFAULT_SYNTHESIS_ROUNDS = 3
+
+# Database path for project persistence
+DEFAULT_DB_PATH = "~/.ai-orchestrator/projects.db"
+
+# =============================================================================
+# LOGGING CONFIGURATION
+# =============================================================================
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -288,7 +332,21 @@ Focus on:
 
 
 class PromptFormatter:
-    """Formats prompts for specific AI services and tools."""
+    """Formats prompts for specific AI services and tools.
+
+    Simple explanation (for a 6-year-old):
+        This is like a translator that knows how to talk to different
+        AI robots. Each robot likes messages in a slightly different way,
+        so we format the message specially for each one.
+
+    Technical explanation (for experts):
+        Handles token limit enforcement, markdown support detection,
+        and platform-specific formatting. Implements whitelist validation
+        for tool names to prevent injection attacks.
+    """
+
+    # Token to character ratio (approximate)
+    CHARS_PER_TOKEN = 4
 
     AI_SPECS = {
         'claude': {'max_tokens': 8192, 'supports_markdown': True, 'supports_code': True},
@@ -298,10 +356,40 @@ class PromptFormatter:
         'antigravity': {'max_tokens': 4000, 'supports_markdown': False, 'supports_code': True},
     }
 
+    # Whitelist of valid tool names (security: prevents injection)
+    VALID_TOOLS = {'claude', 'chatgpt', 'gemini', 'mistral', 'antigravity',
+                   'cursor', 'vscode', 'codestral', 'perplexity', 'copilot'}
+
+    @classmethod
+    def validate_tool_name(cls, tool: str) -> str:
+        """Validate and normalize tool name.
+
+        Args:
+            tool: Tool name to validate
+
+        Returns:
+            Normalized tool name (lowercase)
+
+        Raises:
+            ValueError: If tool name is not in whitelist
+        """
+        if not tool or not isinstance(tool, str):
+            raise ValueError("Tool name must be a non-empty string")
+
+        normalized = tool.lower().strip()
+
+        if normalized not in cls.VALID_TOOLS:
+            valid_list = ', '.join(sorted(cls.VALID_TOOLS))
+            raise ValueError(f"Invalid tool '{tool}'. Valid tools: {valid_list}")
+
+        return normalized
+
     def format_for_ai(self, content: str, target_ai: str,
                       include_context: bool = True) -> str:
         """Format content for a specific AI service."""
-        specs = self.AI_SPECS.get(target_ai.lower(), self.AI_SPECS['claude'])
+        # Validate and normalize target_ai
+        target_ai = self.validate_tool_name(target_ai)
+        specs = self.AI_SPECS.get(target_ai, self.AI_SPECS['claude'])
 
         # Truncate if needed
         if len(content) > specs['max_tokens'] * 4:  # Rough char estimate
@@ -391,12 +479,39 @@ class AIOrchestrator:
         self.running = True
 
     def _load_config(self, config_path: str) -> Dict:
-        """Load configuration from YAML file."""
+        """Load configuration from YAML file.
+
+        Args:
+            config_path: Path to YAML config file (relative to script directory)
+
+        Returns:
+            Configuration dictionary, empty dict if file doesn't exist
+
+        Raises:
+            Logs error but returns empty dict on parse failure (graceful degradation)
+        """
         config_file = Path(__file__).parent / config_path
-        if config_file.exists():
-            with open(config_file) as f:
-                return yaml.safe_load(f)
-        return {}
+        if not config_file.exists():
+            logger.warning(f"Config file not found: {config_file}")
+            return {}
+
+        try:
+            with open(config_file, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+                if config is None:
+                    logger.warning(f"Config file is empty: {config_file}")
+                    return {}
+                logger.info(f"Loaded configuration from {config_file}")
+                return config
+        except yaml.YAMLError as e:
+            logger.error(f"Invalid YAML in config file {config_file}: {e}")
+            return {}
+        except IOError as e:
+            logger.error(f"Could not read config file {config_file}: {e}")
+            return {}
+        except Exception as e:
+            logger.error(f"Unexpected error loading config: {e}")
+            return {}
 
     def _init_ai_services(self) -> Dict[str, AIService]:
         """Initialize AI service configurations."""

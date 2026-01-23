@@ -176,31 +176,87 @@ class WorkflowBuilder(ABC):
         pass
 
     def generate_id(self, name: str) -> str:
-        """Generate unique workflow ID."""
+        """Generate unique workflow ID using SHA256 for better collision resistance."""
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-        hash_part = hashlib.md5(name.encode()).hexdigest()[:8]
+        # Use SHA256 instead of MD5 for better security and collision resistance
+        hash_part = hashlib.sha256(name.encode()).hexdigest()[:12]
         return f"wf_{timestamp}_{hash_part}"
 
     def save_workflow(self, workflow: WorkflowDefinition, filename: str = None) -> str:
-        """Save workflow to file."""
+        """Save workflow to file with proper error handling.
+
+        Args:
+            workflow: WorkflowDefinition to save
+            filename: Optional filename (defaults to workflow.id.json)
+
+        Returns:
+            Filepath where workflow was saved
+
+        Raises:
+            ValueError: If filename contains path separators (security)
+            IOError: If file cannot be written
+        """
         filename = filename or f"{workflow.id}.json"
+
+        # SECURITY: Prevent path traversal attacks
+        if '/' in filename or '\\' in filename or '..' in filename:
+            raise ValueError(f"Invalid filename (path traversal attempt): {filename}")
+
         filepath = self.output_dir / filename
 
-        with open(filepath, 'w') as f:
-            json.dump(workflow.to_dict(), f, indent=2)
-
-        logger.info(f"Workflow saved to: {filepath}")
-        return str(filepath)
+        try:
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(workflow.to_dict(), f, indent=2, ensure_ascii=False)
+            logger.info(f"Workflow saved to: {filepath}")
+            return str(filepath)
+        except IOError as e:
+            logger.error(f"Failed to save workflow to {filepath}: {e}")
+            raise
+        except (TypeError, ValueError) as e:
+            logger.error(f"Failed to serialize workflow: {e}")
+            raise
 
 
 class WorkflowAnalyzer:
-    """Analyzes requests to determine optimal workflow configuration."""
+    """Analyzes requests to determine optimal workflow configuration.
+
+    Memory Management:
+        History is limited to MAX_HISTORY_SIZE entries to prevent memory leaks.
+        Oldest entries are automatically removed when limit is exceeded.
+
+    Simple explanation (for a 6-year-old):
+        This is like a detective that looks at what you want to build and
+        figures out the best tools to use. It remembers the last 100 things
+        it analyzed (like a notebook with only 100 pages).
+
+    Technical explanation (for experts):
+        Implements bounded history with O(1) append and O(n) cleanup when
+        limit exceeded. Could be optimized with collections.deque for O(1)
+        operations on both ends.
+    """
+
+    MAX_HISTORY_SIZE = 100  # Limit history to prevent memory leaks
 
     def __init__(self):
         self.analysis_history: List[Dict] = []
 
     def analyze_request(self, request: str) -> Dict:
-        """Analyze a request and return workflow recommendations."""
+        """Analyze a request and return workflow recommendations.
+
+        Args:
+            request: Natural language description of desired workflow
+
+        Returns:
+            Analysis dict with workflow_type, platform, integrations, etc.
+
+        Note:
+            History is automatically pruned to MAX_HISTORY_SIZE entries.
+        """
+        # Input validation
+        if not request or not request.strip():
+            raise ValueError("Request cannot be empty")
+
+        request = request.strip()
         workflow_type = WorkflowBuilder.detect_workflow_type(request)
         platform = WorkflowBuilder.recommend_platform(workflow_type)
 
@@ -223,6 +279,13 @@ class WorkflowAnalyzer:
             'estimated_steps': len(suggested_nodes),
             'timestamp': datetime.now().isoformat()
         }
+
+        # Memory management: prune old entries if limit exceeded
+        if len(self.analysis_history) >= self.MAX_HISTORY_SIZE:
+            # Remove oldest 10% to avoid frequent cleanup
+            prune_count = self.MAX_HISTORY_SIZE // 10
+            self.analysis_history = self.analysis_history[prune_count:]
+            logger.debug(f"Pruned {prune_count} old analysis entries")
 
         self.analysis_history.append(analysis)
         return analysis

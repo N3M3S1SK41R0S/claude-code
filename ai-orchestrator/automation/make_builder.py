@@ -161,7 +161,8 @@ class MakeBuilder(WorkflowBuilder):
         ))
         pos += 1
 
-        # Call Claude API
+        # Call Claude API - SECURITY: Uses Make connection reference
+        # User must configure 'anthropic' connection in Make scenario settings
         modules.append(WorkflowNode(
             id="call_claude",
             name="Claude AI Request",
@@ -170,8 +171,9 @@ class MakeBuilder(WorkflowBuilder):
             parameters={
                 'url': 'https://api.anthropic.com/v1/messages',
                 'method': 'POST',
+                # SECURITY: Connection placeholder - actual credentials in Make settings
+                'connection': '__CONFIGURE_ANTHROPIC_CONNECTION__',
                 'headers': [
-                    {'name': 'x-api-key', 'value': '{{connection.anthropic.apiKey}}'},
                     {'name': 'anthropic-version', 'value': '2023-06-01'},
                     {'name': 'content-type', 'value': 'application/json'}
                 ],
@@ -180,7 +182,8 @@ class MakeBuilder(WorkflowBuilder):
                     'max_tokens': 4096,
                     'messages': [{'role': 'user', 'content': '{{2.request}}'}]
                 }
-            }
+            },
+            notes='SETUP REQUIRED: Create HTTP connection with Anthropic API key header'
         ))
         pos += 1
 

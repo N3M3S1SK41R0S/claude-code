@@ -211,7 +211,8 @@ return [{
         ))
         x += 250
 
-        # Claude API call
+        # Claude API call - SECURITY: Uses credential reference, not actual key
+        # User must configure 'anthropicApi' credential in n8n settings
         nodes.append(WorkflowNode(
             id="claude_api",
             name="Claude AI Processing",
@@ -220,12 +221,13 @@ return [{
             parameters={
                 'method': 'POST',
                 'url': 'https://api.anthropic.com/v1/messages',
-                'authentication': 'genericCredentialType',
-                'genericAuthType': 'httpHeaderAuth',
+                'authentication': 'predefinedCredentialType',
+                'nodeCredentialType': 'httpHeaderAuth',
                 'sendHeaders': True,
                 'headerParameters': {
                     'parameters': [
-                        {'name': 'x-api-key', 'value': '={{ $credentials.anthropicApi.apiKey }}'},
+                        # SECURITY: Credential placeholder - actual key configured in n8n
+                        {'name': 'x-api-key', 'value': '={{$credentials.httpHeaderAuth.value}}'},
                         {'name': 'anthropic-version', 'value': '2023-06-01'},
                         {'name': 'content-type', 'value': 'application/json'}
                     ]
@@ -239,7 +241,8 @@ return [{
                     ]
                 }
             },
-            credentials='anthropicApi'
+            credentials='httpHeaderAuth',
+            notes='SETUP: Create HTTP Header Auth credential named "Anthropic API" with header "x-api-key"'
         ))
         x += 250
 

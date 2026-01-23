@@ -232,6 +232,7 @@ class ZapierBuilder(WorkflowBuilder):
                     'transform': 'trim'
                 }
             ),
+            # SECURITY: API key placeholder - must be configured in Zapier connection
             WorkflowNode(
                 id="call_ai",
                 name="Send to Claude AI",
@@ -239,8 +240,9 @@ class ZapierBuilder(WorkflowBuilder):
                 parameters={
                     'method': 'POST',
                     'url': 'https://api.anthropic.com/v1/messages',
+                    # SECURITY: Use Zapier's secure credential storage
                     'headers': {
-                        'x-api-key': '{{auth.anthropic_key}}',
+                        'x-api-key': '__CONFIGURE_IN_ZAPIER_AUTH__',
                         'anthropic-version': '2023-06-01',
                         'content-type': 'application/json'
                     },
@@ -251,7 +253,8 @@ class ZapierBuilder(WorkflowBuilder):
                             {'role': 'user', 'content': '{{parse_input.output}}'}
                         ]
                     }
-                }
+                },
+                notes='SETUP: Add Anthropic API key in Zapier Authentication settings'
             ),
             WorkflowNode(
                 id="format_response",
