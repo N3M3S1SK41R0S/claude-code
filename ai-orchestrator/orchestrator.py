@@ -30,17 +30,20 @@ Version: 1.1.0 (Security & Robustness Update)
 """
 
 import asyncio
+import atexit
 import json
 import logging
 import os
 import signal
-import sys
 import sqlite3
+import sys
 import webbrowser
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from queue import Queue as ThreadQueue
 from typing import Optional, Dict, List, Any
 from concurrent.futures import ThreadPoolExecutor
 import subprocess
@@ -133,17 +136,112 @@ class Project:
     updated_at: datetime = field(default_factory=datetime.now)
 
 
-class ProjectMemory:
-    """Persistent storage for projects and their history."""
+class ConnectionPool:
+    """Thread-safe SQLite connection pool.
 
-    def __init__(self, db_path: str):
+    Simple explanation (for a 6-year-old):
+        This is like a box of shared crayons. When someone needs a crayon,
+        they take one from the box. When they're done, they put it back.
+        This way, we don't need to buy new crayons every time!
+
+    Technical explanation (for experts):
+        Thread-safe connection pool using a queue. Implements connection
+        reuse to avoid the overhead of creating new connections for each
+        database operation. Supports context manager protocol.
+    """
+
+    def __init__(self, db_path: str, pool_size: int = 5):
+        self.db_path = db_path
+        self.pool_size = pool_size
+        self._pool: ThreadQueue = ThreadQueue(maxsize=pool_size)
+        self._lock = threading.Lock()
+        self._initialized = False
+
+    def _create_connection(self) -> sqlite3.Connection:
+        """Create a new database connection with optimized settings."""
+        conn = sqlite3.connect(
+            self.db_path,
+            check_same_thread=False,
+            timeout=30.0
+        )
+        # Enable WAL mode for better concurrency
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.execute("PRAGMA cache_size=10000")
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def initialize(self):
+        """Initialize the connection pool."""
+        with self._lock:
+            if self._initialized:
+                return
+            for _ in range(self.pool_size):
+                self._pool.put(self._create_connection())
+            self._initialized = True
+            logger.debug(f"Connection pool initialized with {self.pool_size} connections")
+
+    @contextmanager
+    def get_connection(self):
+        """Get a connection from the pool (context manager)."""
+        if not self._initialized:
+            self.initialize()
+
+        conn = self._pool.get()
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self._pool.put(conn)
+
+    def close_all(self):
+        """Close all connections in the pool."""
+        with self._lock:
+            while not self._pool.empty():
+                try:
+                    conn = self._pool.get_nowait()
+                    conn.close()
+                except Exception:
+                    pass
+            self._initialized = False
+            logger.debug("Connection pool closed")
+
+
+class ProjectMemory:
+    """Persistent storage for projects and their history.
+
+    Simple explanation (for a 6-year-old):
+        This is like a diary that remembers all our projects.
+        We can write new projects, look up old ones, and never forget!
+
+    Technical explanation (for experts):
+        SQLite-backed persistence layer with connection pooling.
+        Supports project CRUD operations and AI response audit trail.
+    """
+
+    def __init__(self, db_path: str, pool_size: int = 5):
         self.db_path = Path(db_path).expanduser()
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Initialize connection pool
+        self._pool = ConnectionPool(str(self.db_path), pool_size)
+        self._pool.initialize()
+
         self._init_database()
+
+        # Register cleanup on exit
+        atexit.register(self.close)
+
+    def close(self):
+        """Close all database connections."""
+        self._pool.close_all()
 
     def _init_database(self):
         """Initialize SQLite database."""
-        with sqlite3.connect(self.db_path) as conn:
+        with self._pool.get_connection() as conn:
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS projects (
                     id TEXT PRIMARY KEY,
@@ -173,7 +271,7 @@ class ProjectMemory:
 
     def save_project(self, project: Project):
         """Save or update a project."""
-        with sqlite3.connect(self.db_path) as conn:
+        with self._pool.get_connection() as conn:
             conn.execute('''
                 INSERT OR REPLACE INTO projects
                 (id, name, description, original_request, clarified_request,
@@ -190,48 +288,48 @@ class ProjectMemory:
                 project.created_at.isoformat(),
                 datetime.now().isoformat()
             ))
-            conn.commit()
 
     def load_project(self, project_id: str) -> Optional[Project]:
         """Load a project by ID."""
-        with sqlite3.connect(self.db_path) as conn:
+        with self._pool.get_connection() as conn:
             cursor = conn.execute(
                 'SELECT * FROM projects WHERE id = ?', (project_id,)
             )
             row = cursor.fetchone()
             if row:
-                data = json.loads(row[6]) if row[6] else {}
+                data = json.loads(row['data']) if row['data'] else {}
                 return Project(
-                    id=row[0], name=row[1], description=row[2],
-                    original_request=row[3], clarified_request=row[4],
-                    final_output=row[5],
-                    created_at=datetime.fromisoformat(row[7]),
-                    updated_at=datetime.fromisoformat(row[8])
+                    id=row['id'], name=row['name'], description=row['description'],
+                    original_request=row['original_request'],
+                    clarified_request=row['clarified_request'],
+                    final_output=row['final_output'],
+                    created_at=datetime.fromisoformat(row['created_at']),
+                    updated_at=datetime.fromisoformat(row['updated_at'])
                 )
         return None
 
     def list_projects(self) -> List[Dict]:
         """List all projects."""
-        with sqlite3.connect(self.db_path) as conn:
+        with self._pool.get_connection() as conn:
             cursor = conn.execute(
                 'SELECT id, name, description, created_at FROM projects ORDER BY updated_at DESC'
             )
             return [
-                {'id': r[0], 'name': r[1], 'description': r[2], 'created_at': r[3]}
+                {'id': r['id'], 'name': r['name'], 'description': r['description'],
+                 'created_at': r['created_at']}
                 for r in cursor.fetchall()
             ]
 
     def save_ai_response(self, project_id: str, ai_service: str,
                          prompt: str, response: str, status: str):
         """Save an AI response for audit trail."""
-        with sqlite3.connect(self.db_path) as conn:
+        with self._pool.get_connection() as conn:
             conn.execute('''
                 INSERT INTO ai_responses
                 (project_id, ai_service, prompt, response, status, created_at)
                 VALUES (?, ?, ?, ?, ?, ?)
             ''', (project_id, ai_service, prompt, response, status,
                   datetime.now().isoformat()))
-            conn.commit()
 
 
 class BrowserController:
@@ -515,13 +613,77 @@ This is part of a multi-AI collaborative workflow. Your response will be synthes
         return instruction
 
 
+class GracefulShutdown:
+    """Handles graceful shutdown signals.
+
+    Simple explanation (for a 6-year-old):
+        This is like a "stop" button that tells everyone to finish
+        what they're doing nicely before we turn off the computer.
+
+    Technical explanation (for experts):
+        Singleton pattern for handling SIGINT/SIGTERM signals.
+        Allows cleanup of resources before process termination.
+    """
+
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._shutdown_requested = False
+                    cls._instance._callbacks: List[Callable] = []
+        return cls._instance
+
+    def request_shutdown(self):
+        """Request graceful shutdown."""
+        self._shutdown_requested = True
+        logger.info("Graceful shutdown requested")
+        for callback in self._callbacks:
+            try:
+                callback()
+            except Exception as e:
+                logger.error(f"Shutdown callback error: {e}")
+
+    def register_callback(self, callback: Callable):
+        """Register a cleanup callback."""
+        self._callbacks.append(callback)
+
+    @property
+    def shutdown_requested(self) -> bool:
+        """Check if shutdown was requested."""
+        return self._shutdown_requested
+
+
 class AIOrchestrator:
-    """Main orchestrator coordinating the entire workflow."""
+    """Main orchestrator coordinating the entire workflow.
+
+    Simple explanation (for a 6-year-old):
+        This is the boss that tells all the robot helpers what to do.
+        It asks you what you want, sends helpers to find answers,
+        mixes everything together, and gives you the best result!
+
+    Technical explanation (for experts):
+        Coordinates the 5-phase AI workflow:
+        1. Request clarification (Claude Sonnet)
+        2. Parallel AI research (multiple providers)
+        3. Multi-round synthesis with saturation detection
+        4. Output formatting for target tools
+        5. Verification feedback loop
+    """
 
     def __init__(self, config_path: str = "config.yaml"):
         self.config = self._load_config(config_path)
+
+        # Initialize graceful shutdown handler
+        self._shutdown = GracefulShutdown()
+        self._shutdown.register_callback(self._cleanup)
+
         self.memory = ProjectMemory(
-            self.config.get('memory', {}).get('database_path', '~/.ai-orchestrator/projects.db')
+            self.config.get('memory', {}).get('database_path', '~/.ai-orchestrator/projects.db'),
+            pool_size=self.config.get('memory', {}).get('pool_size', 5)
         )
         self.browser = BrowserController(self.config.get('browser', {}))
         self.synthesis = SynthesisEngine(self.config.get('workflow', {}).get('synthesis', {}))
@@ -531,8 +693,65 @@ class AIOrchestrator:
         self.response_queue = queue.Queue()
         self.running = True
 
+    def _cleanup(self):
+        """Cleanup resources on shutdown."""
+        logger.info("Cleaning up resources...")
+        self.running = False
+        if hasattr(self, 'memory'):
+            self.memory.close()
+        logger.info("Cleanup complete")
+
+    def _validate_config(self, config: Dict) -> List[str]:
+        """Validate configuration and return list of warnings.
+
+        Simple explanation (for a 6-year-old):
+            We check that all the settings make sense, like making sure
+            numbers are numbers and all required settings are there.
+
+        Technical explanation (for experts):
+            Schema validation for configuration dictionary.
+            Returns list of warning messages for invalid values.
+        """
+        warnings = []
+
+        # Validate browser settings
+        browser = config.get('browser', {})
+        if 'parallel_tabs' in browser:
+            if not isinstance(browser['parallel_tabs'], int) or browser['parallel_tabs'] < 1:
+                warnings.append(f"browser.parallel_tabs must be positive integer, got: {browser['parallel_tabs']}")
+        if 'tab_delay_ms' in browser:
+            if not isinstance(browser['tab_delay_ms'], (int, float)) or browser['tab_delay_ms'] < 0:
+                warnings.append(f"browser.tab_delay_ms must be non-negative number")
+
+        # Validate workflow settings
+        workflow = config.get('workflow', {})
+        synthesis = workflow.get('synthesis', {})
+        if 'rounds' in synthesis:
+            if not isinstance(synthesis['rounds'], int) or synthesis['rounds'] < 1:
+                warnings.append(f"workflow.synthesis.rounds must be positive integer")
+
+        # Validate memory settings
+        memory = config.get('memory', {})
+        if 'pool_size' in memory:
+            if not isinstance(memory['pool_size'], int) or memory['pool_size'] < 1:
+                warnings.append(f"memory.pool_size must be positive integer")
+
+        # Validate AI services
+        ai_services = config.get('ai_services', {})
+        for name, svc in ai_services.items():
+            if not svc.get('url'):
+                warnings.append(f"ai_services.{name}.url is required")
+            if 'max_tokens' in svc:
+                if not isinstance(svc['max_tokens'], int) or svc['max_tokens'] < 1:
+                    warnings.append(f"ai_services.{name}.max_tokens must be positive integer")
+            if 'priority' in svc:
+                if not isinstance(svc['priority'], int) or not 1 <= svc['priority'] <= 10:
+                    warnings.append(f"ai_services.{name}.priority must be integer 1-10")
+
+        return warnings
+
     def _load_config(self, config_path: str) -> Dict:
-        """Load configuration from YAML file.
+        """Load and validate configuration from YAML file.
 
         Args:
             config_path: Path to YAML config file (relative to script directory)
@@ -554,6 +773,12 @@ class AIOrchestrator:
                 if config is None:
                     logger.warning(f"Config file is empty: {config_file}")
                     return {}
+
+                # Validate configuration
+                warnings = self._validate_config(config)
+                for warning in warnings:
+                    logger.warning(f"Config validation: {warning}")
+
                 logger.info(f"Loaded configuration from {config_file}")
                 return config
         except yaml.YAMLError as e:
@@ -1003,12 +1228,16 @@ Please provide your verification assessment."""
 
 def main():
     """Entry point for the AI Orchestrator."""
-    # Handle signals gracefully
+    # Initialize graceful shutdown handler
+    shutdown_handler = GracefulShutdown()
+
     def signal_handler(sig, frame):
         print("\n\nShutting down gracefully...")
+        shutdown_handler.request_shutdown()
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     # Find config file
     script_dir = Path(__file__).parent
@@ -1020,7 +1249,14 @@ def main():
 
     # Create and run orchestrator
     orchestrator = AIOrchestrator(str(config_path))
-    orchestrator.run()
+
+    try:
+        orchestrator.run()
+    except KeyboardInterrupt:
+        print("\nInterrupted by user")
+    finally:
+        # Ensure cleanup happens
+        shutdown_handler.request_shutdown()
 
 
 if __name__ == "__main__":
