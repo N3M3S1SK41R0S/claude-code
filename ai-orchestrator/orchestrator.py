@@ -44,7 +44,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from queue import Queue as ThreadQueue
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Callable
 from concurrent.futures import ThreadPoolExecutor
 import subprocess
 import threading
