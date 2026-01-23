@@ -218,7 +218,7 @@ class SemanticCompressor:
 
             if not is_duplicate:
                 unique_paragraphs.append(para)
-                seen_hashes.add((para_hash, para_words))
+                seen_hashes.add((para_hash, frozenset(para_words)))
 
         return '\n\n'.join(unique_paragraphs)
 
