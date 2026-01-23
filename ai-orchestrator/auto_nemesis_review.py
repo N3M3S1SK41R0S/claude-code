@@ -132,11 +132,11 @@ def copy_to_clipboard(text):
             return False
 
 def open_ai_tabs():
-    """Open all AI service tabs - with better Windows support."""
+    """Open all AI service tabs in Chrome specifically."""
     import platform
     system = platform.system()
 
-    print("\n📂 Ouverture des onglets IA...")
+    print("\n📂 Ouverture des onglets IA dans Chrome...")
 
     for i, ai in enumerate(AI_SERVICES):
         url = ai['url']
@@ -144,22 +144,41 @@ def open_ai_tabs():
 
         try:
             if system == 'Windows':
-                # Windows: use start command for more reliable browser opening
-                os.system(f'start "" "{url}"')
-            elif system == 'Darwin':
-                # macOS: use open command
-                os.system(f'open "{url}"')
-            else:
-                # Linux: use webbrowser
-                webbrowser.open_new_tab(url)
+                # Windows: Open specifically in Chrome as new tab
+                # Try common Chrome paths
+                chrome_paths = [
+                    r'C:\Program Files\Google\Chrome\Application\chrome.exe',
+                    r'C:\Program Files (x86)\Google\Chrome\Application\chrome.exe',
+                    os.path.expandvars(r'%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe'),
+                ]
 
-            time.sleep(1.0)  # Longer delay for Windows
+                chrome_found = False
+                for chrome_path in chrome_paths:
+                    if os.path.exists(chrome_path):
+                        os.system(f'"{chrome_path}" --new-tab "{url}"')
+                        chrome_found = True
+                        break
+
+                if not chrome_found:
+                    # Fallback: try 'start chrome' command
+                    os.system(f'start chrome "{url}"')
+
+            elif system == 'Darwin':
+                # macOS: open in Chrome specifically
+                os.system(f'open -a "Google Chrome" "{url}"')
+            else:
+                # Linux: try google-chrome or chromium
+                try:
+                    os.system(f'google-chrome --new-tab "{url}" 2>/dev/null || chromium --new-tab "{url}" 2>/dev/null')
+                except:
+                    webbrowser.open_new_tab(url)
+
+            time.sleep(1.5)  # Delay between tabs
         except Exception as e:
             print(f"   ⚠️ Erreur ouverture {ai['name']}: {e}")
-            # Fallback to webbrowser
             webbrowser.open_new_tab(url)
 
-    print("   ✅ Tous les onglets ouverts!")
+    print("   ✅ Tous les onglets ouverts dans Chrome!")
 
 def save_request_to_file():
     """Save the request to a file for easy access."""
