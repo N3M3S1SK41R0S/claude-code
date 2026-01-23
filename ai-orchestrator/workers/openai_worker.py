@@ -1,10 +1,21 @@
 """
 OpenAI Worker - GPT API integration.
+
+SIMPLE EXPLANATION (for a 6-year-old):
+    This is a robot helper that talks to ChatGPT.
+    You give it a question, it asks ChatGPT, and brings back the answer.
+
+TECHNICAL EXPLANATION (for experts):
+    Implements OpenAI API client with:
+    - Thread-safe lazy initialization
+    - Availability caching via base class
+    - Support for function calling
 """
 
 import asyncio
 import logging
 import os
+import threading
 import time
 from typing import Dict, List, Optional
 
@@ -14,7 +25,10 @@ logger = logging.getLogger('OpenAI-Worker')
 
 
 class OpenAIWorker(AIWorker):
-    """Worker for OpenAI GPT API interactions."""
+    """Worker for OpenAI GPT API interactions.
+
+    Thread-safe with availability caching for reduced API overhead.
+    """
 
     MODELS = {
         'gpt4': 'gpt-4-turbo-preview',
@@ -24,37 +38,63 @@ class OpenAIWorker(AIWorker):
         'o1-mini': 'o1-mini',
     }
 
+    # Thread-safe client initialization
+    _client_lock = threading.Lock()
+
     def __init__(self, api_key: Optional[str] = None, model: str = 'gpt4o',
                  config: Dict = None):
         super().__init__(api_key, config)
         self.api_key = api_key or os.environ.get('OPENAI_API_KEY')
+
+        # Validate API key format
+        if self.api_key and not self.api_key.startswith('sk-'):
+            logger.warning("OpenAI API key may be invalid (expected 'sk-' prefix)")
+
         self.name = f"OpenAI-{model}"
         self.model = self.MODELS.get(model, model)
         self.max_tokens = 4096
         self._client = None
 
     def _get_client(self):
-        """Get or create OpenAI client."""
+        """Get or create OpenAI client with thread-safe initialization."""
         if self._client is None:
-            try:
-                import openai
-                self._client = openai.OpenAI(api_key=self.api_key)
-            except ImportError:
-                logger.error("openai package not installed. Run: pip install openai")
-                raise
+            with self._client_lock:
+                if self._client is None:
+                    if not self.api_key:
+                        raise ValueError("OpenAI API key not configured")
+                    try:
+                        import openai
+                        self._client = openai.OpenAI(api_key=self.api_key)
+                        logger.debug(f"Initialized OpenAI client for {self.name}")
+                    except ImportError:
+                        logger.error("openai package not installed. Run: pip install openai")
+                        raise
         return self._client
 
     async def check_availability(self) -> bool:
-        """Check if OpenAI API is available."""
+        """Check if OpenAI API is available with caching."""
         if not self.api_key:
             logger.warning("No OpenAI API key configured")
             return False
 
+        # Check cache first
+        cached = self._availability_cache.get(self.name)
+        if cached is not None:
+            return cached
+
         try:
             client = self._get_client()
+            # Try to list models as a lightweight check
+            loop = asyncio.get_event_loop()
+            await loop.run_in_executor(
+                None,
+                lambda: list(client.models.list())[:1]  # Just get first model
+            )
+            self._availability_cache.set(self.name, True)
             return True
         except Exception as e:
             logger.error(f"OpenAI availability check failed: {e}")
+            self._availability_cache.set(self.name, False)
             return False
 
     async def send_message(self, task: WorkerTask) -> WorkerResponse:

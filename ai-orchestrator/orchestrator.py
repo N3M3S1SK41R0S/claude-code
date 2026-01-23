@@ -279,11 +279,32 @@ class BrowserController:
 
 
 class SynthesisEngine:
-    """Handles synthesis and refinement of AI responses."""
+    """Handles synthesis and refinement of AI responses.
 
-    def __init__(self, config: Dict):
-        self.config = config
-        self.rounds = config.get('rounds', 3)
+    Simple explanation (for a 6-year-old):
+        This is like a chef who takes many different recipes and mixes
+        them together to make one super recipe that has the best parts
+        of all the others.
+
+    Technical explanation (for experts):
+        Implements multi-round synthesis with saturation detection.
+        Generates structured prompts for AI synthesis and tracks
+        idea coverage to determine when synthesis is complete.
+    """
+
+    # Constants for saturation detection
+    MIN_WORD_COUNT = 500
+    MIN_UNIQUE_CONCEPTS = 50
+    SATURATION_THRESHOLD = 100
+
+    def __init__(self, config: Dict = None):
+        self.config = config or {}
+        self.rounds = self.config.get('rounds', DEFAULT_SYNTHESIS_ROUNDS)
+
+        # Validate rounds
+        if not isinstance(self.rounds, int) or self.rounds < 1:
+            logger.warning(f"Invalid rounds value {self.rounds}, using default 3")
+            self.rounds = DEFAULT_SYNTHESIS_ROUNDS
 
     def generate_synthesis_prompt(self, responses: List[Dict], round_num: int) -> str:
         """Generate a synthesis prompt from multiple AI responses."""
@@ -318,16 +339,48 @@ Focus on:
         return prompt
 
     def check_saturation(self, content: str) -> Dict:
-        """Check if ideas are fully saturated."""
+        """Check if ideas are fully saturated.
+
+        Simple explanation (for a 6-year-old):
+            We check if our super recipe has enough ingredients and if
+            they're all different. If we have enough variety, we're done!
+
+        Technical explanation (for experts):
+            Uses word count and unique concept ratio as heuristics for
+            content saturation. Returns metrics and recommendation.
+
+        Args:
+            content: The synthesized content to analyze
+
+        Returns:
+            Dict with saturation metrics and needs_more_rounds flag
+        """
+        # Handle empty/None content
+        if not content:
+            return {
+                'word_count': 0,
+                'unique_concepts': 0,
+                'saturation_estimate': 0,
+                'needs_more_rounds': True
+            }
+
         # Simple heuristic - in production, use Claude API for analysis
-        word_count = len(content.split())
-        unique_concepts = len(set(content.lower().split()))
+        words = content.split()
+        word_count = len(words)
+        unique_concepts = len(set(word.lower() for word in words if len(word) > 3))
+
+        # Calculate saturation estimate (0-100)
+        if word_count == 0:
+            saturation_estimate = 0
+        else:
+            diversity_ratio = unique_concepts / word_count
+            saturation_estimate = min(self.SATURATION_THRESHOLD, diversity_ratio * 500)
 
         return {
             'word_count': word_count,
             'unique_concepts': unique_concepts,
-            'saturation_estimate': min(100, (unique_concepts / max(word_count, 1)) * 500),
-            'needs_more_rounds': word_count < 500 or unique_concepts < 50
+            'saturation_estimate': saturation_estimate,
+            'needs_more_rounds': word_count < self.MIN_WORD_COUNT or unique_concepts < self.MIN_UNIQUE_CONCEPTS
         }
 
 
@@ -567,7 +620,25 @@ class AIOrchestrator:
         return '\n'.join(lines).strip()
 
     def phase1_clarification(self, request: str) -> str:
-        """Phase 1: Clarify and enrich request with Claude Sonnet."""
+        """Phase 1: Clarify and enrich request with Claude Sonnet.
+
+        Args:
+            request: The original user request (must be non-empty)
+
+        Returns:
+            Clarified request (original if user skips clarification)
+
+        Raises:
+            ValueError: If request is empty or invalid
+        """
+        # Input validation
+        if not request or not isinstance(request, str):
+            raise ValueError("Request must be a non-empty string")
+
+        request = request.strip()
+        if not request:
+            raise ValueError("Request cannot be empty or whitespace only")
+
         print("\n" + "="*60)
         print("   PHASE 1: Clarification with Claude Sonnet 4.5")
         print("="*60)
@@ -612,7 +683,22 @@ Please ask clarifying questions before proceeding."""
         return request
 
     def phase2_parallel_research(self, clarified_request: str) -> List[Dict]:
-        """Phase 2: Query multiple AIs in parallel."""
+        """Phase 2: Query multiple AIs in parallel.
+
+        Args:
+            clarified_request: The clarified request from phase 1
+
+        Returns:
+            List of response dicts with 'source', 'content', 'status' keys
+        """
+        # Input validation
+        if not clarified_request or not isinstance(clarified_request, str):
+            logger.warning("Empty clarified request, using original")
+            clarified_request = self.current_project.original_request if self.current_project else ""
+
+        if not clarified_request:
+            return []  # Cannot proceed without a request
+
         print("\n" + "="*60)
         print("   PHASE 2: Parallel AI Research")
         print("="*60)
@@ -622,6 +708,11 @@ Please ask clarifying questions before proceeding."""
             svc for svc in self.ai_services.values()
             if svc.role == AIRole.RESEARCHER and svc.available
         ]
+
+        if not research_ais:
+            logger.warning("No research AIs available")
+            print("\n⚠ No research AIs configured. Skipping parallel research.")
+            return []
 
         print(f"\nOpening {len(research_ais)} AI tabs for parallel research...")
 
@@ -693,7 +784,31 @@ Please ask clarifying questions before proceeding."""
         return responses
 
     def phase3_synthesis(self, responses: List[Dict]) -> str:
-        """Phase 3: Synthesis rounds with Claude Sonnet and Opus."""
+        """Phase 3: Synthesis rounds with Claude Sonnet and Opus.
+
+        Args:
+            responses: List of AI responses from phase 2
+
+        Returns:
+            Final synthesized content (empty string if no responses)
+        """
+        # Input validation
+        if not responses:
+            logger.warning("No responses to synthesize")
+            print("\n⚠ No responses to synthesize. Skipping synthesis phase.")
+            return ""
+
+        # Filter out empty responses
+        valid_responses = [
+            r for r in responses
+            if r.get('content') and r.get('content').strip()
+        ]
+
+        if not valid_responses:
+            logger.warning("All responses are empty")
+            print("\n⚠ All responses are empty. Skipping synthesis phase.")
+            return ""
+
         print("\n" + "="*60)
         print("   PHASE 3: Synthesis Rounds (3x)")
         print("="*60)

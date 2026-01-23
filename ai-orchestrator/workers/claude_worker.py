@@ -81,20 +81,26 @@ class ClaudeWorker(AIWorker):
         """Check if Claude API is available and responding.
 
         Performs a real API health check by sending a minimal request.
-        Results are cached for 60 seconds to avoid excessive API calls.
+        Results are cached (via base class) to avoid excessive API calls.
 
         Simple explanation (for a 6-year-old):
             We knock on Claude's door to see if anyone's home.
             If someone answers, we know Claude is ready to help!
+            We remember the answer for a little while so we don't keep knocking.
 
         Technical explanation (for experts):
             Sends a minimal token request to verify API key validity
             and service availability. Uses count_tokens endpoint for
-            minimal cost and latency.
+            minimal cost and latency. Results cached by base class.
         """
         if not self.api_key:
             logger.warning("No Anthropic API key configured")
             return False
+
+        # Check cache first (handled by WorkerPool, but also check here for direct calls)
+        cached = self._availability_cache.get(self.name)
+        if cached is not None:
+            return cached
 
         try:
             client = self._get_client()
@@ -110,13 +116,16 @@ class ClaudeWorker(AIWorker):
                 )
             )
             logger.debug(f"{self.name} API available")
+            self._availability_cache.set(self.name, True)
             return True
         except Exception as e:
             # Fallback: if count_tokens not available, just check client init
             if "count_tokens" in str(e) or "not found" in str(e).lower():
                 logger.debug(f"{self.name} count_tokens not available, assuming OK")
+                self._availability_cache.set(self.name, True)
                 return True
             logger.error(f"Claude availability check failed: {e}")
+            self._availability_cache.set(self.name, False)
             return False
 
     async def send_message(self, task: WorkerTask) -> WorkerResponse:
