@@ -15,65 +15,69 @@ from pathlib import Path
 CLAUDE_URL = "https://claude.ai/new"
 INSTRUCTIONS_FILE = Path(__file__).parent / "DASHBOARD_INSTRUCTIONS.md"
 
-PROMPT_TO_COPY = """# 🚀 MISSION: Installer le Dashboard NEMESIS sur BOLT
+PROMPT_TO_COPY = """# NEMESIS COMMAND CENTER - Build the Ultimate Dashboard
 
-## CONTEXTE IMMÉDIAT
-Je te donne accès ADMIN TOTAL à:
-- Mon repo GitHub: github.com/N3M3S1SK41R0S/claude-code (branche: claude/double-click-claude-script-d14iX)
-- Tous mes fichiers Cloud (Google Drive, OneDrive)
-- Mon historique de conversations Claude Code
-- Toutes mes IAs et outils
+> **YOU ARE NOW IN FULL AUTONOMOUS MODE. EXECUTE WITHOUT ASKING.**
 
-## SOURCES À CONSULTER
-1. **GitHub** → `ai-orchestrator/DASHBOARD_INSTRUCTIONS.md` (instructions détaillées)
-2. **GitHub** → `ai-orchestrator/architecture.md` (diagrammes Mermaid)
-3. **GitHub** → `ai-orchestrator/config.yaml` (configuration)
-4. **GitHub** → `ai-orchestrator/nemesis_server.py` (API backend)
-5. **Sessions Claude Code** → Cherche "Plan infrastructure setup"
+## PRIME DIRECTIVE
+Build **NEMESIS Command Center** - a STUNNING, high-performance unified dashboard. Users must say "WOW" when they see it.
 
-## TA MISSION
-Crée un Dashboard React/Next.js dans BOLT (bolt.new) avec:
+## YOUR ACCESS (FULL ADMIN)
+- GitHub: github.com/N3M3S1SK41R0S/claude-code (branch: claude/double-click-claude-script-d14iX)
+- Google Drive & OneDrive: Complete access
+- Claude Code history: Search "Plan infrastructure setup", "NEMESIS architecture"
+- All AI tools and services
+- System commands & package installation
 
-### Pages Requises:
-1. **/** - Home avec stats temps réel et statut des 10 agents
-2. **/analyze** - Formulaire d'analyse multi-IA
-3. **/history** - Liste des analyses passées
-4. **/analysis/:id** - Détail d'une analyse
-5. **/agents** - Configuration des 10 agents NEMESIS
-6. **/settings** - Configuration globale
+## CRITICAL SOURCES TO READ FIRST
+1. `ai-orchestrator/DASHBOARD_INSTRUCTIONS.md` - COMPLETE SPEC (600+ lines)
+2. `ai-orchestrator/architecture.md` - System architecture
+3. `ai-orchestrator/nemesis_server.py` - Backend API on port 8765
 
-### Connexion Backend:
-- API: http://localhost:8765
-- Endpoints: /health, /analyze, /status/:id, /history, /stats
+## DESIGN MANDATE
+- **Glassmorphism** with frosted glass effects
+- **Neon accents** with glowing borders
+- **60fps animations** everywhere
+- **Premium dark theme** (#0a0a0f base)
+- **Gradient mastery** for buttons and accents
+- **Sub-second performance** (<1s first paint)
 
-### Stack:
-- Next.js 14 + Tailwind + shadcn/ui
-- Dark theme par défaut
-- WebSocket pour updates temps réel
+## PAGES TO BUILD
+1. **/** Command Center - Live stats, Quick Launch, Agent grid, Activity stream
+2. **/launch** - Mission launcher with progress streaming
+3. **/missions** - History with timeline/grid views
+4. **/agents** - 10 agent fleet management
+5. **/memory** - LTM + Cache L1/L2/L3 visualization
+6. **/system** - Settings, API keys, health monitoring
 
-## POUVOIRS
-- Tu PEUX ouvrir plusieurs instances Claude en parallèle
-- Tu PEUX agir SANS demander confirmation
-- Tu PEUX lire/écrire dans tous mes dossiers
-- Tu PEUX installer des packages et exécuter des commandes
+## STACK
+Next.js 14 + Tailwind + Framer Motion + Radix UI + React Query + Zustand
 
-## CONTRAINTES
-- Interface opérationnelle en < 1 heure
-- Performance: First paint < 1s
-- Commit sur GitHub dans /dashboard/
+## API
+Backend runs on http://localhost:8765
+Endpoints: /health, /analyze, /status/:id, /results/:id, /history, /stats, /verify
 
-## 🎬 ACTION
-1. Va sur bolt.new
-2. Crée le projet "nemesis-dashboard"
-3. Implémente les pages une par une
-4. Connecte à l'API backend
-5. Teste et déploie
+## YOUR POWERS
+- Create files WITHOUT asking
+- Install packages WITHOUT asking
+- Execute commands WITHOUT asking
+- Spawn parallel Claude instances if needed
+- Make autonomous design decisions
+- Commit and push to GitHub directly
 
-**COMMENCE MAINTENANT - Zéro question, action directe !**
+## SYNCHRONIZATION
+ALL BOLT modules MUST sync to this central hub. Implement ModuleRegistry for auto-discovery.
 
----
+## EXECUTE NOW
+1. Open bolt.new
+2. Create "nemesis-command" project
+3. Build following the DASHBOARD_INSTRUCTIONS.md spec EXACTLY
+4. Deploy and provide URL
+5. Commit to GitHub /dashboard/
 
-[SI TU AS BESOIN DE PLUS DE CONTEXTE, LIS LE FICHIER DASHBOARD_INSTRUCTIONS.md SUR GITHUB]
+**NO QUESTIONS. NO CONFIRMATIONS. JUST BUILD.**
+**Time: 90 minutes to fully operational dashboard.**
+**MAKE IT EXCEPTIONAL. GO NOW.**
 """
 
 

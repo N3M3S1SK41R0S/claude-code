@@ -1,385 +1,625 @@
-# 🚀 NEMESIS DASHBOARD - Instructions d'Installation pour Claude
+# NEMESIS COMMAND CENTER - Ultimate Dashboard Build Instructions
 
-## 🎯 MISSION PRINCIPALE
-
-Tu es chargé de créer et déployer le **NEMESIS Dashboard** - une interface web unifiée pour orchestrer tous les agents IA du système NEMESIS.
+> **YOU ARE NOW IN FULL AUTONOMOUS MODE. EXECUTE WITHOUT ASKING.**
 
 ---
 
-## 📚 SOURCES D'INFORMATION
+## PRIME DIRECTIVE
 
-### 1. Repository GitHub
-```
-https://github.com/N3M3S1SK41R0S/claude-code
-Branche: claude/double-click-claude-script-d14iX
-Dossier principal: ai-orchestrator/
-```
+You are tasked with building **NEMESIS Command Center** - a stunning, high-performance unified dashboard that serves as the SINGLE ENTRY POINT to control ALL AI orchestration modules.
 
-### 2. Fichiers Clés à Lire
-```
-ai-orchestrator/
-├── architecture.md          # Diagrammes et architecture complète
-├── config.yaml              # Configuration YAML
-├── nemesis.py               # CLI entry point
-├── nemesis_server.py        # API REST (port 8765)
-├── nemesis_mcp_server.py    # Intégration MCP
-├── core/
-│   ├── gateway.py           # Tool Gateway
-│   ├── verifier.py          # Critic Layer
-│   ├── router.py            # Smart Router
-│   └── tracer.py            # Request Tracking
-├── memory/
-│   ├── ltm.py               # Long-Term Memory
-│   └── cache.py             # Multi-level Cache
-└── workers/
-    └── base.py              # Circuit Breaker, patterns
-```
-
-### 3. Sessions Claude Code Précédentes
-- Cherche dans l'historique: "Plan infrastructure setup"
-- Cherche: "NEMESIS architecture"
-- Cherche: "ai-orchestrator"
-
-### 4. Accès Cloud
-- Google Drive: Accès complet
-- OneDrive: Accès complet
-- Historique conversations: Accessible
+**Your goal**: Create an interface so beautiful and intuitive that users say "WOW" when they see it, while maintaining sub-second performance.
 
 ---
 
-## 🏗️ ARCHITECTURE DU DASHBOARD
+## CRITICAL REQUIREMENTS
 
+### 1. UNIFIED SINGLE ENTRY POINT
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                     NEMESIS DASHBOARD                            │
-│                   http://localhost:3000                          │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────────┐    │
-│  │                    HEADER / NAV                          │    │
-│  │  🏠 Home  │  ⚡ Analyze  │  📜 History  │  ⚙️ Settings  │    │
-│  └─────────────────────────────────────────────────────────┘    │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌──────────────────────┐  ┌──────────────────────────────┐    │
-│  │   STATUS PANEL       │  │      MAIN CONTENT            │    │
-│  │                      │  │                              │    │
-│  │  🟢 API Server       │  │  [Contenu dynamique selon    │    │
-│  │  🟢 MCP Server       │  │   la page sélectionnée]      │    │
-│  │  🟡 7 Agents Active  │  │                              │    │
-│  │  📊 12 analyses/jour │  │                              │    │
-│  │                      │  │                              │    │
-│  │  AGENTS:             │  │                              │    │
-│  │  ├─ ZEUS      🟢     │  │                              │    │
-│  │  ├─ SCRIBE    🟢     │  │                              │    │
-│  │  ├─ ANALYST   🟢     │  │                              │    │
-│  │  ├─ ARCHITECT 🟢     │  │                              │    │
-│  │  ├─ CODER     🟢     │  │                              │    │
-│  │  ├─ CRITIC    🟢     │  │                              │    │
-│  │  └─ SENTINEL  🟢     │  │                              │    │
-│  │                      │  │                              │    │
-│  └──────────────────────┘  └──────────────────────────────┘    │
-├─────────────────────────────────────────────────────────────────┤
-│                    QUICK ACTIONS BAR                             │
-│  [🚀 New Analysis] [📋 From Clipboard] [📁 Upload] [🔄 Refresh] │
-└─────────────────────────────────────────────────────────────────┘
+ALL modules MUST be accessible from ONE dashboard:
+├── Multi-AI Analysis orchestration
+├── Agent fleet management (10 agents)
+├── Memory systems (LTM + Cache L1/L2/L3)
+├── Cost tracking & optimization
+├── Real-time monitoring
+├── Historical data & analytics
+└── ALL future modules auto-sync here
 ```
 
----
-
-## 📄 PAGES À CRÉER
-
-### Page 1: Home / Dashboard (`/`)
-```jsx
-// Affiche:
-- Statistiques globales (analyses, succès, coûts)
-- Graphique d'activité récente
-- Agents actifs avec leur statut
-- Dernières analyses (3-5)
-- Alertes/notifications
-```
-
-### Page 2: Nouvelle Analyse (`/analyze`)
-```jsx
-// Formulaire:
-- Textarea pour le contenu (ou upload fichier)
-- Sélection du mode: auto / semi-auto / manuel
-- Nombre de rounds: 1-5
-- Agents à utiliser (checkboxes)
-- Focus: général / critique / technique / créatif / sécurité
-- Bouton "Lancer l'analyse" → POST /api/analyze
-- Progress bar temps réel via WebSocket
-```
-
-### Page 3: Historique (`/history`)
-```jsx
-// Liste paginée:
-- Date/heure
-- Aperçu du sujet (50 chars)
-- Statut (✅ ❌ ⏳)
-- Durée
-- Coût estimé
-- Actions: Voir, Relancer, Supprimer
-- Filtres: date, statut, agents
-```
-
-### Page 4: Détail Analyse (`/analysis/:id`)
-```jsx
-// Affiche:
-- Requête originale
-- Réponses de chaque agent (tabs ou accordéon)
-- Synthèse finale
-- Métriques (tokens, coût, durée)
-- Export: MD, PDF, JSON
-```
-
-### Page 5: Agents (`/agents`)
-```jsx
-// Pour chaque agent:
-- Nom, rôle, modèle utilisé
-- Statut (actif/inactif)
-- Statistiques d'utilisation
-- Configuration (éditable)
-- Logs récents
-```
-
-### Page 6: Memory (`/memory`)
-```jsx
-// Affiche:
-- Stats LTM (entrées, taille)
-- Stats Cache (L1/L2/L3 hit rates)
-- Recherche dans la mémoire
-- Actions: Consolider, Nettoyer, Export
-```
-
-### Page 7: Settings (`/settings`)
-```jsx
-// Configuration:
-- Clés API (masquées)
-- Budget journalier
-- Agents par défaut
-- Mode headless
-- Thème (dark/light)
-- Langue
-```
-
----
-
-## 🔌 API ENDPOINTS (Backend existant sur :8765)
-
+### 2. BOLT MODULE SYNCHRONIZATION
 ```javascript
-// Base URL: http://localhost:8765
-
-// Health check
-GET /health
-Response: { status: "ok", version: "2.0.0", running_jobs: 0 }
-
-// Lancer une analyse
-POST /analyze
-Body: { text: "...", mode: "auto", rounds: 1 }
-Response: { status: "accepted", request_id: "abc123" }
-
-// Statut d'une analyse
-GET /status/:request_id
-Response: { status: "running|completed|failed", result: {...} }
-
-// Résultats
-GET /results/:request_id
-Response: Markdown du rapport
-
-// Historique
-GET /history?limit=50
-Response: { runs: [...], total: 123 }
-
-// Vérification
-POST /verify
-Body: { content: "...", type: "code" }
-Response: { passed: true, score: 0.95, issues: [] }
-
-// Statistiques
-GET /stats
-Response: { total_runs: 150, success_rate: 0.92, ... }
+// Every BOLT conversation/module MUST sync to this central hub
+// Implement a ModuleRegistry that auto-discovers and integrates:
+const moduleRegistry = {
+  autoDiscover: true,
+  syncInterval: 5000,
+  modules: [
+    { id: 'analysis', endpoint: '/api/analyze' },
+    { id: 'agents', endpoint: '/api/agents' },
+    { id: 'memory', endpoint: '/api/memory' },
+    { id: 'metrics', endpoint: '/api/stats' },
+    // Auto-register new modules as they appear
+  ]
+}
 ```
 
 ---
 
-## 🛠️ STACK TECHNIQUE RECOMMANDÉE
+## DESIGN EXCELLENCE MANDATE
 
-### Frontend (BOLT)
+### Visual Philosophy
 ```
-Framework: Next.js 14+ ou React + Vite
-UI: Tailwind CSS + shadcn/ui
-State: Zustand ou React Query
-Charts: Recharts ou Chart.js
-Icons: Lucide React
-WebSocket: socket.io-client (pour updates temps réel)
+STUNNING yet FUNCTIONAL
+BEAUTIFUL yet PERFORMANT
+IMPRESSIVE yet INTUITIVE
 ```
 
-### Structure des fichiers BOLT
-```
-src/
-├── app/
-│   ├── page.tsx              # Home
-│   ├── analyze/page.tsx      # Nouvelle analyse
-│   ├── history/page.tsx      # Historique
-│   ├── analysis/[id]/page.tsx # Détail
-│   ├── agents/page.tsx       # Agents
-│   ├── memory/page.tsx       # Memory
-│   └── settings/page.tsx     # Settings
-├── components/
-│   ├── ui/                   # shadcn components
-│   ├── Dashboard/
-│   │   ├── StatusPanel.tsx
-│   │   ├── AgentCard.tsx
-│   │   ├── StatsChart.tsx
-│   │   └── QuickActions.tsx
-│   ├── Analysis/
-│   │   ├── AnalysisForm.tsx
-│   │   ├── ProgressBar.tsx
-│   │   └── ResultViewer.tsx
-│   └── Layout/
-│       ├── Header.tsx
-│       ├── Sidebar.tsx
-│       └── Footer.tsx
-├── lib/
-│   ├── api.ts               # Fetch wrapper
-│   ├── websocket.ts         # WS connection
-│   └── utils.ts
-├── hooks/
-│   ├── useAnalysis.ts
-│   ├── useAgents.ts
-│   └── useStats.ts
-└── styles/
-    └── globals.css
-```
+### Design Principles (MANDATORY)
+1. **Glassmorphism** - Frosted glass effects with depth
+2. **Neon Accents** - Subtle glowing borders and highlights
+3. **Smooth Animations** - 60fps micro-interactions everywhere
+4. **Dark Theme Primary** - Premium dark aesthetic (#0a0a0f base)
+5. **Gradient Mastery** - Beautiful color transitions
+6. **3D Depth** - Layered cards with shadows and perspective
 
----
-
-## 🎨 DESIGN SPECIFICATIONS
-
-### Couleurs (Dark Theme par défaut)
+### Color Palette (Premium Dark)
 ```css
---background: #0a0a0a
---foreground: #fafafa
---primary: #6366f1        /* Indigo */
---secondary: #22d3ee      /* Cyan */
---success: #22c55e        /* Green */
---warning: #f59e0b        /* Amber */
---error: #ef4444          /* Red */
---muted: #71717a          /* Zinc */
+:root {
+  /* Base */
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-tertiary: #1a1a25;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-glass: rgba(255, 255, 255, 0.05);
+
+  /* Accent Gradients */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --gradient-info: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+
+  /* Neon Glows */
+  --glow-primary: 0 0 20px rgba(102, 126, 234, 0.5);
+  --glow-success: 0 0 20px rgba(56, 239, 125, 0.5);
+  --glow-cyan: 0 0 20px rgba(0, 242, 254, 0.5);
+
+  /* Text */
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+  --text-muted: #606070;
+}
 ```
 
-### Composants UI Clés
-```jsx
-// Card avec glow effect
-<Card className="bg-zinc-900/50 border-zinc-800 hover:border-indigo-500/50 transition-all">
+### Must-Have Visual Effects
+```css
+/* Glassmorphism Card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
 
-// Status indicator
-<span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+/* Neon Glow on Hover */
+.glow-hover:hover {
+  box-shadow: 0 0 30px rgba(102, 126, 234, 0.4);
+  border-color: rgba(102, 126, 234, 0.5);
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 
-// Gradient button
-<Button className="bg-gradient-to-r from-indigo-500 to-cyan-500 hover:from-indigo-600 hover:to-cyan-600">
+/* Animated Gradient Border */
+.gradient-border {
+  position: relative;
+  background: linear-gradient(var(--bg-card), var(--bg-card)) padding-box,
+              linear-gradient(135deg, #667eea, #764ba2, #f093fb) border-box;
+  border: 2px solid transparent;
+}
+
+/* Pulse Animation for Status */
+.status-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Smooth Page Transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
 ```
 
 ---
 
-## ⚡ FONCTIONNALITÉS PRIORITAIRES (MVP)
+## ARCHITECTURE - UNIFIED COMMAND CENTER
 
-### Phase 1 - Core (30 min)
-- [ ] Layout de base avec navigation
-- [ ] Page Home avec stats mock
-- [ ] Connexion à l'API /health
-- [ ] Page Analyze (formulaire basique)
-
-### Phase 2 - Fonctionnel (30 min)
-- [ ] POST /analyze fonctionnel
-- [ ] Affichage statut en temps réel
-- [ ] Page History avec liste
-- [ ] Page Detail avec résultats
-
-### Phase 3 - Polish (30 min)
-- [ ] Animations et transitions
-- [ ] Gestion erreurs
-- [ ] Mode responsive
-- [ ] Export des résultats
-
----
-
-## 🚀 COMMANDES DE DÉPLOIEMENT
-
-### Développement local
-```bash
-# Dans BOLT, le dev server est automatique
-# Ou localement:
-npm run dev
-# → http://localhost:3000
 ```
-
-### Connexion au backend
-```javascript
-// .env.local
-NEXT_PUBLIC_API_URL=http://localhost:8765
-NEXT_PUBLIC_WS_URL=ws://localhost:8765
-```
-
-### Production
-```bash
-npm run build
-npm start
-# Ou déployer sur Vercel/Netlify
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          NEMESIS COMMAND CENTER                              │
+│                        ═══════════════════════════                           │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  🏠 Command    ⚡ Launch    📊 Analytics    🤖 Agents    ⚙️ System  │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐            │
+│  │  ╔═══════════╗   │ │  ╔═══════════╗   │ │  ╔═══════════╗   │            │
+│  │  ║ LIVE OPS  ║   │ │  ║  AGENTS   ║   │ │  ║  METRICS  ║   │            │
+│  │  ╚═══════════╝   │ │  ╚═══════════╝   │ │  ╚═══════════╝   │            │
+│  │                  │ │                  │ │                  │            │
+│  │  🟢 3 Running    │ │  ZEUS      ████  │ │  Today: 47       │            │
+│  │  ⏳ 2 Queued     │ │  SCRIBE    ███   │ │  Success: 94%    │            │
+│  │  ✅ 142 Done     │ │  ANALYST   ████  │ │  Avg: 12.3s      │            │
+│  │                  │ │  CODER     █████ │ │  Cost: $2.47     │            │
+│  │  [View All →]    │ │  CRITIC    ██    │ │  [Details →]     │            │
+│  └──────────────────┘ └──────────────────┘ └──────────────────┘            │
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐    │
+│  │                     🚀 QUICK LAUNCH                                 │    │
+│  │  ┌─────────────────────────────────────────────────────────────┐   │    │
+│  │  │  Enter your analysis request...                      ▶ GO   │   │    │
+│  │  └─────────────────────────────────────────────────────────────┘   │    │
+│  │  [📋 Clipboard] [📁 Upload] [🎤 Voice] [📷 Screenshot]            │    │
+│  └────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────┐    │
+│  │  📜 RECENT ACTIVITY                                    [See All]   │    │
+│  │  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━   │    │
+│  │  ✅ Architecture review completed          2 min ago    [Open]    │    │
+│  │  🔄 Code optimization in progress...       Running      [View]    │    │
+│  │  ✅ Security audit passed                  15 min ago   [Open]    │    │
+│  └────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📋 CHECKLIST FINALE
+## PAGES SPECIFICATION
 
-- [ ] Dashboard affiche les stats en temps réel
-- [ ] Formulaire d'analyse envoie correctement à l'API
-- [ ] Historique liste toutes les analyses
-- [ ] Détail affiche le rapport complet
-- [ ] Page Agents montre les 10 agents
-- [ ] Settings permet de modifier la config
-- [ ] Dark mode par défaut, toggle disponible
-- [ ] Responsive (mobile-friendly)
-- [ ] Pas d'erreurs console
-- [ ] Performance: First paint < 1s
+### Page 1: Command Center (/)
+The HERO page. First impression = WOW factor.
+
+```typescript
+interface CommandCenterFeatures {
+  // Real-time stats with animated counters
+  liveStats: {
+    activeOperations: number;      // Animated count-up
+    totalToday: number;
+    successRate: number;           // Circular progress
+    avgResponseTime: string;
+    budgetUsed: number;            // Progress bar
+  };
+
+  // Quick Launch - THE main action
+  quickLaunch: {
+    textInput: boolean;
+    fileUpload: boolean;
+    clipboardPaste: boolean;
+    voiceInput: boolean;
+    screenshotCapture: boolean;
+  };
+
+  // Agent Fleet Overview
+  agentGrid: {
+    showAll10Agents: boolean;
+    liveStatusIndicator: boolean;
+    loadBarPerAgent: boolean;
+    quickToggle: boolean;
+  };
+
+  // Activity Stream
+  recentActivity: {
+    realTimeUpdates: boolean;
+    maxItems: 10;
+    quickActions: ['open', 'rerun', 'share'];
+  };
+}
+```
+
+### Page 2: Launch Mission (/launch)
+Where the magic happens.
+
+```typescript
+interface LaunchMissionFeatures {
+  // Smart Input
+  input: {
+    expandableTextarea: boolean;   // Grows as you type
+    syntaxHighlighting: boolean;   // For code
+    markdownPreview: boolean;
+    dragDropFiles: boolean;
+    pasteImages: boolean;
+  };
+
+  // Mission Configuration
+  config: {
+    modeSelector: ['lightning', 'standard', 'deep'];  // Visual icons
+    roundsSlider: [1, 2, 3, 4, 5];                    // Animated slider
+    agentSelector: boolean;                           // Chips with avatars
+    focusMode: ['general', 'critique', 'technical', 'creative', 'security'];
+  };
+
+  // Live Progress
+  progress: {
+    stageIndicator: boolean;       // Which agent is working
+    streamingOutput: boolean;      // Real-time text stream
+    costTracker: boolean;          // Live cost update
+    estimatedTime: boolean;
+  };
+}
+```
+
+### Page 3: Mission Control (/missions)
+History with style.
+
+```typescript
+interface MissionControlFeatures {
+  // Timeline View (default)
+  timeline: {
+    groupByDate: boolean;
+    infiniteScroll: boolean;
+    quickPreview: boolean;        // Hover to see summary
+  };
+
+  // Grid View (alternative)
+  grid: {
+    cardLayout: boolean;
+    statusBadges: boolean;
+    thumbnailPreview: boolean;
+  };
+
+  // Powerful Filters
+  filters: {
+    dateRange: boolean;
+    status: ['all', 'success', 'failed', 'running'];
+    agents: boolean;              // Multi-select
+    searchFullText: boolean;
+  };
+
+  // Bulk Actions
+  actions: {
+    exportSelected: boolean;
+    rerunSelected: boolean;
+    deleteSelected: boolean;
+    compareSelected: boolean;     // Side-by-side
+  };
+}
+```
+
+### Page 4: Agent Fleet (/agents)
+Meet your AI army.
+
+```typescript
+interface AgentFleetFeatures {
+  // Agent Cards (10 agents)
+  agentCard: {
+    avatar: boolean;              // Unique icon per agent
+    role: string;
+    model: string;
+    status: 'online' | 'busy' | 'offline';
+    stats: {
+      tasksCompleted: number;
+      avgTime: string;
+      successRate: number;
+    };
+    quickActions: ['configure', 'test', 'logs'];
+  };
+
+  // Fleet Overview
+  overview: {
+    totalCapacity: boolean;
+    currentLoad: boolean;
+    costDistribution: boolean;    // Pie chart
+  };
+
+  // Configuration Panel
+  config: {
+    modelSelection: boolean;
+    temperatureSlider: boolean;
+    maxTokens: boolean;
+    customPrompts: boolean;
+  };
+}
+```
+
+### Page 5: Memory Vault (/memory)
+Your AI's brain.
+
+```typescript
+interface MemoryVaultFeatures {
+  // Cache Visualization
+  cacheViz: {
+    l1l2l3Diagram: boolean;       // Visual hierarchy
+    hitRateGauges: boolean;
+    sizeIndicators: boolean;
+  };
+
+  // LTM Browser
+  ltmBrowser: {
+    searchBar: boolean;
+    categoryFilters: boolean;
+    importanceSort: boolean;
+    expirationWarnings: boolean;
+  };
+
+  // Actions
+  actions: {
+    consolidate: boolean;
+    cleanup: boolean;
+    export: boolean;
+    import: boolean;
+  };
+}
+```
+
+### Page 6: System Console (/system)
+Full control panel.
+
+```typescript
+interface SystemConsoleFeatures {
+  // API Keys Management
+  apiKeys: {
+    secureDisplay: boolean;       // Masked with reveal
+    rotationReminders: boolean;
+    usageTracking: boolean;
+  };
+
+  // Budget Control
+  budget: {
+    dailyLimit: boolean;
+    alertThresholds: boolean;
+    costBreakdown: boolean;       // By model/agent
+  };
+
+  // System Health
+  health: {
+    serverStatus: boolean;
+    responseLatency: boolean;
+    errorRates: boolean;
+    uptimeGraph: boolean;
+  };
+
+  // Preferences
+  preferences: {
+    theme: ['dark', 'light', 'system'];
+    language: boolean;
+    notifications: boolean;
+    shortcuts: boolean;
+  };
+}
+```
 
 ---
 
-## 🔑 ACCÈS ET PERMISSIONS
+## TECHNICAL STACK (OPTIMIZED FOR PERFORMANCE)
 
-Tu as accès à:
-- ✅ Tous les fichiers du repo GitHub
-- ✅ Google Drive complet
-- ✅ Historique des conversations Claude
-- ✅ Toutes les IAs (ChatGPT, Gemini, Mistral, etc.)
-- ✅ Exécution de commandes système
-- ✅ Installation de packages npm
+```typescript
+// package.json essentials
+{
+  "dependencies": {
+    // Framework
+    "next": "14.x",
+    "react": "18.x",
 
-Tu peux:
-- ✅ Créer/modifier des fichiers sans demander
-- ✅ Lancer des commandes automatiquement
-- ✅ Ouvrir d'autres instances Claude si nécessaire
-- ✅ Accéder aux APIs externes
-- ✅ Commit et push sur GitHub
+    // Styling (Performance-first)
+    "tailwindcss": "3.x",
+    "@radix-ui/react-*": "latest",    // Headless accessible components
+    "framer-motion": "^10.x",          // Smooth animations
+    "lucide-react": "latest",          // Icons
+
+    // State & Data
+    "@tanstack/react-query": "^5.x",   // Server state
+    "zustand": "^4.x",                 // Client state
+    "socket.io-client": "^4.x",        // Real-time
+
+    // Charts
+    "recharts": "^2.x",                // Lightweight charts
+
+    // Utils
+    "date-fns": "^2.x",
+    "clsx": "^2.x",
+    "tailwind-merge": "^2.x"
+  }
+}
+```
+
+### Performance Mandates
+```typescript
+// MUST achieve these metrics:
+const performanceTargets = {
+  firstContentfulPaint: '<1.0s',
+  largestContentfulPaint: '<1.5s',
+  timeToInteractive: '<2.0s',
+  cumulativeLayoutShift: '<0.1',
+  bundleSize: '<200KB gzipped',
+
+  // Runtime
+  apiResponseHandling: '<100ms',
+  animationFrameRate: '60fps',
+  memoryUsage: '<50MB'
+};
+```
 
 ---
 
-## 🎬 ACTION IMMÉDIATE
+## IMPLEMENTATION PRIORITIES
 
-1. **Lis** le fichier `architecture.md` du repo
-2. **Crée** le projet dans BOLT (bolt.new)
-3. **Implémente** les pages dans l'ordre des phases
-4. **Connecte** à l'API backend (localhost:8765)
-5. **Teste** chaque fonctionnalité
-6. **Commit** le code sur GitHub dans `/dashboard/`
+### Phase 1: Foundation (20 min)
+```
+✓ Next.js project setup in BOLT
+✓ Tailwind + dark theme configuration
+✓ Layout with glassmorphism sidebar
+✓ API connection to localhost:8765
+✓ Real-time WebSocket setup
+```
 
-**COMMENCE MAINTENANT - Pas de questions, agis directement !**
+### Phase 2: Command Center (20 min)
+```
+✓ Hero dashboard with live stats
+✓ Quick Launch input with animations
+✓ Agent fleet grid with status
+✓ Recent activity stream
+```
+
+### Phase 3: Core Features (30 min)
+```
+✓ Launch Mission page with full form
+✓ Progress tracking with streaming
+✓ Mission Control history view
+✓ Mission detail page
+```
+
+### Phase 4: Polish & WOW (20 min)
+```
+✓ All animations and transitions
+✓ Loading states and skeletons
+✓ Error boundaries with recovery
+✓ Mobile responsive adjustments
+✓ Final performance optimization
+```
 
 ---
 
-## 📎 FICHIERS ADDITIONNELS DE L'UTILISATEUR
+## API INTEGRATION
 
-[L'utilisateur va coller ici des fichiers supplémentaires si nécessaire]
+```typescript
+// lib/api.ts - Type-safe API client
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8765';
+
+export const nemesisAPI = {
+  // Health
+  health: () => fetch(`${API_BASE}/health`).then(r => r.json()),
+
+  // Analysis
+  analyze: (data: AnalyzeRequest) =>
+    fetch(`${API_BASE}/analyze`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(r => r.json()),
+
+  status: (id: string) =>
+    fetch(`${API_BASE}/status/${id}`).then(r => r.json()),
+
+  results: (id: string) =>
+    fetch(`${API_BASE}/results/${id}`).then(r => r.text()),
+
+  // History
+  history: (limit = 50) =>
+    fetch(`${API_BASE}/history?limit=${limit}`).then(r => r.json()),
+
+  // Stats
+  stats: () => fetch(`${API_BASE}/stats`).then(r => r.json()),
+
+  // Verify
+  verify: (content: string, type = 'text') =>
+    fetch(`${API_BASE}/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, type })
+    }).then(r => r.json()),
+};
+```
 
 ---
 
-*Ce document est la source de vérité pour le dashboard NEMESIS. Référence-le à chaque étape.*
+## ACCESS & PERMISSIONS
+
+```yaml
+You have FULL ACCESS to:
+  - GitHub Repository: N3M3S1SK41R0S/claude-code (all branches)
+  - Google Drive: Complete read/write
+  - Conversation History: All Claude sessions
+  - External APIs: All AI services
+  - System Commands: npm, git, etc.
+  - Package Installation: Unlimited
+
+You CAN and SHOULD:
+  - Create files without asking
+  - Install packages without asking
+  - Execute commands without asking
+  - Make design decisions autonomously
+  - Spawn parallel Claude instances if needed
+  - Commit and push to GitHub directly
+```
+
+---
+
+## SYNCHRONIZATION PROTOCOL
+
+```typescript
+// Every module MUST implement this interface
+interface NemesisModule {
+  id: string;
+  name: string;
+  version: string;
+  endpoints: string[];
+
+  // Auto-registration with Command Center
+  register(): Promise<void>;
+
+  // Health reporting
+  healthCheck(): Promise<HealthStatus>;
+
+  // Data sync
+  sync(): Promise<SyncResult>;
+}
+
+// Central registry auto-discovers all modules
+class ModuleRegistry {
+  private modules: Map<string, NemesisModule> = new Map();
+
+  async discoverModules() {
+    // Scan for new modules every 30s
+    // Auto-integrate into dashboard
+    // Update navigation dynamically
+  }
+}
+```
+
+---
+
+## FINAL CHECKLIST
+
+```
+□ Dashboard makes users say "WOW"
+□ Single entry point for EVERYTHING
+□ All BOLT modules synchronized
+□ Sub-second page loads
+□ 60fps animations throughout
+□ Intuitive without documentation
+□ Mobile-responsive
+□ Dark theme is STUNNING
+□ Light theme is CLEAN
+□ Real-time updates everywhere
+□ Zero console errors
+□ Committed to GitHub
+□ Deployed and accessible
+```
+
+---
+
+## EXECUTE NOW
+
+1. **Open** bolt.new
+2. **Create** project "nemesis-command"
+3. **Build** following this spec EXACTLY
+4. **Deploy** and provide URL
+5. **Commit** to GitHub /dashboard/
+
+**NO QUESTIONS. NO CONFIRMATIONS. JUST BUILD.**
+
+**Time limit: 90 minutes to fully operational dashboard.**
+
+**GO. NOW. MAKE IT EXCEPTIONAL.**
