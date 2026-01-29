@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-NEMESIS OMEGA v4.0 — Real Multi-AI Orchestration Engine
+NEMESIS OMEGA v4.1 — Real Multi-AI Orchestration Engine
 
 v3.0 was 1015 lines of which 800 were dead strings.
 v4.0: Every line executes. Zero dead code.
+v4.1: Fixed prompt construction, .env support, DeepSeek R1 compat,
+      response validation, setup command, error handling.
 
 Architecture:
     AIProvider      → Real HTTP calls to 7 AI APIs (stdlib only)
@@ -37,8 +39,28 @@ from urllib.request import Request, urlopen
 from urllib.error import URLError, HTTPError
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-VERSION = "4.0.0"
+VERSION = "4.1.0"
 SYSTEM = platform.system()
+
+
+def load_env_file():
+    """Load .env file if present. Zero dependencies."""
+    for candidate in [Path(__file__).parent / ".env", Path.cwd() / ".env"]:
+        if candidate.exists():
+            for line in candidate.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" in line:
+                    key, _, value = line.partition("=")
+                    key = key.strip()
+                    value = value.strip().strip('"').strip("'")
+                    if key and key not in os.environ:
+                        os.environ[key] = value
+            return
+
+
+load_env_file()
 
 
 # =============================================================================
@@ -255,19 +277,28 @@ class AIProvider:
         """Call OpenAI-compatible API (GPT, Gemini, Grok, Mistral, Perplexity, DeepSeek)."""
         url = f"{agent.base_url}/chat/completions"
 
-        body = {
+        body: Dict[str, Any] = {
             "model": agent.model,
             "messages": messages,
             "max_tokens": agent.max_tokens,
-            "temperature": temperature,
         }
+        # Reasoning models (DeepSeek R1) reject the temperature parameter
+        if "reasoner" not in agent.model:
+            body["temperature"] = temperature
 
         data = self._http_post(url, body, headers={
             "Authorization": f"Bearer {api_key}",
         })
 
         choices = data.get("choices", [])
-        content = choices[0]["message"]["content"] if choices else ""
+        content = ""
+        if choices:
+            msg = choices[0].get("message", {})
+            # DeepSeek R1 puts reasoning in reasoning_content, answer in content
+            content = msg.get("content", "") or ""
+            reasoning = msg.get("reasoning_content", "")
+            if reasoning and not content:
+                content = reasoning
 
         usage = data.get("usage", {})
         return AIResponse(
@@ -285,7 +316,11 @@ class AIProvider:
             req.add_header(k, v)
 
         with urlopen(req, timeout=self.timeout, context=self._ssl_ctx) as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            raw = resp.read().decode("utf-8")
+            try:
+                return json.loads(raw)
+            except json.JSONDecodeError:
+                raise ValueError(f"Non-JSON response ({len(raw)} bytes): {raw[:200]}")
 
 
 # =============================================================================
@@ -586,36 +621,34 @@ class OmegaEngine:
             f"| {a.name} | {a.role} | {a.mission.split('.')[0]} |"
             for a in self.soldiers
         )
-        prompt = dedent(f"""\
-        # NEMESIS OMEGA — ENRICHMENT & ROLE ASSIGNMENT
+        prompt = f"""# NEMESIS OMEGA — ENRICHMENT & ROLE ASSIGNMENT
 
-        Transform this raw request into a structured multi-AI analysis plan.
+Transform this raw request into a structured multi-AI analysis plan.
 
-        ## RAW MISSION
-        {mission}
+## RAW MISSION
+{mission}
 
-        ## AI FLEET
-        | AI | Role | Angle |
-        |----|------|-------|
-        {soldiers_table}
+## AI FLEET
+| AI | Role | Angle |
+|----|------|-------|
+{soldiers_table}
 
-        ## OUTPUT (strict JSON)
-        Return ONLY a JSON block (inside ```json fences) with:
-        {{
-            "refined_request": "enriched, crystal-clear problem statement",
-            "context_block": "universal context all AIs receive",
-            "prompts": {{
-                "chatgpt": "specific mission for CHALLENGER...",
-                "gemini": "specific mission for RESEARCHER...",
-                "grok": "specific mission for MAVERICK...",
-                "mistral": "specific mission for ENGINEER...",
-                "perplexity": "specific mission for SCOUT...",
-                "deepseek": "specific mission for OPTIMIZER..."
-            }},
-            "synthesis_criteria": "what defines a good answer",
-            "key_questions": ["q1", "q2", "q3"]
-        }}
-        """)
+## OUTPUT (strict JSON)
+Return ONLY a JSON block (inside ```json fences) with:
+{{
+    "refined_request": "enriched, crystal-clear problem statement",
+    "context_block": "universal context all AIs receive",
+    "prompts": {{
+        "chatgpt": "specific mission for CHALLENGER...",
+        "gemini": "specific mission for RESEARCHER...",
+        "grok": "specific mission for MAVERICK...",
+        "mistral": "specific mission for ENGINEER...",
+        "perplexity": "specific mission for SCOUT...",
+        "deepseek": "specific mission for OPTIMIZER..."
+    }},
+    "synthesis_criteria": "what defines a good answer",
+    "key_questions": ["q1", "q2", "q3"]
+}}"""
         return self.provider.call(
             self.architect, [{"role": "user", "content": prompt}], temperature=0.7
         )
@@ -626,32 +659,39 @@ class OmegaEngine:
             specific = enrichment.get("prompts", {}).get(agent.id, "")
             context = enrichment.get("context_block", enrichment.get("refined", ""))
 
-            prompt = dedent(f"""\
-            # NEMESIS OMEGA — ROUND {round_num}
+            prompt = f"""# NEMESIS OMEGA — ROUND {round_num}
 
-            ## YOUR ROLE: {agent.role}
-            {agent.mission}
+## YOUR ROLE: {agent.role}
+{agent.mission}
 
-            ## CONTEXT
-            {context}
-            """)
+## CONTEXT
+{context}
+"""
             if specific:
                 prompt += f"\n## YOUR SPECIFIC MISSION\n{specific}\n"
 
-            prompt += dedent("""\
-            ## RULES
-            - 6 other AIs analyze this simultaneously. YOUR ANGLE IS UNIQUE.
-            - Be direct. No filler. Max 1500 words.
+            prompt += """
+## RULES
+- 6 other AIs analyze this simultaneously. YOUR ANGLE IS UNIQUE.
+- Be direct. No filler. Max 1500 words.
 
-            ## OUTPUT FORMAT
-            1. EXECUTIVE SUMMARY (3 lines max)
-            2. DETAILED ANALYSIS (your core contribution)
-            3. ACTIONABLE RECOMMENDATIONS (numbered, concrete)
-            4. CONFIDENCE LEVEL (1-10 with justification)
-            5. WHAT I MIGHT BE MISSING (intellectual honesty)
-            """)
+## OUTPUT FORMAT
+1. EXECUTIVE SUMMARY (3 lines max)
+2. DETAILED ANALYSIS (your core contribution)
+3. ACTIONABLE RECOMMENDATIONS (numbered, concrete)
+4. CONFIDENCE LEVEL (1-10 with justification)
+5. WHAT I MIGHT BE MISSING (intellectual honesty)
+"""
+            resp = self.provider.call(agent, [{"role": "user", "content": prompt}])
 
-            return self.provider.call(agent, [{"role": "user", "content": prompt}])
+            # Validate response quality
+            if resp.status == "success" and resp.content:
+                stripped = resp.content.strip()
+                if len(stripped) < 50:
+                    resp.status = "error"
+                    resp.error = f"Response too short ({len(stripped)} chars)"
+
+            return resp
 
         results: List[AIResponse] = []
         with ThreadPoolExecutor(max_workers=self.max_workers) as pool:
@@ -679,38 +719,36 @@ class OmegaEngine:
             for r in responses if r.content
         )
 
-        prompt = dedent(f"""\
-        # NEMESIS OMEGA — ROUND {round_num} SYNTHESIS
+        prompt = f"""# NEMESIS OMEGA — ROUND {round_num} SYNTHESIS
 
-        You received {len(responses)} AI responses from different expert perspectives.
+You received {len(responses)} AI responses from different expert perspectives.
 
-        ## PRODUCE:
+## PRODUCE:
 
-        ### 1. CONSENSUS MAP
-        What do ALL or MOST agree on? (HIGH confidence items)
+### 1. CONSENSUS MAP
+What do ALL or MOST agree on? (HIGH confidence items)
 
-        ### 2. CONTRADICTION MAP
-        Where do they disagree? Which position is stronger and why?
+### 2. CONTRADICTION MAP
+Where do they disagree? Which position is stronger and why?
 
-        ### 3. BLIND SPOTS
-        What did NOBODY mention that matters?
+### 3. BLIND SPOTS
+What did NOBODY mention that matters?
 
-        ### 4. ENRICHED SYNTHESIS
-        A unified answer BETTER than any individual. Combine best insights.
-        Resolve contradictions. Fill gaps.
+### 4. ENRICHED SYNTHESIS
+A unified answer BETTER than any individual. Combine best insights.
+Resolve contradictions. Fill gaps.
 
-        ### 5. SATURATION CHECK
-        Was >10% genuinely NEW information added vs previous round?
-        - If YES: generate deeper prompts for next round as JSON:
-          ```json
-          {{"next_prompts": {{"chatgpt": "...", "gemini": "...", "grok": "...", "mistral": "...", "perplexity": "...", "deepseek": "..."}}}}
-          ```
-        - If NO: write exactly "SATURATION_REACHED"
+### 5. SATURATION CHECK
+Was >10% genuinely NEW information added vs previous round?
+- If YES: generate deeper prompts for next round as JSON:
+  ```json
+  {{"next_prompts": {{"chatgpt": "...", "gemini": "...", "grok": "...", "mistral": "...", "perplexity": "...", "deepseek": "..."}}}}
+  ```
+- If NO: write exactly "SATURATION_REACHED"
 
-        ## ALL RESPONSES
+## ALL RESPONSES
 
-        {compiled}
-        """)
+{compiled}"""
 
         return self.provider.call(
             self.architect, [{"role": "user", "content": prompt}], temperature=0.5
@@ -1048,27 +1086,67 @@ def cmd_prompt(_args):
 
 
 def cmd_test(args):
-    """Quick single-agent test to verify API connectivity."""
-    agent_id = args.agent if args.agent else "sonnet"
-    agent = next((a for a in AI_FLEET if a.id == agent_id), None)
-    if not agent:
-        print(f"  Unknown agent: {agent_id}")
-        print(f"  Available: {', '.join(a.id for a in AI_FLEET)}")
-        return
-
-    print(f"\n  Testing {agent.name} ({agent.role})...")
+    """Test API connectivity for one or all agents."""
     provider = AIProvider(timeout=30, max_retries=0)
-    resp = provider.call(agent, [{"role": "user", "content": "Say 'NEMESIS ONLINE' and nothing else."}])
+    test_msg = [{"role": "user", "content": "Say 'NEMESIS ONLINE' and nothing else."}]
 
-    if resp.status == "success":
-        print(f"  Status:  {resp.status}")
-        print(f"  Response: {resp.content[:100]}")
-        print(f"  Tokens:  {resp.tokens_in} in, {resp.tokens_out} out")
-        print(f"  Cost:    ${resp.cost:.6f}")
-        print(f"  Time:    {resp.duration:.1f}s")
+    if args.all:
+        agents = AI_FLEET
     else:
-        print(f"  Status: {resp.status}")
-        print(f"  Error:  {resp.error}")
+        agent_id = args.agent if args.agent else "sonnet"
+        agent = next((a for a in AI_FLEET if a.id == agent_id), None)
+        if not agent:
+            print(f"  Unknown agent: {agent_id}")
+            print(f"  Available: {', '.join(a.id for a in AI_FLEET)}")
+            return
+        agents = [agent]
+
+    print(f"\n  Testing {len(agents)} agent(s)...\n")
+
+    for agent in agents:
+        key = os.environ.get(agent.api_key_env, "").strip()
+        if not key:
+            print(f"  [--] {agent.name:18s} SKIPPED (no key)")
+            continue
+
+        resp = provider.call(agent, test_msg)
+        if resp.status == "success":
+            preview = (resp.content or "")[:60].replace("\n", " ")
+            print(f"  [OK] {agent.name:18s} {resp.duration:.1f}s "
+                  f"({resp.tokens_in}+{resp.tokens_out} tok, ${resp.cost:.6f}) "
+                  f'"{preview}"')
+        else:
+            print(f"  [!!] {agent.name:18s} {resp.error}")
+
+    print()
+
+
+def cmd_setup(_args):
+    """Create .env template file with all API key placeholders."""
+    env_path = Path(__file__).parent / ".env"
+
+    if env_path.exists():
+        print(f"\n  .env already exists: {env_path}")
+        answer = input("  Overwrite? (y/n) ").strip().lower()
+        if answer not in ("y", "o", "oui", "yes"):
+            print("  Cancelled.")
+            return
+
+    lines = [
+        "# NEMESIS OMEGA — API Keys",
+        "# Fill in the keys for the AI services you want to use.",
+        "# At minimum, set ANTHROPIC_API_KEY for the Architect.",
+        "",
+    ]
+    for agent in AI_FLEET:
+        lines.append(f"# {agent.name} ({agent.role})")
+        lines.append(f"{agent.api_key_env}=")
+        lines.append("")
+
+    env_path.write_text("\n".join(lines), encoding="utf-8")
+    print(f"\n  Created: {env_path}")
+    print("  Edit the file and add your API keys.")
+    print("  They will be loaded automatically on next run.")
     print()
 
 
@@ -1084,14 +1162,16 @@ def main():
         Commands:
           run       Execute multi-AI analysis (parallel fleet + saturation loop)
           status    Check API keys and fleet readiness
-          test      Quick connectivity test for one agent
+          test      Quick connectivity test (one agent or --all)
+          setup     Create .env template for API keys
           prompt    Legacy mode: copy prompt to clipboard + open Chrome
 
         Examples:
-          python nemesis_omega.py run "Best architecture for a real-time SaaS"
+          python nemesis_omega.py setup                                   # create .env
+          python nemesis_omega.py status                                  # check keys
+          python nemesis_omega.py test --all                              # ping all AIs
+          python nemesis_omega.py run "Best architecture for a SaaS"      # full analysis
           python nemesis_omega.py run -f mission.txt --max-rounds 5
-          python nemesis_omega.py test --agent chatgpt
-          python nemesis_omega.py status
         """),
     )
 
@@ -1109,9 +1189,13 @@ def main():
     sub.add_parser("status", help="Check fleet readiness")
 
     # test
-    p_test = sub.add_parser("test", help="Test one agent's connectivity")
+    p_test = sub.add_parser("test", help="Test agent connectivity")
     p_test.add_argument("--agent", default="sonnet",
                         help=f"Agent to test ({', '.join(a.id for a in AI_FLEET)})")
+    p_test.add_argument("--all", action="store_true", help="Test all agents with API keys")
+
+    # setup
+    sub.add_parser("setup", help="Create .env template for API keys")
 
     # prompt (legacy)
     sub.add_parser("prompt", help="Copy prompt to clipboard (legacy)")
@@ -1124,6 +1208,8 @@ def main():
         cmd_status(args)
     elif args.command == "test":
         cmd_test(args)
+    elif args.command == "setup":
+        cmd_setup(args)
     elif args.command == "prompt":
         cmd_prompt(args)
     else:
