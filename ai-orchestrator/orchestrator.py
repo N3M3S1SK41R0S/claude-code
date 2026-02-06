@@ -1,0 +1,1263 @@
+#!/usr/bin/env python3
+"""
+AI Orchestrator - Multi-AI Collaboration System
+Double-click to launch intelligent AI workflow orchestration.
+
+SIMPLE EXPLANATION (for a 6-year-old):
+    Imagine you have a question and want to ask many smart robot friends.
+    This program helps you:
+    1. First, you tell Claude what you want (like telling a teacher)
+    2. Then it asks ALL the robots at the same time (super fast!)
+    3. The robots' answers get mixed together to make ONE great answer
+    4. Finally, it checks the answer is good and remembers everything
+
+TECHNICAL EXPLANATION (for experts):
+    Multi-agent orchestration system implementing:
+    - Phase 1: Request clarification with Claude Sonnet (interactive refinement)
+    - Phase 2: Parallel querying of multiple LLMs (GPT-4, Gemini, Mistral, etc.)
+    - Phase 3: Multi-round synthesis with saturation detection
+    - Phase 4: Output formatting respecting per-model token limits
+    - Phase 5: Verification feedback loop with project persistence
+
+    Architecture:
+    - Browser-based interaction (Chrome tabs) for web UIs
+    - Optional direct API integration via worker modules
+    - SQLite persistence for project history
+    - Async-capable with sync fallbacks
+
+Author: Claude AI Assistant
+Version: 1.1.0 (Security & Robustness Update)
+"""
+
+import asyncio
+import atexit
+import json
+import logging
+import os
+import signal
+import sqlite3
+import sys
+import webbrowser
+from contextlib import contextmanager
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from queue import Queue as ThreadQueue
+from typing import Optional, Dict, List, Any, Callable
+from concurrent.futures import ThreadPoolExecutor
+import subprocess
+import threading
+import queue
+import time
+import yaml
+
+# =============================================================================
+# CONSTANTS - Centralized configuration values
+# =============================================================================
+
+# Token estimation: ~4 characters per token (conservative estimate)
+CHARS_PER_TOKEN = 4
+
+# Maximum parallel browser tabs to prevent system overload
+MAX_PARALLEL_TABS = 8
+
+# Delay between opening tabs (ms) to avoid rate limiting
+TAB_DELAY_MS = 500
+
+# Synthesis rounds for idea saturation
+DEFAULT_SYNTHESIS_ROUNDS = 3
+
+# Database path for project persistence
+DEFAULT_DB_PATH = "~/.ai-orchestrator/projects.db"
+
+# =============================================================================
+# LOGGING CONFIGURATION
+# =============================================================================
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger('AI-Orchestrator')
+
+
+class AIRole(Enum):
+    ORCHESTRATOR = "orchestrator"
+    SYNTHESIS = "synthesis"
+    RESEARCHER = "researcher"
+    CODER = "coder"
+
+
+class TaskStatus(Enum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    SIMULATED = "simulated"
+
+
+@dataclass
+class AIService:
+    """Represents an AI service configuration."""
+    name: str
+    url: str
+    role: AIRole
+    max_tokens: int
+    priority: int
+    available: bool = True
+    model: Optional[str] = None
+
+
+@dataclass
+class Task:
+    """Represents a task in the orchestration pipeline."""
+    id: str
+    content: str
+    status: TaskStatus = TaskStatus.PENDING
+    assigned_to: Optional[str] = None
+    result: Optional[str] = None
+    created_at: datetime = field(default_factory=datetime.now)
+    completed_at: Optional[datetime] = None
+
+
+@dataclass
+class Project:
+    """Represents a project with its history and context."""
+    id: str
+    name: str
+    description: str
+    original_request: str
+    clarified_request: Optional[str] = None
+    tasks: List[Task] = field(default_factory=list)
+    synthesis_rounds: List[Dict] = field(default_factory=list)
+    final_output: Optional[str] = None
+    created_at: datetime = field(default_factory=datetime.now)
+    updated_at: datetime = field(default_factory=datetime.now)
+
+
+class ConnectionPool:
+    """Thread-safe SQLite connection pool.
+
+    Simple explanation (for a 6-year-old):
+        This is like a box of shared crayons. When someone needs a crayon,
+        they take one from the box. When they're done, they put it back.
+        This way, we don't need to buy new crayons every time!
+
+    Technical explanation (for experts):
+        Thread-safe connection pool using a queue. Implements connection
+        reuse to avoid the overhead of creating new connections for each
+        database operation. Supports context manager protocol.
+    """
+
+    def __init__(self, db_path: str, pool_size: int = 5):
+        self.db_path = db_path
+        self.pool_size = pool_size
+        self._pool: ThreadQueue = ThreadQueue(maxsize=pool_size)
+        self._lock = threading.Lock()
+        self._initialized = False
+
+    def _create_connection(self) -> sqlite3.Connection:
+        """Create a new database connection with optimized settings."""
+        conn = sqlite3.connect(
+            self.db_path,
+            check_same_thread=False,
+            timeout=30.0
+        )
+        # Enable WAL mode for better concurrency
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA synchronous=NORMAL")
+        conn.execute("PRAGMA cache_size=10000")
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def initialize(self):
+        """Initialize the connection pool."""
+        with self._lock:
+            if self._initialized:
+                return
+            for _ in range(self.pool_size):
+                self._pool.put(self._create_connection())
+            self._initialized = True
+            logger.debug(f"Connection pool initialized with {self.pool_size} connections")
+
+    @contextmanager
+    def get_connection(self):
+        """Get a connection from the pool (context manager)."""
+        if not self._initialized:
+            self.initialize()
+
+        conn = self._pool.get()
+        try:
+            yield conn
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            self._pool.put(conn)
+
+    def close_all(self):
+        """Close all connections in the pool."""
+        with self._lock:
+            while not self._pool.empty():
+                try:
+                    conn = self._pool.get_nowait()
+                    conn.close()
+                except Exception:
+                    pass
+            self._initialized = False
+            logger.debug("Connection pool closed")
+
+
+class ProjectMemory:
+    """Persistent storage for projects and their history.
+
+    Simple explanation (for a 6-year-old):
+        This is like a diary that remembers all our projects.
+        We can write new projects, look up old ones, and never forget!
+
+    Technical explanation (for experts):
+        SQLite-backed persistence layer with connection pooling.
+        Supports project CRUD operations and AI response audit trail.
+    """
+
+    def __init__(self, db_path: str, pool_size: int = 5):
+        self.db_path = Path(db_path).expanduser()
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Initialize connection pool
+        self._pool = ConnectionPool(str(self.db_path), pool_size)
+        self._pool.initialize()
+
+        self._init_database()
+
+        # Register cleanup on exit
+        atexit.register(self.close)
+
+    def close(self):
+        """Close all database connections."""
+        self._pool.close_all()
+
+    def _init_database(self):
+        """Initialize SQLite database."""
+        with self._pool.get_connection() as conn:
+            conn.execute('''
+                CREATE TABLE IF NOT EXISTS projects (
+                    id TEXT PRIMARY KEY,
+                    name TEXT,
+                    description TEXT,
+                    original_request TEXT,
+                    clarified_request TEXT,
+                    final_output TEXT,
+                    data JSON,
+                    created_at TIMESTAMP,
+                    updated_at TIMESTAMP
+                )
+            ''')
+            conn.execute('''
+                CREATE TABLE IF NOT EXISTS ai_responses (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    project_id TEXT,
+                    ai_service TEXT,
+                    prompt TEXT,
+                    response TEXT,
+                    status TEXT,
+                    created_at TIMESTAMP,
+                    FOREIGN KEY (project_id) REFERENCES projects(id)
+                )
+            ''')
+            conn.commit()
+
+    def save_project(self, project: Project):
+        """Save or update a project."""
+        with self._pool.get_connection() as conn:
+            conn.execute('''
+                INSERT OR REPLACE INTO projects
+                (id, name, description, original_request, clarified_request,
+                 final_output, data, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                project.id, project.name, project.description,
+                project.original_request, project.clarified_request,
+                project.final_output,
+                json.dumps({
+                    'tasks': [(t.id, t.content, t.status.value, t.result) for t in project.tasks],
+                    'synthesis_rounds': project.synthesis_rounds
+                }),
+                project.created_at.isoformat(),
+                datetime.now().isoformat()
+            ))
+
+    def load_project(self, project_id: str) -> Optional[Project]:
+        """Load a project by ID."""
+        with self._pool.get_connection() as conn:
+            cursor = conn.execute(
+                'SELECT * FROM projects WHERE id = ?', (project_id,)
+            )
+            row = cursor.fetchone()
+            if row:
+                data = json.loads(row['data']) if row['data'] else {}
+                return Project(
+                    id=row['id'], name=row['name'], description=row['description'],
+                    original_request=row['original_request'],
+                    clarified_request=row['clarified_request'],
+                    final_output=row['final_output'],
+                    created_at=datetime.fromisoformat(row['created_at']),
+                    updated_at=datetime.fromisoformat(row['updated_at'])
+                )
+        return None
+
+    def list_projects(self) -> List[Dict]:
+        """List all projects."""
+        with self._pool.get_connection() as conn:
+            cursor = conn.execute(
+                'SELECT id, name, description, created_at FROM projects ORDER BY updated_at DESC'
+            )
+            return [
+                {'id': r['id'], 'name': r['name'], 'description': r['description'],
+                 'created_at': r['created_at']}
+                for r in cursor.fetchall()
+            ]
+
+    def save_ai_response(self, project_id: str, ai_service: str,
+                         prompt: str, response: str, status: str):
+        """Save an AI response for audit trail."""
+        with self._pool.get_connection() as conn:
+            conn.execute('''
+                INSERT INTO ai_responses
+                (project_id, ai_service, prompt, response, status, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (project_id, ai_service, prompt, response, status,
+                  datetime.now().isoformat()))
+
+
+class BrowserController:
+    """Controls Chrome browser for AI interactions."""
+
+    def __init__(self, config: Dict):
+        self.config = config
+        self.tabs: Dict[str, Any] = {}
+        self.parallel_limit = config.get('parallel_tabs', 8)
+        self.tab_delay = config.get('tab_delay_ms', 500) / 1000
+
+    def open_ai_tab(self, service: AIService, prompt: str = "") -> str:
+        """Open a new browser tab for an AI service."""
+        url = service.url
+        if prompt:
+            # Encode prompt for URL if supported
+            encoded_prompt = prompt.replace(' ', '+').replace('\n', '%0A')[:500]
+            if 'claude.ai' in url:
+                url = f"{url}?q={encoded_prompt}"
+
+        tab_id = f"{service.name}_{datetime.now().timestamp()}"
+
+        try:
+            webbrowser.open_new_tab(url)
+            self.tabs[tab_id] = {
+                'service': service.name,
+                'url': url,
+                'opened_at': datetime.now()
+            }
+            time.sleep(self.tab_delay)
+            logger.info(f"Opened tab for {service.name}: {url}")
+            return tab_id
+        except Exception as e:
+            logger.error(f"Failed to open tab for {service.name}: {e}")
+            return ""
+
+    def open_multiple_tabs(self, services: List[AIService], prompt: str) -> List[str]:
+        """Open multiple tabs in parallel."""
+        tab_ids = []
+        for service in services[:self.parallel_limit]:
+            tab_id = self.open_ai_tab(service, prompt)
+            if tab_id:
+                tab_ids.append(tab_id)
+        return tab_ids
+
+
+class SynthesisEngine:
+    """Handles synthesis and refinement of AI responses.
+
+    Simple explanation (for a 6-year-old):
+        This is like a chef who takes many different recipes and mixes
+        them together to make one super recipe that has the best parts
+        of all the others.
+
+    Technical explanation (for experts):
+        Implements multi-round synthesis with saturation detection.
+        Generates structured prompts for AI synthesis and tracks
+        idea coverage to determine when synthesis is complete.
+    """
+
+    # Constants for saturation detection
+    MIN_WORD_COUNT = 500
+    MIN_UNIQUE_CONCEPTS = 50
+    SATURATION_THRESHOLD = 100
+
+    def __init__(self, config: Dict = None):
+        self.config = config or {}
+        self.rounds = self.config.get('rounds', DEFAULT_SYNTHESIS_ROUNDS)
+
+        # Validate rounds
+        if not isinstance(self.rounds, int) or self.rounds < 1:
+            logger.warning(f"Invalid rounds value {self.rounds}, using default 3")
+            self.rounds = DEFAULT_SYNTHESIS_ROUNDS
+
+    def generate_synthesis_prompt(self, responses: List[Dict], round_num: int) -> str:
+        """Generate a synthesis prompt from multiple AI responses."""
+        prompt = f"""# Synthesis Round {round_num}/{self.rounds}
+
+## Objective
+Synthesize and enrich the following AI responses WITHOUT inventing or fabricating information.
+Focus on:
+1. Identifying common themes and agreements
+2. Highlighting unique valuable insights from each source
+3. Resolving contradictions with evidence-based reasoning
+4. Saturating ideas to their fullest potential
+
+## AI Responses to Synthesize:
+"""
+        for resp in responses:
+            prompt += f"\n### {resp['source']}:\n{resp['content']}\n"
+
+        prompt += """
+## Instructions:
+1. Create a comprehensive synthesis table
+2. Rate each idea's saturation level (1-10)
+3. Identify gaps that need further exploration
+4. Propose enrichments based ONLY on provided information
+5. Flag any contradictions for human review
+
+## Output Format:
+- Use structured tables for clarity
+- Highlight key insights with bullet points
+- End with actionable next steps
+"""
+        return prompt
+
+    def check_saturation(self, content: str) -> Dict:
+        """Check if ideas are fully saturated.
+
+        Simple explanation (for a 6-year-old):
+            We check if our super recipe has enough ingredients and if
+            they're all different. If we have enough variety, we're done!
+
+        Technical explanation (for experts):
+            Uses word count and unique concept ratio as heuristics for
+            content saturation. Returns metrics and recommendation.
+
+        Args:
+            content: The synthesized content to analyze
+
+        Returns:
+            Dict with saturation metrics and needs_more_rounds flag
+        """
+        # Handle empty/None content
+        if not content:
+            return {
+                'word_count': 0,
+                'unique_concepts': 0,
+                'saturation_estimate': 0,
+                'needs_more_rounds': True
+            }
+
+        # Simple heuristic - in production, use Claude API for analysis
+        words = content.split()
+        word_count = len(words)
+        unique_concepts = len(set(word.lower() for word in words if len(word) > 3))
+
+        # Calculate saturation estimate (0-100)
+        if word_count == 0:
+            saturation_estimate = 0
+        else:
+            diversity_ratio = unique_concepts / word_count
+            saturation_estimate = min(self.SATURATION_THRESHOLD, diversity_ratio * 500)
+
+        return {
+            'word_count': word_count,
+            'unique_concepts': unique_concepts,
+            'saturation_estimate': saturation_estimate,
+            'needs_more_rounds': word_count < self.MIN_WORD_COUNT or unique_concepts < self.MIN_UNIQUE_CONCEPTS
+        }
+
+
+class PromptFormatter:
+    """Formats prompts for specific AI services and tools.
+
+    Simple explanation (for a 6-year-old):
+        This is like a translator that knows how to talk to different
+        AI robots. Each robot likes messages in a slightly different way,
+        so we format the message specially for each one.
+
+    Technical explanation (for experts):
+        Handles token limit enforcement, markdown support detection,
+        and platform-specific formatting. Implements whitelist validation
+        for tool names to prevent injection attacks.
+    """
+
+    # Token to character ratio (approximate)
+    CHARS_PER_TOKEN = 4
+
+    AI_SPECS = {
+        'claude': {'max_tokens': 8192, 'supports_markdown': True, 'supports_code': True},
+        'chatgpt': {'max_tokens': 4096, 'supports_markdown': True, 'supports_code': True},
+        'gemini': {'max_tokens': 8192, 'supports_markdown': True, 'supports_code': True},
+        'mistral': {'max_tokens': 4096, 'supports_markdown': True, 'supports_code': True},
+        'antigravity': {'max_tokens': 4000, 'supports_markdown': False, 'supports_code': True},
+    }
+
+    # Whitelist of valid tool names (security: prevents injection)
+    VALID_TOOLS = {'claude', 'chatgpt', 'gemini', 'mistral', 'antigravity',
+                   'cursor', 'vscode', 'codestral', 'perplexity', 'copilot'}
+
+    @classmethod
+    def validate_tool_name(cls, tool: str) -> str:
+        """Validate and normalize tool name.
+
+        Args:
+            tool: Tool name to validate
+
+        Returns:
+            Normalized tool name (lowercase)
+
+        Raises:
+            ValueError: If tool name is not in whitelist
+        """
+        if not tool or not isinstance(tool, str):
+            raise ValueError("Tool name must be a non-empty string")
+
+        normalized = tool.lower().strip()
+
+        if normalized not in cls.VALID_TOOLS:
+            valid_list = ', '.join(sorted(cls.VALID_TOOLS))
+            raise ValueError(f"Invalid tool '{tool}'. Valid tools: {valid_list}")
+
+        return normalized
+
+    def format_for_ai(self, content: str, target_ai: str,
+                      include_context: bool = True) -> str:
+        """Format content for a specific AI service."""
+        # Validate and normalize target_ai
+        target_ai = self.validate_tool_name(target_ai)
+        specs = self.AI_SPECS.get(target_ai, self.AI_SPECS['claude'])
+
+        # Truncate if needed
+        if len(content) > specs['max_tokens'] * 4:  # Rough char estimate
+            content = content[:specs['max_tokens'] * 4] + "\n\n[Content truncated for token limit]"
+
+        formatted = f"""# Instructions for {target_ai}
+
+## Context
+This is part of a multi-AI collaborative workflow. Your response will be synthesized with other AI responses.
+
+## Task
+{content}
+
+## Guidelines
+1. Be precise and factual
+2. Do NOT invent or fabricate information
+3. Clearly indicate uncertainty with [UNCERTAIN] tags
+4. Structure your response for easy synthesis
+5. Maximum response length: {specs['max_tokens']} tokens
+
+## Output Requirements
+- Use {'markdown formatting' if specs['supports_markdown'] else 'plain text'}
+- {'Include code examples where relevant' if specs['supports_code'] else 'Describe code conceptually'}
+"""
+        return formatted
+
+    def format_for_code_tool(self, instruction: str, tool: str,
+                             project_context: Dict) -> str:
+        """Format instructions for code tools like Cursor, VS Code, Antigravity."""
+        if tool.lower() == 'antigravity':
+            return f"""# Firebase/Antigravity App Generation
+
+## Project: {project_context.get('name', 'Unnamed')}
+
+## App Requirements:
+{instruction}
+
+## Technical Specifications:
+- Platform: Web/Mobile (specify in requirements)
+- Framework: React/Flutter (auto-detected)
+- Backend: Firebase
+
+## Implementation Steps:
+1. Generate UI components
+2. Set up Firebase backend
+3. Implement business logic
+4. Add authentication if needed
+5. Deploy to Firebase Hosting
+
+## Constraints:
+- Follow Material Design guidelines
+- Ensure accessibility compliance
+- Optimize for performance
+"""
+        elif tool.lower() in ['cursor', 'vscode']:
+            return f"""# Code Generation Task
+
+## Project Context:
+{json.dumps(project_context, indent=2)}
+
+## Instructions:
+{instruction}
+
+## Requirements:
+1. Follow project coding standards
+2. Add appropriate error handling
+3. Include inline documentation
+4. Write unit tests if applicable
+"""
+        return instruction
+
+
+class GracefulShutdown:
+    """Handles graceful shutdown signals.
+
+    Simple explanation (for a 6-year-old):
+        This is like a "stop" button that tells everyone to finish
+        what they're doing nicely before we turn off the computer.
+
+    Technical explanation (for experts):
+        Singleton pattern for handling SIGINT/SIGTERM signals.
+        Allows cleanup of resources before process termination.
+    """
+
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._shutdown_requested = False
+                    cls._instance._callbacks: List[Callable] = []
+        return cls._instance
+
+    def request_shutdown(self):
+        """Request graceful shutdown."""
+        self._shutdown_requested = True
+        logger.info("Graceful shutdown requested")
+        for callback in self._callbacks:
+            try:
+                callback()
+            except Exception as e:
+                logger.error(f"Shutdown callback error: {e}")
+
+    def register_callback(self, callback: Callable):
+        """Register a cleanup callback."""
+        self._callbacks.append(callback)
+
+    @property
+    def shutdown_requested(self) -> bool:
+        """Check if shutdown was requested."""
+        return self._shutdown_requested
+
+
+class AIOrchestrator:
+    """Main orchestrator coordinating the entire workflow.
+
+    Simple explanation (for a 6-year-old):
+        This is the boss that tells all the robot helpers what to do.
+        It asks you what you want, sends helpers to find answers,
+        mixes everything together, and gives you the best result!
+
+    Technical explanation (for experts):
+        Coordinates the 5-phase AI workflow:
+        1. Request clarification (Claude Sonnet)
+        2. Parallel AI research (multiple providers)
+        3. Multi-round synthesis with saturation detection
+        4. Output formatting for target tools
+        5. Verification feedback loop
+    """
+
+    def __init__(self, config_path: str = "config.yaml"):
+        self.config = self._load_config(config_path)
+
+        # Initialize graceful shutdown handler
+        self._shutdown = GracefulShutdown()
+        self._shutdown.register_callback(self._cleanup)
+
+        self.memory = ProjectMemory(
+            self.config.get('memory', {}).get('database_path', '~/.ai-orchestrator/projects.db'),
+            pool_size=self.config.get('memory', {}).get('pool_size', 5)
+        )
+        self.browser = BrowserController(self.config.get('browser', {}))
+        self.synthesis = SynthesisEngine(self.config.get('workflow', {}).get('synthesis', {}))
+        self.formatter = PromptFormatter()
+        self.ai_services = self._init_ai_services()
+        self.current_project: Optional[Project] = None
+        self.response_queue = queue.Queue()
+        self.running = True
+
+    def _cleanup(self):
+        """Cleanup resources on shutdown."""
+        logger.info("Cleaning up resources...")
+        self.running = False
+        if hasattr(self, 'memory'):
+            self.memory.close()
+        logger.info("Cleanup complete")
+
+    def _validate_config(self, config: Dict) -> List[str]:
+        """Validate configuration and return list of warnings.
+
+        Simple explanation (for a 6-year-old):
+            We check that all the settings make sense, like making sure
+            numbers are numbers and all required settings are there.
+
+        Technical explanation (for experts):
+            Schema validation for configuration dictionary.
+            Returns list of warning messages for invalid values.
+        """
+        warnings = []
+
+        # Validate browser settings
+        browser = config.get('browser', {})
+        if 'parallel_tabs' in browser:
+            if not isinstance(browser['parallel_tabs'], int) or browser['parallel_tabs'] < 1:
+                warnings.append(f"browser.parallel_tabs must be positive integer, got: {browser['parallel_tabs']}")
+        if 'tab_delay_ms' in browser:
+            if not isinstance(browser['tab_delay_ms'], (int, float)) or browser['tab_delay_ms'] < 0:
+                warnings.append(f"browser.tab_delay_ms must be non-negative number")
+
+        # Validate workflow settings
+        workflow = config.get('workflow', {})
+        synthesis = workflow.get('synthesis', {})
+        if 'rounds' in synthesis:
+            if not isinstance(synthesis['rounds'], int) or synthesis['rounds'] < 1:
+                warnings.append(f"workflow.synthesis.rounds must be positive integer")
+
+        # Validate memory settings
+        memory = config.get('memory', {})
+        if 'pool_size' in memory:
+            if not isinstance(memory['pool_size'], int) or memory['pool_size'] < 1:
+                warnings.append(f"memory.pool_size must be positive integer")
+
+        # Validate AI services
+        ai_services = config.get('ai_services', {})
+        for name, svc in ai_services.items():
+            if not svc.get('url'):
+                warnings.append(f"ai_services.{name}.url is required")
+            if 'max_tokens' in svc:
+                if not isinstance(svc['max_tokens'], int) or svc['max_tokens'] < 1:
+                    warnings.append(f"ai_services.{name}.max_tokens must be positive integer")
+            if 'priority' in svc:
+                if not isinstance(svc['priority'], int) or not 1 <= svc['priority'] <= 10:
+                    warnings.append(f"ai_services.{name}.priority must be integer 1-10")
+
+        return warnings
+
+    def _load_config(self, config_path: str) -> Dict:
+        """Load and validate configuration from YAML file.
+
+        Args:
+            config_path: Path to YAML config file (relative to script directory)
+
+        Returns:
+            Configuration dictionary, empty dict if file doesn't exist
+
+        Raises:
+            Logs error but returns empty dict on parse failure (graceful degradation)
+        """
+        config_file = Path(__file__).parent / config_path
+        if not config_file.exists():
+            logger.warning(f"Config file not found: {config_file}")
+            return {}
+
+        try:
+            with open(config_file, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+                if config is None:
+                    logger.warning(f"Config file is empty: {config_file}")
+                    return {}
+
+                # Validate configuration
+                warnings = self._validate_config(config)
+                for warning in warnings:
+                    logger.warning(f"Config validation: {warning}")
+
+                logger.info(f"Loaded configuration from {config_file}")
+                return config
+        except yaml.YAMLError as e:
+            logger.error(f"Invalid YAML in config file {config_file}: {e}")
+            return {}
+        except IOError as e:
+            logger.error(f"Could not read config file {config_file}: {e}")
+            return {}
+        except Exception as e:
+            logger.error(f"Unexpected error loading config: {e}")
+            return {}
+
+    def _init_ai_services(self) -> Dict[str, AIService]:
+        """Initialize AI service configurations."""
+        services = {}
+        for key, cfg in self.config.get('ai_services', {}).items():
+            services[key] = AIService(
+                name=cfg.get('name', key),
+                url=cfg.get('url', ''),
+                role=AIRole(cfg.get('role', 'researcher')),
+                max_tokens=cfg.get('max_tokens', 4096),
+                priority=cfg.get('priority', 5),
+                model=cfg.get('model')
+            )
+        return services
+
+    def display_banner(self):
+        """Display welcome banner."""
+        banner = """
+╔══════════════════════════════════════════════════════════════════╗
+║                    AI ORCHESTRATOR v1.0.0                        ║
+║              Multi-AI Collaboration System                       ║
+╠══════════════════════════════════════════════════════════════════╣
+║  Workflow:                                                       ║
+║  1. Clarify request with Claude Sonnet 4.5                      ║
+║  2. Query multiple AIs in parallel                               ║
+║  3. Synthesis rounds (3x) with saturation check                  ║
+║  4. Format outputs for target tools/AIs                          ║
+║  5. Execute and verify with feedback loop                        ║
+╚══════════════════════════════════════════════════════════════════╝
+        """
+        print(banner)
+
+    def get_user_request(self) -> str:
+        """Get initial request from user."""
+        print("\n" + "="*60)
+        print("   STEP 1: Enter Your Request")
+        print("="*60)
+        print("Describe what you want to accomplish.")
+        print("(Press Enter twice to submit, or type 'quit' to exit)\n")
+
+        lines = []
+        while True:
+            try:
+                line = input()
+                if line.lower() == 'quit':
+                    return ''
+                if line == '' and lines and lines[-1] == '':
+                    break
+                lines.append(line)
+            except EOFError:
+                break
+
+        return '\n'.join(lines).strip()
+
+    def phase1_clarification(self, request: str) -> str:
+        """Phase 1: Clarify and enrich request with Claude Sonnet.
+
+        Args:
+            request: The original user request (must be non-empty)
+
+        Returns:
+            Clarified request (original if user skips clarification)
+
+        Raises:
+            ValueError: If request is empty or invalid
+        """
+        # Input validation
+        if not request or not isinstance(request, str):
+            raise ValueError("Request must be a non-empty string")
+
+        request = request.strip()
+        if not request:
+            raise ValueError("Request cannot be empty or whitespace only")
+
+        print("\n" + "="*60)
+        print("   PHASE 1: Clarification with Claude Sonnet 4.5")
+        print("="*60)
+
+        # Open Claude tab for clarification
+        claude_service = self.ai_services.get('claude_sonnet')
+        if claude_service:
+            clarification_prompt = f"""# Request Clarification Needed
+
+## Original Request:
+{request}
+
+## Your Task:
+Help clarify and enrich this request by:
+1. Identifying ambiguities or missing information
+2. Suggesting specific questions to ask the user
+3. Proposing a structured approach
+4. Defining success criteria
+
+Please ask clarifying questions before proceeding."""
+
+            self.browser.open_ai_tab(claude_service, clarification_prompt)
+
+            print("\n[Claude tab opened for clarification]")
+            print("Please interact with Claude to clarify your request.")
+            print("\nOnce clarified, paste the enriched request below")
+            print("(Press Enter twice to continue):\n")
+
+            lines = []
+            while True:
+                try:
+                    line = input()
+                    if line == '' and lines and lines[-1] == '':
+                        break
+                    lines.append(line)
+                except EOFError:
+                    break
+
+            clarified = '\n'.join(lines).strip()
+            return clarified if clarified else request
+
+        return request
+
+    def phase2_parallel_research(self, clarified_request: str) -> List[Dict]:
+        """Phase 2: Query multiple AIs in parallel.
+
+        Args:
+            clarified_request: The clarified request from phase 1
+
+        Returns:
+            List of response dicts with 'source', 'content', 'status' keys
+        """
+        # Input validation
+        if not clarified_request or not isinstance(clarified_request, str):
+            logger.warning("Empty clarified request, using original")
+            clarified_request = self.current_project.original_request if self.current_project else ""
+
+        if not clarified_request:
+            return []  # Cannot proceed without a request
+
+        print("\n" + "="*60)
+        print("   PHASE 2: Parallel AI Research")
+        print("="*60)
+
+        # Get research AIs
+        research_ais = [
+            svc for svc in self.ai_services.values()
+            if svc.role == AIRole.RESEARCHER and svc.available
+        ]
+
+        if not research_ais:
+            logger.warning("No research AIs available")
+            print("\n⚠ No research AIs configured. Skipping parallel research.")
+            return []
+
+        print(f"\nOpening {len(research_ais)} AI tabs for parallel research...")
+
+        # Format prompt for each AI
+        formatted_prompts = {}
+        for ai in research_ais:
+            formatted_prompts[ai.name] = self.formatter.format_for_ai(
+                clarified_request, ai.name
+            )
+
+        # Open all tabs
+        for ai in research_ais:
+            self.browser.open_ai_tab(ai, formatted_prompts[ai.name])
+            print(f"  ✓ Opened {ai.name}")
+
+        print("\n[All AI tabs opened]")
+        print("Please collect responses from each AI.")
+        print("\nFor each AI, paste its response below.")
+        print("Format: AI_NAME::: response content")
+        print("Type 'done' when finished:\n")
+
+        responses = []
+        current_ai = None
+        current_response = []
+
+        while True:
+            try:
+                line = input()
+                if line.lower() == 'done':
+                    if current_ai and current_response:
+                        responses.append({
+                            'source': current_ai,
+                            'content': '\n'.join(current_response),
+                            'status': 'collected'
+                        })
+                    break
+
+                if ':::' in line:
+                    # Save previous response
+                    if current_ai and current_response:
+                        responses.append({
+                            'source': current_ai,
+                            'content': '\n'.join(current_response),
+                            'status': 'collected'
+                        })
+                    # Start new response
+                    parts = line.split(':::', 1)
+                    current_ai = parts[0].strip()
+                    current_response = [parts[1].strip()] if len(parts) > 1 else []
+                else:
+                    current_response.append(line)
+
+            except EOFError:
+                break
+
+        # Simulate responses for unavailable AIs if configured
+        if self.config.get('workflow', {}).get('research', {}).get('simulate_on_failure'):
+            collected_ais = {r['source'].lower() for r in responses}
+            for ai in research_ais:
+                if ai.name.lower() not in collected_ais:
+                    responses.append({
+                        'source': ai.name,
+                        'content': f"[SIMULATED] Response simulated due to unavailability. "
+                                  f"Key points would likely include analysis of: {clarified_request[:200]}...",
+                        'status': 'simulated'
+                    })
+                    print(f"  ⚠ Simulated response for {ai.name}")
+
+        return responses
+
+    def phase3_synthesis(self, responses: List[Dict]) -> str:
+        """Phase 3: Synthesis rounds with Claude Sonnet and Opus.
+
+        Args:
+            responses: List of AI responses from phase 2
+
+        Returns:
+            Final synthesized content (empty string if no responses)
+        """
+        # Input validation
+        if not responses:
+            logger.warning("No responses to synthesize")
+            print("\n⚠ No responses to synthesize. Skipping synthesis phase.")
+            return ""
+
+        # Filter out empty responses
+        valid_responses = [
+            r for r in responses
+            if r.get('content') and r.get('content').strip()
+        ]
+
+        if not valid_responses:
+            logger.warning("All responses are empty")
+            print("\n⚠ All responses are empty. Skipping synthesis phase.")
+            return ""
+
+        print("\n" + "="*60)
+        print("   PHASE 3: Synthesis Rounds (3x)")
+        print("="*60)
+
+        synthesis_results = []
+
+        for round_num in range(1, self.synthesis.rounds + 1):
+            print(f"\n--- Synthesis Round {round_num}/{self.synthesis.rounds} ---")
+
+            # Generate synthesis prompt
+            synthesis_prompt = self.synthesis.generate_synthesis_prompt(
+                responses if round_num == 1 else [{'source': 'Previous', 'content': synthesis_results[-1]}],
+                round_num
+            )
+
+            # Alternate between Sonnet and Opus
+            model_key = 'claude_sonnet' if round_num % 2 == 1 else 'claude_opus'
+            model = self.ai_services.get(model_key)
+
+            if model:
+                print(f"Using {model.name} for this round...")
+                self.browser.open_ai_tab(model, synthesis_prompt)
+
+                print(f"\n[{model.name} tab opened]")
+                print("Paste the synthesis result below (Enter twice to continue):\n")
+
+                lines = []
+                while True:
+                    try:
+                        line = input()
+                        if line == '' and lines and lines[-1] == '':
+                            break
+                        lines.append(line)
+                    except EOFError:
+                        break
+
+                result = '\n'.join(lines).strip()
+                synthesis_results.append(result)
+
+                # Check saturation
+                saturation = self.synthesis.check_saturation(result)
+                print(f"\nSaturation check: {saturation['saturation_estimate']:.1f}%")
+
+                if not saturation['needs_more_rounds'] and round_num >= 2:
+                    print("✓ Ideas appear saturated, proceeding to formatting")
+                    break
+
+        return synthesis_results[-1] if synthesis_results else ""
+
+    def phase4_formatting(self, final_synthesis: str,
+                          target_tools: List[str] = None) -> Dict[str, str]:
+        """Phase 4: Format outputs for specific tools and AIs."""
+        print("\n" + "="*60)
+        print("   PHASE 4: Output Formatting")
+        print("="*60)
+
+        if not target_tools:
+            print("\nWhich tools/AIs should receive formatted instructions?")
+            print("Options: claude, chatgpt, gemini, antigravity, cursor, vscode")
+            print("Enter comma-separated list (or 'all'):\n")
+            user_input = input().strip()
+            if user_input.lower() == 'all':
+                target_tools = ['claude', 'chatgpt', 'gemini', 'antigravity', 'cursor']
+            else:
+                target_tools = [t.strip() for t in user_input.split(',')]
+
+        formatted_outputs = {}
+        project_context = {
+            'name': self.current_project.name if self.current_project else 'Project',
+            'description': self.current_project.description if self.current_project else ''
+        }
+
+        for tool in target_tools:
+            if tool.lower() in ['antigravity', 'cursor', 'vscode']:
+                formatted_outputs[tool] = self.formatter.format_for_code_tool(
+                    final_synthesis, tool, project_context
+                )
+            else:
+                formatted_outputs[tool] = self.formatter.format_for_ai(
+                    final_synthesis, tool
+                )
+            print(f"  ✓ Formatted for {tool}")
+
+        return formatted_outputs
+
+    def phase5_execution(self, formatted_outputs: Dict[str, str]):
+        """Phase 5: Execute and verify with feedback loop."""
+        print("\n" + "="*60)
+        print("   PHASE 5: Execution & Verification")
+        print("="*60)
+
+        print("\nSending formatted instructions to target tools...")
+
+        for tool, content in formatted_outputs.items():
+            print(f"\n--- {tool.upper()} ---")
+            print(content[:500] + "..." if len(content) > 500 else content)
+
+            # Open appropriate tabs/tools
+            if tool.lower() in self.ai_services:
+                service = self.ai_services[tool.lower()]
+                self.browser.open_ai_tab(service, content)
+            elif tool.lower() == 'antigravity':
+                webbrowser.open_new_tab("https://studio.firebase.google.com/")
+
+        # Verification with Claude
+        print("\n" + "-"*40)
+        print("Verification Phase")
+        print("-"*40)
+        print("\nOpening Claude for work verification...")
+
+        verification_prompt = f"""# Work Verification Required
+
+## Completed Tasks:
+{json.dumps(list(formatted_outputs.keys()), indent=2)}
+
+## Instructions Sent:
+{list(formatted_outputs.values())[0][:1000] if formatted_outputs else 'None'}
+
+## Your Task:
+1. Review the work completed
+2. Identify any issues or gaps
+3. Suggest improvements if needed
+4. Confirm if objectives are met
+
+Please provide your verification assessment."""
+
+        claude = self.ai_services.get('claude_sonnet')
+        if claude:
+            self.browser.open_ai_tab(claude, verification_prompt)
+
+    def save_project_state(self):
+        """Save current project to memory."""
+        if self.current_project:
+            self.memory.save_project(self.current_project)
+            print(f"\n✓ Project saved: {self.current_project.id}")
+
+    def run(self):
+        """Main orchestration workflow."""
+        self.display_banner()
+
+        # Get user request
+        request = self.get_user_request()
+        if not request:
+            print("No request provided. Exiting.")
+            return
+
+        # Create project
+        project_id = f"proj_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self.current_project = Project(
+            id=project_id,
+            name=f"Project {datetime.now().strftime('%Y-%m-%d')}",
+            description="Auto-generated project",
+            original_request=request
+        )
+
+        try:
+            # Phase 1: Clarification
+            clarified_request = self.phase1_clarification(request)
+            self.current_project.clarified_request = clarified_request
+
+            # Phase 2: Parallel Research
+            responses = self.phase2_parallel_research(clarified_request)
+
+            # Phase 3: Synthesis
+            final_synthesis = self.phase3_synthesis(responses)
+
+            # Phase 4: Formatting
+            formatted_outputs = self.phase4_formatting(final_synthesis)
+
+            # Phase 5: Execution
+            self.phase5_execution(formatted_outputs)
+
+            # Save final state
+            self.current_project.final_output = final_synthesis
+            self.save_project_state()
+
+            print("\n" + "="*60)
+            print("   WORKFLOW COMPLETE")
+            print("="*60)
+            print(f"\nProject ID: {self.current_project.id}")
+            print("All results have been saved to memory.")
+            print("\nThank you for using AI Orchestrator!")
+
+        except KeyboardInterrupt:
+            print("\n\nWorkflow interrupted by user.")
+            self.save_project_state()
+        except Exception as e:
+            logger.error(f"Error in workflow: {e}")
+            self.save_project_state()
+            raise
+
+
+def main():
+    """Entry point for the AI Orchestrator."""
+    # Initialize graceful shutdown handler
+    shutdown_handler = GracefulShutdown()
+
+    def signal_handler(sig, frame):
+        print("\n\nShutting down gracefully...")
+        shutdown_handler.request_shutdown()
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+    # Find config file
+    script_dir = Path(__file__).parent
+    config_path = script_dir / "config.yaml"
+
+    if not config_path.exists():
+        print(f"Warning: Config file not found at {config_path}")
+        print("Using default configuration.")
+
+    # Create and run orchestrator
+    orchestrator = AIOrchestrator(str(config_path))
+
+    try:
+        orchestrator.run()
+    except KeyboardInterrupt:
+        print("\nInterrupted by user")
+    finally:
+        # Ensure cleanup happens
+        shutdown_handler.request_shutdown()
+
+
+if __name__ == "__main__":
+    main()

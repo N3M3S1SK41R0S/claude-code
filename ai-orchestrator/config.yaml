@@ -1,0 +1,339 @@
+# =============================================================================
+# NEMESIS Configuration
+# Neural Expert Multi-agent Efficient System for Integrated Solutions
+# =============================================================================
+
+nemesis:
+  version: "1.0.0"
+  environment: development  # development, staging, production
+  log_level: INFO
+  language: fr
+
+# =============================================================================
+# Smart Router - Cost-aware model selection
+# =============================================================================
+routing:
+  default_strategy: complexity  # cost, quality, balanced, complexity
+  budget_limit_daily: 10.0      # $ per day
+  fallback_model: claude-haiku
+
+  strategies:
+    cost:
+      enabled: true
+    quality:
+      enabled: true
+    balanced:
+      cost_weight: 0.3
+      quality_weight: 0.5
+      latency_weight: 0.2
+    complexity:
+      enabled: true
+      tier_mapping:
+        trivial: fast
+        low: fast
+        medium: balanced
+        high: premium
+        expert: premium
+
+# =============================================================================
+# Tool Gateway - Secure tool execution
+# =============================================================================
+gateway:
+  rate_limit_per_minute: 120
+  max_risk_auto_approve: medium  # low, medium, high, critical
+  timeout_seconds: 30
+
+  audit:
+    enabled: true
+    log_file: logs/audit.jsonl
+    retention_days: 30
+
+  risk_policies:
+    - type: rate_limit
+      max_calls_per_minute: 120
+    - type: risk_level
+      max_auto_approve: medium
+    - type: deny_list
+      denied_tools: []
+      denied_patterns:
+        - "rm -rf"
+        - "format"
+
+  isolation:
+    enabled: true
+    sandbox_mode: false
+
+# =============================================================================
+# Verifier - Critic Layer (Mandatory validation)
+# =============================================================================
+verifier:
+  enabled: true
+  fail_on_warning: false
+
+  checks:
+    security:
+      enabled: true
+      patterns:
+        - pattern: "eval\\s*\\("
+          severity: high
+        - pattern: "exec\\s*\\("
+          severity: high
+
+    safety:
+      enabled: true
+
+    quality:
+      enabled: true
+      min_length: 10
+      max_length: 100000
+
+    consistency:
+      enabled: true
+
+    code_syntax:
+      enabled: true
+      languages: [python, json]
+
+# =============================================================================
+# Long-Term Memory (LTM) - Secure with TTL + Encryption
+# =============================================================================
+memory:
+  db_path: data/nemesis_memory.db
+  default_ttl_hours: 720  # 30 days
+  cleanup_interval_hours: 1.0
+
+  encryption:
+    enabled: true
+    key_env: NEMESIS_MEMORY_KEY
+
+  access_control:
+    enabled: true
+    default_level: internal
+
+  consolidation:
+    enabled: true
+    min_age_hours: 24
+    min_access_count: 3
+
+# =============================================================================
+# Multi-Level Cache (L1/L2/L3)
+# =============================================================================
+cache:
+  default_ttl_seconds: 3600
+
+  l1:  # In-memory LRU
+    enabled: true
+    max_size: 1000
+    max_memory_mb: 100
+
+  l2:  # Redis-like with persistence
+    enabled: true
+    max_size: 10000
+    persistence_file: data/l2_cache.json
+
+  l3:  # Disk-based
+    enabled: true
+    cache_dir: .cache/l3
+    max_size_mb: 1000
+
+# =============================================================================
+# Distributed Tracing (Request ID + Correlation)
+# =============================================================================
+tracing:
+  enabled: true
+  sample_rate: 1.0
+
+  exporters:
+    console:
+      enabled: true
+    file:
+      enabled: true
+      path: logs/traces.jsonl
+
+  recording:
+    enabled: true
+    output_dir: data/recordings
+
+# =============================================================================
+# Model Configurations (with costs)
+# =============================================================================
+models:
+  openai:
+    api_key_env: OPENAI_API_KEY
+    base_url: https://api.openai.com/v1
+
+    gpt-4-turbo:
+      enabled: true
+      tier: premium
+      cost_per_1k_input: 0.01
+      cost_per_1k_output: 0.03
+      max_tokens: 128000
+      capabilities: [code, analysis, reasoning, creative]
+
+    gpt-4o-mini:
+      enabled: true
+      tier: balanced
+      cost_per_1k_input: 0.00015
+      cost_per_1k_output: 0.0006
+      max_tokens: 128000
+
+    gpt-3.5-turbo:
+      enabled: true
+      tier: fast
+      cost_per_1k_input: 0.0005
+      cost_per_1k_output: 0.0015
+      max_tokens: 16384
+
+  anthropic:
+    api_key_env: ANTHROPIC_API_KEY
+
+    claude-opus-4:
+      enabled: true
+      tier: premium
+      cost_per_1k_input: 0.015
+      cost_per_1k_output: 0.075
+      max_tokens: 200000
+      capabilities: [code, analysis, reasoning, creative, vision]
+
+    claude-sonnet-4:
+      enabled: true
+      tier: balanced
+      cost_per_1k_input: 0.003
+      cost_per_1k_output: 0.015
+      max_tokens: 200000
+
+    claude-haiku:
+      enabled: true
+      tier: fast
+      cost_per_1k_input: 0.00025
+      cost_per_1k_output: 0.00125
+      max_tokens: 200000
+
+  google:
+    api_key_env: GOOGLE_API_KEY
+
+    gemini-pro:
+      enabled: true
+      tier: balanced
+      cost_per_1k_input: 0.00025
+      cost_per_1k_output: 0.0005
+      max_tokens: 32000
+
+  mistral:
+    api_key_env: MISTRAL_API_KEY
+
+    mistral-large:
+      enabled: true
+      tier: premium
+      cost_per_1k_input: 0.004
+      cost_per_1k_output: 0.012
+      max_tokens: 32000
+
+# =============================================================================
+# NEMESIS Agents (10 Specialized)
+# =============================================================================
+agents:
+  zeus:
+    role: coordinator
+    description: "Cerveau central - routing intelligent"
+    model: claude-sonnet-4
+
+  scribe:
+    role: writer
+    description: "Documentation et génération de contenu"
+    model: gpt-4o-mini
+
+  analyst:
+    role: analyzer
+    description: "Analyse de données et insights"
+    model: claude-sonnet-4
+
+  architect:
+    role: designer
+    description: "Design système et architecture"
+    model: claude-opus-4
+
+  coder:
+    role: developer
+    description: "Génération et debug de code"
+    model: claude-sonnet-4
+
+  strategist:
+    role: planner
+    description: "Planification stratégique"
+    model: gpt-4-turbo
+
+  critic:
+    role: reviewer
+    description: "Vérification et contrôle qualité"
+    model: claude-haiku
+
+  memory_keeper:
+    role: memory
+    description: "Gestion mémoire long-terme"
+    model: claude-haiku
+
+  sentinel:
+    role: security
+    description: "Sécurité et compliance"
+    model: claude-sonnet-4
+
+  optimizer:
+    role: optimizer
+    description: "Optimisation performance et coûts"
+    model: gpt-4o-mini
+
+  researcher:
+    role: researcher
+    description: "Recherche et synthèse d'info"
+    model: gemini-pro
+
+# =============================================================================
+# Browser Integration (for Multi-AI Review)
+# =============================================================================
+browser:
+  executable: google-chrome
+  parallel_tabs: 8
+  tab_delay_ms: 1000
+
+  ai_services:
+    - name: "Claude Sonnet"
+      url: "https://claude.ai/new"
+    - name: "ChatGPT"
+      url: "https://chat.openai.com/"
+    - name: "Gemini"
+      url: "https://gemini.google.com/"
+    - name: "Mistral"
+      url: "https://chat.mistral.ai/"
+    - name: "Perplexity"
+      url: "https://www.perplexity.ai/"
+
+# =============================================================================
+# Security
+# =============================================================================
+security:
+  api_keys:
+    rotation_days: 90
+    storage: environment
+
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
+    burst_size: 10
+
+  content_filtering:
+    enabled: true
+    block_pii: true
+    block_secrets: true
+
+# =============================================================================
+# Observability
+# =============================================================================
+observability:
+  metrics:
+    enabled: true
+    port: 9090
+
+  health:
+    enabled: true
+    port: 8080

@@ -1,0 +1,16 @@
+# AI Orchestrator Dependencies
+# Core dependencies
+pyyaml>=6.0
+
+# AI API clients (optional - install as needed)
+# anthropic>=0.18.0  # For Claude API
+# openai>=1.0.0      # For OpenAI API
+# google-generativeai>=0.3.0  # For Gemini API
+# mistralai>=0.0.7   # For Mistral API
+
+# Note: API packages are optional. The orchestrator works with browser-based
+# interactions by default. Install API packages only if you have API keys
+# and want to use direct API calls.
+
+# To install all optional AI packages:
+# pip install anthropic openai google-generativeai mistralai
