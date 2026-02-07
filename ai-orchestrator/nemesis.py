@@ -10,6 +10,9 @@ Usage:
     nemesis cache <action>      Manage cache
     nemesis stats               Show system statistics
     nemesis config              Show/edit configuration
+    nemesis subagent <action>   Manage sub-agents (experimental)
+    nemesis yolo <action>       Manage Yolo Mode (experimental)
+    nemesis focus <action>      Manage Focus Chain
     nemesis demo                Run interactive demo
 """
 import argparse
@@ -277,6 +280,174 @@ def cmd_config(args):
         print(color(f"Config reset to defaults: {config_path}", Colors.GREEN))
 
 
+def cmd_subagent(args):
+    """Manage sub-agents for task delegation."""
+    from subagents import SubagentManager, SubagentConfig
+    from subagents.agent import SubagentType
+    from subagents.cline_bridge import ClineBridge
+
+    if args.action == "status":
+        print(color("\n=== NEMESIS Subagents Status ===", Colors.HEADER))
+
+        bridge = ClineBridge()
+        health = bridge.check_health()
+
+        cline_color = Colors.GREEN if health['available'] else Colors.RED
+        print(f"\nCline CLI: {color(health['status'], cline_color)}")
+        if health['binary_path']:
+            print(f"  Path: {health['binary_path']}")
+        else:
+            print(f"\n{color('Cline CLI not installed.', Colors.YELLOW)}")
+            print(bridge.get_install_instructions())
+
+    elif args.action == "spawn":
+        manager = SubagentManager()
+        agent_type = SubagentType(args.type or "general")
+
+        print(color(f"\n=== Spawning {agent_type.value} subagent ===", Colors.HEADER))
+
+        agent_id = manager.spawn(
+            task_description=args.task,
+            agent_type=agent_type,
+            model=args.model,
+        )
+
+        print(f"Agent ID: {color(agent_id, Colors.CYAN)}")
+        print(f"Type: {agent_type.value}")
+        print(f"Task: {args.task[:80]}")
+        print(f"\nWaiting for result...")
+
+        result = manager.wait_for(agent_id, timeout=300)
+        if result:
+            status_color = Colors.GREEN if result.success else Colors.RED
+            print(f"\nStatus: {color(result.status.value, status_color)}")
+            if result.output:
+                print(f"\nOutput:\n{result.output[:500]}")
+            if result.error:
+                print(f"\nError: {color(result.error, Colors.RED)}")
+            print(f"\nExecution time: {result.execution_time_ms:.0f}ms")
+        else:
+            print(color("No result received (timeout or error)", Colors.RED))
+
+        manager.shutdown()
+
+    elif args.action == "list-types":
+        print(color("\n=== Available Subagent Types ===", Colors.HEADER))
+        for agent_type in SubagentType:
+            print(f"  - {color(agent_type.value, Colors.CYAN)}")
+
+    elif args.action == "install":
+        bridge = ClineBridge()
+        if bridge.is_available:
+            print(color("Cline CLI is already installed and ready!", Colors.GREEN))
+        else:
+            print(bridge.get_install_instructions())
+
+
+def cmd_yolo(args):
+    """Manage Yolo Mode."""
+    from core.yolo_mode import YoloMode, YoloConfig, ExecutionMode
+
+    if args.action == "status":
+        print(color("\n=== NEMESIS Yolo Mode Status ===", Colors.HEADER))
+        yolo = YoloMode()
+        stats = yolo.get_stats()
+
+        status_color = Colors.GREEN if stats['active'] else Colors.YELLOW
+        print(f"\nActive: {color(str(stats['active']), status_color)}")
+        print(f"Enabled: {stats['enabled']}")
+        print(f"Auto-switch to Act: {stats['auto_switch_to_act']}")
+        print(f"Ask tool disabled: {stats['ask_tool_disabled']}")
+        print(f"Actions: {stats['action_count']}/{stats['max_actions']}")
+        print(f"Guardrails: {stats['guardrails_count']}")
+
+    elif args.action == "activate":
+        config = YoloConfig(enabled=True)
+        yolo = YoloMode(config=config)
+        success = yolo.activate()
+
+        if success:
+            print(color("\nYOLO MODE ACTIVATED", Colors.RED))
+            print(color("All actions will execute without confirmation.", Colors.YELLOW))
+            print(color("Use with extreme caution!", Colors.YELLOW))
+        else:
+            print(color("Failed to activate Yolo Mode", Colors.RED))
+
+    elif args.action == "deactivate":
+        yolo = YoloMode()
+        mode = yolo.deactivate()
+        print(color(f"\nYolo Mode deactivated. Restored mode: {mode.value}", Colors.GREEN))
+
+    elif args.action == "log":
+        yolo = YoloMode()
+        action_log = yolo.get_action_log()
+
+        if not action_log:
+            print(color("\nNo actions logged.", Colors.YELLOW))
+        else:
+            print(color("\n=== Yolo Mode Action Log ===", Colors.HEADER))
+            for entry in action_log:
+                print(f"\n  [{entry['action']}] {entry['description']}")
+                if entry.get('details'):
+                    print(f"    Details: {entry['details']}")
+
+
+def cmd_focus(args):
+    """Manage Focus Chain."""
+    from core.focus_chain import FocusChain, FocusChainConfig, FocusLevel
+
+    config = FocusChainConfig()
+    chain = FocusChain(config=config)
+
+    if args.action == "status":
+        print(color("\n=== NEMESIS Focus Chain ===", Colors.HEADER))
+        stats = chain.get_stats()
+
+        print(f"\nEnabled: {stats['enabled']}")
+        print(f"Chain depth: {stats['chain_depth']}")
+        print(f"Active focuses: {stats['active_focuses']}")
+        print(f"Paused focuses: {stats['paused_focuses']}")
+        print(f"Reminder interval: {stats['reminder_interval']}")
+        print(f"Interactions: {stats['interaction_count']}")
+        print(f"Context switches: {stats['context_switches']}")
+
+        summary = chain.get_focus_summary()
+        if summary != "No active focus.":
+            print(f"\n{color('Current Focus:', Colors.BLUE)}")
+            print(f"  {summary}")
+
+    elif args.action == "push":
+        level = FocusLevel(args.level or "medium")
+        focus_id = chain.push_focus(
+            description=args.description,
+            level=level,
+            completion_criteria=args.criteria,
+        )
+        print(f"Focus pushed: {color(focus_id, Colors.CYAN)}")
+        print(f"  Description: {args.description}")
+        print(f"  Level: {level.value}")
+
+    elif args.action == "pop":
+        entry = chain.pop_focus(args.focus_id)
+        if entry:
+            print(f"Focus popped: {color(entry.description, Colors.GREEN)}")
+        else:
+            print(color("No focus to pop.", Colors.YELLOW))
+
+    elif args.action == "summary":
+        print(color("\n=== Focus Chain Summary ===", Colors.HEADER))
+        print(chain.get_focus_summary())
+
+    elif args.action == "interval":
+        interval = int(args.value)
+        chain.set_reminder_interval(interval)
+        print(f"Reminder interval set to: {color(str(interval), Colors.CYAN)}")
+
+    elif args.action == "clear":
+        chain.clear()
+        print(color("Focus chain cleared.", Colors.GREEN))
+
+
 def cmd_demo(args):
     """Run interactive demo."""
     print(color("""
@@ -407,6 +578,98 @@ def cmd_demo(args):
     traces = tracer.stop_recording()
     print(f"  Recorded {color(str(len(traces)), Colors.CYAN)} spans")
 
+    # Demo 7: Focus Chain
+    print(color("\n=== Demo 7: Focus Chain ===", Colors.HEADER))
+
+    from core.focus_chain import FocusChain, FocusChainConfig, FocusLevel
+
+    focus_config = FocusChainConfig(reminder_interval=3)
+    focus_chain = FocusChain(config=focus_config)
+
+    focus_id = focus_chain.push_focus(
+        description="Implement user authentication system",
+        level=FocusLevel.HIGH,
+        completion_criteria="All auth endpoints tested and documented",
+    )
+    print(f"  Focus pushed: {color(focus_id, Colors.CYAN)}")
+
+    sub_focus_id = focus_chain.push_focus(
+        description="Set up JWT token generation",
+        level=FocusLevel.MEDIUM,
+    )
+    print(f"  Sub-focus pushed: {color(sub_focus_id, Colors.CYAN)}")
+
+    # Simulate interactions to trigger reminder
+    for i in range(3):
+        reminder = focus_chain.record_interaction()
+        if reminder:
+            print(f"  Reminder: {color(reminder.split(chr(10))[1], Colors.YELLOW)}")
+
+    focus_chain.complete_focus(sub_focus_id, "JWT generation implemented")
+    print(f"  Sub-focus completed: {color(sub_focus_id, Colors.GREEN)}")
+    print(f"  Summary: {focus_chain.get_focus_summary()}")
+
+    # Demo 8: Yolo Mode
+    print(color("\n=== Demo 8: Yolo Mode (Safe Demo) ===", Colors.HEADER))
+
+    from core.yolo_mode import YoloMode, YoloConfig, YoloAction
+
+    yolo_config = YoloConfig(enabled=True, max_actions_per_session=5)
+    yolo = YoloMode(config=yolo_config)
+
+    activated = yolo.activate()
+    print(f"  Activated: {color(str(activated), Colors.GREEN)}")
+    print(f"  Should ask user: {color(str(yolo.should_ask_user()), Colors.YELLOW)}")
+
+    approved, reason = yolo.approve_action(
+        YoloAction.FILE_WRITE,
+        "Write config file",
+        {"path": "/tmp/test.yaml"},
+    )
+    print(f"  File write approved: {color(str(approved), Colors.GREEN)} ({reason})")
+
+    blocked, reason = yolo.approve_action(
+        YoloAction.COMMAND_EXECUTE,
+        "Dangerous command",
+        {"command": "rm -rf /"},
+    )
+    print(f"  Dangerous cmd blocked: {color(str(not blocked), Colors.GREEN)} ({reason})")
+
+    stats = yolo.get_stats()
+    print(f"  Actions taken: {stats['action_count']}/{stats['max_actions']}")
+
+    yolo.deactivate()
+    print(f"  Deactivated: {color('OK', Colors.GREEN)}")
+
+    # Demo 9: Subagent System
+    print(color("\n=== Demo 9: Subagent System ===", Colors.HEADER))
+
+    from subagents import SubagentManager, SubagentConfig
+    from subagents.agent import SubagentType
+    from subagents.cline_bridge import ClineBridge
+
+    bridge = ClineBridge()
+    print(f"  Cline CLI status: {color(bridge.status.value, Colors.YELLOW)}")
+
+    sa_config = SubagentConfig(use_cline=False)  # Simulated for demo
+    manager = SubagentManager(config=sa_config)
+
+    agent_id = manager.spawn(
+        task_description="Analyze code quality of the routing module",
+        agent_type=SubagentType.REVIEWER,
+    )
+    print(f"  Spawned reviewer agent: {color(agent_id, Colors.CYAN)}")
+
+    result = manager.wait_for(agent_id, timeout=10)
+    if result:
+        print(f"  Result: {color(result.status.value, Colors.GREEN)}")
+
+    manager_stats = manager.get_stats()
+    print(f"  Total agents: {manager_stats['total_agents']}")
+    print(f"  Cline available: {manager_stats['cline_available']}")
+
+    manager.shutdown()
+
     print(color("\n=== Demo Complete! ===", Colors.GREEN))
     print("\nTry these commands:")
     print("  nemesis run 'Explain machine learning'")
@@ -414,6 +677,9 @@ def cmd_demo(args):
     print("  nemesis verify --file script.py --type code")
     print("  nemesis memory stats")
     print("  nemesis cache stats")
+    print("  nemesis subagent status")
+    print("  nemesis yolo status")
+    print("  nemesis focus status")
 
 
 # =============================================================================
@@ -565,6 +831,29 @@ Examples:
     config_parser.add_argument("action", choices=["show", "edit", "reset"], default="show", nargs="?")
     config_parser.add_argument("--editor", help="Editor to use")
 
+    # Subagent command
+    subagent_parser = subparsers.add_parser("subagent", help="Manage sub-agents")
+    subagent_parser.add_argument("action", choices=["status", "spawn", "list-types", "install"])
+    subagent_parser.add_argument("--task", "-t", help="Task description for spawning")
+    subagent_parser.add_argument("--type", choices=[
+        "coder", "researcher", "reviewer", "planner",
+        "debugger", "tester", "documenter", "general"
+    ], default="general", help="Agent type")
+    subagent_parser.add_argument("--model", "-m", help="Model override")
+
+    # Yolo command
+    yolo_parser = subparsers.add_parser("yolo", help="Manage Yolo Mode")
+    yolo_parser.add_argument("action", choices=["status", "activate", "deactivate", "log"])
+
+    # Focus command
+    focus_parser = subparsers.add_parser("focus", help="Manage Focus Chain")
+    focus_parser.add_argument("action", choices=["status", "push", "pop", "summary", "interval", "clear"])
+    focus_parser.add_argument("--description", "-d", help="Focus description")
+    focus_parser.add_argument("--level", choices=["low", "medium", "high", "critical"], default="medium")
+    focus_parser.add_argument("--criteria", help="Completion criteria")
+    focus_parser.add_argument("--focus-id", help="Focus ID for pop")
+    focus_parser.add_argument("--value", help="Value for interval setting")
+
     # Demo command
     subparsers.add_parser("demo", help="Run interactive demo")
 
@@ -584,7 +873,10 @@ Examples:
         "cache": cmd_cache,
         "stats": cmd_stats,
         "config": cmd_config,
-        "demo": cmd_demo
+        "subagent": cmd_subagent,
+        "yolo": cmd_yolo,
+        "focus": cmd_focus,
+        "demo": cmd_demo,
     }
 
     try:

@@ -289,6 +289,79 @@ agents:
     model: gemini-pro
 
 # =============================================================================
+# Subagents (Experimental) - Delegate tasks to specialized sub-agents
+# =============================================================================
+subagents:
+  enabled: true
+  max_concurrent_agents: 5
+  default_timeout_seconds: 300
+  default_model: null            # null = use routing decision
+  use_cline: true                # Requires: npm install -g cline && cline auth
+  auto_decompose: false          # Auto-decompose complex tasks
+  max_depth: 3                   # Maximum nesting depth
+  retry_failed: true
+  collect_artifacts: true
+
+  agent_types:
+    coder:
+      description: "Code generation and implementation"
+      default_model: claude-sonnet-4
+    researcher:
+      description: "Information gathering and analysis"
+      default_model: gemini-pro
+    reviewer:
+      description: "Code review and quality checks"
+      default_model: claude-haiku
+    planner:
+      description: "Task decomposition and planning"
+      default_model: gpt-4-turbo
+    debugger:
+      description: "Error diagnosis and fixing"
+      default_model: claude-sonnet-4
+    tester:
+      description: "Test generation and execution"
+      default_model: gpt-4o-mini
+    documenter:
+      description: "Documentation generation"
+      default_model: gpt-4o-mini
+
+# =============================================================================
+# Yolo Mode (Experimental) - Autonomous execution without confirmation
+# =============================================================================
+yolo_mode:
+  enabled: false                 # Disabled by default for safety
+  auto_switch_to_act: true       # Auto-switch from Plan to Act mode
+  disable_ask_tool: true         # Disable user prompts
+  max_actions_per_session: 100
+  allow_file_writes: true
+  allow_file_deletes: false      # Dangerous, disabled by default
+  allow_command_execution: true
+  allow_network_calls: true
+  require_guardrails: true
+  blocked_commands:
+    - "rm -rf /"
+    - "rm -rf ~"
+    - "format"
+    - "mkfs"
+    - "dd if=/dev/zero"
+  blocked_paths:
+    - "/etc/"
+    - "/sys/"
+    - "/proc/"
+    - "/boot/"
+
+# =============================================================================
+# Focus Chain - Maintain context focus across interactions
+# =============================================================================
+focus_chain:
+  enabled: true
+  reminder_interval: 6           # 1-10 scale (interactions between reminders)
+  max_chain_depth: 10
+  auto_complete_on_drift: false
+  track_context_switches: true
+  default_level: medium          # low, medium, high, critical
+
+# =============================================================================
 # Browser Integration (for Multi-AI Review)
 # =============================================================================
 browser:
