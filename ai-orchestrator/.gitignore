@@ -13,5 +13,12 @@ tests/test_output/
 .idea/
 .vscode/
 
+# Cache
+.cache/
+
+# Data/logs (runtime generated)
+data/
+logs/
+
 # OS
 .DS_Store
