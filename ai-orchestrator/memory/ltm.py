@@ -166,6 +166,12 @@ class LongTermMemory:
         self._encryption = MemoryEncryption(encryption_password)
         self._lock = threading.RLock()
         self._last_cleanup = 0.0
+        self._persistent_conn = None
+
+        # For in-memory databases, keep a persistent connection
+        if db_path == ":memory:":
+            self._persistent_conn = sqlite3.connect(":memory:", check_same_thread=False)
+            self._persistent_conn.row_factory = sqlite3.Row
 
         # Initialize database
         self._init_db()
@@ -210,12 +216,15 @@ class LongTermMemory:
     @contextmanager
     def _get_connection(self):
         """Get a database connection."""
-        conn = sqlite3.connect(self.db_path, timeout=30.0)
-        conn.row_factory = sqlite3.Row
-        try:
-            yield conn
-        finally:
-            conn.close()
+        if self._persistent_conn is not None:
+            yield self._persistent_conn
+        else:
+            conn = sqlite3.connect(self.db_path, timeout=30.0)
+            conn.row_factory = sqlite3.Row
+            try:
+                yield conn
+            finally:
+                conn.close()
 
     def _maybe_cleanup(self):
         """Run cleanup if enough time has passed."""

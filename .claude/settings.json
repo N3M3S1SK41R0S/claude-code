@@ -1,0 +1,46 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "WebSearch",
+      "WebFetch",
+      "TodoWrite",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git checkout:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh api:*)",
+      "Bash(gh search:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run:*)",
+      "Bash(python3 nemesis.py:*)",
+      "Bash(python3 -m pytest:*)",
+      "Bash(pip install:*)",
+      "Bash(ls:*)",
+      "Bash(pwd)",
+      "Bash(which:*)",
+      "Bash(cat:*)",
+      "Edit(src/**)",
+      "Edit(ai-orchestrator/**)",
+      "Edit(.claude/**)",
+      "Edit(CLAUDE.md)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(format:*)",
+      "Write(.env)",
+      "Write(ai-orchestrator/.env)"
+    ]
+  },
+  "autoCompact": true
+}

@@ -205,6 +205,12 @@ class BalancedStrategy(RoutingStrategy):
         if not candidates:
             candidates = available_models
 
+        if not candidates:
+            raise ValueError("No models available for routing")
+
+        if len(candidates) == 1:
+            return candidates[0], f"Only available model: {candidates[0].name}"
+
         # Calculate composite score
         def score(model: ModelConfig) -> float:
             # Normalize metrics (lower is better for cost and latency)
@@ -443,9 +449,12 @@ class SmartRouter:
             alternatives = []
             for alt_strategy_name, alt_strategy in self.strategies.items():
                 if alt_strategy != routing_strategy:
-                    alt_model, alt_reason = alt_strategy.select(request, available)
-                    if alt_model != selected_model:
-                        alternatives.append((alt_model, f"{alt_strategy_name}: {alt_reason}"))
+                    try:
+                        alt_model, alt_reason = alt_strategy.select(request, available)
+                        if alt_model != selected_model:
+                            alternatives.append((alt_model, f"{alt_strategy_name}: {alt_reason}"))
+                    except (ValueError, IndexError):
+                        continue
 
             decision = RoutingDecision(
                 model=selected_model,
