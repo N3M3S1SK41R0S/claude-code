@@ -1,0 +1,214 @@
+{
+  "name": "NEMESIS — Chrome Entry Router",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "chrome-input",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {"name": "Access-Control-Allow-Origin", "value": "*"}
+            ]
+          }
+        }
+      },
+      "id": "chrome-webhook",
+      "name": "Chrome Form Input",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "webhookId": "chrome-entry-nemesis"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Complexity scoring and routing logic\nconst input = $input.item.json.body || $input.item.json;\nconst text = input.text || input.prompt || '';\nconst hasAttachment = input.has_attachment || false;\nconst taskType = input.task_type || 'auto';\nconst budget = input.budget_remaining_usd || 10.0;\n\n// --- Keyword sets for classification ---\nconst CODE_KW = ['code', 'script', 'python', 'api', 'webhook', 'n8n', 'docker', 'debug', 'deploy', 'mcp', 'git', 'workflow', 'automatisation'];\nconst STRATEGY_KW = ['stratégie', 'patrimoine', 'fiscalité', 'allocation', 'investissement', 'succession', 'optimisation', 'épargne', 'assurance-vie', 'pea', 'scpi'];\nconst REDACTION_KW = ['rédiger', 'écrire', 'lettre', 'mail', 'rapport', 'document', 'présentation', 'note', 'compte-rendu'];\nconst ANALYSIS_KW = ['analyse', 'analyser', 'comparer', 'évaluer', 'audit', 'bilan', 'synthèse', 'benchmark'];\n\nconst textLower = text.toLowerCase();\nconst words = textLower.split(/\\s+/);\n\nconst hasCode = CODE_KW.some(kw => textLower.includes(kw));\nconst hasStrategy = STRATEGY_KW.some(kw => textLower.includes(kw));\nconst hasRedaction = REDACTION_KW.some(kw => textLower.includes(kw));\nconst hasAnalysis = ANALYSIS_KW.some(kw => textLower.includes(kw));\nconst hasMultiStep = /\\b(étape|d'abord|ensuite|puis|1\\.|2\\.|phase)\\b/.test(textLower);\nconst hasFinancial = /[€$]|\\b(patrimoine|capital|rendement|taux|impôt)\\b/.test(textLower);\n\n// --- Complexity score (0-100) ---\nlet score = 0;\nif (words.length > 200) score += 15;\nelse if (words.length > 50) score += 5;\nif (hasCode) score += 20;\nif (hasStrategy) score += 25;\nif (hasAnalysis) score += 15;\nif (hasMultiStep) score += 15;\nif (hasFinancial) score += 10;\nscore = Math.min(score, 100);\n\n// --- Routing decision ---\nlet target, category, reason;\n\nif (taskType !== 'auto') {\n  // Explicit task type override\n  const typeMap = {\n    code: 'claude-code',\n    strategie: 'claude-opus-4.6',\n    redaction: 'claude-coword',\n    analyse: score >= 60 ? 'claude-opus-4.6' : 'claude-sonnet-4.6',\n    quotidien: 'claude-sonnet-4.6',\n  };\n  target = typeMap[taskType] || 'claude-sonnet-4.6';\n  category = taskType;\n  reason = `Type explicite: ${taskType}`;\n} else if (hasCode) {\n  target = 'claude-code';\n  category = 'code';\n  reason = 'Tâche de développement détectée';\n} else if (hasStrategy && hasFinancial) {\n  target = 'claude-opus-4.6';\n  category = 'strategie';\n  reason = 'Stratégie patrimoniale CGP détectée';\n} else if (hasRedaction) {\n  target = 'claude-coword';\n  category = 'redaction';\n  reason = 'Tâche de rédaction détectée';\n} else if (hasAnalysis && score >= 60) {\n  target = 'claude-opus-4.6';\n  category = 'analyse';\n  reason = `Analyse complexe (score=${score})`;\n} else {\n  target = 'claude-sonnet-4.6';\n  category = 'quotidien';\n  reason = `Tâche standard (score=${score})`;\n}\n\n// Budget guard\nif (budget < 1.0 && target !== 'claude-sonnet-4.6') {\n  target = 'claude-sonnet-4.6';\n  reason += ' [BUDGET OVERRIDE → Sonnet]';\n}\n\nreturn {\n  json: {\n    text,\n    target_surface: target,\n    category,\n    complexity_score: score,\n    reason,\n    has_attachment: hasAttachment,\n    budget_remaining: budget,\n    escalation_eligible: score >= 40,\n    timestamp: new Date().toISOString(),\n  }\n};"
+      },
+      "id": "complexity-scorer",
+      "name": "Complexity Scorer & Router",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "outputIndex": 0,
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.target_surface }}",
+                    "rightValue": "claude-sonnet-4.6",
+                    "operator": {"type": "string", "operation": "equals"}
+                  }
+                ]
+              }
+            },
+            {
+              "outputIndex": 1,
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.target_surface }}",
+                    "rightValue": "claude-opus-4.6",
+                    "operator": {"type": "string", "operation": "equals"}
+                  }
+                ]
+              }
+            },
+            {
+              "outputIndex": 2,
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.target_surface }}",
+                    "rightValue": "claude-code",
+                    "operator": {"type": "string", "operation": "equals"}
+                  }
+                ]
+              }
+            },
+            {
+              "outputIndex": 3,
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.target_surface }}",
+                    "rightValue": "claude-coword",
+                    "operator": {"type": "string", "operation": "equals"}
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "id": "surface-switch",
+      "name": "Route to Surface",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 4096,\n  \"messages\": [{\"role\": \"user\", \"content\": \"{{ $('Complexity Scorer & Router').item.json.text }}\"}]\n}"
+      },
+      "id": "call-sonnet",
+      "name": "Claude Sonnet 4.6",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [920, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-opus-4-6\",\n  \"max_tokens\": 8192,\n  \"messages\": [{\"role\": \"user\", \"content\": \"{{ $('Complexity Scorer & Router').item.json.text }}\"}]\n}"
+      },
+      "id": "call-opus",
+      "name": "Claude Opus 4.6",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [920, 300]
+    },
+    {
+      "parameters": {
+        "command": "=claude --model opus --print '{{ $('Complexity Scorer & Router').item.json.text }}'"
+      },
+      "id": "call-claude-code",
+      "name": "Claude Code CLI",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [920, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 8192,\n  \"system\": \"Tu es Claude Coword, spécialisé en rédaction de documents professionnels CGP. Ton professionnel, sourcing, RGPD strict.\",\n  \"messages\": [{\"role\": \"user\", \"content\": \"{{ $('Complexity Scorer & Router').item.json.text }}\"}]\n}"
+      },
+      "id": "call-coword",
+      "name": "Claude Coword",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [920, 700]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Format final response\nconst routing = $('Complexity Scorer & Router').item.json;\nconst apiResponse = $input.item.json;\nconst content = apiResponse.content?.[0]?.text || apiResponse.stdout || 'No response';\n\nreturn {\n  json: {\n    surface: routing.target_surface,\n    category: routing.category,\n    complexity: routing.complexity_score,\n    reason: routing.reason,\n    response: content,\n    timestamp: routing.timestamp,\n  }\n};"
+      },
+      "id": "format-output",
+      "name": "Format Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1160, 400]
+    }
+  ],
+  "connections": {
+    "Chrome Form Input": {
+      "main": [[{"node": "Complexity Scorer & Router", "type": "main", "index": 0}]]
+    },
+    "Complexity Scorer & Router": {
+      "main": [[{"node": "Route to Surface", "type": "main", "index": 0}]]
+    },
+    "Route to Surface": {
+      "main": [
+        [{"node": "Claude Sonnet 4.6", "type": "main", "index": 0}],
+        [{"node": "Claude Opus 4.6", "type": "main", "index": 0}],
+        [{"node": "Claude Code CLI", "type": "main", "index": 0}],
+        [{"node": "Claude Coword", "type": "main", "index": 0}]
+      ]
+    },
+    "Claude Sonnet 4.6": {
+      "main": [[{"node": "Format Output", "type": "main", "index": 0}]]
+    },
+    "Claude Opus 4.6": {
+      "main": [[{"node": "Format Output", "type": "main", "index": 0}]]
+    },
+    "Claude Code CLI": {
+      "main": [[{"node": "Format Output", "type": "main", "index": 0}]]
+    },
+    "Claude Coword": {
+      "main": [[{"node": "Format Output", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {"executionOrder": "v1"},
+  "tags": [{"name": "NEMESIS"}, {"name": "Surface Layer"}, {"name": "Chrome Router"}]
+}

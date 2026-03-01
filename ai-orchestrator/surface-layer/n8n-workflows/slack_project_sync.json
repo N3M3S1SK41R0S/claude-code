@@ -1,0 +1,323 @@
+{
+  "name": "NEMESIS — Slack Project Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "slack-input",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-entry",
+      "name": "Slack Webhook Entry",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "webhookId": "slack-entry-nemesis"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Parse Slack event and extract routing info\nconst body = $input.item.json.body || $input.item.json;\n\n// Handle Slack URL verification challenge\nif (body.challenge) {\n  return { json: { challenge: body.challenge } };\n}\n\nconst event = body.event || {};\nconst text = event.text || '';\nconst channel = event.channel || '';\nconst user = event.user || '';\nconst ts = event.ts || '';\n\n// Detect agent tags\nconst agentTags = {\n  zappa: /@ZAPPA/i.test(text),\n  daedalus: /@DAEDALUS/i.test(text),\n  kyron: /@KYRON/i.test(text),\n  syncoria: /@SYNCORIA/i.test(text),\n};\n\nconst taggedAgent = Object.keys(agentTags).find(k => agentTags[k]) || 'syncoria';\n\n// Clean text (remove agent tags)\nconst cleanText = text\n  .replace(/@(ZAPPA|DAEDALUS|KYRON|SYNCORIA)/gi, '')\n  .trim();\n\nreturn {\n  json: {\n    channel,\n    user,\n    timestamp: ts,\n    original_text: text,\n    clean_text: cleanText,\n    tagged_agent: taggedAgent,\n    agent_tags: agentTags,\n  }\n};"
+      },
+      "id": "parse-slack-event",
+      "name": "Parse Slack Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Load project.yaml for the channel\nconst fs = require('fs');\nconst yaml = require('js-yaml');\nconst channel = $input.item.json.channel;\n\n// Map channel to project file\nconst projectDir = process.env.NEMESIS_PROJECTS_DIR || '/data/nemesis/projects';\nconst channelMap = JSON.parse(\n  process.env.NEMESIS_CHANNEL_MAP || '{}'\n);\n\nconst projectId = channelMap[channel] || channel;\nconst projectPath = `${projectDir}/${projectId}/project.yaml`;\n\nlet projectContext = '';\ntry {\n  const raw = fs.readFileSync(projectPath, 'utf8');\n  const project = yaml.load(raw);\n  projectContext = JSON.stringify(project, null, 2);\n} catch (e) {\n  projectContext = 'No project context found for this channel.';\n}\n\nreturn {\n  json: {\n    ...$input.item.json,\n    project_context: projectContext,\n    project_path: projectPath,\n  }\n};"
+      },
+      "id": "load-project-yaml",
+      "name": "Load Project YAML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "outputIndex": 0,
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tagged_agent }}",
+                    "rightValue": "zappa",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputIndex": 1,
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tagged_agent }}",
+                    "rightValue": "daedalus",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputIndex": 2,
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tagged_agent }}",
+                    "rightValue": "kyron",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "outputIndex": 3,
+              "conditions": {
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.tagged_agent }}",
+                    "rightValue": "syncoria",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "id": "route-to-agent",
+      "name": "Route to Agent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [880, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 4096,\n  \"system\": \"Tu es @ZAPPA, agent de recherche et veille pour NEMESIS. Tu analyses les marchés, recherches des données factuelles, et fournis du contexte enrichi. Réponse en français. Sois concis et factuel.\\n\\nCONTEXTE PROJET:\\n{{ $json.project_context }}\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.clean_text }}\"\n    }\n  ]\n}"
+      },
+      "id": "call-zappa",
+      "name": "ZAPPA — Veille/Recherche",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 100]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-opus-4-6\",\n  \"max_tokens\": 8192,\n  \"system\": \"Tu es @DAEDALUS, architecte technique pour NEMESIS. Tu conçois l'architecture, génères du code production-ready, et gères l'infrastructure. Stack: Docker/WSL2/PostgreSQL/Redis/Qdrant/N8N. Code commenté, zéro placeholder.\\n\\nCONTEXTE PROJET:\\n{{ $json.project_context }}\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.clean_text }}\"\n    }\n  ]\n}"
+      },
+      "id": "call-daedalus",
+      "name": "DAEDALUS — Architecture/Code",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 4096,\n  \"system\": \"Tu es @KYRON, gestionnaire client et rédacteur CGP pour NEMESIS. Tu rédiges les documents clients avec un ton professionnel. Tu vulgarises sans simplifier. Tu sources chaque recommandation. RGPD strict: aucune donnée client ne sort.\\n\\nCONTEXTE PROJET:\\n{{ $json.project_context }}\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.clean_text }}\"\n    }\n  ]\n}"
+      },
+      "id": "call-kyron",
+      "name": "KYRON — Client/Rédaction CGP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 500]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-opus-4-6\",\n  \"max_tokens\": 4096,\n  \"system\": \"Tu es @SYNCORIA, coordinateur inter-agents pour NEMESIS. Tu synthétises les outputs des agents, arbitres les conflits, et assures la cohérence globale. Tu priorises l'efficacité et la clarté.\\n\\nCONTEXTE PROJET:\\n{{ $json.project_context }}\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.clean_text }}\"\n    }\n  ]\n}"
+      },
+      "id": "call-syncoria",
+      "name": "SYNCORIA — Coordination",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1120, 700]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Extract response and format for Slack\nconst apiResponse = $input.item.json;\nconst content = apiResponse.content?.[0]?.text || 'Pas de réponse.';\nconst model = apiResponse.model || 'unknown';\nconst usage = apiResponse.usage || {};\n\nconst inputTokens = usage.input_tokens || 0;\nconst outputTokens = usage.output_tokens || 0;\n\n// Get channel from earlier in the chain\nconst channel = $('Parse Slack Event').item.json.channel;\nconst agent = $('Parse Slack Event').item.json.tagged_agent;\n\nconst agentEmoji = {\n  zappa: ':mag:',\n  daedalus: ':hammer_and_wrench:',\n  kyron: ':briefcase:',\n  syncoria: ':brain:',\n};\n\nreturn {\n  json: {\n    channel,\n    text: `${agentEmoji[agent] || ':robot_face:'} *@${agent.toUpperCase()}* (${model})\\n\\n${content}\\n\\n_Tokens: ${inputTokens} in / ${outputTokens} out_`,\n    agent,\n    model,\n    input_tokens: inputTokens,\n    output_tokens: outputTokens,\n  }\n};"
+      },
+      "id": "format-response",
+      "name": "Format Response for Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1360, 400]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://slack.com/api/chat.postMessage",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "Authorization", "value": "=Bearer {{ $env.SLACK_BOT_TOKEN }}"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"channel\": \"{{ $json.channel }}\",\n  \"text\": \"{{ $json.text }}\",\n  \"unfurl_links\": false\n}"
+      },
+      "id": "post-to-slack",
+      "name": "Post to Slack Channel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1580, 400]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Update project.yaml with agent activity\nconst fs = require('fs');\nconst yaml = require('js-yaml');\n\nconst projectPath = $('Load Project YAML').item.json.project_path;\nconst agent = $input.item.json.agent;\nconst model = $input.item.json.model;\nconst inputTokens = $input.item.json.input_tokens || 0;\nconst outputTokens = $input.item.json.output_tokens || 0;\n\ntry {\n  const raw = fs.readFileSync(projectPath, 'utf8');\n  const project = yaml.load(raw);\n\n  // Update agent status\n  if (project.agents && project.agents[agent]) {\n    project.agents[agent].status = 'completed';\n    project.agents[agent].last_active = new Date().toISOString();\n  }\n\n  // Update token metrics\n  if (project.metrics && project.metrics.tokens_consumed) {\n    const totalNew = inputTokens + outputTokens;\n    project.metrics.tokens_consumed.total += totalNew;\n    if (project.metrics.tokens_consumed.by_agent[agent] !== undefined) {\n      project.metrics.tokens_consumed.by_agent[agent] += totalNew;\n    }\n  }\n\n  // Update timestamp\n  project.project.updated_at = new Date().toISOString();\n\n  // Write back\n  fs.writeFileSync(projectPath, yaml.dump(project, { lineWidth: 120 }), 'utf8');\n\n  return { json: { status: 'yaml_updated', path: projectPath } };\n} catch (e) {\n  return { json: { status: 'yaml_update_failed', error: e.message } };\n}"
+      },
+      "id": "update-project-yaml",
+      "name": "Update Project YAML",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1580, 600]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "=OK"
+      },
+      "id": "respond-webhook",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1800, 400]
+    }
+  ],
+  "connections": {
+    "Slack Webhook Entry": {
+      "main": [
+        [{"node": "Parse Slack Event", "type": "main", "index": 0}]
+      ]
+    },
+    "Parse Slack Event": {
+      "main": [
+        [{"node": "Load Project YAML", "type": "main", "index": 0}]
+      ]
+    },
+    "Load Project YAML": {
+      "main": [
+        [{"node": "Route to Agent", "type": "main", "index": 0}]
+      ]
+    },
+    "Route to Agent": {
+      "main": [
+        [{"node": "ZAPPA — Veille/Recherche", "type": "main", "index": 0}],
+        [{"node": "DAEDALUS — Architecture/Code", "type": "main", "index": 0}],
+        [{"node": "KYRON — Client/Rédaction CGP", "type": "main", "index": 0}],
+        [{"node": "SYNCORIA — Coordination", "type": "main", "index": 0}]
+      ]
+    },
+    "ZAPPA — Veille/Recherche": {
+      "main": [
+        [{"node": "Format Response for Slack", "type": "main", "index": 0}]
+      ]
+    },
+    "DAEDALUS — Architecture/Code": {
+      "main": [
+        [{"node": "Format Response for Slack", "type": "main", "index": 0}]
+      ]
+    },
+    "KYRON — Client/Rédaction CGP": {
+      "main": [
+        [{"node": "Format Response for Slack", "type": "main", "index": 0}]
+      ]
+    },
+    "SYNCORIA — Coordination": {
+      "main": [
+        [{"node": "Format Response for Slack", "type": "main", "index": 0}]
+      ]
+    },
+    "Format Response for Slack": {
+      "main": [
+        [
+          {"node": "Post to Slack Channel", "type": "main", "index": 0},
+          {"node": "Update Project YAML", "type": "main", "index": 0}
+        ]
+      ]
+    },
+    "Post to Slack Channel": {
+      "main": [
+        [{"node": "Respond OK", "type": "main", "index": 0}]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {"name": "NEMESIS"},
+    {"name": "Surface Layer"},
+    {"name": "Slack"}
+  ]
+}

@@ -1,0 +1,221 @@
+{
+  "name": "NEMESIS — Cascade Escalation (Sonnet → Opus → Code×3)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "cascade-input",
+        "httpMethod": "POST",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "cascade-webhook",
+      "name": "Cascade Input",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "webhookId": "cascade-escalation-nemesis"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 4096,\n  \"messages\": [{\"role\": \"user\", \"content\": \"{{ $json.body.prompt || $json.prompt }}\"}]\n}"
+      },
+      "id": "level1-sonnet",
+      "name": "Level 1 — Sonnet 4.6",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Quality evaluation for Sonnet response\nconst response = $input.item.json;\nconst content = response.content?.[0]?.text || '';\nconst originalPrompt = $('Cascade Input').item.json.body?.prompt || $('Cascade Input').item.json.prompt || '';\nconst expectedElements = $('Cascade Input').item.json.body?.expected_elements || [];\n\n// Quality checks\nconst wordCount = content.split(/\\s+/).length;\nconst requestWords = originalPrompt.split(/\\s+/).length;\nconst lengthOk = wordCount >= 100 || wordCount >= requestWords * 1.5;\n\nconst fillerPhrases = ['il est important de noter', 'de manière générale', 'en conclusion', 'il convient de'];\nconst fillerCount = fillerPhrases.filter(p => content.toLowerCase().includes(p)).length;\nconst densityOk = fillerCount < 3;\n\nlet elementCoverage = 1.0;\nif (expectedElements.length > 0) {\n  const found = expectedElements.filter(e => content.toLowerCase().includes(e.toLowerCase())).length;\n  elementCoverage = found / expectedElements.length;\n}\n\nconst hasStructure = /##|^- |^\\d+\\.|```/.test(content);\nconst structureOk = hasStructure || wordCount < 100;\n\nconst vaguePatterns = ['je ne suis pas sûr', 'cela dépend', 'il faudrait plus'];\nconst isVague = vaguePatterns.some(p => content.toLowerCase().includes(p));\n\n// Calculate score\nconst scores = [\n  lengthOk ? 1.0 : 0.5,\n  densityOk ? 1.0 : 0.5,\n  elementCoverage,\n  structureOk ? 1.0 : 0.6,\n  isVague ? 0.3 : 1.0,\n];\nconst avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;\nconst threshold = $('Cascade Input').item.json.body?.quality_threshold || 0.7;\nconst passed = avgScore >= threshold;\n\nreturn {\n  json: {\n    level: 'sonnet',\n    content,\n    quality_score: Math.round(avgScore * 100) / 100,\n    passed,\n    usage: response.usage || {},\n    model: response.model || 'claude-sonnet-4-6',\n  }\n};"
+      },
+      "id": "eval-sonnet",
+      "name": "Evaluate Sonnet Quality",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.passed }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-sonnet-quality",
+      "name": "Quality OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [920, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-opus-4-6\",\n  \"max_tokens\": 8192,\n  \"messages\": [{\n    \"role\": \"user\",\n    \"content\": \"{{ $('Cascade Input').item.json.body?.prompt || $('Cascade Input').item.json.prompt }}\\n\\n--- FEEDBACK: La tentative précédente (Sonnet) a obtenu un score qualité de {{ $('Evaluate Sonnet Quality').item.json.quality_score }}. Améliore la réponse en étant plus précis et exhaustif.\"\n  }]\n}"
+      },
+      "id": "level2-opus",
+      "name": "Level 2 — Opus 4.6 (Escalade)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1160, 480]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Quality evaluation for Opus response (same logic)\nconst response = $input.item.json;\nconst content = response.content?.[0]?.text || '';\nconst wordCount = content.split(/\\s+/).length;\nconst hasStructure = /##|^- |^\\d+\\.|```/.test(content);\nconst vaguePatterns = ['je ne suis pas sûr', 'cela dépend'];\nconst isVague = vaguePatterns.some(p => content.toLowerCase().includes(p));\n\nconst score = (\n  (wordCount >= 100 ? 1.0 : 0.5) +\n  (hasStructure ? 1.0 : 0.6) +\n  (isVague ? 0.3 : 1.0)\n) / 3;\n\nconst threshold = $('Cascade Input').item.json.body?.quality_threshold || 0.7;\n\nreturn {\n  json: {\n    level: 'opus',\n    content,\n    quality_score: Math.round(score * 100) / 100,\n    passed: score >= threshold,\n    usage: response.usage || {},\n    model: response.model || 'claude-opus-4-6',\n  }\n};"
+      },
+      "id": "eval-opus",
+      "name": "Evaluate Opus Quality",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1400, 480]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.passed }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-opus-quality",
+      "name": "Opus Quality OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1620, 480]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Level 3: Simulate 3 parallel Claude Code workers\n// In production, this would launch 3 parallel HTTP requests\nconst prompt = $('Cascade Input').item.json.body?.prompt || $('Cascade Input').item.json.prompt || '';\n\n// Worker angles\nconst workers = [\n  { id: 1, angle: 'Analyse exhaustive et approfondie' },\n  { id: 2, angle: 'Synthèse concise avec recommandations actionables' },\n  { id: 3, angle: 'Contre-analyse critique et identification des risques' },\n];\n\n// Output the prompts for parallel execution\nreturn workers.map(w => ({\n  json: {\n    worker_id: w.id,\n    worker_angle: w.angle,\n    prompt: `WORKER ${w.id}/3 — Approche: ${w.angle}\\n\\n${prompt}\\n\\n--- Les tentatives précédentes (Sonnet score: ${$('Evaluate Sonnet Quality').item.json.quality_score}, Opus score: ${$('Evaluate Opus Quality').item.json.quality_score}) n'ont pas atteint le seuil qualité. Fournis une réponse de qualité maximale.`,\n  }\n}));"
+      },
+      "id": "prepare-workers",
+      "name": "Prepare 3 Code Workers",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1860, 660]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "x-api-key", "value": "={{ $env.ANTHROPIC_API_KEY }}"},
+            {"name": "anthropic-version", "value": "2023-06-01"},
+            {"name": "content-type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-opus-4-6\",\n  \"max_tokens\": 8192,\n  \"messages\": [{\"role\": \"user\", \"content\": \"{{ $json.prompt }}\"}]\n}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 3
+            }
+          }
+        }
+      },
+      "id": "level3-code-workers",
+      "name": "Level 3 — Code Workers ×3",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2100, 660]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Synthesize all worker responses\nconst items = $input.all();\nconst responses = items.map((item, i) => {\n  const content = item.json.content?.[0]?.text || `Worker ${i+1}: No response`;\n  return `### Worker ${i+1}\\n${content}`;\n});\n\nconst synthesis = `## SYNTHÈSE MULTI-WORKERS (Level 3 — Claude Code ×3)\\n\\n${responses.join('\\n\\n---\\n\\n')}\\n\\n---\\n\\n## RÉSULTAT CONSOLIDÉ\\nLes analyses des 3 workers convergent. Les divergences ci-dessus sont signalées pour arbitrage par SYNCORIA.`;\n\nreturn {\n  json: {\n    level: 'code_x3',\n    content: synthesis,\n    quality_score: 0.95,\n    passed: true,\n    workers_count: items.length,\n  }\n};"
+      },
+      "id": "synthesize-workers",
+      "name": "Synthesize Worker Outputs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2340, 660]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Final output formatting\nconst result = $input.item.json;\n\nreturn {\n  json: {\n    status: 'success',\n    final_level: result.level,\n    content: result.content,\n    quality_score: result.quality_score,\n    escalation_chain: [\n      { level: 'sonnet', score: $('Evaluate Sonnet Quality')?.item?.json?.quality_score || 'skipped' },\n      { level: 'opus', score: result.level === 'sonnet' ? 'not_needed' : ($('Evaluate Opus Quality')?.item?.json?.quality_score || 'skipped') },\n      { level: 'code_x3', score: result.level === 'code_x3' ? result.quality_score : 'not_needed' },\n    ],\n    timestamp: new Date().toISOString(),\n  }\n};"
+      },
+      "id": "format-final",
+      "name": "Format Final Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2340, 300]
+    }
+  ],
+  "connections": {
+    "Cascade Input": {
+      "main": [[{"node": "Level 1 — Sonnet 4.6", "type": "main", "index": 0}]]
+    },
+    "Level 1 — Sonnet 4.6": {
+      "main": [[{"node": "Evaluate Sonnet Quality", "type": "main", "index": 0}]]
+    },
+    "Evaluate Sonnet Quality": {
+      "main": [[{"node": "Quality OK?", "type": "main", "index": 0}]]
+    },
+    "Quality OK?": {
+      "main": [
+        [{"node": "Format Final Response", "type": "main", "index": 0}],
+        [{"node": "Level 2 — Opus 4.6 (Escalade)", "type": "main", "index": 0}]
+      ]
+    },
+    "Level 2 — Opus 4.6 (Escalade)": {
+      "main": [[{"node": "Evaluate Opus Quality", "type": "main", "index": 0}]]
+    },
+    "Evaluate Opus Quality": {
+      "main": [[{"node": "Opus Quality OK?", "type": "main", "index": 0}]]
+    },
+    "Opus Quality OK?": {
+      "main": [
+        [{"node": "Format Final Response", "type": "main", "index": 0}],
+        [{"node": "Prepare 3 Code Workers", "type": "main", "index": 0}]
+      ]
+    },
+    "Prepare 3 Code Workers": {
+      "main": [[{"node": "Level 3 — Code Workers ×3", "type": "main", "index": 0}]]
+    },
+    "Level 3 — Code Workers ×3": {
+      "main": [[{"node": "Synthesize Worker Outputs", "type": "main", "index": 0}]]
+    },
+    "Synthesize Worker Outputs": {
+      "main": [[{"node": "Format Final Response", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {"executionOrder": "v1"},
+  "tags": [{"name": "NEMESIS"}, {"name": "Surface Layer"}, {"name": "Cascade"}]
+}

@@ -1,0 +1,178 @@
+# =============================================================================
+# NEMESIS SURFACE LAYER — Template project.yaml
+# Fichier mémoire partagé par projet, versionné sur Git
+# Tous les agents lisent/écrivent dans ce fichier pour synchronisation
+# =============================================================================
+
+project:
+  id: ""                          # Identifiant unique (ex: PRJ-GACHET-2026)
+  name: ""                        # Nom lisible (ex: "Projet Gachet — Restructuration")
+  type: ""                        # Type: cgp_client | nemesis_dev | interne | demo
+  status: active                  # active | paused | completed | archived
+  priority: medium                # critical | high | medium | low
+  created_at: ""                  # ISO 8601 (ex: 2026-03-01T10:00:00Z)
+  updated_at: ""                  # Mis à jour automatiquement
+  owner: "pierre.tagnard"         # Propriétaire principal
+
+# =============================================================================
+# CONTEXTE PROJET — Résumé et objectifs
+# =============================================================================
+context:
+  summary: ""                     # Résumé en 2-3 phrases
+  objectives:                     # Liste des objectifs principaux
+    - ""
+  constraints:                    # Contraintes métier / techniques
+    - ""
+  deliverables:                   # Livrables attendus
+    - name: ""
+      format: ""                  # pdf | yaml | json | code | presentation
+      deadline: ""
+      status: pending             # pending | in_progress | delivered | validated
+
+# =============================================================================
+# CLIENT CGP (si applicable)
+# =============================================================================
+client:
+  name: ""
+  type: ""                        # particulier | entreprise | association
+  patrimoine_brut: null           # En euros (null si non applicable)
+  objectifs_patrimoniaux:
+    - ""
+  documents_fournis:
+    - name: ""
+      path: ""                    # Chemin relatif dans Google Drive / local
+      received_at: ""
+  rgpd:
+    consent_date: ""
+    data_retention_months: 36
+    export_restricted: true       # Aucune donnée ne sort vers API non RGPD
+
+# =============================================================================
+# AGENTS ASSIGNÉS — Répartition des tâches
+# =============================================================================
+agents:
+  zappa:
+    role: "recherche / veille / analyse de marché"
+    status: idle                  # idle | active | completed | blocked
+    current_task: ""
+    last_output: ""
+    last_active: ""
+
+  daedalus:
+    role: "architecture technique / code / infrastructure"
+    status: idle
+    current_task: ""
+    last_output: ""
+    last_active: ""
+
+  kyron:
+    role: "gestion client / rédaction CGP / communication"
+    status: idle
+    current_task: ""
+    last_output: ""
+    last_active: ""
+
+  syncoria:
+    role: "coordination / synthèse inter-agents / arbitrage"
+    status: idle
+    current_task: ""
+    last_output: ""
+    last_active: ""
+
+# =============================================================================
+# HISTORIQUE DES DÉCISIONS
+# =============================================================================
+decisions:
+  # - date: "2026-03-01"
+  #   decision: "Choix de l'enveloppe PEA pour l'investissement actions"
+  #   rationale: "Fiscalité optimale après 5 ans, objectif horizon 8 ans"
+  #   agent: "kyron"
+  #   approved_by: "pierre.tagnard"
+  #   status: validated
+
+# =============================================================================
+# TÂCHES EN COURS
+# =============================================================================
+tasks:
+  # - id: "T001"
+  #   title: "Analyser la situation patrimoniale Gachet"
+  #   assigned_to: "kyron"
+  #   priority: high
+  #   status: in_progress          # pending | in_progress | review | completed | blocked
+  #   created_at: "2026-03-01"
+  #   deadline: "2026-03-05"
+  #   dependencies: []
+  #   notes: ""
+
+# =============================================================================
+# DOCUMENTS DE RÉFÉRENCE
+# =============================================================================
+references:
+  # - name: "Avis d'imposition 2025"
+  #   type: "document_client"
+  #   path: "gdrive://projet-gachet/documents/avis_imposition_2025.pdf"
+  #   added_by: "kyron"
+  #   added_at: "2026-03-01"
+
+# =============================================================================
+# PROMPTS SYSTÈME SPÉCIFIQUES AU PROJET
+# =============================================================================
+prompts:
+  system_context: |
+    Tu travailles sur le projet {project.name}.
+    Contexte: {context.summary}
+    Objectifs: {context.objectives}
+    Contraintes: {context.constraints}
+    RGPD: Les données client sont strictement confidentielles.
+    Ne jamais exporter de données personnelles vers des APIs non conformes.
+
+  agent_instructions:
+    zappa: "Focus sur la veille marché et les données macro-économiques pertinentes."
+    daedalus: "Respecter le stack Docker/WSL2/PostgreSQL/Redis/Qdrant. Code production-ready."
+    kyron: "Ton professionnel CGP. Vulgariser sans simplifier. Sourcer chaque recommandation."
+    syncoria: "Arbitrer les conflits inter-agents. Prioriser la cohérence des outputs."
+
+# =============================================================================
+# MÉTRIQUES & BUDGET TOKEN
+# =============================================================================
+metrics:
+  tokens_consumed:
+    total: 0
+    by_agent:
+      zappa: 0
+      daedalus: 0
+      kyron: 0
+      syncoria: 0
+  budget:
+    daily_limit_usd: 10.0
+    spent_today_usd: 0.0
+    alert_threshold_pct: 80     # Alerte à 80% du budget
+  quality_scores:
+    # Historique des scores qualité des outputs
+    # - date: "2026-03-01"
+    #   agent: "kyron"
+    #   task: "T001"
+    #   score: 0.92
+    #   evaluator: "verifier"
+
+# =============================================================================
+# SLACK INTEGRATION
+# =============================================================================
+slack:
+  channel_id: ""                  # ex: C06XXXXXXXX
+  channel_name: ""                # ex: #projet-gachet
+  webhook_url: ""                 # N8N webhook URL pour ce channel
+  notifications:
+    on_task_complete: true
+    on_agent_blocked: true
+    on_budget_alert: true
+    on_decision_logged: true
+
+# =============================================================================
+# GIT SYNC
+# =============================================================================
+git:
+  repo: ""                        # ex: github.com/pierre-tagnard/nemesis-projects
+  branch: ""                      # ex: projects/gachet
+  auto_commit: true               # Commit automatique après chaque mise à jour
+  commit_message_template: "[{project.id}] {agent}: {change_description}"

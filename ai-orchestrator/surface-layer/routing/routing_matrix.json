@@ -1,0 +1,233 @@
+{
+  "_metadata": {
+    "version": "1.0.0",
+    "project": "NEMESIS-SURFACE-LAYER",
+    "author": "CLAUDE CODE // Coalition IA Multi-Agents",
+    "created": "2026-03-01",
+    "description": "Matrice de routage pour toutes les surfaces Claude — mapping use_case → surface → modèle"
+  },
+  "surfaces": [
+    {
+      "id": "claude-opus-4.6",
+      "name": "Claude Opus 4.6",
+      "provider": "anthropic",
+      "access_via": ["claude.ai", "api"],
+      "cost_tier": "premium",
+      "priority_score": 95,
+      "context_window": 200000,
+      "max_output_tokens": 32000,
+      "cost_per_1k_input": 0.015,
+      "cost_per_1k_output": 0.075,
+      "latency_avg_ms": 3000,
+      "quality_score": 0.98,
+      "capabilities": ["reasoning", "analysis", "code", "creative", "vision", "multi_step", "strategy"],
+      "use_cases": [
+        "analyse_patrimoniale_complexe",
+        "strategie_cgp_multi_criteres",
+        "audit_technique_architecture",
+        "redaction_rapport_expert",
+        "resolution_probleme_ambigue",
+        "synthese_multi_documents"
+      ],
+      "limits": {
+        "rate_limit_rpm": 50,
+        "daily_budget_max_usd": 5.0,
+        "rgpd_compliant": true
+      },
+      "integrations": ["api_directe", "claude.ai_projet", "mcp_server"]
+    },
+    {
+      "id": "claude-sonnet-4.6",
+      "name": "Claude Sonnet 4.6",
+      "provider": "anthropic",
+      "access_via": ["claude.ai", "api", "chrome_extension"],
+      "cost_tier": "balanced",
+      "priority_score": 85,
+      "context_window": 200000,
+      "max_output_tokens": 16000,
+      "cost_per_1k_input": 0.003,
+      "cost_per_1k_output": 0.015,
+      "latency_avg_ms": 1500,
+      "quality_score": 0.92,
+      "capabilities": ["reasoning", "analysis", "code", "creative", "reformulation", "routing"],
+      "use_cases": [
+        "taches_quotidiennes",
+        "reformulation_documents",
+        "extraction_points_cles",
+        "email_client_cgp",
+        "analyse_document_simple",
+        "routing_initial_requetes",
+        "generation_resume"
+      ],
+      "limits": {
+        "rate_limit_rpm": 100,
+        "daily_budget_max_usd": 3.0,
+        "rgpd_compliant": true
+      },
+      "integrations": ["api_directe", "claude.ai_projet", "chrome_extension", "mcp_server", "slack_bot"]
+    },
+    {
+      "id": "claude-code",
+      "name": "Claude Code (CLI + Subagents)",
+      "provider": "anthropic",
+      "access_via": ["cli", "vscode", "api"],
+      "cost_tier": "premium",
+      "priority_score": 90,
+      "context_window": 200000,
+      "max_output_tokens": 64000,
+      "cost_per_1k_input": 0.015,
+      "cost_per_1k_output": 0.075,
+      "latency_avg_ms": 5000,
+      "quality_score": 0.97,
+      "capabilities": ["code_generation", "code_review", "debugging", "refactoring", "automation", "mcp_tools", "file_system", "git", "subagents"],
+      "use_cases": [
+        "developpement_nemesis",
+        "automatisation_workflows",
+        "creation_scripts_n8n",
+        "generation_mcp_servers",
+        "debug_production",
+        "refactoring_codebase",
+        "deploiement_infrastructure"
+      ],
+      "limits": {
+        "rate_limit_rpm": 30,
+        "daily_budget_max_usd": 8.0,
+        "parallel_workers": 3,
+        "rgpd_compliant": true
+      },
+      "integrations": ["vscode_mcp", "git", "docker", "n8n_webhook", "slack_webhook", "filesystem"]
+    },
+    {
+      "id": "claude-chrome",
+      "name": "Claude in Chrome (Extension)",
+      "provider": "anthropic",
+      "access_via": ["chrome_extension"],
+      "cost_tier": "balanced",
+      "priority_score": 80,
+      "context_window": 128000,
+      "max_output_tokens": 8000,
+      "cost_per_1k_input": 0.003,
+      "cost_per_1k_output": 0.015,
+      "latency_avg_ms": 1200,
+      "quality_score": 0.90,
+      "capabilities": ["page_context", "reformulation", "extraction", "routing", "formulaire", "quick_analysis"],
+      "use_cases": [
+        "point_entree_universel",
+        "capture_document_web",
+        "reformulation_rapide",
+        "extraction_donnees_page",
+        "routing_vers_agent_specialise",
+        "formulaire_soumission_tache"
+      ],
+      "limits": {
+        "rate_limit_rpm": 60,
+        "daily_budget_max_usd": 2.0,
+        "rgpd_compliant": true
+      },
+      "integrations": ["chrome_tabs", "web_pages", "clipboard", "n8n_webhook"]
+    },
+    {
+      "id": "claude-coword",
+      "name": "Claude Coword (Rédaction)",
+      "provider": "anthropic",
+      "access_via": ["claude.ai", "api"],
+      "cost_tier": "balanced",
+      "priority_score": 75,
+      "context_window": 200000,
+      "max_output_tokens": 16000,
+      "cost_per_1k_input": 0.003,
+      "cost_per_1k_output": 0.015,
+      "latency_avg_ms": 2000,
+      "quality_score": 0.91,
+      "capabilities": ["redaction", "document_generation", "formatting", "tone_adaptation", "client_communication"],
+      "use_cases": [
+        "redaction_note_client",
+        "generation_rapport_pdf",
+        "lettre_mission_cgp",
+        "presentation_patrimoine",
+        "email_professionnel",
+        "documentation_technique"
+      ],
+      "limits": {
+        "rate_limit_rpm": 60,
+        "daily_budget_max_usd": 2.0,
+        "rgpd_compliant": true
+      },
+      "integrations": ["google_drive", "notion", "export_pdf", "slack_post"]
+    }
+  ],
+  "routing_rules": {
+    "complexity_thresholds": {
+      "trivial": {"score_max": 20, "target": "claude-sonnet-4.6"},
+      "low": {"score_max": 40, "target": "claude-sonnet-4.6"},
+      "medium": {"score_max": 60, "target": "claude-sonnet-4.6"},
+      "high": {"score_max": 80, "target": "claude-opus-4.6"},
+      "expert": {"score_max": 100, "target": "claude-opus-4.6"}
+    },
+    "task_type_overrides": {
+      "code": "claude-code",
+      "automation": "claude-code",
+      "redaction_client": "claude-coword",
+      "web_capture": "claude-chrome",
+      "strategie_cgp": "claude-opus-4.6",
+      "tache_quotidienne": "claude-sonnet-4.6"
+    },
+    "escalation_chain": [
+      "claude-sonnet-4.6",
+      "claude-opus-4.6",
+      "claude-code"
+    ],
+    "budget_fallback": "claude-sonnet-4.6"
+  },
+  "external_tools": [
+    {
+      "id": "perplexity",
+      "role": "veille_recherche",
+      "cost_tier": "low",
+      "use_cases": ["recherche_temps_reel", "veille_marche", "verification_facts"],
+      "integration": "n8n_webhook"
+    },
+    {
+      "id": "chatgpt-codex",
+      "role": "generation_code_masse",
+      "cost_tier": "balanced",
+      "use_cases": ["code_bulk_generation", "pattern_scaling", "variantes"],
+      "integration": "api_openai"
+    },
+    {
+      "id": "mistral-pro",
+      "role": "analyse_complementaire",
+      "cost_tier": "balanced",
+      "use_cases": ["second_opinion", "analyse_fr", "validation"],
+      "integration": "api_mistral"
+    },
+    {
+      "id": "gemini-3-pro",
+      "role": "multimodal_analysis",
+      "cost_tier": "balanced",
+      "use_cases": ["analyse_image", "video", "multimodal"],
+      "integration": "api_google"
+    },
+    {
+      "id": "n8n",
+      "role": "orchestration_hub",
+      "cost_tier": "free",
+      "use_cases": ["workflow_automation", "webhook_routing", "cron_jobs"],
+      "integration": "self_hosted"
+    },
+    {
+      "id": "canva",
+      "role": "design_assets",
+      "cost_tier": "subscription",
+      "use_cases": ["generation_visuels", "presentations", "branding"],
+      "integration": "mcp_canva"
+    },
+    {
+      "id": "slack",
+      "role": "communication_hub",
+      "cost_tier": "free",
+      "use_cases": ["coordination_agents", "notifications", "memory_channel"],
+      "integration": "slack_api"
+    }
+  ]
+}

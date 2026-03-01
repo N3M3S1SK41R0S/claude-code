@@ -1,0 +1,268 @@
+# =============================================================================
+# NEMESIS SURFACE LAYER — Configuration des surfaces
+# Template prêt à injecter dans N8N via webhook
+# =============================================================================
+
+surfaces:
+  # -------------------------------------------------------------------------
+  # CLAUDE OPUS 4.6 — Cerveau stratégique
+  # -------------------------------------------------------------------------
+  claude-opus-4.6:
+    enabled: true
+    provider: anthropic
+    model_id: claude-opus-4-6
+    display_name: "Claude Opus 4.6"
+    role: "Analyses complexes, stratégie CGP, raisonnement expert"
+    tier: premium
+
+    api:
+      base_url: "https://api.anthropic.com/v1/messages"
+      api_key_env: ANTHROPIC_API_KEY
+      max_tokens: 32000
+      temperature: 0.7
+
+    budget:
+      cost_per_1k_input: 0.015
+      cost_per_1k_output: 0.075
+      daily_limit_usd: 5.0
+      alert_at_pct: 80
+
+    routing:
+      complexity_min: 60
+      categories: [strategie, analyse_complexe, audit, multi_step]
+      priority: 95
+
+    n8n:
+      webhook_id: "opus-handler"
+      node_type: "httpRequest"
+      retry_on_fail: true
+      max_retries: 2
+
+  # -------------------------------------------------------------------------
+  # CLAUDE SONNET 4.6 — Cheval de bataille quotidien
+  # -------------------------------------------------------------------------
+  claude-sonnet-4.6:
+    enabled: true
+    provider: anthropic
+    model_id: claude-sonnet-4-6
+    display_name: "Claude Sonnet 4.6"
+    role: "Tâches quotidiennes, reformulation, extraction, routing initial"
+    tier: balanced
+
+    api:
+      base_url: "https://api.anthropic.com/v1/messages"
+      api_key_env: ANTHROPIC_API_KEY
+      max_tokens: 16000
+      temperature: 0.5
+
+    budget:
+      cost_per_1k_input: 0.003
+      cost_per_1k_output: 0.015
+      daily_limit_usd: 3.0
+      alert_at_pct: 80
+
+    routing:
+      complexity_min: 0
+      complexity_max: 59
+      categories: [quotidien, reformulation, extraction, email, resume]
+      priority: 85
+      is_default: true
+
+    n8n:
+      webhook_id: "sonnet-handler"
+      node_type: "httpRequest"
+      retry_on_fail: true
+      max_retries: 3
+
+  # -------------------------------------------------------------------------
+  # CLAUDE CODE — Architecte technique
+  # -------------------------------------------------------------------------
+  claude-code:
+    enabled: true
+    provider: anthropic
+    model_id: claude-code-cli
+    display_name: "Claude Code (×3 Workers)"
+    role: "Développement, automatisation, MCP servers, scripts N8N"
+    tier: premium
+
+    execution:
+      mode: cli
+      parallel_workers: 3
+      worker_strategies:
+        - "analyse_exhaustive"
+        - "synthese_actionable"
+        - "contre_analyse_critique"
+      timeout_per_worker_ms: 120000
+
+    budget:
+      cost_per_1k_input: 0.015
+      cost_per_1k_output: 0.075
+      daily_limit_usd: 8.0
+      alert_at_pct: 70
+
+    routing:
+      categories: [code, automation, infrastructure, mcp, workflow, debug]
+      priority: 90
+      requires_capability: code_generation
+
+    n8n:
+      webhook_id: "code-handler"
+      node_type: "executeCommand"
+      command_template: "claude --model opus --print '{prompt}'"
+
+  # -------------------------------------------------------------------------
+  # CLAUDE IN CHROME — Point d'entrée universel
+  # -------------------------------------------------------------------------
+  claude-chrome:
+    enabled: true
+    provider: anthropic
+    model_id: claude-sonnet-4-6   # Uses Sonnet under the hood
+    display_name: "Claude in Chrome"
+    role: "Point d'entrée universel, capture web, formulaire routing"
+    tier: entry_point
+
+    capabilities:
+      page_context: true
+      form_capture: true
+      clipboard_access: true
+      routing_hub: true
+
+    budget:
+      cost_per_1k_input: 0.003
+      cost_per_1k_output: 0.015
+      daily_limit_usd: 2.0
+
+    routing:
+      is_entry_point: true
+      routes_to: [claude-sonnet-4.6, claude-opus-4.6, claude-code, claude-coword]
+      default_target: claude-sonnet-4.6
+
+    n8n:
+      webhook_id: "chrome-entry"
+      node_type: "webhook"
+      path: "/chrome-input"
+      method: POST
+
+  # -------------------------------------------------------------------------
+  # CLAUDE COWORD — Rédaction spécialisée
+  # -------------------------------------------------------------------------
+  claude-coword:
+    enabled: true
+    provider: anthropic
+    model_id: claude-sonnet-4-6
+    display_name: "Claude Coword"
+    role: "Rédaction documents clients, rapports, lettres de mission CGP"
+    tier: balanced
+
+    api:
+      base_url: "https://api.anthropic.com/v1/messages"
+      api_key_env: ANTHROPIC_API_KEY
+      max_tokens: 16000
+      temperature: 0.6
+
+    document_config:
+      default_format: pdf
+      supported_formats: [pdf, docx, md, html]
+      template_dir: "templates/documents/"
+
+    budget:
+      cost_per_1k_input: 0.003
+      cost_per_1k_output: 0.015
+      daily_limit_usd: 2.0
+
+    routing:
+      categories: [redaction, document, lettre, rapport, email_client]
+      priority: 75
+
+    n8n:
+      webhook_id: "coword-handler"
+      node_type: "httpRequest"
+
+# =============================================================================
+# OUTILS TIERS — Intégrations externes
+# =============================================================================
+external_tools:
+  perplexity:
+    enabled: true
+    role: "Veille et recherche temps réel"
+    api_key_env: PERPLEXITY_API_KEY
+    integration_mode: n8n_webhook
+    n8n_webhook_path: "/perplexity-search"
+    use_cases: [veille_marche, fact_checking, recherche_reglementaire]
+
+  chatgpt-codex:
+    enabled: true
+    role: "Génération code en masse, variantes, patterns"
+    api_key_env: OPENAI_API_KEY
+    integration_mode: api
+    use_cases: [bulk_code_gen, pattern_scaling, variantes]
+
+  n8n:
+    enabled: true
+    role: "Hub d'orchestration central"
+    base_url_env: N8N_BASE_URL     # ex: http://localhost:5678
+    api_key_env: N8N_API_KEY
+    integration_mode: self_hosted
+    use_cases: [workflow_automation, webhook_routing, cron_scheduling]
+
+  slack:
+    enabled: true
+    role: "Communication hub inter-agents"
+    bot_token_env: SLACK_BOT_TOKEN
+    app_token_env: SLACK_APP_TOKEN
+    integration_mode: slack_api
+    use_cases: [agent_coordination, notifications, project_memory]
+
+  canva:
+    enabled: true
+    role: "Génération assets visuels"
+    integration_mode: mcp_server
+    mcp_server: "mcp__Canva"
+    use_cases: [presentations, visuels_marketing, branding]
+
+  google_drive:
+    enabled: true
+    role: "Stockage documents clients"
+    integration_mode: n8n_node
+    n8n_node: "Google Drive"
+    use_cases: [document_storage, client_deliverables, backup]
+
+  qdrant:
+    enabled: true
+    role: "Mémoire vectorielle long terme"
+    host_env: QDRANT_HOST           # ex: localhost
+    port: 6333
+    integration_mode: api
+    use_cases: [semantic_search, context_retrieval, knowledge_base]
+
+# =============================================================================
+# AGENTS NEMESIS — Mapping vers les surfaces
+# =============================================================================
+agent_surface_mapping:
+  zappa:
+    display_name: "@ZAPPA"
+    role: "Recherche / Veille / Analyse de marché"
+    primary_surface: perplexity
+    secondary_surface: claude-sonnet-4.6
+    slack_tag: "@ZAPPA"
+
+  daedalus:
+    display_name: "@DAEDALUS"
+    role: "Architecture technique / Code / Infrastructure"
+    primary_surface: claude-code
+    secondary_surface: claude-opus-4.6
+    slack_tag: "@DAEDALUS"
+
+  kyron:
+    display_name: "@KYRON"
+    role: "Gestion client / Rédaction CGP / Communication"
+    primary_surface: claude-coword
+    secondary_surface: claude-sonnet-4.6
+    slack_tag: "@KYRON"
+
+  syncoria:
+    display_name: "@SYNCORIA"
+    role: "Coordination / Synthèse inter-agents / Arbitrage"
+    primary_surface: claude-opus-4.6
+    secondary_surface: claude-sonnet-4.6
+    slack_tag: "@SYNCORIA"
