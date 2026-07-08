@@ -91,3 +91,37 @@ WHERE status = 'running' AND created_at < now() - interval '2 hours';
 - 3 workflows ultracode (audit + 2 batches), **30 agents** spécialisés dont reviews adversariales systématiques — chaque review a attrapé au moins un vrai défaut : clé prod 64-hex manquée par le sweep, httpx bloquant dans le hot path async, trou fail-soft sur body 200 non-JSON, resync d'export destructif, anchors de patch incomplets.
 - **9 PRs créées + 1 commit fix sur la PR #414**. Suite backend : 1001→1011 verts avec CI bloquante (#429) ; frontend : 164→180 verts.
 - Aucun secret dans les diffs/PR bodies ; aucun push forcé ; aucune écriture en prod (Supabase lu en read-only, n8n non touché).
+
+---
+
+# ADDENDUM — Session étendue (2026-07-05 → 07) : mission UI « Memorable » sur nemesis-core-ops
+
+La session s'est poursuivie bien au-delà du périmètre backend initial. Résumé chiffré :
+
+## Déployé sur main de nemesis-core-ops (16 PRs mergées)
+- **Stack « Matière télémétrique » #357→#365** (fonts self-hosted, socle matière, hooks anti-races,
+  motion View Transitions, data-viz tokenisée, 2 sweeps de pages, sécurité gate+clé centralisée)
+  + **#354/#356** (QuorumBadge/EqrMetric + DebtHorizon) — mergés et déployés.
+- **Vague 4 #366→#369** : sweep 14 pages restantes + polish MultiIA (badge dissent C3 front)
+  + harness CI (bundle-budget, régression visuelle).
+- **T-12 #370** : assets branding optimisés — dist 12,12 → 4,5 MB (−63 %), preload 1,44 MB → 34 KB.
+- **Mission Memorable #371→#376** : tokens OKLCH SSOT (Radix-scale + tokens.json W3C) ;
+  6 composants canoniques framework-tier (Surface, StatusBadgeV2, SkeletonV2/SpinnerV2, EmptyState,
+  MetricTile, DataTable — stories + axe + property-based) ; doctrine UI_DOCTRINE.md (10 tenets) ;
+  drop framer-motion (−42 KB gzip) ; RUM Web Vitals + Attribution API ; check-v2-contract + gates CI ;
+  cockpit modes ⌘M ; focus/texture signatures ; README manifeste ; blog BUILDING_NEMESIS_UI.md ;
+  rapport final docs/NEMESIS_UI_MEMORABLE_REPORT.md.
+
+## Metrics (baseline 6126cec → main 0122b98)
+tests 279 → 581 · framer-motion 42 KB → 0 · warnings Tailwind ambiguous 2 → 0 · dist −63 %
+· 6 canoniques · 5 ADRs + 7 design-specs · doctrine 10 tenets · CI frozen-lockfile réparée.
+
+## Méthode
+Orchestration multi-agents (~15 workflows) : audits parallèles, judge panels 3×3 à biais orthogonaux,
+adversarial verify systématique (les 6 canoniques ont échoué leur 1ère revue — 15 majors invisibles
+au gate mécanique, corrigés avec tests de non-régression, re-verify 6/6 pass).
+
+## Backlog résiduel (Vague C)
+Split CSS d'entrée (98 % budget) → refactor pass P-01→P-08 (adoption canoniques, codemod 211 couleurs,
+unification toasts) → M-04 cognitive ⌘⇧C → M-02 smart-palette / M-05 temporal (ADR selon backend)
+→ Storybook Vercel /storybook → expansion blog 1000→2800 mots.
