@@ -125,3 +125,51 @@ au gate mécanique, corrigés avec tests de non-régression, re-verify 6/6 pass)
 Split CSS d'entrée (98 % budget) → refactor pass P-01→P-08 (adoption canoniques, codemod 211 couleurs,
 unification toasts) → M-04 cognitive ⌘⇧C → M-02 smart-palette / M-05 temporal (ADR selon backend)
 → Storybook Vercel /storybook → expansion blog 1000→2800 mots.
+
+---
+
+# Addendum 2 — Vague C complète (2026-07-08)
+
+Le backlog résiduel ci-dessus est soldé. 8 PRs core-ops supplémentaires mergées (#377→#384),
+main à `09621cb` (+#383/#384 en cours de merge à l'heure de cet addendum).
+
+## Livré
+- **#377 — Infra Vague C** : split CSS route-level (T-08, cascade protégée `:where()`),
+  codemod 417 couleurs → tokens (P-01, alphas hors échelle en oklch relatif), unification
+  toasts `notify()` (P-04, 51 call-sites, −1 dépendance Radix), 404 signature Konami (B-04).
+- **#378 + #380 — Adoption P-02, 10 pages tier-A** (2 batches de 5) : `/`, `/multi-ia`,
+  `/health`, `/ops`, `/audit-trail`, `/hermes`, `/agents`, `/market`, `/memory`,
+  `/infrastructure` sur les 6 canoniques. Présentation feuille uniquement, gains
+  d'honnêteté concrets (erreurs dans les tables avec retry, plus d'effacement de données
+  valides sur erreur de refetch, plus de zéros fabriqués).
+- **#379 — ADR-006/007** : palette AI skippée sur faits (pas de proxy d'inférence,
+  pas de réseau sur le chemin clavier d'incident) → smart-palette frécence ;
+  navigation temporelle ship scope réduit gated sur précondition RLS binaire.
+- **#381 — M-04 mode cognitif ⌘⇧C** : orthogonal aux modes ⌘M, texte ×1.15 composé,
+  cibles élargies, décor coupé, jamais un état masqué. 2 majors prouvés puis re-prouvés
+  en navigateur post-build (escape hatch `:where()` factice — px-4 écrasé 16→9.2px ;
+  cliquet one-way storage bloqué, aussi corrigé dans ⌘M).
+- **#382 — Canoniques v0.9.1** : `minDelta` opt-in MetricTile (fix racine du gel du
+  countup), `kind=fraction` StatusBadgeV2 (tone auto honnête).
+- **#383 — Publication** : blog 1030 → 2957 mots (pièges + pipeline de revue),
+  rapport Memorable v2 aux chiffres mesurés.
+- **#384 — Storybook `/storybook`** sur le déploiement Vercel (33 stories, SW denylist,
+  rewrite avant catch-all, chaîne buildCommand vérifiée en local de bout en bout).
+
+## Metrics finales (baseline 6126cec → main 09621cb)
+tests 279 → **664** · entry **62.39 KB** gzip (92 % du budget) · CSS 28.98 KB (88 %)
+· dist 12.12 → **4.5 MB** · 10 pages tier-A sur canoniques · 7 ADRs · 33 stories
+· modes ⌘M ×4 + cognitif ⌘⇧C · 0 ambiguous · frozen-lockfile verte.
+
+## Méthode (constante)
+Chaque livraison : impl → skeptic adversarial → fix par un tiers → re-verify frais.
+4 pages sur 10 et M-04 ont échoué leur première revue — 6 majors transverses, tous
+invisibles au gate mécanique, tous documentés dans les briefs des batches suivants
+(zéro récidive constatée au batch 3). Trois revues fauchées par la limite de dépense
+ont été reprises inline, aucune sautée. Fable 5 de bout en bout.
+
+## Backlog transmis
+P-02 tier-B (~15 pages, briefs prêts) · entry <40 KB (ADR split vendor) ·
+smart-palette (ADR-006 accepted) · temporal nav (P-0 RLS à vérifier en 1 session) ·
+Surface tone warning + MetricTile amber · composants partagés legacy (CrownCouncil,
+ServicesHub, MarketIntelPanel…).
