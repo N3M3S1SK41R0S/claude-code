@@ -23,14 +23,92 @@ export const DEFAULT_FEATURES: VelumFeatures = {
   enableMarketplace: false,
 };
 
-/** Quotas du modèle freemium (§13.1) — 4 modules depuis l'ajout de la philatélie. */
-export const PLAN_LIMITS = {
-  free: { scansPerMonth: 10, modules: 1, exportPdf: false, alerts: false },
-  premium: { scansPerMonth: Infinity, modules: 4, exportPdf: true, alerts: true },
-  pro: { scansPerMonth: Infinity, modules: 4, exportPdf: true, alerts: true, insuranceReport: true, api: true },
-} as const;
+/**
+ * Grille d'abonnement VELUM (révision produit juillet 2026) :
+ * - free    : 5 scans/semaine offerts POUR CHAQUE module ;
+ * - premium : scans illimités, mais SANS carnet/bibliothèque virtuelle ;
+ * - gold    : illimité + carnet virtuel (cave à vin avec emplacements,
+ *             table/album de pièces, galerie, album philatélique) ;
+ * - platine : tout Gold + valorisation du carnet en continu vs transactions
+ *             du marché + communauté (mise en relation anonymisée et
+ *             transactions entre collectionneurs — commission 5 %,
+ *             expert obligatoire à la charge du vendeur au-delà du seuil).
+ */
+export type PlanId = 'free' | 'premium' | 'gold' | 'platine';
 
-export type PlanId = keyof typeof PLAN_LIMITS;
+export interface PlanEntitlements {
+  /** Quota de scans par semaine ET par module (Infinity = illimité). */
+  scansPerWeekPerModule: number;
+  /** Carnet/bibliothèque virtuelle avec emplacements (Gold+). */
+  virtualBook: boolean;
+  /** Valorisation continue du carnet vs transactions marché (Platine). */
+  liveValuation: boolean;
+  /** Communauté & plateforme de transactions anonymisées (Platine). */
+  community: boolean;
+  exportPdf: boolean;
+  alerts: boolean;
+  /** Rapport assurance/succession. */
+  insuranceReport: boolean;
+}
+
+export const PLAN_LIMITS: Record<PlanId, PlanEntitlements> = {
+  free: {
+    scansPerWeekPerModule: 5,
+    virtualBook: false,
+    liveValuation: false,
+    community: false,
+    exportPdf: false,
+    alerts: false,
+    insuranceReport: false,
+  },
+  premium: {
+    scansPerWeekPerModule: Infinity,
+    virtualBook: false,
+    liveValuation: false,
+    community: false,
+    exportPdf: true,
+    alerts: true,
+    insuranceReport: false,
+  },
+  gold: {
+    scansPerWeekPerModule: Infinity,
+    virtualBook: true,
+    liveValuation: false,
+    community: false,
+    exportPdf: true,
+    alerts: true,
+    insuranceReport: false,
+  },
+  platine: {
+    scansPerWeekPerModule: Infinity,
+    virtualBook: true,
+    liveValuation: true,
+    community: true,
+    exportPdf: true,
+    alerts: true,
+    insuranceReport: true,
+  },
+};
+
+/** Prix indicatifs €/mois (à re-tester marché) — le paywall lit cette source unique. */
+export const PLAN_PRICING_EUR: Record<Exclude<PlanId, 'free'>, number> = {
+  premium: 9.99,
+  gold: 19.99,
+  platine: 49.99,
+};
+
+/** Marketplace communautaire (Platine) — commission sur transaction conclue. */
+export const MARKETPLACE_COMMISSION_RATE = 0.05;
+/**
+ * Au-delà de ce montant, le recours à un analyste expert est obligatoire,
+ * à la charge du vendeur, avant mise en transaction.
+ */
+export const EXPERT_APPRAISAL_THRESHOLD_EUR = 500;
+
+/** true si le plan permet de scanner encore cette semaine dans ce module. */
+export function canScan(plan: PlanId, scansThisWeekForModule: number): boolean {
+  return scansThisWeekForModule < PLAN_LIMITS[plan].scansPerWeekPerModule;
+}
 
 /** Domaines actifs selon les flags — `stamp` n'apparaît que si enableStamps. */
 export function activeDomains(features: VelumFeatures): ('wine' | 'coin' | 'art' | 'stamp')[] {

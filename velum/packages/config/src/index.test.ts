@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_FEATURES, activeDomains, readClientEnv } from './index';
+import {
+  DEFAULT_FEATURES,
+  EXPERT_APPRAISAL_THRESHOLD_EUR,
+  MARKETPLACE_COMMISSION_RATE,
+  PLAN_LIMITS,
+  activeDomains,
+  canScan,
+  readClientEnv,
+} from './index';
 
 describe('feature flags', () => {
   it('la philatélie est un module à part entière (activé par défaut)', () => {
@@ -18,6 +26,44 @@ describe('feature flags', () => {
   it('marketplace OFF au MVP, art = tableaux', () => {
     expect(DEFAULT_FEATURES.enableMarketplace).toBe(false);
     expect(DEFAULT_FEATURES.artDomain).toBe('tableaux');
+  });
+});
+
+describe('grille d’abonnement (révision juillet 2026)', () => {
+  it('free : 5 scans/semaine par module, pas de carnet', () => {
+    expect(PLAN_LIMITS.free.scansPerWeekPerModule).toBe(5);
+    expect(PLAN_LIMITS.free.virtualBook).toBe(false);
+    expect(canScan('free', 4)).toBe(true);
+    expect(canScan('free', 5)).toBe(false);
+  });
+
+  it('premium : illimité mais SANS carnet virtuel', () => {
+    expect(PLAN_LIMITS.premium.scansPerWeekPerModule).toBe(Infinity);
+    expect(PLAN_LIMITS.premium.virtualBook).toBe(false);
+    expect(canScan('premium', 10_000)).toBe(true);
+  });
+
+  it('gold : illimité + carnet virtuel, sans communauté ni valorisation continue', () => {
+    expect(PLAN_LIMITS.gold.virtualBook).toBe(true);
+    expect(PLAN_LIMITS.gold.liveValuation).toBe(false);
+    expect(PLAN_LIMITS.gold.community).toBe(false);
+  });
+
+  it('platine : intégralité des fonctions', () => {
+    expect(PLAN_LIMITS.platine).toEqual({
+      scansPerWeekPerModule: Infinity,
+      virtualBook: true,
+      liveValuation: true,
+      community: true,
+      exportPdf: true,
+      alerts: true,
+      insuranceReport: true,
+    });
+  });
+
+  it('marketplace : commission 5 %, expert obligatoire au-delà de 500 €', () => {
+    expect(MARKETPLACE_COMMISSION_RATE).toBe(0.05);
+    expect(EXPERT_APPRAISAL_THRESHOLD_EUR).toBe(500);
   });
 });
 

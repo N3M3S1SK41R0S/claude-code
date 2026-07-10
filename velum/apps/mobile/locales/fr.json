@@ -1,0 +1,359 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Annuler",
+    "back": "Retour",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "retry": "Réessayer",
+    "close": "Fermer",
+    "loading": "Chargement…",
+    "skip": "Passer",
+    "confirm": "Confirmer",
+    "search": "Rechercher",
+    "continue": "Continuer",
+    "soon": "Bientôt disponible",
+    "unknown": "Inconnu",
+    "yes": "Oui",
+    "no": "Non",
+    "edit": "Modifier"
+  },
+  "brand": {
+    "name": "VELUM",
+    "tagline": "Levez le voile sur la valeur de vos objets"
+  },
+  "tabs": {
+    "capture": "Capturer",
+    "collection": "Collection",
+    "market": "Marché",
+    "profile": "Profil"
+  },
+  "domains": {
+    "wine": {
+      "name": "Vin",
+      "subtitle": "Étiquette & capsule",
+      "group": "Cave"
+    },
+    "coin": {
+      "name": "Pièces",
+      "subtitle": "Avers, revers, tranche",
+      "group": "Cabinet"
+    },
+    "art": {
+      "name": "Tableaux",
+      "subtitle": "Œuvre, signature, dos",
+      "group": "Galerie"
+    },
+    "stamp": {
+      "name": "Timbres",
+      "subtitle": "Recto, verso, dentelure",
+      "group": "Album"
+    }
+  },
+  "roles": {
+    "label": "Étiquette",
+    "capsule": "Capsule",
+    "obverse": "Avers",
+    "reverse": "Revers",
+    "edge": "Tranche",
+    "front": "Recto",
+    "back": "Verso",
+    "signature": "Signature",
+    "frame": "Cadre",
+    "detail": "Détail"
+  },
+  "onboarding": {
+    "skipVideo": "Passer",
+    "pitch": "Levez le voile sur la valeur de vos objets",
+    "pitchDetail": "Photographiez un vin, une pièce, un tableau ou un timbre : VELUM l'identifie, l'analyse et l'estime à partir de sources de prix réelles.",
+    "chooseModules": "Quelles collections vous intéressent ?",
+    "seniorTitle": "Confort de lecture",
+    "seniorMessage": "Préférez-vous de gros boutons et des textes agrandis ? Vous pourrez changer d'avis à tout moment dans le profil.",
+    "seniorEnable": "Activer le mode confort",
+    "seniorSkip": "Non merci",
+    "createAccount": "Créer un compte"
+  },
+  "auth": {
+    "signInTitle": "Connexion",
+    "signUpTitle": "Créer un compte",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "passwordConfirm": "Confirmez le mot de passe",
+    "signIn": "Se connecter",
+    "signUp": "Créer mon compte",
+    "signInWithApple": "Continuer avec Apple",
+    "signInWithGoogle": "Continuer avec Google",
+    "forgotPassword": "Mot de passe oublié ?",
+    "resetSent": "E-mail de réinitialisation envoyé. Vérifiez votre boîte de réception.",
+    "resetNeedsEmail": "Saisissez d'abord votre adresse e-mail.",
+    "noAccount": "Pas encore de compte ? Créez-en un",
+    "haveAccount": "Déjà un compte ? Connectez-vous",
+    "demoHint": "Compte démo : demo@velum.app / velumdemo",
+    "confirmEmail": "Compte créé. Confirmez votre adresse e-mail puis connectez-vous.",
+    "passwordMismatch": "Les mots de passe ne correspondent pas.",
+    "invalidEmail": "Adresse e-mail invalide.",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères.",
+    "appleUnavailable": "Sign in with Apple n'est pas disponible sur cet appareil.",
+    "googleUnavailable": "La connexion Google n'est pas disponible pour le moment."
+  },
+  "capture": {
+    "title": "Que souhaitez-vous estimer ?",
+    "tabPhoto": "Photo",
+    "tabText": "Texte",
+    "tabFile": "Fichier",
+    "takePhoto": "Prendre la photo",
+    "fromGallery": "Importer de la galerie",
+    "retake": "Reprendre",
+    "analyze": "Analyser",
+    "analyzing": "Analyse en cours…",
+    "guideTitle": "Cliché : {{role}}",
+    "guideHint": "Cadrez bien la zone, en pleine lumière, sans reflet.",
+    "cameraPermissionTitle": "Accès caméra requis",
+    "cameraPermissionMessage": "Autorisez la caméra pour photographier vos objets.",
+    "cameraPermissionButton": "Autoriser la caméra",
+    "cameraUnavailableWeb": "Caméra indisponible ici — utilisez l'import galerie ou la saisie texte.",
+    "textLabel": "Décrivez votre objet",
+    "textPlaceholder": "Ex. « pièce argent Napoléon 5 francs 1868 »",
+    "fileHint": "Importez un inventaire CSV ou JSON — chaque ligne devient une piste d'identification.",
+    "pickFile": "Choisir un fichier (CSV / JSON)",
+    "filePicked": "{{count}} ligne(s) importée(s) depuis {{name}}",
+    "fileParseError": "Fichier illisible : vérifiez le format CSV ou JSON.",
+    "noInput": "Ajoutez au moins une photo, un texte ou un fichier.",
+    "photosCount": "{{done}}/{{total}} clichés"
+  },
+  "candidates": {
+    "title": "Candidats identifiés",
+    "confirm": "Confirmer",
+    "refine": "Affiner",
+    "report": "Signaler une erreur",
+    "reported": "Merci, votre signalement nous aide à progresser.",
+    "needsAssisted": "Identification incertaine — complétez les informations ci-dessous.",
+    "assistedTitle": "Saisie assistée",
+    "assistedSubmit": "Valider ces informations",
+    "empty": "Aucun candidat identifié.",
+    "emptyMessage": "Essayez une autre photo ou passez par la saisie assistée.",
+    "processing": "Analyse et estimation en cours…",
+    "saving": "Enregistrement dans votre collection…",
+    "fields": {
+      "label": "Désignation",
+      "wineProducer": "Producteur / château",
+      "wineVintage": "Millésime",
+      "wineAppellation": "Appellation",
+      "coinCountry": "Pays",
+      "coinType": "Type (ex. 5 Francs Semeuse)",
+      "coinYear": "Année",
+      "artArtist": "Artiste (ou école)",
+      "artTitle": "Titre de l'œuvre",
+      "artTechnique": "Technique",
+      "stampCountry": "Pays",
+      "stampCatalog": "N° de catalogue (ex. YT 1234)",
+      "stampYear": "Année"
+    }
+  },
+  "item": {
+    "notFound": "Objet introuvable.",
+    "valuationTitle": "Valorisation",
+    "central": "Valeur centrale",
+    "ci80": "Fourchette probable (IC 80 %)",
+    "ci95": "Fourchette large (IC 95 %)",
+    "reliability": "Fiabilité",
+    "nSources": "{{count}} observation(s) retenue(s)",
+    "sourcesTitle": "Sources",
+    "noValuation": "Pas encore de valorisation.",
+    "revalue": "Estimer maintenant",
+    "chartTitle": "Évolution de la valeur",
+    "chartNeedsMore": "L'historique s'affichera après plusieurs estimations.",
+    "disclaimersTitle": "Avertissements",
+    "defaultDisclaimer": "Estimation indicative fondée sur des sources publiques — ce n'est ni une expertise ni une authentification.",
+    "acquisitionTitle": "Acquisition",
+    "acquiredAt": "Date d'acquisition (AAAA-MM-JJ)",
+    "acquiredPrice": "Prix d'acquisition (EUR)",
+    "condition": "État",
+    "notes": "Notes",
+    "storageLocation": "Emplacement",
+    "editSaved": "Modifications enregistrées.",
+    "editQueued": "Hors-ligne : modification enregistrée localement, elle sera synchronisée.",
+    "actionsTitle": "Actions",
+    "setAlert": "Alerte de seuil",
+    "alertPrompt": "Seuil de valeur (EUR)",
+    "alertSet": "Alerte enregistrée : vous serez notifié au-delà de {{value}}.",
+    "exportPdf": "Exporter la fiche PDF",
+    "exportError": "Export impossible pour le moment.",
+    "deleteTitle": "Supprimer cet objet ?",
+    "deleteMessage": "Cette action est définitive.",
+    "deleted": "Objet supprimé.",
+    "sections": {
+      "identification": "Identification",
+      "tasting": "Dégustation",
+      "ratings": "Notations",
+      "market": "Marché",
+      "comparisons": "Comparaisons",
+      "foodPairings": "Accords mets-vins",
+      "uncertainties": "Incertitudes signalées",
+      "grade": "Grade estimé",
+      "rarity": "Rareté",
+      "varieties": "Variétés & particularités",
+      "condition": "État",
+      "provenance": "Provenance",
+      "comparables": "Œuvres comparables",
+      "attribution": "Attribution",
+      "catalog": "Catalogue"
+    },
+    "wine": {
+      "drinkWindow": "Apogée : {{from}} – {{to}}",
+      "agingPotential": "Potentiel de garde : {{min}} à {{max}} ans",
+      "positioning": "Positionnement : {{value}}"
+    },
+    "coin": {
+      "gradeValue": "{{value}} (échelle {{scale}}, confiance {{confidence}} %)"
+    },
+    "art": {
+      "expertiseRecommended": "Expertise humaine recommandée avant toute transaction.",
+      "qualifiers": {
+        "attribue_a": "Attribué à",
+        "entourage_de": "Entourage de",
+        "ecole_de": "École de",
+        "d_apres": "D'après",
+        "signe": "Signé",
+        "anonyme": "Anonyme"
+      }
+    },
+    "stamp": {
+      "status": {
+        "neuf_sans_charniere": "Neuf sans charnière (**)",
+        "neuf_avec_charniere": "Neuf avec charnière (*)",
+        "oblitere": "Oblitéré (o)",
+        "sur_lettre": "Sur lettre",
+        "inconnu": "État inconnu"
+      }
+    },
+    "rarityLevels": {
+      "courante": "Courante",
+      "peu_courante": "Peu courante",
+      "rare": "Rare",
+      "tres_rare": "Très rare",
+      "inconnue": "Inconnue"
+    }
+  },
+  "collection": {
+    "title": "Ma collection",
+    "totalValue": "Valeur du portefeuille",
+    "gainLoss": "Plus/moins-value latente",
+    "searchPlaceholder": "Rechercher un objet…",
+    "emptyTitle": "Votre collection est vide",
+    "emptyMessage": "Capturez votre premier objet pour lever le voile sur sa valeur.",
+    "emptyCta": "Capturer un objet",
+    "itemsCount": "{{count}} objet(s)",
+    "offlineNotice": "Hors-ligne : données du cache, {{count}} modification(s) en attente."
+  },
+  "market": {
+    "title": "Marché",
+    "notificationsTitle": "Notifications",
+    "notificationsEmpty": "Aucune notification pour le moment.",
+    "alertsTitle": "Alertes actives",
+    "alertsEmpty": "Aucune alerte active. Créez-en une depuis la fiche d'un objet.",
+    "alertRow": "Seuil : {{value}}",
+    "marketplaceTitle": "Marketplace",
+    "marketplaceSoon": "Achetez et vendez entre collectionneurs — bientôt disponible."
+  },
+  "profile": {
+    "title": "Profil",
+    "seniorMode": "Mode senior",
+    "seniorModeHint": "Gros boutons, textes agrandis, contrastes renforcés.",
+    "language": "Langue",
+    "subscription": "Abonnement",
+    "subscriptionHint": "Gérer votre formule VELUM",
+    "exportCsv": "Exporter la collection (CSV)",
+    "exportCsvDone": "Export CSV prêt.",
+    "insuranceReport": "Rapport assurance / succession (PDF)",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions générales d'utilisation",
+    "signOut": "Se déconnecter",
+    "deleteAccount": "Supprimer mon compte",
+    "deleteAccountTitle": "Supprimer votre compte ?",
+    "deleteAccountMessage": "Toutes vos données (objets, photos, historiques) seront définitivement effacées.",
+    "deleteAccountConfirmTitle": "Dernière confirmation",
+    "deleteAccountConfirmMessage": "Cette action est irréversible. Confirmer la suppression définitive ?",
+    "deleteAccountDone": "Compte supprimé. Au revoir.",
+    "version": "Version {{version}}"
+  },
+  "paywall": {
+    "title": "Formules VELUM",
+    "subtitle": "Choisissez la formule adaptée à votre collection.",
+    "free": {
+      "name": "Gratuit",
+      "price": "0 €",
+      "features": "10 scans par mois · 1 module au choix"
+    },
+    "premium": {
+      "name": "Premium",
+      "price": "9,99 € / mois",
+      "features": "Scans illimités · 4 modules · exports PDF/CSV · alertes"
+    },
+    "pro": {
+      "name": "Pro",
+      "price": "49,99 € / mois",
+      "features": "Tout Premium · rapport assurance/succession · accès API"
+    },
+    "subscribe": "Choisir cette formule",
+    "restore": "Restaurer les achats",
+    "restored": "Achats restaurés.",
+    "restoreNone": "Aucun achat à restaurer.",
+    "purchaseDone": "Merci ! Votre abonnement est actif.",
+    "purchaseError": "Achat impossible pour le moment.",
+    "unavailable": "Les achats ne sont pas disponibles dans cet environnement (Expo Go / web). Les formules sont présentées à titre indicatif.",
+    "legal": "Abonnement renouvelé automatiquement, résiliable à tout moment depuis votre compte App Store ou Google Play. Prix TTC."
+  },
+  "export": {
+    "sheetTitle": "Fiche d'objet VELUM",
+    "generatedAt": "Générée le {{date}}",
+    "domain": "Domaine",
+    "confidence": "Confiance d'identification",
+    "attributes": "Caractéristiques",
+    "analysis": "Analyse",
+    "valuation": "Valorisation",
+    "central": "Valeur centrale",
+    "ci80": "Intervalle de confiance 80 %",
+    "ci95": "Intervalle de confiance 95 %",
+    "reliability": "Fiabilité",
+    "sources": "Sources",
+    "disclaimer": "Estimation indicative générée par VELUM — ce document n'est ni une expertise ni une authentification.",
+    "insuranceTitle": "Rapport de valorisation — assurance / succession",
+    "insuranceIntro": "Ce rapport présente la valorisation estimée des objets listés, à la date indiquée, à des fins d'information pour l'assurance ou la succession.",
+    "methodologyTitle": "Méthodologie",
+    "methodology": "Les estimations sont produites par le moteur de valorisation VELUM (§7) : normalisation des devises en EUR, pondération des observations par récence (demi-vie 1 an) et fiabilité de la source, rejet des valeurs aberrantes (MAD), médiane pondérée et intervalles de confiance 80 % / 95 % par bootstrap, assortis d'un score de fiabilité.",
+    "itemsTitle": "Objets valorisés",
+    "totalTitle": "Valeur totale estimée",
+    "noValuation": "Non valorisé",
+    "csv": {
+      "id": "id",
+      "domain": "domaine",
+      "title": "titre",
+      "confidence": "confiance",
+      "acquiredAt": "date_acquisition",
+      "acquiredPrice": "prix_acquisition_eur",
+      "condition": "etat",
+      "location": "emplacement",
+      "notes": "notes",
+      "updatedAt": "mis_a_jour_le"
+    }
+  },
+  "sourceKinds": {
+    "auction_realized": "Vente aux enchères réalisée",
+    "official_quote": "Cote officielle",
+    "marketplace_sold": "Vente conclue (marketplace)",
+    "listing": "Annonce en cours"
+  },
+  "errors": {
+    "NO_OBSERVATIONS": "Pas assez de données de prix pour estimer cet objet.",
+    "RECOGNITION_FAILED": "Identification impossible — essayez une autre photo ou la saisie assistée.",
+    "ANALYSIS_FAILED": "L'analyse a échoué. Réessayez dans un instant.",
+    "SOURCE_UNAVAILABLE": "Service momentanément indisponible. Réessayez plus tard.",
+    "INVALID_INPUT": "Entrée invalide — vérifiez les informations saisies.",
+    "UNAUTHORIZED": "Identifiants incorrects ou session expirée.",
+    "RATE_LIMITED": "Trop de requêtes — patientez un instant.",
+    "BUDGET_EXCEEDED": "Quota de scans atteint. Passez à une formule supérieure pour continuer.",
+    "generic": "Une erreur est survenue. Réessayez.",
+    "offline": "Vous semblez hors-ligne. Vos modifications seront synchronisées."
+  }
+}

@@ -7,7 +7,9 @@ export type VelumErrorCode =
   | 'INVALID_INPUT'
   | 'UNAUTHORIZED'
   | 'RATE_LIMITED'
-  | 'BUDGET_EXCEEDED';
+  | 'BUDGET_EXCEEDED'
+  /** Fonction réservée à une offre supérieure (ex. cave virtuelle = Gold+). */
+  | 'PLAN_REQUIRED';
 
 export class VelumError extends Error {
   readonly code: VelumErrorCode;

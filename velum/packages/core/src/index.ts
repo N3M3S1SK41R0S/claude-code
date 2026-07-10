@@ -6,3 +6,4 @@ export * from './analysis/wine';
 export * from './analysis/coin';
 export * from './analysis/art';
 export * from './analysis/stamp';
+export * from './cellar';
