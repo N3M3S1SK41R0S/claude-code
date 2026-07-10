@@ -15,11 +15,13 @@ import { useTranslation } from 'react-i18next';
 import { VButton, VText, VTextInput, velumColors, velumSpacing } from '@velum/ui';
 import type { CaptureInput, MediaRole, VelumDomain } from '@velum/core';
 
+import { AiConsentModal } from '../../components/AiConsentModal';
 import { MediaCapturePreview } from '../../components/MediaCapturePreview';
 import { Screen } from '../../components/Screen';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage, velumErrorCode } from '../../lib/errors';
 import { useCaptureStore } from '../../stores/captureStore';
+import { useSettingsStore } from '../../stores/settingsStore';
 import { showToast } from '../../stores/toastStore';
 
 /** Guides de cadrage : rôles de clichés attendus par domaine (§6.1.2). */
@@ -69,6 +71,12 @@ export default function CaptureModal() {
 
   const roles = DOMAIN_ROLES[domain];
   const [tab, setTab] = useState<Tab>('photo');
+  // Consentement IA : photo et texte partent au LLM ; l'import fichier est
+  // un mapping local (kind 'file' ne passe pas par deps.vision) → non gated.
+  const aiConsent = useSettingsStore((s) => s.aiConsent);
+  const setAiConsent = useSettingsStore((s) => s.setAiConsent);
+  const consentNeeded = (tab === 'photo' || tab === 'text') && aiConsent === null;
+  const consentDenied = (tab === 'photo' || tab === 'text') && aiConsent === false;
   const [activeRole, setActiveRole] = useState<MediaRole>(roles[0] ?? 'detail');
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
@@ -153,6 +161,10 @@ export default function CaptureModal() {
   };
 
   const analyze = () => {
+    if ((tab === 'photo' || tab === 'text') && aiConsent !== true) {
+      showToast(t('aiConsent.declinedBanner'), 'info');
+      return;
+    }
     let input: CaptureInput | null = null;
     if (tab === 'photo' && media.length > 0) {
       input = {
@@ -251,9 +263,18 @@ export default function CaptureModal() {
         ))}
       </View>
 
-      {tab === 'photo' ? renderPhotoTab() : null}
+      {consentDenied ? (
+        <View style={styles.block}>
+          <VText variant="body" tone="dim" center>
+            {t('aiConsent.declinedBanner')}
+          </VText>
+          <VButton label={t('capture.tabFile')} variant="secondary" onPress={() => setTab('file')} />
+        </View>
+      ) : null}
 
-      {tab === 'text' ? (
+      {tab === 'photo' && !consentDenied ? renderPhotoTab() : null}
+
+      {tab === 'text' && !consentDenied ? (
         <View style={styles.block}>
           <VTextInput
             label={t('capture.textLabel')}
@@ -286,6 +307,12 @@ export default function CaptureModal() {
         />
         <VButton label={t('common.cancel')} variant="ghost" onPress={() => router.back()} />
       </View>
+
+      <AiConsentModal
+        visible={consentNeeded}
+        onAccept={() => setAiConsent(true)}
+        onDecline={() => setAiConsent(false)}
+      />
     </Screen>
   );
 }

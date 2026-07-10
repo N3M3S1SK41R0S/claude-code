@@ -254,7 +254,10 @@
     "alertsEmpty": "Aucune alerte active. Créez-en une depuis la fiche d'un objet.",
     "alertRow": "Seuil : {{value}}",
     "marketplaceTitle": "Marketplace",
-    "marketplaceSoon": "Achetez et vendez entre collectionneurs — bientôt disponible."
+    "marketplaceSoon": "Achetez et vendez entre collectionneurs — bientôt disponible.",
+    "communityTitle": "Communauté Platine",
+    "communityBody": "Bientôt : transactions entre collectionneurs, en toute confidentialité — personne n'échange ses coordonnées, tout passe par la plateforme. Commission de 5 % sur les ventes conclues ; au-delà de 500 €, expertise obligatoire à la charge du vendeur.",
+    "communityCta": "Découvrir l'offre Platine"
   },
   "profile": {
     "title": "Profil",
@@ -283,17 +286,12 @@
     "free": {
       "name": "Gratuit",
       "price": "0 €",
-      "features": "10 scans par mois · 1 module au choix"
+      "features": "5 scans par semaine pour CHAQUE module (Vin, Pièces, Tableaux, Timbres) · fiche d'analyse et estimation"
     },
     "premium": {
       "name": "Premium",
       "price": "9,99 € / mois",
-      "features": "Scans illimités · 4 modules · exports PDF/CSV · alertes"
-    },
-    "pro": {
-      "name": "Pro",
-      "price": "49,99 € / mois",
-      "features": "Tout Premium · rapport assurance/succession · accès API"
+      "features": "Scans illimités sur les 4 modules · exports PDF/CSV · alertes de cote — sans carnet virtuel"
     },
     "subscribe": "Choisir cette formule",
     "restore": "Restaurer les achats",
@@ -302,7 +300,18 @@
     "purchaseDone": "Merci ! Votre abonnement est actif.",
     "purchaseError": "Achat impossible pour le moment.",
     "unavailable": "Les achats ne sont pas disponibles dans cet environnement (Expo Go / web). Les formules sont présentées à titre indicatif.",
-    "legal": "Abonnement renouvelé automatiquement, résiliable à tout moment depuis votre compte App Store ou Google Play. Prix TTC."
+    "legal": "Abonnement renouvelé automatiquement, résiliable à tout moment depuis votre compte App Store ou Google Play. Prix TTC.",
+    "gold": {
+      "name": "Gold",
+      "price": "19,99 € / mois",
+      "badge": "Populaire",
+      "features": "Tout Premium + carnet virtuel : cave à vin avec emplacements, table de pièces, galerie, album philatélique · sommelier de cave (quel vin de MA cave pour ce plat ?)"
+    },
+    "platine": {
+      "name": "Platine",
+      "price": "49,99 € / mois",
+      "features": "Intégralité des fonctions : carnet valorisé EN CONTINU selon les transactions du marché · rapport assurance/succession · communauté de collectionneurs (mise en relation anonyme, transactions via la plateforme — commission 5 %, expertise obligatoire au-delà de 500 €, à la charge du vendeur)"
+    }
   },
   "export": {
     "sheetTitle": "Fiche d'objet VELUM",
@@ -352,8 +361,39 @@
     "INVALID_INPUT": "Entrée invalide — vérifiez les informations saisies.",
     "UNAUTHORIZED": "Identifiants incorrects ou session expirée.",
     "RATE_LIMITED": "Trop de requêtes — patientez un instant.",
-    "BUDGET_EXCEEDED": "Quota de scans atteint. Passez à une formule supérieure pour continuer.",
+    "BUDGET_EXCEEDED": "Quota hebdomadaire de scans atteint pour ce module — passez à une offre supérieure.",
     "generic": "Une erreur est survenue. Réessayez.",
-    "offline": "Vous semblez hors-ligne. Vos modifications seront synchronisées."
+    "offline": "Vous semblez hors-ligne. Vos modifications seront synchronisées.",
+    "PLAN_REQUIRED": "Cette fonction fait partie d'une offre supérieure."
+  },
+  "cellar": {
+    "sommelierTitle": "Sommelier de cave",
+    "sommelierEntry": "🍷 Quel vin pour mon plat ?",
+    "dishLabel": "Quel plat ce soir ?",
+    "dishPlaceholder": "ex. magret de canard aux figues",
+    "search": "Trouver le vin dans ma cave",
+    "searching": "Le sommelier consulte votre cave…",
+    "location": "Emplacement : {{location}}",
+    "serveAt": "Service : {{advice}}",
+    "noResult": "Aucun vin de votre cave ne s'accorde vraiment avec ce plat.",
+    "fallbackTitle": "Conseil d'achat",
+    "planRequired": "Le sommelier de cave fait partie du carnet virtuel — offre Gold ou Platine.",
+    "seeOffers": "Voir les formules",
+    "drinkNowTitle": "{{count}} vin(s) à leur apogée — à boire",
+    "drinkNowWindow": "Fenêtre optimale : {{from}}–{{to}}",
+    "drinkNowDishes": "Servez-le avec : {{dishes}}",
+    "emptyCellar": "Votre cave est vide : scannez vos premières bouteilles pour activer le sommelier."
+  },
+  "aiConsent": {
+    "title": "Analyse par intelligence artificielle",
+    "body": "Pour identifier et estimer vos objets, VELUM transmet vos photos et descriptions à un service d'IA tiers (analyse visuelle). Aucune photo n'est utilisée à d'autres fins. Vous pouvez refuser : la saisie manuelle et l'import de fichier restent disponibles.",
+    "privacyLink": "Politique de confidentialité",
+    "accept": "J'accepte",
+    "decline": "Refuser",
+    "declinedBanner": "Sans consentement IA, la capture photo et la saisie texte sont désactivées. L'import de fichier reste disponible — modifiable dans Profil.",
+    "profileRow": "Traitement IA des photos",
+    "granted": "Autorisé",
+    "denied": "Refusé",
+    "notAsked": "Non demandé"
   }
 }

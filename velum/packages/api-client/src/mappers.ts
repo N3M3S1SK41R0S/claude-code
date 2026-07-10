@@ -210,6 +210,7 @@ export interface ProfileRow {
   display_name: string | null;
   locale: string;
   a11y_mode: boolean;
+  plan: string;
   created_at: string;
 }
 
@@ -222,12 +223,16 @@ export interface ProfilePatch {
   expoPushToken?: string | null;
 }
 
+const PLAN_TIERS: ReadonlySet<string> = new Set(['free', 'premium', 'gold', 'platine']);
+
 export function rowToProfile(row: ProfileRow): Profile {
   return {
     id: row.id,
     displayName: row.display_name,
     locale: row.locale,
     a11yMode: row.a11y_mode,
+    // Valeur inattendue (migration en cours…) → repli prudent sur 'free'.
+    plan: (PLAN_TIERS.has(row.plan) ? row.plan : 'free') as Profile['plan'],
     createdAt: row.created_at,
   };
 }

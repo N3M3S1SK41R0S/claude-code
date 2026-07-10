@@ -40,6 +40,8 @@ export default function Profile() {
   const { senior, setSenior } = useSeniorMode();
   const locale = useSettingsStore((s) => s.locale);
   const setLocale = useSettingsStore((s) => s.setLocale);
+  const aiConsent = useSettingsStore((s) => s.aiConsent);
+  const setAiConsent = useSettingsStore((s) => s.setAiConsent);
 
   const profileQuery = useQuery({
     queryKey: ['profile'],
@@ -177,6 +179,27 @@ export default function Profile() {
               onPress={() => changeLocale('en')}
             />
           </View>
+        </View>
+
+        {/* Consentement IA — révocable à tout moment (RGPD / règle stores 2026) */}
+        <View style={styles.row}>
+          <View style={styles.rowText}>
+            <VText variant="heading">{t('aiConsent.profileRow')}</VText>
+            <VText variant="caption" tone="dim">
+              {aiConsent === true
+                ? t('aiConsent.granted')
+                : aiConsent === false
+                  ? t('aiConsent.denied')
+                  : t('aiConsent.notAsked')}
+            </VText>
+          </View>
+          <Switch
+            value={aiConsent === true}
+            onValueChange={setAiConsent}
+            accessibilityLabel={t('aiConsent.profileRow')}
+            trackColor={{ true: velumColors.gold.faint, false: velumColors.ink.border }}
+            thumbColor={aiConsent === true ? velumColors.gold.DEFAULT : velumColors.parchment.dim}
+          />
         </View>
 
         <VListRow

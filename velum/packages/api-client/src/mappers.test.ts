@@ -178,6 +178,7 @@ describe('mappers profile', () => {
       display_name: 'Pierre',
       locale: 'fr',
       a11y_mode: true,
+      plan: 'gold',
       created_at: '2026-01-01T00:00:00Z',
     };
     expect(rowToProfile(row)).toEqual({
@@ -185,8 +186,21 @@ describe('mappers profile', () => {
       displayName: 'Pierre',
       locale: 'fr',
       a11yMode: true,
+      plan: 'gold',
       createdAt: '2026-01-01T00:00:00Z',
     });
+  });
+
+  it('rowToProfile replie un plan inconnu sur free (prudence)', () => {
+    const row: ProfileRow = {
+      id: 'usr-1',
+      display_name: null,
+      locale: 'fr',
+      a11y_mode: false,
+      plan: 'diamant',
+      created_at: '2026-01-01T00:00:00Z',
+    };
+    expect(rowToProfile(row).plan).toBe('free');
   });
 
   it('profilePatchToRow mappe uniquement les champs fournis (dont expoPushToken)', () => {

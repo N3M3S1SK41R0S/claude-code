@@ -24,7 +24,9 @@ import { Screen } from '../../../components/Screen';
 import { getVelumClient } from '../../../lib/client';
 import { formatEUR } from '../../../lib/i18n';
 import { getActiveDomains } from '../../../lib/features';
+import { drinkNowForItems } from '../../../lib/drinkNow';
 import { showToast } from '../../../stores/toastStore';
+import { VButton } from '@velum/ui';
 
 interface CollectionData {
   items: VelumItem[];
@@ -99,6 +101,10 @@ export default function Collection() {
     return { totalValue: total, gainLoss: hasAcquired ? total - acquired : null };
   }, [items, latestByItem]);
 
+  // Intelligence de cave — sens 2 : vins à leur apogée (calcul local).
+  const hasWine = useMemo(() => items.some((i) => i.domain === 'wine'), [items]);
+  const drinkNow = useMemo(() => drinkNowForItems(items, new Date().getFullYear()), [items]);
+
   const domains = getActiveDomains();
   const grouped = useMemo(() => {
     const map = new Map<VelumDomain, VelumItem[]>();
@@ -156,6 +162,36 @@ export default function Collection() {
         </VText>
       </VCard>
 
+      {hasWine ? (
+        <VButton
+          label={t('cellar.sommelierEntry')}
+          variant="secondary"
+          onPress={() => router.push('/cellar-sommelier')}
+          accessibilityHint={t('cellar.dishLabel')}
+        />
+      ) : null}
+
+      {drinkNow.length > 0 ? (
+        <VCard style={styles.drinkNow}>
+          <VText variant="heading" tone="gold">
+            {t('cellar.drinkNowTitle', { count: drinkNow.length })}
+          </VText>
+          {drinkNow.map((s) => (
+            <VListRow
+              key={s.itemId}
+              title={s.label}
+              subtitle={
+                t('cellar.drinkNowWindow', { from: s.windowFrom, to: s.windowTo }) +
+                (s.suggestedDishes.length > 0
+                  ? ` · ${t('cellar.drinkNowDishes', { dishes: s.suggestedDishes.join(', ') })}`
+                  : '')
+              }
+              onPress={() => router.push(`/item/${s.itemId}`)}
+            />
+          ))}
+        </VCard>
+      ) : null}
+
       <VTextInput
         label={t('common.search')}
         value={search}
@@ -192,5 +228,6 @@ export default function Collection() {
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center' },
   summary: { marginVertical: velumSpacing.md },
+  drinkNow: { marginVertical: velumSpacing.md, gap: velumSpacing.xs },
   group: { marginTop: velumSpacing.lg, gap: velumSpacing.xs },
 });

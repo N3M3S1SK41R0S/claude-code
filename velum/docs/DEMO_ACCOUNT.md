@@ -75,7 +75,9 @@ Accorder ensuite l'entitlement `premium` au compte via le dashboard RevenueCat (
 5. **Saisie sans photo** : dans tout module, l'entrée texte libre (ex. « pièce argent Napoléon ») fonctionne ; une entrée trop vague bascule honnêtement en saisie assistée.
 6. **Mode senior** : Réglages → Accessibilité → activer le **mode senior** — boutons agrandis, contraste renforcé, police majorée. Compatible VoiceOver/TalkBack.
 7. **Restauration des achats** : Réglages → Abonnement → **Restaurer les achats** (le compte démo a un entitlement promotionnel ; le bouton doit répondre sans erreur).
-8. **Quota gratuit** : se déconnecter et créer un compte neuf pour observer le plan gratuit (5 scans/semaine **par module**, bandeau de quota, écran d'upsell au dépassement).
+8. **Sommelier de cave (Gold+)** : onglet Collection → « 🍷 Quel vin pour mon plat ? » → saisir un plat (ex. « magret de canard aux figues ») : recommandations issues UNIQUEMENT de la cave du compte démo, avec emplacement physique. Le bandeau « à boire » liste les vins à leur apogée avec plats suggérés.
+9. **Consentement IA** : à la première capture photo/texte, une modal demande le consentement au traitement IA (refusable — l'import de fichier reste actif ; révocable dans Profil). Exigé par la règle App Review 2026 (5.1.2).
+10. **Quota gratuit** : se déconnecter et créer un compte neuf pour observer le plan gratuit (5 scans/semaine **par module**, bandeau de quota, écran d'upsell au dépassement).
 9. **Suppression de compte** : Réglages → Compte → Supprimer mon compte (disponible in-app, guideline 5.1.1(v)).
 
 ### Remarques pour la revue

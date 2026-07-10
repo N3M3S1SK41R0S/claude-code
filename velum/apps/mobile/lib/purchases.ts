@@ -7,7 +7,7 @@ import { Platform } from 'react-native';
 
 /** Palier affiché sur le paywall — natif (RevenueCat) ou statique (dégradé). */
 export interface PaywallTier {
-  id: 'free' | 'premium' | 'pro';
+  id: 'free' | 'premium' | 'gold' | 'platine';
   /** Prix localisé RevenueCat si disponible, sinon libellé statique i18n. */
   priceLabel: string | null;
   /** Package RevenueCat opaque — présent uniquement en mode natif. */
@@ -66,14 +66,16 @@ function getPurchases(): Promise<PurchasesModule | null> {
 const STATIC_TIERS: PaywallTier[] = [
   { id: 'free', priceLabel: null, nativePackage: null },
   { id: 'premium', priceLabel: null, nativePackage: null },
-  { id: 'pro', priceLabel: null, nativePackage: null },
+  { id: 'gold', priceLabel: null, nativePackage: null },
+  { id: 'platine', priceLabel: null, nativePackage: null },
 ];
 
 /** Fait correspondre un identifiant de package RevenueCat à un palier VELUM. */
-function tierIdFor(identifier: string): 'premium' | 'pro' | null {
+function tierIdFor(identifier: string): 'premium' | 'gold' | 'platine' | null {
   const lower = identifier.toLowerCase();
-  if (lower.includes('pro')) return 'pro';
-  if (lower.includes('premium') || lower.includes('monthly')) return 'premium';
+  if (lower.includes('platine') || lower.includes('platinum')) return 'platine';
+  if (lower.includes('gold')) return 'gold';
+  if (lower.includes('premium')) return 'premium';
   return null;
 }
 
@@ -86,7 +88,7 @@ export async function getOfferings(): Promise<OfferingsResult> {
     const offerings = await purchases.getOfferings();
     const packages = offerings.current?.availablePackages ?? [];
     const tiers: PaywallTier[] = [{ id: 'free', priceLabel: null, nativePackage: null }];
-    for (const id of ['premium', 'pro'] as const) {
+    for (const id of ['premium', 'gold', 'platine'] as const) {
       const pkg = packages.find((p) => tierIdFor(p.identifier) === id);
       tiers.push({
         id,

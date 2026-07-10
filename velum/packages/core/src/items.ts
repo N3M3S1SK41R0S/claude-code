@@ -2,12 +2,17 @@
 import type { MediaRole, VelumDomain } from './domain';
 import type { PriceObservation } from './pricing';
 
+/** Palier d'abonnement effectif (source de vérité : profiles.plan, synchronisé RevenueCat). */
+export type PlanTier = 'free' | 'premium' | 'gold' | 'platine';
+
 export interface Profile {
   id: string;
   displayName: string | null;
   locale: string;
   /** Mode senior : gros boutons, contraste renforcé, police majorée (§11.2). */
   a11yMode: boolean;
+  /** Offre : free (5 scans/sem/module) / premium / gold (carnet) / platine (tout). */
+  plan: PlanTier;
   createdAt: string;
 }
 

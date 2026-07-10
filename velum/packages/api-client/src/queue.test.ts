@@ -55,7 +55,9 @@ describe('MutationQueue', () => {
       mutation({
         id: 'm2',
         type: 'update',
-        payload: { id: 'i1', title: 'Après', updatedAt: '2026-07-10T09:00:00Z' },
+        // updatedAt volontairement dans le futur lointain : la mutation locale
+        // doit toujours être « plus récente » que la ligne insérée à l'instant.
+        payload: { id: 'i1', title: 'Après', updatedAt: '2999-01-01T00:00:00Z' },
       }),
     );
 

@@ -12,10 +12,17 @@ export interface SettingsState {
   senior: boolean;
   locale: SupportedLocale;
   onboardingDone: boolean;
+  /**
+   * Consentement au traitement IA des photos/descriptions (règle stores
+   * 2026 + RGPD 6.1.a) : null = jamais demandé, false = refusé (photo et
+   * texte désactivés, import fichier disponible), true = accordé.
+   */
+  aiConsent: boolean | null;
   hydrated: boolean;
   setSenior(v: boolean): void;
   setLocale(locale: SupportedLocale): void;
   setOnboardingDone(v: boolean): void;
+  setAiConsent(v: boolean): void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -24,6 +31,7 @@ export const useSettingsStore = create<SettingsState>()(
       senior: false,
       locale: 'fr',
       onboardingDone: false,
+      aiConsent: null,
       hydrated: false,
       setSenior: (v) => set({ senior: v }),
       setLocale: (locale) => {
@@ -31,11 +39,17 @@ export const useSettingsStore = create<SettingsState>()(
         set({ locale });
       },
       setOnboardingDone: (v) => set({ onboardingDone: v }),
+      setAiConsent: (v) => set({ aiConsent: v }),
     }),
     {
       name: 'velum.settings.v1',
       storage: createJSONStorage(() => offlineStorage),
-      partialize: (s) => ({ senior: s.senior, locale: s.locale, onboardingDone: s.onboardingDone }),
+      partialize: (s) => ({
+        senior: s.senior,
+        locale: s.locale,
+        onboardingDone: s.onboardingDone,
+        aiConsent: s.aiConsent,
+      }),
       onRehydrateStorage: () => (state) => {
         if (state) {
           // Applique la langue persistée puis signale la fin de l'hydratation.

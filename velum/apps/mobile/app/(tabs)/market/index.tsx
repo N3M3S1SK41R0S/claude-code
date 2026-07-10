@@ -3,14 +3,16 @@
  * actives, section Marketplace « Bientôt disponible » (flag OFF).
  */
 import { StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { VBadge, VCard, VListRow, VText, velumSpacing } from '@velum/ui';
+import { VBadge, VButton, VCard, VListRow, VText, velumSpacing } from '@velum/ui';
 
 import { Screen } from '../../../components/Screen';
 import { getVelumClient } from '../../../lib/client';
 import { getFeatures } from '../../../lib/features';
 import { formatDate, formatEUR } from '../../../lib/i18n';
+import { usePlan } from '../../../lib/plan';
 
 interface NotificationRow {
   id: string;
@@ -21,8 +23,10 @@ interface NotificationRow {
 
 export default function Market() {
   const { t } = useTranslation();
+  const router = useRouter();
   const client = getVelumClient();
   const features = getFeatures();
+  const { plan } = usePlan();
 
   const notificationsQuery = useQuery({
     queryKey: ['notifications'],
@@ -99,14 +103,21 @@ export default function Market() {
       {!features.enableMarketplace ? (
         <View style={styles.section}>
           <VText variant="heading" tone="gold">
-            {t('market.marketplaceTitle')}
+            {t('market.communityTitle')}
           </VText>
           <VCard>
             <View style={styles.marketplace}>
               <VBadge label={t('common.soon')} tone="warning" />
               <VText variant="body" tone="dim">
-                {t('market.marketplaceSoon')}
+                {t('market.communityBody')}
               </VText>
+              {plan !== 'platine' ? (
+                <VButton
+                  label={t('market.communityCta')}
+                  variant="secondary"
+                  onPress={() => router.push('/paywall')}
+                />
+              ) : null}
             </View>
           </VCard>
         </View>

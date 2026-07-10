@@ -254,7 +254,10 @@
     "alertsEmpty": "No active alerts. Create one from an object sheet.",
     "alertRow": "Threshold: {{value}}",
     "marketplaceTitle": "Marketplace",
-    "marketplaceSoon": "Buy and sell between collectors — coming soon."
+    "marketplaceSoon": "Buy and sell between collectors — coming soon.",
+    "communityTitle": "Platinum community",
+    "communityBody": "Coming soon: transactions between collectors, in full confidentiality — no one exchanges contact details, everything goes through the platform. 5% commission on completed sales; above €500, an expert appraisal is required at the seller's charge.",
+    "communityCta": "Discover the Platinum plan"
   },
   "profile": {
     "title": "Profile",
@@ -283,17 +286,12 @@
     "free": {
       "name": "Free",
       "price": "€0",
-      "features": "10 scans per month · 1 module of your choice"
+      "features": "5 scans per week for EACH module (Wine, Coins, Paintings, Stamps) · analysis sheet and estimate"
     },
     "premium": {
       "name": "Premium",
       "price": "€9.99 / month",
-      "features": "Unlimited scans · 4 modules · PDF/CSV exports · alerts"
-    },
-    "pro": {
-      "name": "Pro",
-      "price": "€49.99 / month",
-      "features": "Everything in Premium · insurance/estate report · API access"
+      "features": "Unlimited scans across all 4 modules · PDF/CSV exports · price alerts — without the virtual book"
     },
     "subscribe": "Choose this plan",
     "restore": "Restore purchases",
@@ -302,7 +300,18 @@
     "purchaseDone": "Thank you! Your subscription is active.",
     "purchaseError": "Purchase is not possible right now.",
     "unavailable": "Purchases are not available in this environment (Expo Go / web). Plans are shown for information only.",
-    "legal": "Auto-renewing subscription, cancellable anytime from your App Store or Google Play account. Prices include VAT."
+    "legal": "Auto-renewing subscription, cancellable anytime from your App Store or Google Play account. Prices include VAT.",
+    "gold": {
+      "name": "Gold",
+      "price": "€19.99 / month",
+      "badge": "Popular",
+      "features": "Everything in Premium + virtual book: wine cellar with slot locations, coin table, gallery, stamp album · cellar sommelier (which wine from MY cellar for tonight's dish?)"
+    },
+    "platine": {
+      "name": "Platinum",
+      "price": "€49.99 / month",
+      "features": "Everything: book valued CONTINUOUSLY against live market transactions · insurance/estate report · collectors community (anonymous matchmaking, transactions through the platform only — 5% commission, expert appraisal required above €500, at the seller's charge)"
+    }
   },
   "export": {
     "sheetTitle": "VELUM object sheet",
@@ -352,8 +361,39 @@
     "INVALID_INPUT": "Invalid input — check the information you entered.",
     "UNAUTHORIZED": "Incorrect credentials or expired session.",
     "RATE_LIMITED": "Too many requests — please wait a moment.",
-    "BUDGET_EXCEEDED": "Scan quota reached. Upgrade your plan to continue.",
+    "BUDGET_EXCEEDED": "Weekly scan quota reached for this module — upgrade your plan.",
     "generic": "Something went wrong. Please try again.",
-    "offline": "You appear to be offline. Your changes will be synchronised."
+    "offline": "You appear to be offline. Your changes will be synchronised.",
+    "PLAN_REQUIRED": "This feature belongs to a higher plan."
+  },
+  "cellar": {
+    "sommelierTitle": "Cellar sommelier",
+    "sommelierEntry": "🍷 Which wine for my dish?",
+    "dishLabel": "What's cooking tonight?",
+    "dishPlaceholder": "e.g. duck breast with figs",
+    "search": "Find the wine in my cellar",
+    "searching": "The sommelier is browsing your cellar…",
+    "location": "Location: {{location}}",
+    "serveAt": "Serving: {{advice}}",
+    "noResult": "No wine in your cellar is a true match for this dish.",
+    "fallbackTitle": "Buying advice",
+    "planRequired": "The cellar sommelier is part of the virtual book — Gold or Platinum plan.",
+    "seeOffers": "See plans",
+    "drinkNowTitle": "{{count}} wine(s) at their peak — drink now",
+    "drinkNowWindow": "Optimal window: {{from}}–{{to}}",
+    "drinkNowDishes": "Serve it with: {{dishes}}",
+    "emptyCellar": "Your cellar is empty: scan your first bottles to activate the sommelier."
+  },
+  "aiConsent": {
+    "title": "Artificial-intelligence analysis",
+    "body": "To identify and value your items, VELUM sends your photos and descriptions to a third-party AI service (visual analysis). Photos are never used for anything else. You may decline: manual entry and file import remain available.",
+    "privacyLink": "Privacy policy",
+    "accept": "I agree",
+    "decline": "Decline",
+    "declinedBanner": "Without AI consent, photo and text analysis are disabled. Use file import — change this in Profile.",
+    "profileRow": "AI processing of photos",
+    "granted": "Allowed",
+    "denied": "Declined",
+    "notAsked": "Not asked yet"
   }
 }

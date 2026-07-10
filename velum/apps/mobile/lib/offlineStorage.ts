@@ -27,11 +27,33 @@ interface MmkvLike {
   delete(key: string): void;
 }
 
+/**
+ * Mémoire volatile — utilisé UNIQUEMENT pendant le rendu statique web
+ * (expo export : Node sans window). Au runtime navigateur, AsyncStorage
+ * (IndexedDB/localStorage) prend le relais.
+ */
+function createMemoryAdapter(): StorageAdapter {
+  const memory = new Map<string, string>();
+  return {
+    async getItem(key) {
+      return memory.get(key) ?? null;
+    },
+    async setItem(key, value) {
+      memory.set(key, value);
+    },
+    async removeItem(key) {
+      memory.delete(key);
+    },
+  };
+}
+
 /** Résolution paresseuse du backend : MMKV natif si présent, sinon AsyncStorage. */
 let backendPromise: Promise<StorageAdapter> | null = null;
 
 async function resolveBackend(): Promise<StorageAdapter> {
-  if (Platform.OS === 'web') return createAsyncStorageAdapter();
+  if (Platform.OS === 'web') {
+    return typeof window === 'undefined' ? createMemoryAdapter() : createAsyncStorageAdapter();
+  }
   try {
     // Import dynamique : échoue proprement en Expo Go (module natif absent).
     const mod = (await import('react-native-mmkv')) as unknown as {

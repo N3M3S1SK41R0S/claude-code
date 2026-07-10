@@ -74,10 +74,15 @@ export default function Paywall() {
                   <VText variant="heading" tone="gold">
                     {t(`paywall.${tier.id}.name`)}
                   </VText>
-                  <VBadge
-                    label={tier.priceLabel ?? t(`paywall.${tier.id}.price`)}
-                    tone={tier.id === 'free' ? 'neutral' : 'gold'}
-                  />
+                  <View style={styles.badges}>
+                    {tier.id === 'gold' ? (
+                      <VBadge label={t('paywall.gold.badge')} tone="success" />
+                    ) : null}
+                    <VBadge
+                      label={tier.priceLabel ?? t(`paywall.${tier.id}.price`)}
+                      tone={tier.id === 'free' ? 'neutral' : 'gold'}
+                    />
+                  </View>
                 </View>
                 <VText variant="body" tone="dim">
                   {t(`paywall.${tier.id}.features`)}
@@ -115,5 +120,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: velumSpacing.sm,
   },
+  badges: { flexDirection: 'row', alignItems: 'center', gap: velumSpacing.sm },
   legal: { marginTop: velumSpacing.md },
 });

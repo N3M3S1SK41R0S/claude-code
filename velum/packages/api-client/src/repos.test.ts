@@ -207,6 +207,7 @@ describe('profile api', () => {
         display_name: 'Pierre',
         locale: 'fr',
         a11y_mode: false,
+        plan: 'free',
         created_at: '2026-01-01T00:00:00Z',
       },
     ];
@@ -220,6 +221,7 @@ describe('profile api', () => {
       displayName: 'Pierre',
       locale: 'fr',
       a11yMode: false,
+      plan: 'free',
       createdAt: '2026-01-01T00:00:00Z',
     });
 
