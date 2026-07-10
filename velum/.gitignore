@@ -1,0 +1,16 @@
+node_modules/
+.turbo/
+dist/
+.expo/
+web-build/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+supabase/.temp/
+ios/
+android/
+*.ipa
+*.aab
+.DS_Store
