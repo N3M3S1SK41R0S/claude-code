@@ -118,11 +118,18 @@ export async function signInWithApple(): Promise<void> {
  * L'id_token reçu est échangé contre une session Supabase.
  */
 export function useGoogleSignIn(): { available: boolean; promptGoogle: () => Promise<void> } {
+  // Identifiants publics par plateforme (non secrets, §12.1).
+  const webClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+  const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+  const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
+  const configured = Boolean(webClientId ?? iosClientId ?? androidClientId);
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    // Identifiants publics par plateforme (non secrets, §12.1).
-    clientId: process.env['EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID'],
-    iosClientId: process.env['EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID'],
-    androidClientId: process.env['EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID'],
+    // Placeholder syntaxiquement valide quand rien n'est configuré : le hook
+    // ne doit JAMAIS lever au rendu (sinon écran de connexion inutilisable) —
+    // le bouton Google est simplement masqué via `available`.
+    clientId: webClientId ?? 'velum-non-configure.apps.googleusercontent.com',
+    iosClientId,
+    androidClientId,
   });
 
   useEffect(() => {
@@ -138,5 +145,5 @@ export function useGoogleSignIn(): { available: boolean; promptGoogle: () => Pro
     await promptAsync();
   }, [promptAsync]);
 
-  return { available: request !== null, promptGoogle };
+  return { available: configured && request !== null, promptGoogle };
 }

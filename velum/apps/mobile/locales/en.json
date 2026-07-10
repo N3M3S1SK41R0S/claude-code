@@ -88,7 +88,7 @@
     "resetNeedsEmail": "Enter your email address first.",
     "noAccount": "No account yet? Create one",
     "haveAccount": "Already have an account? Sign in",
-    "demoHint": "Demo account: demo@velum.app / velumdemo",
+    "demoHint": "Review demo account: demo@velum.app (password provided in the review notes)",
     "confirmEmail": "Account created. Confirm your email address, then sign in.",
     "passwordMismatch": "Passwords do not match.",
     "invalidEmail": "Invalid email address.",

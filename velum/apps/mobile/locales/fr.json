@@ -88,7 +88,7 @@
     "resetNeedsEmail": "Saisissez d'abord votre adresse e-mail.",
     "noAccount": "Pas encore de compte ? Créez-en un",
     "haveAccount": "Déjà un compte ? Connectez-vous",
-    "demoHint": "Compte démo : demo@velum.app / velumdemo",
+    "demoHint": "Compte démo pour la revue : demo@velum.app (mot de passe fourni dans les notes de revue)",
     "confirmEmail": "Compte créé. Confirmez votre adresse e-mail puis connectez-vous.",
     "passwordMismatch": "Les mots de passe ne correspondent pas.",
     "invalidEmail": "Adresse e-mail invalide.",

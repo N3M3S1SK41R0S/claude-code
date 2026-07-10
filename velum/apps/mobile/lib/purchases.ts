@@ -48,8 +48,8 @@ async function loadPurchases(): Promise<PurchasesModule | null> {
     const purchases = mod.default;
     const apiKey =
       Platform.OS === 'ios'
-        ? process.env['EXPO_PUBLIC_REVENUECAT_IOS_KEY']
-        : process.env['EXPO_PUBLIC_REVENUECAT_ANDROID_KEY'];
+        ? process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY
+        : process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_KEY;
     if (!apiKey) return null;
     purchases.configure({ apiKey });
     return purchases;

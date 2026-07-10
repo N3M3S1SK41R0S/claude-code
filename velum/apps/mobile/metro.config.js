@@ -13,4 +13,18 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules'),
 ];
 
+// zustand : son build ESM contient `import.meta` (middleware devtools),
+// fatal à l'hydratation web (Metro émet un script classique). On résout ce
+// seul package vers ses fichiers CJS (index.js / middleware.js / *.js) —
+// les autres résolutions restent inchangées.
+const defaultResolveRequest = config.resolver.resolveRequest;
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (moduleName === 'zustand' || moduleName.startsWith('zustand/')) {
+    const sub = moduleName === 'zustand' ? 'index' : moduleName.slice('zustand/'.length);
+    const filePath = path.resolve(workspaceRoot, 'node_modules/zustand', `${sub}.js`);
+    return { type: 'sourceFile', filePath };
+  }
+  return (defaultResolveRequest ?? context.resolveRequest)(context, moduleName, platform);
+};
+
 module.exports = withNativeWind(config, { input: './global.css' });
