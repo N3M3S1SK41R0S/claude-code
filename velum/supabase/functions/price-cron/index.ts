@@ -216,10 +216,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           console.error(`[price-cron] insertion notifications ${item.id} :`, notifError.message);
         } else {
           notified += notifications.length;
-          // TODO(push) : envoi push Expo — POST https://exp.host/--/api/v2/push/send
-          // avec { to: profiles.expo_push_token, title, body } pour chaque
-          // notification dont le profil a un expo_push_token. À brancher quand
-          // l'app mobile enregistrera les jetons (voir profiles.expo_push_token).
+          await sendExpoPush(admin, notifications);
         }
       }
     }
@@ -229,3 +226,50 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
   return json({ processed, revalued, notified, failures });
 });
+
+/**
+ * Envoi push Expo (best-effort, jamais bloquant pour le cron) :
+ * POST https://exp.host/--/api/v2/push/send avec le jeton enregistré par
+ * l'app dans profiles.expo_push_token. Les profils sans jeton sont ignorés
+ * (la notification in-app reste visible dans l'onglet Marché).
+ */
+async function sendExpoPush(
+  admin: ReturnType<typeof createAdminClient>,
+  notifications: { owner_id: string; title: string; body: string }[],
+): Promise<void> {
+  try {
+    const ownerIds = [...new Set(notifications.map((n) => n.owner_id))];
+    const { data: profiles } = await admin
+      .from('profiles')
+      .select('id, expo_push_token')
+      .in('id', ownerIds)
+      .not('expo_push_token', 'is', null);
+    const tokenByOwner = new Map<string, string>(
+      (profiles ?? []).map((p) => [p.id as string, p.expo_push_token as string]),
+    );
+
+    const messages = notifications
+      .filter((n) => tokenByOwner.has(n.owner_id))
+      .map((n) => ({
+        to: tokenByOwner.get(n.owner_id),
+        title: n.title,
+        body: n.body,
+        sound: 'default',
+      }));
+    if (messages.length === 0) return;
+
+    // L'API Expo accepte des lots de 100 messages maximum.
+    for (let i = 0; i < messages.length; i += 100) {
+      const response = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(messages.slice(i, i + 100)),
+      });
+      if (!response.ok) {
+        console.error('[price-cron] push Expo :', response.status, await response.text());
+      }
+    }
+  } catch (err) {
+    console.error('[price-cron] push Expo (non bloquant) :', err);
+  }
+}

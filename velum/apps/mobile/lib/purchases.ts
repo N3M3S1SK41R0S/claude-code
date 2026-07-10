@@ -33,6 +33,8 @@ interface PurchasesModule {
   }>;
   purchasePackage(pkg: unknown): Promise<unknown>;
   restorePurchases(): Promise<{ entitlements: { active: Record<string, unknown> } }>;
+  logIn(appUserId: string): Promise<unknown>;
+  logOut(): Promise<unknown>;
 }
 
 let purchasesPromise: Promise<PurchasesModule | null> | null = null;
@@ -109,6 +111,32 @@ export async function purchase(pkg: unknown): Promise<void> {
     throw new Error('Achats indisponibles dans cet environnement');
   }
   await purchases.purchasePackage(pkg);
+}
+
+/**
+ * Lie l'identité RevenueCat à l'utilisateur Supabase (app_user_id = uid) :
+ * indispensable pour que le webhook serveur mette à jour profiles.plan.
+ * Sans effet en mode dégradé (Expo Go / web).
+ */
+export async function identifyPurchases(uid: string): Promise<void> {
+  const purchases = await getPurchases();
+  if (purchases === null) return;
+  try {
+    await purchases.logIn(uid);
+  } catch {
+    // non bloquant : l'achat anonyme reste possible, le plan sera réconcilié
+  }
+}
+
+/** Délie l'identité RevenueCat (déconnexion). Sans effet en mode dégradé. */
+export async function resetPurchasesIdentity(): Promise<void> {
+  const purchases = await getPurchases();
+  if (purchases === null) return;
+  try {
+    await purchases.logOut();
+  } catch {
+    // non bloquant
+  }
 }
 
 /** « Restaurer les achats » — OBLIGATOIRE App Store. Renvoie true si un droit actif. */

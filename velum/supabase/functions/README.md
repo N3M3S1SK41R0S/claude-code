@@ -170,6 +170,14 @@ de 7 jours ou plus ; évalue les alertes `price_threshold`
 { "processed": 123, "revalued": 45, "notified": 6, "failures": 0 }
 ```
 
+### `POST /revenuecat-webhook` (interne)
+
+Synchronisation serveur du plan (`profiles.plan`) depuis les événements
+RevenueCat. Configurer dans le dashboard RevenueCat : URL de la fonction +
+en-tête `Authorization: Bearer <REVENUECAT_WEBHOOK_SECRET>`. L'app lie
+l'identité RevenueCat au compte (`Purchases.logIn(uid)`) à la connexion ;
+les événements `EXPIRATION`/`CANCELLATION` ramènent au plan `free`.
+
 ### `POST /delete-account`
 
 Purge RGPD : supprime les objets Storage du préfixe `<uid>/` du bucket

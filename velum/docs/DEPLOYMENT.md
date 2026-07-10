@@ -67,7 +67,8 @@ Checklist opérationnelle complète pour publier VELUM sur l'App Store et Google
 - [ ] Produits créés dans App Store Connect et Play Console (`velum_premium_monthly`, `velum_gold_monthly`, `velum_platine_monthly` + variantes annuelles — aligner sur `PLAN_LIMITS` de `@velum/config` : Premium = scans illimités ; Gold = + carnet virtuel ; Platine = + valorisation continue & communauté).
 - [ ] Projet RevenueCat : apps iOS + Android, produits importés, **entitlements** `premium`, `gold` et `platine` mappés.
 - [ ] Clés **publiques** RevenueCat dans l'env client (`EXPO_PUBLIC_REVENUECAT_IOS_KEY` / `_ANDROID_KEY` — voir `apps/mobile/.env.example`) ; la clé secrète reste serveur.
-- [ ] Webhooks RevenueCat → Edge Function (mise à jour du plan effectif côté serveur pour `consume_scan`).
+- [ ] Webhook RevenueCat → Edge Function `revenuecat-webhook` (URL + en-tête `Authorization: Bearer <REVENUECAT_WEBHOOK_SECRET>`) : met à jour `profiles.plan` côté serveur pour `consume_scan` et les droits carnet/communauté.
+- [ ] Compte démo provisionné en production via l'API admin (mot de passe coffre-fort, JAMAIS celui du seed local) puis collection d'exemple rejouée depuis `supabase/seed.sql` (sections 2-5) — procédure : docs/DEMO_ACCOUNT.md.
 - [ ] Sandbox testé sur les deux plateformes : achat, restauration, expiration.
 
 ## 5. Supabase (production)

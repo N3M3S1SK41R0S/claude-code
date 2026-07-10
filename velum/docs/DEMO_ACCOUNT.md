@@ -13,6 +13,11 @@ Les équipes de revue Apple et Google exigent un accès complet à l'app sans cr
 
 > Le mot de passe réel n'est **jamais** commité dans le dépôt : il est généré au provisionnement, stocké dans le coffre-fort de l'équipe et renseigné dans les consoles stores.
 
+> **Développement local** : `supabase/seed.sql` provisionne automatiquement
+> ce compte (demo@velum.app / VelumDemo-2026!, plan platine, un objet par
+> module avec analyse ZAPPA, historique de valorisation, alertes). Ce mot de
+> passe est réservé au LOCAL — en production, suivre la procédure ci-dessous.
+
 ## 2. Provisionnement — seed SQL (exemple)
 
 À exécuter sur l'environnement de production **après** `supabase db push` (adapter le mot de passe). L'utilisateur est créé via l'API admin (jamais d'insert direct dans `auth.users` en produ­ction gérée) :

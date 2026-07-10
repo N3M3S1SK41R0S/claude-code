@@ -1,0 +1,60 @@
+name: VELUM CI
+
+on:
+  push:
+    paths: ["velum/**", ".github/workflows/velum-ci.yml"]
+  pull_request:
+    paths: ["velum/**", ".github/workflows/velum-ci.yml"]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: velum
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: velum/pnpm-lock.yaml
+
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck (10 packages, TypeScript strict)
+        run: pnpm typecheck
+
+      - name: Tests unitaires (vitest)
+        run: pnpm test
+
+      - name: Export web (PWA)
+        working-directory: velum/apps/mobile
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+        run: npx expo export --platform web
+
+  edge-functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Deno check des Edge Functions
+        working-directory: velum/supabase/functions
+        run: |
+          deno check --import-map=import_map.json \
+            recognize/index.ts \
+            analyze-wine/index.ts analyze-coin/index.ts analyze-art/index.ts analyze-stamp/index.ts \
+            valuate/index.ts cellar-pairing/index.ts \
+            price-cron/index.ts revenuecat-webhook/index.ts delete-account/index.ts

@@ -211,7 +211,9 @@ export default function Profile() {
         <VListRow title={t('profile.insuranceReport')} onPress={() => void exportInsuranceReport()} />
         <VListRow
           title={t('profile.privacy')}
-          onPress={() => void Linking.openURL(PRIVACY_URL)}
+          // In-app (exigence stores) : la même page est servie par la PWA à
+          // l'URL publique PRIVACY_URL une fois hébergée.
+          onPress={() => router.push('/privacy')}
         />
         <VListRow title={t('profile.terms')} onPress={() => void Linking.openURL(TERMS_URL)} />
       </View>

@@ -13,6 +13,7 @@ import * as Crypto from 'expo-crypto';
 import * as WebBrowser from 'expo-web-browser';
 
 import { getVelumClient } from './client';
+import { identifyPurchases, resetPurchasesIdentity } from './purchases';
 
 // Ferme proprement la fenêtre d'authentification web au retour dans l'app.
 WebBrowser.maybeCompleteAuthSession();
@@ -52,6 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const unsubscribe = client.auth.onAuthStateChange((_event, s) => {
       if (mounted) setSession(s);
+      // Identité RevenueCat = uid Supabase → le webhook serveur peut
+      // synchroniser profiles.plan (grille free/premium/gold/platine).
+      if (s?.user?.id) void identifyPurchases(s.user.id);
+      else void resetPurchasesIdentity();
     });
 
     return () => {
