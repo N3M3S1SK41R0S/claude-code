@@ -17,7 +17,6 @@ import {
   VButton,
   VCard,
   VEmptyState,
-  VListRow,
   VSpinner,
   VText,
   VTextInput,
@@ -171,7 +170,9 @@ export default function Carnet() {
             <Pressable
               key={d}
               onPress={() => setDomain(d)}
-              accessibilityRole="tab"
+              // Filtre de module : bouton sélectionnable. Le rôle « tab »
+              // exigerait un parent « tablist » (absent en RN-web) → WCAG.
+              accessibilityRole="button"
               accessibilityState={{ selected }}
               accessibilityLabel={`${t(domainBookLabelKey(d))} — ${t(`domains.${d}.name`)}`}
               style={({ pressed }) => [
@@ -261,14 +262,24 @@ export default function Carnet() {
                   const parts: string[] = [];
                   if (vintage !== null) parts.push(t('carnet.vintage', { year: vintage }));
                   parts.push(latest ? formatEUR(latest.central) : t('item.noValuation'));
+                  // Deux boutons FRÈRES (info + déplacer) plutôt qu'un bouton
+                  // « Déplacer » imbriqué dans une ligne cliquable (WCAG :
+                  // nested-interactive).
                   return (
-                    <VListRow
-                      key={item.id}
-                      title={item.title ?? t('common.unknown')}
-                      subtitle={parts.join(' · ')}
-                      right={moveAction(item)}
-                      onPress={() => openItem(item)}
-                    />
+                    <View key={item.id} style={styles.caveRow}>
+                      <Pressable
+                        style={({ pressed }) => [styles.caveInfo, pressed && styles.pressed]}
+                        onPress={() => openItem(item)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${item.title ?? t('common.unknown')}, ${parts.join(' · ')}`}
+                      >
+                        <VText variant="body">{item.title ?? t('common.unknown')}</VText>
+                        <VText variant="caption" tone="dim">
+                          {parts.join(' · ')}
+                        </VText>
+                      </Pressable>
+                      {moveAction(item)}
+                    </View>
                   );
                 })}
               </View>
@@ -429,6 +440,15 @@ const styles = StyleSheet.create({
   upgradeLink: { minHeight: MIN_TOUCH_TARGET, justifyContent: 'center' },
   group: { marginTop: velumSpacing.lg, gap: velumSpacing.xs },
   groupHeader: { gap: velumSpacing.xs / 2 },
+  caveRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: velumSpacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: velumColors.ink.border,
+  },
+  caveInfo: { flex: 1, minHeight: MIN_TOUCH_TARGET, justifyContent: 'center', paddingVertical: velumSpacing.sm },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',

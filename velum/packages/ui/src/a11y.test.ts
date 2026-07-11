@@ -73,6 +73,13 @@ describe('conformité AA des tonalités de texte (velumOnInk)', () => {
     expect(contrastRatio(color, velumColors.ink.raised)).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
   });
 
+  // Fond composé d'un badge teinté (couleur à ~15 % sur une carte) : la teinte
+  // la plus claire mesurée (axe-core) est ≈ #2A2623 ; les tonalités de texte
+  // doivent y rester lisibles (régression du badge « Populaire »).
+  it.each(tones)('tonalité « %s » ≥ 4.5 sur le fond teinté d’un badge (#2A2623)', (_tone, color) => {
+    expect(contrastRatio(color, '#2A2623')).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+  });
+
   it('le danger brut (#C0392B) est bien insuffisant en texte — d’où la variante éclaircie', () => {
     expect(contrastRatio(velumColors.danger, velumColors.ink.DEFAULT)).toBeLessThan(AA_NORMAL_TEXT);
     expect(contrastRatio(velumOnInk.danger, velumColors.ink.DEFAULT)).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);

@@ -44,7 +44,9 @@ export const velumOnInk = {
   dim: velumColors.parchment.dim,
   gold: velumColors.gold.soft,
   danger: '#E07A6A',
-  success: velumColors.success,
+  // Variante texte éclaircie : le vert brut (#4C9A6A) tombe à 4.38 sur le
+  // fond teinté d'un badge (≈ #2A2623) ; #5AAE7A y tient 5.5:1 (WCAG AA).
+  success: '#5AAE7A',
   warning: velumColors.warning,
   neutral: velumColors.parchment.dim,
 } as const;

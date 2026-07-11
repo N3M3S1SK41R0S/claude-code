@@ -13,7 +13,7 @@
 | 1 | Parcours cœur des modules sur iOS + Android + Web | ✅ web / ⚠ devices | 4 plugins `recognize/analyze/valuate` testés ; **tous les écrans authentifiés rendent sur Chromium réel** (collection, carnet, fiche ZAPPA + courbe IC, sommelier, marché, profil — `e2e/auth-screens.mjs`, stub réseau) ; iOS/Android : même codebase Expo, à valider sur simulateur après `eas build` (comptes requis) |
 | 2 | Moteur de valorisation couvert par tests | ✅ | 22 tests `@velum/valuation` (MAD, médiane pondérée, IC bootstrap seedé, fiabilité, devise) |
 | 3 | Hors-ligne, exports, alertes | ✅ | File de mutations LWW testée (queue.test.ts) ; exporters PDF/CSV/assurance testés ; alertes évaluées par `price-cron` + push Expo ; quota/alerte vérifiés en SQL réel |
-| 4 | Accessibilité WCAG 2.2 AA + mode senior | ✅ code / ⚠ lecteurs | Contrastes AA **prouvés par tests** (`packages/ui/src/a11y`) ; cibles ≥44/56 pt ; VoiceOver/TalkBack à passer sur device (checklist DEPLOYMENT) |
+| 4 | Accessibilité WCAG 2.2 AA + mode senior | ✅ audit / ⚠ lecteurs | Contrastes AA prouvés par tests ; **audit axe-core WCAG 2.2 AA sur 8 écrans rendus : 0 violation** (`pnpm a11y`) ; cibles ≥44/56 pt ; VoiceOver/TalkBack à passer sur device (checklist DEPLOYMENT) |
 | 5 | Monétisation opérationnelle | ✅ code / ⚠ sandbox | 4 paliers, RevenueCat + « Restaurer les achats », webhook plan→serveur ; achats sandbox exigent les comptes stores |
 | 6 | Sécurité/RGPD | ✅ | Secrets serveur uniquement ; RLS **exécutée et testée** sur Postgres 16 (8 assertions) ; purge compte in-app + cascade vérifiée ; consentement IA in-app ; politique in-app `/privacy` |
 | 7 | Checklist stores + binaires | ⚠ | Checklist 60 points rédigée (DEPLOYMENT.md), fiches ASO comptées (STORE_LISTING.md), screenshots brouillons générés ; `.ipa`/`.aab` exigent comptes Apple/Google + EAS |
@@ -71,6 +71,19 @@ sommelier, marché, profil. C'est la première exécution *au rendu* de ces
 Screenshots stores (11 écrans, 1320×2868) : `pnpm screens`
 → `docs/screenshots/*.png` — publics (`store-screens.mjs`) + authentifiés
 (`auth-screens.mjs`).
+
+### Accessibilité — audit axe-core WCAG 2.2 AA
+```bash
+pnpm a11y   # Audit a11y : PASS (aucune violation serious/critical)
+```
+Scan du DOM réellement rendu (tags `wcag2a/2aa/21a/21aa/22aa`) sur 8 écrans
+(publics + authentifiés) — **0 violation**. Défauts trouvés *en auditant* et
+corrigés (aucun n'aurait été vu par un test unitaire) : titre de document
+manquant sur toutes les pages (composant `WebDocumentTitle` par route, 2.4.2) ;
+badge « Populaire » à 4.38:1 sur son fond teinté (tonalité `success` éclaircie,
+verrouillée par test) ; chips du carnet en `role="tab"` sans parent `tablist`
+(→ `button`) ; bouton « Déplacer » imbriqué dans une ligne cliquable
+(→ deux boutons frères).
 
 ### Dépendances — audit sécurité
 ```bash

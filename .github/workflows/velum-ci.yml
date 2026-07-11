@@ -50,6 +50,9 @@ jobs:
       - name: Rendu des écrans authentifiés (stub réseau) + captures stores
         run: node e2e/auth-screens.mjs
 
+      - name: Audit accessibilité WCAG 2.2 AA (axe-core)
+        run: node e2e/a11y-audit.mjs
+
   edge-functions:
     runs-on: ubuntu-latest
     steps:

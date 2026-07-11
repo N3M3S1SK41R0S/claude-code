@@ -1,145 +1,30 @@
 /**
  * Écrans AUTHENTIFIÉS de VELUM — rendu + captures, sans backend réel.
  *
- * Stratégie : les routes `(tabs)`, `/carnet`, `/item/:id`, `/cellar-sommelier`
- * ne sont pas gardées individuellement (seul `index.tsx` redirige) et
- * `AuthProvider` ne bloque pas ses enfants. On navigue donc directement vers
- * chaque écran en INTERCEPTANT le réseau Supabase (REST + Edge Functions)
- * avec des fixtures conformes (e2e/fixtures.mjs). Double emploi :
- *   - captures stores des écrans accessibles seulement connecté ;
- *   - smoke test de rendu d'écrans jusqu'ici uniquement typecheckés.
+ * Les routes `(tabs)`, `/carnet`, `/item/:id`, `/cellar-sommelier` ne sont pas
+ * gardées individuellement (seul `index.tsx` redirige) et `AuthProvider` ne
+ * bloque pas ses enfants. On y navigue donc directement en interceptant le
+ * réseau Supabase (harness.mjs) avec des fixtures et une session semée.
+ * Double emploi : captures stores + smoke test de rendu de ces écrans.
  *
  * Usage : node e2e/auth-screens.mjs   (bundle : pnpm --filter velum-mobile build:web)
  */
-import { createServer } from 'node:http';
-import { readFile, mkdir } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
-import { extname, join, resolve } from 'node:path';
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import { chromium } from 'playwright';
-import { ALERTS, ITEMS, NOTIFICATIONS, PAIRING, PROFILE, SESSION, VALUATIONS } from './fixtures.mjs';
+import { OUT, IPHONE_69, chromiumPath, seedSession, startServer, stubSupabase } from './harness.mjs';
 
-const DIST = resolve('apps/mobile/dist');
-const OUT = resolve('docs/screenshots');
-const WIDTH = 1320;
-const HEIGHT = 2868;
-const SCALE = 3;
-
-const MIME = {
-  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',
-  '.png': 'image/png', '.mp4': 'video/mp4', '.ico': 'image/x-icon', '.json': 'application/json',
-};
-
-if (!existsSync(join(DIST, 'index.html'))) {
-  console.error('Bundle web introuvable — lancer pnpm --filter velum-mobile build:web');
-  process.exit(1);
-}
 await mkdir(OUT, { recursive: true });
-
-// ── Serveur statique avec résolution des routes dynamiques expo-router ───────
-const server = createServer(async (req, res) => {
-  const url = new URL(req.url ?? '/', 'http://localhost');
-  const clean = decodeURIComponent(url.pathname);
-  let path = join(DIST, clean);
-  if (clean.startsWith('/item/')) {
-    path = join(DIST, 'item/[id].html'); // route dynamique expo-router
-  } else if (clean === '/') {
-    path = join(DIST, 'index.html');
-  } else if (existsSync(join(path, 'index.html'))) {
-    path = join(path, 'index.html'); // route en dossier : /collection → collection/index.html
-  } else if (!existsSync(path) && existsSync(`${path}.html`)) {
-    path = `${path}.html`; // route à plat : /carnet → carnet.html
-  } else if (!existsSync(path)) {
-    path = join(DIST, 'index.html'); // repli SPA
-  }
-  try {
-    const body = await readFile(path);
-    res.writeHead(200, { 'Content-Type': MIME[extname(path)] ?? 'application/octet-stream' });
-    res.end(body);
-  } catch {
-    res.writeHead(404);
-    res.end('nf');
-  }
-});
-await new Promise((r) => server.listen(0, r));
-const base = `http://127.0.0.1:${server.address().port}`;
-
-// ── Stub PostgREST + Edge Functions ─────────────────────────────────────────
-function eqParam(url, key) {
-  const v = url.searchParams.get(key);
-  return v?.startsWith('eq.') ? v.slice(3) : undefined;
-}
-
-async function handleSupabase(route) {
-  const req = route.request();
-  const url = new URL(req.url());
-  const path = url.pathname;
-  const single = (req.headers()['accept'] ?? '').includes('pgrst.object');
-  const json = (data, status = 200) =>
-    route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(data) });
-
-  if (req.method() === 'OPTIONS') return route.fulfill({ status: 204, body: '' });
-
-  if (path.endsWith('/rest/v1/profiles')) return json(single ? PROFILE : [PROFILE]);
-
-  if (path.endsWith('/rest/v1/items')) {
-    const id = eqParam(url, 'id');
-    if (id) return json(ITEMS.find((i) => i.id === id) ?? null);
-    const domain = eqParam(url, 'domain');
-    const rows = domain ? ITEMS.filter((i) => i.domain === domain) : ITEMS;
-    return json(single ? (rows[0] ?? null) : rows);
-  }
-
-  if (path.endsWith('/rest/v1/valuations')) {
-    const itemId = eqParam(url, 'item_id');
-    let rows = (itemId && VALUATIONS[itemId]) || []; // fixtures déjà triées valued_at desc
-    // `.latest()` = .limit(1).maybeSingle() ; `.history()` = pas de limite.
-    // Honorer `limit` évite que maybeSingle rejette « multiple rows returned ».
-    const limit = Number(url.searchParams.get('limit'));
-    if (Number.isFinite(limit) && limit > 0) rows = rows.slice(0, limit);
-    return json(rows);
-  }
-
-  if (path.endsWith('/rest/v1/alerts')) {
-    const itemId = eqParam(url, 'item_id');
-    return json(itemId ? ALERTS.filter((a) => a.item_id === itemId) : ALERTS);
-  }
-
-  if (path.endsWith('/rest/v1/notifications')) return json(NOTIFICATIONS);
-
-  if (path.includes('/functions/v1/cellar-pairing')) return json(PAIRING);
-  if (path.includes('/functions/v1/')) return json({ ok: true });
-
-  if (path.includes('/auth/v1/')) return json({}, 200);
-
-  return json(single ? null : []);
-}
-
-const executablePath =
-  process.env.VELUM_CHROMIUM ??
-  ['/opt/pw-browsers/chromium/chrome', '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'].find(
-    (p) => existsSync(p),
-  );
+const { base, close } = await startServer();
+const executablePath = chromiumPath();
 const browser = await chromium.launch(executablePath ? { executablePath } : {});
-const page = await browser.newPage({
-  viewport: { width: WIDTH / SCALE, height: HEIGHT / SCALE },
-  deviceScaleFactor: SCALE,
+const context = await browser.newContext({
+  viewport: { width: IPHONE_69.width / IPHONE_69.scale, height: IPHONE_69.height / IPHONE_69.scale },
+  deviceScaleFactor: IPHONE_69.scale,
 });
-// Intercepte n'importe quel hôte Supabase (l'URL du build varie : `demo`
-// en local, `ci-placeholder` en CI).
-await page.route('**/*.supabase.co/**', handleSupabase);
-
-// Session semée avant le boot : rend `useSession()` truthy sur web
-// (AsyncStorage web ⇒ localStorage, clé supabase-js `sb-<ref>-auth-token`).
-// On couvre les refs des deux builds possibles.
-await page.addInitScript((session) => {
-  for (const ref of ['demo', 'ci-placeholder']) {
-    try {
-      window.localStorage.setItem(`sb-${ref}-auth-token`, JSON.stringify(session));
-    } catch {
-      /* localStorage indisponible : ignoré */
-    }
-  }
-}, SESSION);
+const page = await context.newPage();
+await stubSupabase(page);
+await seedSession(page);
 
 const pageErrors = [];
 page.on('pageerror', (e) => pageErrors.push(e.message));
@@ -185,7 +70,7 @@ if (realErrors.length > 0) {
 }
 
 await browser.close();
-server.close();
+close();
 
 if (failures > 0) {
   console.error(`\nÉcrans authentifiés : ${failures} échec(s)`);

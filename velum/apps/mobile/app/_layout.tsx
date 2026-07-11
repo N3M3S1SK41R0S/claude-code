@@ -6,12 +6,15 @@
 import '../global.css';
 import '../lib/i18n';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
+import { Platform } from 'react-native';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SeniorModeProvider, velumColors } from '@velum/ui';
+
+import { documentTitleFor } from '../lib/documentTitle';
 
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { ToastHost } from '../components/Toast';
@@ -19,6 +22,17 @@ import { AuthProvider, useSession } from '../lib/auth';
 import { getVelumClient } from '../lib/client';
 import { queryClient } from '../lib/queryClient';
 import { useSettingsStore } from '../stores/settingsStore';
+
+/** Pose `document.title` selon la route (web uniquement) — WCAG 2.4.2. */
+function WebDocumentTitle() {
+  const pathname = usePathname();
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.title = documentTitleFor(pathname);
+    }
+  }, [pathname]);
+  return null;
+}
 
 function SeniorBridge({ children }: { children: React.ReactNode }) {
   const senior = useSettingsStore((s) => s.senior);
@@ -55,6 +69,7 @@ export default function RootLayout() {
           <SeniorBridge>
             <ErrorBoundary>
               <StatusBar style="light" backgroundColor={velumColors.ink.DEFAULT} />
+              <WebDocumentTitle />
               <Stack
                 screenOptions={{
                   headerShown: false,
