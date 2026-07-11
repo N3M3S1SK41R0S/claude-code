@@ -41,6 +41,12 @@ jobs:
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
         run: npx expo export --platform web
 
+      - name: Installer Chromium (Playwright)
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E de fumée PWA (Chromium réel)
+        run: node e2e/web-smoke.mjs
+
   edge-functions:
     runs-on: ubuntu-latest
     steps:

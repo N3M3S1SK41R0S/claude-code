@@ -162,14 +162,23 @@ export default function Collection() {
         </VText>
       </VCard>
 
-      {hasWine ? (
+      <View style={styles.bookActions}>
+        {/* Carnet virtuel (Gold) — visible dès qu'il y a au moins un objet. */}
         <VButton
-          label={t('cellar.sommelierEntry')}
-          variant="secondary"
-          onPress={() => router.push('/cellar-sommelier')}
-          accessibilityHint={t('cellar.dishLabel')}
+          label={t('carnet.open')}
+          variant="primary"
+          onPress={() => router.push('/carnet')}
+          accessibilityHint={t('carnet.title')}
         />
-      ) : null}
+        {hasWine ? (
+          <VButton
+            label={t('cellar.sommelierEntry')}
+            variant="secondary"
+            onPress={() => router.push('/cellar-sommelier')}
+            accessibilityHint={t('cellar.dishLabel')}
+          />
+        ) : null}
+      </View>
 
       {drinkNow.length > 0 ? (
         <VCard style={styles.drinkNow}>
@@ -228,6 +237,7 @@ export default function Collection() {
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center' },
   summary: { marginVertical: velumSpacing.md },
+  bookActions: { gap: velumSpacing.sm, marginBottom: velumSpacing.md },
   drinkNow: { marginVertical: velumSpacing.md, gap: velumSpacing.xs },
   group: { marginTop: velumSpacing.lg, gap: velumSpacing.xs },
 });

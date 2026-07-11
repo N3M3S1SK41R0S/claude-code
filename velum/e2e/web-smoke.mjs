@@ -61,16 +61,27 @@ const port = server.address().port;
 const base = `http://127.0.0.1:${port}`;
 console.log(`· PWA servie depuis ${DIST} sur ${base}`);
 
-const browser = await chromium.launch();
+// Chromium : binaire préinstallé de l'environnement si la révision attendue
+// par la version de Playwright n'est pas présente (VELUM_CHROMIUM pour forcer).
+const executablePath =
+  process.env.VELUM_CHROMIUM ??
+  ['/opt/pw-browsers/chromium/chrome', '/opt/pw-browsers/chromium-1194/chrome-linux/chrome'].find(
+    (p) => existsSync(p),
+  );
+const browser = await chromium.launch(executablePath ? { executablePath } : {});
 try {
   const page = await browser.newPage();
   const pageErrors = [];
   page.on('pageerror', (err) => pageErrors.push(err.message));
 
-  // 1) Boot → l'app redirige vers l'onboarding (premier lancement).
+  // 1) Boot → redirection onboarding : la vidéo d'intro (sceau animé) passe
+  //    en premier — on la saute comme le ferait l'utilisateur.
   await page.goto(base, { waitUntil: 'networkidle' });
+  await page.waitForSelector('text=Passer', { timeout: 20000 });
+  console.log('✓ Onboarding rendu (vidéo d’intro affichée)');
+  await page.click('text=Passer');
   await page.waitForSelector('text=Levez le voile sur la valeur de vos objets', { timeout: 20000 });
-  console.log('✓ Onboarding rendu (pitch affiché)');
+  console.log('✓ Pitch affiché après la vidéo');
 
   // 2) Les 4 modules sont proposés (philatélie incluse).
   for (const moduleName of ['Vin', 'Pièces', 'Tableaux', 'Timbres']) {
