@@ -12,7 +12,7 @@ import { isVelumDomain, plugins } from '../_shared/domains.ts';
 import { AnthropicVision } from '../_shared/llm.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
 
-Deno.serve(async (req: Request): Promise<Response> => {
+export async function handler(req: Request): Promise<Response> {
   const preflight = handleOptions(req);
   if (preflight) return preflight;
   if (req.method !== 'POST') {
@@ -63,4 +63,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   } catch (err) {
     return errorFromException(err);
   }
-});
+}
+
+// Ne sert QUE lorsqu'exécuté comme module principal ; importable en test.
+if (import.meta.main) Deno.serve(handler);

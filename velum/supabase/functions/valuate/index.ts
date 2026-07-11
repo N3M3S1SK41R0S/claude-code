@@ -17,7 +17,7 @@ import { getFxRates } from '../_shared/fx.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
 import { serverTransport } from '../_shared/transport.ts';
 
-Deno.serve(async (req: Request): Promise<Response> => {
+export async function handler(req: Request): Promise<Response> {
   const preflight = handleOptions(req);
   if (preflight) return preflight;
   if (req.method !== 'POST') {
@@ -92,4 +92,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
     }
     return errorFromException(err);
   }
-});
+}
+
+// Ne sert QUE lorsqu'exécuté comme module principal ; importable en test.
+if (import.meta.main) Deno.serve(handler);

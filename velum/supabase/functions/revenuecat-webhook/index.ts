@@ -25,7 +25,7 @@ export function planFromEntitlements(entitlements: string[]): 'free' | 'premium'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-Deno.serve(async (req: Request): Promise<Response> => {
+export async function handler(req: Request): Promise<Response> {
   if (req.method !== 'POST') {
     return error('INVALID_INPUT', 'Méthode non autorisée', 405);
   }
@@ -73,4 +73,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
   }
 
   return json({ ok: true, plan });
-});
+}
+
+// Ne sert QUE lorsqu'exécuté comme module principal ; importable en test.
+if (import.meta.main) Deno.serve(handler);

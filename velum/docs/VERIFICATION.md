@@ -31,15 +31,22 @@ Répartition : valuation 22 · config 10 · wine 39 · coin 40 · art 36 · stam
 · api-client 47 (mappers, repos, file offline last-write-wins) · app 36
 (exporters, courbe de valeur, plan, carnet, apogée) · core 0 (types purs).
 
-### Edge Functions — `deno check` 10/10
+### Edge Functions — `deno check` 10/10 + tests d'intégration
 ```bash
-cd supabase/functions && deno check --import-map=import_map.json \
-  recognize/index.ts analyze-{wine,coin,art,stamp}/index.ts valuate/index.ts \
-  cellar-pairing/index.ts price-cron/index.ts revenuecat-webhook/index.ts \
-  delete-account/index.ts
+cd supabase/functions
+deno check --import-map=import_map.json */index.ts   # typecheck 10/10
+deno test  --import-map=import_map.json -A tests/     # 17 tests verts
 ```
 Les fonctions importent les MÊMES plugins et le MÊME moteur §7 que l'app
-(import map → sources du monorepo) : pas de logique dupliquée.
+(import map → sources du monorepo) : pas de logique dupliquée. Les tests
+exercent **le vrai parcours HTTP**, réseau intercepté (`globalThis.fetch`
+stubbé) : helpers purs (contrat d'erreur `{error:{code,message}}`, mapping
+VelumError → statut, routage domaine, `buildSources` selon les clés, webhook
+RevenueCat) ; handlers `recognize` (405 / 401 / 400 domaine / 402 quota /
+200 avec candidats du plugin) et `valuate` (401 ; `NO_OBSERVATIONS` → 404,
+« estimation indisponible » plutôt qu'un zéro trompeur). Les handlers sont
+exportés derrière `if (import.meta.main) Deno.serve(handler)` — testables
+sans démarrer de serveur.
 
 ### SQL — migrations + comportement sur PostgreSQL 16.13 réel
 ```bash

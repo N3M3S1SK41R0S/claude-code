@@ -71,6 +71,10 @@ jobs:
             valuate/index.ts cellar-pairing/index.ts \
             price-cron/index.ts revenuecat-webhook/index.ts delete-account/index.ts
 
+      - name: Tests des Edge Functions (helpers purs + handlers HTTP, fetch stubbé)
+        working-directory: velum/supabase/functions
+        run: deno test --import-map=import_map.json -A tests/
+
   sql:
     runs-on: ubuntu-latest
     steps:
