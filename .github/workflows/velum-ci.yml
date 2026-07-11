@@ -47,6 +47,9 @@ jobs:
       - name: E2E de fumée PWA (Chromium réel)
         run: node e2e/web-smoke.mjs
 
+      - name: Rendu des écrans authentifiés (stub réseau) + captures stores
+        run: node e2e/auth-screens.mjs
+
   edge-functions:
     runs-on: ubuntu-latest
     steps:

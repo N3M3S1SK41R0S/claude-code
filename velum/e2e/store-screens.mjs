@@ -63,6 +63,10 @@ const page = await browser.newPage({
   viewport: { width: WIDTH / SCALE, height: HEIGHT / SCALE },
   deviceScaleFactor: SCALE,
 });
+// Les écrans publics ne doivent pas rester bloqués sur un appel réseau réel.
+await page.route('**/*.supabase.co/**', (route) =>
+  route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
+);
 
 async function shot(name) {
   await page.waitForTimeout(1200); // laisse les transitions/vidéo se poser

@@ -10,7 +10,7 @@
 
 | # DoD | Critère | État | Preuve |
 |---|---|---|---|
-| 1 | Parcours cœur des modules sur iOS + Android + Web | ✅ code / ⚠ devices | 4 plugins `recognize/analyze/valuate` testés ; PWA exportée + E2E Chromium PASS ; iOS/Android : mêmes écrans Expo, à valider sur simulateur après `eas build` (comptes requis) |
+| 1 | Parcours cœur des modules sur iOS + Android + Web | ✅ web / ⚠ devices | 4 plugins `recognize/analyze/valuate` testés ; **tous les écrans authentifiés rendent sur Chromium réel** (collection, carnet, fiche ZAPPA + courbe IC, sommelier, marché, profil — `e2e/auth-screens.mjs`, stub réseau) ; iOS/Android : même codebase Expo, à valider sur simulateur après `eas build` (comptes requis) |
 | 2 | Moteur de valorisation couvert par tests | ✅ | 22 tests `@velum/valuation` (MAD, médiane pondérée, IC bootstrap seedé, fiabilité, devise) |
 | 3 | Hors-ligne, exports, alertes | ✅ | File de mutations LWW testée (queue.test.ts) ; exporters PDF/CSV/assurance testés ; alertes évaluées par `price-cron` + push Expo ; quota/alerte vérifiés en SQL réel |
 | 4 | Accessibilité WCAG 2.2 AA + mode senior | ✅ code / ⚠ lecteurs | Contrastes AA **prouvés par tests** (`packages/ui/src/a11y`) ; cibles ≥44/56 pt ; VoiceOver/TalkBack à passer sur device (checklist DEPLOYMENT) |
@@ -58,8 +58,19 @@ pnpm e2e                               # E2E web : PASS
 ```
 Parcours vérifié en navigateur réel : vidéo d'intro du sceau → « Passer » →
 pitch → les 4 modules proposés → `/privacy` rendue → zéro erreur JS.
-Screenshots stores brouillons : `node e2e/store-screens.mjs`
-→ `docs/screenshots/*.png` (1320×2868).
+
+**Écrans authentifiés** (`pnpm e2e:auth`) : les routes protégées sont rendues
+hors-ligne en interceptant le réseau Supabase (REST + Edge Functions) avec des
+fixtures conformes et une session semée. Les 6 écrans passent (assertion de
+contenu + zéro erreur JS) — collection (portefeuille 643 €, plus-value,
+bandeau « à boire »), carnet Gold (cave par emplacements, badge Platine),
+fiche vin (valorisation 51 €, IC 80/95 %, fiabilité, courbe SVG, disclaimer),
+sommelier, marché, profil. C'est la première exécution *au rendu* de ces
+écrans (jusque-là seulement typecheckés).
+
+Screenshots stores (11 écrans, 1320×2868) : `pnpm screens`
+→ `docs/screenshots/*.png` — publics (`store-screens.mjs`) + authentifiés
+(`auth-screens.mjs`).
 
 ### Dépendances — audit sécurité
 ```bash

@@ -11,6 +11,8 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "e2e": "node e2e/web-smoke.mjs",
+    "e2e:auth": "node e2e/auth-screens.mjs",
+    "screens": "node e2e/store-screens.mjs && node e2e/auth-screens.mjs",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck"
   },
