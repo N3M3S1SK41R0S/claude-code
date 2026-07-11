@@ -64,3 +64,16 @@ jobs:
             analyze-wine/index.ts analyze-coin/index.ts analyze-art/index.ts analyze-stamp/index.ts \
             valuate/index.ts cellar-pairing/index.ts \
             price-cron/index.ts revenuecat-webhook/index.ts delete-account/index.ts
+
+  sql:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Démarrer PostgreSQL (préinstallé sur le runner)
+        run: |
+          sudo systemctl start postgresql
+          sudo -u postgres psql -c "select version();"
+
+      - name: Migrations + RLS + quota + Platine sur Postgres réel
+        run: sudo -u postgres bash velum/supabase/tests/run-local.sh

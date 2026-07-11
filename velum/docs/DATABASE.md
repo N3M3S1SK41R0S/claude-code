@@ -168,3 +168,21 @@ Les limites par plan sont celles de `PLAN_LIMITS` (`packages/config/src/index.ts
 3. **Partitionnement temporel de `valuations`** (range sur `valued_at`, partitions mensuelles) : table à croissance la plus rapide (revalorisations cron) ; les vieilles partitions sont compressées/archivées, les graphiques long terme lisent des agrégats matérialisés (`valuations_monthly`).
 4. `usage_counters` reste petite par construction (1 ligne/utilisateur/mois) ; purge des périodes > 24 mois.
 5. Les payloads JSONB volumineux (`analyses.payload`, `valuations.sources`) restent en TOAST — ne pas les dupliquer dans des colonnes dérivées ; extraire en colonnes générées uniquement ce qui est filtré/trié.
+
+## Validation locale sans Docker
+
+Le harnais `supabase/tests/` rejoue tout le SQL sur un PostgreSQL 16 nu
+(stub minimal des schémas `auth`/`storage` de la plateforme) :
+
+```bash
+sudo -u postgres bash supabase/tests/run-local.sh
+```
+
+Il applique `0001` + `0003` + `seed.sql` puis `rls_checks.sql` — 8 assertions
+de comportement : isolation RLS (items, profils, valuations), quota freemium
+5 scans/semaine **par module** puis illimité en premium, marketplace réservée
+Platine (commission 5 %, trigger d'expertise obligatoire au-delà de 500 €),
+cloisonnement storage par préfixe `uid/`, purge RGPD en cascade. La CI
+(`velum-ci.yml`, job `sql`) l'exécute à chaque push. La migration `0002`
+(pg_cron/pg_net) est volontairement hors périmètre du harnais : ces
+extensions n'existent que sur la plateforme Supabase.
