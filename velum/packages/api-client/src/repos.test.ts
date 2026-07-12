@@ -3,6 +3,7 @@ import { isVelumError } from '@velum/core';
 import {
   createAlertsRepo,
   createItemsRepo,
+  createMarketplaceRepo,
   createProfileApi,
   createProvenanceRepo,
   createTastingNotesRepo,
@@ -312,5 +313,70 @@ describe('provenance repo', () => {
     expect((fake.tables['provenance_entries'] ?? []).length).toBe(3);
     await repo.remove(created.id);
     expect((fake.tables['provenance_entries'] ?? []).length).toBe(2);
+  });
+});
+
+describe('marketplace repo', () => {
+  let fake: FakeSupabase;
+
+  beforeEach(() => {
+    fake = new FakeSupabase();
+    fake.session = { user: { id: 'usr-1' } };
+    fake.tables['listings'] = [
+      { id: 'l1', item_id: 'i1', seller_id: 'usr-2', ask_price: 300, currency: 'EUR', status: 'active', title: 'Pièce or', domain: 'coin', created_at: '2026-07-01T00:00:00Z' },
+      { id: 'l2', item_id: 'i2', seller_id: 'usr-1', ask_price: 80, currency: 'EUR', status: 'draft', title: 'Timbre', domain: 'stamp', created_at: '2026-07-02T00:00:00Z' },
+      { id: 'l3', item_id: 'i3', seller_id: 'usr-1', ask_price: 120, currency: 'EUR', status: 'active', title: 'Vin', domain: 'wine', created_at: '2026-07-03T00:00:00Z' },
+    ];
+    fake.tables['orders'] = [];
+    fake.tables['disputes'] = [];
+  });
+
+  it('browseActive ne renvoie que les annonces actives, mappées', async () => {
+    const repo = createMarketplaceRepo(asSupabase(fake));
+    const active = await repo.browseActive();
+    expect(active.map((l) => l.id).sort()).toEqual(['l1', 'l3']);
+    expect(active[0]?.title).toBeTruthy();
+    expect(active[0]?.domain).toBeTruthy();
+  });
+
+  it('myListings filtre sur le vendeur de la session', async () => {
+    const repo = createMarketplaceRepo(asSupabase(fake));
+    const mine = await repo.myListings();
+    expect(mine.map((l) => l.id).sort()).toEqual(['l2', 'l3']);
+  });
+
+  it('createListing insère avec le vendeur de la session et statut active', async () => {
+    const repo = createMarketplaceRepo(asSupabase(fake));
+    await repo.createListing({ itemId: 'i9', askPrice: 250 });
+    const inserted = (fake.tables['listings'] ?? []).find((r) => r['item_id'] === 'i9');
+    expect(inserted?.['seller_id']).toBe('usr-1');
+    expect(inserted?.['ask_price']).toBe(250);
+    expect(inserted?.['status']).toBe('active');
+  });
+
+  it('buy insère une commande pour l’acheteur de la session', async () => {
+    const repo = createMarketplaceRepo(asSupabase(fake));
+    await repo.buy('l1');
+    const o = (fake.tables['orders'] ?? [])[0];
+    expect(o?.['listing_id']).toBe('l1');
+    expect(o?.['buyer_id']).toBe('usr-1');
+  });
+
+  it('advanceOrder met à jour l’état et les champs de suivi', async () => {
+    fake.tables['orders'] = [{ id: 'o1', listing_id: 'l1', buyer_id: 'usr-1', seller_id: 'usr-2', amount: 300, currency: 'EUR', commission_rate: 0.05, escrow_state: 'funds_held', carrier: null, tracking_number: null, delivered_at: null, released_at: null, created_at: '2026-07-04T00:00:00Z' }];
+    const repo = createMarketplaceRepo(asSupabase(fake));
+    await repo.advanceOrder('o1', 'shipped', { carrier: 'Chronopost', trackingNumber: 'XY' });
+    const o = fake.row('orders', 'o1');
+    expect(o?.['escrow_state']).toBe('shipped');
+    expect(o?.['tracking_number']).toBe('XY');
+  });
+
+  it('openDispute passe la commande en disputed et enregistre le motif', async () => {
+    fake.tables['orders'] = [{ id: 'o2', listing_id: 'l1', buyer_id: 'usr-1', seller_id: 'usr-2', amount: 300, currency: 'EUR', commission_rate: 0.05, escrow_state: 'funds_held', carrier: null, tracking_number: null, delivered_at: null, released_at: null, created_at: '2026-07-04T00:00:00Z' }];
+    const repo = createMarketplaceRepo(asSupabase(fake));
+    const d = await repo.openDispute('o2', 'non conforme');
+    expect(fake.row('orders', 'o2')?.['escrow_state']).toBe('disputed');
+    expect(d.reason).toBe('non conforme');
+    expect((fake.tables['disputes'] ?? []).length).toBe(1);
   });
 });

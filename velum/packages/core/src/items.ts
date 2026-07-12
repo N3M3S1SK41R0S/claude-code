@@ -107,6 +107,10 @@ export interface ListingRecord {
   askPrice: number;
   currency: string;
   status: ListingStatus;
+  /** Titre dénormalisé (copié de l'item) — catalogue sans exposer l'item privé. */
+  title: string | null;
+  /** Domaine dénormalisé (copié de l'item). */
+  domain: VelumDomain | null;
   createdAt: string;
 }
 

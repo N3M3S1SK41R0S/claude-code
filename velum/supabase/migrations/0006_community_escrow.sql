@@ -19,6 +19,25 @@
 -- « authentifié VELUM » = expert_appraisal_ref renseigné.
 -- ─────────────────────────────────────────────────────────────────────────────
 
+-- Champs d'affichage DÉNORMALISÉS (titre, domaine) copiés de l'item à la
+-- création de l'annonce : le catalogue montre l'objet SANS exposer les champs
+-- privés du vendeur (prix d'acquisition, notes) via la table items.
+alter table public.listings
+  add column title text,
+  add column domain velum_domain;
+
+create or replace function public.set_listing_display()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  select i.title, i.domain into new.title, new.domain
+  from public.items i where i.id = new.item_id;
+  return new;
+end;
+$$;
+create trigger listings_set_display
+  before insert on public.listings
+  for each row execute function public.set_listing_display();
+
 -- Fenêtre d'auto-libération : jours après livraison prouvée, sans litige.
 create or replace function public.escrow_release_days()
 returns integer language sql immutable as $$ select 5 $$;

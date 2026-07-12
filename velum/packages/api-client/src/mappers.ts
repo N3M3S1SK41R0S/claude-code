@@ -6,9 +6,16 @@
 import type {
   AlertRecord,
   AlertType,
-  PriceObservation,
+  DisputeRecord,
+  DisputeStatus,
+  EscrowState,
+  ListingRecord,
+  ListingStatus,
+  MarketOrder,
   Profile,
+  PriceObservation,
   ProvenanceEntry,
+  SellerReputation,
   TastingNote,
   ValuationRecord,
   VelumDomain,
@@ -324,4 +331,121 @@ export function newProvenanceToRow(input: NewProvenanceEntry): Record<string, un
   if (input.note !== undefined) row['note'] = input.note;
   if (input.eventDate !== undefined) row['event_date'] = input.eventDate;
   return row;
+}
+
+// ── marketplace : listings / orders / disputes / réputation ───────────────────
+
+export interface ListingRow {
+  id: string;
+  item_id: string;
+  seller_id: string;
+  ask_price: number | string;
+  currency: string;
+  status: ListingStatus;
+  title: string | null;
+  domain: VelumDomain | null;
+  commission_rate: number | string;
+  expert_appraisal_required: boolean;
+  expert_appraisal_ref: string | null;
+  created_at: string;
+}
+
+export interface NewListing {
+  itemId: string;
+  askPrice: number;
+  currency?: string;
+}
+
+export function rowToListing(row: ListingRow): ListingRecord {
+  return {
+    id: row.id,
+    itemId: row.item_id,
+    sellerId: row.seller_id,
+    askPrice: toNumber(row.ask_price),
+    currency: row.currency,
+    status: row.status,
+    title: row.title ?? null,
+    domain: row.domain ?? null,
+    createdAt: row.created_at,
+  };
+}
+
+export function newListingToRow(input: NewListing, sellerId: string): Record<string, unknown> {
+  return {
+    item_id: input.itemId,
+    seller_id: sellerId,
+    ask_price: input.askPrice,
+    currency: input.currency ?? 'EUR',
+  };
+}
+
+export interface OrderRow {
+  id: string;
+  listing_id: string;
+  buyer_id: string;
+  seller_id: string;
+  amount: number | string;
+  currency: string;
+  commission_rate: number | string;
+  escrow_state: EscrowState;
+  carrier: string | null;
+  tracking_number: string | null;
+  delivered_at: string | null;
+  released_at: string | null;
+  created_at: string;
+}
+
+export function rowToOrder(row: OrderRow): MarketOrder {
+  return {
+    id: row.id,
+    listingId: row.listing_id,
+    buyerId: row.buyer_id,
+    sellerId: row.seller_id,
+    amount: toNumber(row.amount),
+    currency: row.currency,
+    commissionRate: toNumber(row.commission_rate),
+    escrowState: row.escrow_state,
+    carrier: row.carrier,
+    trackingNumber: row.tracking_number,
+    deliveredAt: row.delivered_at,
+    releasedAt: row.released_at,
+    createdAt: row.created_at,
+  };
+}
+
+export interface DisputeRow {
+  id: string;
+  order_id: string;
+  opened_by: string;
+  reason: string;
+  status: DisputeStatus;
+  resolution_note: string | null;
+  created_at: string;
+  resolved_at: string | null;
+}
+
+export function rowToDispute(row: DisputeRow): DisputeRecord {
+  return {
+    id: row.id,
+    orderId: row.order_id,
+    openedBy: row.opened_by,
+    reason: row.reason,
+    status: row.status,
+    resolutionNote: row.resolution_note,
+    createdAt: row.created_at,
+    resolvedAt: row.resolved_at,
+  };
+}
+
+/** Parse le jsonb renvoyé par `seller_reputation()` en type sûr. */
+export function jsonToReputation(json: Record<string, unknown> | null): SellerReputation {
+  const j = json ?? {};
+  const num = (v: unknown): number => (typeof v === 'number' ? v : Number(v ?? 0)) || 0;
+  return {
+    completedSales: num(j['completedSales']),
+    refunded: num(j['refunded']),
+    disputes: num(j['disputes']),
+    disputeRate: num(j['disputeRate']),
+    memberSince: typeof j['memberSince'] === 'string' ? (j['memberSince'] as string) : null,
+  };
 }

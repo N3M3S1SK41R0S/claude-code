@@ -8,6 +8,7 @@ import type { VelumClient } from '@velum/api-client';
 import type {
   NewAlert,
   NewItem,
+  NewListing,
   NewProvenanceEntry,
   NewTastingNote,
   QueuedMutation,
@@ -16,8 +17,13 @@ import type {
 import type {
   AlertRecord,
   Candidate,
+  DisputeRecord,
+  EscrowState,
+  ListingRecord,
+  MarketOrder,
   Profile,
   ProvenanceEntry,
+  SellerReputation,
   TastingNote,
   ValuationRecord,
   VelumDomain,
@@ -59,6 +65,21 @@ export function createDemoClient(): VelumClient {
   const alerts: AlertRecord[] = seedAlerts(items);
   const tastingNotes = new Map<string, TastingNote[]>();
   const provenance = new Map<string, ProvenanceEntry[]>();
+  // Communauté démo : 2 annonces d'autres collectionneurs (achetables) + mes ventes.
+  const listings: ListingRecord[] = [
+    {
+      id: 'demo-listing-1', itemId: 'demo-mkt-1', sellerId: 'demo-seller-a',
+      askPrice: 320, currency: 'EUR', status: 'active',
+      title: 'Napoléon III 20 Francs Or 1868', domain: 'coin', createdAt: '2026-07-08T00:00:00Z',
+    },
+    {
+      id: 'demo-listing-2', itemId: 'demo-mkt-2', sellerId: 'demo-seller-b',
+      askPrice: 780, currency: 'EUR', status: 'active',
+      title: 'Bloc CITEX 1949 neuf — authentifié', domain: 'stamp', createdAt: '2026-07-03T00:00:00Z',
+    },
+  ];
+  const orders: MarketOrder[] = [];
+  const disputes: DisputeRecord[] = [];
   const authListeners = new Set<(event: string, session: AuthSession | null) => void>();
 
   const findItem = (id: string) => items.find((i) => i.id === id) ?? null;
@@ -288,6 +309,93 @@ export function createDemoClient(): VelumClient {
         for (const [key, list] of provenance) {
           provenance.set(key, list.filter((p) => p.id !== id));
         }
+      },
+    },
+
+    marketplace: {
+      async browseActive() {
+        await tick();
+        return listings.filter((l) => l.status === 'active' && l.sellerId !== DEMO_OWNER);
+      },
+      async myListings() {
+        return listings.filter((l) => l.sellerId === DEMO_OWNER);
+      },
+      async createListing(input: NewListing) {
+        const item = findItem(input.itemId);
+        const rec: ListingRecord = {
+          id: `list-${Math.random().toString(36).slice(2)}`,
+          itemId: input.itemId,
+          sellerId: DEMO_OWNER,
+          askPrice: input.askPrice,
+          currency: input.currency ?? 'EUR',
+          status: 'active',
+          title: item?.title ?? null,
+          domain: item?.domain ?? null,
+          createdAt: nowIso(),
+        };
+        listings.unshift(rec);
+        return rec;
+      },
+      async myOrders() {
+        return orders.filter((o) => o.buyerId === DEMO_OWNER || o.sellerId === DEMO_OWNER);
+      },
+      async buy(listingId: string) {
+        await tick();
+        const l = listings.find((x) => x.id === listingId);
+        if (!l) throw new VelumError('INVALID_INPUT', 'Annonce introuvable (démo)');
+        const rec: MarketOrder = {
+          id: `ord-${Math.random().toString(36).slice(2)}`,
+          listingId,
+          buyerId: DEMO_OWNER,
+          sellerId: l.sellerId,
+          amount: l.askPrice,
+          currency: l.currency,
+          commissionRate: 0.05,
+          escrowState: 'pending_payment',
+          carrier: null,
+          trackingNumber: null,
+          deliveredAt: null,
+          releasedAt: null,
+          createdAt: nowIso(),
+        };
+        orders.unshift(rec);
+        return rec;
+      },
+      async advanceOrder(orderId: string, escrowState: EscrowState, patch) {
+        const o = orders.find((x) => x.id === orderId);
+        if (!o) throw new VelumError('INVALID_INPUT', 'Commande introuvable (démo)');
+        o.escrowState = escrowState;
+        if (patch?.carrier !== undefined) o.carrier = patch.carrier;
+        if (patch?.trackingNumber !== undefined) o.trackingNumber = patch.trackingNumber;
+        if (patch?.deliveredAt !== undefined) o.deliveredAt = patch.deliveredAt;
+        if (escrowState === 'released') o.releasedAt = nowIso();
+        return o;
+      },
+      async openDispute(orderId: string, reason: string) {
+        const o = orders.find((x) => x.id === orderId);
+        if (o) o.escrowState = 'disputed';
+        const rec: DisputeRecord = {
+          id: `disp-${Math.random().toString(36).slice(2)}`,
+          orderId,
+          openedBy: DEMO_OWNER,
+          reason,
+          status: 'open',
+          resolutionNote: null,
+          createdAt: nowIso(),
+          resolvedAt: null,
+        };
+        disputes.push(rec);
+        return rec;
+      },
+      async reputation(sellerId: string): Promise<SellerReputation> {
+        const mine = orders.filter((o) => o.sellerId === sellerId);
+        return {
+          completedSales: mine.filter((o) => o.escrowState === 'released').length,
+          refunded: mine.filter((o) => o.escrowState === 'refunded').length,
+          disputes: disputes.filter((d) => mine.some((o) => o.id === d.orderId)).length,
+          disputeRate: 0,
+          memberSince: '2024-01-01T00:00:00Z',
+        };
       },
     },
 

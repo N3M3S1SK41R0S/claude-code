@@ -10,12 +10,14 @@ import { MutationQueue } from './queue';
 import {
   createAlertsRepo,
   createItemsRepo,
+  createMarketplaceRepo,
   createProfileApi,
   createProvenanceRepo,
   createTastingNotesRepo,
   createValuationsRepo,
   type AlertsRepo,
   type ItemsRepo,
+  type MarketplaceRepo,
   type ProfileApi,
   type ProvenanceRepo,
   type TastingNotesRepo,
@@ -46,6 +48,8 @@ export interface VelumClient {
   tastingNotes: TastingNotesRepo;
   /** Chaîne de possession / provenance (par objet). */
   provenance: ProvenanceRepo;
+  /** Communauté marchande à séquestre (Platine). */
+  marketplace: MarketplaceRepo;
   /** File de mutations hors-ligne (rejeu FIFO, last-write-wins). */
   queue: MutationQueue;
 }
@@ -72,6 +76,7 @@ export function createVelumClient(opts: VelumClientOptions): VelumClient {
     profile: createProfileApi(supabase),
     tastingNotes: createTastingNotesRepo(supabase),
     provenance: createProvenanceRepo(supabase),
+    marketplace: createMarketplaceRepo(supabase),
     queue: new MutationQueue(supabase, storage),
   };
 }

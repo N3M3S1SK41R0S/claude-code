@@ -7,8 +7,13 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   VelumError,
   type AlertRecord,
+  type DisputeRecord,
+  type EscrowState,
+  type ListingRecord,
+  type MarketOrder,
   type Profile,
   type ProvenanceEntry,
+  type SellerReputation,
   type TastingNote,
   type ValuationRecord,
   type VelumDomain,
@@ -17,22 +22,31 @@ import {
 import {
   alertToRow,
   itemPatchToRow,
+  jsonToReputation,
   newItemToRow,
+  newListingToRow,
   newProvenanceToRow,
   newTastingNoteToRow,
   profilePatchToRow,
   rowToAlert,
+  rowToDispute,
   rowToItem,
+  rowToListing,
+  rowToOrder,
   rowToProfile,
   rowToProvenance,
   rowToTastingNote,
   rowToValuation,
   type AlertRow,
+  type DisputeRow,
   type ItemRow,
+  type ListingRow,
   type NewAlert,
   type NewItem,
+  type NewListing,
   type NewProvenanceEntry,
   type NewTastingNote,
+  type OrderRow,
   type ProfilePatch,
   type ProfileRow,
   type ProvenanceRow,
@@ -255,6 +269,139 @@ export function createProvenanceRepo(supabase: SupabaseClient): ProvenanceRepo {
     async remove(id) {
       const { error } = await supabase.from('provenance_entries').delete().eq('id', id);
       if (error) throw dbError('Suppression de la provenance impossible', error);
+    },
+  };
+}
+
+// ── marketplace communautaire (Platine) ─────────────────────────────────────
+
+/** Uid de la session courante, ou lève UNAUTHORIZED. */
+async function requireUid(supabase: SupabaseClient): Promise<string> {
+  const { data } = await supabase.auth.getSession();
+  const uid = data.session?.user?.id;
+  if (!uid) throw new VelumError('UNAUTHORIZED', 'Session requise pour la communauté');
+  return uid;
+}
+
+export interface MarketplaceRepo {
+  /** Catalogue : annonces ACTIVES (les brouillons/retirées ne sont pas visibles). */
+  browseActive(): Promise<ListingRecord[]>;
+  /** Mes annonces (tous statuts). */
+  myListings(): Promise<ListingRecord[]>;
+  /** Met un objet en vente (titre/domaine/commission remplis serveur). */
+  createListing(input: NewListing): Promise<ListingRecord>;
+  /** Mes commandes (en tant qu'acheteur OU vendeur). */
+  myOrders(): Promise<MarketOrder[]>;
+  /** Achète une annonce → crée la commande (séquestre `pending_payment`). */
+  buy(listingId: string): Promise<MarketOrder>;
+  /** Fait avancer l'état de séquestre (transition validée par trigger serveur). */
+  advanceOrder(
+    orderId: string,
+    escrowState: EscrowState,
+    patch?: { carrier?: string; trackingNumber?: string; deliveredAt?: string },
+  ): Promise<MarketOrder>;
+  /** Ouvre un litige : passe la commande en `disputed` puis enregistre le motif. */
+  openDispute(orderId: string, reason: string): Promise<DisputeRecord>;
+  /** Réputation d'un vendeur (signaux objectifs dérivés). */
+  reputation(sellerId: string): Promise<SellerReputation>;
+}
+
+export function createMarketplaceRepo(supabase: SupabaseClient): MarketplaceRepo {
+  const listOrdered = async (): Promise<ListingRecord[]> => {
+    const { data, error } = await supabase
+      .from('listings')
+      .select('*')
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+    if (error) throw dbError('Lecture du catalogue impossible', error);
+    return ((data ?? []) as ListingRow[]).map(rowToListing);
+  };
+
+  return {
+    browseActive: listOrdered,
+
+    async myListings() {
+      const uid = await requireUid(supabase);
+      const { data, error } = await supabase
+        .from('listings')
+        .select('*')
+        .eq('seller_id', uid)
+        .order('created_at', { ascending: false });
+      if (error) throw dbError('Lecture de mes annonces impossible', error);
+      return ((data ?? []) as ListingRow[]).map(rowToListing);
+    },
+
+    async createListing(input) {
+      const uid = await requireUid(supabase);
+      const { data, error } = await supabase
+        .from('listings')
+        .insert({ ...newListingToRow(input, uid), status: 'active' })
+        .select('*')
+        .single();
+      if (error || data === null) {
+        throw dbError('Mise en vente impossible', error ?? { message: 'réponse vide' });
+      }
+      return rowToListing(data as ListingRow);
+    },
+
+    async myOrders() {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw dbError('Lecture des commandes impossible', error);
+      return ((data ?? []) as OrderRow[]).map(rowToOrder);
+    },
+
+    async buy(listingId) {
+      const uid = await requireUid(supabase);
+      const { data, error } = await supabase
+        .from('orders')
+        .insert({ listing_id: listingId, buyer_id: uid })
+        .select('*')
+        .single();
+      if (error || data === null) {
+        throw dbError('Achat impossible', error ?? { message: 'réponse vide' });
+      }
+      return rowToOrder(data as OrderRow);
+    },
+
+    async advanceOrder(orderId, escrowState, patch) {
+      const row: Record<string, unknown> = { escrow_state: escrowState };
+      if (patch?.carrier !== undefined) row['carrier'] = patch.carrier;
+      if (patch?.trackingNumber !== undefined) row['tracking_number'] = patch.trackingNumber;
+      if (patch?.deliveredAt !== undefined) row['delivered_at'] = patch.deliveredAt;
+      const { data, error } = await supabase
+        .from('orders')
+        .update(row)
+        .eq('id', orderId)
+        .select('*')
+        .single();
+      if (error || data === null) {
+        throw dbError('Transition de commande impossible', error ?? { message: 'refusée' });
+      }
+      return rowToOrder(data as OrderRow);
+    },
+
+    async openDispute(orderId, reason) {
+      const uid = await requireUid(supabase);
+      const advance = await supabase.from('orders').update({ escrow_state: 'disputed' }).eq('id', orderId);
+      if (advance.error) throw dbError('Ouverture du litige impossible', advance.error);
+      const { data, error } = await supabase
+        .from('disputes')
+        .insert({ order_id: orderId, opened_by: uid, reason })
+        .select('*')
+        .single();
+      if (error || data === null) {
+        throw dbError('Enregistrement du litige impossible', error ?? { message: 'réponse vide' });
+      }
+      return rowToDispute(data as DisputeRow);
+    },
+
+    async reputation(sellerId) {
+      const { data, error } = await supabase.rpc('seller_reputation', { p_seller: sellerId });
+      if (error) throw dbError('Lecture de la réputation impossible', error);
+      return jsonToReputation((data ?? null) as Record<string, unknown> | null);
     },
   };
 }
