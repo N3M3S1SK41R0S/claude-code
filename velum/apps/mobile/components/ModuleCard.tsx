@@ -3,16 +3,10 @@
  * et choix des modules à l'onboarding.
  */
 import { StyleSheet, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { VCard, VText, velumColors, velumSpacing } from '@velum/ui';
 import type { VelumDomain } from '@velum/core';
 
-export const DOMAIN_ICONS: Record<VelumDomain, keyof typeof Ionicons.glyphMap> = {
-  wine: 'wine',
-  coin: 'server',
-  art: 'color-palette',
-  stamp: 'mail',
-};
+import { ModuleGlyph } from './ModuleGlyph';
 
 export interface ModuleCardProps {
   domain: VelumDomain;
@@ -32,10 +26,10 @@ export function ModuleCard({ domain, title, subtitle, onPress, selected }: Modul
       >
         {/* Contenu non interactif : le rôle bouton est porté par la carte. */}
         <View style={styles.content}>
-          <Ionicons
-            name={DOMAIN_ICONS[domain]}
-            size={28}
-            color={selected ? velumColors.gold.soft : velumColors.parchment.dim}
+          <ModuleGlyph
+            domain={domain}
+            size={40}
+            color={selected ? velumColors.gold.DEFAULT : velumColors.gold.soft}
           />
           <VText variant="heading">{title}</VText>
           <VText variant="caption" tone="dim">
