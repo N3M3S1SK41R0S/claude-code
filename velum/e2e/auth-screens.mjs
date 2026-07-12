@@ -64,6 +64,8 @@ await screen('10-marche', '/market', 'À boire');
 await screen('11-profil', '/profile', 'Compte Démo VELUM');
 // 15. Dégustation à l'aveugle — cartes anonymes tirées de la cave.
 await screen('15-degustation-aveugle', '/blind-tasting', 'Vin n°1');
+// 16. Sommelier d'événement — accords par plat depuis la cave.
+await screen('16-sommelier-evenement', '/event-sommelier', 'Composer les accords');
 
 const realErrors = pageErrors.filter((m) => !m.includes('ResizeObserver'));
 if (realErrors.length > 0) {

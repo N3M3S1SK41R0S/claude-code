@@ -260,6 +260,71 @@ ${blindStyles()}
 `;
 }
 
+// ── Partage de cave (snapshot lecture seule → PDF) ──────────────────────────
+
+/** Lit une chaîne dans attributes[key] puis attributes.analysis.identification[key]. */
+function readItemString(item: VelumItem, key: string): string {
+  const direct = item.attributes[key];
+  if (typeof direct === 'string' && direct.trim().length > 0) return direct.trim();
+  const analysis = item.attributes['analysis'];
+  const id = analysis && typeof analysis === 'object'
+    ? (analysis as Record<string, unknown>)['identification']
+    : null;
+  const nested = id && typeof id === 'object' ? (id as Record<string, unknown>)[key] : null;
+  if (typeof nested === 'string' && nested.trim().length > 0) return nested.trim();
+  if (typeof nested === 'number') return String(nested);
+  if (typeof direct === 'number') return String(direct);
+  return '';
+}
+
+/**
+ * Snapshot LECTURE SEULE de la cave à partager (à un ami, un caviste) :
+ * vins, région, millésime, emplacement et valeur estimée, sans aucune donnée
+ * de compte ni lien d'édition. C'est une photo à un instant t, pas un accès.
+ */
+export function buildCellarShareHtml(
+  wines: VelumItem[],
+  latestByItem: Record<string, ValuationRecord | null>,
+  t: Translator,
+  generatedAtIso: string = new Date().toISOString(),
+): string {
+  let total = 0;
+  const rows = wines
+    .map((item) => {
+      const latest = latestByItem[item.id] ?? null;
+      if (latest) total += latest.central;
+      const value = latest ? formatEUR(latest.central) : '—';
+      return `<tr>
+        <td>${escapeHtml(item.title ?? t('common.unknown'))}</td>
+        <td>${escapeHtml(readItemString(item, 'region'))}</td>
+        <td>${escapeHtml(readItemString(item, 'vintage'))}</td>
+        <td>${escapeHtml(item.storageLocation ?? '')}</td>
+        <td>${escapeHtml(value)}</td>
+      </tr>`;
+    })
+    .join('\n');
+
+  return `
+${baseStyles()}
+<h1>${escapeHtml(t('cellarShare.title'))}</h1>
+<p class="meta">${escapeHtml(t('export.generatedAt', { date: generatedAtIso.slice(0, 10) }))}</p>
+<p>${escapeHtml(t('cellarShare.intro'))}</p>
+<table>
+  <tr>
+    <th>${escapeHtml(t('cellarShare.colWine'))}</th>
+    <th>${escapeHtml(t('cellarShare.colRegion'))}</th>
+    <th>${escapeHtml(t('cellarShare.colVintage'))}</th>
+    <th>${escapeHtml(t('cellarShare.colLocation'))}</th>
+    <th>${escapeHtml(t('cellarShare.colValue'))}</th>
+  </tr>
+  ${rows}
+</table>
+<h2>${escapeHtml(t('cellarShare.total'))}</h2>
+<p><strong>${escapeHtml(formatEUR(total))}</strong></p>
+<div class="disclaimer">${escapeHtml(t('cellarShare.disclaimer'))}</div>
+`;
+}
+
 // ── CSV de collection ────────────────────────────────────────────────────────
 
 /** En-têtes CSV stables (français, sans accents pour la portabilité tableur). */

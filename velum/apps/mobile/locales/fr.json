@@ -469,6 +469,46 @@
     "drinkNowDishes": "Servez-le avec : {{dishes}}",
     "emptyCellar": "Votre cave est vide : scannez vos premières bouteilles pour activer le sommelier."
   },
+  "cellarStats": {
+    "title": "Statistiques de cave",
+    "drinkSoon": "{{count}} bouteille(s) à boire dans les 12 mois",
+    "byRegion": "Par région",
+    "byColor": "Par couleur",
+    "bottles": "{{count}} bouteille(s)"
+  },
+  "cellarShare": {
+    "button": "Partager ma cave",
+    "hint": "Génère un instantané PDF en lecture seule de votre cave",
+    "error": "Impossible de générer l'instantané pour le moment.",
+    "webHint": "Utilisez l'aperçu d'impression de votre navigateur pour enregistrer le PDF.",
+    "title": "Ma cave — VELUM",
+    "intro": "Instantané en lecture seule à un instant t : ni accès au compte, ni modification possible.",
+    "disclaimer": "Valeurs estimées à titre indicatif par VELUM — ni expertise ni authentification.",
+    "total": "Valeur totale estimée",
+    "colWine": "Vin",
+    "colRegion": "Région",
+    "colVintage": "Millésime",
+    "colLocation": "Emplacement",
+    "colValue": "Valeur estimée"
+  },
+  "seriesGaps": {
+    "title": "Trous de série",
+    "subtitle": "Années manquantes pour compléter vos séries.",
+    "missing": "{{count}} manquant(s) : {{years}}"
+  },
+  "event": {
+    "entry": "🍽️ Sommelier d'événement",
+    "title": "Sommelier d'événement",
+    "intro": "Composez votre menu : VELUM propose, pour chaque plat, le meilleur accord dans votre cave.",
+    "starter": "Entrée",
+    "main": "Plat",
+    "dessert": "Dessert",
+    "starterPlaceholder": "ex. tartare de daurade",
+    "mainPlaceholder": "ex. magret de canard aux figues",
+    "dessertPlaceholder": "ex. tarte Tatin",
+    "compose": "Composer les accords",
+    "composing": "Le sommelier compose votre menu…"
+  },
   "aiConsent": {
     "title": "Analyse par intelligence artificielle",
     "body": "Pour identifier et estimer vos objets, VELUM transmet vos photos et descriptions à un service d'IA tiers (analyse visuelle). Aucune photo n'est utilisée à d'autres fins. Vous pouvez refuser : la saisie manuelle et l'import de fichier restent disponibles.",

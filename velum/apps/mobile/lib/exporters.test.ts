@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { AnalysisResult, ValuationRecord, VelumItem } from '@velum/core';
 import {
   buildBlindTastingHtml,
+  buildCellarShareHtml,
   buildCollectionCsv,
   buildInsuranceReportHtml,
   buildItemSheetHtml,
@@ -136,6 +137,30 @@ describe('buildItemSheetHtml', () => {
   it('affiche « non valorisé » sans valorisation', () => {
     const html = buildItemSheetHtml(makeItem(), null, null, t);
     expect(html).toContain('export.noValuation');
+  });
+});
+
+describe('buildCellarShareHtml', () => {
+  it('rend un snapshot lecture seule : vins, valeur totale, avertissement', () => {
+    const wines = [
+      makeItem({ id: 'w1', title: 'Bandol 2016', attributes: { region: 'Provence', vintage: 2016 }, storageLocation: 'Casier B3' }),
+      makeItem({ id: 'w2', title: 'Puligny 2020', attributes: { region: 'Bourgogne', vintage: 2020 }, storageLocation: null }),
+    ];
+    const latest = { w1: makeValuation({ itemId: 'w1', central: 50 }), w2: null };
+    const html = buildCellarShareHtml(wines, latest, t, '2026-07-12T00:00:00Z');
+    expect(html).toContain('cellarShare.title');
+    expect(html).toContain('Bandol 2016');
+    expect(html).toContain('Provence');
+    expect(html).toContain('Puligny 2020');
+    expect(html).toContain('cellarShare.total');
+    expect(html).toContain('cellarShare.disclaimer');
+    expect(html).toContain('2026-07-12');
+  });
+
+  it('échappe le HTML injecté dans un titre de vin', () => {
+    const html = buildCellarShareHtml([makeItem({ title: '<script>x</script>' })], {}, t);
+    expect(html).not.toContain('<script>x');
+    expect(html).toContain('&lt;script&gt;');
   });
 });
 

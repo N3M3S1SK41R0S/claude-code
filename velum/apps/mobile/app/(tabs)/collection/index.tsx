@@ -180,6 +180,14 @@ export default function Collection() {
         ) : null}
         {hasWine ? (
           <VButton
+            label={t('event.entry')}
+            variant="secondary"
+            onPress={() => router.push('/event-sommelier')}
+            accessibilityHint={t('event.intro')}
+          />
+        ) : null}
+        {hasWine ? (
+          <VButton
             label={t('blind.entry')}
             variant="secondary"
             onPress={() => router.push('/blind-tasting')}

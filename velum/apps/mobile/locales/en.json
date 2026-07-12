@@ -469,6 +469,46 @@
     "drinkNowDishes": "Serve it with: {{dishes}}",
     "emptyCellar": "Your cellar is empty: scan your first bottles to activate the sommelier."
   },
+  "cellarStats": {
+    "title": "Cellar statistics",
+    "drinkSoon": "{{count}} bottle(s) to drink within 12 months",
+    "byRegion": "By region",
+    "byColor": "By colour",
+    "bottles": "{{count}} bottle(s)"
+  },
+  "cellarShare": {
+    "button": "Share my cellar",
+    "hint": "Generates a read-only PDF snapshot of your cellar",
+    "error": "Couldn't generate the snapshot right now.",
+    "webHint": "Use your browser's print preview to save the PDF.",
+    "title": "My cellar — VELUM",
+    "intro": "Read-only snapshot at a point in time: no account access, no edits possible.",
+    "disclaimer": "Values estimated for information by VELUM — neither an appraisal nor authentication.",
+    "total": "Total estimated value",
+    "colWine": "Wine",
+    "colRegion": "Region",
+    "colVintage": "Vintage",
+    "colLocation": "Location",
+    "colValue": "Estimated value"
+  },
+  "seriesGaps": {
+    "title": "Series gaps",
+    "subtitle": "Missing years to complete your series.",
+    "missing": "{{count}} missing: {{years}}"
+  },
+  "event": {
+    "entry": "🍽️ Event sommelier",
+    "title": "Event sommelier",
+    "intro": "Compose your menu: for each course, VELUM suggests the best pairing from your cellar.",
+    "starter": "Starter",
+    "main": "Main",
+    "dessert": "Dessert",
+    "starterPlaceholder": "e.g. sea bream tartare",
+    "mainPlaceholder": "e.g. duck breast with figs",
+    "dessertPlaceholder": "e.g. tarte Tatin",
+    "compose": "Compose the pairings",
+    "composing": "The sommelier is composing your menu…"
+  },
   "aiConsent": {
     "title": "Artificial-intelligence analysis",
     "body": "To identify and value your items, VELUM sends your photos and descriptions to a third-party AI service (visual analysis). Photos are never used for anything else. You may decline: manual entry and file import remain available.",

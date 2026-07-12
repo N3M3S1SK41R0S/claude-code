@@ -7,8 +7,10 @@
  * « Valorisation continue » pour Platine (rafraîchie par le cron serveur).
  */
 import { useMemo, useState } from 'react';
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
@@ -41,6 +43,9 @@ import {
   stampConditionStatus,
 } from '../lib/carnet';
 import { getVelumClient } from '../lib/client';
+import { cellarStats } from '../lib/cellarStats';
+import { seriesGapsForItems } from '../lib/seriesGaps';
+import { buildCellarShareHtml } from '../lib/exporters';
 import { errorMessage } from '../lib/errors';
 import { getActiveDomains } from '../lib/features';
 import { formatDate, formatEUR } from '../lib/i18n';
@@ -111,6 +116,33 @@ export default function Carnet() {
     () => (domain === 'wine' ? groupByLocation(domainItems) : []),
     [domain, domainItems],
   );
+  const stats = useMemo(
+    () => (domain === 'wine' ? cellarStats(domainItems, latestByItem, new Date().getFullYear()) : null),
+    [domain, domainItems, latestByItem],
+  );
+  const gaps = useMemo(
+    () => (domain === 'coin' || domain === 'stamp' ? seriesGapsForItems(domainItems, domain) : []),
+    [domain, domainItems],
+  );
+  const [sharing, setSharing] = useState(false);
+
+  const shareCellar = async () => {
+    if (sharing) return;
+    setSharing(true);
+    try {
+      const html = buildCellarShareHtml(domainItems, latestByItem, t);
+      const { uri } = await Print.printToFileAsync({ html });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, { mimeType: 'application/pdf' });
+      } else if (Platform.OS === 'web') {
+        showToast(t('cellarShare.webHint'), 'info');
+      }
+    } catch {
+      showToast(t('cellarShare.error'), 'danger');
+    } finally {
+      setSharing(false);
+    }
+  };
 
   if (planLoading || (entitlements.virtualBook && query.isLoading)) {
     return (
@@ -269,6 +301,81 @@ export default function Carnet() {
             onPress: () => router.push('/(tabs)/capture'),
           }}
         />
+      ) : null}
+
+      {/* STATISTIQUES DE CAVE (vin) — répartition + à boire bientôt + partage */}
+      {domain === 'wine' && stats && domainItems.length > 0 ? (
+        <VCard style={styles.statsCard}>
+          <VText variant="heading" tone="gold">
+            {t('cellarStats.title')}
+          </VText>
+          {stats.drinkSoon.length > 0 ? (
+            <VText variant="body">
+              {t('cellarStats.drinkSoon', { count: stats.drinkSoon.length })}
+            </VText>
+          ) : null}
+          {stats.byRegion.length > 0 ? (
+            <View style={styles.statBlock}>
+              <VText variant="caption" tone="dim">
+                {t('cellarStats.byRegion')}
+              </VText>
+              {stats.byRegion.slice(0, 5).map((b) => (
+                <View key={b.key} style={styles.statRow}>
+                  <VText variant="body">{b.key}</VText>
+                  <VText variant="caption" tone="dim">
+                    {`${b.count} · ${formatEUR(b.valueEUR)}`}
+                  </VText>
+                </View>
+              ))}
+            </View>
+          ) : null}
+          {stats.byColor.length > 0 ? (
+            <View style={styles.statBlock}>
+              <VText variant="caption" tone="dim">
+                {t('cellarStats.byColor')}
+              </VText>
+              {stats.byColor.map((b) => (
+                <View key={b.key} style={styles.statRow}>
+                  <VText variant="body">{b.key}</VText>
+                  <VText variant="caption" tone="dim">
+                    {t('cellarStats.bottles', { count: b.count })}
+                  </VText>
+                </View>
+              ))}
+            </View>
+          ) : null}
+          <VButton
+            label={t('cellarShare.button')}
+            variant="secondary"
+            onPress={shareCellar}
+            loading={sharing}
+            disabled={sharing}
+            accessibilityHint={t('cellarShare.hint')}
+          />
+        </VCard>
+      ) : null}
+
+      {/* TROUS DE SÉRIE (pièces / timbres) — années manquantes par série */}
+      {(domain === 'coin' || domain === 'stamp') && gaps.length > 0 ? (
+        <VCard style={styles.statsCard}>
+          <VText variant="heading" tone="gold">
+            {t('seriesGaps.title')}
+          </VText>
+          <VText variant="caption" tone="dim">
+            {t('seriesGaps.subtitle')}
+          </VText>
+          {gaps.map((gap) => (
+            <View key={gap.series} style={styles.statBlock}>
+              <VText variant="body">{gap.series}</VText>
+              <VText variant="caption" tone="dim">
+                {t('seriesGaps.missing', {
+                  count: gap.missing.length,
+                  years: gap.missing.slice(0, 12).join(', '),
+                })}
+              </VText>
+            </View>
+          ))}
+        </VCard>
       ) : null}
 
       {/* CAVE — groupes par emplacement, en-tête avec compte et valeur */}
@@ -575,4 +682,12 @@ const styles = StyleSheet.create({
   },
   slotRow: { flexDirection: 'row', gap: velumSpacing.sm },
   slotField: { flex: 1 },
+  statsCard: { gap: velumSpacing.sm },
+  statBlock: { gap: velumSpacing.xs / 2 },
+  statRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: velumSpacing.sm,
+  },
 });
