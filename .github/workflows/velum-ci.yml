@@ -56,6 +56,9 @@ jobs:
       - name: Preuve du mode senior (agrandissement effectif du rendu)
         run: node e2e/senior-screens.mjs
 
+      - name: Preuve du hors-ligne (collection lue depuis le cache persisté)
+        run: node e2e/offline.mjs
+
   edge-functions:
     runs-on: ubuntu-latest
     steps:

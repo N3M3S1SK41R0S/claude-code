@@ -6,9 +6,9 @@
 import '../global.css';
 import '../lib/i18n';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -20,7 +20,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import { ToastHost } from '../components/Toast';
 import { AuthProvider, useSession } from '../lib/auth';
 import { getVelumClient } from '../lib/client';
-import { queryClient } from '../lib/queryClient';
+import { clearPersistedCache, persistOptions, queryClient } from '../lib/queryClient';
 import { useSettingsStore } from '../stores/settingsStore';
 
 /** Pose `document.title` selon la route (web uniquement) — WCAG 2.4.2. */
@@ -31,6 +31,20 @@ function WebDocumentTitle() {
       document.title = documentTitleFor(pathname);
     }
   }, [pathname]);
+  return null;
+}
+
+/** Purge le cache persisté à la déconnexion (vie privée, appareil partagé). */
+function CacheGuard() {
+  const { session } = useSession();
+  const wasSignedIn = useRef(false);
+  useEffect(() => {
+    if (session) wasSignedIn.current = true;
+    else if (wasSignedIn.current) {
+      wasSignedIn.current = false;
+      void clearPersistedCache();
+    }
+  }, [session]);
   return null;
 }
 
@@ -64,8 +78,9 @@ function SeniorBridge({ children }: { children: React.ReactNode }) {
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
         <AuthProvider>
+          <CacheGuard />
           <SeniorBridge>
             <ErrorBoundary>
               <StatusBar style="light" backgroundColor={velumColors.ink.DEFAULT} />
@@ -89,7 +104,7 @@ export default function RootLayout() {
             </ErrorBoundary>
           </SeniorBridge>
         </AuthProvider>
-      </QueryClientProvider>
+      </PersistQueryClientProvider>
     </SafeAreaProvider>
   );
 }
