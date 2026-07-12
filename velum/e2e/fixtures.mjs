@@ -236,3 +236,11 @@ export const PAIRING = {
   ],
   fallbackAdvice: undefined,
 };
+
+// Communauté : deux annonces actives d'AUTRES vendeurs (achetables) + aucune
+// commande en cours. Titres/domaines dénormalisés (migration 0006).
+export const LISTINGS = [
+  { id: 'lst-1', item_id: 'x1', seller_id: '22222222-2222-4222-8222-222222222222', ask_price: 320, currency: 'EUR', status: 'active', title: 'Napoléon III 20 Francs Or 1868', domain: 'coin', created_at: '2026-07-08T00:00:00Z' },
+  { id: 'lst-2', item_id: 'x2', seller_id: '33333333-3333-4333-8333-333333333333', ask_price: 780, currency: 'EUR', status: 'active', title: 'Bloc CITEX 1949 neuf — authentifié', domain: 'stamp', created_at: '2026-07-03T00:00:00Z' },
+];
+export const ORDERS = [];

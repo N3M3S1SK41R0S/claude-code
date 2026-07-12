@@ -21,6 +21,7 @@ const SCREENS = [
   { name: 'carnet', path: '/carnet', auth: true, expect: 'Bandol Domaine Tempier 2016' },
   { name: 'blind-tasting', path: '/blind-tasting', auth: true, expect: 'Vin n°1' },
   { name: 'event-sommelier', path: '/event-sommelier', auth: true, expect: 'Composer les accords' },
+  { name: 'community', path: '/community', auth: true, expect: 'Catalogue' },
   { name: 'item', path: '/item/demo-wine', auth: true, expect: 'Valorisation' },
   { name: 'profile', path: '/profile', auth: true, expect: 'Compte Démo VELUM' },
 ];

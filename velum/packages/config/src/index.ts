@@ -20,7 +20,9 @@ export interface VelumFeatures {
 export const DEFAULT_FEATURES: VelumFeatures = {
   enableStamps: true,
   artDomain: 'tableaux',
-  enableMarketplace: false,
+  // Communauté marchande à séquestre ACTIVE en V1 (Platine) — décision produit
+  // juillet 2026. L'UI est gatée par l'entitlement `community` (Platine).
+  enableMarketplace: true,
 };
 
 /**

@@ -66,6 +66,8 @@ await screen('11-profil', '/profile', 'Compte Démo VELUM');
 await screen('15-degustation-aveugle', '/blind-tasting', 'Vin n°1');
 // 16. Sommelier d'événement — accords par plat depuis la cave.
 await screen('16-sommelier-evenement', '/event-sommelier', 'Composer les accords');
+// 17. Communauté — catalogue d'annonces sous séquestre.
+await screen('17-communaute', '/community', 'Napoléon III');
 
 const realErrors = pageErrors.filter((m) => !m.includes('ResizeObserver'));
 if (realErrors.length > 0) {

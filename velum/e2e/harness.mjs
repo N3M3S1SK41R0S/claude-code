@@ -8,7 +8,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
-import { ALERTS, ITEMS, NOTIFICATIONS, PAIRING, PROFILE, SESSION, VALUATIONS } from './fixtures.mjs';
+import { ALERTS, ITEMS, LISTINGS, NOTIFICATIONS, ORDERS, PAIRING, PROFILE, SESSION, VALUATIONS } from './fixtures.mjs';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',
@@ -77,6 +77,11 @@ export async function stubSupabase(page) {
       return json(itemId ? ALERTS.filter((a) => a.item_id === itemId) : ALERTS);
     }
     if (path.endsWith('/rest/v1/notifications')) return json(NOTIFICATIONS);
+    if (path.endsWith('/rest/v1/listings')) {
+      const status = eqParam(url, 'status');
+      return json(status ? LISTINGS.filter((l) => l.status === status) : LISTINGS);
+    }
+    if (path.endsWith('/rest/v1/orders')) return json(ORDERS);
     if (path.includes('/functions/v1/cellar-pairing')) return json(PAIRING);
     if (path.includes('/functions/v1/')) return json({ ok: true });
     if (path.includes('/auth/v1/')) return json({});

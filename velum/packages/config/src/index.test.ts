@@ -23,8 +23,8 @@ describe('feature flags', () => {
     ]);
   });
 
-  it('marketplace OFF au MVP, art = tableaux', () => {
-    expect(DEFAULT_FEATURES.enableMarketplace).toBe(false);
+  it('communauté ACTIVE en V1 (Platine), art = tableaux', () => {
+    expect(DEFAULT_FEATURES.enableMarketplace).toBe(true);
     expect(DEFAULT_FEATURES.artDomain).toBe('tableaux');
   });
 });

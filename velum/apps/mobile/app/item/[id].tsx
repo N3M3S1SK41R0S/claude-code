@@ -39,6 +39,7 @@ import { StampSheet } from '../../components/sheets/StampSheet';
 import { WineSheet } from '../../components/sheets/WineSheet';
 import { KV, SheetSection } from '../../components/sheets/SheetSection';
 import { ProvenanceSection, TastingNotesSection } from '../../components/item/ItemJournalSections';
+import { SellButton } from '../../components/item/SellButton';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
 import { buildItemSheetHtml } from '../../lib/exporters';
@@ -362,6 +363,7 @@ export default function ItemSheet() {
           <VButton label={t('item.setAlert')} variant="secondary" onPress={() => setAlertOpen(true)} />
         )}
         <VButton label={t('item.exportPdf')} variant="secondary" onPress={() => void exportPdf()} />
+        <SellButton itemId={item.id} />
         <VButton label={t('common.delete')} variant="danger" onPress={confirmDelete} />
         <VButton label={t('common.back')} variant="ghost" onPress={() => router.back()} />
       </SheetSection>

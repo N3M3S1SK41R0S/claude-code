@@ -100,24 +100,29 @@ export default function Market() {
         )}
       </View>
 
-      {!features.enableMarketplace ? (
+      {features.enableMarketplace ? (
         <View style={styles.section}>
           <VText variant="heading" tone="gold">
             {t('market.communityTitle')}
           </VText>
-          <VCard>
+          <VCard tone="gilded">
             <View style={styles.marketplace}>
-              <VBadge label={t('common.soon')} tone="warning" />
               <VText variant="body" tone="dim">
                 {t('market.communityBody')}
               </VText>
-              {plan !== 'platine' ? (
+              {plan === 'platine' ? (
+                <VButton
+                  label={t('community.open')}
+                  onPress={() => router.push('/community')}
+                  accessibilityHint={t('community.intro')}
+                />
+              ) : (
                 <VButton
                   label={t('market.communityCta')}
                   variant="secondary"
                   onPress={() => router.push('/paywall')}
                 />
-              ) : null}
+              )}
             </View>
           </VCard>
         </View>
