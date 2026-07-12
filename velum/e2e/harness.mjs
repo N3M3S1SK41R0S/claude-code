@@ -97,6 +97,23 @@ export async function seedSession(page) {
   }, SESSION);
 }
 
+/**
+ * Sème les réglages persistés (zustand persist, clé `velum.settings.v1`) avant
+ * le boot — notamment `senior: true` pour rendre l'app en mode senior.
+ */
+export async function seedSettings(page, settings) {
+  await page.addInitScript(
+    (state) => {
+      try {
+        window.localStorage.setItem('velum.settings.v1', JSON.stringify({ state, version: 0 }));
+      } catch {
+        /* ignoré */
+      }
+    },
+    { locale: 'fr', onboardingDone: true, aiConsent: true, ...settings },
+  );
+}
+
 /** Chemin du binaire Chromium préinstallé (ou VELUM_CHROMIUM). */
 export function chromiumPath() {
   return (
