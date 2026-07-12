@@ -509,6 +509,24 @@
     "compose": "Compose the pairings",
     "composing": "The sommelier is composing your menu…"
   },
+  "journal": {
+    "tastingTitle": "Tasting notes",
+    "tastingEmpty": "No notes yet — record your impressions as you taste.",
+    "addNote": "Add a note",
+    "ratingLabel": "Personal score /100 (optional)",
+    "noteLabel": "Comment",
+    "notePlaceholder": "e.g. garrigue on the nose, silky tannins…",
+    "markConsumed": "Mark as drunk",
+    "consumedOn": "Drunk on {{date}}",
+    "consumedDone": "Bottle marked as drunk.",
+    "provenanceTitle": "Provenance",
+    "provenanceEmpty": "No provenance step recorded.",
+    "addProvenance": "Add a step",
+    "ownerLabel": "Owner",
+    "acquiredFrom": "Acquired from",
+    "acquiredFromPlaceholder": "e.g. auction house, gallery, gift, inheritance…",
+    "eventDate": "Date"
+  },
   "aiConsent": {
     "title": "Artificial-intelligence analysis",
     "body": "To identify and value your items, VELUM sends your photos and descriptions to a third-party AI service (visual analysis). Photos are never used for anything else. You may decline: manual entry and file import remain available.",

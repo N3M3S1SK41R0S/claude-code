@@ -5,11 +5,20 @@
  */
 import type { AuthSession } from '@supabase/supabase-js';
 import type { VelumClient } from '@velum/api-client';
-import type { NewAlert, NewItem, QueuedMutation, ReplayReport } from '@velum/api-client';
+import type {
+  NewAlert,
+  NewItem,
+  NewProvenanceEntry,
+  NewTastingNote,
+  QueuedMutation,
+  ReplayReport,
+} from '@velum/api-client';
 import type {
   AlertRecord,
   Candidate,
   Profile,
+  ProvenanceEntry,
+  TastingNote,
   ValuationRecord,
   VelumDomain,
   VelumItem,
@@ -48,6 +57,8 @@ export function createDemoClient(): VelumClient {
   const items: VelumItem[] = seedItems();
   const valuations = new Map<string, ValuationRecord[]>();
   const alerts: AlertRecord[] = seedAlerts(items);
+  const tastingNotes = new Map<string, TastingNote[]>();
+  const provenance = new Map<string, ProvenanceEntry[]>();
   const authListeners = new Set<(event: string, session: AuthSession | null) => void>();
 
   const findItem = (id: string) => items.find((i) => i.id === id) ?? null;
@@ -226,6 +237,57 @@ export function createDemoClient(): VelumClient {
       },
       async update() {
         /* no-op en démo */
+      },
+    },
+
+    tastingNotes: {
+      async list(itemId: string) {
+        return [...(tastingNotes.get(itemId) ?? [])].sort((a, b) =>
+          b.tastedAt.localeCompare(a.tastedAt),
+        );
+      },
+      async add(input: NewTastingNote) {
+        const rec: TastingNote = {
+          id: `note-${Math.random().toString(36).slice(2)}`,
+          itemId: input.itemId,
+          rating: input.rating ?? null,
+          note: input.note ?? null,
+          tastedAt: input.tastedAt ?? nowIso().slice(0, 10),
+          createdAt: nowIso(),
+        };
+        tastingNotes.set(input.itemId, [rec, ...(tastingNotes.get(input.itemId) ?? [])]);
+        return rec;
+      },
+      async remove(id: string) {
+        for (const [key, list] of tastingNotes) {
+          tastingNotes.set(key, list.filter((n) => n.id !== id));
+        }
+      },
+    },
+
+    provenance: {
+      async list(itemId: string) {
+        return [...(provenance.get(itemId) ?? [])].sort((a, b) =>
+          (a.eventDate ?? '').localeCompare(b.eventDate ?? ''),
+        );
+      },
+      async add(input: NewProvenanceEntry) {
+        const rec: ProvenanceEntry = {
+          id: `prov-${Math.random().toString(36).slice(2)}`,
+          itemId: input.itemId,
+          ownerLabel: input.ownerLabel ?? null,
+          acquiredFrom: input.acquiredFrom ?? null,
+          note: input.note ?? null,
+          eventDate: input.eventDate ?? null,
+          createdAt: nowIso(),
+        };
+        provenance.set(input.itemId, [...(provenance.get(input.itemId) ?? []), rec]);
+        return rec;
+      },
+      async remove(id: string) {
+        for (const [key, list] of provenance) {
+          provenance.set(key, list.filter((p) => p.id !== id));
+        }
       },
     },
 

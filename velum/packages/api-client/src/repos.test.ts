@@ -1,6 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { isVelumError } from '@velum/core';
-import { createAlertsRepo, createItemsRepo, createProfileApi, createValuationsRepo } from './repos';
+import {
+  createAlertsRepo,
+  createItemsRepo,
+  createProfileApi,
+  createProvenanceRepo,
+  createTastingNotesRepo,
+  createValuationsRepo,
+} from './repos';
 import { asSupabase, FakeSupabase } from './testing/fake-supabase';
 
 function itemRow(overrides: Record<string, unknown>): Record<string, unknown> {
@@ -244,5 +251,66 @@ describe('profile api', () => {
     expect(row?.['display_name']).toBe('Pierre T.');
     expect(row?.['a11y_mode']).toBe(true);
     expect(row?.['expo_push_token']).toBe('tok-1');
+  });
+});
+
+describe('tasting notes repo', () => {
+  let fake: FakeSupabase;
+
+  beforeEach(() => {
+    fake = new FakeSupabase();
+    fake.tables['tasting_notes'] = [
+      { id: 'n1', item_id: 'a', rating: 90, note: 'Superbe', tasted_at: '2026-02-01', created_at: '2026-02-01T00:00:00Z' },
+      { id: 'n2', item_id: 'a', rating: null, note: 'Encore fermé', tasted_at: '2026-05-01', created_at: '2026-05-01T00:00:00Z' },
+      { id: 'n3', item_id: 'b', rating: 80, note: null, tasted_at: '2026-03-01', created_at: '2026-03-01T00:00:00Z' },
+    ];
+  });
+
+  it('list filtre par item et trie du plus récent au plus ancien', async () => {
+    const notes = await createTastingNotesRepo(asSupabase(fake)).list('a');
+    expect(notes.map((n) => n.id)).toEqual(['n2', 'n1']);
+    expect(notes[0]?.rating).toBeNull();
+    expect(notes[1]?.rating).toBe(90);
+  });
+
+  it('add insère une note et retourne le TastingNote créé', async () => {
+    const repo = createTastingNotesRepo(asSupabase(fake));
+    const created = await repo.add({ itemId: 'a', rating: 88, note: 'Belle évolution', tastedAt: '2026-07-01' });
+    expect(created.itemId).toBe('a');
+    expect(created.rating).toBe(88);
+    expect((fake.tables['tasting_notes'] ?? []).length).toBe(4);
+  });
+
+  it('remove supprime la note', async () => {
+    const repo = createTastingNotesRepo(asSupabase(fake));
+    await repo.remove('n1');
+    expect((fake.tables['tasting_notes'] ?? []).map((r) => r['id'])).toEqual(['n2', 'n3']);
+  });
+});
+
+describe('provenance repo', () => {
+  let fake: FakeSupabase;
+
+  beforeEach(() => {
+    fake = new FakeSupabase();
+    fake.tables['provenance_entries'] = [
+      { id: 'p2', item_id: 'a', owner_label: 'Moi', acquired_from: 'Drouot', note: null, event_date: '2020-06-15', created_at: '2020-06-15T00:00:00Z' },
+      { id: 'p1', item_id: 'a', owner_label: 'Collection X', acquired_from: 'Galerie', note: 'Acquis en 1998', event_date: '1998-01-01', created_at: '2020-01-01T00:00:00Z' },
+    ];
+  });
+
+  it('list filtre par item et trie par date d’événement croissante', async () => {
+    const entries = await createProvenanceRepo(asSupabase(fake)).list('a');
+    expect(entries.map((e) => e.id)).toEqual(['p1', 'p2']);
+    expect(entries[0]?.ownerLabel).toBe('Collection X');
+  });
+
+  it('add insère une étape et remove la supprime', async () => {
+    const repo = createProvenanceRepo(asSupabase(fake));
+    const created = await repo.add({ itemId: 'a', ownerLabel: 'Acheteur', acquiredFrom: 'Vente privée', eventDate: '2026-07-01' });
+    expect(created.acquiredFrom).toBe('Vente privée');
+    expect((fake.tables['provenance_entries'] ?? []).length).toBe(3);
+    await repo.remove(created.id);
+    expect((fake.tables['provenance_entries'] ?? []).length).toBe(2);
   });
 });

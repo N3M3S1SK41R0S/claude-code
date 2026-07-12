@@ -11,10 +11,14 @@ import {
   createAlertsRepo,
   createItemsRepo,
   createProfileApi,
+  createProvenanceRepo,
+  createTastingNotesRepo,
   createValuationsRepo,
   type AlertsRepo,
   type ItemsRepo,
   type ProfileApi,
+  type ProvenanceRepo,
+  type TastingNotesRepo,
   type ValuationsRepo,
 } from './repos';
 import { createMemoryStorage, type StorageAdapter } from './storage';
@@ -38,6 +42,10 @@ export interface VelumClient {
   valuations: ValuationsRepo;
   alerts: AlertsRepo;
   profile: ProfileApi;
+  /** Journal de dégustation personnel (par objet). */
+  tastingNotes: TastingNotesRepo;
+  /** Chaîne de possession / provenance (par objet). */
+  provenance: ProvenanceRepo;
   /** File de mutations hors-ligne (rejeu FIFO, last-write-wins). */
   queue: MutationQueue;
 }
@@ -62,6 +70,8 @@ export function createVelumClient(opts: VelumClientOptions): VelumClient {
     valuations: createValuationsRepo(supabase),
     alerts: createAlertsRepo(supabase),
     profile: createProfileApi(supabase),
+    tastingNotes: createTastingNotesRepo(supabase),
+    provenance: createProvenanceRepo(supabase),
     queue: new MutationQueue(supabase, storage),
   };
 }

@@ -8,6 +8,8 @@ import {
   VelumError,
   type AlertRecord,
   type Profile,
+  type ProvenanceEntry,
+  type TastingNote,
   type ValuationRecord,
   type VelumDomain,
   type VelumItem,
@@ -16,17 +18,25 @@ import {
   alertToRow,
   itemPatchToRow,
   newItemToRow,
+  newProvenanceToRow,
+  newTastingNoteToRow,
   profilePatchToRow,
   rowToAlert,
   rowToItem,
   rowToProfile,
+  rowToProvenance,
+  rowToTastingNote,
   rowToValuation,
   type AlertRow,
   type ItemRow,
   type NewAlert,
   type NewItem,
+  type NewProvenanceEntry,
+  type NewTastingNote,
   type ProfilePatch,
   type ProfileRow,
+  type ProvenanceRow,
+  type TastingNoteRow,
   type ValuationRow,
 } from './mappers';
 
@@ -165,6 +175,86 @@ export function createAlertsRepo(supabase: SupabaseClient): AlertsRepo {
     async remove(id) {
       const { error } = await supabase.from('alerts').delete().eq('id', id);
       if (error) throw dbError("Suppression de l'alerte impossible", error);
+    },
+  };
+}
+
+// ── tasting notes (journal de dégustation) ───────────────────────────────────
+
+export interface TastingNotesRepo {
+  /** Notes d'un objet, de la plus récente à la plus ancienne. */
+  list(itemId: string): Promise<TastingNote[]>;
+  add(input: NewTastingNote): Promise<TastingNote>;
+  remove(id: string): Promise<void>;
+}
+
+export function createTastingNotesRepo(supabase: SupabaseClient): TastingNotesRepo {
+  return {
+    async list(itemId) {
+      const { data, error } = await supabase
+        .from('tasting_notes')
+        .select('*')
+        .eq('item_id', itemId)
+        .order('tasted_at', { ascending: false });
+      if (error) throw dbError('Lecture des notes de dégustation impossible', error);
+      return ((data ?? []) as TastingNoteRow[]).map(rowToTastingNote);
+    },
+
+    async add(input) {
+      const { data, error } = await supabase
+        .from('tasting_notes')
+        .insert(newTastingNoteToRow(input))
+        .select('*')
+        .single();
+      if (error || data === null) {
+        throw dbError('Enregistrement de la note impossible', error ?? { message: 'réponse vide' });
+      }
+      return rowToTastingNote(data as TastingNoteRow);
+    },
+
+    async remove(id) {
+      const { error } = await supabase.from('tasting_notes').delete().eq('id', id);
+      if (error) throw dbError('Suppression de la note impossible', error);
+    },
+  };
+}
+
+// ── provenance (chaîne de possession) ─────────────────────────────────────────
+
+export interface ProvenanceRepo {
+  /** Étapes de provenance d'un objet, de la plus ancienne à la plus récente. */
+  list(itemId: string): Promise<ProvenanceEntry[]>;
+  add(input: NewProvenanceEntry): Promise<ProvenanceEntry>;
+  remove(id: string): Promise<void>;
+}
+
+export function createProvenanceRepo(supabase: SupabaseClient): ProvenanceRepo {
+  return {
+    async list(itemId) {
+      const { data, error } = await supabase
+        .from('provenance_entries')
+        .select('*')
+        .eq('item_id', itemId)
+        .order('event_date', { ascending: true });
+      if (error) throw dbError('Lecture de la provenance impossible', error);
+      return ((data ?? []) as ProvenanceRow[]).map(rowToProvenance);
+    },
+
+    async add(input) {
+      const { data, error } = await supabase
+        .from('provenance_entries')
+        .insert(newProvenanceToRow(input))
+        .select('*')
+        .single();
+      if (error || data === null) {
+        throw dbError("Enregistrement de la provenance impossible", error ?? { message: 'réponse vide' });
+      }
+      return rowToProvenance(data as ProvenanceRow);
+    },
+
+    async remove(id) {
+      const { error } = await supabase.from('provenance_entries').delete().eq('id', id);
+      if (error) throw dbError('Suppression de la provenance impossible', error);
     },
   };
 }

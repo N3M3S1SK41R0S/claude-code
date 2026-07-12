@@ -283,6 +283,48 @@ begin
 end
 $$;
 
+-- ── 7ter. Journal de dégustation & provenance : RLS via propriété de l'item ──
+do $$
+declare
+  v_count integer;
+begin
+  -- Alice ajoute une note et une étape de provenance à SON item.
+  perform set_config('velum.uid', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', true);
+  set local role authenticated;
+  insert into public.tasting_notes (item_id, rating, note)
+  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01', 92, 'Superbe, garrigue');
+  insert into public.provenance_entries (item_id, owner_label, acquired_from)
+  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01', 'Alice', 'Drouot');
+
+  select count(*) into v_count from public.tasting_notes;
+  if v_count <> 1 then
+    raise exception 'RLS notes : Alice devrait voir 1 note, vu %', v_count;
+  end if;
+
+  -- Bob ne voit ni les notes ni la provenance de l'item d'Alice.
+  perform set_config('velum.uid', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', true);
+  select count(*) into v_count from public.tasting_notes;
+  if v_count <> 0 then
+    raise exception 'RLS notes : Bob ne devrait voir aucune note, vu %', v_count;
+  end if;
+  select count(*) into v_count from public.provenance_entries;
+  if v_count <> 0 then
+    raise exception 'RLS provenance : Bob ne devrait voir aucune étape, vu %', v_count;
+  end if;
+
+  -- Bob ne peut pas greffer une note sur l'item d'Alice (with check).
+  begin
+    insert into public.tasting_notes (item_id, note)
+    values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01', 'intrusion');
+    raise exception 'RLS notes : insert de Bob sur l''item d''Alice aurait dû être refusé';
+  exception
+    when insufficient_privilege or check_violation then null; -- attendu
+  end;
+
+  raise notice 'OK 7ter — journal & provenance isolés par la propriété de l''item';
+end
+$$;
+
 -- ── 8. Purge RGPD : suppression auth.users → cascade complète ────────────────
 do $$
 declare
@@ -298,6 +340,17 @@ begin
   where seller_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
   if v_count <> 0 then
     raise exception 'cascade : % annonce(s) orpheline(s)', v_count;
+  end if;
+  -- Notes de dégustation et provenance de l'item d'Alice : purgées en cascade.
+  select count(*) into v_count from public.tasting_notes
+  where item_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccc01';
+  if v_count <> 0 then
+    raise exception 'cascade : % note(s) de dégustation orpheline(s)', v_count;
+  end if;
+  select count(*) into v_count from public.provenance_entries
+  where item_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccc01';
+  if v_count <> 0 then
+    raise exception 'cascade : % étape(s) de provenance orpheline(s)', v_count;
   end if;
   raise notice 'OK 8 — purge RGPD en cascade';
 end

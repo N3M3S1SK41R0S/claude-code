@@ -62,6 +62,32 @@ export interface ValuationRecord {
   valuedAt: string;
 }
 
+/** Note de dégustation PERSONNELLE (historique) — rating /100 INFORMATIF. */
+export interface TastingNote {
+  id: string;
+  itemId: string;
+  /** Appréciation personnelle sur 100 (optionnelle). */
+  rating: number | null;
+  note: string | null;
+  /** Date de dégustation (AAAA-MM-JJ). */
+  tastedAt: string;
+  createdAt: string;
+}
+
+/** Une étape de la chaîne de possession (provenance) d'un objet. */
+export interface ProvenanceEntry {
+  id: string;
+  itemId: string;
+  /** Propriétaire à cette étape (précédent ou soi-même). */
+  ownerLabel: string | null;
+  /** Source d'acquisition : maison de vente, galerie, don, héritage… */
+  acquiredFrom: string | null;
+  note: string | null;
+  /** Date de l'étape (AAAA-MM-JJ), si connue. */
+  eventDate: string | null;
+  createdAt: string;
+}
+
 export type AlertType = 'price_threshold' | 'drink_window' | 'opportunity';
 
 export interface AlertRecord {

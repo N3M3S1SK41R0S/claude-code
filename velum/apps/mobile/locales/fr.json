@@ -509,6 +509,24 @@
     "compose": "Composer les accords",
     "composing": "Le sommelier compose votre menu…"
   },
+  "journal": {
+    "tastingTitle": "Notes de dégustation",
+    "tastingEmpty": "Aucune note pour le moment — ajoutez vos impressions au fil des dégustations.",
+    "addNote": "Ajouter une note",
+    "ratingLabel": "Note personnelle /100 (optionnel)",
+    "noteLabel": "Commentaire",
+    "notePlaceholder": "ex. nez sur la garrigue, tanins fondus…",
+    "markConsumed": "Marquer comme bue",
+    "consumedOn": "Bue le {{date}}",
+    "consumedDone": "Bouteille marquée comme bue.",
+    "provenanceTitle": "Provenance",
+    "provenanceEmpty": "Aucune étape de provenance renseignée.",
+    "addProvenance": "Ajouter une étape",
+    "ownerLabel": "Propriétaire",
+    "acquiredFrom": "Acquis auprès de",
+    "acquiredFromPlaceholder": "ex. Drouot, galerie, don, héritage…",
+    "eventDate": "Date"
+  },
   "aiConsent": {
     "title": "Analyse par intelligence artificielle",
     "body": "Pour identifier et estimer vos objets, VELUM transmet vos photos et descriptions à un service d'IA tiers (analyse visuelle). Aucune photo n'est utilisée à d'autres fins. Vous pouvez refuser : la saisie manuelle et l'import de fichier restent disponibles.",

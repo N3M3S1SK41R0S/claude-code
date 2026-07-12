@@ -38,6 +38,7 @@ import { CoinSheet } from '../../components/sheets/CoinSheet';
 import { StampSheet } from '../../components/sheets/StampSheet';
 import { WineSheet } from '../../components/sheets/WineSheet';
 import { KV, SheetSection } from '../../components/sheets/SheetSection';
+import { ProvenanceSection, TastingNotesSection } from '../../components/item/ItemJournalSections';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
 import { buildItemSheetHtml } from '../../lib/exporters';
@@ -309,6 +310,10 @@ export default function ItemSheet() {
       {item.domain === 'stamp' ? (
         <StampSheet payload={payload as Partial<StampAnalysisPayload> | null} />
       ) : null}
+
+      {/* Journal : dégustation (historique perso) + provenance (chaîne de possession) */}
+      <TastingNotesSection item={item} />
+      <ProvenanceSection itemId={item.id} />
 
       {/* Acquisition (éditable) */}
       <SheetSection title={t('item.acquisitionTitle')}>

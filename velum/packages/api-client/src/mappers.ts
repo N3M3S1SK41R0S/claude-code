@@ -8,6 +8,8 @@ import type {
   AlertType,
   PriceObservation,
   Profile,
+  ProvenanceEntry,
+  TastingNote,
   ValuationRecord,
   VelumDomain,
   VelumItem,
@@ -243,5 +245,83 @@ export function profilePatchToRow(patch: ProfilePatch): Record<string, unknown> 
   if (patch.locale !== undefined) row['locale'] = patch.locale;
   if (patch.a11yMode !== undefined) row['a11y_mode'] = patch.a11yMode;
   if (patch.expoPushToken !== undefined) row['expo_push_token'] = patch.expoPushToken;
+  return row;
+}
+
+// ── tasting_notes ─────────────────────────────────────────────────────────────
+
+export interface TastingNoteRow {
+  id: string;
+  item_id: string;
+  rating: number | string | null;
+  note: string | null;
+  tasted_at: string;
+  created_at: string;
+}
+
+export interface NewTastingNote {
+  itemId: string;
+  rating?: number | null;
+  note?: string | null;
+  tastedAt?: string;
+}
+
+export function rowToTastingNote(row: TastingNoteRow): TastingNote {
+  return {
+    id: row.id,
+    itemId: row.item_id,
+    rating: toNullableNumber(row.rating),
+    note: row.note,
+    tastedAt: row.tasted_at,
+    createdAt: row.created_at,
+  };
+}
+
+export function newTastingNoteToRow(input: NewTastingNote): Record<string, unknown> {
+  const row: Record<string, unknown> = { item_id: input.itemId };
+  if (input.rating !== undefined) row['rating'] = input.rating;
+  if (input.note !== undefined) row['note'] = input.note;
+  if (input.tastedAt !== undefined) row['tasted_at'] = input.tastedAt;
+  return row;
+}
+
+// ── provenance_entries ────────────────────────────────────────────────────────
+
+export interface ProvenanceRow {
+  id: string;
+  item_id: string;
+  owner_label: string | null;
+  acquired_from: string | null;
+  note: string | null;
+  event_date: string | null;
+  created_at: string;
+}
+
+export interface NewProvenanceEntry {
+  itemId: string;
+  ownerLabel?: string | null;
+  acquiredFrom?: string | null;
+  note?: string | null;
+  eventDate?: string | null;
+}
+
+export function rowToProvenance(row: ProvenanceRow): ProvenanceEntry {
+  return {
+    id: row.id,
+    itemId: row.item_id,
+    ownerLabel: row.owner_label,
+    acquiredFrom: row.acquired_from,
+    note: row.note,
+    eventDate: row.event_date,
+    createdAt: row.created_at,
+  };
+}
+
+export function newProvenanceToRow(input: NewProvenanceEntry): Record<string, unknown> {
+  const row: Record<string, unknown> = { item_id: input.itemId };
+  if (input.ownerLabel !== undefined) row['owner_label'] = input.ownerLabel;
+  if (input.acquiredFrom !== undefined) row['acquired_from'] = input.acquiredFrom;
+  if (input.note !== undefined) row['note'] = input.note;
+  if (input.eventDate !== undefined) row['event_date'] = input.eventDate;
   return row;
 }
