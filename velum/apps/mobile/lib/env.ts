@@ -9,10 +9,22 @@
  */
 import { readClientEnv, type ClientEnv } from '@velum/config';
 
+/**
+ * Mode DÉMO (EXPO_PUBLIC_DEMO=1) : l'app tourne sans backend ni clé, sur un
+ * client en mémoire (lib/demo). Accès statique requis pour l'inlining Expo.
+ */
+export function isDemoMode(): boolean {
+  return process.env.EXPO_PUBLIC_DEMO === '1';
+}
+
 let cached: ClientEnv | null = null;
 
 /** Lit et met en cache l'environnement client (EXPO_PUBLIC_*). */
 export function getClientEnv(): ClientEnv {
+  if (isDemoMode()) {
+    // Placeholders : aucun appel réseau n'est fait en démo.
+    return { supabaseUrl: 'https://demo.local', supabaseAnonKey: 'demo' };
+  }
   if (cached === null) {
     cached = readClientEnv({
       EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,

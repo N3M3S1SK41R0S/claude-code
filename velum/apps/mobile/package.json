@@ -11,7 +11,9 @@
     "build:web": "expo export --platform web",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "demo": "EXPO_PUBLIC_DEMO=1 expo start --web",
+    "demo:export": "EXPO_PUBLIC_DEMO=1 expo export --platform web"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",

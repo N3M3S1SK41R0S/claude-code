@@ -17,7 +17,8 @@
     "offline": "node e2e/offline.mjs",
     "screens": "node e2e/store-screens.mjs && node e2e/auth-screens.mjs && node e2e/senior-screens.mjs",
     "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck"
+    "typecheck": "turbo run typecheck",
+    "demo": "pnpm --filter velum-mobile demo"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",

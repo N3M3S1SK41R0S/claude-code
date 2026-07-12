@@ -6,12 +6,16 @@ import { View } from 'react-native';
 import { VSpinner } from '@velum/ui';
 
 import { useSession } from '../lib/auth';
+import { isDemoMode } from '../lib/env';
 import { useSettingsStore } from '../stores/settingsStore';
 
 export default function Index() {
   const { session, loading } = useSession();
   const onboardingDone = useSettingsStore((s) => s.onboardingDone);
   const hydrated = useSettingsStore((s) => s.hydrated);
+
+  // Mode démo : on entre directement dans l'app (déjà « connecté »).
+  if (isDemoMode()) return <Redirect href="/(tabs)/capture" />;
 
   if (!hydrated || loading) {
     return (
