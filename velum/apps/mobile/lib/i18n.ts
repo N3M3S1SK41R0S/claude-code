@@ -38,6 +38,27 @@ export function formatEUR(value: number, locale: string = i18n.language): string
   }).format(value);
 }
 
+/**
+ * Formate un prix DANS SA DEVISE D'ORIGINE (observations de sources : PCGS,
+ * Heritage… renvoient souvent des USD) — ne jamais étiqueter € un montant $.
+ */
+export function formatMoney(
+  value: number,
+  currency: string,
+  locale: string = i18n.language,
+): string {
+  try {
+    return new Intl.NumberFormat(locale === 'en' ? 'en-GB' : 'fr-FR', {
+      style: 'currency',
+      currency,
+      maximumFractionDigits: 0,
+    }).format(value);
+  } catch {
+    // Code devise inconnu → repli lisible sans étiquette trompeuse.
+    return `${Math.round(value)} ${currency}`;
+  }
+}
+
 /** Formate une date ISO selon la locale active. */
 export function formatDate(iso: string, locale: string = i18n.language): string {
   const date = new Date(iso);

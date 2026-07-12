@@ -25,13 +25,13 @@ export interface ModuleCardProps {
 export function ModuleCard({ domain, title, subtitle, onPress, selected }: ModuleCardProps) {
   return (
     <View style={styles.wrapper}>
-      <VCard onPress={onPress} style={selected ? styles.selected : undefined}>
-        <View
-          accessible
-          accessibilityLabel={`${title} — ${subtitle}`}
-          accessibilityRole="button"
-          style={styles.content}
-        >
+      <VCard
+        onPress={onPress}
+        accessibilityLabel={`${title} — ${subtitle}`}
+        style={selected ? styles.selected : undefined}
+      >
+        {/* Contenu non interactif : le rôle bouton est porté par la carte. */}
+        <View style={styles.content}>
           <Ionicons
             name={DOMAIN_ICONS[domain]}
             size={28}

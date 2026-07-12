@@ -83,7 +83,7 @@ export default function Market() {
           </VText>
         ) : (
           alerts.map((alert) => {
-            const threshold = alert.config['thresholdEUR'];
+            const threshold = alert.config['threshold'];
             return (
               <VListRow
                 key={alert.id}

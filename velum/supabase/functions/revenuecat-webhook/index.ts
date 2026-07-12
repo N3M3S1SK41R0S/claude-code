@@ -53,14 +53,18 @@ export async function handler(req: Request): Promise<Response> {
     return json({ ok: true, ignored: 'app_user_id non lié à un compte VELUM' });
   }
 
-  // EXPIRATION sans entitlement restant → retour au plan gratuit.
+  // CANCELLATION = désactivation de l'auto-renouvellement : l'accès payé
+  // court jusqu'à la fin de la période (RevenueCat enverra EXPIRATION à ce
+  // moment-là). On ne touche donc PAS au plan ici.
+  if (type === 'CANCELLATION') {
+    return json({ ok: true, ignored: 'CANCELLATION — accès conservé jusqu’à EXPIRATION' });
+  }
+
+  // EXPIRATION → retour au plan gratuit ; sinon, plan dérivé des entitlements.
   const rawEntitlements = Array.isArray(event['entitlement_ids'])
     ? (event['entitlement_ids'] as unknown[]).filter((e): e is string => typeof e === 'string')
     : [];
-  const plan =
-    type === 'EXPIRATION' || type === 'CANCELLATION'
-      ? 'free'
-      : planFromEntitlements(rawEntitlements);
+  const plan = type === 'EXPIRATION' ? 'free' : planFromEntitlements(rawEntitlements);
 
   const admin = createAdminClient();
   const { error: updateError } = await admin

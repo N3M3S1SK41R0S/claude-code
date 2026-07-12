@@ -14,9 +14,11 @@ export interface VCardProps {
   children: ReactNode;
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
+  /** Libellé lu par les lecteurs d'écran quand la carte est pressable. */
+  accessibilityLabel?: string;
 }
 
-export function VCard({ children, onPress, style }: VCardProps) {
+export function VCard({ children, onPress, style, accessibilityLabel }: VCardProps) {
   const { senior } = useSeniorMode();
 
   if (onPress) {
@@ -24,6 +26,7 @@ export function VCard({ children, onPress, style }: VCardProps) {
       <Pressable
         onPress={onPress}
         accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
         style={({ pressed }) => [
           styles.card,
           { minHeight: touchTargetSize(senior) },

@@ -13,9 +13,10 @@ import { chromiumPath, seedSession, startServer, stubSupabase } from './harness.
 
 const SCREENS = [
   { name: 'onboarding', path: '/onboarding', auth: false, expect: 'Passer' },
-  { name: 'sign-in', path: '/sign-in', auth: false },
+  { name: 'sign-in', path: '/sign-in', auth: false, expect: 'demo@velum.app' },
   { name: 'paywall', path: '/paywall', auth: false, expect: 'Platine' },
   { name: 'privacy', path: '/privacy', auth: false, expect: 'Responsable de traitement' },
+  { name: 'capture', path: '/capture', auth: true, expect: 'Vin' },
   { name: 'collection', path: '/collection', auth: true, expect: 'Bandol Domaine Tempier 2016' },
   { name: 'carnet', path: '/carnet', auth: true, expect: 'Bandol Domaine Tempier 2016' },
   { name: 'item', path: '/item/demo-wine', auth: true, expect: 'Valorisation' },
@@ -32,15 +33,22 @@ const browser = await chromium.launch((() => {
   return p ? { executablePath: p } : {};
 })());
 
-const context = await browser.newContext();
-const page = await context.newPage();
-await stubSupabase(page);
-await seedSession(page);
+// Deux contextes : PUBLIC (sans session — sinon le garde d'auth redirige
+// sign-in vers l'app) et CONNECTÉ (session semée).
+const publicContext = await browser.newContext();
+const publicPage = await publicContext.newPage();
+await stubSupabase(publicPage);
+
+const authedContext = await browser.newContext();
+const authedPage = await authedContext.newPage();
+await stubSupabase(authedPage);
+await seedSession(authedPage);
 
 let blocking = 0;
 const summary = [];
 
 for (const screen of SCREENS) {
+  const page = screen.auth ? authedPage : publicPage;
   await page.goto(`${base}${screen.path}`, { waitUntil: 'networkidle' });
   if (screen.name === 'onboarding') await page.waitForTimeout(1200);
   if (screen.expect) {

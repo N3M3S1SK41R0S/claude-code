@@ -41,7 +41,7 @@ import { KV, SheetSection } from '../../components/sheets/SheetSection';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
 import { buildItemSheetHtml } from '../../lib/exporters';
-import { formatEUR } from '../../lib/i18n';
+import { formatMoney, formatEUR } from '../../lib/i18n';
 import { showToast } from '../../stores/toastStore';
 
 /** Extrait le payload d'analyse stocké dans attributes.analysis. */
@@ -149,7 +149,8 @@ export default function ItemSheet() {
       await client.alerts.upsert({
         itemId,
         type: 'price_threshold',
-        config: { thresholdEUR: threshold },
+        // Schéma lu par price-cron : { direction: 'above'|'below', threshold }.
+        config: { direction: 'above', threshold },
         active: true,
       });
       showToast(t('item.alertSet', { value: formatEUR(threshold) }), 'success');
@@ -270,7 +271,7 @@ export default function ItemSheet() {
                 key={`${obs.source.name}-${i}`}
                 title={obs.source.name}
                 subtitle={t(`sourceKinds.${obs.source.kind}`)}
-                right={<VText variant="body">{formatEUR(obs.price)}</VText>}
+                right={<VText variant="body">{formatMoney(obs.price, obs.currency)}</VText>}
               />
             ))}
           </>

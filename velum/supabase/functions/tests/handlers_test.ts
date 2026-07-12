@@ -151,3 +151,71 @@ Deno.test('valuate : aucune observation exploitable → 404 NO_OBSERVATIONS', as
   assertEquals((await res.json()).error.code, 'NO_OBSERVATIONS');
   restore();
 });
+
+// ── revenuecat-webhook ───────────────────────────────────────────────────────
+import { handler as rcWebhook } from '../revenuecat-webhook/index.ts';
+
+Deno.env.set('REVENUECAT_WEBHOOK_SECRET', 'rc-secret');
+
+function rcPost(event: Record<string, unknown>, secret = 'rc-secret'): Request {
+  return new Request('https://x/revenuecat-webhook', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${secret}` },
+    body: JSON.stringify({ event }),
+  });
+}
+
+/** Stub fetch qui trace les PATCH sur profiles (mise à jour du plan). */
+function stubRcFetch(): { updates: string[] } {
+  const updates: string[] = [];
+  globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    if (url.includes('/rest/v1/profiles')) {
+      updates.push(String(init?.body ?? (input instanceof Request ? await input.clone().text() : '')));
+      return jsonResponse([{}]);
+    }
+    return jsonResponse({});
+  }) as typeof fetch;
+  return { updates };
+}
+
+Deno.test('webhook RC : mauvais secret → 401', async () => {
+  stubRcFetch();
+  const res = await rcWebhook(rcPost({ type: 'EXPIRATION' }, 'mauvais'));
+  assertEquals(res.status, 401);
+  restore();
+});
+
+Deno.test('webhook RC : CANCELLATION conserve l’accès (aucune mise à jour du plan)', async () => {
+  const { updates } = stubRcFetch();
+  const res = await rcWebhook(
+    rcPost({ type: 'CANCELLATION', app_user_id: '11111111-1111-4111-8111-111111111111', entitlement_ids: ['gold'] }),
+  );
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  assertEquals(String(body.ignored ?? '').includes('CANCELLATION'), true);
+  assertEquals(updates.length, 0); // le plan n'est PAS touché
+  restore();
+});
+
+Deno.test('webhook RC : EXPIRATION → plan free', async () => {
+  const { updates } = stubRcFetch();
+  const res = await rcWebhook(
+    rcPost({ type: 'EXPIRATION', app_user_id: '11111111-1111-4111-8111-111111111111', entitlement_ids: [] }),
+  );
+  assertEquals(res.status, 200);
+  assertEquals((await res.json()).plan, 'free');
+  assertEquals(updates.length, 1);
+  assertEquals(updates[0]?.includes('"free"'), true);
+  restore();
+});
+
+Deno.test('webhook RC : RENEWAL gold → plan gold', async () => {
+  const { updates } = stubRcFetch();
+  const res = await rcWebhook(
+    rcPost({ type: 'RENEWAL', app_user_id: '11111111-1111-4111-8111-111111111111', entitlement_ids: ['gold_monthly'] }),
+  );
+  assertEquals((await res.json()).plan, 'gold');
+  assertEquals(updates[0]?.includes('"gold"'), true);
+  restore();
+});
