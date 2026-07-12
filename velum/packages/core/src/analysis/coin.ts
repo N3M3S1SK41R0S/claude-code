@@ -1,4 +1,5 @@
 /** Fiche d'analyse VELUM Pièces (§6.3) — moteur `numis_v1`. */
+import type { HeritageProfile } from './heritage';
 
 export interface CoinAttributes {
   country?: string;
@@ -31,5 +32,7 @@ export interface CoinAnalysisPayload {
   rarity: { level: 'courante' | 'peu_courante' | 'rare' | 'tres_rare' | 'inconnue'; note?: string };
   varieties: string[]; // variantes & erreurs de frappe notables
   neighborYears?: { year: number; note: string }[];
+  /** Contexte historique (règne, atelier, série) + tirage détaillé. */
+  heritage?: HeritageProfile;
   uncertainties: string[];
 }

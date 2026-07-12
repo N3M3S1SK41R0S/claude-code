@@ -39,6 +39,12 @@ export const WINE_ANALYSIS = {
     regionalEquivalents: ['Château Pradeaux', 'La Bastide Blanche'],
     neighborVintages: [{ vintage: 2015, note: 'Solaire, plus opulent' }],
   },
+  heritage: {
+    history:
+      'Fief historique du mourvèdre à Bandol, sur restanques calcaires face à la Méditerranée. Cuvée de garde façonnée par la même famille depuis l’après-guerre — une référence de l’appellation.',
+    rarity: { level: 'peu_courante', note: 'cuvée de propriété, allocation limitée' },
+    editionSize: { count: 30000, unit: 'bottles', note: 'production estimée du millésime' },
+  },
   uncertainties: ['Niveau et conservation de la bouteille non vérifiés.'],
 };
 
@@ -183,7 +189,13 @@ export const ITEMS = [
 
 export const VALUATIONS = {
   'demo-wine': [
-    { id: 'v1', item_id: 'demo-wine', central: 51, ci80_low: 45, ci80_high: 58, ci95_low: 42, ci95_high: 63, reliability: 81, sources: [], valued_at: '2026-07-03T00:00:00Z' },
+    { id: 'v1', item_id: 'demo-wine', central: 51, ci80_low: 45, ci80_high: 58, ci95_low: 42, ci95_high: 63, reliability: 81, valued_at: '2026-07-03T00:00:00Z',
+      sources: [
+        { price: 58, currency: 'EUR', ageDays: 12, sourceWeight: 1, source: { name: 'iDealwine', kind: 'auction_realized' }, matchedLabel: 'Bandol Domaine Tempier 2016 — lot 2 bt.' },
+        { price: 54, currency: 'EUR', ageDays: 40, sourceWeight: 0.9, source: { name: 'Wine-Searcher', kind: 'official_quote' }, matchedLabel: 'Bandol Tempier 2016 (cote marchande)' },
+        { price: 49, currency: 'EUR', ageDays: 76, sourceWeight: 0.7, source: { name: 'eBay (vendu)', kind: 'marketplace_sold' }, matchedLabel: 'Domaine Tempier Bandol 2016' },
+        { price: 62, currency: 'EUR', ageDays: 128, sourceWeight: 1, source: { name: 'iDealwine', kind: 'auction_realized' }, matchedLabel: 'Bandol Tempier 2016 — caisse bois' },
+      ] },
     { id: 'v2', item_id: 'demo-wine', central: 46, ci80_low: 41, ci80_high: 52, ci95_low: 38, ci95_high: 57, reliability: 78, sources: [], valued_at: '2026-04-05T00:00:00Z' },
     { id: 'v3', item_id: 'demo-wine', central: 42, ci80_low: 38, ci80_high: 47, ci95_low: 35, ci95_high: 52, reliability: 74, sources: [], valued_at: '2026-01-05T00:00:00Z' },
   ],

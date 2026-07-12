@@ -31,6 +31,34 @@
     "community": "Community",
     "videoLabel": "VELUM launch video"
   },
+  "heritage": {
+    "title": "History & rarity",
+    "rarity": "Rarity",
+    "edition": "Number of examples"
+  },
+  "rarity": {
+    "courante": "Common",
+    "peu_courante": "Uncommon",
+    "rare": "Rare",
+    "tres_rare": "Very rare",
+    "exceptionnelle": "Exceptional",
+    "inconnue": "Undetermined"
+  },
+  "edition": {
+    "unit": {
+      "exemplaires": "examples",
+      "bottles": "bottles produced",
+      "stamps": "stamps (print run)",
+      "prints": "prints",
+      "unique": "unique work"
+    }
+  },
+  "time": {
+    "today": "today",
+    "daysAgo": "{{count}}d ago",
+    "monthsAgo": "{{count}}mo ago",
+    "yearsAgo": "{{count}}y ago"
+  },
   "tabs": {
     "capture": "Capture",
     "collection": "Collection",
@@ -168,6 +196,8 @@
     "reliability": "Reliability",
     "nSources": "{{count}} observation(s) retained",
     "sourcesTitle": "Sources",
+    "recentSalesTitle": "Recent sales",
+    "recentSalesIntro": "Comparable sales actually observed, attributed to their source.",
     "noValuation": "No valuation yet.",
     "revalue": "Estimate now",
     "chartTitle": "Value over time",

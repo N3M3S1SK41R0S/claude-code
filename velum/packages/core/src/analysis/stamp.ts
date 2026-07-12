@@ -5,6 +5,8 @@
  * Scott ; sources marché : Delcampe, eBay sold, Catawiki, Colnect.
  */
 
+import type { HeritageProfile } from './heritage';
+
 export type StampCentering = 'parfait' | 'bon' | 'decale' | 'tres_decale';
 
 export interface StampAttributes {
@@ -39,5 +41,7 @@ export interface StampAnalysisPayload {
   rarity: { level: 'courante' | 'peu_courante' | 'rare' | 'tres_rare' | 'inconnue'; note?: string };
   varieties: string[]; // variétés, erreurs d'impression, nuances
   neighborIssues?: { catalogNumber: string; note: string }[];
+  /** Contexte d'émission (série, imprimeur, événement) + tirage. */
+  heritage?: HeritageProfile;
   uncertainties: string[];
 }

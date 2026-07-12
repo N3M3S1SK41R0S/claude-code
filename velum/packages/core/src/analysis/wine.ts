@@ -2,6 +2,7 @@
  * Fiche d'analyse VELUM Vin — structure de sortie du moteur ZAPPA∴VINI∴SAPIENS
  * (7 modules, §6.2.2). Produite par l'Edge Function `analyze-wine`.
  */
+import type { HeritageProfile } from './heritage';
 
 export interface WineAttributes {
   producer?: string;
@@ -85,6 +86,8 @@ export interface WineAnalysisPayload {
   ratings: WineRatings;
   market: WineMarket;
   comparisons: WineComparisons;
+  /** Histoire du domaine/cuvée, rareté, production (nombre de bouteilles). */
+  heritage?: HeritageProfile;
   /** Module 7 — garde-fous : incertitudes signalées explicitement. */
   uncertainties: string[];
 }

@@ -2,6 +2,7 @@ export * from './domain';
 export * from './pricing';
 export * from './items';
 export * from './errors';
+export * from './analysis/heritage';
 export * from './analysis/wine';
 export * from './analysis/coin';
 export * from './analysis/art';

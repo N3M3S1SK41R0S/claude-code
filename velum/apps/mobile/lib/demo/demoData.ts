@@ -59,6 +59,12 @@ function wineAnalysis(label: string): Record<string, unknown> {
     ratings: { rvf: '16/20', positioning: 'classique' },
     market: { marketTension: 'moyenne', speculativeScore: 6, assetClass: 'cave' },
     comparisons: { foodPairings: ['gigot d’agneau', 'daube provençale', 'fromages affinés'], regionalEquivalents: ['Château Pradeaux'] },
+    heritage: {
+      history:
+        'Fief historique du mourvèdre à Bandol, sur restanques calcaires face à la Méditerranée. Une cuvée de garde façonnée par la même famille depuis l’après-guerre, référence de l’appellation.',
+      rarity: { level: 'peu_courante', note: 'cuvée de propriété, allocation limitée' },
+      editionSize: { count: 30000, unit: 'bottles', note: 'production estimée du millésime' },
+    },
     uncertainties: ['Mode démo : fiche illustrative générée localement.'],
   };
 }
@@ -68,6 +74,12 @@ function coinAnalysis(label: string): Record<string, unknown> {
     grade: { scale: 'fr', value: 'SUP', confidence: 0.7, caveat: 'Estimation visuelle — seule une gradation PCGS/NGC fait foi.' },
     rarity: { level: 'peu_courante' },
     varieties: [],
+    heritage: {
+      history:
+        'La Semeuse d’Oscar Roty, gravée dès 1897, sème « à tout vent » — figure de la République reprise sur l’argent de la Ve République. Les états supérieurs (SUP et au-delà) sont les plus recherchés.',
+      rarity: { level: 'peu_courante', note: 'millésime courant, rare en qualité choisie' },
+      editionSize: { count: 5000000, unit: 'exemplaires', note: 'tirage — atelier de Paris' },
+    },
     uncertainties: ['Mode démo : fiche illustrative générée localement.'],
   };
 }
@@ -77,6 +89,12 @@ function artAnalysis(label: string): Record<string, unknown> {
     condition: { summary: 'Bon état général', issues: [] },
     provenance: { evidence: [] },
     comparables: [{ description: 'Paysages provençaux de la même période' }],
+    heritage: {
+      history:
+        'Paysage dans la mouvance provençale du début du XXe siècle, dans le sillage de l’école de Marseille — oliviers et lumière méridionale, sujet prisé des ateliers régionaux.',
+      rarity: { level: 'inconnue', note: 'attribution à confirmer par expertise' },
+      editionSize: { unit: 'unique' },
+    },
     uncertainties: ['Mode démo : hypothèse illustrative — une expertise humaine reste requise.'],
     expertiseRecommended: true,
   };
@@ -87,6 +105,12 @@ function stampAnalysis(label: string): Record<string, unknown> {
     condition: { status: 'neuf_avec_charniere', gum: 'intacte', centering: 'bon', faults: [], confidence: 0.7, caveat: 'Estimation visuelle — une expertise fait foi pour les fortes valeurs.' },
     rarity: { level: 'courante' },
     varieties: [],
+    heritage: {
+      history:
+        'Type Semeuse lignée gravé par Louis-Oscar Roty, usuel emblématique de la IIIe République imprimé en taille-douce au tout début du XXe siècle. Coté selon la dentelure, le centrage et la gomme.',
+      rarity: { level: 'courante', note: 'usuel ; les variétés de dentelure sont plus rares' },
+      editionSize: { count: 120000000, unit: 'stamps', note: 'tirage courant' },
+    },
     uncertainties: ['Mode démo : fiche illustrative générée localement.'],
   };
 }
@@ -146,16 +170,71 @@ export function demoAnalyze(domain: VelumDomain, candidate: Candidate): Analysis
   };
 }
 
+/**
+ * Sources marché par domaine — les MÊMES maisons que les adaptateurs réels
+ * (packages/domains/<domaine>/src/sources) : en production ces observations
+ * viennent de leurs API ; en démo, on les simule pour illustrer les ventes.
+ */
+const SALES_SOURCES: Record<VelumDomain, { name: string; kind: PriceObservation['source']['kind'] }[]> = {
+  wine: [
+    { name: 'iDealwine', kind: 'auction_realized' },
+    { name: 'Wine-Searcher', kind: 'official_quote' },
+    { name: 'iDealwine', kind: 'auction_realized' },
+    { name: 'eBay (vendu)', kind: 'marketplace_sold' },
+    { name: 'Cavissima', kind: 'listing' },
+    { name: 'Vivino Market', kind: 'listing' },
+  ],
+  coin: [
+    { name: 'Heritage Auctions', kind: 'auction_realized' },
+    { name: 'CGB', kind: 'auction_realized' },
+    { name: 'Numista', kind: 'official_quote' },
+    { name: 'eBay (vendu)', kind: 'marketplace_sold' },
+    { name: 'Catawiki', kind: 'marketplace_sold' },
+    { name: 'NGC', kind: 'official_quote' },
+  ],
+  stamp: [
+    { name: 'Delcampe', kind: 'marketplace_sold' },
+    { name: 'Yvert & Tellier', kind: 'official_quote' },
+    { name: 'eBay (vendu)', kind: 'marketplace_sold' },
+    { name: 'Catawiki', kind: 'marketplace_sold' },
+    { name: 'Colnect', kind: 'official_quote' },
+    { name: 'Delcampe', kind: 'marketplace_sold' },
+  ],
+  art: [
+    { name: 'Drouot', kind: 'auction_realized' },
+    { name: 'Artprice', kind: 'official_quote' },
+    { name: 'Heritage Auctions', kind: 'auction_realized' },
+    { name: 'Catawiki', kind: 'marketplace_sold' },
+    { name: 'Artsy', kind: 'listing' },
+    { name: 'Drouot', kind: 'auction_realized' },
+  ],
+};
+
+const KIND_WEIGHT: Record<PriceObservation['source']['kind'], number> = {
+  auction_realized: 1,
+  official_quote: 0.9,
+  marketplace_sold: 0.7,
+  listing: 0.4,
+};
+
 export function demoValuate(domain: VelumDomain, candidate: Candidate): ValuationResult {
   const center = seedPrice(candidate.label, BASE_PRICE[domain]);
   // Observations synthétiques autour du centre → vrai moteur §7 (IC, fiabilité).
-  const obs: PriceObservation[] = [0.82, 0.94, 1.0, 1.07, 1.18, 0.9].map((k, i) => ({
-    price: Math.round(center * k),
-    currency: 'EUR',
-    ageDays: i * 25,
-    sourceWeight: i < 2 ? 1 : 0.7,
-    source: { name: i < 2 ? 'Ventes réalisées (démo)' : 'Marketplace (démo)', kind: i < 2 ? 'auction_realized' : 'marketplace_sold' },
-  }));
+  // Chaque observation est attribuée à une source marché et datée (dernières ventes).
+  const obs: PriceObservation[] = [1.0, 0.94, 1.07, 0.82, 1.18, 0.9].map((k, i) => {
+    const src = SALES_SOURCES[domain][i % SALES_SOURCES[domain].length] as {
+      name: string;
+      kind: PriceObservation['source']['kind'];
+    };
+    return {
+      price: Math.round(center * k),
+      currency: 'EUR',
+      ageDays: 12 + i * 34,
+      sourceWeight: KIND_WEIGHT[src.kind],
+      source: { name: src.name, kind: src.kind },
+      matchedLabel: candidate.label,
+    };
+  });
   return runValuation(obs, {});
 }
 

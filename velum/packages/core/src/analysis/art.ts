@@ -4,6 +4,8 @@
  * qualifiées + recommandation d'expertise humaine pour toute valeur significative.
  */
 
+import type { HeritageProfile } from './heritage';
+
 export type AttributionQualifier =
   | 'attribue_a' // attribué à
   | 'entourage_de'
@@ -29,6 +31,8 @@ export interface ArtAnalysisPayload {
   condition: { summary: string; issues: string[] };
   provenance: { evidence: string[]; note?: string };
   comparables: { description: string; note?: string }[];
+  /** Histoire de l'œuvre/artiste, rareté, édition (épreuves) ou œuvre unique. */
+  heritage?: HeritageProfile;
   /** Toujours non vide : « estimation indicative, pas une expertise légale ». */
   uncertainties: string[];
   expertiseRecommended: boolean;

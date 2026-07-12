@@ -16,7 +16,6 @@ import {
   VBadge,
   VButton,
   VCard,
-  VListRow,
   VSpinner,
   VText,
   VTextInput,
@@ -25,6 +24,7 @@ import {
 import type {
   ArtAnalysisPayload,
   CoinAnalysisPayload,
+  HeritageProfile,
   StampAnalysisPayload,
   ValuationRecord,
   VelumItem,
@@ -39,11 +39,12 @@ import { StampSheet } from '../../components/sheets/StampSheet';
 import { WineSheet } from '../../components/sheets/WineSheet';
 import { KV, SheetSection } from '../../components/sheets/SheetSection';
 import { ProvenanceSection, TastingNotesSection } from '../../components/item/ItemJournalSections';
+import { HeritageSection, RecentSalesSection } from '../../components/item/HeritageSection';
 import { SellButton } from '../../components/item/SellButton';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
 import { buildItemSheetHtml } from '../../lib/exporters';
-import { formatMoney, formatEUR } from '../../lib/i18n';
+import { formatEUR } from '../../lib/i18n';
 import { showToast } from '../../stores/toastStore';
 
 /** Extrait le payload d'analyse stocké dans attributes.analysis. */
@@ -268,17 +269,6 @@ export default function ItemSheet() {
               tabular
               value={`${Math.round(valuation.reliability)} / 100 · ${t('item.nSources', { count: valuation.sources.length })}`}
             />
-            <VText variant="caption" tone="dim">
-              {t('item.sourcesTitle')}
-            </VText>
-            {valuation.sources.map((obs, i) => (
-              <VListRow
-                key={`${obs.source.name}-${i}`}
-                title={obs.source.name}
-                subtitle={t(`sourceKinds.${obs.source.kind}`)}
-                right={<VText variant="body">{formatMoney(obs.price, obs.currency)}</VText>}
-              />
-            ))}
           </>
         ) : (
           <VText variant="body" tone="dim">
@@ -286,6 +276,9 @@ export default function ItemSheet() {
           </VText>
         )}
       </SheetSection>
+
+      {/* Dernières ventes comparables — observations réelles retenues (§7). */}
+      {valuation ? <RecentSalesSection observations={valuation.sources} /> : null}
 
       {/* Disclaimers TOUJOURS visibles */}
       <SheetSection title={t('item.disclaimersTitle')}>
@@ -314,6 +307,9 @@ export default function ItemSheet() {
       {item.domain === 'stamp' ? (
         <StampSheet payload={payload as Partial<StampAnalysisPayload> | null} />
       ) : null}
+
+      {/* Histoire, rareté, nombre d'exemplaires — commun aux 4 modules. */}
+      <HeritageSection heritage={(payload as { heritage?: HeritageProfile } | null)?.heritage ?? null} />
 
       {/* Journal : dégustation (historique perso) + provenance (chaîne de possession) */}
       <TastingNotesSection item={item} />

@@ -31,6 +31,34 @@
     "community": "Communauté",
     "videoLabel": "Vidéo de lancement VELUM"
   },
+  "heritage": {
+    "title": "Histoire & rareté",
+    "rarity": "Rareté",
+    "edition": "Nombre d'exemplaires"
+  },
+  "rarity": {
+    "courante": "Courante",
+    "peu_courante": "Peu courante",
+    "rare": "Rare",
+    "tres_rare": "Très rare",
+    "exceptionnelle": "Exceptionnelle",
+    "inconnue": "Indéterminée"
+  },
+  "edition": {
+    "unit": {
+      "exemplaires": "exemplaires",
+      "bottles": "bouteilles produites",
+      "stamps": "timbres (tirage)",
+      "prints": "épreuves",
+      "unique": "œuvre unique"
+    }
+  },
+  "time": {
+    "today": "aujourd'hui",
+    "daysAgo": "il y a {{count}} j",
+    "monthsAgo": "il y a {{count}} mois",
+    "yearsAgo": "il y a {{count}} an(s)"
+  },
   "tabs": {
     "capture": "Capturer",
     "collection": "Collection",
@@ -168,6 +196,8 @@
     "reliability": "Fiabilité",
     "nSources": "{{count}} observation(s) retenue(s)",
     "sourcesTitle": "Sources",
+    "recentSalesTitle": "Dernières ventes",
+    "recentSalesIntro": "Ventes comparables réellement observées, attribuées à leur source.",
     "noValuation": "Pas encore de valorisation.",
     "revalue": "Estimer maintenant",
     "chartTitle": "Évolution de la valeur",
