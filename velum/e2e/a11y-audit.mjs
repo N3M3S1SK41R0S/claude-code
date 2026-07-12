@@ -24,6 +24,9 @@ const SCREENS = [
   { name: 'event-sommelier', path: '/event-sommelier', auth: true, expect: 'Composer les accords' },
   { name: 'community', path: '/community', auth: true, expect: 'Catalogue' },
   { name: 'item', path: '/item/demo-wine', auth: true, expect: 'Valorisation' },
+  { name: 'item-coin', path: '/item/demo-coin', auth: true, expect: 'Valorisation' },
+  { name: 'item-stamp', path: '/item/demo-stamp', auth: true, expect: 'Valorisation' },
+  { name: 'item-art', path: '/item/demo-art', auth: true, expect: 'Valorisation' },
   { name: 'profile', path: '/profile', auth: true, expect: 'Compte Démo VELUM' },
 ];
 

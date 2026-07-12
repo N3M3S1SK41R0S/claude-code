@@ -14,3 +14,6 @@ android/
 *.ipa
 *.aab
 .DS_Store
+
+# Lookbook : le HTML généré (~4 Mo, médias embarqués) est un livrable, pas une source.
+docs/lookbook/velum-lookbook.html

@@ -51,8 +51,14 @@ await screen('18-accueil', '/accueil', 'Accès rapide');
 await screen('06-collection', '/collection', 'Bandol Domaine Tempier 2016');
 // 07. Carnet virtuel (Gold/Platine) — mise en scène par module.
 await screen('07-carnet', '/carnet', 'Bandol Domaine Tempier 2016');
-// 08. Fiche d'un objet — analyse ZAPPA + valorisation IC.
+// 08. Fiche d'un objet — analyse ZAPPA + valorisation IC + histoire & dernières ventes.
 await screen('08-fiche-vin', '/item/demo-wine', 'Bandol Domaine Tempier 2016');
+// 19. Fiche pièce — grade, tirage, dernières ventes numismatiques (CGB, Numista…).
+await screen('19-fiche-piece', '/item/demo-coin', '5 Francs Semeuse');
+// 20. Fiche timbre — dentelure, cote Yvert, ventes Delcampe/eBay.
+await screen('20-fiche-timbre', '/item/demo-stamp', 'Semeuse lignée');
+// 21. Fiche tableau — attribution prudente, comparables Drouot/Artprice.
+await screen('21-fiche-tableau', '/item/demo-art', 'Paysage aux oliviers');
 // 09. Sommelier de cave — saisir un plat puis lancer la recherche.
 await screen('09-sommelier', '/cellar-sommelier', 'Bandol Domaine Tempier 2016', async () => {
   const input = page.locator('input, textarea').first();

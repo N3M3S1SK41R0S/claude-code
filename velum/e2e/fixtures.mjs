@@ -145,7 +145,27 @@ export const ITEMS = [
     owner_id: OWNER,
     domain: 'coin',
     title: '5 Francs Semeuse argent 1960',
-    attributes: { country: 'France', type: '5 Francs Semeuse', year: 1960, metal: 'argent 835‰', grade: 'SUP' },
+    attributes: {
+      country: 'France',
+      type: '5 Francs Semeuse',
+      year: 1960,
+      metal: 'argent 835‰',
+      grade: 'SUP',
+      analysis: {
+        identification: { country: 'France', issuer: 'République française', type: '5 Francs Semeuse', year: 1960, mintMark: 'A', metal: 'argent 835‰', weightGrams: 12, diameterMm: 29, mintage: 20000000 },
+        grade: { scale: 'fr', value: 'SUP', confidence: 0.82, caveat: 'Grade visuel — seule une gradation PCGS/NGC fait foi.' },
+        rarity: { level: 'courante', note: 'millésime courant, recherché en qualité choisie (SUP/FDC)' },
+        varieties: ['Différent corne d’abondance (atelier de Paris)'],
+        neighborYears: [{ year: 1959, note: 'Millésime voisin, cote comparable' }, { year: 1969, note: 'Dernière année de frappe du type' }],
+        heritage: {
+          history:
+            "Frappée de 1960 à 1969, la 5 Francs Semeuse en argent 835‰ reprend le célèbre motif de la Semeuse gravé par Oscar Roty en 1897. Émise dès l'introduction du nouveau franc sous la Ve République, elle circula durant les années 1960 avant que sa frappe ne cesse en 1969. Le millésime 1960 correspond à la toute première année d'émission de ce type.",
+          rarity: { level: 'courante', note: 'Tirage massif ; valeur portée par la teneur en argent et surtout recherchée en qualité choisie (SUP/FDC).' },
+          editionSize: { unit: 'exemplaires', count: 20000000, note: 'Tirage 1960, atelier de Paris (différent corne d’abondance).' },
+        },
+        uncertainties: ['Niveau de conservation exact à confirmer sous loupe.'],
+      },
+    },
     confidence: 0.91,
     acquired_at: '2021-03-10',
     acquired_price: 12,
@@ -160,7 +180,26 @@ export const ITEMS = [
     owner_id: OWNER,
     domain: 'art',
     title: 'École provençale — Paysage aux oliviers',
-    attributes: { attributionQualifier: 'ecole_de', technique: 'huile sur toile', estimatedPeriod: 'début XXe', school: 'École provençale' },
+    attributes: {
+      attributionQualifier: 'ecole_de',
+      technique: 'huile sur toile',
+      estimatedPeriod: 'début XXe',
+      school: 'École provençale',
+      analysis: {
+        identification: { attributionQualifier: 'ecole_de', title: 'Paysage aux oliviers', technique: 'huile sur toile', support: 'toile', estimatedPeriod: 'début XXe', school: 'École provençale', signatureDetected: false },
+        condition: { summary: 'Bon état général, léger encrassement', issues: ['Vernis oxydé'] },
+        provenance: { evidence: ['Collection particulière, Provence'], note: 'Chaîne de possession incomplète.' },
+        comparables: [{ description: 'Paysages provençaux aux oliviers, école du début du XXe siècle' }],
+        heritage: {
+          history:
+            "Au tournant du XXe siècle, l'école provençale réunit des peintres attachés à la lumière méditerranéenne et aux paysages ruraux, dans le sillage de l'impressionnisme et du plein air autour de Marseille, Aix et Avignon. Les oliveraies, motif rendu célèbre par Van Gogh à Saint-Rémy, y deviennent un sujet de prédilection largement décliné par de nombreux suiveurs régionaux. Cette huile relève d'une production abondante mais souvent anonyme, d'où une attribution prudente « école de » qui reste à confirmer.",
+          rarity: { level: 'inconnue', note: 'Attribution « école de » non ferme ; valeur conditionnée par une expertise confirmant l’auteur.' },
+          editionSize: { unit: 'unique', note: 'Œuvre unique, huile sur toile.' },
+        },
+        uncertainties: ['Attribution « école de » non ferme — expertise requise pour toute valeur significative.'],
+        expertiseRecommended: true,
+      },
+    },
     confidence: 0.62,
     acquired_at: '2020-09-01',
     acquired_price: 450,
@@ -175,7 +214,27 @@ export const ITEMS = [
     owner_id: OWNER,
     domain: 'stamp',
     title: 'Semeuse lignée 15c vert — YT 130',
-    attributes: { country: 'France', catalog: 'yvert_tellier', catalogNumber: 'YT 130', year: 1903, condition: 'neuf_avec_charniere' },
+    attributes: {
+      country: 'France',
+      catalog: 'yvert_tellier',
+      catalogNumber: 'YT 130',
+      year: 1903,
+      condition: 'neuf_avec_charniere',
+      analysis: {
+        identification: { country: 'France', catalog: 'yvert_tellier', catalogNumber: 'YT 130', title: 'Semeuse lignée 15c vert', year: 1903, faceValue: '15c', color: 'vert', perforation: '14 × 13½', printingMethod: 'typographie' },
+        condition: { status: 'neuf_avec_charniere', gum: 'intacte', centering: 'bon', faults: [], confidence: 0.78, caveat: 'Estimation visuelle — une expertise fait foi pour les fortes valeurs.' },
+        rarity: { level: 'courante', note: 'usuel à fort tirage ; variétés de dentelure plus rares' },
+        varieties: ['Nuances de vert', 'Variétés de dentelure'],
+        neighborIssues: [{ catalogNumber: 'YT 137', note: 'Semeuse camée, type voisin' }],
+        heritage: {
+          history:
+            "Créé par le graveur Louis-Oscar Roty à partir de son allégorie de la Semeuse déjà présente sur les monnaies de la IIIe République, ce type dit « lignée » (fond de fines lignes horizontales) est mis en circulation à partir de 1903, gravé pour la poste par Louis-Eugène Mouchon. La valeur 15c vert compte parmi les usuels les plus répandus de la Belle Époque. Son très fort tirage en fait aujourd'hui un timbre abondant, seules certaines variétés de dentelure ou de nuance étant recherchées.",
+          rarity: { level: 'courante', note: 'Usuel à très fort tirage ; seules les variétés de dentelure ou nuances rares atteignent une cote supérieure.' },
+          editionSize: { unit: 'stamps', count: 120000000, note: 'Tirage estimé très important (usage courant), typographie — Atelier du timbre de Paris.' },
+        },
+        uncertainties: ['Dentelure et gomme à vérifier au dentimètre.'],
+      },
+    },
     confidence: 0.88,
     acquired_at: '2022-11-20',
     acquired_price: 8,
@@ -200,13 +259,33 @@ export const VALUATIONS = {
     { id: 'v3', item_id: 'demo-wine', central: 42, ci80_low: 38, ci80_high: 47, ci95_low: 35, ci95_high: 52, reliability: 74, sources: [], valued_at: '2026-01-05T00:00:00Z' },
   ],
   'demo-coin': [
-    { id: 'v4', item_id: 'demo-coin', central: 14, ci80_low: 11, ci80_high: 18, ci95_low: 9, ci95_high: 22, reliability: 55, sources: [], valued_at: '2026-06-10T00:00:00Z' },
+    { id: 'v4', item_id: 'demo-coin', central: 14, ci80_low: 11, ci80_high: 18, ci95_low: 9, ci95_high: 22, reliability: 55, valued_at: '2026-06-10T00:00:00Z',
+      sources: [
+        { price: 15, currency: 'EUR', ageDays: 45, sourceWeight: 1, source: { name: 'CGB Numismatique Paris', kind: 'auction_realized' }, matchedLabel: '5 Francs Semeuse argent 1960, atelier de Paris, SUP' },
+        { price: 13, currency: 'EUR', ageDays: 210, sourceWeight: 0.9, source: { name: 'Numista', kind: 'official_quote' }, matchedLabel: '5 Francs Semeuse argent 1960 — cote catalogue état SUP' },
+        { price: 12, currency: 'EUR', ageDays: 90, sourceWeight: 0.7, source: { name: 'eBay (vendu)', kind: 'marketplace_sold' }, matchedLabel: 'Pièce 5 Francs Semeuse argent 1960 TTB/SUP (vendue)' },
+        { price: 18, currency: 'EUR', ageDays: 15, sourceWeight: 0.4, source: { name: 'Catawiki', kind: 'listing' }, matchedLabel: '5 Francs Semeuse 1960 argent, qualité collection (annonce en cours)' },
+      ] },
   ],
   'demo-art': [
-    { id: 'v5', item_id: 'demo-art', central: 620, ci80_low: 480, ci80_high: 780, ci95_low: 350, ci95_high: 1100, reliability: 48, sources: [], valued_at: '2026-05-02T00:00:00Z' },
+    { id: 'v5', item_id: 'demo-art', central: 620, ci80_low: 480, ci80_high: 780, ci95_low: 350, ci95_high: 1100, reliability: 48, valued_at: '2026-05-02T00:00:00Z',
+      sources: [
+        { price: 650, currency: 'EUR', ageDays: 45, sourceWeight: 1, source: { name: 'Drouot', kind: 'auction_realized' }, matchedLabel: 'École provençale, début XXe s. — Paysage aux oliviers, huile sur toile (adjugé, frais compris)' },
+        { price: 580, currency: 'EUR', ageDays: 120, sourceWeight: 1, source: { name: 'Millon', kind: 'auction_realized' }, matchedLabel: 'Attribué à l’école de Provence — Oliviers dans la lumière du Midi, huile sur toile' },
+        { price: 620, currency: 'EUR', ageDays: 210, sourceWeight: 0.9, source: { name: 'Artprice', kind: 'official_quote' }, matchedLabel: 'Cote indicative — paysage provençal aux oliviers, école début XXe' },
+        { price: 690, currency: 'EUR', ageDays: 30, sourceWeight: 0.7, source: { name: 'Catawiki', kind: 'marketplace_sold' }, matchedLabel: 'Paysage aux oliviers, école provençale début XXe — huile sur toile (vendu)' },
+        { price: 540, currency: 'EUR', ageDays: 260, sourceWeight: 0.7, source: { name: 'eBay (vendu)', kind: 'marketplace_sold' }, matchedLabel: 'Huile sur toile — oliviers en Provence, école début XXe, cadre bois doré (vendu)' },
+      ] },
   ],
   'demo-stamp': [
-    { id: 'v6', item_id: 'demo-stamp', central: 9, ci80_low: 7, ci80_high: 12, ci95_low: 5, ci95_high: 16, reliability: 52, sources: [], valued_at: '2026-04-02T00:00:00Z' },
+    { id: 'v6', item_id: 'demo-stamp', central: 9, ci80_low: 7, ci80_high: 12, ci95_low: 5, ci95_high: 16, reliability: 52, valued_at: '2026-04-02T00:00:00Z',
+      sources: [
+        { price: 11, currency: 'EUR', ageDays: 62, sourceWeight: 1, source: { name: 'Catawiki', kind: 'auction_realized' }, matchedLabel: 'France 1903 — Semeuse lignée 15c vert (Y&T n°130), neuf charnière (adjugé)' },
+        { price: 8, currency: 'EUR', ageDays: 28, sourceWeight: 0.7, source: { name: 'Delcampe (vendu)', kind: 'marketplace_sold' }, matchedLabel: 'Semeuse lignée 15c vert YT 130 neuf* charnière TB (vendu)' },
+        { price: 7.5, currency: 'EUR', ageDays: 134, sourceWeight: 0.7, source: { name: 'eBay (vendu)', kind: 'marketplace_sold' }, matchedLabel: 'France n°130 Semeuse 15c vert neuf charnière (*) — lot vendu' },
+        { price: 10, currency: 'EUR', ageDays: 221, sourceWeight: 0.9, source: { name: 'Yvert & Tellier', kind: 'official_quote' }, matchedLabel: 'Cote catalogue Y&T n°130 — Semeuse lignée 15c vert, neuf avec charnière (*)' },
+        { price: 9, currency: 'EUR', ageDays: 301, sourceWeight: 0.9, source: { name: 'Colnect', kind: 'official_quote' }, matchedLabel: 'Valeur estimée Semeuse lignée 15c vert (Y&T 130), neuf avec charnière' },
+      ] },
   ],
 };
 
