@@ -6,6 +6,7 @@
 const BASE = 'VELUM — analyse & valorisation';
 
 const BY_PREFIX: { prefix: string; title: string }[] = [
+  { prefix: '/accueil', title: 'Accueil' },
   { prefix: '/onboarding', title: 'Bienvenue' },
   { prefix: '/sign-in', title: 'Connexion' },
   { prefix: '/sign-up', title: 'Créer un compte' },

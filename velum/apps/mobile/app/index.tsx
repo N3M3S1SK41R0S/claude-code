@@ -15,7 +15,7 @@ export default function Index() {
   const hydrated = useSettingsStore((s) => s.hydrated);
 
   // Mode démo : on entre directement dans l'app (déjà « connecté »).
-  if (isDemoMode()) return <Redirect href="/(tabs)/capture" />;
+  if (isDemoMode()) return <Redirect href="/accueil" />;
 
   if (!hydrated || loading) {
     return (
@@ -26,5 +26,5 @@ export default function Index() {
   }
   if (!onboardingDone) return <Redirect href="/onboarding" />;
   if (!session) return <Redirect href="/(auth)/sign-in" />;
-  return <Redirect href="/(tabs)/capture" />;
+  return <Redirect href="/accueil" />;
 }

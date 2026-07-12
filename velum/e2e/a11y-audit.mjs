@@ -16,6 +16,7 @@ const SCREENS = [
   { name: 'sign-in', path: '/sign-in', auth: false, expect: 'demo@velum.app' },
   { name: 'paywall', path: '/paywall', auth: false, expect: 'Platine' },
   { name: 'privacy', path: '/privacy', auth: false, expect: 'Responsable de traitement' },
+  { name: 'accueil', path: '/accueil', auth: true, expect: 'Accès rapide' },
   { name: 'capture', path: '/capture', auth: true, expect: 'Vin' },
   { name: 'collection', path: '/collection', auth: true, expect: 'Bandol Domaine Tempier 2016' },
   { name: 'carnet', path: '/carnet', auth: true, expect: 'Bandol Domaine Tempier 2016' },

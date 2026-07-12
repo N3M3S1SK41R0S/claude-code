@@ -45,6 +45,8 @@ async function screen(name, path, expectText, prep) {
   }
 }
 
+// 05b. Accueil — sceau, vidéo de lancement, accès rapides (retour depuis chaque écran).
+await screen('18-accueil', '/accueil', 'Accès rapide');
 // 06. Collection — cave/cabinet/galerie/album + bandeau « à boire ».
 await screen('06-collection', '/collection', 'Bandol Domaine Tempier 2016');
 // 07. Carnet virtuel (Gold/Platine) — mise en scène par module.

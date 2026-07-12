@@ -70,7 +70,7 @@ export default function SignIn() {
   };
 
   return (
-    <Screen>
+    <Screen brand={false}>
       <VText variant="title" tone="gold" center style={styles.title}>
         {t('brand.name')}
       </VText>

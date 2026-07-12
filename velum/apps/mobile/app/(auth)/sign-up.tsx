@@ -79,7 +79,7 @@ export default function SignUp() {
   };
 
   return (
-    <Screen>
+    <Screen brand={false}>
       <VText variant="title" tone="gold" center style={styles.title}>
         {t('brand.name')}
       </VText>

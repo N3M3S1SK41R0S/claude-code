@@ -33,15 +33,21 @@ const check = (label, ok) => {
   if (!ok) failures += 1;
 };
 
-// 1. Entrée directe dans l'app (mode démo → onglet Capturer).
+// 1. Entrée directe dans l'app (mode démo → accueil : sceau + vidéo de lancement).
 await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+const onHome = await page
+  .waitForSelector('text=Accès rapide', { timeout: 20000 })
+  .then(() => true)
+  .catch(() => false);
+check('entrée directe → accueil (sceau + vidéo + accès rapide)', onHome);
+
+// 2. Aller à Capturer et choisir le module Vin.
+await page.goto(`${base}/capture`, { waitUntil: 'networkidle' });
 const onCapture = await page
   .waitForSelector('text=Vin', { timeout: 20000 })
   .then(() => true)
   .catch(() => false);
-check('entrée directe dans l’app (grille des 4 modules)', onCapture);
-
-// 2. Choisir le module Vin.
+check('grille des 4 modules (Capturer)', onCapture);
 await page.getByText('Vin', { exact: true }).first().click();
 await page.waitForTimeout(800);
 

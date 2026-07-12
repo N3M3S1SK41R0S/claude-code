@@ -20,7 +20,16 @@
   },
   "brand": {
     "name": "VELUM",
-    "tagline": "Levez le voile sur la valeur de vos objets"
+    "tagline": "Levez le voile sur la valeur de vos objets",
+    "home": "Accueil"
+  },
+  "accueil": {
+    "quickAccess": "Accès rapide",
+    "collection": "Ma collection",
+    "capture": "Capturer un objet",
+    "market": "Marché & alertes",
+    "community": "Communauté",
+    "videoLabel": "Vidéo de lancement VELUM"
   },
   "tabs": {
     "capture": "Capturer",
