@@ -33,6 +33,47 @@ export const velumRadius = {
 } as const;
 
 /**
+ * Profondeur (ombres portées) — l'écrin « velours » gagne en relief : les
+ * surfaces se détachent du fond cave par une ombre douce, la couleur primaire
+ * (or) par un halo chaud. Compatible iOS (shadow*), Android (elevation) et
+ * RN-web (boxShadow dérivé). Purement décoratif : n'affecte aucun contraste.
+ */
+export const velumElevation = {
+  /** Cartes, panneaux : léger décollement. */
+  card: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  /** Surfaces mises en avant (bandeaux, modales) : relief marqué. */
+  raised: {
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.45,
+    shadowRadius: 30,
+    elevation: 14,
+  },
+  /** Halo doré discret pour l'action primaire (or) — reflet de joaillerie. */
+  gold: {
+    shadowColor: velumColors.gold.DEFAULT,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+} as const;
+
+export type VelumElevationKey = keyof typeof velumElevation;
+
+/** Liseré : chaud (défaut) ou doré (surfaces « serties » : bandeaux, offres). */
+export const velumHairline = {
+  warm: velumColors.ink.border,
+  gilded: 'rgba(201, 162, 39, 0.38)',
+} as const;
+
+/**
  * Couleurs de texte garanties AA (≥ 4.5:1) sur les fonds sombres `ink.*`.
  * NOTE : `velumColors.danger` (#C0392B) ne fait que ≈ 3.6:1 sur ink — trop
  * faible pour du texte ; on utilise une variante éclaircie dérivée (#E07A6A,

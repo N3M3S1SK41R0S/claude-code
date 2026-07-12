@@ -8,7 +8,7 @@ import type { TextProps, TextStyle } from 'react-native';
 import { useSeniorMode } from '../senior';
 import { velumOnInk } from '../tokens';
 
-export type VTextVariant = 'title' | 'heading' | 'body' | 'caption';
+export type VTextVariant = 'display' | 'title' | 'heading' | 'body' | 'caption';
 export type VTextTone = 'default' | 'dim' | 'gold' | 'danger';
 
 export interface VTextProps extends TextProps {
@@ -28,13 +28,18 @@ interface VariantSpec {
   lineHeight: number;
   fontWeight: TextStyle['fontWeight'];
   serif: boolean;
+  /** Interlettrage propre à la variante : serrer les titres sertis (serif),
+   *  ouvrir légèrement les libellés courts pour la lisibilité gravée. */
+  letterSpacing: number;
 }
 
 const VARIANTS: Record<VTextVariant, VariantSpec> = {
-  title: { fontSize: 28, lineHeight: 34, fontWeight: '700', serif: true },
-  heading: { fontSize: 20, lineHeight: 26, fontWeight: '600', serif: false },
-  body: { fontSize: 16, lineHeight: 24, fontWeight: '400', serif: false },
-  caption: { fontSize: 13, lineHeight: 18, fontWeight: '400', serif: false },
+  // Moment héroïque (onboarding, offres) : sérif ample, lettres resserrées.
+  display: { fontSize: 34, lineHeight: 40, fontWeight: '700', serif: true, letterSpacing: -0.6 },
+  title: { fontSize: 28, lineHeight: 34, fontWeight: '700', serif: true, letterSpacing: -0.4 },
+  heading: { fontSize: 20, lineHeight: 26, fontWeight: '600', serif: false, letterSpacing: 0 },
+  body: { fontSize: 16, lineHeight: 24, fontWeight: '400', serif: false, letterSpacing: 0.1 },
+  caption: { fontSize: 13, lineHeight: 18, fontWeight: '400', serif: false, letterSpacing: 0.3 },
 };
 
 const TONES: Record<VTextTone, string> = {
@@ -52,6 +57,7 @@ export function VText({ variant = 'body', tone = 'default', center = false, styl
     fontSize: scale(spec.fontSize),
     lineHeight: scale(spec.lineHeight),
     fontWeight: spec.fontWeight,
+    letterSpacing: spec.letterSpacing,
     color: TONES[tone],
     ...(spec.serif ? { fontFamily: SERIF_FAMILY } : null),
     ...(center ? { textAlign: 'center' as const } : null),
@@ -60,7 +66,7 @@ export function VText({ variant = 'body', tone = 'default', center = false, styl
   return (
     <Text
       {...rest}
-      style={[styles.base, computed, style]}
+      style={[computed, style]}
       allowFontScaling={true}
       maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
     >
@@ -68,10 +74,3 @@ export function VText({ variant = 'body', tone = 'default', center = false, styl
     </Text>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    // Défauts communs — la variante fournit taille/graisse/couleur.
-    letterSpacing: 0.2,
-  },
-});

@@ -75,7 +75,7 @@ export default function Onboarding() {
 
   return (
     <Screen>
-      <VText variant="title" tone="gold" center>
+      <VText variant="display" tone="gold" center>
         {t('brand.name')}
       </VText>
       <VText variant="heading" center style={styles.pitch}>

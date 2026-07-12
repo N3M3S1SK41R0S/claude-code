@@ -14,6 +14,8 @@ export {
   velumTailwindTheme,
   velumSpacing,
   velumRadius,
+  velumElevation,
+  velumHairline,
   velumOnInk,
   velumButtonPalette,
   BADGE_TINT_ALPHA,
@@ -22,6 +24,7 @@ export type {
   VelumColors,
   VelumTailwindTheme,
   VelumSpacingKey,
+  VelumElevationKey,
   VelumOnInkTone,
   VelumButtonVariant,
 } from './tokens';

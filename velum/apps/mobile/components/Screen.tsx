@@ -28,10 +28,25 @@ function DemoBanner() {
   );
 }
 
+/**
+ * Halo d'ambiance « cave à la bougie » : deux lueurs douces (bordeaux + or)
+ * derrière le contenu, qui donnent de la profondeur au velours sombre.
+ * Purement décoratif (pointerEvents none), jamais sur les écrans plein cadre.
+ */
+function CaveAura() {
+  return (
+    <View pointerEvents="none" style={styles.aura}>
+      <View style={styles.auraBordeaux} />
+      <View style={styles.auraGold} />
+    </View>
+  );
+}
+
 export function Screen({ children, scroll = true, bare = false }: ScreenProps) {
   const inner = bare ? styles.bare : styles.padded;
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+      {bare ? null : <CaveAura />}
       <DemoBanner />
       {scroll ? (
         <ScrollView
@@ -49,7 +64,28 @@ export function Screen({ children, scroll = true, bare = false }: ScreenProps) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: velumColors.ink.DEFAULT },
+  safe: { flex: 1, backgroundColor: velumColors.ink.DEFAULT, overflow: 'hidden' },
+  aura: { ...StyleSheet.absoluteFillObject },
+  auraBordeaux: {
+    position: 'absolute',
+    top: -240,
+    alignSelf: 'center',
+    width: 560,
+    height: 560,
+    borderRadius: 280,
+    backgroundColor: velumColors.bordeaux.bright,
+    opacity: 0.1,
+  },
+  auraGold: {
+    position: 'absolute',
+    top: -140,
+    right: -90,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: velumColors.gold.DEFAULT,
+    opacity: 0.05,
+  },
   flex: { flex: 1 },
   grow: { flexGrow: 1, paddingBottom: velumSpacing.xxl },
   padded: { paddingHorizontal: velumSpacing.lg, paddingTop: velumSpacing.md },

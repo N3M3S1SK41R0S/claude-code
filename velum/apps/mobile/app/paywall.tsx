@@ -50,7 +50,7 @@ export default function Paywall() {
 
   return (
     <Screen>
-      <VText variant="title">{t('paywall.title')}</VText>
+      <VText variant="display">{t('paywall.title')}</VText>
       <VText variant="body" tone="dim">
         {t('paywall.subtitle')}
       </VText>

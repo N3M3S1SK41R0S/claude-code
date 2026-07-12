@@ -6,7 +6,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
 import { touchTargetSize } from '../a11y';
 import { useSeniorMode } from '../senior';
-import { velumButtonPalette, velumRadius, velumSpacing } from '../tokens';
+import { velumButtonPalette, velumElevation, velumRadius, velumSpacing } from '../tokens';
 import type { VelumButtonVariant } from '../tokens';
 import { MAX_FONT_SIZE_MULTIPLIER } from './VText';
 
@@ -30,6 +30,14 @@ export function VButton({
   const { senior, scale } = useSeniorMode();
   const palette = velumButtonPalette[variant];
   const inactive = disabled || loading;
+  // Relief : halo doré pour l'action primaire, ombre douce pour les surfaces
+  // pleines ; le fantôme reste plat. Jamais de relief sur un bouton inactif.
+  const elevation =
+    inactive || variant === 'ghost'
+      ? null
+      : variant === 'primary'
+        ? velumElevation.gold
+        : velumElevation.card;
 
   return (
     <Pressable
@@ -50,6 +58,7 @@ export function VButton({
           borderColor: palette.border,
         },
         variant === 'ghost' && styles.ghostBorder,
+        elevation,
         pressed && styles.pressed,
         disabled && styles.disabled,
       ]}
@@ -85,7 +94,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   pressed: {
-    opacity: 0.85,
+    opacity: 0.9,
+    transform: [{ scale: 0.97 }],
   },
   disabled: {
     opacity: 0.5,
