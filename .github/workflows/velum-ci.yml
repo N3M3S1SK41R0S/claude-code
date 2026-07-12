@@ -59,6 +59,19 @@ jobs:
       - name: Preuve du hors-ligne (collection lue depuis le cache persisté)
         run: node e2e/offline.mjs
 
+      # EN DERNIER : l'export démo écrase dist/ ; --clear est OBLIGATOIRE car
+      # le cache Metro fige l'inlining des EXPO_PUBLIC_* du build précédent.
+      - name: Export web en MODE DÉMO
+        working-directory: velum/apps/mobile
+        env:
+          EXPO_PUBLIC_DEMO: "1"
+          EXPO_PUBLIC_SUPABASE_URL: https://demo.local
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: demo
+        run: npx expo export --platform web --clear
+
+      - name: Preuve du mode démo (parcours cœur sans backend)
+        run: node e2e/demo-smoke.mjs
+
   edge-functions:
     runs-on: ubuntu-latest
     steps:
