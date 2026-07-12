@@ -9,6 +9,7 @@ const OWNER = '11111111-1111-4111-8111-111111111111';
 export const WINE_ANALYSIS = {
   identification: {
     producer: 'Domaine Tempier',
+    winemaker: 'Daniel Ravier',
     appellation: 'Bandol',
     vintage: 2016,
     color: 'rouge',
@@ -19,8 +20,15 @@ export const WINE_ANALYSIS = {
   tasting: {
     robe: 'Grenat profond aux reflets tuilés',
     nose: ['garrigue', 'fruits noirs', 'épices', 'cuir'],
+    noseFirst: ['fruits noirs', 'mûre', 'violette'],
+    noseSecond: ['garrigue', 'cuir', 'tabac blond'],
     palate: { structure: 'ample', tannins: 'fondus', acidity: 'fraîche', alcohol: '14 %' },
+    palateAttack: 'Ample et charnue, sur le fruit mûr',
+    palateEvolution: 'Évolue sur les épices douces et la réglisse, finale légèrement saline',
     length: 'longue (18 caudalies)',
+    cellarTemperatureC: [12, 14],
+    serviceTemperatureC: [16, 18],
+    decanting: { recommended: true, durationMinutes: 60, note: 'Ouvre le second nez sur la garrigue.' },
     agingPotentialYears: [8, 20],
     drinkWindow: { from: 2022, to: 2032 },
   },
@@ -32,6 +40,44 @@ export const WINE_ANALYSIS = {
     neighborVintages: [{ vintage: 2015, note: 'Solaire, plus opulent' }],
   },
   uncertainties: ['Niveau et conservation de la bouteille non vérifiés.'],
+};
+
+// Deuxième vin (Bourgogne blanc) : donne à la cave ≥ 2 bouteilles pour la
+// dégustation à l'aveugle. Fenêtre d'apogée FUTURE (2028+) → n'entre pas dans
+// « à boire », donc n'altère pas les captures existantes.
+export const WINE_ANALYSIS_2 = {
+  identification: {
+    producer: 'Domaine Leflaive',
+    winemaker: 'Pierre Vincent',
+    appellation: 'Puligny-Montrachet',
+    vintage: 2020,
+    color: 'blanc',
+    region: 'Bourgogne',
+    country: 'France',
+    grapes: [{ name: 'Chardonnay', percent: 100 }],
+  },
+  tasting: {
+    robe: 'Or pâle aux reflets verts',
+    nose: ['agrumes', 'fleurs blanches', 'noisette', 'silex'],
+    noseFirst: ['citron', 'aubépine'],
+    noseSecond: ['noisette', 'beurre frais', 'silex'],
+    palate: { structure: 'tendue', acidity: 'vive', alcohol: '13 %' },
+    palateAttack: 'Vive et saline',
+    palateEvolution: 'Gagne en gras sur un milieu de bouche minéral, finale sur les agrumes confits',
+    length: 'longue',
+    cellarTemperatureC: [11, 13],
+    serviceTemperatureC: [12, 14],
+    decanting: { recommended: false, note: 'À servir directement, frais.' },
+    agingPotentialYears: [5, 15],
+    drinkWindow: { from: 2028, to: 2038 },
+  },
+  ratings: { rvf: '17/20', positioning: 'collector' },
+  market: { averagePriceEUR: 180, marketTension: 'forte', speculativeScore: 8, assetClass: 'collection' },
+  comparisons: {
+    foodPairings: ['homard', 'volaille à la crème', 'fromages de chèvre'],
+    regionalEquivalents: ['Domaine Sauzet', 'Étienne Sauzet'],
+  },
+  uncertainties: ['Provenance et conservation à confirmer.'],
 };
 
 export const PROFILE = {
@@ -65,6 +111,28 @@ export const ITEMS = [
     storage_location: 'Cave — casier B3',
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2026-07-01T00:00:00Z',
+  },
+  {
+    id: 'demo-wine-2',
+    owner_id: OWNER,
+    domain: 'wine',
+    title: 'Puligny-Montrachet Leflaive 2020',
+    attributes: {
+      producer: 'Domaine Leflaive',
+      appellation: 'Puligny-Montrachet',
+      vintage: 2020,
+      color: 'blanc',
+      region: 'Bourgogne',
+      analysis: WINE_ANALYSIS_2,
+    },
+    confidence: 0.9,
+    acquired_at: '2022-05-01',
+    acquired_price: 150,
+    condition: 'excellent',
+    notes: null,
+    storage_location: 'Cave — casier A1',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2026-06-15T00:00:00Z',
   },
   {
     id: 'demo-coin',

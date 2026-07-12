@@ -30,6 +30,9 @@ echo "· migration 0002_cron.sql — SAUTÉE (pg_cron/pg_net = plateforme Supaba
 echo "· migration 0003_marketplace_platine.sql"
 "${PSQL[@]}" -f supabase/migrations/0003_marketplace_platine.sql
 
+echo "· migration 0004_commission_degressive.sql"
+"${PSQL[@]}" -f supabase/migrations/0004_commission_degressive.sql
+
 echo "· seed.sql (compte démo + collection)"
 "${PSQL[@]}" -f supabase/seed.sql
 

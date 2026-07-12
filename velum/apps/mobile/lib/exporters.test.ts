@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { AnalysisResult, ValuationRecord, VelumItem } from '@velum/core';
 import {
+  buildBlindTastingHtml,
   buildCollectionCsv,
   buildInsuranceReportHtml,
   buildItemSheetHtml,
@@ -8,6 +9,7 @@ import {
   escapeCsvField,
   escapeHtml,
 } from './exporters';
+import { buildBlindTastingSession } from '@velum/domain-wine';
 
 /** Traducteur factice : renvoie la clé (suffisant pour tester la structure). */
 const t = (key: string, options?: Record<string, unknown>): string =>
@@ -134,6 +136,36 @@ describe('buildItemSheetHtml', () => {
   it('affiche « non valorisé » sans valorisation', () => {
     const html = buildItemSheetHtml(makeItem(), null, null, t);
     expect(html).toContain('export.noValuation');
+  });
+});
+
+describe('buildBlindTastingHtml', () => {
+  const cave = [
+    { itemId: 'a', label: 'Bandol Tempier', vintage: 2018 },
+    { itemId: 'b', label: 'Sancerre Vacheron', vintage: 2022 },
+  ];
+
+  it('rend une carte par bouteille avec le déroulé guidé et une page de réponses', () => {
+    const session = buildBlindTastingSession(cave, { seed: 5 });
+    const html = buildBlindTastingHtml(session, t);
+    expect(html).toContain('blind.sheetTitle');
+    expect(html).toContain('blind.wineNumber');
+    expect(html).toContain('blind.steps.robe');
+    expect(html).toContain('blind.steps.guessRegion');
+    expect(html).toContain('blind.answersTitle');
+    // Les réponses (noms des bouteilles) figurent sur la page de réponses.
+    expect(html).toContain('Bandol Tempier');
+    expect(html).toContain('Sancerre Vacheron');
+    expect(html).toContain('blind.sheetDisclaimer');
+  });
+
+  it('échappe le HTML injecté dans un libellé de bouteille', () => {
+    const session = buildBlindTastingSession([{ itemId: 'x', label: '<script>x</script>' }], {
+      seed: 1,
+    });
+    const html = buildBlindTastingHtml(session, t);
+    expect(html).not.toContain('<script>x');
+    expect(html).toContain('&lt;script&gt;');
   });
 });
 

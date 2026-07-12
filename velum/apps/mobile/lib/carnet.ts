@@ -91,6 +91,61 @@ export function domainBookLabelKey(domain: VelumDomain): CarnetBookKey {
 }
 
 /* ------------------------------------------------------------------ */
+/* Rangement structuré de cave : rangée / colonne / place.             */
+/* Le résultat vit dans `storageLocation` (chaîne libre, AUCUNE        */
+/* migration) au format canonique « Rangée 3 · Colonne 4 · Place 2 ».  */
+/* ------------------------------------------------------------------ */
+
+/** Position structurée d'une bouteille dans la cave (tout optionnel). */
+export interface CellarSlot {
+  row?: number;
+  column?: number;
+  place?: number;
+}
+
+/**
+ * Formate une position structurée en emplacement lisible :
+ * « Rangée 3 · Colonne 4 · Place 2 ». N'inclut que les champs fournis
+ * (nombres finis) ; null si aucun champ n'est renseigné.
+ */
+export function formatCellarSlot({ row, column, place }: CellarSlot): string | null {
+  const parts: string[] = [];
+  if (row !== undefined && Number.isFinite(row)) parts.push(`Rangée ${row}`);
+  if (column !== undefined && Number.isFinite(column)) parts.push(`Colonne ${column}`);
+  if (place !== undefined && Number.isFinite(place)) parts.push(`Place ${place}`);
+  return parts.length > 0 ? parts.join(' · ') : null;
+}
+
+const SLOT_KEYS: Record<string, keyof CellarSlot> = {
+  rangée: 'row',
+  rangee: 'row',
+  colonne: 'column',
+  place: 'place',
+};
+
+/**
+ * Re-parse un emplacement au format produit par `formatCellarSlot`
+ * (tolérant à la casse et aux espaces, segments dans n'importe quel ordre).
+ * Retourne null si la chaîne est absente, vide ou non conforme
+ * (segment inconnu, doublon, valeur non numérique).
+ */
+export function parseCellarSlot(location: string | null): CellarSlot | null {
+  if (location === null) return null;
+  const trimmed = location.trim();
+  if (trimmed.length === 0) return null;
+  const slot: CellarSlot = {};
+  for (const segment of trimmed.split('·')) {
+    const match = /^\s*([A-Za-zÀ-ÿ]+)\s+(\d+)\s*$/.exec(segment);
+    if (!match || match[1] === undefined || match[2] === undefined) return null;
+    const key = SLOT_KEYS[match[1].toLowerCase()];
+    if (key === undefined) return null;
+    if (slot[key] !== undefined) return null; // doublon → non conforme
+    slot[key] = Number.parseInt(match[2], 10);
+  }
+  return slot;
+}
+
+/* ------------------------------------------------------------------ */
 /* Extraction sûre d'attributs d'affichage (attributes est un Record   */
 /* <string, unknown> : tout accès est validé avant usage).             */
 /* ------------------------------------------------------------------ */

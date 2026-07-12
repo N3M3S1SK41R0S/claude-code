@@ -4,6 +4,7 @@
  * React Native ici — uniquement des chaînes.
  */
 import type { AnalysisResult, ValuationRecord, VelumItem } from '@velum/core';
+import type { BlindTastingSession } from '@velum/domain-wine';
 
 /** Fonction de traduction minimale (compatible TFunction i18next). */
 export type Translator = (key: string, options?: Record<string, unknown>) => string;
@@ -185,6 +186,77 @@ ${
     : ''
 }
 <div class="disclaimer">${escapeHtml(t('export.disclaimer'))}</div>
+`;
+}
+
+// ── Feuille de dégustation à l'aveugle (→ PDF, pour jouer entre amis) ────────
+
+/** Styles additionnels de la feuille aveugle (cartes + page de réponses séparée). */
+function blindStyles(): string {
+  return `
+    <style>
+      .cards { display: flex; flex-wrap: wrap; gap: 16px; }
+      .card { border: 1px solid #C9A227; border-radius: 8px; padding: 14px 16px; width: 45%; box-sizing: border-box; page-break-inside: avoid; }
+      .card h2 { margin: 0 0 8px; border: 0; }
+      ol.steps { margin: 0; padding-left: 18px; }
+      ol.steps li { margin: 6px 0; font-size: 13px; }
+      ol.steps li .rule { display: block; border-bottom: 1px dotted #9a8f7d; height: 14px; }
+      .guess-tag { color: #7A2230; font-size: 11px; font-style: italic; }
+      .answers-page { page-break-before: always; }
+      .answers-page .num { font-weight: bold; width: 40px; text-align: center; }
+      .hints { color: #6b5f4d; font-size: 12px; margin-top: 2px; }
+    </style>`;
+}
+
+/**
+ * Feuille de dégustation à l'aveugle : une page de cartes anonymes (« Vin n°X »
+ * + déroulé guidé à remplir) et une page de RÉPONSES séparée (numéro → bouteille
+ * + indices). Les libellés d'étape sont traduits via `blind.steps.<key>`.
+ */
+export function buildBlindTastingHtml(session: BlindTastingSession, t: Translator): string {
+  const cards = session.cards
+    .map((card) => {
+      const steps = card.steps
+        .map((step) => {
+          const tag =
+            step.kind === 'guess'
+              ? ` <span class="guess-tag">${escapeHtml(t('blind.guessTag'))}</span>`
+              : '';
+          return `<li>${escapeHtml(t(`blind.steps.${step.key}`))}${tag}<span class="rule"></span></li>`;
+        })
+        .join('\n');
+      return `<section class="card">
+        <h2>${escapeHtml(t('blind.wineNumber', { number: card.number }))}</h2>
+        <ol class="steps">${steps}</ol>
+      </section>`;
+    })
+    .join('\n');
+
+  const answerRows = session.answers
+    .map((answer) => {
+      const vintage = answer.vintage !== undefined ? ` ${answer.vintage}` : '';
+      const hints =
+        answer.hints.length > 0
+          ? `<div class="hints">${escapeHtml(t('blind.hintsLabel'))} ${escapeHtml(answer.hints.join(' · '))}</div>`
+          : '';
+      return `<tr>
+        <td class="num">${answer.number}</td>
+        <td>${escapeHtml(`${answer.label}${vintage}`)}${hints}</td>
+      </tr>`;
+    })
+    .join('\n');
+
+  return `
+${baseStyles()}
+${blindStyles()}
+<h1>${escapeHtml(t('blind.sheetTitle'))}</h1>
+<p class="meta">${escapeHtml(t('blind.sheetIntro'))}</p>
+<div class="cards">${cards}</div>
+<div class="answers-page">
+  <h1>${escapeHtml(t('blind.answersTitle'))}</h1>
+  <table>${answerRows}</table>
+</div>
+<div class="disclaimer">${escapeHtml(t('blind.sheetDisclaimer'))}</div>
 `;
 }
 

@@ -19,6 +19,16 @@ export {
   CELLAR_SOMMELIER_PROMPT,
   type AnalyzedCellarWine,
 } from './cellar';
+export {
+  buildBlindTastingSession,
+  BLIND_TASTING_STEPS,
+  type BlindTastingWine,
+  type BlindTastingSession,
+  type BlindCard,
+  type BlindAnswer,
+  type BlindStep,
+  type BlindStepKey,
+} from './blindTasting';
 export { extractBalancedJson, parseModelJson } from './json';
 export { isoToAgeDays } from './transport';
 export type { Transport, SourceAdapterOptions } from './transport';

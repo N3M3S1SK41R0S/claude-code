@@ -26,7 +26,7 @@ Chaque module implémente le **même contrat** `DomainPlugin` (`packages/core/sr
 - **État & données** : TanStack Query 5 (serveur) · Zustand 5 (client) · MMKV (cache local)
 - **Backend** : [Supabase](https://supabase.com) — Auth (Sign in with Apple / Google / email), Postgres + **RLS**, Storage (bucket `item-media`), Edge Functions (Deno), Realtime, Cron
 - **IA & recherche** : LLM multimodal (vision) appelé **uniquement côté Edge Functions** · [Qdrant](https://qdrant.tech) (similarité vectorielle, étage 2 de reconnaissance)
-- **Monétisation** : [RevenueCat](https://www.revenuecat.com) (`react-native-purchases`) — 4 paliers : **Gratuit** (5 scans/semaine par module), **Premium** (scans illimités, sans carnet virtuel), **Gold** (+ carnet/bibliothèque virtuelle : cave avec emplacements, table de pièces, galerie, album), **Platine** (valorisation du carnet en continu vs marché + communauté de transactions anonymisées — commission 5 %, expertise obligatoire à la charge du vendeur au-delà de 500 €)
+- **Monétisation** : [RevenueCat](https://www.revenuecat.com) (`react-native-purchases`) — 4 paliers : **Gratuit** (5 scans/semaine par module), **Premium** (scans illimités, sans carnet virtuel), **Gold** (+ carnet/bibliothèque virtuelle : cave avec emplacements, table de pièces, galerie, album), **Platine** (valorisation du carnet en continu vs marché + communauté de transactions anonymisées — commission dégressive de 5 % à 2 % selon l'activité du vendeur, expertise obligatoire à la charge du vendeur au-delà de 500 €)
 - **Monorepo** : Turborepo + pnpm workspaces · TypeScript strict · Vitest · packages *source-first* (pas d'étape de build, `main: src/index.ts`)
 
 ## Arborescence du monorepo

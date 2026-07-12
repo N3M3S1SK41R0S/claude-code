@@ -9,7 +9,9 @@ import {
   bookTotals,
   coinGradeLabel,
   domainBookLabelKey,
+  formatCellarSlot,
   groupByLocation,
+  parseCellarSlot,
   stampConditionStatus,
 } from './carnet';
 
@@ -133,6 +135,51 @@ describe('domainBookLabelKey', () => {
     expect(domainBookLabelKey('coin')).toBe('carnet.medaillier');
     expect(domainBookLabelKey('art')).toBe('carnet.galerie');
     expect(domainBookLabelKey('stamp')).toBe('carnet.album');
+  });
+});
+
+describe('formatCellarSlot', () => {
+  it('formate rangée, colonne et place au format canonique', () => {
+    expect(formatCellarSlot({ row: 3, column: 4, place: 2 })).toBe(
+      'Rangée 3 · Colonne 4 · Place 2',
+    );
+  });
+
+  it("n'inclut que les champs fournis", () => {
+    expect(formatCellarSlot({ row: 1 })).toBe('Rangée 1');
+    expect(formatCellarSlot({ column: 2 })).toBe('Colonne 2');
+    expect(formatCellarSlot({ place: 5 })).toBe('Place 5');
+    expect(formatCellarSlot({ row: 7, place: 1 })).toBe('Rangée 7 · Place 1');
+  });
+
+  it('null si aucun champ (ou uniquement des valeurs non finies)', () => {
+    expect(formatCellarSlot({})).toBeNull();
+    expect(formatCellarSlot({ row: Number.NaN })).toBeNull();
+  });
+});
+
+describe('parseCellarSlot', () => {
+  it('re-parse le format canonique (aller-retour)', () => {
+    const slot = { row: 3, column: 4, place: 2 };
+    expect(parseCellarSlot(formatCellarSlot(slot))).toEqual(slot);
+    expect(parseCellarSlot('Rangée 3 · Colonne 4 · Place 2')).toEqual(slot);
+  });
+
+  it('tolère la casse, les espaces et un ordre différent', () => {
+    expect(parseCellarSlot('  rangée 3 ·  COLONNE 4 ')).toEqual({ row: 3, column: 4 });
+    expect(parseCellarSlot('rangee 12')).toEqual({ row: 12 }); // sans accent
+    expect(parseCellarSlot('Place 2 · Rangée 1')).toEqual({ place: 2, row: 1 });
+  });
+
+  it('null si absent, vide ou non conforme (texte libre)', () => {
+    expect(parseCellarSlot(null)).toBeNull();
+    expect(parseCellarSlot('')).toBeNull();
+    expect(parseCellarSlot('   ')).toBeNull();
+    expect(parseCellarSlot('Casier B3')).toBeNull();
+    expect(parseCellarSlot('Rangée trois')).toBeNull();
+    expect(parseCellarSlot('Cave — casier B3')).toBeNull();
+    expect(parseCellarSlot('Rangée 1 · Étage 2')).toBeNull();
+    expect(parseCellarSlot('Rangée 1 · Rangée 2')).toBeNull(); // doublon
   });
 });
 

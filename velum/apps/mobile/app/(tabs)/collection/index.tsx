@@ -178,6 +178,14 @@ export default function Collection() {
             accessibilityHint={t('cellar.dishLabel')}
           />
         ) : null}
+        {hasWine ? (
+          <VButton
+            label={t('blind.entry')}
+            variant="secondary"
+            onPress={() => router.push('/blind-tasting')}
+            accessibilityHint={t('blind.intro')}
+          />
+        ) : null}
       </View>
 
       {drinkNow.length > 0 ? (

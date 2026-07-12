@@ -97,11 +97,38 @@ export const PLAN_PRICING_EUR: Record<Exclude<PlanId, 'free'>, number> = {
   platine: 49.99,
 };
 
-/** Marketplace communautaire (Platine) — commission sur transaction conclue. */
-export const MARKETPLACE_COMMISSION_RATE = 0.05;
+/**
+ * Marketplace communautaire (Platine) — commission DÉGRESSIVE selon
+ * l'activité du vendeur (révision produit juillet 2026) : 5 % maximum pour
+ * les nouveaux vendeurs, 2 % minimum pour les plus actifs. Source unique
+ * des paliers : `COMMISSION_TIERS` (répliquée en SQL par
+ * `commission_rate_for` — migration 0004, tests rls_checks).
+ */
+export const MARKETPLACE_COMMISSION_MAX = 0.05;
+export const MARKETPLACE_COMMISSION_MIN = 0.02;
+
+/** Paliers : nombre minimal de ventes CONCLUES → taux de commission. */
+export const COMMISSION_TIERS: readonly { minSales: number; rate: number }[] = [
+  { minSales: 50, rate: 0.02 },
+  { minSales: 25, rate: 0.03 },
+  { minSales: 10, rate: 0.04 },
+  { minSales: 0, rate: 0.05 },
+];
+
+/** Taux applicable pour un vendeur ayant `completedSales` ventes conclues. */
+export function commissionRateFor(completedSales: number): number {
+  const sales = Math.max(0, Math.floor(completedSales));
+  const tier = COMMISSION_TIERS.find((t) => sales >= t.minSales);
+  return tier?.rate ?? MARKETPLACE_COMMISSION_MAX;
+}
+
+/** @deprecated Utiliser commissionRateFor — conservé pour compat (taux max). */
+export const MARKETPLACE_COMMISSION_RATE = MARKETPLACE_COMMISSION_MAX;
+
 /**
  * Au-delà de ce montant, le recours à un analyste expert est obligatoire,
- * à la charge du vendeur, avant mise en transaction.
+ * à la charge du vendeur, avant mise en transaction (pièces et timbres
+ * notamment — appliqué à tous les domaines par prudence).
  */
 export const EXPERT_APPRAISAL_THRESHOLD_EUR = 500;
 

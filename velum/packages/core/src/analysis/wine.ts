@@ -5,6 +5,8 @@
 
 export interface WineAttributes {
   producer?: string;
+  /** Le vigneron (la personne), distinct du domaine/château producteur. */
+  winemaker?: string;
   appellation?: string;
   cuvee?: string;
   vintage?: number;
@@ -16,14 +18,36 @@ export interface WineAttributes {
   format?: string; // '750ml', 'magnum'…
 }
 
+/** Conseil de carafage — recommandé ou non, durée en minutes le cas échéant. */
+export interface WineDecantingAdvice {
+  recommended: boolean;
+  durationMinutes?: number;
+  note?: string;
+}
+
 /** Module 2 — caractéristiques œnologiques. */
 export interface WineTastingProfile {
   robe: string;
+  /** Synthèse aromatique globale (conservée pour rétrocompatibilité). */
   nose: string[];
   palate: { structure: string; tannins?: string; acidity: string; alcohol?: string };
   length: string;
   agingPotentialYears: [number, number];
   drinkWindow: { from: number; to: number };
+  /** Température idéale de CONSERVATION en cave, fourchette [min, max] °C. */
+  cellarTemperatureC?: [number, number];
+  /** Température idéale de DÉGUSTATION (service), fourchette [min, max] °C. */
+  serviceTemperatureC?: [number, number];
+  /** Carafage : oui/non, durée conseillée, note libre. */
+  decanting?: WineDecantingAdvice;
+  /** Premier nez (à l'ouverture, avant aération). */
+  noseFirst?: string[];
+  /** Second nez (après aération / carafage). */
+  noseSecond?: string[];
+  /** Attaque en bouche (première impression). */
+  palateAttack?: string;
+  /** Évolution des arômes en bouche (deuxième bouche, milieu, développement). */
+  palateEvolution?: string;
 }
 
 /** Module 3 — évaluation qualitative multi-niveaux. */

@@ -62,6 +62,8 @@ await screen('09-sommelier', '/cellar-sommelier', 'Bandol Domaine Tempier 2016',
 await screen('10-marche', '/market', 'À boire');
 // 11. Profil — mode senior, langue, consentement IA, suppression de compte.
 await screen('11-profil', '/profile', 'Compte Démo VELUM');
+// 15. Dégustation à l'aveugle — cartes anonymes tirées de la cave.
+await screen('15-degustation-aveugle', '/blind-tasting', 'Vin n°1');
 
 const realErrors = pageErrors.filter((m) => !m.includes('ResizeObserver'));
 if (realErrors.length > 0) {

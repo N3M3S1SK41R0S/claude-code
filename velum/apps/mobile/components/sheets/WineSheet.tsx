@@ -4,19 +4,40 @@
  */
 import { useTranslation } from 'react-i18next';
 import { VText } from '@velum/ui';
-import type { WineAnalysisPayload } from '@velum/core';
+import type { WineAnalysisPayload, WineDecantingAdvice } from '@velum/core';
 import { Bullets, KV, SheetSection } from './SheetSection';
+
+/** Fourchette de température « 12–14 °C » (unité identique fr/en). */
+function formatTempRange(range: [number, number]): string {
+  return `${range[0]}–${range[1]} °C`;
+}
 
 export function WineSheet({ payload }: { payload: Partial<WineAnalysisPayload> | null }) {
   const { t } = useTranslation();
   if (!payload) return null;
   const { identification, tasting, ratings, market, comparisons, uncertainties } = payload;
 
+  const decantingLabel = (decanting: WineDecantingAdvice): string => {
+    const base = decanting.recommended
+      ? decanting.durationMinutes !== undefined
+        ? t('item.wine.decantingWithDuration', { minutes: decanting.durationMinutes })
+        : t('item.wine.decantingRecommended')
+      : t('item.wine.decantingNotNeeded');
+    return decanting.note ? `${base} — ${decanting.note}` : base;
+  };
+
+  const hasServiceBlock =
+    tasting !== undefined &&
+    (tasting.cellarTemperatureC !== undefined ||
+      tasting.serviceTemperatureC !== undefined ||
+      tasting.decanting !== undefined);
+
   return (
     <>
       {identification ? (
         <SheetSection title={t('item.sections.identification')}>
           {identification.producer ? <KV label={t('candidates.fields.wineProducer')} value={identification.producer} /> : null}
+          {identification.winemaker ? <KV label={t('item.wine.winemaker')} value={identification.winemaker} /> : null}
           {identification.appellation ? <KV label={t('candidates.fields.wineAppellation')} value={identification.appellation} /> : null}
           {identification.vintage !== undefined ? <KV label={t('candidates.fields.wineVintage')} value={String(identification.vintage)} /> : null}
           {identification.region ? <KV label={t('candidates.fields.stampCountry')} value={[identification.region, identification.country].filter(Boolean).join(', ')} /> : null}
@@ -28,7 +49,19 @@ export function WineSheet({ payload }: { payload: Partial<WineAnalysisPayload> |
         <SheetSection title={t('item.sections.tasting')}>
           <KV label="Robe" value={tasting.robe} />
           {tasting.nose.length > 0 ? <Bullets items={tasting.nose} /> : null}
+          {tasting.noseFirst && tasting.noseFirst.length > 0 ? (
+            <KV label={t('item.wine.noseFirst')} value={tasting.noseFirst.join(', ')} />
+          ) : null}
+          {tasting.noseSecond && tasting.noseSecond.length > 0 ? (
+            <KV label={t('item.wine.noseSecond')} value={tasting.noseSecond.join(', ')} />
+          ) : null}
           <KV label="Bouche" value={[tasting.palate.structure, tasting.palate.tannins, tasting.palate.acidity].filter(Boolean).join(' · ')} />
+          {tasting.palateAttack ? (
+            <KV label={t('item.wine.palateAttack')} value={tasting.palateAttack} />
+          ) : null}
+          {tasting.palateEvolution ? (
+            <KV label={t('item.wine.palateEvolution')} value={tasting.palateEvolution} />
+          ) : null}
           <KV
             label={t('item.wine.agingPotential', {
               min: tasting.agingPotentialYears[0],
@@ -39,6 +72,21 @@ export function WineSheet({ payload }: { payload: Partial<WineAnalysisPayload> |
               to: tasting.drinkWindow.to,
             })}
           />
+        </SheetSection>
+      ) : null}
+
+      {/* Bloc « Service » : T° de conservation vs dégustation, carafage. */}
+      {tasting && hasServiceBlock ? (
+        <SheetSection title={t('item.sections.service')}>
+          {tasting.cellarTemperatureC ? (
+            <KV label={t('item.wine.cellarTemp')} value={formatTempRange(tasting.cellarTemperatureC)} />
+          ) : null}
+          {tasting.serviceTemperatureC ? (
+            <KV label={t('item.wine.serviceTemp')} value={formatTempRange(tasting.serviceTemperatureC)} />
+          ) : null}
+          {tasting.decanting ? (
+            <KV label={t('item.wine.decanting')} value={decantingLabel(tasting.decanting)} />
+          ) : null}
         </SheetSection>
       ) : null}
 

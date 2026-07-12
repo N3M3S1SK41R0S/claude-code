@@ -135,7 +135,7 @@ RPC SQL `security definer`, appelée par l'Edge Function `recognize` **avant** t
 -- 3. sinon incrémente scans_used de façon atomique et retourne true
 ```
 
-Les limites par plan sont celles de `PLAN_LIMITS` (`packages/config/src/index.ts`) : free = 5 scans/semaine **par module** (compteur `usage_counters(owner_id, domain, week)` en semaine ISO `IYYY-IW`) ; premium/gold/platine = illimité. Le carnet virtuel est réservé à Gold+, la valorisation continue et la marketplace communautaire à Platine (cf. `0003_marketplace_platine.sql` : commission 5 %, trigger d'expertise obligatoire > 500 €, insertion d'annonces réservée aux profils platine). Le plan effectif provient des entitlements RevenueCat (vérifiés serveur via webhook/API RevenueCat, pas sur la seule foi du client).
+Les limites par plan sont celles de `PLAN_LIMITS` (`packages/config/src/index.ts`) : free = 5 scans/semaine **par module** (compteur `usage_counters(owner_id, domain, week)` en semaine ISO `IYYY-IW`) ; premium/gold/platine = illimité. Le carnet virtuel est réservé à Gold+, la valorisation continue et la marketplace communautaire à Platine (cf. `0003_marketplace_platine.sql` puis `0004_commission_degressive.sql` : commission **dégressive** de 5 % à 2 % selon les ventes conclues du vendeur — `commission_rate_for(seller)` figée sur l'annonce par trigger `before insert`, le client ne pouvant pas choisir son taux —, trigger d'expertise obligatoire > 500 €, insertion d'annonces réservée aux profils platine). Le plan effectif provient des entitlements RevenueCat (vérifiés serveur via webhook/API RevenueCat, pas sur la seule foi du client).
 
 ## 3. Triggers
 
@@ -178,11 +178,12 @@ Le harnais `supabase/tests/` rejoue tout le SQL sur un PostgreSQL 16 nu
 sudo -u postgres bash supabase/tests/run-local.sh
 ```
 
-Il applique `0001` + `0003` + `seed.sql` puis `rls_checks.sql` — 8 assertions
-de comportement : isolation RLS (items, profils, valuations), quota freemium
-5 scans/semaine **par module** puis illimité en premium, marketplace réservée
-Platine (commission 5 %, trigger d'expertise obligatoire au-delà de 500 €),
-cloisonnement storage par préfixe `uid/`, purge RGPD en cascade. La CI
+Il applique `0001` + `0003` + `0004` + `seed.sql` puis `rls_checks.sql` — 10
+vérifications de comportement : isolation RLS (items, profils, valuations),
+quota freemium 5 scans/semaine **par module** puis illimité en premium,
+marketplace réservée Platine (commission **dégressive** 5 % → 2 % figée par
+trigger et non choisie par le client, trigger d'expertise obligatoire au-delà
+de 500 €), cloisonnement storage par préfixe `uid/`, purge RGPD en cascade. La CI
 (`velum-ci.yml`, job `sql`) l'exécute à chaque push. La migration `0002`
 (pg_cron/pg_net) est volontairement hors périmètre du harnais : ces
 extensions n'existent que sur la plateforme Supabase.

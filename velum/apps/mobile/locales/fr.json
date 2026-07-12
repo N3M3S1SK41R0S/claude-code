@@ -185,6 +185,7 @@
     "sections": {
       "identification": "Identification",
       "tasting": "Dégustation",
+      "service": "Service & conservation",
       "ratings": "Notations",
       "market": "Marché",
       "comparisons": "Comparaisons",
@@ -202,7 +203,18 @@
     "wine": {
       "drinkWindow": "Apogée : {{from}} – {{to}}",
       "agingPotential": "Potentiel de garde : {{min}} à {{max}} ans",
-      "positioning": "Positionnement : {{value}}"
+      "positioning": "Positionnement : {{value}}",
+      "winemaker": "Vigneron",
+      "noseFirst": "Premier nez",
+      "noseSecond": "Second nez",
+      "palateAttack": "Attaque en bouche",
+      "palateEvolution": "Évolution en bouche",
+      "cellarTemp": "Température de conservation",
+      "serviceTemp": "Température de service",
+      "decanting": "Carafage",
+      "decantingWithDuration": "Recommandé — {{minutes}} min",
+      "decantingRecommended": "Recommandé",
+      "decantingNotNeeded": "Non nécessaire"
     },
     "coin": {
       "gradeValue": "{{value}} (échelle {{scale}}, confiance {{confidence}} %)"
@@ -256,7 +268,7 @@
     "marketplaceTitle": "Marketplace",
     "marketplaceSoon": "Achetez et vendez entre collectionneurs — bientôt disponible.",
     "communityTitle": "Communauté Platine",
-    "communityBody": "Bientôt : transactions entre collectionneurs, en toute confidentialité — personne n'échange ses coordonnées, tout passe par la plateforme. Commission de 5 % sur les ventes conclues ; au-delà de 500 €, expertise obligatoire à la charge du vendeur.",
+    "communityBody": "Bientôt : transactions entre collectionneurs, en toute confidentialité — personne n'échange ses coordonnées, tout passe par la plateforme. Commission dégressive selon votre activité (5 % au départ, jusqu'à 2 % pour les vendeurs les plus actifs) ; au-delà de 500 €, expertise obligatoire à la charge du vendeur.",
     "communityCta": "Découvrir l'offre Platine"
   },
   "profile": {
@@ -310,7 +322,7 @@
     "platine": {
       "name": "Platine",
       "price": "49,99 € / mois",
-      "features": "Intégralité des fonctions : carnet valorisé EN CONTINU selon les transactions du marché · rapport assurance/succession · communauté de collectionneurs (mise en relation anonyme, transactions via la plateforme — commission 5 %, expertise obligatoire au-delà de 500 €, à la charge du vendeur)"
+      "features": "Intégralité des fonctions : carnet valorisé EN CONTINU selon les transactions du marché · rapport assurance/succession · communauté de collectionneurs (mise en relation anonyme, transactions via la plateforme — commission dégressive de 5 % à 2 % selon votre activité, expertise obligatoire au-delà de 500 €, à la charge du vendeur)"
     }
   },
   "export": {
@@ -391,9 +403,53 @@
     "moveTitle": "Déplacer l'objet",
     "movePlaceholder": "ex. Casier B3, coffre, salon…",
     "moved": "Emplacement mis à jour.",
+    "slotModeSelector": "Type d'emplacement",
+    "slotModePosition": "Position",
+    "slotModeText": "Texte libre",
+    "slotRow": "Rangée",
+    "slotColumn": "Colonne",
+    "slotPlace": "Place",
     "emptyDomainTitle": "Rien dans ce carnet pour l'instant",
     "emptyDomainMessage": "Scannez vos premiers objets pour remplir ce carnet.",
     "emptyDomainCta": "Capturer un objet"
+  },
+  "blind": {
+    "title": "Dégustation à l'aveugle",
+    "entry": "🎲 Dégustation à l'aveugle",
+    "intro": "Tirez des bouteilles de votre cave au hasard et faites deviner vos amis — cartes anonymes, réponses cachées, feuille imprimable.",
+    "needsMore": "Il faut au moins {{min}} bouteilles dans votre cave pour lancer une dégustation à l'aveugle.",
+    "goToCapture": "Scanner des bouteilles",
+    "countLabel": "Nombre de bouteilles",
+    "countMinus": "Une bouteille de moins",
+    "countPlus": "Une bouteille de plus",
+    "available": "{{count}} bouteille(s) disponible(s) dans votre cave",
+    "regenerate": "Relancer le tirage",
+    "wineNumber": "Vin n°{{number}}",
+    "guessTag": "à deviner",
+    "revealAnswers": "Révéler les réponses",
+    "hideAnswers": "Masquer les réponses",
+    "answersTitle": "Réponses",
+    "hintsLabel": "Indices :",
+    "printSheet": "Imprimer / partager la feuille",
+    "printHint": "Génère un PDF avec les cartes et une page de réponses séparée",
+    "printError": "Impossible de générer la feuille pour le moment.",
+    "exportError": "Impossible de générer la feuille pour le moment.",
+    "exportWebHint": "Utilisez l'aperçu d'impression de votre navigateur pour enregistrer le PDF.",
+    "sheetTitle": "Dégustation à l'aveugle — VELUM",
+    "sheetIntro": "Une carte par vin, servi dans le désordre. Notez vos impressions puis retournez à la page des réponses.",
+    "sheetDisclaimer": "Feuille ludique générée par VELUM à partir de votre cave — les indices sont indicatifs.",
+    "steps": {
+      "robe": "Robe (couleur, intensité, reflets)",
+      "noseFirst": "Premier nez (à l'ouverture)",
+      "noseSecond": "Second nez (après aération)",
+      "attack": "Attaque en bouche",
+      "evolution": "Évolution / milieu de bouche",
+      "finale": "Finale et longueur",
+      "aging": "Potentiel de garde ressenti",
+      "guessRegion": "Région / pays ?",
+      "guessGrapes": "Cépage(s) ?",
+      "guessVintage": "Millésime ?"
+    }
   },
   "cellar": {
     "sommelierTitle": "Sommelier de cave",

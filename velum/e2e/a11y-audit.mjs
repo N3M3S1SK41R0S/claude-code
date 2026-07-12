@@ -19,6 +19,7 @@ const SCREENS = [
   { name: 'capture', path: '/capture', auth: true, expect: 'Vin' },
   { name: 'collection', path: '/collection', auth: true, expect: 'Bandol Domaine Tempier 2016' },
   { name: 'carnet', path: '/carnet', auth: true, expect: 'Bandol Domaine Tempier 2016' },
+  { name: 'blind-tasting', path: '/blind-tasting', auth: true, expect: 'Vin n°1' },
   { name: 'item', path: '/item/demo-wine', auth: true, expect: 'Valorisation' },
   { name: 'profile', path: '/profile', auth: true, expect: 'Compte Démo VELUM' },
 ];

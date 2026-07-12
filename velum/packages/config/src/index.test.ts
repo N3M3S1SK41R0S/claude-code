@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_FEATURES,
   EXPERT_APPRAISAL_THRESHOLD_EUR,
-  MARKETPLACE_COMMISSION_RATE,
+  commissionRateFor,
   PLAN_LIMITS,
   activeDomains,
   canScan,
@@ -61,8 +61,16 @@ describe('grille d’abonnement (révision juillet 2026)', () => {
     });
   });
 
-  it('marketplace : commission 5 %, expert obligatoire au-delà de 500 €', () => {
-    expect(MARKETPLACE_COMMISSION_RATE).toBe(0.05);
+  it('marketplace : commission dégressive 5 % → 2 % selon l’activité du vendeur', () => {
+    expect(commissionRateFor(0)).toBe(0.05); // nouveau vendeur : max
+    expect(commissionRateFor(9)).toBe(0.05);
+    expect(commissionRateFor(10)).toBe(0.04);
+    expect(commissionRateFor(24)).toBe(0.04);
+    expect(commissionRateFor(25)).toBe(0.03);
+    expect(commissionRateFor(49)).toBe(0.03);
+    expect(commissionRateFor(50)).toBe(0.02); // gros vendeur : min
+    expect(commissionRateFor(500)).toBe(0.02);
+    expect(commissionRateFor(-3)).toBe(0.05); // défensif
     expect(EXPERT_APPRAISAL_THRESHOLD_EUR).toBe(500);
   });
 });

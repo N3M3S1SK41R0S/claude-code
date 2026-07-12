@@ -229,6 +229,60 @@ begin
 end
 $$;
 
+-- ── 7bis. Commission dégressive : 5 % → 2 % selon les ventes conclues ────────
+do $$
+declare
+  v_rate numeric;
+  v_id uuid;
+begin
+  perform set_config('velum.uid', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', true);
+  set local role authenticated;
+
+  -- Nouveau vendeur : 5 % — et le client ne peut PAS choisir son taux.
+  insert into public.listings (id, item_id, seller_id, ask_price, commission_rate)
+  values (gen_random_uuid(), 'cccccccc-cccc-4ccc-8ccc-cccccccccc01',
+          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100, 0.001)
+  returning id, commission_rate into v_id, v_rate;
+  if v_rate <> 0.05 then
+    raise exception 'commission : attendu 5 %% pour un nouveau vendeur, vu %', v_rate;
+  end if;
+
+  reset role;
+  -- 10 ventes conclues (petites, sous le seuil d''expertise) → palier 4 %.
+  insert into public.listings (item_id, seller_id, ask_price, status)
+  select 'cccccccc-cccc-4ccc-8ccc-cccccccccc01',
+         'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 50, 'sold'
+  from generate_series(1, 10);
+
+  set local role authenticated;
+  insert into public.listings (item_id, seller_id, ask_price)
+  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01',
+          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100)
+  returning commission_rate into v_rate;
+  if v_rate <> 0.04 then
+    raise exception 'commission : attendu 4 %% après 10 ventes, vu %', v_rate;
+  end if;
+
+  reset role;
+  -- Jusqu''à 50 ventes conclues → plancher 2 %.
+  insert into public.listings (item_id, seller_id, ask_price, status)
+  select 'cccccccc-cccc-4ccc-8ccc-cccccccccc01',
+         'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 50, 'sold'
+  from generate_series(1, 40);
+
+  set local role authenticated;
+  insert into public.listings (item_id, seller_id, ask_price)
+  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01',
+          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100)
+  returning commission_rate into v_rate;
+  if v_rate <> 0.02 then
+    raise exception 'commission : attendu 2 %% (plancher) après 50 ventes, vu %', v_rate;
+  end if;
+
+  raise notice 'OK 7bis — commission dégressive 5 %% → 4 %% → 2 %%, non choisie par le client';
+end
+$$;
+
 -- ── 8. Purge RGPD : suppression auth.users → cascade complète ────────────────
 do $$
 declare

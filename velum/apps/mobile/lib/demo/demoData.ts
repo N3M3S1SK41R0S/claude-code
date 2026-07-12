@@ -40,12 +40,19 @@ function seedPrice(label: string, base: number): number {
 
 function wineAnalysis(label: string): Record<string, unknown> {
   return {
-    identification: { producer: label, appellation: 'Bandol', vintage: 2018, color: 'rouge', region: 'Provence', country: 'France' },
+    identification: { producer: label, winemaker: 'Daniel Ravier', appellation: 'Bandol', vintage: 2018, color: 'rouge', region: 'Provence', country: 'France' },
     tasting: {
       robe: 'Grenat profond',
       nose: ['fruits noirs', 'garrigue', 'épices'],
+      noseFirst: ['fruits noirs', 'mûre', 'violette'],
+      noseSecond: ['garrigue', 'cuir', 'tabac blond'],
       palate: { structure: 'ample', tannins: 'fondus', acidity: 'fraîche', alcohol: '14 %' },
+      palateAttack: 'Ample et charnue, sur le fruit mûr',
+      palateEvolution: 'Évolue sur les épices douces et la réglisse, finale légèrement saline',
       length: 'longue',
+      cellarTemperatureC: [12, 14],
+      serviceTemperatureC: [16, 18],
+      decanting: { recommended: true, durationMinutes: 60, note: 'Ouvre le second nez sur la garrigue.' },
       agingPotentialYears: [6, 18],
       drinkWindow: { from: 2023, to: 2032 },
     },
@@ -176,6 +183,7 @@ function makeItem(domain: VelumDomain, title: string, extra: Partial<VelumItem> 
 export function seedItems(): VelumItem[] {
   return [
     makeItem('wine', 'Bandol Domaine Tempier 2016', { storageLocation: 'Cave — casier B3', attributes: { vintage: 2016, analysis: wineAnalysis('Domaine Tempier') } }),
+    makeItem('wine', 'Châteauneuf-du-Pape 2019', { storageLocation: 'Rangée 3 · Colonne 4 · Place 2', attributes: { vintage: 2019, analysis: wineAnalysis('Châteauneuf-du-Pape') } }),
     makeItem('coin', '5 Francs Semeuse argent 1960', { storageLocation: 'Médaillier — plateau 2', attributes: { grade: 'SUP', year: 1960, analysis: coinAnalysis('5 Francs Semeuse') } }),
     makeItem('art', 'École provençale — Paysage aux oliviers', { storageLocation: 'Salon', confidence: 0.62, attributes: { analysis: artAnalysis('Paysage aux oliviers') } }),
     makeItem('stamp', 'Semeuse lignée 15c vert — YT 130', { storageLocation: 'Album 1 — page 12', attributes: { catalogNumber: 'YT 130', analysis: stampAnalysis('YT 130') } }),

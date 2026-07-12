@@ -52,11 +52,13 @@ sans démarrer de serveur.
 ```bash
 sudo -u postgres bash supabase/tests/run-local.sh   # VALIDATION SQL : PASS
 ```
-8 assertions vertes : isolation RLS (items/profils/valuations), quota
+10 vérifications vertes : isolation RLS (items/profils/valuations), quota
 **5 scans/semaine PAR module** puis premium illimité, annonces réservées
-Platine, commission 5 %, trigger d'expertise obligatoire > 500 € (bloque
-sans rapport, passe avec), storage cloisonné par préfixe `uid/`, purge RGPD
-en cascade. (`0002_cron.sql` = plateforme uniquement : pg_cron/pg_net.)
+Platine, commission **dégressive** 5 % → 4 % → 2 % figée par trigger et non
+choisie par le client (migration `0004`), trigger d'expertise obligatoire
+> 500 € (bloque sans rapport, passe avec), storage cloisonné par préfixe
+`uid/`, purge RGPD en cascade. (`0002_cron.sql` = plateforme uniquement :
+pg_cron/pg_net.)
 
 ### Web (PWA) — export + E2E sur Chromium réel
 ```bash

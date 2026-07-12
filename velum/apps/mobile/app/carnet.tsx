@@ -35,7 +35,9 @@ import {
   bookTotals,
   coinGradeLabel,
   domainBookLabelKey,
+  formatCellarSlot,
   groupByLocation,
+  parseCellarSlot,
   stampConditionStatus,
 } from '../lib/carnet';
 import { getVelumClient } from '../lib/client';
@@ -60,9 +62,14 @@ export default function Carnet() {
   const domains = getActiveDomains();
   const [domain, setDomain] = useState<VelumDomain>(domains[0] ?? 'wine');
 
-  // Modal « Déplacer » : item en cours + emplacement saisi.
+  // Modal « Déplacer » : item en cours + emplacement saisi. Deux modes :
+  // « Position » (rangée / colonne / place → formatCellarSlot) ou texte libre.
   const [moveTarget, setMoveTarget] = useState<VelumItem | null>(null);
   const [moveLocation, setMoveLocation] = useState('');
+  const [moveMode, setMoveMode] = useState<'slot' | 'text'>('slot');
+  const [moveRow, setMoveRow] = useState('');
+  const [moveColumn, setMoveColumn] = useState('');
+  const [movePlace, setMovePlace] = useState('');
 
   const query = useQuery<CarnetData>({
     queryKey: ['items', 'carnet'],
@@ -131,14 +138,38 @@ export default function Carnet() {
   }
 
   const openMove = (item: VelumItem) => {
-    setMoveLocation(item.storageLocation ?? '');
+    const location = item.storageLocation ?? '';
+    setMoveLocation(location);
+    // Pré-remplissage : emplacement au format structuré → mode « Position » ;
+    // texte libre existant → mode « Texte libre » ; vide → « Position ».
+    const slot = parseCellarSlot(item.storageLocation);
+    setMoveRow(slot?.row !== undefined ? String(slot.row) : '');
+    setMoveColumn(slot?.column !== undefined ? String(slot.column) : '');
+    setMovePlace(slot?.place !== undefined ? String(slot.place) : '');
+    setMoveMode(slot !== null || location.trim() === '' ? 'slot' : 'text');
     setMoveTarget(item);
+  };
+
+  /** Entier strictement positif saisi, sinon undefined (champ ignoré). */
+  const parseSlotField = (raw: string): number | undefined => {
+    const n = Number.parseInt(raw.trim(), 10);
+    return Number.isFinite(n) && n > 0 ? n : undefined;
   };
 
   const saveMove = () => {
     if (!moveTarget || moveMutation.isPending) return;
-    const trimmed = moveLocation.trim();
-    moveMutation.mutate({ id: moveTarget.id, storageLocation: trimmed === '' ? null : trimmed });
+    let storageLocation: string | null;
+    if (moveMode === 'slot') {
+      storageLocation = formatCellarSlot({
+        row: parseSlotField(moveRow),
+        column: parseSlotField(moveColumn),
+        place: parseSlotField(movePlace),
+      });
+    } else {
+      const trimmed = moveLocation.trim();
+      storageLocation = trimmed === '' ? null : trimmed;
+    }
+    moveMutation.mutate({ id: moveTarget.id, storageLocation });
   };
 
   /** Action « Déplacer » (cible ≥ 44 pt) présente sur chaque vignette. */
@@ -384,12 +415,70 @@ export default function Carnet() {
               {t('carnet.moveTitle')}
             </VText>
             <VText variant="body">{moveTarget?.title ?? t('common.unknown')}</VText>
-            <VTextInput
-              label={t('item.storageLocation')}
-              value={moveLocation}
-              onChangeText={setMoveLocation}
-              placeholder={t('carnet.movePlaceholder')}
-            />
+
+            {/* Segment « Position » / « Texte libre » */}
+            <View style={styles.modeRow} accessibilityLabel={t('carnet.slotModeSelector')}>
+              {(['slot', 'text'] as const).map((mode) => {
+                const selected = moveMode === mode;
+                return (
+                  <Pressable
+                    key={mode}
+                    onPress={() => setMoveMode(mode)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={t(mode === 'slot' ? 'carnet.slotModePosition' : 'carnet.slotModeText')}
+                    style={({ pressed }) => [
+                      styles.modeChip,
+                      selected && styles.chipSelected,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <VText variant="body" tone={selected ? 'gold' : 'dim'}>
+                      {t(mode === 'slot' ? 'carnet.slotModePosition' : 'carnet.slotModeText')}
+                    </VText>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {moveMode === 'slot' ? (
+              <View style={styles.slotRow}>
+                <View style={styles.slotField}>
+                  <VTextInput
+                    label={t('carnet.slotRow')}
+                    value={moveRow}
+                    onChangeText={setMoveRow}
+                    keyboardType="numeric"
+                    placeholder="3"
+                  />
+                </View>
+                <View style={styles.slotField}>
+                  <VTextInput
+                    label={t('carnet.slotColumn')}
+                    value={moveColumn}
+                    onChangeText={setMoveColumn}
+                    keyboardType="numeric"
+                    placeholder="4"
+                  />
+                </View>
+                <View style={styles.slotField}>
+                  <VTextInput
+                    label={t('carnet.slotPlace')}
+                    value={movePlace}
+                    onChangeText={setMovePlace}
+                    keyboardType="numeric"
+                    placeholder="2"
+                  />
+                </View>
+              </View>
+            ) : (
+              <VTextInput
+                label={t('item.storageLocation')}
+                value={moveLocation}
+                onChangeText={setMoveLocation}
+                placeholder={t('carnet.movePlaceholder')}
+              />
+            )}
             <VButton
               label={t('common.save')}
               onPress={saveMove}
@@ -472,4 +561,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
   modalCard: { gap: velumSpacing.md },
+  modeRow: { flexDirection: 'row', gap: velumSpacing.sm },
+  modeChip: {
+    flex: 1,
+    minHeight: MIN_TOUCH_TARGET,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: velumSpacing.md,
+    borderRadius: velumRadius.seal,
+    borderWidth: 1,
+    borderColor: velumColors.ink.border,
+    backgroundColor: velumColors.ink.soft,
+  },
+  slotRow: { flexDirection: 'row', gap: velumSpacing.sm },
+  slotField: { flex: 1 },
 });
