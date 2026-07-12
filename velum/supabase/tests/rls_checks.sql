@@ -325,6 +325,148 @@ begin
 end
 $$;
 
+-- ── 7quater. Communauté à séquestre : achat Platine, machine à états, litige ─
+-- Alice (Platine) vend ; Bob doit passer Platine pour acheter.
+update public.profiles set plan = 'platine'
+where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+
+-- Deux annonces actives d'Alice pour litige & auto-libération (≤ 500 € : sans
+-- expertise). dddd…01 (600 €, active, expertisée) sert au parcours nominal.
+insert into public.listings (id, item_id, seller_id, ask_price, status)
+values
+  ('dddddddd-dddd-4ddd-8ddd-dddddddddd02',
+   'cccccccc-cccc-4ccc-8ccc-cccccccccc01', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 120, 'active'),
+  ('dddddddd-dddd-4ddd-8ddd-dddddddddd03',
+   'cccccccc-cccc-4ccc-8ccc-cccccccccc01', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 90, 'active');
+
+do $$
+declare
+  v_state text;
+  v_rate numeric;
+  v_seller uuid;
+begin
+  -- Bob n'est pas encore reconnu Platine dans CETTE transaction ? Il l'est
+  -- (mise à jour ci-dessus, hors transaction). Un non-Platine serait refusé
+  -- par can_list_on_marketplace (déjà prouvé en 6a). On teste ici le parcours.
+  perform set_config('velum.uid', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', true);
+  set local role authenticated;
+
+  -- Achat de l'annonce nominale (600 €, expertisée) : taux FIGÉ = 5 %
+  -- (Alice avait 0 vente conclue quand dddd…01 a été créée), seller/amount
+  -- proviennent de l'annonce.
+  insert into public.orders (id, listing_id, buyer_id)
+  values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee01',
+          'dddddddd-dddd-4ddd-8ddd-dddddddddd01', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+  select escrow_state, commission_rate, seller_id into v_state, v_rate, v_seller
+  from public.orders where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee01';
+  if v_state <> 'pending_payment' then raise exception 'ordre : état initial %', v_state; end if;
+  if v_rate <> 0.05 then raise exception 'ordre : commission figée attendue 5 %%, vue %', v_rate; end if;
+  if v_seller <> 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' then raise exception 'ordre : mauvais vendeur'; end if;
+
+  -- Transition ILLÉGALE (l'acheteur saute la capture) : refusée.
+  begin
+    update public.orders set escrow_state = 'shipped'
+    where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee01';
+    raise exception 'séquestre : pending_payment → shipped aurait dû être refusé';
+  exception when raise_exception then
+    if sqlerrm not like '%Transition de séquestre interdite%' then raise; end if;
+  end;
+
+  -- Capture (acheteur) : pending_payment → funds_held.
+  update public.orders set escrow_state = 'funds_held'
+  where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee01';
+
+  -- Commandes pour litige (02) et auto-libération (03) : achat + capture.
+  insert into public.orders (id, listing_id, buyer_id)
+  values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02',
+          'dddddddd-dddd-4ddd-8ddd-dddddddddd02', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'),
+         ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee03',
+          'dddddddd-dddd-4ddd-8ddd-dddddddddd03', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+  update public.orders set escrow_state = 'funds_held'
+  where id in ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02','eeeeeeee-eeee-4eee-8eee-eeeeeeeeee03');
+
+  -- Litige ouvert par l'acheteur sur la commande 02.
+  update public.orders set escrow_state = 'disputed'
+  where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02';
+  insert into public.disputes (order_id, opened_by, reason)
+  values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02',
+          'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'objet non conforme');
+end
+$$;
+
+-- Vendeur (Alice) : expédition des commandes 01 et 03 (tracking requis).
+do $$
+begin
+  perform set_config('velum.uid', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', true);
+  set local role authenticated;
+
+  -- Sans tracking : refusé.
+  begin
+    update public.orders set escrow_state = 'shipped'
+    where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee01';
+    raise exception 'séquestre : expédition sans tracking aurait dû échouer';
+  exception when raise_exception then
+    if sqlerrm not like '%Transition de séquestre interdite%' then raise; end if;
+  end;
+
+  update public.orders set escrow_state = 'shipped', carrier = 'Chronopost', tracking_number = 'XY01'
+  where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee01';
+  update public.orders set escrow_state = 'shipped', tracking_number = 'XY03',
+         delivered_at = now() - interval '10 days'
+  where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee03';
+end
+$$;
+
+-- Acheteur (Bob) : confirme la réception de la commande 01 → libération.
+do $$
+begin
+  perform set_config('velum.uid', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', true);
+  set local role authenticated;
+  update public.orders set escrow_state = 'released'
+  where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee01';
+end
+$$;
+
+-- Arbitrage du litige (plateforme) : remboursement de la commande 02.
+select public.resolve_dispute('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02', false, 'contrefaçon avérée');
+
+-- Auto-libération : la commande 03 (livrée il y a 10 j, sans litige) part.
+select public.release_due_orders();
+
+do $$
+declare
+  v01 text; v02 text; v03 text; v_sold text; v_rep jsonb; v_other integer;
+begin
+  select escrow_state into v01 from public.orders where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee01';
+  select escrow_state into v02 from public.orders where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02';
+  select escrow_state into v03 from public.orders where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee03';
+  if v01 <> 'released' then raise exception 'ordre 01 : attendu released, vu %', v01; end if;
+  if v02 <> 'refunded' then raise exception 'ordre 02 : attendu refunded, vu %', v02; end if;
+  if v03 <> 'released' then raise exception 'ordre 03 (auto) : attendu released, vu %', v03; end if;
+
+  -- L'annonce nominale est passée 'sold' via la libération.
+  select status into v_sold from public.listings where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddd01';
+  if v_sold <> 'sold' then raise exception 'annonce 01 : attendue sold, vue %', v_sold; end if;
+
+  -- Réputation d'Alice : 2 ventes conclues (01 + 03), 1 remboursement (02).
+  v_rep := public.seller_reputation('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+  if (v_rep->>'completedSales')::int <> 2 then
+    raise exception 'réputation : ventes conclues attendues 2, vues %', v_rep->>'completedSales';
+  end if;
+  if (v_rep->>'refunded')::int <> 1 then
+    raise exception 'réputation : remboursements attendus 1, vus %', v_rep->>'refunded';
+  end if;
+
+  -- RLS : un tiers (ni acheteur ni vendeur) ne voit aucune commande.
+  perform set_config('velum.uid', 'ffffffff-ffff-4fff-8fff-ffffffffffff', true);
+  set local role authenticated;
+  select count(*) into v_other from public.orders;
+  if v_other <> 0 then raise exception 'RLS orders : un tiers voit % commande(s)', v_other; end if;
+
+  raise notice 'OK 7quater — séquestre : achat Platine, transitions gardées, litige & auto-libération, réputation, RLS';
+end
+$$;
+
 -- ── 8. Purge RGPD : suppression auth.users → cascade complète ────────────────
 do $$
 declare
@@ -351,6 +493,12 @@ begin
   where item_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccc01';
   if v_count <> 0 then
     raise exception 'cascade : % étape(s) de provenance orpheline(s)', v_count;
+  end if;
+  -- Commandes où Alice était vendeuse : purgées en cascade (profiles → orders).
+  select count(*) into v_count from public.orders
+  where seller_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  if v_count <> 0 then
+    raise exception 'cascade : % commande(s) orpheline(s) après suppression du vendeur', v_count;
   end if;
   raise notice 'OK 8 — purge RGPD en cascade';
 end

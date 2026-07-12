@@ -36,6 +36,9 @@ echo "· migration 0004_commission_degressive.sql"
 echo "· migration 0005_journal_provenance.sql"
 "${PSQL[@]}" -f supabase/migrations/0005_journal_provenance.sql
 
+echo "· migration 0006_community_escrow.sql"
+"${PSQL[@]}" -f supabase/migrations/0006_community_escrow.sql
+
 echo "· seed.sql (compte démo + collection)"
 "${PSQL[@]}" -f supabase/seed.sql
 

@@ -109,3 +109,58 @@ export interface ListingRecord {
   status: ListingStatus;
   createdAt: string;
 }
+
+/**
+ * États de séquestre d'une commande communautaire (§ marketplace Platine).
+ * pending_payment → funds_held → shipped → released (heureux) ; branches
+ * disputed → released|refunded, et cancelled avant expédition.
+ */
+export type EscrowState =
+  | 'pending_payment'
+  | 'funds_held'
+  | 'shipped'
+  | 'released'
+  | 'refunded'
+  | 'disputed'
+  | 'cancelled';
+
+/** Transaction entre collectionneurs, sous séquestre plateforme. */
+export interface MarketOrder {
+  id: string;
+  listingId: string;
+  buyerId: string;
+  sellerId: string;
+  amount: number;
+  currency: string;
+  /** Taux de commission FIGÉ à l'achat (contrat affiché au vendeur). */
+  commissionRate: number;
+  escrowState: EscrowState;
+  carrier: string | null;
+  trackingNumber: string | null;
+  deliveredAt: string | null;
+  releasedAt: string | null;
+  createdAt: string;
+}
+
+export type DisputeStatus = 'open' | 'resolved_release' | 'resolved_refund';
+
+export interface DisputeRecord {
+  id: string;
+  orderId: string;
+  openedBy: string;
+  reason: string;
+  status: DisputeStatus;
+  resolutionNote: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+}
+
+/** Réputation vendeur dérivée (signaux objectifs) — INFORMATIVE. */
+export interface SellerReputation {
+  completedSales: number;
+  refunded: number;
+  disputes: number;
+  /** Taux de litige 0..1 (litiges / transactions conclues), 0 si aucune. */
+  disputeRate: number;
+  memberSince: string | null;
+}

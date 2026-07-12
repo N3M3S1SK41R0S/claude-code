@@ -132,6 +132,13 @@ export const MARKETPLACE_COMMISSION_RATE = MARKETPLACE_COMMISSION_MAX;
  */
 export const EXPERT_APPRAISAL_THRESHOLD_EUR = 500;
 
+/**
+ * Séquestre communautaire : jours après livraison prouvée avant libération
+ * AUTOMATIQUE des fonds au vendeur (sauf litige ouvert). Miroir applicatif de
+ * `escrow_release_days()` (migration 0006).
+ */
+export const ESCROW_RELEASE_DAYS = 5;
+
 /** true si le plan permet de scanner encore cette semaine dans ce module. */
 export function canScan(plan: PlanId, scansThisWeekForModule: number): boolean {
   return scansThisWeekForModule < PLAN_LIMITS[plan].scansPerWeekPerModule;
