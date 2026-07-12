@@ -6,6 +6,7 @@
  * Aucune dépendance React Native ni réseau.
  */
 import type { VelumDomain, VelumItem } from '@velum/core';
+import { itemNumber, itemString } from './itemAttributes';
 
 /** Un trou de série : ce qui est présent, ce qui manque, la plage couverte. */
 export interface SeriesGap {
@@ -55,28 +56,6 @@ export function detectSeriesGaps(entries: SeriesEntry[]): SeriesGap[] {
   return gaps.sort((a, b) => b.missing.length - a.missing.length || a.series.localeCompare(b.series, 'fr'));
 }
 
-function analysisId(item: VelumItem): Record<string, unknown> | null {
-  const analysis = item.attributes['analysis'];
-  const id = analysis && typeof analysis === 'object'
-    ? (analysis as Record<string, unknown>)['identification']
-    : null;
-  return id && typeof id === 'object' ? (id as Record<string, unknown>) : null;
-}
-
-function attrString(item: VelumItem, key: string): string | null {
-  const direct = item.attributes[key];
-  if (typeof direct === 'string' && direct.trim().length > 0) return direct.trim();
-  const nested = analysisId(item)?.[key];
-  return typeof nested === 'string' && nested.trim().length > 0 ? nested.trim() : null;
-}
-
-function attrYear(item: VelumItem): number | null {
-  const direct = item.attributes['year'];
-  if (typeof direct === 'number' && Number.isFinite(direct)) return Math.trunc(direct);
-  const nested = analysisId(item)?.['year'];
-  return typeof nested === 'number' && Number.isFinite(nested) ? Math.trunc(nested) : null;
-}
-
 /**
  * Adapte les items d'un domaine sériel (pièces, timbres) en entrées de série :
  *  - pièces : série = type (ex. « 5 Francs Semeuse »), rang = année ;
@@ -87,14 +66,15 @@ export function seriesGapsForItems(items: VelumItem[], domain: VelumDomain): Ser
   const entries: SeriesEntry[] = [];
   for (const item of items) {
     if (item.domain !== domain) continue;
-    const year = attrYear(item);
-    if (year === null) continue;
+    const rawYear = itemNumber(item, 'year');
+    if (rawYear === null) continue;
+    const year = Math.trunc(rawYear);
     let series: string | null = null;
     if (domain === 'coin') {
-      series = attrString(item, 'type');
+      series = itemString(item, 'type');
     } else if (domain === 'stamp') {
-      const country = attrString(item, 'country');
-      const catalog = attrString(item, 'catalog');
+      const country = itemString(item, 'country');
+      const catalog = itemString(item, 'catalog');
       series = [country, catalog].filter(Boolean).join(' ') || null;
     }
     if (series) entries.push({ series, n: year });

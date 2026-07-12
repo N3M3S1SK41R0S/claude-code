@@ -5,6 +5,7 @@
  */
 import type { AnalysisResult, ValuationRecord, VelumItem } from '@velum/core';
 import type { BlindTastingSession } from '@velum/domain-wine';
+import { itemNumber, itemString } from './itemAttributes';
 
 /** Fonction de traduction minimale (compatible TFunction i18next). */
 export type Translator = (key: string, options?: Record<string, unknown>) => string;
@@ -262,19 +263,12 @@ ${blindStyles()}
 
 // ── Partage de cave (snapshot lecture seule → PDF) ──────────────────────────
 
-/** Lit une chaîne dans attributes[key] puis attributes.analysis.identification[key]. */
+/** Valeur d'affichage (chaîne ou nombre) depuis attributs ou analyse, sinon ''. */
 function readItemString(item: VelumItem, key: string): string {
-  const direct = item.attributes[key];
-  if (typeof direct === 'string' && direct.trim().length > 0) return direct.trim();
-  const analysis = item.attributes['analysis'];
-  const id = analysis && typeof analysis === 'object'
-    ? (analysis as Record<string, unknown>)['identification']
-    : null;
-  const nested = id && typeof id === 'object' ? (id as Record<string, unknown>)[key] : null;
-  if (typeof nested === 'string' && nested.trim().length > 0) return nested.trim();
-  if (typeof nested === 'number') return String(nested);
-  if (typeof direct === 'number') return String(direct);
-  return '';
+  const text = itemString(item, key);
+  if (text !== null) return text;
+  const num = itemNumber(item, key);
+  return num !== null ? String(num) : '';
 }
 
 /**
