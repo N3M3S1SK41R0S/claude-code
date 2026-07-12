@@ -65,6 +65,10 @@ velum/
 
 ## Démarrage développeur
 
+> **Juste voir/tester ?** → [docs/QUICKSTART.md](./docs/QUICKSTART.md)
+> (3 niveaux, du web sans compte au scan réel) et
+> [docs/SUPABASE_SETUP.md](./docs/SUPABASE_SETUP.md) (backend local en 4 commandes).
+
 Prérequis : Node ≥ 20, pnpm 10, Supabase CLI, (optionnel) EAS CLI.
 
 ```bash
