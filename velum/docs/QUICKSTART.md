@@ -16,6 +16,27 @@ pnpm install
 
 ---
 
+## Niveau 0 — Démo instantanée (recommandé) ⭐
+
+L'app **complète et cliquable**, sans compte ni clé : tout tourne sur un
+client en mémoire (scan, fiche, estimation par le vrai moteur, cave, carnet,
+sommelier, marché). Un bandeau « Mode démo » le rappelle.
+
+```bash
+pnpm demo      # = EXPO_PUBLIC_DEMO=1 expo start --web (ouvre le navigateur)
+```
+
+Tu entres directement dans l'app (déjà « connecté », offre Platine, collection
+pré-remplie). Essaie : onglet **Capturer → Vin → Texte** → tape « Clos Rougeard
+2014 » → **Analyser** → choisis un candidat → tu obtiens une **fiche + une
+estimation avec fourchette**. L'objet apparaît dans **Collection**, tu peux
+ouvrir le **Carnet** (Gold) et le **Sommelier** (« quel vin pour mon plat ? »).
+
+> C'est la façon la plus rapide de tout tester et de me dire quoi améliorer.
+> Preuve rejouable du parcours : `pnpm --filter velum-mobile demo:export && node e2e/demo-smoke.mjs`.
+
+---
+
 ## Niveau 1 — Naviguer dans l'app (web, sans backend)
 
 L'app a besoin de deux variables pour démarrer (valeurs factices : l'UI se
