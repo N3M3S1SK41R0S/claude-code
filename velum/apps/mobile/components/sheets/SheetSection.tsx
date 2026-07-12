@@ -19,13 +19,24 @@ export function SheetSection({ title, children }: { title: string; children: Rea
 }
 
 /** Rangée libellé / valeur. */
-export function KV({ label, value }: { label: string; value: string }) {
+export function KV({
+  label,
+  value,
+  tabular = false,
+}: {
+  label: string;
+  value: string;
+  /** Chiffres à chasse fixe : à activer pour les valeurs numériques (prix, IC…). */
+  tabular?: boolean;
+}) {
   return (
     <View style={styles.kv}>
       <VText variant="caption" tone="dim">
         {label}
       </VText>
-      <VText variant="body">{value}</VText>
+      <VText variant="body" tabularNums={tabular}>
+        {value}
+      </VText>
     </View>
   );
 }

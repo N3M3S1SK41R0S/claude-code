@@ -149,11 +149,11 @@ export default function Collection() {
         <VText variant="caption" tone="dim">
           {t('collection.totalValue')}
         </VText>
-        <VText variant="title" tone="gold">
+        <VText variant="title" tone="gold" tabularNums>
           {formatEUR(totalValue)}
         </VText>
         {gainLoss !== null ? (
-          <VText variant="body" tone={gainLoss >= 0 ? 'default' : 'danger'}>
+          <VText variant="body" tone={gainLoss >= 0 ? 'default' : 'danger'} tabularNums>
             {`${t('collection.gainLoss')} : ${gainLoss >= 0 ? '+' : ''}${formatEUR(gainLoss)}`}
           </VText>
         ) : null}

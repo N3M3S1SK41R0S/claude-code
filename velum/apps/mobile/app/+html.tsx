@@ -21,6 +21,14 @@ export default function Root({ children }: PropsWithChildren) {
           content="VELUM — identifiez, analysez et estimez vos vins, pièces, tableaux et timbres."
         />
         <meta name="theme-color" content="#1a0d10" />
+        {/* Lissage des polices (rendu net sur écrans macOS/Retina) — la cave
+            sombre gagne en finesse typographique côté PWA. */}
+        <style
+          dangerouslySetInnerHTML={{
+            __html:
+              'html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}',
+          }}
+        />
         {/* Le <title> est fourni par le navigateur expo-router (options.title
             de chaque écran) — ne pas le dupliquer ici (deux <title> ⇒ le vide
             l'emporte et échoue à WCAG 2.4.2). */}

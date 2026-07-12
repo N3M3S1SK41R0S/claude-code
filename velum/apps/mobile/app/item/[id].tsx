@@ -249,19 +249,22 @@ export default function ItemSheet() {
       <SheetSection title={t('item.valuationTitle')}>
         {valuation ? (
           <>
-            <VText variant="title" tone="gold" accessibilityLabel={formatEUR(valuation.central)}>
+            <VText variant="title" tone="gold" tabularNums accessibilityLabel={formatEUR(valuation.central)}>
               {formatEUR(valuation.central)}
             </VText>
             <KV
               label={t('item.ci80')}
+              tabular
               value={`${formatEUR(valuation.ci80Low)} – ${formatEUR(valuation.ci80High)}`}
             />
             <KV
               label={t('item.ci95')}
+              tabular
               value={`${formatEUR(valuation.ci95Low)} – ${formatEUR(valuation.ci95High)}`}
             />
             <KV
               label={t('item.reliability')}
+              tabular
               value={`${Math.round(valuation.reliability)} / 100 · ${t('item.nSources', { count: valuation.sources.length })}`}
             />
             <VText variant="caption" tone="dim">

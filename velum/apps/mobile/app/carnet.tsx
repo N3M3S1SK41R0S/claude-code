@@ -263,6 +263,7 @@ export default function Carnet() {
         <VText
           variant="title"
           tone="gold"
+          tabularNums
           accessibilityLabel={`${t('carnet.totalValue')} : ${formatEUR(totals.totalEUR)}`}
         >
           {formatEUR(totals.totalEUR)}

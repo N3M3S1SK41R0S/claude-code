@@ -15,6 +15,12 @@ export interface VTextProps extends TextProps {
   variant?: VTextVariant;
   tone?: VTextTone;
   center?: boolean;
+  /**
+   * Chiffres à chasse fixe (tabular-nums) : les nombres qui changent (valeurs,
+   * prix, pourcentages, millésimes, compteurs) ne « sautent » plus et
+   * s'alignent en colonne. À activer sur tout affichage numérique variable.
+   */
+  tabularNums?: boolean;
 }
 
 /** Plafond Dynamic Type : lisible sans casser les mises en page. */
@@ -49,7 +55,15 @@ const TONES: Record<VTextTone, string> = {
   danger: velumOnInk.danger,
 };
 
-export function VText({ variant = 'body', tone = 'default', center = false, style, children, ...rest }: VTextProps) {
+export function VText({
+  variant = 'body',
+  tone = 'default',
+  center = false,
+  tabularNums = false,
+  style,
+  children,
+  ...rest
+}: VTextProps) {
   const { scale } = useSeniorMode();
   const spec = VARIANTS[variant];
 
@@ -61,6 +75,7 @@ export function VText({ variant = 'body', tone = 'default', center = false, styl
     color: TONES[tone],
     ...(spec.serif ? { fontFamily: SERIF_FAMILY } : null),
     ...(center ? { textAlign: 'center' as const } : null),
+    ...(tabularNums ? { fontVariant: ['tabular-nums' as const] } : null),
   };
 
   return (
