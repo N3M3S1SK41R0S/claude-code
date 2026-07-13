@@ -7,9 +7,9 @@ export {
   winePlugin,
   WINE_DISCLAIMERS,
   WINE_RECOGNITION_SYSTEM_PROMPT,
-} from './plugin';
-export { ZAPPA_SYSTEM_PROMPT } from './zappa';
-export { normalizeWineLabel, parseVintage } from './normalize';
+} from './plugin.ts';
+export { ZAPPA_SYSTEM_PROMPT } from './zappa.ts';
+export { normalizeWineLabel, parseVintage } from './normalize.ts';
 export {
   isInDrinkWindow,
   recommendForDish,
@@ -18,7 +18,7 @@ export {
   buildPairingUserPrompt,
   CELLAR_SOMMELIER_PROMPT,
   type AnalyzedCellarWine,
-} from './cellar';
+} from './cellar.ts';
 export {
   buildBlindTastingSession,
   BLIND_TASTING_STEPS,
@@ -28,11 +28,11 @@ export {
   type BlindAnswer,
   type BlindStep,
   type BlindStepKey,
-} from './blindTasting';
-export { extractBalancedJson, parseModelJson } from './json';
-export { isoToAgeDays } from './transport';
-export type { Transport, SourceAdapterOptions } from './transport';
-export { WineSearcherSource } from './sources/wineSearcher';
-export { IdealwineSource } from './sources/idealwine';
-export { VivinoSource } from './sources/vivino';
-export { CavissimaSource } from './sources/cavissima';
+} from './blindTasting.ts';
+export { extractBalancedJson, parseModelJson } from './json.ts';
+export { isoToAgeDays } from './transport.ts';
+export type { Transport, SourceAdapterOptions } from './transport.ts';
+export { WineSearcherSource } from './sources/wineSearcher.ts';
+export { IdealwineSource } from './sources/idealwine.ts';
+export { VivinoSource } from './sources/vivino.ts';
+export { CavissimaSource } from './sources/cavissima.ts';

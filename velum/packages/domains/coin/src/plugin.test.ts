@@ -8,8 +8,8 @@ import {
   type VisionModel,
 } from '@velum/core';
 import { mulberry32, valuate as engineValuate } from '@velum/valuation';
-import { CoinDomainPlugin, coinPlugin, NUMIS_ENGINE } from './plugin';
-import { NUMIS_SYSTEM_PROMPT } from './numis';
+import { CoinDomainPlugin, coinPlugin, NUMIS_ENGINE } from './plugin.ts';
+import { NUMIS_SYSTEM_PROMPT } from './numis.ts';
 
 type VisionRequest = Parameters<VisionModel['complete']>[0];
 

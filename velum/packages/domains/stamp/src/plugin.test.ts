@@ -8,8 +8,8 @@ import {
   type VisionModel,
 } from '@velum/core';
 import { mulberry32, valuate as engineValuate } from '@velum/valuation';
-import { CONDITION_CAVEAT, PHILA_ENGINE, StampDomainPlugin, stampPlugin } from './plugin';
-import { PHILA_SYSTEM_PROMPT } from './phila';
+import { CONDITION_CAVEAT, PHILA_ENGINE, StampDomainPlugin, stampPlugin } from './plugin.ts';
+import { PHILA_SYSTEM_PROMPT } from './phila.ts';
 
 type VisionRequest = Parameters<VisionModel['complete']>[0];
 

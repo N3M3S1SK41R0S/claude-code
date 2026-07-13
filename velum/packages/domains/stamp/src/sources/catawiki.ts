@@ -27,14 +27,14 @@ import {
   type PriceQuery,
   type PriceSource,
 } from '@velum/core';
-import { isRecord } from '../json';
+import { isRecord } from '../json.ts';
 import {
   ageDaysFromIso,
   toCurrency,
   toPositiveNumber,
   type SourceAdapterOptions,
   type Transport,
-} from './transport';
+} from './transport.ts';
 
 const CATAWIKI_URL = 'https://api.catawiki.com/v1/lots/sold';
 

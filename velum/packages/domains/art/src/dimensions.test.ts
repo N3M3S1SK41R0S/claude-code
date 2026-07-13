@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseDimensions } from './dimensions';
+import { parseDimensions } from './dimensions.ts';
 
 describe('parseDimensions', () => {
   it('parse le format standard "65 x 54 cm" (hauteur × largeur)', () => {

@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SOURCE_WEIGHTS, type PriceQuery } from '@velum/core';
-import { CavissimaSource } from './sources/cavissima';
-import { IdealwineSource } from './sources/idealwine';
-import { VivinoSource } from './sources/vivino';
-import { WineSearcherSource } from './sources/wineSearcher';
-import type { Transport } from './transport';
+import { CavissimaSource } from './sources/cavissima.ts';
+import { IdealwineSource } from './sources/idealwine.ts';
+import { VivinoSource } from './sources/vivino.ts';
+import { WineSearcherSource } from './sources/wineSearcher.ts';
+import type { Transport } from './transport.ts';
 
 // ── FakeTransport ────────────────────────────────────────────────────────────
 

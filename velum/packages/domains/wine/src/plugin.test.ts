@@ -10,8 +10,8 @@ import {
   type VisionModel,
 } from '@velum/core';
 import { mulberry32, valuate as engineValuate } from '@velum/valuation';
-import { WINE_RECOGNITION_SYSTEM_PROMPT, winePlugin } from './index';
-import { ZAPPA_SYSTEM_PROMPT } from './zappa';
+import { WINE_RECOGNITION_SYSTEM_PROMPT, winePlugin } from './index.ts';
+import { ZAPPA_SYSTEM_PROMPT } from './zappa.ts';
 
 // ── Fakes ────────────────────────────────────────────────────────────────────
 

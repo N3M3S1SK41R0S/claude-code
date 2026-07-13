@@ -4,7 +4,7 @@
  * qualifiées + recommandation d'expertise humaine pour toute valeur significative.
  */
 
-import type { HeritageProfile } from './heritage';
+import type { HeritageProfile } from './heritage.ts';
 
 export type AttributionQualifier =
   | 'attribue_a' // attribué à

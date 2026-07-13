@@ -23,10 +23,10 @@ import {
   type ValuateDeps,
   type ValuationResult,
 } from '@velum/core';
-import { ART_SYSTEM_PROMPT } from './art';
-import { parseDimensions } from './dimensions';
-import { asFiniteNumber, asNonEmptyString, clamp01, isRecord, toStringArray } from './guards';
-import { parseModelJson } from './json';
+import { ART_SYSTEM_PROMPT } from './art.ts';
+import { parseDimensions } from './dimensions.ts';
+import { asFiniteNumber, asNonEmptyString, clamp01, isRecord, toStringArray } from './guards.ts';
+import { parseModelJson } from './json.ts';
 
 export const ART_ENGINE = 'art_v1';
 

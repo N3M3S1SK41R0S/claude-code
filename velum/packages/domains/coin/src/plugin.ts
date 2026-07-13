@@ -20,9 +20,9 @@ import {
   type ValuateDeps,
   type ValuationResult,
 } from '@velum/core';
-import { normalizeGrade } from './grade';
-import { clamp01, isRecord, parseLooseJson } from './json';
-import { NUMIS_SYSTEM_PROMPT } from './numis';
+import { normalizeGrade } from './grade.ts';
+import { clamp01, isRecord, parseLooseJson } from './json.ts';
+import { NUMIS_SYSTEM_PROMPT } from './numis.ts';
 
 export const NUMIS_ENGINE = 'numis_v1';
 

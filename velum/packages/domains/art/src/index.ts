@@ -8,14 +8,14 @@ export {
   ART_DISCLAIMERS,
   ART_ENGINE,
   ART_RECOGNITION_SYSTEM_PROMPT,
-} from './plugin';
-export { ART_SYSTEM_PROMPT } from './art';
-export { parseDimensions, type ParsedDimensions } from './dimensions';
-export { extractBalancedJson, parseModelJson } from './json';
-export { isoToAgeDays } from './transport';
-export type { Transport, SourceAdapterOptions } from './transport';
-export { ArtpriceSource } from './sources/artprice';
-export { ArtsySource } from './sources/artsy';
-export { DrouotSource } from './sources/drouot';
-export { HeritageArtSource } from './sources/heritage';
-export { MagnusSource } from './sources/magnus';
+} from './plugin.ts';
+export { ART_SYSTEM_PROMPT } from './art.ts';
+export { parseDimensions, type ParsedDimensions } from './dimensions.ts';
+export { extractBalancedJson, parseModelJson } from './json.ts';
+export { isoToAgeDays } from './transport.ts';
+export type { Transport, SourceAdapterOptions } from './transport.ts';
+export { ArtpriceSource } from './sources/artprice.ts';
+export { ArtsySource } from './sources/artsy.ts';
+export { DrouotSource } from './sources/drouot.ts';
+export { HeritageArtSource } from './sources/heritage.ts';
+export { MagnusSource } from './sources/magnus.ts';

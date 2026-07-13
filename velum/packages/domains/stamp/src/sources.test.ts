@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SOURCE_WEIGHTS, type PriceQuery } from '@velum/core';
-import type { Transport } from './sources/transport';
-import { ageDaysFromIso } from './sources/transport';
-import { ColnectSource } from './sources/colnect';
-import { YvertCoteSource } from './sources/yvertCote';
-import { DelcampeSource } from './sources/delcampe';
-import { EbaySoldSource } from './sources/ebaySold';
-import { CatawikiSource } from './sources/catawiki';
+import type { Transport } from './sources/transport.ts';
+import { ageDaysFromIso } from './sources/transport.ts';
+import { ColnectSource } from './sources/colnect.ts';
+import { YvertCoteSource } from './sources/yvertCote.ts';
+import { DelcampeSource } from './sources/delcampe.ts';
+import { EbaySoldSource } from './sources/ebaySold.ts';
+import { CatawikiSource } from './sources/catawiki.ts';
 
 /** Horloge fixe pour des ageDays déterministes. */
 const NOW = (): Date => new Date('2026-07-10T00:00:00Z');

@@ -5,7 +5,7 @@
  * Scott ; sources marché : Delcampe, eBay sold, Catawiki, Colnect.
  */
 
-import type { HeritageProfile } from './heritage';
+import type { HeritageProfile } from './heritage.ts';
 
 export type StampCentering = 'parfait' | 'bon' | 'decale' | 'tres_decale';
 

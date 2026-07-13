@@ -1,5 +1,5 @@
 /** Fiche d'analyse VELUM Pièces (§6.3) — moteur `numis_v1`. */
-import type { HeritageProfile } from './heritage';
+import type { HeritageProfile } from './heritage.ts';
 
 export interface CoinAttributes {
   country?: string;

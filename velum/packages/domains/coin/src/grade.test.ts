@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeGrade, sheldonToFr } from './grade';
+import { normalizeGrade, sheldonToFr } from './grade.ts';
 
 describe('normalizeGrade', () => {
   it('reconnaît les grades français, insensible à la casse', () => {

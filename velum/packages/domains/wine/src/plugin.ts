@@ -23,10 +23,10 @@ import {
   type WineRatings,
   type WineTastingProfile,
 } from '@velum/core';
-import { asFiniteNumber, asNonEmptyString, clamp01, isRecord } from './guards';
-import { parseModelJson } from './json';
-import { normalizeWineLabel, parseVintage } from './normalize';
-import { ZAPPA_SYSTEM_PROMPT } from './zappa';
+import { asFiniteNumber, asNonEmptyString, clamp01, isRecord } from './guards.ts';
+import { parseModelJson } from './json.ts';
+import { normalizeWineLabel, parseVintage } from './normalize.ts';
+import { ZAPPA_SYSTEM_PROMPT } from './zappa.ts';
 
 /** Seuil sous lequel on bascule sur la saisie assistée (§3.3). */
 const ASSISTED_ENTRY_THRESHOLD = 0.35;

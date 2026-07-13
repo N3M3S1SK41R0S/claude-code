@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeWineLabel, parseVintage } from './normalize';
+import { normalizeWineLabel, parseVintage } from './normalize.ts';
 
 const NOW = new Date('2026-07-10T00:00:00Z');
 

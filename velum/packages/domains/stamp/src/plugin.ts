@@ -20,9 +20,9 @@ import {
   type ValuateDeps,
   type ValuationResult,
 } from '@velum/core';
-import { normalizeCatalogNumber } from './catalog';
-import { clamp01, isRecord, parseLooseJson } from './json';
-import { PHILA_SYSTEM_PROMPT } from './phila';
+import { normalizeCatalogNumber } from './catalog.ts';
+import { clamp01, isRecord, parseLooseJson } from './json.ts';
+import { PHILA_SYSTEM_PROMPT } from './phila.ts';
 
 export const PHILA_ENGINE = 'phila_v1';
 

@@ -24,14 +24,14 @@ import {
   type PriceQuery,
   type PriceSource,
 } from '@velum/core';
-import { isRecord } from '../json';
+import { isRecord } from '../json.ts';
 import {
   ageDaysFromIso,
   toCurrency,
   toPositiveNumber,
   type SourceAdapterOptions,
   type Transport,
-} from './transport';
+} from './transport.ts';
 
 const PCGS_URL = 'https://api.pcgs.com/publicapi/priceguide/GetPriceByGrade';
 

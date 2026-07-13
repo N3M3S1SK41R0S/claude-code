@@ -4,7 +4,7 @@ import {
   BLIND_TASTING_STEPS,
   buildBlindTastingSession,
   type BlindTastingWine,
-} from './blindTasting';
+} from './blindTasting.ts';
 
 function wine(itemId: string, label: string, vintage?: number): BlindTastingWine {
   return vintage !== undefined ? { itemId, label, vintage } : { itemId, label };

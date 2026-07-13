@@ -14,7 +14,7 @@ import type {
   VisionModel,
   WineAnalysisPayload,
 } from '@velum/core';
-import { parseModelJson } from './json';
+import { parseModelJson } from './json.ts';
 
 /**
  * true si `year` tombe dans la fenêtre de consommation optimale [from, to]

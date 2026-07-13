@@ -9,21 +9,21 @@ export {
   COIN_RECOGNITION_SYSTEM_PROMPT,
   GRADE_CAVEAT,
   NUMIS_ENGINE,
-} from './plugin';
-export { NUMIS_SYSTEM_PROMPT } from './numis';
-export { normalizeGrade, sheldonToFr, type GradeScale, type NormalizedGrade } from './grade';
+} from './plugin.ts';
+export { NUMIS_SYSTEM_PROMPT } from './numis.ts';
+export { normalizeGrade, sheldonToFr, type GradeScale, type NormalizedGrade } from './grade.ts';
 export {
   ageDaysFromIso,
   toCurrency,
   toPositiveNumber,
   type SourceAdapterOptions,
   type Transport,
-} from './sources/transport';
-export { NumistaSource } from './sources/numista';
-export { PcgsSource } from './sources/pcgs';
-export { NgcSource } from './sources/ngc';
-export { EbaySoldSource } from './sources/ebaySold';
-export { CatawikiSource } from './sources/catawiki';
-export { HeritageSource } from './sources/heritage';
-export { CgbSource } from './sources/cgb';
-export { extractFirstJsonBlock, parseLooseJson, stripMarkdownFences } from './json';
+} from './sources/transport.ts';
+export { NumistaSource } from './sources/numista.ts';
+export { PcgsSource } from './sources/pcgs.ts';
+export { NgcSource } from './sources/ngc.ts';
+export { EbaySoldSource } from './sources/ebaySold.ts';
+export { CatawikiSource } from './sources/catawiki.ts';
+export { HeritageSource } from './sources/heritage.ts';
+export { CgbSource } from './sources/cgb.ts';
+export { extractFirstJsonBlock, parseLooseJson, stripMarkdownFences } from './json.ts';

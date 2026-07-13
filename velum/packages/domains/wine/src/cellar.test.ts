@@ -6,7 +6,7 @@ import {
   isInDrinkWindow,
   parsePairingResponse,
   recommendForDish,
-} from './cellar';
+} from './cellar.ts';
 
 function makePayload(from: number, to: number): WineAnalysisPayload {
   return {

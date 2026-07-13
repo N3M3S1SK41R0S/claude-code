@@ -15,7 +15,7 @@ import {
   ART_RECOGNITION_SYSTEM_PROMPT,
   ART_SYSTEM_PROMPT,
   artPlugin,
-} from './index';
+} from './index.ts';
 
 // ── Fakes ────────────────────────────────────────────────────────────────────
 

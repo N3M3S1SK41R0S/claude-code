@@ -23,8 +23,8 @@ import {
   type PriceSource,
   type SourceKind,
 } from '@velum/core';
-import { asFiniteNumber, asNonEmptyString, isRecord } from '../guards';
-import { isoToAgeDays, type SourceAdapterOptions, type Transport } from '../transport';
+import { asFiniteNumber, asNonEmptyString, isRecord } from '../guards.ts';
+import { isoToAgeDays, type SourceAdapterOptions, type Transport } from '../transport.ts';
 
 const BASE_URL = 'https://api.cavissima.com/v1/catalog/search';
 

@@ -11,7 +11,7 @@ import {
   toEUR,
   valuate,
   weightedMedian,
-} from './engine';
+} from './engine.ts';
 
 const FX: FxRates = { USD: 0.9, GBP: 1.15 };
 

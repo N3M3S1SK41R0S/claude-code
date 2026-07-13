@@ -29,14 +29,14 @@ import {
   type PriceQuery,
   type PriceSource,
 } from '@velum/core';
-import { isRecord } from '../json';
+import { isRecord } from '../json.ts';
 import {
   ageDaysFromIso,
   toCurrency,
   toPositiveNumber,
   type SourceAdapterOptions,
   type Transport,
-} from './transport';
+} from './transport.ts';
 
 const EBAY_URL = 'https://api.ebay.com/buy/marketplace_insights/v1_beta/item_sales/search';
 const EBAY_STAMPS_CATEGORY = '260';

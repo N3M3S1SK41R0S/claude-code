@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SOURCE_WEIGHTS, type PriceQuery } from '@velum/core';
-import type { Transport } from './sources/transport';
-import { ageDaysFromIso } from './sources/transport';
-import { NumistaSource } from './sources/numista';
-import { PcgsSource } from './sources/pcgs';
-import { NgcSource } from './sources/ngc';
-import { EbaySoldSource } from './sources/ebaySold';
-import { CatawikiSource } from './sources/catawiki';
-import { HeritageSource } from './sources/heritage';
-import { CgbSource } from './sources/cgb';
+import type { Transport } from './sources/transport.ts';
+import { ageDaysFromIso } from './sources/transport.ts';
+import { NumistaSource } from './sources/numista.ts';
+import { PcgsSource } from './sources/pcgs.ts';
+import { NgcSource } from './sources/ngc.ts';
+import { EbaySoldSource } from './sources/ebaySold.ts';
+import { CatawikiSource } from './sources/catawiki.ts';
+import { HeritageSource } from './sources/heritage.ts';
+import { CgbSource } from './sources/cgb.ts';
 
 /** Horloge fixe pour des ageDays déterministes. */
 const NOW = (): Date => new Date('2026-07-10T00:00:00Z');

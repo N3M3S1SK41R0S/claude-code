@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SOURCE_WEIGHTS, type PriceQuery } from '@velum/core';
-import { ArtpriceSource } from './sources/artprice';
-import { ArtsySource } from './sources/artsy';
-import { DrouotSource } from './sources/drouot';
-import { HeritageArtSource } from './sources/heritage';
-import { MagnusSource } from './sources/magnus';
-import type { Transport } from './transport';
+import { ArtpriceSource } from './sources/artprice.ts';
+import { ArtsySource } from './sources/artsy.ts';
+import { DrouotSource } from './sources/drouot.ts';
+import { HeritageArtSource } from './sources/heritage.ts';
+import { MagnusSource } from './sources/magnus.ts';
+import type { Transport } from './transport.ts';
 
 // ── FakeTransport ────────────────────────────────────────────────────────────
 

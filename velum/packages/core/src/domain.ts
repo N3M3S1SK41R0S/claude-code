@@ -3,7 +3,7 @@
  * `art`, `stamp`) est un plugin qui implémente la même interface
  * `recognize()` / `analyze()` / `valuate()`. Tout module futur est additif.
  */
-import type { FxRates, PriceObservation, PriceQuery, PriceSource, SourceRef, ValuationResult } from './pricing';
+import type { FxRates, PriceObservation, PriceQuery, PriceSource, SourceRef, ValuationResult } from './pricing.ts';
 
 export type VelumDomain = 'wine' | 'coin' | 'art' | 'stamp';
 

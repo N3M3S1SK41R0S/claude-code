@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeCatalogNumber } from './catalog';
+import { normalizeCatalogNumber } from './catalog.ts';
 
 describe('normalizeCatalogNumber', () => {
   it('reconnaît les références Yvert & Tellier sous toutes leurs graphies', () => {

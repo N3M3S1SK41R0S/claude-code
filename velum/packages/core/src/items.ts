@@ -1,6 +1,6 @@
 /** Miroirs TypeScript du schéma Postgres (§8.1) — camelCase côté app. */
-import type { MediaRole, VelumDomain } from './domain';
-import type { PriceObservation } from './pricing';
+import type { MediaRole, VelumDomain } from './domain.ts';
+import type { PriceObservation } from './pricing.ts';
 
 /** Palier d'abonnement effectif (source de vérité : profiles.plan, synchronisé RevenueCat). */
 export type PlanTier = 'free' | 'premium' | 'gold' | 'platine';
