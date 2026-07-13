@@ -50,10 +50,19 @@ supabase secrets set --env-file functions/.env   # d'après functions/.env.examp
 ```
 
 Secrets serveur requis (jamais côté client) — au minimum pour l'analyse :
-`LLM_VISION_API_KEY`, `LLM_VISION_PROVIDER`. Les sources marché
-(`NUMISTA_API_KEY`, `ARTPRICE_API_KEY`, `EBAY_API_KEY`, `COLNECT_API_KEY`,
-`DELCAMPE_API_KEY`, `FX_API_KEY`) enrichissent la valorisation mais sont
-optionnelles pour un premier essai.
+`LLM_VISION_PROVIDER` + `LLM_VISION_API_KEY`. Tu as les **trois** clés : choisis
+le fournisseur en une ligne, la clé correspondante suffit.
+
+| `LLM_VISION_PROVIDER` | Clé à mettre dans `LLM_VISION_API_KEY` | Modèle défaut |
+|---|---|---|
+| `anthropic` *(défaut)* | clé Anthropic (`sk-ant-…`) | `claude-sonnet-5` |
+| `openai` | clé OpenAI (`sk-…`) | `gpt-4o` |
+| `google` | clé Google AI Studio (Gemini) | `gemini-2.0-flash` |
+
+Pour forcer un modèle précis (facultatif) : `LLM_VISION_MODEL=…`. Les sources
+marché (`NUMISTA_API_KEY`, `ARTPRICE_API_KEY`, `EBAY_API_KEY`,
+`COLNECT_API_KEY`, `DELCAMPE_API_KEY`, `FX_API_KEY`) enrichissent la
+valorisation mais sont optionnelles pour un premier essai.
 
 Récupère ensuite, dans les réglages du projet Supabase (API) :
 - **Project URL** → `EXPO_PUBLIC_SUPABASE_URL`
