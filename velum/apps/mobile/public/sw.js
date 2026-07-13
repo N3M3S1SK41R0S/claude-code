@@ -15,17 +15,45 @@
  *    au suivant sur le même appareil.
  */
 
-const VERSION = 'velum-v1';
+const VERSION = 'velum-v2';
 const SHELL_CACHE = `${VERSION}-shell`;
 const ASSET_CACHE = `${VERSION}-assets`;
 const SHELL_URL = '/';
 
+/**
+ * Pré-chargement à l'installation — indispensable.
+ *
+ * Au tout premier chargement, le service worker n'a pas encore le contrôle de la
+ * page : le bundle JS est téléchargé SANS passer par lui, donc jamais mis en
+ * cache. Hors-ligne, on servait alors la coquille HTML sans son JavaScript →
+ * écran blanc (mesuré). On lit donc la coquille à l'install pour en extraire les
+ * URLs d'assets (noms hachés, donc impossible à coder en dur) et on les cache.
+ */
+async function precache() {
+  const cache = await caches.open(SHELL_CACHE);
+  const response = await fetch(new Request(SHELL_URL, { cache: 'reload' }));
+  if (!response.ok) return;
+  await cache.put(SHELL_URL, response.clone());
+
+  const html = await response.text();
+  const urls = new Set();
+  const pattern = /(?:src|href)="(\/[^"]+\.(?:js|css|png|ico|webmanifest))"/g;
+  let match;
+  while ((match = pattern.exec(html)) !== null) urls.add(match[1]);
+
+  const assets = await caches.open(ASSET_CACHE);
+  await Promise.all(
+    [...urls].map((url) =>
+      assets.add(new Request(url, { cache: 'reload' })).catch(() => undefined),
+    ),
+  );
+}
+
 self.addEventListener('install', (event) => {
+  // `catch` : hors-ligne au premier chargement, on n'échoue pas l'installation.
   event.waitUntil(
-    caches
-      .open(SHELL_CACHE)
-      .then((cache) => cache.add(new Request(SHELL_URL, { cache: 'reload' })))
-      .catch(() => undefined) // hors-ligne au premier chargement : on n'échoue pas l'install
+    precache()
+      .catch(() => undefined)
       .then(() => self.skipWaiting()),
   );
 });
