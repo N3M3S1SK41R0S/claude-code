@@ -112,10 +112,18 @@ export class AnthropicVision implements VisionModel {
 
 const OPENAI_URL = 'https://api.openai.com/v1/chat/completions';
 
+/**
+ * Les modèles GPT-5 et o-series rejettent `max_tokens` (400) et exigent
+ * `max_completion_tokens` ; gpt-4o et antérieurs n'acceptent que `max_tokens`.
+ */
+function openAiTokenLimitField(model: string): 'max_completion_tokens' | 'max_tokens' {
+  return /^(gpt-5|o[134])/.test(model) ? 'max_completion_tokens' : 'max_tokens';
+}
+
 export class OpenAIVision implements VisionModel {
   async complete(req: VisionRequest): Promise<string> {
     const apiKey = requireApiKey();
-    const model = modelFor('gpt-4o');
+    const model = modelFor('gpt-5.5');
 
     const userContent: unknown[] = (req.images ?? []).map((img) => ({
       type: 'image_url',
@@ -128,7 +136,7 @@ export class OpenAIVision implements VisionModel {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
         model,
-        max_tokens: req.maxTokens ?? DEFAULT_MAX_TOKENS,
+        [openAiTokenLimitField(model)]: req.maxTokens ?? DEFAULT_MAX_TOKENS,
         messages: [
           { role: 'system', content: req.system },
           { role: 'user', content: userContent },
@@ -155,7 +163,7 @@ interface GeminiPart {
 export class GoogleVision implements VisionModel {
   async complete(req: VisionRequest): Promise<string> {
     const apiKey = requireApiKey();
-    const model = modelFor('gemini-2.0-flash');
+    const model = modelFor('gemini-3.5-flash');
 
     const parts: unknown[] = (req.images ?? []).map((img) => ({
       inlineData: { mimeType: img.mediaType, data: stripDataUrlPrefix(img.base64) },

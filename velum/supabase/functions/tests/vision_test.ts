@@ -86,6 +86,41 @@ Deno.test('google : gemini generateContent, inlineData, parsing des parts', asyn
   }
 });
 
+Deno.test('openai : les GPT-5 reçoivent max_completion_tokens, pas max_tokens', async () => {
+  Deno.env.set('LLM_VISION_PROVIDER', 'openai');
+  const calls = stub({ choices: [{ message: { content: 'ok' } }] });
+  try {
+    // Défaut (gpt-5.5) : l'API rejette max_tokens avec un 400.
+    await createVisionModel().complete(REQ);
+    assertEquals(calls[0].body.model, 'gpt-5.5');
+    assertEquals(calls[0].body.max_tokens, undefined);
+    assert(typeof calls[0].body.max_completion_tokens === 'number');
+
+    // Modèle historique : c'est l'inverse — seul max_tokens est accepté.
+    Deno.env.set('LLM_VISION_MODEL', 'gpt-4o');
+    await createVisionModel().complete(REQ);
+    assertEquals(calls[1].body.max_completion_tokens, undefined);
+    assert(typeof calls[1].body.max_tokens === 'number');
+  } finally {
+    globalThis.fetch = realFetch;
+    Deno.env.delete('LLM_VISION_MODEL');
+    Deno.env.delete('LLM_VISION_PROVIDER');
+  }
+});
+
+Deno.test('google : le modèle par défaut est un modèle vivant (gemini-2.0-flash → 404)', async () => {
+  Deno.env.set('LLM_VISION_PROVIDER', 'google');
+  const calls = stub({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] });
+  try {
+    await createVisionModel().complete(REQ);
+    assert(calls[0].url.includes('gemini-3.5-flash'));
+    assert(!calls[0].url.includes('gemini-2.0-flash'));
+  } finally {
+    globalThis.fetch = realFetch;
+    Deno.env.delete('LLM_VISION_PROVIDER');
+  }
+});
+
 Deno.test('fournisseur inconnu : échec de configuration propre', () => {
   Deno.env.set('LLM_VISION_PROVIDER', 'mistral');
   try {
