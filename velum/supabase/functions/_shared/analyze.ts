@@ -10,7 +10,7 @@ import type { Candidate } from '@velum/core';
 import { getUser } from './auth.ts';
 import { handleOptions } from './cors.ts';
 import type { AnyDomainPlugin } from './domains.ts';
-import { AnthropicVision } from './llm.ts';
+import { createVisionModel } from './llm.ts';
 import { error, errorFromException, json } from './respond.ts';
 
 export function makeAnalyzeHandler(plugin: AnyDomainPlugin): (req: Request) => Promise<Response> {
@@ -47,7 +47,7 @@ export function makeAnalyzeHandler(plugin: AnyDomainPlugin): (req: Request) => P
     const itemId = typeof body.itemId === 'string' ? body.itemId : undefined;
 
     try {
-      const result = await plugin.analyze(candidate, { vision: new AnthropicVision() });
+      const result = await plugin.analyze(candidate, { vision: createVisionModel() });
 
       // Persistance optionnelle — via le client utilisateur : la RLS garantit
       // que l'item appartient bien à l'appelant.

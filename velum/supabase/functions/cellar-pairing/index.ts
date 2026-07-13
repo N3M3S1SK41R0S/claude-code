@@ -15,7 +15,7 @@ import type { CellarWineEntry, WineAnalysisPayload, WineAttributes } from '@velu
 import { recommendForDish } from '@velum/domain-wine';
 import { getUser } from '../_shared/auth.ts';
 import { handleOptions } from '../_shared/cors.ts';
-import { AnthropicVision } from '../_shared/llm.ts';
+import { createVisionModel } from '../_shared/llm.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
 
 const ENTITLED_PLANS = new Set(['gold', 'platine']);
@@ -91,7 +91,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       };
     });
 
-    const result = await recommendForDish({ dish, cellar }, new AnthropicVision());
+    const result = await recommendForDish({ dish, cellar }, createVisionModel());
     return json(result);
   } catch (err) {
     return errorFromException(err);

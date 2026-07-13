@@ -9,7 +9,7 @@ import type { CaptureInput } from '@velum/core';
 import { getUser } from '../_shared/auth.ts';
 import { handleOptions } from '../_shared/cors.ts';
 import { isVelumDomain, plugins } from '../_shared/domains.ts';
-import { AnthropicVision } from '../_shared/llm.ts';
+import { createVisionModel } from '../_shared/llm.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
 
 export async function handler(req: Request): Promise<Response> {
@@ -58,7 +58,7 @@ export async function handler(req: Request): Promise<Response> {
 
   try {
     const plugin = plugins[body.domain];
-    const result = await plugin.recognize(input, { vision: new AnthropicVision() });
+    const result = await plugin.recognize(input, { vision: createVisionModel() });
     return json(result);
   } catch (err) {
     return errorFromException(err);
