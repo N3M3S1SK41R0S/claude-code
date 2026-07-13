@@ -1,0 +1,38 @@
+{
+  "name": "velum",
+  "private": true,
+  "version": "1.0.0",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "e2e": "node e2e/web-smoke.mjs",
+    "e2e:auth": "node e2e/auth-screens.mjs",
+    "a11y": "node e2e/a11y-audit.mjs",
+    "senior": "node e2e/senior-screens.mjs",
+    "offline": "node e2e/offline.mjs",
+    "screens": "node e2e/store-screens.mjs && node e2e/auth-screens.mjs && node e2e/senior-screens.mjs",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "demo": "pnpm --filter velum-mobile demo"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@types/node": "^22.10.0",
+    "axe-core": "^4.12.1",
+    "playwright": "^1.61.1",
+    "turbo": "^2.3.0",
+    "typescript": "^5.6.3",
+    "vitest": "^3.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss@<8.5.10": ">=8.5.10",
+      "uuid@<11.1.1": ">=11.1.1"
+    }
+  }
+}

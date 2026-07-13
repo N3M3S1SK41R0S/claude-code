@@ -1,0 +1,108 @@
+name: VELUM CI
+
+on:
+  push:
+    paths: ["velum/**", ".github/workflows/velum-ci.yml"]
+  pull_request:
+    paths: ["velum/**", ".github/workflows/velum-ci.yml"]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: velum
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: velum/pnpm-lock.yaml
+
+      - name: Installer les dépendances
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck (10 packages, TypeScript strict)
+        run: pnpm typecheck
+
+      - name: Tests unitaires (vitest)
+        run: pnpm test
+
+      - name: Export web (PWA)
+        working-directory: velum/apps/mobile
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://ci-placeholder.supabase.co
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+        run: npx expo export --platform web
+
+      - name: Installer Chromium (Playwright)
+        run: npx playwright install --with-deps chromium
+
+      - name: E2E de fumée PWA (Chromium réel)
+        run: node e2e/web-smoke.mjs
+
+      - name: Rendu des écrans authentifiés (stub réseau) + captures stores
+        run: node e2e/auth-screens.mjs
+
+      - name: Audit accessibilité WCAG 2.2 AA (axe-core)
+        run: node e2e/a11y-audit.mjs
+
+      - name: Preuve du mode senior (agrandissement effectif du rendu)
+        run: node e2e/senior-screens.mjs
+
+      - name: Preuve du hors-ligne (collection lue depuis le cache persisté)
+        run: node e2e/offline.mjs
+
+      # EN DERNIER : l'export démo écrase dist/ ; --clear est OBLIGATOIRE car
+      # le cache Metro fige l'inlining des EXPO_PUBLIC_* du build précédent.
+      - name: Export web en MODE DÉMO
+        working-directory: velum/apps/mobile
+        env:
+          EXPO_PUBLIC_DEMO: "1"
+          EXPO_PUBLIC_SUPABASE_URL: https://demo.local
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: demo
+        run: npx expo export --platform web --clear
+
+      - name: Preuve du mode démo (parcours cœur sans backend)
+        run: node e2e/demo-smoke.mjs
+
+  edge-functions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Deno check des Edge Functions
+        working-directory: velum/supabase/functions
+        run: |
+          deno check --import-map=import_map.json \
+            recognize/index.ts \
+            analyze-wine/index.ts analyze-coin/index.ts analyze-art/index.ts analyze-stamp/index.ts \
+            valuate/index.ts cellar-pairing/index.ts \
+            price-cron/index.ts revenuecat-webhook/index.ts delete-account/index.ts
+
+      - name: Tests des Edge Functions (helpers purs + handlers HTTP, fetch stubbé)
+        working-directory: velum/supabase/functions
+        run: deno test --import-map=import_map.json -A tests/
+
+  sql:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Démarrer PostgreSQL (préinstallé sur le runner)
+        run: |
+          sudo systemctl start postgresql
+          sudo -u postgres psql -c "select version();"
+
+      - name: Migrations + RLS + quota + Platine sur Postgres réel
+        run: sudo -u postgres bash velum/supabase/tests/run-local.sh

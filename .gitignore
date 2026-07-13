@@ -1,0 +1,11 @@
+# Claude Code — réglages locaux propres à la machine/session (non versionnés).
+.claude/settings.local.json
+
+# Outil de design « impeccable » installé localement (npx impeccable install) :
+# tooling de développement, réinstallable à la demande, hors périmètre produit.
+.claude/skills/impeccable/
+.github/hooks/impeccable.json
+.github/skills/impeccable/
+.claude/skills/grill-me/
+.claude/skills/make-interfaces-feel-better/
+.claude/skills/thermo-nuclear-code-quality-review/

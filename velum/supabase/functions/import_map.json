@@ -1,0 +1,10 @@
+{
+  "imports": {
+    "@velum/core": "../../packages/core/src/index.ts",
+    "@velum/valuation": "../../packages/valuation/src/index.ts",
+    "@velum/domain-wine": "../../packages/domains/wine/src/index.ts",
+    "@velum/domain-coin": "../../packages/domains/coin/src/index.ts",
+    "@velum/domain-art": "../../packages/domains/art/src/index.ts",
+    "@velum/domain-stamp": "../../packages/domains/stamp/src/index.ts"
+  }
+}
