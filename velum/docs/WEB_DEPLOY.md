@@ -56,8 +56,8 @@ le fournisseur en une ligne, la clé correspondante suffit.
 | `LLM_VISION_PROVIDER` | Clé à mettre dans `LLM_VISION_API_KEY` | Modèle défaut |
 |---|---|---|
 | `anthropic` *(défaut)* | clé Anthropic (`sk-ant-…`) | `claude-sonnet-5` |
-| `openai` | clé OpenAI (`sk-…`) | `gpt-4o` |
-| `google` | clé Google AI Studio (Gemini) | `gemini-2.0-flash` |
+| `openai` | clé OpenAI (`sk-…`) | `gpt-5.5` |
+| `google` | clé Google AI Studio (Gemini) | `gemini-3.5-flash` |
 
 Pour forcer un modèle précis (facultatif) : `LLM_VISION_MODEL=…`. Les sources
 marché (`NUMISTA_API_KEY`, `ARTPRICE_API_KEY`, `EBAY_API_KEY`,
