@@ -30,6 +30,16 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="apple-mobile-web-app-title" content="VELUM" />
         <meta name="application-name" content="VELUM" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        {/* Manifest : installabilité Android/Chrome + nom, icônes et couleurs.
+            iOS s'appuie sur les balises apple-* ci-dessus, pas sur le manifest. */}
+        <link rel="manifest" href="/manifest.webmanifest" />
+        {/* Service worker : sans lui, l'app affiche un écran blanc hors réseau.
+            Enregistré après `load` pour ne pas concurrencer le premier rendu. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('/sw.js').catch(function(){});});}`,
+          }}
+        />
         {/* Lissage des polices (rendu net sur écrans macOS/Retina) — la cave
             sombre gagne en finesse typographique côté PWA. */}
         <style
