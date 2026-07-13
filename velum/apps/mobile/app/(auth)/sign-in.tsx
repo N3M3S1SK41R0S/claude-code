@@ -2,14 +2,14 @@
  * Connexion : e-mail/mot de passe, Apple (iOS), Google, réinitialisation
  * du mot de passe, mention du compte démo.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { VButton, VText, VTextInput, velumSpacing } from '@velum/ui';
 
 import { Screen } from '../../components/Screen';
-import { isAppleSignInSupported, signInWithApple, useGoogleSignIn } from '../../lib/auth';
+import { isAppleSignInSupported, signInWithApple, useGoogleSignIn, useSession } from '../../lib/auth';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
 import { showToast } from '../../stores/toastStore';
@@ -21,12 +21,19 @@ export default function SignIn() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const { available: googleAvailable, promptGoogle } = useGoogleSignIn();
+  const { session } = useSession();
+
+  // Redirection unique dès qu'une session existe (e-mail, Apple OU Google —
+  // dont l'échange de l'id_token se fait de façon asynchrone dans le hook).
+  // Évite qu'un utilisateur Google reste bloqué ici faute de navigation.
+  useEffect(() => {
+    if (session) router.replace('/accueil');
+  }, [session, router]);
 
   const signIn = async () => {
     setBusy(true);
     try {
       await getVelumClient().auth.signInWithEmail(email.trim(), password);
-      router.replace('/(tabs)/capture');
     } catch (error) {
       showToast(errorMessage(error, t), 'danger');
     } finally {
@@ -37,7 +44,6 @@ export default function SignIn() {
   const apple = async () => {
     try {
       await signInWithApple();
-      router.replace('/(tabs)/capture');
     } catch (error) {
       showToast(errorMessage(error, t), 'danger');
     }

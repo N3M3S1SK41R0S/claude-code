@@ -2,14 +2,14 @@
  * Création de compte : e-mail/mot de passe (validation locale), Apple (iOS),
  * Google, mention du compte démo.
  */
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { VButton, VText, VTextInput, velumSpacing } from '@velum/ui';
 
 import { Screen } from '../../components/Screen';
-import { isAppleSignInSupported, signInWithApple, useGoogleSignIn } from '../../lib/auth';
+import { isAppleSignInSupported, signInWithApple, useGoogleSignIn, useSession } from '../../lib/auth';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
 import { showToast } from '../../stores/toastStore';
@@ -24,6 +24,13 @@ export default function SignUp() {
   const [emailError, setEmailError] = useState<string | undefined>(undefined);
   const [passwordError, setPasswordError] = useState<string | undefined>(undefined);
   const { available: googleAvailable, promptGoogle } = useGoogleSignIn();
+  const { session: authSession } = useSession();
+
+  // Session établie (Apple/Google, ou e-mail sans confirmation) → on quitte
+  // l'écran d'auth. Couvre notamment Google (échange d'id_token asynchrone).
+  useEffect(() => {
+    if (authSession) router.replace('/accueil');
+  }, [authSession, router]);
 
   const signUp = async () => {
     const trimmed = email.trim();
@@ -47,9 +54,8 @@ export default function SignUp() {
         // Confirmation e-mail requise avant la première session.
         showToast(t('auth.confirmEmail'), 'success');
         router.replace('/(auth)/sign-in');
-      } else {
-        router.replace('/(tabs)/capture');
       }
+      // Sinon : session créée → l'effet de redirection ci-dessus mène à /accueil.
     } catch (error) {
       showToast(errorMessage(error, t), 'danger');
     } finally {
@@ -60,7 +66,6 @@ export default function SignUp() {
   const apple = async () => {
     try {
       await signInWithApple();
-      router.replace('/(tabs)/capture');
     } catch (error) {
       showToast(errorMessage(error, t), 'danger');
     }
