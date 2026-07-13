@@ -18,6 +18,7 @@ import type { CaptureInput, MediaRole, VelumDomain } from '@velum/core';
 import { AiConsentModal } from '../../components/AiConsentModal';
 import { MediaCapturePreview } from '../../components/MediaCapturePreview';
 import { Screen } from '../../components/Screen';
+import { WebCamera } from '../../components/WebCamera';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage, velumErrorCode } from '../../lib/errors';
 import { useCaptureStore } from '../../stores/captureStore';
@@ -106,19 +107,20 @@ export default function CaptureModal() {
     },
   });
 
+  /** Ajoute un cliché et avance vers le rôle suivant restant (multi-clichés). */
+  const acceptShot = (dataUrl: string) => {
+    addMedia({ role: activeRole, base64: dataUrl, uri: dataUrl });
+    const remaining = roles.find(
+      (role) => role !== activeRole && !media.some((m) => m.role === role),
+    );
+    if (remaining) setActiveRole(remaining);
+  };
+
   const takePhoto = async () => {
     try {
       const photo = await cameraRef.current?.takePictureAsync({ base64: true, quality: 0.7 });
       if (!photo?.base64) return;
-      addMedia({
-        role: activeRole,
-        base64: `data:image/jpeg;base64,${photo.base64}`,
-        uri: photo.uri,
-      });
-      const remaining = roles.find(
-        (role) => role !== activeRole && !media.some((m) => m.role === role),
-      );
-      if (remaining) setActiveRole(remaining);
+      acceptShot(`data:image/jpeg;base64,${photo.base64}`);
     } catch (error) {
       showToast(errorMessage(error, t), 'danger');
     }
@@ -186,11 +188,41 @@ export default function CaptureModal() {
   const renderPhotoTab = () => {
     if (Platform.OS === 'web') {
       return (
-        <View style={styles.cameraFallback}>
-          <VText variant="body" tone="dim" center>
-            {t('capture.cameraUnavailableWeb')}
+        <View style={styles.cameraBlock}>
+          <WebCamera
+            onCapture={acceptShot}
+            labels={{
+              takePhoto: t('capture.takePhoto'),
+              starting: t('capture.cameraStarting'),
+              denied: t('capture.cameraDeniedWeb'),
+              useNativeCamera: t('capture.useNativeCamera'),
+            }}
+            guide={
+              <>
+                <VText variant="caption" tone="gold" center>
+                  {t('capture.guideTitle', { role: t(`roles.${activeRole}`) })}
+                </VText>
+                <VText variant="caption" tone="dim" center>
+                  {t('capture.guideHint')}
+                </VText>
+              </>
+            }
+          />
+          <MediaCapturePreview
+            roles={roles}
+            media={media}
+            activeRole={activeRole}
+            roleLabel={(role) => t(`roles.${role}`)}
+            onSelectRole={setActiveRole}
+          />
+          <VText variant="caption" tone="dim" center>
+            {t('capture.photosCount', { done: media.length, total: roles.length })}
           </VText>
-          <VButton label={t('capture.fromGallery')} variant="secondary" onPress={() => void pickFromGallery()} />
+          <VButton
+            label={t('capture.fromGallery')}
+            variant="ghost"
+            onPress={() => void pickFromGallery()}
+          />
         </View>
       );
     }
