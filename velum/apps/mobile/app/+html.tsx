@@ -14,13 +14,22 @@ export default function Root({ children }: PropsWithChildren) {
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta
           name="viewport"
-          content="width=device-width, initial-scale=1, shrink-to-fit=no"
+          content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover"
         />
         <meta
           name="description"
           content="VELUM — identifiez, analysez et estimez vos vins, pièces, tableaux et timbres."
         />
         <meta name="theme-color" content="#1a0d10" />
+        {/* PWA installable — « Ajouter à l'écran d'accueil » (iOS + Android).
+            iOS ignore les icônes du manifest : c'est apple-touch-icon qui fait
+            foi. Les fichiers viennent de apps/mobile/public/ (copié tel quel). */}
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="VELUM" />
+        <meta name="application-name" content="VELUM" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         {/* Lissage des polices (rendu net sur écrans macOS/Retina) — la cave
             sombre gagne en finesse typographique côté PWA. */}
         <style

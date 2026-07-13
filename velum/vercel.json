@@ -1,0 +1,18 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter velum-mobile build:web",
+  "outputDirectory": "apps/mobile/dist",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/item/:id", "destination": "/item/[id]" },
+    { "source": "/capture/:domain", "destination": "/capture/[domain]" }
+  ],
+  "headers": [
+    {
+      "source": "/apple-touch-icon.png",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800" }]
+    }
+  ]
+}
