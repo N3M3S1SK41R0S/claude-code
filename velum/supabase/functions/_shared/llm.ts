@@ -160,6 +160,21 @@ interface GeminiPart {
   text?: string;
 }
 
+/**
+ * Gemini décompte les tokens de RAISONNEMENT du même budget `maxOutputTokens`.
+ * Sur gemini-3.5-flash, une identification d'étiquette consomme ~900 tokens de
+ * réflexion : avec un budget de 1024 demandé par l'appelant, la réponse était
+ * tronquée (`finishReason: MAX_TOKENS`, texte vide) environ une fois sur quatre.
+ * On réserve donc la réflexion EN PLUS du budget demandé, pour que `maxTokens`
+ * reste ce qu'il prétend être : la place disponible pour la réponse.
+ */
+const GEMINI_THINKING_RESERVE = 2048;
+
+/** `thinkingLevel` n'existe que sur Gemini 3 — un Gemini 2.5 le rejette (400). */
+function geminiSupportsThinkingLevel(model: string): boolean {
+  return /^gemini-3/.test(model);
+}
+
 export class GoogleVision implements VisionModel {
   async complete(req: VisionRequest): Promise<string> {
     const apiKey = requireApiKey();
@@ -170,6 +185,15 @@ export class GoogleVision implements VisionModel {
     }));
     parts.push({ text: req.prompt });
 
+    const generationConfig: Record<string, unknown> = {
+      maxOutputTokens: (req.maxTokens ?? DEFAULT_MAX_TOKENS) + GEMINI_THINKING_RESERVE,
+    };
+    if (geminiSupportsThinkingLevel(model)) {
+      // Divise la réflexion par ~6 (≈900 → ≈150 tokens) sans perte de qualité
+      // mesurable sur l'identification, et réduit d'autant le coût.
+      generationConfig['thinkingConfig'] = { thinkingLevel: 'low' };
+    }
+
     const url = `${GEMINI_BASE}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
     const response = await fetch(url, {
       method: 'POST',
@@ -177,7 +201,7 @@ export class GoogleVision implements VisionModel {
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: req.system }] },
         contents: [{ role: 'user', parts }],
-        generationConfig: { maxOutputTokens: req.maxTokens ?? DEFAULT_MAX_TOKENS },
+        generationConfig,
       }),
     });
     await ensureOk(response);

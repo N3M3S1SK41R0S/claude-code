@@ -121,6 +121,27 @@ Deno.test('google : le modèle par défaut est un modèle vivant (gemini-2.0-fla
   }
 });
 
+Deno.test('google : la réflexion Gemini est réservée EN PLUS du budget de réponse', async () => {
+  Deno.env.set('LLM_VISION_PROVIDER', 'google');
+  const calls = stub({ candidates: [{ content: { parts: [{ text: 'ok' }] } }] });
+  try {
+    // Gemini 3 : réserve de réflexion + thinkingLevel bas (sinon MAX_TOKENS ~1 fois sur 4).
+    await createVisionModel().complete({ ...REQ, maxTokens: 1024 });
+    assertEquals(calls[0].body.generationConfig.maxOutputTokens, 1024 + 2048);
+    assertEquals(calls[0].body.generationConfig.thinkingConfig.thinkingLevel, 'low');
+
+    // Gemini 2.5 : thinkingLevel rejeté par l'API (400) → jamais envoyé.
+    Deno.env.set('LLM_VISION_MODEL', 'gemini-2.5-flash');
+    await createVisionModel().complete({ ...REQ, maxTokens: 1024 });
+    assertEquals(calls[1].body.generationConfig.maxOutputTokens, 1024 + 2048);
+    assertEquals(calls[1].body.generationConfig.thinkingConfig, undefined);
+  } finally {
+    globalThis.fetch = realFetch;
+    Deno.env.delete('LLM_VISION_MODEL');
+    Deno.env.delete('LLM_VISION_PROVIDER');
+  }
+});
+
 Deno.test('fournisseur inconnu : échec de configuration propre', () => {
   Deno.env.set('LLM_VISION_PROVIDER', 'mistral');
   try {
