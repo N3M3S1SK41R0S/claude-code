@@ -31,6 +31,7 @@ function stubFetch(options: {
   plan?: string;
   profileStatus?: number;
   items?: unknown[];
+  guard?: 'ok' | 'budget' | 'user' | 'ip' | 'unauthorized';
 } = {}): string[] {
   const calls: string[] = [];
   globalThis.fetch = ((input: string | URL | Request): Promise<Response> => {
@@ -48,7 +49,7 @@ function stubFetch(options: {
       return Promise.resolve(jsonResponse(options.items ?? []));
     }
     if (url.includes('/rest/v1/rpc/guard_ai_call')) {
-      return Promise.resolve(jsonResponse('ok'));
+      return Promise.resolve(jsonResponse(options.guard ?? 'ok'));
     }
     if (url.includes('api.anthropic.com')) {
       return Promise.resolve(
@@ -81,6 +82,29 @@ Deno.test('cellar-pairing ne consomme ni garde-fou ni fournisseur pour une cave 
       fallbackAdvice: EMPTY_CELLAR_ADVICE,
     });
     assertEquals(calls.some((url) => url.includes('guard_ai_call')), false);
+    assertEquals(calls.some((url) => url.includes('api.anthropic.com')), false);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+Deno.test('cellar-pairing garde le plafond IA pour une cave non vide', async () => {
+  const calls = stubFetch({
+    guard: 'budget',
+    items: [
+      {
+        id: 'wine-1',
+        title: 'Bandol Domaine Tempier 2018',
+        attributes: { vintage: 2018 },
+        storage_location: 'Casier B3',
+      },
+    ],
+  });
+  try {
+    const response = await handler(post({ dish: 'daube provençale' }));
+    assertEquals(response.status, 503);
+    assertEquals((await response.json()).error.code, 'SOURCE_UNAVAILABLE');
+    assertEquals(calls.some((url) => url.includes('guard_ai_call')), true);
     assertEquals(calls.some((url) => url.includes('api.anthropic.com')), false);
   } finally {
     globalThis.fetch = realFetch;
