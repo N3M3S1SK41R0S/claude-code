@@ -21,6 +21,7 @@ import { Screen } from '../../components/Screen';
 import { WebCamera } from '../../components/WebCamera';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage, velumErrorCode } from '../../lib/errors';
+import { uploadCaptureMedia } from '../../lib/uploadMedia';
 import { useCaptureStore } from '../../stores/captureStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { showToast } from '../../stores/toastStore';
@@ -162,16 +163,27 @@ export default function CaptureModal() {
     }
   };
 
-  const analyze = () => {
+  const analyze = async () => {
     if ((tab === 'photo' || tab === 'text') && aiConsent !== true) {
       showToast(t('aiConsent.declinedBanner'), 'info');
       return;
     }
     let input: CaptureInput | null = null;
     if (tab === 'photo' && media.length > 0) {
+      // On téléverse l'octet brut plutôt que d'embarquer le base64 dans le JSON
+      // (+33 % de poids, ×2 ou ×3 en multi-clichés, et la photo perdue ensuite).
+      // Si le téléversement échoue, on retombe sur le base64 : mieux vaut une
+      // requête lourde qu'une capture perdue.
+      const uploaded = await Promise.all(
+        media.map(async (m) => ({ media: m, path: await uploadCaptureMedia(m.base64) })),
+      );
       input = {
         kind: 'photo',
-        media: media.map((m) => ({ role: m.role, storagePath: '', base64: m.base64 })),
+        media: uploaded.map(({ media: m, path }) =>
+          path === null
+            ? { role: m.role, storagePath: '', base64: m.base64 }
+            : { role: m.role, storagePath: path },
+        ),
       };
     } else if (tab === 'text' && text.trim().length > 0) {
       input = { kind: 'text', text: text.trim() };
@@ -334,7 +346,7 @@ export default function CaptureModal() {
       <View style={styles.analyze}>
         <VButton
           label={recognizeMutation.isPending ? t('capture.analyzing') : t('capture.analyze')}
-          onPress={analyze}
+          onPress={() => void analyze()}
           loading={recognizeMutation.isPending}
         />
         <VButton label={t('common.cancel')} variant="ghost" onPress={() => router.back()} />

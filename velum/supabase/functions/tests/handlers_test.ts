@@ -51,6 +51,15 @@ function stubFetch(opts: {
     if (url.includes('/rest/v1/rpc/consume_scan')) {
       return Promise.resolve(jsonResponse(opts.quota ?? true));
     }
+    // Storage : téléchargement de la photo téléversée par le client.
+    if (url.includes('/storage/v1/object/')) {
+      return Promise.resolve(
+        new Response(new Uint8Array([0xff, 0xd8, 0xff, 0xdb]), {
+          status: 200,
+          headers: { 'Content-Type': 'image/jpeg' },
+        }),
+      );
+    }
     if (url.includes('api.anthropic.com')) {
       return Promise.resolve(
         jsonResponse({ content: [{ type: 'text', text: opts.vision ?? '{"candidates":[]}' }] }),
@@ -113,6 +122,48 @@ Deno.test('recognize : quota atteint → 402 BUDGET_EXCEEDED', async () => {
   );
   assertEquals(res.status, 402);
   assertEquals((await res.json()).error.code, 'BUDGET_EXCEEDED');
+  restore();
+});
+
+// ── Photos via Storage ───────────────────────────────────────────────────────
+// Le client téléverse la photo et n'envoie qu'un `storagePath` : le serveur
+// retélécharge l'octet brut. Plus de base64 (+33 %) dans le corps JSON.
+
+Deno.test('recognize : une photo en storagePath est retéléchargée puis analysée', async () => {
+  stubFetch({
+    user: DEMO_USER,
+    vision: '{"candidates":[{"label":"Bandol 2016","confidence":0.9,"attributes":{"vintage":2016}}]}',
+  });
+  const res = await recognize(
+    post('https://x/recognize', {
+      domain: 'wine',
+      input: {
+        kind: 'photo',
+        media: [{ role: 'label', storagePath: `${DEMO_USER.id}/photo.jpg` }], // pas de base64
+      },
+    }),
+  );
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  assertEquals(body.candidates[0].label, 'Bandol 2016');
+  restore();
+});
+
+Deno.test("recognize : lire la photo d'un AUTRE utilisateur → 401", async () => {
+  stubFetch({ user: DEMO_USER });
+  const res = await recognize(
+    post('https://x/recognize', {
+      domain: 'wine',
+      input: {
+        kind: 'photo',
+        // Préfixe uid d'autrui : la RLS du bucket le refuserait déjà, on vérifie
+        // en plus côté serveur (défense en profondeur).
+        media: [{ role: 'label', storagePath: '99999999-9999-4999-8999-999999999999/vol.jpg' }],
+      },
+    }),
+  );
+  assertEquals(res.status, 401);
+  assertEquals((await res.json()).error.code, 'UNAUTHORIZED');
   restore();
 });
 

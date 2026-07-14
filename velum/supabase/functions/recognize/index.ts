@@ -11,6 +11,7 @@ import { handleOptions } from '../_shared/cors.ts';
 import { isVelumDomain, plugins } from '../_shared/domains.ts';
 import { guardAiCall } from '../_shared/guard.ts';
 import { createVisionModel } from '../_shared/llm.ts';
+import { hydrateMedia } from '../_shared/media.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
 
 export async function handler(req: Request): Promise<Response> {
@@ -64,7 +65,10 @@ export async function handler(req: Request): Promise<Response> {
 
   try {
     const plugin = plugins[body.domain];
-    const result = await plugin.recognize(input, {
+    // Les photos arrivent en `storagePath` (téléversées par le client) : on
+    // retélécharge l'octet brut ici. Un `base64` déjà fourni est conservé tel quel.
+    const hydrated = await hydrateMedia(auth, input);
+    const result = await plugin.recognize(hydrated, {
       vision: createVisionModel({
         operation: 'recognize',
         domain: body.domain,
