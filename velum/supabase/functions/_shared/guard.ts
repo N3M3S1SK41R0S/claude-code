@@ -13,6 +13,23 @@
 import type { AuthContext } from './auth.ts';
 import { error } from './respond.ts';
 
+export interface GuardRpcError {
+  message: string;
+}
+
+export interface GuardRpcResult {
+  data: unknown;
+  error: GuardRpcError | null;
+}
+
+export type GuardRpc = (ip: string) => Promise<GuardRpcResult>;
+
+export interface GuardCheckDeps {
+  rpc: GuardRpc;
+  now?: () => string;
+  log?: (entry: Record<string, unknown>) => void;
+}
+
 /** IP de l'appelant telle que vue derrière le proxy Supabase. */
 function clientIp(req: Request): string {
   const forwarded = req.headers.get('x-forwarded-for');
@@ -20,37 +37,38 @@ function clientIp(req: Request): string {
   return first || req.headers.get('cf-connecting-ip') || 'inconnue';
 }
 
-/**
- * Retourne une `Response` d'erreur si l'appel doit être REFUSÉ, sinon `null`.
- *
- * En cas de panne du garde-fou lui-même, on LAISSE PASSER : un plafond cassé ne
- * doit pas rendre VELUM inutilisable. La dépense reste bornée par le plafond
- * global au prochain appel réussi.
- */
-export async function guardAiCall(auth: AuthContext, req: Request): Promise<Response | null> {
-  const { data, error: rpcError } = await auth.supabase.rpc('guard_ai_call', {
-    p_ip: clientIp(req),
-  });
+function logGuardEvent(
+  deps: GuardCheckDeps,
+  event: string,
+  fields: Record<string, unknown> = {},
+): void {
+  const entry = {
+    at: (deps.now ?? (() => new Date().toISOString()))(),
+    event,
+    ...fields,
+  };
+  const logger = deps.log ?? ((value: Record<string, unknown>) => console.error(JSON.stringify(value)));
+  logger(entry);
+}
 
-  if (rpcError) {
-    console.log(
-      JSON.stringify({
-        at: new Date().toISOString(),
-        event: 'guard.unavailable',
-        message: rpcError.message,
-      }),
-    );
-    return null; // fail-open : on ne bloque pas l'app parce que le garde-fou tousse
-  }
+function unavailableResponse(): Response {
+  return error(
+    'SOURCE_UNAVAILABLE',
+    "Le contrôle des plafonds d'analyse est temporairement indisponible. Réessayez plus tard.",
+    503,
+  );
+}
 
-  switch (data) {
+function responseForDecision(
+  decision: unknown,
+  deps: GuardCheckDeps,
+): Response | null {
+  switch (decision) {
     case 'ok':
       return null;
 
     case 'budget':
-      console.log(
-        JSON.stringify({ at: new Date().toISOString(), event: 'guard.budget_cap_reached' }),
-      );
+      logGuardEvent(deps, 'guard.budget_cap_reached');
       return error(
         'SOURCE_UNAVAILABLE',
         "Le service d'analyse est temporairement suspendu (plafond de dépense quotidien atteint). Réessayez demain.",
@@ -65,9 +83,7 @@ export async function guardAiCall(auth: AuthContext, req: Request): Promise<Resp
       );
 
     case 'ip':
-      console.log(
-        JSON.stringify({ at: new Date().toISOString(), event: 'guard.ip_cap_reached' }),
-      );
+      logGuardEvent(deps, 'guard.ip_cap_reached');
       return error(
         'RATE_LIMITED',
         "Trop d'analyses depuis ce réseau aujourd'hui. Réessayez demain.",
@@ -78,6 +94,52 @@ export async function guardAiCall(auth: AuthContext, req: Request): Promise<Resp
       return error('UNAUTHORIZED', 'Authentification requise', 401);
 
     default:
-      return null;
+      logGuardEvent(deps, 'guard.invalid_result', {
+        decision: String(decision).slice(0, 100),
+      });
+      return unavailableResponse();
   }
+}
+
+/**
+ * Exécute le contrôle avec un RPC injecté. Toute panne ou réponse inconnue est
+ * fail-closed : appeler le modèle sans plafond annulerait la garantie budgétaire.
+ */
+export async function runGuardCheck(
+  req: Request,
+  deps: GuardCheckDeps,
+): Promise<Response | null> {
+  let result: GuardRpcResult;
+  try {
+    result = await deps.rpc(clientIp(req));
+  } catch (cause) {
+    logGuardEvent(deps, 'guard.unavailable', {
+      message: (cause instanceof Error ? cause.message : String(cause)).slice(0, 300),
+    });
+    return unavailableResponse();
+  }
+
+  if (result.error) {
+    logGuardEvent(deps, 'guard.unavailable', {
+      message: result.error.message.slice(0, 300),
+    });
+    return unavailableResponse();
+  }
+
+  return responseForDecision(result.data, deps);
+}
+
+/** Retourne une réponse d'erreur si l'appel doit être refusé, sinon `null`. */
+export async function guardAiCall(auth: AuthContext, req: Request): Promise<Response | null> {
+  return runGuardCheck(req, {
+    rpc: async (ip) => {
+      const { data, error: rpcError } = await auth.supabase.rpc('guard_ai_call', {
+        p_ip: ip,
+      });
+      return {
+        data,
+        error: rpcError ? { message: rpcError.message } : null,
+      };
+    },
+  });
 }
