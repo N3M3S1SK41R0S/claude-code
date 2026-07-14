@@ -11,17 +11,17 @@
  *   → PairingResult (recommandations anti-hallucination : uniquement des
  *     itemId réellement en cave).
  */
-import type { CellarWineEntry, WineAnalysisPayload, WineAttributes } from '@velum/core';
-import { recommendForDish } from '@velum/domain-wine';
+import { EMPTY_CELLAR_ADVICE, recommendForDish } from '@velum/domain-wine';
 import { getUser } from '../_shared/auth.ts';
 import { handleOptions } from '../_shared/cors.ts';
 import { guardAiCall } from '../_shared/guard.ts';
 import { createVisionModel } from '../_shared/llm.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
+import { parseCellarRows, validatePairingBody } from './input.ts';
 
 const ENTITLED_PLANS = new Set(['gold', 'platine']);
 
-Deno.serve(async (req: Request): Promise<Response> => {
+export async function handler(req: Request): Promise<Response> {
   const preflight = handleOptions(req);
   if (preflight) return preflight;
   if (req.method !== 'POST') {
@@ -33,29 +33,29 @@ Deno.serve(async (req: Request): Promise<Response> => {
     return error('UNAUTHORIZED', 'Authentification requise', 401);
   }
 
-  let body: { dish?: unknown };
+  let rawBody: unknown;
   try {
-    body = await req.json();
+    rawBody = await req.json();
   } catch {
     return error('INVALID_INPUT', 'Corps JSON invalide', 400);
   }
-  const dish = typeof body.dish === 'string' ? body.dish.trim() : '';
-  if (dish.length === 0 || dish.length > 500) {
-    return error('INVALID_INPUT', "Champ 'dish' requis (description du plat, ≤ 500 caractères)", 400);
+  const bodyResult = validatePairingBody(rawBody);
+  if (!bodyResult.ok) {
+    return error('INVALID_INPUT', bodyResult.message, 400);
   }
-
-  // Réservé aux plans payants (voir plus bas), donc jamais bridé en pratique —
-  // le garde-fou est là par principe : aucun appel IA ne doit être non plafonné.
-  const blocked = await guardAiCall(auth, req);
-  if (blocked) return blocked;
+  const { dish } = bodyResult.value;
 
   // Le sommelier de cave fait partie du carnet virtuel : Gold et Platine.
-  const { data: profile } = await auth.supabase
+  const { data: profile, error: profileError } = await auth.supabase
     .from('profiles')
     .select('plan')
     .eq('id', auth.user.id)
     .maybeSingle();
-  if (!profile || !ENTITLED_PLANS.has(profile.plan as string)) {
+  if (profileError) {
+    return error('SOURCE_UNAVAILABLE', 'Vérification de l’offre impossible', 503);
+  }
+  const plan = profile && typeof profile.plan === 'string' ? profile.plan : null;
+  if (!plan || !ENTITLED_PLANS.has(plan)) {
     return error(
       'PLAN_REQUIRED',
       'Le sommelier de cave fait partie du carnet virtuel — offre Gold ou Platine.',
@@ -75,27 +75,29 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return error('SOURCE_UNAVAILABLE', 'Lecture de la cave impossible', 503);
     }
 
-    const cellar: CellarWineEntry[] = (items ?? []).map((row) => {
-      const attrs = (row.attributes ?? {}) as WineAttributes & {
-        analysis?: WineAnalysisPayload;
-        quantity?: number;
-      };
-      const analysis = attrs.analysis;
-      return {
-        itemId: row.id as string,
-        label:
-          (row.title as string | null) ??
-          [attrs.producer, attrs.cuvee, attrs.vintage].filter(Boolean).join(' ') ??
-          'Vin sans étiquette',
-        vintage: typeof attrs.vintage === 'number' ? attrs.vintage : undefined,
-        region: typeof attrs.region === 'string' ? attrs.region : undefined,
-        color: typeof attrs.color === 'string' ? attrs.color : undefined,
-        storageLocation: (row.storage_location as string | null) ?? undefined,
-        drinkWindow: analysis?.tasting?.drinkWindow,
-        foodPairings: analysis?.comparisons?.foodPairings,
-        quantity: typeof attrs.quantity === 'number' ? attrs.quantity : undefined,
-      };
-    });
+    let cellar: ReturnType<typeof parseCellarRows>;
+    try {
+      cellar = parseCellarRows(items ?? []);
+    } catch (parseError) {
+      console.error(
+        JSON.stringify({
+          at: new Date().toISOString(),
+          event: 'cellar.invalid_rows',
+          message: parseError instanceof Error ? parseError.message : String(parseError),
+        }),
+      );
+      return error('SOURCE_UNAVAILABLE', 'Données de cave invalides', 503);
+    }
+
+    // Cave vide : réponse déterministe. Aucun quota, aucune clé fournisseur et
+    // aucun appel facturé ne sont nécessaires pour dire qu'il n'y a rien à choisir.
+    if (cellar.length === 0) {
+      return json({ recommendations: [], fallbackAdvice: EMPTY_CELLAR_ADVICE });
+    }
+
+    // Le garde-fou est consommé uniquement lorsqu'un appel IA aura réellement lieu.
+    const blocked = await guardAiCall(auth, req);
+    if (blocked) return blocked;
 
     const result = await recommendForDish(
       { dish, cellar },
@@ -105,4 +107,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
   } catch (err) {
     return errorFromException(err);
   }
-});
+}
+
+if (import.meta.main) Deno.serve(handler);

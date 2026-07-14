@@ -17,6 +17,7 @@ export {
   parsePairingResponse,
   buildPairingUserPrompt,
   CELLAR_SOMMELIER_PROMPT,
+  EMPTY_CELLAR_ADVICE,
   type AnalyzedCellarWine,
 } from './cellar.ts';
 export {

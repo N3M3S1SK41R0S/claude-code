@@ -3,6 +3,7 @@ import type { WineAnalysisPayload } from '@velum/core';
 import {
   CELLAR_SOMMELIER_PROMPT,
   drinkNowSuggestions,
+  EMPTY_CELLAR_ADVICE,
   isInDrinkWindow,
   parsePairingResponse,
   recommendForDish,
@@ -48,6 +49,8 @@ describe('isInDrinkWindow (§6.2.3 — alerte « à boire »)', () => {
     const malformed = makePayload(2024, 2035);
     (malformed.tasting.drinkWindow as unknown as Record<string, unknown>)['from'] = 'demain';
     expect(isInDrinkWindow(malformed, 2026)).toBe(false);
+
+    expect(isInDrinkWindow(makePayload(2035, 2024), 2026)).toBe(false);
   });
 });
 
@@ -79,12 +82,44 @@ describe('sommelier de cave — sens 1 : plat → vin de MA cave', () => {
     const result = parsePairingResponse(raw, cellar);
     expect(result.recommendations).toHaveLength(1);
     expect(result.recommendations[0]).toMatchObject({ itemId: 'a1', score: 1 });
-    // le label manquant est repris de la cave, jamais inventé
     expect(result.recommendations[0]?.label).toBe('Bandol Domaine Tempier 2018');
+  });
+
+  it('ignore les entrées primitives, déduplique et interdit au modèle de renommer un item', () => {
+    const raw = JSON.stringify({
+      recommendations: [
+        null,
+        'texte parasite',
+        { itemId: 'a1', label: 'Pétrus 1990', score: null },
+        { itemId: 'a1', label: 'Autre faux label', score: 0.9, reasoning: 'accord réel' },
+        { itemId: 'b2', score: 'NaN' },
+      ],
+      fallbackAdvice: '  conseil de repli  ',
+    });
+
+    const result = parsePairingResponse(raw, cellar);
+    expect(result.recommendations.map((r) => r.itemId)).toEqual(['a1', 'b2']);
+    expect(result.recommendations[0]).toMatchObject({
+      itemId: 'a1',
+      label: 'Bandol Domaine Tempier 2018',
+      score: 0.9,
+      reasoning: 'accord réel',
+    });
+    expect(result.recommendations[1]).toMatchObject({
+      itemId: 'b2',
+      label: 'Sancerre Vacheron 2022',
+      score: 0.5,
+    });
+    expect(result.recommendations[1]?.reasoning).toContain('Justification indisponible');
+    expect(result.fallbackAdvice).toBe('conseil de repli');
   });
 
   it('réponse illisible → aucune recommandation (pas de crash)', () => {
     expect(parsePairingResponse('désolé, je ne peux pas', cellar)).toEqual({
+      recommendations: [],
+      fallbackAdvice: undefined,
+    });
+    expect(parsePairingResponse('null', cellar)).toEqual({
       recommendations: [],
       fallbackAdvice: undefined,
     });
@@ -113,7 +148,7 @@ describe('sommelier de cave — sens 1 : plat → vin de MA cave', () => {
     };
     const result = await recommendForDish({ dish: 'risotto', cellar: [] }, vision);
     expect(result.recommendations).toEqual([]);
-    expect(result.fallbackAdvice).toContain('cave est vide');
+    expect(result.fallbackAdvice).toBe(EMPTY_CELLAR_ADVICE);
   });
 });
 
@@ -125,7 +160,7 @@ describe('sens 2 : apogée → « à boire » avec plats suggérés', () => {
       { itemId: 'w3', label: 'Trop jeune', vintage: 2022, payload: makePayload(2030, 2040) },
     ];
     const suggestions = drinkNowSuggestions(wines, 2026);
-    expect(suggestions.map((s) => s.itemId)).toEqual(['w2', 'w1']); // w2 se referme en premier
+    expect(suggestions.map((s) => s.itemId)).toEqual(['w2', 'w1']);
     expect(suggestions[0]?.suggestedDishes.length).toBeGreaterThan(0);
     expect(suggestions[0]?.windowTo).toBe(2026);
   });

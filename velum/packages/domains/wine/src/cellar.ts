@@ -16,17 +16,31 @@ import type {
 } from '@velum/core';
 import { parseModelJson } from './json.ts';
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function nonEmptyString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function finiteNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
 /**
  * true si `year` tombe dans la fenêtre de consommation optimale [from, to]
  * (bornes incluses). Défensif : le payload provient d'un JSONB — si la fenêtre
  * est absente ou malformée, on renvoie false plutôt que d'alerter à tort.
  */
 export function isInDrinkWindow(payload: WineAnalysisPayload, year: number): boolean {
-  const window = payload.tasting?.drinkWindow as { from?: unknown; to?: unknown } | undefined;
-  if (!window) return false;
-  const { from, to } = window;
-  if (typeof from !== 'number' || typeof to !== 'number') return false;
-  if (!Number.isFinite(from) || !Number.isFinite(to)) return false;
+  const tasting = (payload as unknown as Record<string, unknown>)['tasting'];
+  if (!isRecord(tasting)) return false;
+  const window = tasting['drinkWindow'];
+  if (!isRecord(window)) return false;
+  const from = finiteNumber(window['from']);
+  const to = finiteNumber(window['to']);
+  if (from === undefined || to === undefined || from > to) return false;
   return year >= from && year <= to;
 }
 
@@ -61,6 +75,9 @@ RÈGLES ABSOLUES :
 6. Réponds en JSON STRICT, sans texte autour :
 {"recommendations":[{"itemId":"…","label":"…","score":0.85,"reasoning":"…","serveAt":"…"}],"fallbackAdvice":"…"}`;
 
+export const EMPTY_CELLAR_ADVICE =
+  'Votre cave est vide : scannez vos premières bouteilles pour activer le sommelier.';
+
 /** Construit le message utilisateur du sommelier (plat + inventaire). */
 export function buildPairingUserPrompt(request: PairingRequest): string {
   const inventory = request.cellar.map((w) => ({
@@ -79,40 +96,55 @@ export function buildPairingUserPrompt(request: PairingRequest): string {
 
 /**
  * Parse la réponse du sommelier avec garde anti-hallucination : toute
- * recommandation dont l'itemId n'existe pas dans la cave est écartée.
+ * recommandation dont l'itemId n'existe pas dans la cave est écartée. Le
+ * libellé affiché vient toujours de la base, jamais du modèle.
  */
 export function parsePairingResponse(raw: string, cellar: CellarWineEntry[]): PairingResult {
-  const parsed = parseModelJson(raw) as {
-    recommendations?: unknown;
-    fallbackAdvice?: unknown;
-  } | null;
-  if (!parsed) return { recommendations: [], fallbackAdvice: undefined };
+  const parsed = parseModelJson(raw);
+  if (!isRecord(parsed)) return { recommendations: [], fallbackAdvice: undefined };
 
-  const byId = new Map(cellar.map((w) => [w.itemId, w]));
-  const recommendations: PairingRecommendation[] = [];
-  if (Array.isArray(parsed.recommendations)) {
-    for (const r of parsed.recommendations as Record<string, unknown>[]) {
-      const itemId = typeof r['itemId'] === 'string' ? r['itemId'] : null;
+  const byId = new Map(cellar.map((wine) => [wine.itemId, wine]));
+  const recommendationById = new Map<string, PairingRecommendation>();
+  const rawRecommendations = parsed['recommendations'];
+
+  if (Array.isArray(rawRecommendations)) {
+    for (const rawRecommendation of rawRecommendations) {
+      if (!isRecord(rawRecommendation)) continue;
+
+      const itemId = nonEmptyString(rawRecommendation['itemId']);
       if (!itemId) continue;
       const inCellar = byId.get(itemId);
       if (!inCellar) continue; // anti-hallucination : hors cave → écarté
-      const rawScore = typeof r['score'] === 'number' ? r['score'] : 0.5;
-      recommendations.push({
+
+      const score = Math.min(1, Math.max(0, finiteNumber(rawRecommendation['score']) ?? 0.5));
+      const recommendation: PairingRecommendation = {
         itemId,
-        label: typeof r['label'] === 'string' ? r['label'] : inCellar.label,
-        score: Math.min(1, Math.max(0, rawScore)),
-        reasoning: typeof r['reasoning'] === 'string' ? r['reasoning'] : '',
-        serveAt: typeof r['serveAt'] === 'string' ? r['serveAt'] : undefined,
-      });
+        // Le modèle ne peut pas renommer un item réel avec une bouteille prestigieuse.
+        label: inCellar.label,
+        score,
+        reasoning:
+          nonEmptyString(rawRecommendation['reasoning']) ??
+          'Justification indisponible — accord à confirmer selon vos préférences.',
+        ...(nonEmptyString(rawRecommendation['serveAt'])
+          ? { serveAt: nonEmptyString(rawRecommendation['serveAt']) }
+          : {}),
+      };
+
+      // Un même itemId ne doit jamais occuper plusieurs places du top 3.
+      const existing = recommendationById.get(itemId);
+      if (!existing || recommendation.score > existing.score) {
+        recommendationById.set(itemId, recommendation);
+      }
     }
   }
-  recommendations.sort((a, b) => b.score - a.score);
+
+  const recommendations = [...recommendationById.values()]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+
   return {
-    recommendations: recommendations.slice(0, 3),
-    fallbackAdvice:
-      typeof parsed.fallbackAdvice === 'string' && parsed.fallbackAdvice.length > 0
-        ? parsed.fallbackAdvice
-        : undefined,
+    recommendations,
+    fallbackAdvice: nonEmptyString(parsed['fallbackAdvice']),
   };
 }
 
@@ -122,10 +154,7 @@ export async function recommendForDish(
   vision: VisionModel,
 ): Promise<PairingResult> {
   if (request.cellar.length === 0) {
-    return {
-      recommendations: [],
-      fallbackAdvice: 'Votre cave est vide : scannez vos premières bouteilles pour activer le sommelier.',
-    };
+    return { recommendations: [], fallbackAdvice: EMPTY_CELLAR_ADVICE };
   }
   const raw = await vision.complete({
     system: CELLAR_SOMMELIER_PROMPT,
