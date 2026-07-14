@@ -5,6 +5,7 @@
  */
 import {
   VelumError,
+  isVelumError,
   type AnalysisResult,
   type AnalyzeDeps,
   type Candidate,
@@ -256,17 +257,17 @@ export class WineDomainPlugin implements DomainPlugin<WineAnalysisPayload> {
         'Réponds avec le JSON strict décrit dans tes instructions (max 3 candidats).';
     }
 
-    let raw: string;
-    try {
-      raw = await deps.vision.complete({
-        system: WINE_RECOGNITION_SYSTEM_PROMPT,
-        prompt,
-        ...(images ? { images } : {}),
-        maxTokens: 1024,
-      });
-    } catch {
-      return assistedFallback();
-    }
+    // On n'avale PAS l'erreur : une panne d'infrastructure (clé morte, quota
+    // dépassé, modèle supprimé, service down) doit remonter au client en 429/503.
+    // La déguiser en « saisie assistée » rend toute panne invisible — c'est ce qui
+    // a masqué la troncature Gemini. Ici, `assistedFallback` ne signifie plus
+    // qu'une chose : le modèle a répondu, mais n'a rien su identifier.
+    const raw = await deps.vision.complete({
+      system: WINE_RECOGNITION_SYSTEM_PROMPT,
+      prompt,
+      ...(images ? { images } : {}),
+      maxTokens: 1024,
+    });
 
     const candidates = toCandidates(parseModelJson(raw));
     const bestConfidence = candidates[0]?.confidence ?? 0;
@@ -289,6 +290,10 @@ export class WineDomainPlugin implements DomainPlugin<WineAnalysisPayload> {
         maxTokens: 4096,
       });
     } catch (error) {
+      // Une erreur déjà typée garde son code : un 429 (quota) doit rester un 429,
+      // pas devenir un ANALYSIS_FAILED indistinct — le client n'aurait plus aucun
+      // moyen de faire la différence entre « réessaie plus tard » et « c'est cassé ».
+      if (isVelumError(error)) throw error;
       throw new VelumError('ANALYSIS_FAILED', 'Le moteur ZAPPA∴VINI∴SAPIENS est indisponible', {
         cause: String(error),
       });

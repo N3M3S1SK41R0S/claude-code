@@ -6,6 +6,7 @@
  */
 import {
   VelumError,
+  isVelumError,
   type AnalysisResult,
   type AnalyzeDeps,
   type ArtAnalysisPayload,
@@ -327,17 +328,15 @@ export class ArtDomainPlugin implements DomainPlugin<ArtAnalysisPayload> {
         'Réponds avec le JSON strict décrit dans tes instructions (max 3 candidats).';
     }
 
-    let raw: string;
-    try {
-      raw = await deps.vision.complete({
-        system: ART_RECOGNITION_SYSTEM_PROMPT,
-        prompt,
-        ...(images ? { images } : {}),
-        maxTokens: 1024,
-      });
-    } catch {
-      return assistedFallback();
-    }
+    // On n'avale PAS l'erreur : une panne d'infrastructure doit remonter en
+    // 429/503. `assistedFallback` ne signifie plus qu'une chose : le modèle a
+    // répondu, mais n'a rien su identifier.
+    const raw = await deps.vision.complete({
+      system: ART_RECOGNITION_SYSTEM_PROMPT,
+      prompt,
+      ...(images ? { images } : {}),
+      maxTokens: 1024,
+    });
 
     const candidates = toCandidates(parseModelJson(raw));
     const bestConfidence = candidates[0]?.confidence ?? 0;
@@ -360,6 +359,8 @@ export class ArtDomainPlugin implements DomainPlugin<ArtAnalysisPayload> {
         maxTokens: 4096,
       });
     } catch (error) {
+      // Une erreur déjà typée garde son code (429 reste 429).
+      if (isVelumError(error)) throw error;
       throw new VelumError('ANALYSIS_FAILED', 'Le moteur d’analyse art_v1 est indisponible', {
         cause: String(error),
       });

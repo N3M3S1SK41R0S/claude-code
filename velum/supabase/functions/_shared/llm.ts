@@ -1,16 +1,23 @@
 /**
- * Implémentation serveur du contrat VisionModel (@velum/core), MULTI-FOURNISSEUR.
- * Le fournisseur est choisi par le secret `LLM_VISION_PROVIDER` (défaut :
- * `anthropic`) ; la clé (`LLM_VISION_API_KEY`) et le modèle (`LLM_VISION_MODEL`,
- * facultatif) sont communs. La clé ne vit QUE côté serveur (§12.1) — les plugins
- * de domaine reçoivent l'implémentation par injection et n'appellent jamais le
- * réseau directement.
+ * Implémentation serveur du contrat VisionModel (@velum/core), MULTI-FOURNISSEUR
+ * avec CASCADE DE REPLI et LOGS STRUCTURÉS.
  *
- *   LLM_VISION_PROVIDER=anthropic  → Claude Messages   (défaut claude-sonnet-5)
- *   LLM_VISION_PROVIDER=openai     → Chat Completions   (défaut gpt-4o)
- *   LLM_VISION_PROVIDER=google     → Gemini generateContent (défaut gemini-2.0-flash)
+ * Chaîne de fournisseurs : `LLM_VISION_PROVIDERS` (liste, du primaire au dernier
+ * repli). Si un fournisseur échoue — panne, quota, clé morte, modèle supprimé,
+ * réponse tronquée — le suivant est tenté. Sans repli configuré, le comportement
+ * est identique à avant.
+ *
+ *   LLM_VISION_PROVIDERS=google,openai
+ *   LLM_VISION_KEY_GOOGLE=...      LLM_VISION_MODEL_GOOGLE=gemini-3.5-flash
+ *   LLM_VISION_KEY_OPENAI=...      LLM_VISION_MODEL_OPENAI=gpt-5.5
+ *
+ * Rétro-compatibilité : `LLM_VISION_PROVIDER` (singulier) + `LLM_VISION_API_KEY`
+ * + `LLM_VISION_MODEL` restent acceptés pour le fournisseur primaire.
+ *
+ * Les clés ne vivent QUE côté serveur (§12.1) : les plugins de domaine reçoivent
+ * l'implémentation par injection et n'appellent jamais le réseau directement.
  */
-import { VelumError, type VisionModel } from '@velum/core';
+import { VelumError, isVelumError, type VisionModel } from '@velum/core';
 
 const DEFAULT_MAX_TOKENS = 2048;
 
@@ -21,6 +28,35 @@ export interface VisionRequest {
   maxTokens?: number;
 }
 
+export type VisionProvider = 'anthropic' | 'openai' | 'google';
+
+interface ProviderConfig {
+  provider: VisionProvider;
+  apiKey: string;
+  model: string;
+}
+
+// ── Observabilité ────────────────────────────────────────────────────────────
+
+/**
+ * Log JSON sur une ligne — lisible tel quel dans les logs Edge Functions de
+ * Supabase, et requêtable. Ne contient JAMAIS de clé ni de contenu d'image.
+ */
+function logEvent(entry: Record<string, unknown>): void {
+  console.log(JSON.stringify({ at: new Date().toISOString(), ...entry }));
+}
+
+/** Code VelumError d'une erreur quelconque (pour les logs et la décision de repli). */
+function codeOf(err: unknown): string {
+  return isVelumError(err) ? err.code : 'UNEXPECTED';
+}
+
+function messageOf(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+// ── Utilitaires ──────────────────────────────────────────────────────────────
+
 /** Retire un éventuel préfixe data-URL ("data:image/jpeg;base64,..."). */
 function stripDataUrlPrefix(base64: string): string {
   const comma = base64.indexOf(',');
@@ -28,23 +64,6 @@ function stripDataUrlPrefix(base64: string): string {
     return base64.slice(comma + 1);
   }
   return base64;
-}
-
-/** Clé API commune — absente ⇒ service indisponible (jamais de throw brut). */
-function requireApiKey(): string {
-  const apiKey = Deno.env.get('LLM_VISION_API_KEY');
-  if (!apiKey) {
-    throw new VelumError(
-      'SOURCE_UNAVAILABLE',
-      'Le service de vision est indisponible (clé API non configurée)',
-    );
-  }
-  return apiKey;
-}
-
-/** Modèle depuis l'env, sinon défaut propre au fournisseur. */
-function modelFor(fallback: string): string {
-  return Deno.env.get('LLM_VISION_MODEL') ?? fallback;
 }
 
 /** Mappe les statuts d'erreur HTTP sur des VelumError (429 → RATE_LIMITED). */
@@ -72,10 +91,9 @@ interface AnthropicContentBlock {
 }
 
 export class AnthropicVision implements VisionModel {
-  async complete(req: VisionRequest): Promise<string> {
-    const apiKey = requireApiKey();
-    const model = modelFor('claude-sonnet-5');
+  constructor(private readonly cfg: ProviderConfig) {}
 
+  async complete(req: VisionRequest): Promise<string> {
     // Blocs image (base64) AVANT le bloc texte — ordre recommandé par l'API.
     const content: unknown[] = (req.images ?? []).map((img) => ({
       type: 'image',
@@ -87,11 +105,11 @@ export class AnthropicVision implements VisionModel {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
+        'x-api-key': this.cfg.apiKey,
         'anthropic-version': ANTHROPIC_VERSION,
       },
       body: JSON.stringify({
-        model,
+        model: this.cfg.model,
         max_tokens: req.maxTokens ?? DEFAULT_MAX_TOKENS,
         system: req.system,
         messages: [{ role: 'user', content }],
@@ -121,10 +139,9 @@ function openAiTokenLimitField(model: string): 'max_completion_tokens' | 'max_to
 }
 
 export class OpenAIVision implements VisionModel {
-  async complete(req: VisionRequest): Promise<string> {
-    const apiKey = requireApiKey();
-    const model = modelFor('gpt-5.5');
+  constructor(private readonly cfg: ProviderConfig) {}
 
+  async complete(req: VisionRequest): Promise<string> {
     const userContent: unknown[] = (req.images ?? []).map((img) => ({
       type: 'image_url',
       image_url: { url: `data:${img.mediaType};base64,${stripDataUrlPrefix(img.base64)}` },
@@ -133,10 +150,10 @@ export class OpenAIVision implements VisionModel {
 
     const response = await fetch(OPENAI_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.cfg.apiKey}` },
       body: JSON.stringify({
-        model,
-        [openAiTokenLimitField(model)]: req.maxTokens ?? DEFAULT_MAX_TOKENS,
+        model: this.cfg.model,
+        [openAiTokenLimitField(this.cfg.model)]: req.maxTokens ?? DEFAULT_MAX_TOKENS,
         messages: [
           { role: 'system', content: req.system },
           { role: 'user', content: userContent },
@@ -176,10 +193,9 @@ function geminiSupportsThinkingLevel(model: string): boolean {
 }
 
 export class GoogleVision implements VisionModel {
-  async complete(req: VisionRequest): Promise<string> {
-    const apiKey = requireApiKey();
-    const model = modelFor('gemini-3.5-flash');
+  constructor(private readonly cfg: ProviderConfig) {}
 
+  async complete(req: VisionRequest): Promise<string> {
     const parts: unknown[] = (req.images ?? []).map((img) => ({
       inlineData: { mimeType: img.mediaType, data: stripDataUrlPrefix(img.base64) },
     }));
@@ -188,13 +204,13 @@ export class GoogleVision implements VisionModel {
     const generationConfig: Record<string, unknown> = {
       maxOutputTokens: (req.maxTokens ?? DEFAULT_MAX_TOKENS) + GEMINI_THINKING_RESERVE,
     };
-    if (geminiSupportsThinkingLevel(model)) {
+    if (geminiSupportsThinkingLevel(this.cfg.model)) {
       // Divise la réflexion par ~6 (≈900 → ≈150 tokens) sans perte de qualité
       // mesurable sur l'identification, et réduit d'autant le coût.
       generationConfig['thinkingConfig'] = { thinkingLevel: 'low' };
     }
 
-    const url = `${GEMINI_BASE}/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const url = `${GEMINI_BASE}/${this.cfg.model}:generateContent?key=${encodeURIComponent(this.cfg.apiKey)}`;
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -217,31 +233,156 @@ export class GoogleVision implements VisionModel {
   }
 }
 
-// ── Fabrique ────────────────────────────────────────────────────────────────
+// ── Cascade de repli ─────────────────────────────────────────────────────────
 
-export type VisionProvider = 'anthropic' | 'openai' | 'google';
+const DEFAULT_MODEL: Record<VisionProvider, string> = {
+  anthropic: 'claude-sonnet-5',
+  openai: 'gpt-5.5',
+  google: 'gemini-3.5-flash',
+};
+
+function instantiate(cfg: ProviderConfig): VisionModel {
+  switch (cfg.provider) {
+    case 'anthropic':
+      return new AnthropicVision(cfg);
+    case 'openai':
+      return new OpenAIVision(cfg);
+    case 'google':
+      return new GoogleVision(cfg);
+  }
+}
 
 /**
- * Implémentation VisionModel selon `LLM_VISION_PROVIDER` (défaut `anthropic`).
- * Un fournisseur inconnu échoue proprement (garde-fou de configuration).
+ * Essaie les fournisseurs dans l'ordre. Chaque tentative est journalisée
+ * (fournisseur, modèle, durée, issue) — c'est la seule fenêtre qu'on ait sur ce
+ * qui se passe en production.
+ *
+ * Une réponse VIDE est traitée comme un échec, pas comme un « le modèle n'a rien
+ * vu » : c'est la signature d'une troncature (budget de tokens épuisé) ou d'un
+ * refus silencieux. Sans ça, le bug Gemini serait passé pour un résultat normal.
+ */
+export class CascadingVision implements VisionModel {
+  constructor(private readonly chain: ProviderConfig[]) {}
+
+  async complete(req: VisionRequest): Promise<string> {
+    let lastError: unknown = new VelumError(
+      'SOURCE_UNAVAILABLE',
+      'Aucun fournisseur de vision configuré',
+    );
+
+    for (let i = 0; i < this.chain.length; i++) {
+      const cfg = this.chain[i] as ProviderConfig;
+      const startedAt = Date.now();
+      try {
+        const out = await instantiate(cfg).complete(req);
+        if (out.trim() === '') {
+          throw new VelumError(
+            'SOURCE_UNAVAILABLE',
+            'Réponse vide du modèle (troncature ou refus)',
+          );
+        }
+        logEvent({
+          event: 'vision.success',
+          provider: cfg.provider,
+          model: cfg.model,
+          attempt: i + 1,
+          usedFallback: i > 0,
+          ms: Date.now() - startedAt,
+          chars: out.length,
+        });
+        return out;
+      } catch (err) {
+        lastError = err;
+        logEvent({
+          event: 'vision.failure',
+          provider: cfg.provider,
+          model: cfg.model,
+          attempt: i + 1,
+          ms: Date.now() - startedAt,
+          code: codeOf(err),
+          message: messageOf(err).slice(0, 300),
+          willRetryWith: this.chain[i + 1]?.provider ?? null,
+        });
+      }
+    }
+
+    logEvent({
+      event: 'vision.exhausted',
+      providers: this.chain.map((c) => c.provider),
+      code: codeOf(lastError),
+    });
+    throw lastError;
+  }
+}
+
+// ── Fabrique ────────────────────────────────────────────────────────────────
+
+const ALIASES: Record<string, VisionProvider> = {
+  anthropic: 'anthropic',
+  claude: 'anthropic',
+  openai: 'openai',
+  gpt: 'openai',
+  google: 'google',
+  gemini: 'google',
+};
+
+function parseProvider(raw: string): VisionProvider {
+  const key = raw.trim().toLowerCase();
+  const provider = ALIASES[key];
+  if (!provider) {
+    throw new VelumError(
+      'SOURCE_UNAVAILABLE',
+      `Fournisseur de vision inconnu : « ${key} » (attendu : anthropic | openai | google)`,
+    );
+  }
+  return provider;
+}
+
+/** Clé d'un fournisseur : dédiée, sinon la clé commune (fournisseur primaire). */
+function keyFor(provider: VisionProvider, isPrimary: boolean): string | undefined {
+  const dedicated = Deno.env.get(`LLM_VISION_KEY_${provider.toUpperCase()}`);
+  if (dedicated) return dedicated;
+  return isPrimary ? Deno.env.get('LLM_VISION_API_KEY') ?? undefined : undefined;
+}
+
+/** Modèle d'un fournisseur : dédié, sinon commun (primaire), sinon défaut. */
+function modelFor(provider: VisionProvider, isPrimary: boolean): string {
+  const dedicated = Deno.env.get(`LLM_VISION_MODEL_${provider.toUpperCase()}`);
+  if (dedicated) return dedicated;
+  const shared = isPrimary ? Deno.env.get('LLM_VISION_MODEL') : undefined;
+  return shared ?? DEFAULT_MODEL[provider];
+}
+
+/**
+ * Construit la chaîne de vision depuis l'environnement.
+ * Un fournisseur sans clé est ÉCARTÉ (et journalisé) plutôt que de faire échouer
+ * toute la chaîne : mieux vaut un repli fonctionnel qu'une panne totale.
  */
 export function createVisionModel(): VisionModel {
-  const provider = (Deno.env.get('LLM_VISION_PROVIDER') ?? 'anthropic').trim().toLowerCase();
-  switch (provider) {
-    case '':
-    case 'anthropic':
-    case 'claude':
-      return new AnthropicVision();
-    case 'openai':
-    case 'gpt':
-      return new OpenAIVision();
-    case 'google':
-    case 'gemini':
-      return new GoogleVision();
-    default:
-      throw new VelumError(
-        'SOURCE_UNAVAILABLE',
-        `Fournisseur de vision inconnu : « ${provider} » (attendu : anthropic | openai | google)`,
-      );
+  const list = Deno.env.get('LLM_VISION_PROVIDERS') ?? Deno.env.get('LLM_VISION_PROVIDER') ?? 'anthropic';
+  const requested = list
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  if (requested.length === 0) requested.push('anthropic');
+
+  const chain: ProviderConfig[] = [];
+  requested.forEach((raw, index) => {
+    const provider = parseProvider(raw);
+    const apiKey = keyFor(provider, index === 0);
+    if (!apiKey) {
+      logEvent({ event: 'vision.provider_skipped', provider, reason: 'clé absente' });
+      return;
+    }
+    chain.push({ provider, apiKey, model: modelFor(provider, index === 0) });
+  });
+
+  if (chain.length === 0) {
+    throw new VelumError(
+      'SOURCE_UNAVAILABLE',
+      'Le service de vision est indisponible (aucune clé API configurée)',
+    );
   }
+
+  return new CascadingVision(chain);
 }

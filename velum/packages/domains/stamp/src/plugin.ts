@@ -351,25 +351,23 @@ export class StampDomainPlugin implements DomainPlugin<StampAnalysisPayload> {
       return { candidates, stage: 'assisted', needsAssistedEntry: candidates.length === 0 };
     }
 
+    // On n'avale PAS l'erreur : une vision indisponible (clé morte, quota, service
+    // down) doit remonter en 429/503. `UNREADABLE_RECOGNITION` ne signifie plus
+    // qu'une chose : le modèle a répondu, mais n'a rien su identifier.
     let raw: string;
-    try {
-      if (input.kind === 'photo') {
-        raw = await deps.vision.complete({
-          system: STAMP_RECOGNITION_SYSTEM_PROMPT,
-          prompt: photoPrompt(input),
-          images: input.media?.filter((m) => m.base64).map((m) => toVisionImage(m)),
-          maxTokens: 1024,
-        });
-      } else {
-        raw = await deps.vision.complete({
-          system: STAMP_RECOGNITION_SYSTEM_PROMPT,
-          prompt: textPrompt(input.text ?? ''),
-          maxTokens: 1024,
-        });
-      }
-    } catch {
-      // Vision indisponible → saisie assistée plutôt qu'une erreur bloquante.
-      return { ...UNREADABLE_RECOGNITION };
+    if (input.kind === 'photo') {
+      raw = await deps.vision.complete({
+        system: STAMP_RECOGNITION_SYSTEM_PROMPT,
+        prompt: photoPrompt(input),
+        images: input.media?.filter((m) => m.base64).map((m) => toVisionImage(m)),
+        maxTokens: 1024,
+      });
+    } else {
+      raw = await deps.vision.complete({
+        system: STAMP_RECOGNITION_SYSTEM_PROMPT,
+        prompt: textPrompt(input.text ?? ''),
+        maxTokens: 1024,
+      });
     }
 
     const candidates = parseCandidates(raw);
