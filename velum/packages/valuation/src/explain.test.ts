@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { FxRates, PriceObservation } from '@velum/core';
 import { valuate } from './engine.ts';
-import { explainValuation, reliabilityFromExplanation } from './explain.ts';
+import { explainFromResult, explainValuation, reliabilityFromExplanation } from './explain.ts';
 
 const fx: FxRates = { USD: 0.9, GBP: 1.15 };
 
@@ -70,5 +70,30 @@ describe('explainValuation', () => {
     const e = explainValuation(data, fx);
     expect(e.nRejected).toBe(0);
     expect(e.breakdown.every((b) => b.madDeviation === undefined)).toBe(true);
+  });
+});
+
+describe('explainFromResult (client, sans FX)', () => {
+  it('explique un ValuationResult déjà calculé sans re-valoriser', () => {
+    const data = [obs(200, 'auction_realized'), obs(210, 'official_quote'), obs(205, 'auction_realized')];
+    const result = valuate(data, fx);
+    const e = explainFromResult(result);
+    expect(e.central).toBe(result.central);
+    expect(e.ci80).toEqual(result.ci80);
+    expect(e.reliability).toBe(result.reliability);
+    expect(e.nKept).toBe(result.nSources);
+    // Toutes les observations d'un résultat sont conservées.
+    expect(e.breakdown.every((b) => b.kept)).toBe(true);
+    expect(reliabilityFromExplanation(e)).toBe(e.reliability);
+    expect(e.notes.join(' ')).toMatch(/Fiabilité/);
+  });
+
+  it('renseigne priceEUR uniquement pour les observations en EUR', () => {
+    const result = valuate([obs(100, 'marketplace_sold', 0, 'USD'), obs(90, 'marketplace_sold')], fx);
+    const e = explainFromResult(result);
+    const usd = e.breakdown.find((b) => b.observation.currency === 'USD');
+    const eur = e.breakdown.find((b) => b.observation.currency === 'EUR');
+    expect(usd?.priceEUR).toBeUndefined(); // pas de FX côté client
+    expect(eur?.priceEUR).toBe(90);
   });
 });

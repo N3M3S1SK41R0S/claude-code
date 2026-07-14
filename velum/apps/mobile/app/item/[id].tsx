@@ -33,6 +33,7 @@ import type {
 
 import { Screen } from '../../components/Screen';
 import { ValueChart } from '../../components/ValueChart';
+import { ValuationExplanation } from '../../components/ValuationExplanation';
 import { ArtSheet } from '../../components/sheets/ArtSheet';
 import { CoinSheet } from '../../components/sheets/CoinSheet';
 import { StampSheet } from '../../components/sheets/StampSheet';
@@ -269,6 +270,9 @@ export default function ItemSheet() {
               tabular
               value={`${Math.round(valuation.reliability)} / 100 · ${t('item.nSources', { count: valuation.sources.length })}`}
             />
+            {valuation.sources.length > 0 ? (
+              <ValuationExplanation valuation={valuation} label={t('item.whyThisRange')} />
+            ) : null}
           </>
         ) : (
           <VText variant="body" tone="dim">

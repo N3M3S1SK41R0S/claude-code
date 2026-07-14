@@ -17,6 +17,7 @@ export {
 // Pari #1 — explicabilité « pourquoi cette fourchette ».
 export {
   explainValuation,
+  explainFromResult,
   reliabilityFromExplanation,
   type ValuationExplanation,
   type ObservationBreakdown,

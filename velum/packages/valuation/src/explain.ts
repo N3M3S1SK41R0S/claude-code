@@ -25,8 +25,8 @@ import {
 /** Décomposition d'une observation dans la décision du moteur. */
 export interface ObservationBreakdown {
   observation: PriceObservation;
-  /** Prix normalisé en EUR. */
-  priceEUR: number;
+  /** Prix normalisé en EUR (absent si non calculable côté client sans FX). */
+  priceEUR?: number;
   /** Fiabilité de la source (0..1). */
   sourceWeight: number;
   /** Poids de récence (demi-vie 365 j). */
@@ -161,4 +161,75 @@ export function explainValuation(
 /** Cohérence : le score de fiabilité recalculé depuis l'explication == moteur. */
 export function reliabilityFromExplanation(e: ValuationExplanation): number {
   return reliabilityScore(e.nKept, e.ci80[0], e.ci80[1], e.central);
+}
+
+/**
+ * Explication SANS taux de change, à partir d'un `ValuationResult` déjà calculé
+ * (celui persisté et affiché par l'app). Ne re-calcule PAS la valorisation et
+ * n'a pas besoin des FX : les observations d'un résultat sont celles CONSERVÉES
+ * (post-rejet MAD côté serveur), donc `kept = true` pour toutes ; les points
+ * écartés ne sont pas connus ici. Le prix normalisé n'est renseigné que pour
+ * les observations déjà en EUR.
+ */
+export function explainFromResult(result: {
+  central: number;
+  ci80: [number, number];
+  ci95: [number, number];
+  reliability: number;
+  observations: PriceObservation[];
+  nSources: number;
+}): ValuationExplanation {
+  const halfLife = HALF_LIFE_DAYS;
+  const breakdown: ObservationBreakdown[] = result.observations.map((o) => {
+    const sw = o.sourceWeight ?? DEFAULT_SOURCE_WEIGHTS[o.source.kind];
+    const rw = recencyWeight(o.ageDays, halfLife);
+    return {
+      observation: o,
+      ...(o.currency === 'EUR' ? { priceEUR: Math.round(o.price) } : {}),
+      sourceWeight: sw,
+      recencyWeight: Number(rw.toFixed(3)),
+      effectiveWeight: Number((sw * rw).toFixed(3)),
+      kept: true,
+    };
+  });
+
+  const nKept = result.nSources || result.observations.length;
+  const ci80WidthRatio = result.central
+    ? Number(((result.ci80[1] - result.ci80[0]) / result.central).toFixed(3))
+    : 1;
+  const countScore = Math.min(1, nKept / 8);
+  const tightnessScore = Math.max(0, 1 - ci80WidthRatio);
+
+  const notes: string[] = [];
+  notes.push(`Estimation fondée sur ${nKept} observation${nKept > 1 ? 's' : ''} conservée${nKept > 1 ? 's' : ''}.`);
+
+  const kinds = new Map<string, number>();
+  for (const b of breakdown) kinds.set(b.observation.source.kind, (kinds.get(b.observation.source.kind) ?? 0) + 1);
+  if (kinds.size > 0) {
+    const parts = [...kinds.entries()].sort((a, b) => b[1] - a[1]).map(([kind, n]) => `${n} ${SOURCE_KIND_LABEL[kind] ?? kind}`);
+    notes.push(`Mélange de sources : ${parts.join(', ')}.`);
+  }
+  notes.push(
+    ci80WidthRatio <= 0.25
+      ? `Fourchette resserrée (± ${Math.round((ci80WidthRatio / 2) * 100)} %) : marché lisible.`
+      : ci80WidthRatio <= 0.6
+        ? `Fourchette modérée (± ${Math.round((ci80WidthRatio / 2) * 100)} %) : quelques divergences entre sources.`
+        : `Fourchette large (± ${Math.round((ci80WidthRatio / 2) * 100)} %) : peu de données concordantes — prudence.`,
+  );
+  notes.push(
+    `Fiabilité ${result.reliability}/100 = moitié couverture (${Math.round(countScore * 100)} %) + moitié resserrement (${Math.round(tightnessScore * 100)} %).`,
+  );
+
+  return {
+    central: result.central,
+    ci80: result.ci80,
+    ci95: result.ci95,
+    reliability: result.reliability,
+    ci80WidthRatio,
+    nKept,
+    nRejected: 0,
+    breakdown,
+    reliabilityFactors: { countScore: Number(countScore.toFixed(3)), tightnessScore: Number(tightnessScore.toFixed(3)) },
+    notes,
+  };
 }

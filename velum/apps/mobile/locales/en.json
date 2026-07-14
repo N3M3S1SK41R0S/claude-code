@@ -294,7 +294,8 @@
       "rare": "Rare",
       "tres_rare": "Very rare",
       "inconnue": "Unknown"
-    }
+    },
+    "whyThisRange": "Why this range?"
   },
   "collection": {
     "title": "My collection",

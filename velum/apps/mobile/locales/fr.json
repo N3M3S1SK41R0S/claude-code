@@ -294,7 +294,8 @@
       "rare": "Rare",
       "tres_rare": "Très rare",
       "inconnue": "Inconnue"
-    }
+    },
+    "whyThisRange": "Pourquoi cette fourchette ?"
   },
   "collection": {
     "title": "Ma collection",
