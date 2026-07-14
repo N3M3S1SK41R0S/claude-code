@@ -3,6 +3,7 @@ import {
   appendEvent,
   createPassport,
   provenanceSummary,
+  sealFromEntries,
   verifyPassport,
   type ProvenanceEvent,
 } from './provenance.ts';
@@ -63,5 +64,28 @@ describe('passeport de provenance', () => {
     expect(s).toHaveLength(2);
     expect(s[1]).toMatch(/appraised/);
     expect(s[1]).toMatch(/1200/);
+  });
+});
+
+describe('sealFromEntries — sceau dérivé de provenance_entries', () => {
+  it('scelle une chaîne de possession et reste vérifiable', () => {
+    const seal = sealFromEntries('item-1', [
+      { ownerLabel: 'Domaine X', acquiredFrom: 'Vente Drouot', eventDate: '2020-05-01', note: 'lot 42' },
+      { ownerLabel: 'Moi', acquiredFrom: 'iDealwine', eventDate: '2024-03-10' },
+    ]);
+    expect(seal).not.toBeNull();
+    expect(seal?.chain).toHaveLength(2);
+    expect(verifyPassport(seal!).valid).toBe(true);
+    expect(seal?.chain[0]?.event.type).toBe('acquired');
+    expect(seal?.chain[1]?.event.type).toBe('transferred');
+  });
+
+  it('chaîne vide → null', () => {
+    expect(sealFromEntries('item-1', [])).toBeNull();
+  });
+
+  it('déterministe : mêmes entrées → même sceau (vérifiable après persistance)', () => {
+    const entries = [{ ownerLabel: 'A', eventDate: '2020-01-01' }];
+    expect(sealFromEntries('i', entries)?.head).toBe(sealFromEntries('i', entries)?.head);
   });
 });

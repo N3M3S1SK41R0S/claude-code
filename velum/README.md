@@ -137,8 +137,11 @@ le déploiement infra restent la couche applicative à câbler.
 | #10 Musée & cartes | `@velum/carnet` `card.ts` | Cartes partageables (fourchette + badge, jamais un prix sec), musée de poche |
 | QW #4 Rapport | `@velum/carnet` `report.ts` | Rapport assurance/succession daté avec IC + plus-value latente |
 
-Nouvelles tables (migration `0004`, sous RLS) : `valuation_snapshots`,
-`provenance_events`, `calibration_outcomes`, `calibration_runs`.
+Nouvelles tables (migration `0007`, sous RLS) : `calibration_outcomes`,
+`calibration_runs`. La trajectoire de valorisation réutilise `valuations`
+(0001) et la chaîne de possession `provenance_entries` (0005) — aucune table
+redondante. Le passeport à hash chaîné de `@velum/carnet` est un **sceau
+d'intégrité dérivé** de `provenance_entries`, pas une table parallèle.
 
 ## Documentation
 

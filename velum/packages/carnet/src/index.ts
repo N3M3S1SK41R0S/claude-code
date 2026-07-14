@@ -11,11 +11,13 @@ export {
   verifyPassport,
   linkHash,
   provenanceSummary,
+  sealFromEntries,
   type ProvenanceEvent,
   type ProvenanceEventType,
   type ProvenanceLink,
   type ProvenancePassport,
   type PassportVerification,
+  type ProvenanceEntryLike,
 } from './provenance.ts';
 
 export {

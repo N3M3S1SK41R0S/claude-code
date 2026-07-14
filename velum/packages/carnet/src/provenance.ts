@@ -107,6 +107,42 @@ export function verifyPassport(passport: ProvenancePassport): PassportVerificati
   return { valid: true };
 }
 
+/**
+ * Adaptateur — construit un passeport (sceau d'intégrité vérifiable) À PARTIR
+ * des lignes `provenance_entries` déjà persistées par l'app (chaîne de
+ * possession : propriétaire, source d'acquisition, note, date). Le hash chaîné
+ * est ainsi DÉRIVÉ de la table existante, sans table parallèle — la
+ * tamper-evidence du pari #8 s'ajoute par-dessus le schéma en place.
+ */
+export interface ProvenanceEntryLike {
+  ownerLabel?: string | null;
+  acquiredFrom?: string | null;
+  note?: string | null;
+  /** Date de l'étape (ISO) ; à défaut, `createdAt`. */
+  eventDate?: string | null;
+  createdAt?: string | null;
+}
+
+function entryToEvent(entry: ProvenanceEntryLike, isFirst: boolean): ProvenanceEvent {
+  const at = entry.eventDate ?? entry.createdAt ?? '';
+  const detail = [entry.acquiredFrom, entry.note].filter(Boolean).join(' — ');
+  return {
+    type: isFirst ? 'acquired' : 'transferred',
+    at,
+    ...(entry.ownerLabel ? { actor: entry.ownerLabel } : {}),
+    ...(detail ? { detail } : {}),
+  };
+}
+
+/** Scelle une chaîne `provenance_entries` (ordre chronologique fourni). */
+export function sealFromEntries(itemId: string, entries: ProvenanceEntryLike[]): ProvenancePassport | null {
+  if (entries.length === 0) return null;
+  const [first, ...rest] = entries;
+  let passport = createPassport(itemId, entryToEvent(first as ProvenanceEntryLike, true));
+  for (const entry of rest) passport = appendEvent(passport, entryToEvent(entry, false));
+  return passport;
+}
+
 /** Résumé lisible de la chaîne de possession (pour la fiche/le partage). */
 export function provenanceSummary(passport: ProvenancePassport): string[] {
   return passport.chain.map((l) => {

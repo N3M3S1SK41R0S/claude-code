@@ -4,7 +4,7 @@
  * POST { itemId: string, currentYear?: number }
  *   → auth (Bearer) → vérification du plan (gold | platine)
  *   → lecture de l'objet (fenêtre d'apogée depuis la dernière analyse ZAPPA)
- *     + de sa trajectoire de valorisation (valuation_snapshots, RLS active)
+ *     + de sa trajectoire de valorisation (table `valuations`, RLS active)
  *   → moteur `arbitrate` (@velum/valuation) avec son garde-fou anti-market-timing
  *   → ArbiterSignal (jamais un ordre de bourse : indicatif, disclaimers en aval).
  */
@@ -82,17 +82,18 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
     }
 
-    // Trajectoire de valeur : instantanés datés, du plus ancien au plus récent.
+    // Trajectoire de valeur : historique §7 daté (table `valuations`),
+    // du plus ancien au plus récent.
     const { data: snaps, error: snapError } = await auth.supabase
-      .from('valuation_snapshots')
-      .select('central, ci80_low, ci80_high, captured_at')
+      .from('valuations')
+      .select('central, ci80_low, ci80_high, valued_at')
       .eq('item_id', itemId)
-      .order('captured_at', { ascending: true })
+      .order('valued_at', { ascending: true })
       .limit(50);
     if (snapError) return error('SOURCE_UNAVAILABLE', 'Lecture de la trajectoire impossible', 503);
 
     const trajectory: TrajectoryPoint[] = (snaps ?? []).map((s) => ({
-      at: s.captured_at as string,
+      at: s.valued_at as string,
       central: Number(s.central),
       ci80: [Number(s.ci80_low), Number(s.ci80_high)],
     }));

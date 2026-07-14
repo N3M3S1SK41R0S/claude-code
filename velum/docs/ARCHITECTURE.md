@@ -161,9 +161,12 @@ ouvertures réelles).
 
 ### 7.4 Edge Functions & tables
 
-- Fonctions : `arbiter` (Gold+ : lit apogée + `valuation_snapshots` → `arbitrate`),
-  `calibration` (GET score public par domaine ; POST cron protégé par `CRON_SECRET`
-  → recalcule depuis `calibration_outcomes`).
-- Tables (migration `0004`, sous RLS) : `valuation_snapshots` et `provenance_events`
-  (accès via l'item possédé) ; `calibration_outcomes` (service-role) et
-  `calibration_runs` (score **public** en lecture authentifiée).
+- Fonctions : `arbiter` (Gold+ : lit l'apogée + la trajectoire de la table
+  existante `valuations` → `arbitrate`), `calibration` (GET score public par
+  domaine ; POST cron protégé par `CRON_SECRET` → recalcule depuis
+  `calibration_outcomes`).
+- Tables (migration `0007`, sous RLS) : `calibration_outcomes` (service-role) et
+  `calibration_runs` (score **public** en lecture authentifiée). La trajectoire
+  réutilise `valuations` (0001) ; le passeport à hash chaîné de `@velum/carnet`
+  est un **sceau d'intégrité dérivé** de `provenance_entries` (0005), pas une
+  table parallèle.
