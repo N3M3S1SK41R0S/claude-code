@@ -117,6 +117,14 @@ describe('backtest', () => {
     expect(outcomes).toHaveLength(0);
     expect(skipped).toBe(1);
   });
+
+  it('propage les erreurs de configuration au lieu de les compter comme ignorées', () => {
+    const usdObservation: PriceObservation = { ...obs(100), currency: 'USD' };
+
+    expect(() =>
+      backtest([{ observations: [usdObservation], realized: 100 }], fx, { minSample: 1 }),
+    ).toThrowError('Taux de change manquant pour USD');
+  });
 });
 
 describe('learnSourceWeights', () => {

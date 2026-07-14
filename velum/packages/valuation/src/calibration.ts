@@ -12,7 +12,13 @@
  * — la calibration est mesurable dès J1, avant tout volume de transactions
  * maison. Fonctions PURES, déterministes, sans réseau.
  */
-import type { FxRates, PriceObservation, ValuationResult, VelumDomain } from '@velum/core';
+import {
+  isVelumError,
+  type FxRates,
+  type PriceObservation,
+  type ValuationResult,
+  type VelumDomain,
+} from '@velum/core';
 import { valuate, type ValuateOptions } from './engine.ts';
 
 /** Une prédiction confrontée à son prix réellement réalisé (en EUR). */
@@ -172,9 +178,12 @@ export function backtest(
     let result: ValuationResult;
     try {
       result = valuate(c.observations, fx, options);
-    } catch {
-      skipped++;
-      continue;
+    } catch (err) {
+      if (isVelumError(err) && err.code === 'NO_OBSERVATIONS') {
+        skipped++;
+        continue;
+      }
+      throw err;
     }
     outcomes.push({
       central: result.central,
