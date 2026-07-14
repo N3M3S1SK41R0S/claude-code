@@ -42,8 +42,11 @@ export interface VelumClient {
   auth: AuthApi;
   edge: EdgeApi;
   items: ItemsRepo;
-  /** Références vers les photos privées déjà stockées dans `item-media`. */
-  itemMedia: ItemMediaRepo;
+  /**
+   * Références vers les photos privées déjà stockées dans `item-media`.
+   * Optionnel pour préserver les clients injectés plus anciens (notamment démo).
+   */
+  itemMedia?: ItemMediaRepo;
   valuations: ValuationsRepo;
   alerts: AlertsRepo;
   profile: ProfileApi;
