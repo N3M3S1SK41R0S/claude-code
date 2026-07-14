@@ -266,7 +266,8 @@
       "originCaption": "Estate location"
     },
     "coin": {
-      "gradeValue": "{{value}} ({{scale}} scale, {{confidence}}% confidence)"
+      "gradeValue": "{{value}} ({{scale}} scale, {{confidence}}% confidence)",
+      "frEquivalent": "French scale equivalent"
     },
     "art": {
       "expertiseRecommended": "Human expert appraisal recommended before any transaction.",
@@ -286,7 +287,10 @@
         "oblitere": "Used (o)",
         "sur_lettre": "On cover",
         "inconnu": "Unknown condition"
-      }
+      },
+      "valueCoefficient": "Catalogue coefficient",
+      "valueCoefficientHint": "vs reference value (mint never hinged, perfect centering)",
+      "regummingRisk": "Weak signal: suspect gum on a never-hinged stamp — possible regumming to verify."
     },
     "rarityLevels": {
       "courante": "Common",

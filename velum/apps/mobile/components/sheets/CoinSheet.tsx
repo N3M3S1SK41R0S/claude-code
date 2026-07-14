@@ -5,12 +5,17 @@
 import { useTranslation } from 'react-i18next';
 import { VBadge, VText } from '@velum/ui';
 import type { CoinAnalysisPayload } from '@velum/core';
+import { sheldonToFr } from '@velum/domain-coin';
 import { Bullets, KV, SheetSection } from './SheetSection';
 
 export function CoinSheet({ payload }: { payload: Partial<CoinAnalysisPayload> | null }) {
   const { t } = useTranslation();
   if (!payload) return null;
   const { identification, grade, rarity, varieties, neighborYears, uncertainties } = payload;
+
+  // Passerelle d'échelles : un grade Sheldon (MS65…) traduit en échelle FR
+  // (B/TB/TTB/SUP/SPL/FDC) pour les collectionneurs francophones (indicatif).
+  const frEquivalent = grade && grade.scale === 'sheldon' ? sheldonToFr(grade.value) : null;
 
   return (
     <>
@@ -36,6 +41,7 @@ export function CoinSheet({ payload }: { payload: Partial<CoinAnalysisPayload> |
               confidence: Math.round(grade.confidence * 100),
             })}
           </VText>
+          {frEquivalent ? <KV label={t('item.coin.frEquivalent')} value={frEquivalent} /> : null}
           <VText variant="caption" tone="gold" accessibilityLabel={grade.caveat}>
             {grade.caveat}
           </VText>

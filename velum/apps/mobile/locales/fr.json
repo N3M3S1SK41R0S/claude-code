@@ -266,7 +266,8 @@
       "originCaption": "Localisation du domaine"
     },
     "coin": {
-      "gradeValue": "{{value}} (échelle {{scale}}, confiance {{confidence}} %)"
+      "gradeValue": "{{value}} (échelle {{scale}}, confiance {{confidence}} %)",
+      "frEquivalent": "Équivalent échelle FR"
     },
     "art": {
       "expertiseRecommended": "Expertise humaine recommandée avant toute transaction.",
@@ -286,7 +287,10 @@
         "oblitere": "Oblitéré (o)",
         "sur_lettre": "Sur lettre",
         "inconnu": "État inconnu"
-      }
+      },
+      "valueCoefficient": "Coefficient de cote",
+      "valueCoefficientHint": "vs cote de référence (neuf sans charnière, centrage parfait)",
+      "regummingRisk": "Indice faible : gomme suspecte sur un neuf sans charnière — regommage à faire vérifier."
     },
     "rarityLevels": {
       "courante": "Courante",
