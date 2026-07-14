@@ -10,6 +10,7 @@
  * comptabilité est très préférable à faire échouer une identification.
  */
 import { createAdminClient } from './auth.ts';
+import { scheduleBackgroundTask } from './background.ts';
 
 /** Ce que le fournisseur nous dit avoir consommé. */
 export interface TokenUsage {
@@ -36,7 +37,7 @@ export interface VisionCallRecord extends VisionContext {
   usage?: TokenUsage;
 }
 
-/** Insertion best-effort, sans await bloquant côté appelant. */
+/** Insertion best-effort, enregistrée sans bloquer la réponse HTTP. */
 export function recordVisionCall(rec: VisionCallRecord): void {
   const row = {
     operation: rec.operation,
@@ -53,7 +54,7 @@ export function recordVisionCall(rec: VisionCallRecord): void {
     output_tokens: rec.usage?.output ?? null,
   };
 
-  void (async () => {
+  const task = (async () => {
     try {
       const { error } = await createAdminClient().from('vision_calls').insert(row);
       if (error) {
@@ -71,4 +72,6 @@ export function recordVisionCall(rec: VisionCallRecord): void {
       );
     }
   })();
+
+  scheduleBackgroundTask(task);
 }
