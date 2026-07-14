@@ -5,11 +5,11 @@
  *   → auth (Bearer) → quota freemium (rpc consume_scan) → plugin.recognize()
  *   → RecognitionResult (top-3 candidats + needsAssistedEntry).
  */
-import type { CaptureInput } from '@velum/core';
 import { getUser } from '../_shared/auth.ts';
 import { handleOptions } from '../_shared/cors.ts';
 import { isVelumDomain, plugins } from '../_shared/domains.ts';
 import { guardAiCall } from '../_shared/guard.ts';
+import { validateCaptureInput, validateJsonObject } from '../_shared/input.ts';
 import { createVisionModel } from '../_shared/llm.ts';
 import { hydrateMedia } from '../_shared/media.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
@@ -26,20 +26,28 @@ export async function handler(req: Request): Promise<Response> {
     return error('UNAUTHORIZED', 'Authentification requise', 401);
   }
 
-  let body: { domain?: unknown; input?: unknown };
+  let rawBody: unknown;
   try {
-    body = await req.json();
+    rawBody = await req.json();
   } catch {
     return error('INVALID_INPUT', 'Corps JSON invalide', 400);
   }
 
-  if (!isVelumDomain(body.domain)) {
+  const bodyResult = validateJsonObject(rawBody);
+  if (!bodyResult.ok) {
+    return error('INVALID_INPUT', bodyResult.message, 400);
+  }
+  const body = bodyResult.value;
+
+  if (!isVelumDomain(body['domain'])) {
     return error('INVALID_INPUT', 'Domaine inconnu (attendu : wine, coin, art ou stamp)', 400);
   }
-  if (!body.input || typeof body.input !== 'object') {
-    return error('INVALID_INPUT', "Champ 'input' (CaptureInput) manquant", 400);
+
+  const inputResult = validateCaptureInput(body['input']);
+  if (!inputResult.ok) {
+    return error('INVALID_INPUT', inputResult.message, 400);
   }
-  const input = body.input as CaptureInput;
+  const input = inputResult.value;
 
   // Garde-fou anti-abus (plafond de dépense, par utilisateur, par IP) — AVANT le
   // quota produit : il protège la facture, pas le modèle économique.
@@ -49,7 +57,7 @@ export async function handler(req: Request): Promise<Response> {
   // Quota freemium : 5 scans/semaine PAR module en plan 'free'
   // (premium/gold/platine : illimité — fonction security definer).
   const { data: allowed, error: rpcError } = await auth.supabase.rpc('consume_scan', {
-    p_domain: body.domain,
+    p_domain: body['domain'],
   });
   if (rpcError) {
     console.error('[recognize] consume_scan a échoué :', rpcError.message);
@@ -64,14 +72,14 @@ export async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const plugin = plugins[body.domain];
+    const plugin = plugins[body['domain']];
     // Les photos arrivent en `storagePath` (téléversées par le client) : on
     // retélécharge l'octet brut ici. Un `base64` déjà fourni est conservé tel quel.
     const hydrated = await hydrateMedia(auth, input);
     const result = await plugin.recognize(hydrated, {
       vision: createVisionModel({
         operation: 'recognize',
-        domain: body.domain,
+        domain: body['domain'],
         userId: auth.user.id,
       }),
     });
