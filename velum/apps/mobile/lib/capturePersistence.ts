@@ -17,7 +17,8 @@ export interface CapturedMediaReference {
 
 export interface CapturePersistenceDeps {
   items: Pick<ItemsRepo, 'insert' | 'remove'>;
-  itemMedia: Pick<ItemMediaRepo, 'addMany'>;
+  /** Optionnel pour les anciens clients injectés ; requis dès qu'un chemin existe. */
+  itemMedia?: Pick<ItemMediaRepo, 'addMany'>;
 }
 
 function persistentMedia(
@@ -51,6 +52,12 @@ export async function insertCapturedItem(
   if (attachments.length === 0) return item;
 
   try {
+    if (!deps.itemMedia) {
+      throw new VelumError(
+        'SOURCE_UNAVAILABLE',
+        'Le client ne peut pas rattacher les médias téléversés à cet objet.',
+      );
+    }
     await deps.itemMedia.addMany(attachments);
     return item;
   } catch (attachmentError) {
