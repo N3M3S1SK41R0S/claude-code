@@ -1,4 +1,5 @@
 import { assertEquals } from 'jsr:@std/assert@1';
+import type { Candidate } from '@velum/core';
 
 import {
   validateValuationRequest,
@@ -17,7 +18,7 @@ function expectError(result: ReturnType<typeof validateValuationRequest>, fragme
   }
 }
 
-const candidate = {
+const candidate: Candidate = {
   id: 'wine-1',
   domain: 'wine',
   label: 'Château Exemple 2019',
