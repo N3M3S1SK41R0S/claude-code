@@ -2,9 +2,12 @@
  * Edge Function `recognize` — étage 1 du pipeline d'identification (§10.1).
  *
  * POST { domain: VelumDomain, input: CaptureInput }
- *   → auth (Bearer) → quota freemium (rpc consume_scan) → plugin.recognize()
- *   → RecognitionResult (top-3 candidats + needsAssistedEntry).
+ *   → auth (Bearer)
+ *   → photo/texte : garde-fou IA + quota freemium + plugin.recognize()
+ *   → fichier : mapping déterministe du plugin, sans fournisseur ni quota de scan
+ *   → RecognitionResult (candidats + needsAssistedEntry).
  */
+import type { RecognizeDeps } from '@velum/core';
 import { getUser } from '../_shared/auth.ts';
 import { handleOptions } from '../_shared/cors.ts';
 import { isVelumDomain, plugins } from '../_shared/domains.ts';
@@ -13,6 +16,18 @@ import { validateCaptureInput, validateJsonObject } from '../_shared/input.ts';
 import { createVisionModel } from '../_shared/llm.ts';
 import { hydrateMedia } from '../_shared/media.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
+
+/**
+ * Les quatre plugins mappent les imports fichier localement. Ce backend sentinelle
+ * rend toute régression visible sans initialiser une clé ni contacter un fournisseur.
+ */
+const FILE_IMPORT_DEPS: RecognizeDeps = {
+  vision: {
+    async complete(): Promise<string> {
+      throw new Error("Invariant violé : un import de fichier ne doit pas appeler l'IA");
+    },
+  },
+};
 
 export async function handler(req: Request): Promise<Response> {
   const preflight = handleOptions(req);
@@ -48,6 +63,17 @@ export async function handler(req: Request): Promise<Response> {
     return error('INVALID_INPUT', inputResult.message, 400);
   }
   const input = inputResult.value;
+  const plugin = plugins[body['domain']];
+
+  // Un import CSV/JSON est un mapping local des lignes en candidats assistés.
+  // Il ne consomme ni plafond de dépense, ni quota de scan, ni clé fournisseur.
+  if (input.kind === 'file') {
+    try {
+      return json(await plugin.recognize(input, FILE_IMPORT_DEPS));
+    } catch (err) {
+      return errorFromException(err);
+    }
+  }
 
   // Garde-fou anti-abus (plafond de dépense, par utilisateur, par IP) — AVANT le
   // quota produit : il protège la facture, pas le modèle économique.
@@ -72,7 +98,6 @@ export async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    const plugin = plugins[body['domain']];
     // Les photos arrivent en `storagePath` (téléversées par le client) : on
     // retélécharge l'octet brut ici. Un `base64` déjà fourni est conservé tel quel.
     const hydrated = await hydrateMedia(auth, input);
