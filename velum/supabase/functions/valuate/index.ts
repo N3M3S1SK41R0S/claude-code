@@ -8,14 +8,15 @@
  * Erreurs : 503 SOURCE_UNAVAILABLE si aucune source configurée,
  *           404 NO_OBSERVATIONS si aucune observation exploitable.
  */
-import { isVelumError, type Candidate } from '@velum/core';
+import { isVelumError } from '@velum/core';
 import { valuate as runValuation } from '@velum/valuation';
 import { getUser } from '../_shared/auth.ts';
 import { handleOptions } from '../_shared/cors.ts';
-import { buildSources, isVelumDomain, plugins } from '../_shared/domains.ts';
+import { buildSources, plugins } from '../_shared/domains.ts';
 import { getFxRates } from '../_shared/fx.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
 import { serverTransport } from '../_shared/transport.ts';
+import { validateValuationRequest } from './input.ts';
 
 export async function handler(req: Request): Promise<Response> {
   const preflight = handleOptions(req);
@@ -29,34 +30,31 @@ export async function handler(req: Request): Promise<Response> {
     return error('UNAUTHORIZED', 'Authentification requise', 401);
   }
 
-  let body: { domain?: unknown; candidate?: unknown; itemId?: unknown };
+  let rawBody: unknown;
   try {
-    body = await req.json();
+    rawBody = await req.json();
   } catch {
     return error('INVALID_INPUT', 'Corps JSON invalide', 400);
   }
 
-  if (!isVelumDomain(body.domain)) {
-    return error('INVALID_INPUT', 'Domaine inconnu (attendu : wine, coin, art ou stamp)', 400);
+  const requestResult = validateValuationRequest(rawBody);
+  if (!requestResult.ok) {
+    return error('INVALID_INPUT', requestResult.message, 400);
   }
-  if (!body.candidate || typeof body.candidate !== 'object') {
-    return error('INVALID_INPUT', "Champ 'candidate' manquant", 400);
-  }
-  const candidate = body.candidate as Candidate;
-  const itemId = typeof body.itemId === 'string' ? body.itemId : undefined;
+  const { domain, candidate, itemId } = requestResult.value;
 
   // Sources du domaine dont la clé API est configurée (ou API publique).
-  const sources = buildSources(body.domain, serverTransport);
+  const sources = buildSources(domain, serverTransport);
   if (sources.length === 0) {
     return error(
       'SOURCE_UNAVAILABLE',
-      `Aucune source de prix configurée pour le domaine '${body.domain}'`,
+      `Aucune source de prix configurée pour le domaine '${domain}'`,
       503,
     );
   }
 
   try {
-    const plugin = plugins[body.domain];
+    const plugin = plugins[domain];
     const result = await plugin.valuate(candidate, {
       sources,
       fx: await getFxRates(),
