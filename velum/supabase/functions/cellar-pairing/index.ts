@@ -75,7 +75,7 @@ export async function handler(req: Request): Promise<Response> {
       return error('SOURCE_UNAVAILABLE', 'Lecture de la cave impossible', 503);
     }
 
-    let cellar;
+    let cellar: ReturnType<typeof parseCellarRows>;
     try {
       cellar = parseCellarRows(items ?? []);
     } catch (parseError) {
