@@ -1,6 +1,7 @@
 import type {
   Candidate,
   CaptureInput,
+  CaptureMedia,
   MediaRole,
   VelumDomain,
 } from '@velum/core';
@@ -65,50 +66,75 @@ export function validateCaptureInput(value: unknown): ValidationResult<CaptureIn
   }
 
   const media = value['media'];
+  let validatedMedia: CaptureMedia[] | undefined;
   if (media !== undefined) {
     if (!Array.isArray(media)) {
       return invalid("Champ 'input.media' invalide : tableau attendu");
     }
+    validatedMedia = [];
     for (let index = 0; index < media.length; index++) {
       const item = media[index];
       if (!isRecord(item)) {
         return invalid(`Champ 'input.media[${index}]' invalide : objet attendu`);
       }
-      if (!isMediaRole(item['role'])) {
+      const role = item['role'];
+      if (!isMediaRole(role)) {
         return invalid(`Champ 'input.media[${index}].role' invalide`);
       }
-      if (typeof item['storagePath'] !== 'string') {
+      const storagePath = item['storagePath'];
+      if (typeof storagePath !== 'string') {
         return invalid(`Champ 'input.media[${index}].storagePath' invalide : chaîne attendue`);
       }
-      if (item['base64'] !== undefined && typeof item['base64'] !== 'string') {
+      const base64 = item['base64'];
+      if (base64 !== undefined && typeof base64 !== 'string') {
         return invalid(`Champ 'input.media[${index}].base64' invalide : chaîne attendue`);
       }
+      validatedMedia.push({
+        ...item,
+        role,
+        storagePath,
+        ...(base64 !== undefined ? { base64 } : {}),
+      });
     }
   }
 
-  if (value['text'] !== undefined && typeof value['text'] !== 'string') {
+  const text = value['text'];
+  if (text !== undefined && typeof text !== 'string') {
     return invalid("Champ 'input.text' invalide : chaîne attendue");
   }
 
   const fileRows = value['fileRows'];
+  let validatedFileRows: Record<string, unknown>[] | undefined;
   if (fileRows !== undefined) {
     if (!Array.isArray(fileRows)) {
       return invalid("Champ 'input.fileRows' invalide : tableau attendu");
     }
+    validatedFileRows = [];
     for (let index = 0; index < fileRows.length; index++) {
-      if (!isRecord(fileRows[index])) {
+      const row = fileRows[index];
+      if (!isRecord(row)) {
         return invalid(`Champ 'input.fileRows[${index}]' invalide : objet attendu`);
       }
+      validatedFileRows.push(row);
     }
   }
 
-  if (value['locale'] !== undefined && typeof value['locale'] !== 'string') {
+  const locale = value['locale'];
+  if (locale !== undefined && typeof locale !== 'string') {
     return invalid("Champ 'input.locale' invalide : chaîne attendue");
   }
 
-  // Tous les champs du contrat CaptureInput ont été vérifiés ; les champs JSON
-  // inconnus restent présents pour préserver la compatibilité additive.
-  return valid(value as CaptureInput);
+  // On reconstruit les champs connus avec leurs types prouvés et on conserve les
+  // champs JSON inconnus pour préserver la compatibilité additive du contrat.
+  const input: CaptureInput = {
+    ...value,
+    kind: value['kind'],
+    ...(validatedMedia !== undefined ? { media: validatedMedia } : {}),
+    ...(typeof text === 'string' ? { text } : {}),
+    ...(validatedFileRows !== undefined ? { fileRows: validatedFileRows } : {}),
+    ...(typeof locale === 'string' ? { locale } : {}),
+  };
+  return valid(input);
 }
 
 /** Valide un candidat avant de l'injecter dans un prompt d'analyse. */
@@ -120,18 +146,21 @@ export function validateCandidate(
     return invalid("Champ 'candidate' invalide : objet attendu");
   }
 
-  if (typeof value['id'] !== 'string' || value['id'].trim().length === 0) {
+  const id = value['id'];
+  if (typeof id !== 'string' || id.trim().length === 0) {
     return invalid("Champ 'candidate.id' invalide : chaîne non vide attendue");
   }
-  if (!isVelumDomain(value['domain'])) {
+  const domain = value['domain'];
+  if (!isVelumDomain(domain)) {
     return invalid("Champ 'candidate.domain' invalide");
   }
-  if (expectedDomain !== undefined && value['domain'] !== expectedDomain) {
+  if (expectedDomain !== undefined && domain !== expectedDomain) {
     return invalid(
-      `Le candidat appartient au domaine '${value['domain']}', cette fonction traite '${expectedDomain}'`,
+      `Le candidat appartient au domaine '${domain}', cette fonction traite '${expectedDomain}'`,
     );
   }
-  if (typeof value['label'] !== 'string' || value['label'].trim().length === 0) {
+  const label = value['label'];
+  if (typeof label !== 'string' || label.trim().length === 0) {
     return invalid("Champ 'candidate.label' invalide : chaîne non vide attendue");
   }
 
@@ -145,14 +174,25 @@ export function validateCandidate(
     return invalid("Champ 'candidate.confidence' invalide : nombre entre 0 et 1 attendu");
   }
 
-  if (value['thumbnailUrl'] !== undefined && typeof value['thumbnailUrl'] !== 'string') {
+  const thumbnailUrl = value['thumbnailUrl'];
+  if (thumbnailUrl !== undefined && typeof thumbnailUrl !== 'string') {
     return invalid("Champ 'candidate.thumbnailUrl' invalide : chaîne attendue");
   }
-  if (!isRecord(value['attributes'])) {
+  const attributes = value['attributes'];
+  if (!isRecord(attributes)) {
     return invalid("Champ 'candidate.attributes' invalide : objet attendu");
   }
 
-  // Tous les champs du contrat Candidate ont été vérifiés ; les champs JSON
-  // inconnus restent présents pour préserver la compatibilité additive.
-  return valid(value as Candidate);
+  // Même principe que CaptureInput : champs connus réécrits après preuve,
+  // champs futurs conservés sans double cast.
+  const candidate: Candidate = {
+    ...value,
+    id,
+    domain,
+    label,
+    confidence,
+    attributes,
+    ...(typeof thumbnailUrl === 'string' ? { thumbnailUrl } : {}),
+  };
+  return valid(candidate);
 }
