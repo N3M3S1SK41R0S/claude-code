@@ -102,6 +102,7 @@ export default function CaptureModal() {
 
   /** Ajoute un cliché et avance vers le rôle suivant restant (multi-clichés). */
   const acceptShot = (dataUrl: string) => {
+    if (pending) return;
     addMedia({ role: activeRole, base64: dataUrl, uri: dataUrl });
     const remaining = roles.find(
       (role) => role !== activeRole && !media.some((m) => m.role === role),
@@ -110,6 +111,7 @@ export default function CaptureModal() {
   };
 
   const takePhoto = async () => {
+    if (pending) return;
     try {
       const photo = await cameraRef.current?.takePictureAsync({ base64: true, quality: 0.7 });
       if (!photo?.base64) return;
@@ -120,6 +122,7 @@ export default function CaptureModal() {
   };
 
   const pickFromGallery = async () => {
+    if (pending) return;
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
@@ -127,7 +130,7 @@ export default function CaptureModal() {
         quality: 0.7,
       });
       const asset = result.assets?.[0];
-      if (result.canceled || !asset?.base64) return;
+      if (result.canceled || !asset?.base64 || pending) return;
       addMedia({
         role: activeRole,
         base64: `data:image/jpeg;base64,${asset.base64}`,
@@ -139,13 +142,14 @@ export default function CaptureModal() {
   };
 
   const pickFile = async () => {
+    if (pending) return;
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: ['text/csv', 'text/comma-separated-values', 'application/json', 'text/plain'],
         copyToCacheDirectory: true,
       });
       const asset = result.assets?.[0];
-      if (result.canceled || !asset) return;
+      if (result.canceled || !asset || pending) return;
       const content = await FileSystem.readAsStringAsync(asset.uri);
       const rows = parseRows(content, asset.name);
       setFileRows(rows, asset.name);
@@ -180,7 +184,9 @@ export default function CaptureModal() {
           media.map(async (entry) => {
             const path = entry.storagePath ?? (await uploadCaptureMedia(entry.base64));
             if (path !== null && entry.storagePath !== path) {
-              setMediaStoragePath(entry.role, path);
+              // Défense contre une ancienne promesse d'upload qui se terminerait après
+              // le remplacement du cliché du même rôle.
+              setMediaStoragePath(entry.role, entry.base64, path);
             }
             return { media: entry, path };
           }),
@@ -217,7 +223,7 @@ export default function CaptureModal() {
   const renderPhotoTab = () => {
     if (Platform.OS === 'web') {
       return (
-        <View style={styles.cameraBlock}>
+        <View style={styles.cameraBlock} pointerEvents={pending ? 'none' : 'auto'}>
           <WebCamera
             onCapture={acceptShot}
             labels={{
@@ -242,7 +248,9 @@ export default function CaptureModal() {
             media={media}
             activeRole={activeRole}
             roleLabel={(role) => t(`roles.${role}`)}
-            onSelectRole={setActiveRole}
+            onSelectRole={(role) => {
+              if (!pending) setActiveRole(role);
+            }}
           />
           <VText variant="caption" tone="dim" center>
             {t('capture.photosCount', { done: media.length, total: roles.length })}
@@ -257,7 +265,7 @@ export default function CaptureModal() {
     }
     if (!permission?.granted) {
       return (
-        <View style={styles.cameraFallback}>
+        <View style={styles.cameraFallback} pointerEvents={pending ? 'none' : 'auto'}>
           <VText variant="heading" center>
             {t('capture.cameraPermissionTitle')}
           </VText>
@@ -270,7 +278,7 @@ export default function CaptureModal() {
       );
     }
     return (
-      <View style={styles.cameraBlock}>
+      <View style={styles.cameraBlock} pointerEvents={pending ? 'none' : 'auto'}>
         <View style={styles.cameraFrame}>
           <CameraView ref={cameraRef} style={styles.camera} facing="back" />
           <View pointerEvents="none" style={styles.guide}>
@@ -287,7 +295,9 @@ export default function CaptureModal() {
           media={media}
           activeRole={activeRole}
           roleLabel={(role) => t(`roles.${role}`)}
-          onSelectRole={setActiveRole}
+          onSelectRole={(role) => {
+            if (!pending) setActiveRole(role);
+          }}
         />
         <VText variant="caption" tone="dim" center>
           {t('capture.photosCount', { done: media.length, total: roles.length })}
@@ -307,14 +317,16 @@ export default function CaptureModal() {
         {t(`domains.${domain}.subtitle`)}
       </VText>
 
-      <View style={styles.tabs} accessibilityRole="tablist">
+      <View style={styles.tabs} accessibilityRole="tablist" pointerEvents={pending ? 'none' : 'auto'}>
         {(['photo', 'text', 'file'] as Tab[]).map((tabId) => (
           <Pressable
             key={tabId}
-            onPress={() => setTab(tabId)}
+            onPress={() => {
+              if (!pending) setTab(tabId);
+            }}
             accessibilityRole="tab"
             accessibilityLabel={t(`capture.tab${tabId.charAt(0).toUpperCase()}${tabId.slice(1)}`)}
-            accessibilityState={{ selected: tab === tabId }}
+            accessibilityState={{ selected: tab === tabId, disabled: pending }}
             style={[styles.tab, tab === tabId && styles.tabActive]}
           >
             <VText variant="body" tone={tab === tabId ? 'gold' : 'dim'} center>
@@ -325,7 +337,7 @@ export default function CaptureModal() {
       </View>
 
       {consentDenied ? (
-        <View style={styles.block}>
+        <View style={styles.block} pointerEvents={pending ? 'none' : 'auto'}>
           <VText variant="body" tone="dim" center>
             {t('aiConsent.declinedBanner')}
           </VText>
@@ -336,7 +348,7 @@ export default function CaptureModal() {
       {tab === 'photo' && !consentDenied ? renderPhotoTab() : null}
 
       {tab === 'text' && !consentDenied ? (
-        <View style={styles.block}>
+        <View style={styles.block} pointerEvents={pending ? 'none' : 'auto'}>
           <VTextInput
             label={t('capture.textLabel')}
             value={text}
@@ -347,7 +359,7 @@ export default function CaptureModal() {
       ) : null}
 
       {tab === 'file' ? (
-        <View style={styles.block}>
+        <View style={styles.block} pointerEvents={pending ? 'none' : 'auto'}>
           <VText variant="body" tone="dim">
             {t('capture.fileHint')}
           </VText>
@@ -366,7 +378,13 @@ export default function CaptureModal() {
           onPress={() => void analyze()}
           loading={pending}
         />
-        <VButton label={t('common.cancel')} variant="ghost" onPress={() => router.back()} />
+        <VButton
+          label={t('common.cancel')}
+          variant="ghost"
+          onPress={() => {
+            if (!pending) router.back();
+          }}
+        />
       </View>
 
       <AiConsentModal
