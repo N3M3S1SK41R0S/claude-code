@@ -19,6 +19,11 @@ export {
   type StampCatalog,
 } from './catalog.ts';
 export {
+  gradeStamp,
+  type StampGrade,
+  type StampGradeFactors,
+} from './grading.ts';
+export {
   ageDaysFromIso,
   toCurrency,
   toPositiveNumber,

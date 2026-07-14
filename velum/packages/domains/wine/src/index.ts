@@ -29,6 +29,13 @@ export {
   type BlindStep,
   type BlindStepKey,
 } from './blindTasting.ts';
+export {
+  recalibrateDrinkWindow,
+  type OpeningEvent,
+  type OpeningVerdict,
+  type DrinkWindow,
+  type RecalibratedWindow,
+} from './recalibrate.ts';
 export { extractBalancedJson, parseModelJson } from './json.ts';
 export { isoToAgeDays } from './transport.ts';
 export type { Transport, SourceAdapterOptions } from './transport.ts';
