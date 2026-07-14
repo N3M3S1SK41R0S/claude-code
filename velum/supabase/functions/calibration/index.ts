@@ -21,7 +21,15 @@ import { parseCalibrationOutcomes } from './outcomes.ts';
 
 const DOMAINS: VelumDomain[] = ['wine', 'coin', 'art', 'stamp'];
 
-function logFailure(event: string, domain: VelumDomain, cause: unknown): void {
+interface CalibrationRunInsert {
+  domain: VelumDomain;
+  n: number;
+  coverage80: number;
+  coverage95: number;
+  status: string;
+}
+
+function logFailure(event: string, domain: VelumDomain | null, cause: unknown): void {
   console.error(
     JSON.stringify({
       at: new Date().toISOString(),
@@ -66,7 +74,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       }
       const admin = createAdminClient();
       const published: Record<string, unknown> = {};
+      const runs: CalibrationRunInsert[] = [];
 
+      // On calcule les quatre domaines AVANT toute écriture. Une donnée invalide
+      // ne doit jamais laisser un sous-ensemble de runs plus récent que les autres.
       for (const domain of DOMAINS) {
         const { data: rows, error: readError } = await admin
           .from('calibration_outcomes')
@@ -87,18 +98,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
 
         const calibration = calibrate(outcomes);
-        const { error: insertError } = await admin.from('calibration_runs').insert({
+        runs.push({
           domain,
           n: calibration.n,
           coverage80: calibration.coverage80,
           coverage95: calibration.coverage95,
           status: calibration.status,
         });
-        if (insertError) {
-          logFailure('calibration.publish_failed', domain, insertError.message);
-          return error('SOURCE_UNAVAILABLE', 'Publication de la calibration impossible', 503);
-        }
-
         published[domain] = {
           n: calibration.n,
           coverage80: calibration.coverage80,
@@ -106,6 +112,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
           status: calibration.status,
         };
       }
+
+      // Une seule instruction INSERT : PostgreSQL publie les quatre domaines ou
+      // aucun. Le client ne peut plus observer un run partiellement renouvelé.
+      const { error: insertError } = await admin.from('calibration_runs').insert(runs);
+      if (insertError) {
+        logFailure('calibration.publish_failed', null, insertError.message);
+        return error('SOURCE_UNAVAILABLE', 'Publication de la calibration impossible', 503);
+      }
+
       return json({ published });
     }
 
