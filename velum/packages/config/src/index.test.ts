@@ -49,6 +49,13 @@ describe('grille d’abonnement (révision juillet 2026)', () => {
     expect(PLAN_LIMITS.gold.community).toBe(false);
   });
 
+  it('passeport de provenance : carnet Gold+ (jamais free/premium)', () => {
+    expect(PLAN_LIMITS.free.provenancePassport).toBe(false);
+    expect(PLAN_LIMITS.premium.provenancePassport).toBe(false);
+    expect(PLAN_LIMITS.gold.provenancePassport).toBe(true);
+    expect(PLAN_LIMITS.platine.provenancePassport).toBe(true);
+  });
+
   it('platine : intégralité des fonctions', () => {
     expect(PLAN_LIMITS.platine).toEqual({
       scansPerWeekPerModule: Infinity,
@@ -58,6 +65,7 @@ describe('grille d’abonnement (révision juillet 2026)', () => {
       exportPdf: true,
       alerts: true,
       insuranceReport: true,
+      provenancePassport: true,
     });
   });
 

@@ -43,7 +43,12 @@ velum/
 ├── packages/
 │   ├── core/                      # @velum/core — LES CONTRATS : domain.ts, pricing.ts,
 │   │                              #   items.ts, errors.ts, analysis/{wine,coin,art,stamp}.ts
-│   ├── valuation/                 # @velum/valuation — moteur de valorisation §7 (engine.ts)
+│   ├── valuation/                 # @velum/valuation — moteur §7 (engine.ts) + explain,
+│   │                              #   calibration, portfolio, arbiter (paris #1-3)
+│   ├── scan/                      # @velum/scan — capture guidée, cert PCGS/NGC,
+│   │                              #   vigie anti-faux déterministe (paris #4-5)
+│   ├── carnet/                    # @velum/carnet — provenance (hash chaîné), rapport
+│   │                              #   assurance/succession, cartes de confiance (paris #8,10)
 │   ├── config/                    # @velum/config — feature flags, quotas freemium, env client
 │   ├── api-client/                # @velum/api-client — client Supabase typé (en cours)
 │   ├── ui/                        # @velum/ui — composants partagés + thème (en cours)
@@ -111,6 +116,29 @@ Chaque package embarque ses tests Vitest à côté du code (`*.test.ts`). Les pl
 - **Sceau bordeaux / or** sur fond sombre (`#1a0d10`) — l'app est en `userInterfaceStyle: dark`.
 - **Vidéo d'intro** : `apps/mobile/assets/brand/velum-intro.mp4` (jouée via `expo-video` au premier lancement, image fixe `splash-still.png` en écran de démarrage).
 - ⚠️ **NOTE — assets définitifs à déposer** : l'icône actuelle (`assets/brand/icon-provisional.png`) est un **frame provisoire extrait de la vidéo**. Avant soumission aux stores, déposer l'export final du logo en `apps/mobile/assets/brand/logo.png` ainsi que les icônes définitives (icône iOS, adaptive icon Android, favicon), puis mettre à jour les chemins dans `app.config.ts`.
+
+## Différenciation — moteur des paris 2026
+
+Le benchmark concurrentiel (Vivino, PCGS/NGC, Smartify/Artprice, Colnect/Delcampe…)
+a dégagé 10 paris différenciants. Leur **couche logique** (pure, testée sans
+réseau, dans le style source-first du repo) est implémentée ; l'UI/native/AR et
+le déploiement infra restent la couche applicative à câbler.
+
+| Pari | Où | Ce qui est livré (testé) |
+|---|---|---|
+| #1 Confiance auditable | `@velum/valuation` `explain.ts` `calibration.ts` | « Pourquoi cette fourchette » (sources retenues/écartées MAD, poids fiabilité×récence), couverture IC 80/95 vs réalisé, backtest cold-start, statut honnêtement borné |
+| #2 Carnet valorisé | `@velum/valuation` `portfolio.ts` | Agrégation multi-actifs, IC comonotone (borne honnête), instantanés datés + mouvement |
+| #3 Arbitre cave | `@velum/valuation` `arbiter.ts` + Edge `arbiter` | Boire/garder/vendre, **garde-fou anti-market-timing** (fenêtre de sortie seulement si apogée proche ET IC 80 % disjoints sur ≥ 3 points) |
+| #4 Vigie anti-faux | `@velum/scan` `authenticity.ts` `cert.ts` | Drapeau de risque déterministe (poids/diamètre/tranche/aimant), cert PCGS/NGC + slab-swap — jamais un verdict |
+| #5 Capture guidée | `@velum/scan` `capture.ts` | Décision accepter/refuser + guidage temps réel, séquence multi-angle par domaine |
+| #6 Grading fin & variétés | `domain-stamp` `grading.ts`, `domain-coin` `variety.ts` | État→multiplicateur (gomme/centrage/dentelure), variétés cotées (doubled die, RPM) |
+| #8 Provenance | `@velum/carnet` `provenance.ts` `hash.ts` | Passeport à hash chaîné (SHA-256 pur) détenu par le collectionneur, vérif d'intégrité |
+| #9 Ancré-inventaire | `domain-wine` `recalibrate.ts` | Recalibration bayésienne de l'apogée par les ouvertures réelles |
+| #10 Musée & cartes | `@velum/carnet` `card.ts` | Cartes partageables (fourchette + badge, jamais un prix sec), musée de poche |
+| QW #4 Rapport | `@velum/carnet` `report.ts` | Rapport assurance/succession daté avec IC + plus-value latente |
+
+Nouvelles tables (migration `0004`, sous RLS) : `valuation_snapshots`,
+`provenance_events`, `calibration_outcomes`, `calibration_runs`.
 
 ## Documentation
 
