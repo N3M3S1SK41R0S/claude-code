@@ -6,6 +6,14 @@ export { createVelumClient, type VelumClient, type VelumClientOptions } from './
 export { createAuthApi, type AuthApi, type AuthChangeCallback } from './auth';
 export { createEdgeApi, invokeEdgeFunction, type EdgeApi } from './edge';
 export {
+  createItemMediaRepo,
+  newItemMediaToRow,
+  rowToItemMedia,
+  type ItemMediaRepo,
+  type ItemMediaRow,
+  type NewItemMedia,
+} from './item-media';
+export {
   createAlertsRepo,
   createItemsRepo,
   createMarketplaceRepo,

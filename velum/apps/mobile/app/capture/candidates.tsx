@@ -1,7 +1,7 @@
 /**
  * Écran Candidats : top-3 avec badge de confiance, actions Confirmer /
  * Affiner (saisie assistée par domaine) / Signaler une erreur.
- * Confirmer → analyze + valuate (Edge) + items.insert → fiche objet.
+ * Confirmer → analyze + création atomique item/médias + valuate → fiche objet.
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -21,9 +21,10 @@ import {
 import type { Candidate, VelumDomain } from '@velum/core';
 
 import { Screen } from '../../components/Screen';
+import { useSession } from '../../lib/auth';
+import { insertCapturedItem } from '../../lib/capturePersistence';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage, velumErrorCode } from '../../lib/errors';
-import { useSession } from '../../lib/auth';
 import { useCaptureStore } from '../../stores/captureStore';
 import { showToast } from '../../stores/toastStore';
 
@@ -64,6 +65,7 @@ export default function Candidates() {
   const { session } = useSession();
 
   const domain = useCaptureStore((s) => s.domain) ?? 'wine';
+  const media = useCaptureStore((s) => s.media);
   const recognition = useCaptureStore((s) => s.recognition);
   const reset = useCaptureStore((s) => s.reset);
 
@@ -82,18 +84,22 @@ export default function Candidates() {
       const analysis = await client.edge.analyze(domain, candidate);
 
       setStep(t('candidates.saving'));
-      const item = await client.items.insert({
-        ownerId,
-        domain,
-        title: candidate.label,
-        confidence: candidate.confidence,
-        attributes: {
-          ...candidate.attributes,
-          analysis: analysis.payload,
-          analysisEngine: analysis.engine,
-          disclaimers: analysis.disclaimers,
+      const item = await insertCapturedItem(
+        {
+          ownerId,
+          domain,
+          title: candidate.label,
+          confidence: candidate.confidence,
+          attributes: {
+            ...candidate.attributes,
+            analysis: analysis.payload,
+            analysisEngine: analysis.engine,
+            disclaimers: analysis.disclaimers,
+          },
         },
-      });
+        media,
+        { items: client.items, itemMedia: client.itemMedia },
+      );
 
       // Valorisation persistée côté serveur (itemId fourni). NO_OBSERVATIONS
       // n'est pas bloquant : la fiche reste consultable sans estimation.

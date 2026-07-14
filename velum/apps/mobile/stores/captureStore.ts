@@ -11,6 +11,8 @@ export interface DraftMedia {
   base64: string;
   /** URI locale pour l'aperçu. */
   uri: string;
+  /** Chemin privé déjà téléversé, réutilisé en cas de nouvelle tentative. */
+  storagePath?: string;
 }
 
 export interface CaptureState {
@@ -23,6 +25,8 @@ export interface CaptureState {
   chosen: Candidate | null;
   setDomain(domain: VelumDomain): void;
   addMedia(media: DraftMedia): void;
+  /** N'attache le chemin que si le cliché attendu est toujours le cliché courant. */
+  setMediaStoragePath(role: MediaRole, expectedBase64: string, storagePath: string): void;
   removeMedia(role: MediaRole): void;
   setText(text: string): void;
   setFileRows(rows: Record<string, unknown>[], fileName: string): void;
@@ -49,6 +53,14 @@ export const useCaptureStore = create<CaptureState>()((set) => ({
   setDomain: (domain) => set({ ...initial, domain }),
   addMedia: (media) =>
     set((s) => ({ media: [...s.media.filter((m) => m.role !== media.role), media] })),
+  setMediaStoragePath: (role, expectedBase64, storagePath) =>
+    set((s) => ({
+      media: s.media.map((entry) =>
+        entry.role === role && entry.base64 === expectedBase64
+          ? { ...entry, storagePath }
+          : entry,
+      ),
+    })),
   removeMedia: (role) => set((s) => ({ media: s.media.filter((m) => m.role !== role) })),
   setText: (text) => set({ text }),
   setFileRows: (fileRows, fileName) => set({ fileRows, fileName }),
