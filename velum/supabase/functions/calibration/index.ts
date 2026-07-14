@@ -13,12 +13,24 @@
  * tombe dans l'IC annoncé » qu'aucun scanner one-shot ne peut afficher.
  */
 import type { VelumDomain } from '@velum/core';
-import { calibrate, type PriceOutcome } from '@velum/valuation';
+import { calibrate } from '@velum/valuation';
 import { createAdminClient, createUserClient } from '../_shared/auth.ts';
 import { handleOptions } from '../_shared/cors.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
+import { parseCalibrationOutcomes } from './outcomes.ts';
 
 const DOMAINS: VelumDomain[] = ['wine', 'coin', 'art', 'stamp'];
+
+function logFailure(event: string, domain: VelumDomain, cause: unknown): void {
+  console.error(
+    JSON.stringify({
+      at: new Date().toISOString(),
+      event,
+      domain,
+      message: cause instanceof Error ? cause.message : String(cause),
+    }),
+  );
+}
 
 Deno.serve(async (req: Request): Promise<Response> => {
   const preflight = handleOptions(req);
@@ -30,13 +42,17 @@ Deno.serve(async (req: Request): Promise<Response> => {
       const supabase = createUserClient(req);
       const results: Record<string, unknown> = {};
       for (const domain of DOMAINS) {
-        const { data } = await supabase
+        const { data, error: readError } = await supabase
           .from('calibration_runs')
           .select('domain, n, coverage80, coverage95, status, computed_at')
           .eq('domain', domain)
           .order('computed_at', { ascending: false })
           .limit(1)
           .maybeSingle();
+        if (readError) {
+          logFailure('calibration.read_failed', domain, readError.message);
+          return error('SOURCE_UNAVAILABLE', 'Lecture de la calibration impossible', 503);
+        }
         results[domain] = data ?? { domain, status: 'calibrating', n: 0 };
       }
       return json({ runs: results });
@@ -57,25 +73,38 @@ Deno.serve(async (req: Request): Promise<Response> => {
           .select('central, ci80_low, ci80_high, ci95_low, ci95_high, realized')
           .eq('domain', domain)
           .limit(5000);
-        if (readError) continue;
+        if (readError) {
+          logFailure('calibration.outcomes_read_failed', domain, readError.message);
+          return error('SOURCE_UNAVAILABLE', 'Recalcul de la calibration impossible', 503);
+        }
 
-        const outcomes: PriceOutcome[] = (rows ?? []).map((r) => ({
-          central: Number(r.central),
-          ci80: [Number(r.ci80_low), Number(r.ci80_high)],
-          ci95: [Number(r.ci95_low), Number(r.ci95_high)],
-          realized: Number(r.realized),
-          domain,
-        }));
+        let outcomes;
+        try {
+          outcomes = parseCalibrationOutcomes(rows ?? [], domain);
+        } catch (parseError) {
+          logFailure('calibration.outcomes_invalid', domain, parseError);
+          return error('SOURCE_UNAVAILABLE', 'Données de calibration invalides', 503);
+        }
 
-        const c = calibrate(outcomes);
-        await admin.from('calibration_runs').insert({
+        const calibration = calibrate(outcomes);
+        const { error: insertError } = await admin.from('calibration_runs').insert({
           domain,
-          n: c.n,
-          coverage80: c.coverage80,
-          coverage95: c.coverage95,
-          status: c.status,
+          n: calibration.n,
+          coverage80: calibration.coverage80,
+          coverage95: calibration.coverage95,
+          status: calibration.status,
         });
-        published[domain] = { n: c.n, coverage80: c.coverage80, status: c.status };
+        if (insertError) {
+          logFailure('calibration.publish_failed', domain, insertError.message);
+          return error('SOURCE_UNAVAILABLE', 'Publication de la calibration impossible', 503);
+        }
+
+        published[domain] = {
+          n: calibration.n,
+          coverage80: calibration.coverage80,
+          coverage95: calibration.coverage95,
+          status: calibration.status,
+        };
       }
       return json({ published });
     }
