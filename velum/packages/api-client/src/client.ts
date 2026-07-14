@@ -6,6 +6,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { createAuthApi, type AuthApi } from './auth';
 import { createEdgeApi, type EdgeApi } from './edge';
+import { createItemMediaRepo, type ItemMediaRepo } from './item-media';
 import { MutationQueue } from './queue';
 import {
   createAlertsRepo,
@@ -41,6 +42,8 @@ export interface VelumClient {
   auth: AuthApi;
   edge: EdgeApi;
   items: ItemsRepo;
+  /** Références vers les photos privées déjà stockées dans `item-media`. */
+  itemMedia: ItemMediaRepo;
   valuations: ValuationsRepo;
   alerts: AlertsRepo;
   profile: ProfileApi;
@@ -71,6 +74,7 @@ export function createVelumClient(opts: VelumClientOptions): VelumClient {
     auth: createAuthApi(supabase),
     edge: createEdgeApi(supabase),
     items: createItemsRepo(supabase),
+    itemMedia: createItemMediaRepo(supabase),
     valuations: createValuationsRepo(supabase),
     alerts: createAlertsRepo(supabase),
     profile: createProfileApi(supabase),
