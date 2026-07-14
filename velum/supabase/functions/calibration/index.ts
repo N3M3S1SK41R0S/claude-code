@@ -78,7 +78,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           return error('SOURCE_UNAVAILABLE', 'Recalcul de la calibration impossible', 503);
         }
 
-        let outcomes;
+        let outcomes: ReturnType<typeof parseCalibrationOutcomes>;
         try {
           outcomes = parseCalibrationOutcomes(rows ?? [], domain);
         } catch (parseError) {
