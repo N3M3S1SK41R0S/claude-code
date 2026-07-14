@@ -31,6 +31,11 @@ export class FakeSupabase {
   /** Session simulée pour auth.getSession(). */
   session: { user: { id: string } } | null = null;
 
+  constructor(
+    /** Horloge injectée : les tests temporels ne dépendent jamais de l'heure réelle. */
+    readonly now: () => string = () => new Date().toISOString(),
+  ) {}
+
   from(table: string): FakeQueryBuilder {
     return new FakeQueryBuilder(this, table);
   }
@@ -163,10 +168,11 @@ class FakeQueryBuilder implements PromiseLike<FakeResult> {
         const payloads = Array.isArray(this.payload) ? this.payload : [this.payload ?? {}];
         const inserted = payloads.map((payload) => {
           const row: Row = { ...payload };
+          const timestamp = this.fake.now();
           if (row['id'] === undefined) row['id'] = `fake-${this.table}-${rows.length + 1}`;
-          if (row['created_at'] === undefined) row['created_at'] = new Date().toISOString();
+          if (row['created_at'] === undefined) row['created_at'] = timestamp;
           if (this.table === 'items' && row['updated_at'] === undefined) {
-            row['updated_at'] = new Date().toISOString();
+            row['updated_at'] = timestamp;
           }
           rows.push(row);
           return row;
