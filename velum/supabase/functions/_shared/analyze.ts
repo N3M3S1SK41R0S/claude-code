@@ -6,11 +6,11 @@
  *   → auth → plugin.analyze() → insert analyses si itemId (client user, RLS)
  *   → AnalysisResult.
  */
-import type { Candidate } from '@velum/core';
 import { getUser } from './auth.ts';
 import { handleOptions } from './cors.ts';
 import type { AnyDomainPlugin } from './domains.ts';
 import { guardAiCall } from './guard.ts';
+import { validateCandidate, validateJsonObject } from './input.ts';
 import { createVisionModel } from './llm.ts';
 import { error, errorFromException, json } from './respond.ts';
 
@@ -27,25 +27,29 @@ export function makeAnalyzeHandler(plugin: AnyDomainPlugin): (req: Request) => P
       return error('UNAUTHORIZED', 'Authentification requise', 401);
     }
 
-    let body: { candidate?: unknown; itemId?: unknown };
+    let rawBody: unknown;
     try {
-      body = await req.json();
+      rawBody = await req.json();
     } catch {
       return error('INVALID_INPUT', 'Corps JSON invalide', 400);
     }
 
-    if (!body.candidate || typeof body.candidate !== 'object') {
-      return error('INVALID_INPUT', "Champ 'candidate' manquant", 400);
+    const bodyResult = validateJsonObject(rawBody);
+    if (!bodyResult.ok) {
+      return error('INVALID_INPUT', bodyResult.message, 400);
     }
-    const candidate = body.candidate as Candidate;
-    if (candidate.domain !== plugin.domain) {
-      return error(
-        'INVALID_INPUT',
-        `Le candidat appartient au domaine '${candidate.domain}', cette fonction traite '${plugin.domain}'`,
-        400,
-      );
+    const body = bodyResult.value;
+
+    const candidateResult = validateCandidate(body['candidate'], plugin.domain);
+    if (!candidateResult.ok) {
+      return error('INVALID_INPUT', candidateResult.message, 400);
     }
-    const itemId = typeof body.itemId === 'string' ? body.itemId : undefined;
+    const candidate = candidateResult.value;
+
+    if (body['itemId'] !== undefined && typeof body['itemId'] !== 'string') {
+      return error('INVALID_INPUT', "Champ 'itemId' invalide : chaîne attendue", 400);
+    }
+    const itemId = typeof body['itemId'] === 'string' ? body['itemId'] : undefined;
 
     // `analyze` n'était soumis à AUCUN quota — alors qu'il demande 4096 tokens de
     // sortie, donc coûte plus cher qu'une reconnaissance. Un seul compte gratuit
