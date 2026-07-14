@@ -91,7 +91,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
       };
     });
 
-    const result = await recommendForDish({ dish, cellar }, createVisionModel());
+    const result = await recommendForDish(
+      { dish, cellar },
+      createVisionModel({ operation: 'cellar-pairing', domain: 'wine', userId: auth.user.id }),
+    );
     return json(result);
   } catch (err) {
     return errorFromException(err);

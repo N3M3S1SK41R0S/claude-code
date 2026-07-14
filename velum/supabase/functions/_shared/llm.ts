@@ -18,6 +18,7 @@
  * l'implémentation par injection et n'appellent jamais le réseau directement.
  */
 import { VelumError, isVelumError, type VisionModel } from '@velum/core';
+import { recordVisionCall, type TokenUsage, type VisionContext } from './usage.ts';
 
 const DEFAULT_MAX_TOKENS = 2048;
 
@@ -34,6 +35,17 @@ interface ProviderConfig {
   provider: VisionProvider;
   apiKey: string;
   model: string;
+}
+
+/** Ce qu'un fournisseur renvoie réellement : le texte ET ce qu'il a consommé. */
+interface VisionOutcome {
+  text: string;
+  usage?: TokenUsage;
+}
+
+/** Fournisseur interne : expose la consommation, que `VisionModel` ne porte pas. */
+interface VisionBackend {
+  run(req: VisionRequest): Promise<VisionOutcome>;
 }
 
 // ── Observabilité ────────────────────────────────────────────────────────────
@@ -90,10 +102,10 @@ interface AnthropicContentBlock {
   text?: string;
 }
 
-export class AnthropicVision implements VisionModel {
+export class AnthropicVision implements VisionBackend {
   constructor(private readonly cfg: ProviderConfig) {}
 
-  async complete(req: VisionRequest): Promise<string> {
+  async run(req: VisionRequest): Promise<VisionOutcome> {
     // Blocs image (base64) AVANT le bloc texte — ordre recommandé par l'API.
     const content: unknown[] = (req.images ?? []).map((img) => ({
       type: 'image',
@@ -117,12 +129,20 @@ export class AnthropicVision implements VisionModel {
     });
     await ensureOk(response);
 
-    const payload = (await response.json()) as { content?: AnthropicContentBlock[] };
+    const payload = (await response.json()) as {
+      content?: AnthropicContentBlock[];
+      usage?: { input_tokens?: number; output_tokens?: number };
+    };
     const blocks = Array.isArray(payload.content) ? payload.content : [];
-    return blocks
+    const text = blocks
       .filter((block) => block.type === 'text' && typeof block.text === 'string')
       .map((block) => block.text as string)
       .join('\n');
+
+    return {
+      text,
+      usage: { input: payload.usage?.input_tokens, output: payload.usage?.output_tokens },
+    };
   }
 }
 
@@ -138,10 +158,10 @@ function openAiTokenLimitField(model: string): 'max_completion_tokens' | 'max_to
   return /^(gpt-5|o[134])/.test(model) ? 'max_completion_tokens' : 'max_tokens';
 }
 
-export class OpenAIVision implements VisionModel {
+export class OpenAIVision implements VisionBackend {
   constructor(private readonly cfg: ProviderConfig) {}
 
-  async complete(req: VisionRequest): Promise<string> {
+  async run(req: VisionRequest): Promise<VisionOutcome> {
     const userContent: unknown[] = (req.images ?? []).map((img) => ({
       type: 'image_url',
       image_url: { url: `data:${img.mediaType};base64,${stripDataUrlPrefix(img.base64)}` },
@@ -164,8 +184,12 @@ export class OpenAIVision implements VisionModel {
 
     const payload = (await response.json()) as {
       choices?: { message?: { content?: string } }[];
+      usage?: { prompt_tokens?: number; completion_tokens?: number };
     };
-    return payload.choices?.[0]?.message?.content ?? '';
+    return {
+      text: payload.choices?.[0]?.message?.content ?? '',
+      usage: { input: payload.usage?.prompt_tokens, output: payload.usage?.completion_tokens },
+    };
   }
 }
 
@@ -192,10 +216,10 @@ function geminiSupportsThinkingLevel(model: string): boolean {
   return /^gemini-3/.test(model);
 }
 
-export class GoogleVision implements VisionModel {
+export class GoogleVision implements VisionBackend {
   constructor(private readonly cfg: ProviderConfig) {}
 
-  async complete(req: VisionRequest): Promise<string> {
+  async run(req: VisionRequest): Promise<VisionOutcome> {
     const parts: unknown[] = (req.images ?? []).map((img) => ({
       inlineData: { mimeType: img.mediaType, data: stripDataUrlPrefix(img.base64) },
     }));
@@ -224,12 +248,27 @@ export class GoogleVision implements VisionModel {
 
     const payload = (await response.json()) as {
       candidates?: { content?: { parts?: GeminiPart[] } }[];
+      usageMetadata?: {
+        promptTokenCount?: number;
+        candidatesTokenCount?: number;
+        thoughtsTokenCount?: number;
+      };
     };
     const out = payload.candidates?.[0]?.content?.parts ?? [];
-    return out
+    const text = out
       .filter((p) => typeof p.text === 'string')
       .map((p) => p.text as string)
       .join('\n');
+
+    // Google facture la RÉFLEXION comme de la sortie : on l'additionne, sinon on
+    // sous-estimerait le coût d'un facteur ~6 sur une identification d'étiquette.
+    const meta = payload.usageMetadata;
+    const output =
+      meta === undefined
+        ? undefined
+        : (meta.candidatesTokenCount ?? 0) + (meta.thoughtsTokenCount ?? 0);
+
+    return { text, usage: { input: meta?.promptTokenCount, output } };
   }
 }
 
@@ -241,7 +280,7 @@ const DEFAULT_MODEL: Record<VisionProvider, string> = {
   google: 'gemini-3.5-flash',
 };
 
-function instantiate(cfg: ProviderConfig): VisionModel {
+function instantiate(cfg: ProviderConfig): VisionBackend {
   switch (cfg.provider) {
     case 'anthropic':
       return new AnthropicVision(cfg);
@@ -262,7 +301,10 @@ function instantiate(cfg: ProviderConfig): VisionModel {
  * refus silencieux. Sans ça, le bug Gemini serait passé pour un résultat normal.
  */
 export class CascadingVision implements VisionModel {
-  constructor(private readonly chain: ProviderConfig[]) {}
+  constructor(
+    private readonly chain: ProviderConfig[],
+    private readonly context: VisionContext,
+  ) {}
 
   async complete(req: VisionRequest): Promise<string> {
     let lastError: unknown = new VelumError(
@@ -273,35 +315,64 @@ export class CascadingVision implements VisionModel {
     for (let i = 0; i < this.chain.length; i++) {
       const cfg = this.chain[i] as ProviderConfig;
       const startedAt = Date.now();
+      let usage: TokenUsage | undefined;
       try {
-        const out = await instantiate(cfg).complete(req);
-        if (out.trim() === '') {
+        const outcome = await instantiate(cfg).run(req);
+        usage = outcome.usage;
+        if (outcome.text.trim() === '') {
           throw new VelumError(
             'SOURCE_UNAVAILABLE',
             'Réponse vide du modèle (troncature ou refus)',
           );
         }
+        const durationMs = Date.now() - startedAt;
         logEvent({
           event: 'vision.success',
           provider: cfg.provider,
           model: cfg.model,
           attempt: i + 1,
           usedFallback: i > 0,
-          ms: Date.now() - startedAt,
-          chars: out.length,
+          ms: durationMs,
+          chars: outcome.text.length,
+          tokensIn: usage?.input ?? null,
+          tokensOut: usage?.output ?? null,
         });
-        return out;
+        recordVisionCall({
+          ...this.context,
+          provider: cfg.provider,
+          model: cfg.model,
+          attempt: i + 1,
+          usedFallback: i > 0,
+          ok: true,
+          durationMs,
+          ...(usage ? { usage } : {}),
+        });
+        return outcome.text;
       } catch (err) {
         lastError = err;
+        const durationMs = Date.now() - startedAt;
         logEvent({
           event: 'vision.failure',
           provider: cfg.provider,
           model: cfg.model,
           attempt: i + 1,
-          ms: Date.now() - startedAt,
+          ms: durationMs,
           code: codeOf(err),
           message: messageOf(err).slice(0, 300),
           willRetryWith: this.chain[i + 1]?.provider ?? null,
+        });
+        // Un échec est enregistré AUSSI : une réponse tronquée a été facturée
+        // par le fournisseur, même si elle ne nous sert à rien.
+        recordVisionCall({
+          ...this.context,
+          provider: cfg.provider,
+          model: cfg.model,
+          attempt: i + 1,
+          usedFallback: i > 0,
+          ok: false,
+          errorCode: codeOf(err),
+          durationMs,
+          ...(usage ? { usage } : {}),
         });
       }
     }
@@ -358,7 +429,7 @@ function modelFor(provider: VisionProvider, isPrimary: boolean): string {
  * Un fournisseur sans clé est ÉCARTÉ (et journalisé) plutôt que de faire échouer
  * toute la chaîne : mieux vaut un repli fonctionnel qu'une panne totale.
  */
-export function createVisionModel(): VisionModel {
+export function createVisionModel(context: VisionContext = { operation: 'unknown' }): VisionModel {
   const list = Deno.env.get('LLM_VISION_PROVIDERS') ?? Deno.env.get('LLM_VISION_PROVIDER') ?? 'anthropic';
   const requested = list
     .split(',')
@@ -384,5 +455,5 @@ export function createVisionModel(): VisionModel {
     );
   }
 
-  return new CascadingVision(chain);
+  return new CascadingVision(chain, context);
 }

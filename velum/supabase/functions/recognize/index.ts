@@ -58,7 +58,13 @@ export async function handler(req: Request): Promise<Response> {
 
   try {
     const plugin = plugins[body.domain];
-    const result = await plugin.recognize(input, { vision: createVisionModel() });
+    const result = await plugin.recognize(input, {
+      vision: createVisionModel({
+        operation: 'recognize',
+        domain: body.domain,
+        userId: auth.user.id,
+      }),
+    });
     return json(result);
   } catch (err) {
     return errorFromException(err);

@@ -47,7 +47,13 @@ export function makeAnalyzeHandler(plugin: AnyDomainPlugin): (req: Request) => P
     const itemId = typeof body.itemId === 'string' ? body.itemId : undefined;
 
     try {
-      const result = await plugin.analyze(candidate, { vision: createVisionModel() });
+      const result = await plugin.analyze(candidate, {
+        vision: createVisionModel({
+          operation: 'analyze',
+          domain: plugin.domain,
+          userId: auth.user.id,
+        }),
+      });
 
       // Persistance optionnelle — via le client utilisateur : la RLS garantit
       // que l'item appartient bien à l'appelant.
