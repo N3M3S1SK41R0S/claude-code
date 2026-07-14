@@ -1,7 +1,8 @@
 /**
  * Modal de capture par domaine : caméra avec guides de cadrage multi-clichés
  * (rôles MediaRole propres au domaine), import galerie, saisie texte libre,
- * import de fichier CSV/JSON. Photos en base64 (qualité 0.7) → recognize.
+ * import de fichier CSV/JSON. Les photos sont téléversées avant `recognize` et
+ * leurs chemins restent dans le brouillon jusqu'à la création de l'objet.
  */
 import { useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
@@ -73,6 +74,7 @@ export default function CaptureModal() {
 
   const roles = DOMAIN_ROLES[domain];
   const [tab, setTab] = useState<Tab>('photo');
+  const [submitting, setSubmitting] = useState(false);
   // Consentement IA : photo et texte partent au LLM ; l'import fichier est
   // un mapping local (kind 'file' ne passe pas par deps.vision) → non gated.
   const aiConsent = useSettingsStore((s) => s.aiConsent);
@@ -88,25 +90,15 @@ export default function CaptureModal() {
   const fileRows = useCaptureStore((s) => s.fileRows);
   const fileName = useCaptureStore((s) => s.fileName);
   const addMedia = useCaptureStore((s) => s.addMedia);
+  const setMediaStoragePath = useCaptureStore((s) => s.setMediaStoragePath);
   const setText = useCaptureStore((s) => s.setText);
   const setFileRows = useCaptureStore((s) => s.setFileRows);
   const setRecognition = useCaptureStore((s) => s.setRecognition);
 
   const recognizeMutation = useMutation({
     mutationFn: (input: CaptureInput) => getVelumClient().edge.recognize(domain, input),
-    onSuccess: (result) => {
-      setRecognition(result);
-      router.push('/capture/candidates');
-    },
-    onError: (error) => {
-      if (velumErrorCode(error) === 'BUDGET_EXCEEDED') {
-        showToast(errorMessage(error, t), 'danger');
-        router.push('/paywall');
-        return;
-      }
-      showToast(errorMessage(error, t), 'danger');
-    },
   });
+  const pending = submitting || recognizeMutation.isPending;
 
   /** Ajoute un cliché et avance vers le rôle suivant restant (multi-clichés). */
   const acceptShot = (dataUrl: string) => {
@@ -164,37 +156,62 @@ export default function CaptureModal() {
   };
 
   const analyze = async () => {
+    if (pending) return;
     if ((tab === 'photo' || tab === 'text') && aiConsent !== true) {
       showToast(t('aiConsent.declinedBanner'), 'info');
       return;
     }
-    let input: CaptureInput | null = null;
-    if (tab === 'photo' && media.length > 0) {
-      // On téléverse l'octet brut plutôt que d'embarquer le base64 dans le JSON
-      // (+33 % de poids, ×2 ou ×3 en multi-clichés, et la photo perdue ensuite).
-      // Si le téléversement échoue, on retombe sur le base64 : mieux vaut une
-      // requête lourde qu'une capture perdue.
-      const uploaded = await Promise.all(
-        media.map(async (m) => ({ media: m, path: await uploadCaptureMedia(m.base64) })),
-      );
-      input = {
-        kind: 'photo',
-        media: uploaded.map(({ media: m, path }) =>
-          path === null
-            ? { role: m.role, storagePath: '', base64: m.base64 }
-            : { role: m.role, storagePath: path },
-        ),
-      };
-    } else if (tab === 'text' && text.trim().length > 0) {
-      input = { kind: 'text', text: text.trim() };
-    } else if (tab === 'file' && fileRows.length > 0) {
-      input = { kind: 'file', fileRows };
-    }
-    if (input === null) {
+    if (
+      (tab === 'photo' && media.length === 0) ||
+      (tab === 'text' && text.trim().length === 0) ||
+      (tab === 'file' && fileRows.length === 0)
+    ) {
       showToast(t('capture.noInput'), 'info');
       return;
     }
-    recognizeMutation.mutate(input);
+
+    setSubmitting(true);
+    try {
+      let input: CaptureInput;
+      if (tab === 'photo') {
+        // Un chemin déjà téléversé est réutilisé après une erreur de reconnaissance :
+        // aucun doublon Storage n'est créé lors d'une nouvelle tentative.
+        const uploaded = await Promise.all(
+          media.map(async (entry) => {
+            const path = entry.storagePath ?? (await uploadCaptureMedia(entry.base64));
+            if (path !== null && entry.storagePath !== path) {
+              setMediaStoragePath(entry.role, path);
+            }
+            return { media: entry, path };
+          }),
+        );
+        input = {
+          kind: 'photo',
+          media: uploaded.map(({ media: entry, path }) =>
+            path === null
+              ? { role: entry.role, storagePath: '', base64: entry.base64 }
+              : { role: entry.role, storagePath: path },
+          ),
+        };
+      } else if (tab === 'text') {
+        input = { kind: 'text', text: text.trim() };
+      } else {
+        input = { kind: 'file', fileRows };
+      }
+
+      const result = await recognizeMutation.mutateAsync(input);
+      setRecognition(result);
+      router.push('/capture/candidates');
+    } catch (error) {
+      if (velumErrorCode(error) === 'BUDGET_EXCEEDED') {
+        showToast(errorMessage(error, t), 'danger');
+        router.push('/paywall');
+      } else {
+        showToast(errorMessage(error, t), 'danger');
+      }
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const renderPhotoTab = () => {
@@ -345,9 +362,9 @@ export default function CaptureModal() {
 
       <View style={styles.analyze}>
         <VButton
-          label={recognizeMutation.isPending ? t('capture.analyzing') : t('capture.analyze')}
+          label={pending ? t('capture.analyzing') : t('capture.analyze')}
           onPress={() => void analyze()}
-          loading={recognizeMutation.isPending}
+          loading={pending}
         />
         <VButton label={t('common.cancel')} variant="ghost" onPress={() => router.back()} />
       </View>
