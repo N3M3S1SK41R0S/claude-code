@@ -239,7 +239,8 @@
       "provenance": "Provenance",
       "comparables": "Comparable works",
       "attribution": "Attribution",
-      "catalog": "Catalogue"
+      "catalog": "Catalogue",
+      "origin": "Estate origin"
     },
     "wine": {
       "drinkWindow": "Drinking window: {{from}} – {{to}}",
@@ -255,7 +256,14 @@
       "decanting": "Decanting",
       "decantingWithDuration": "Recommended — {{minutes}} min",
       "decantingRecommended": "Recommended",
-      "decantingNotNeeded": "Not needed"
+      "decantingNotNeeded": "Not needed",
+      "grapes": "Grape varieties",
+      "winemakerRenown": "Renown",
+      "distinctiveness": "Distinctive features",
+      "priceCellarDoor": "At the estate",
+      "priceMerchant": "Wine merchant",
+      "priceRestaurant": "Restaurant list",
+      "originCaption": "Estate location"
     },
     "coin": {
       "gradeValue": "{{value}} ({{scale}} scale, {{confidence}}% confidence)"

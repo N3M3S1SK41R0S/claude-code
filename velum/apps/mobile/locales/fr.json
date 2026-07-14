@@ -239,7 +239,8 @@
       "provenance": "Provenance",
       "comparables": "Œuvres comparables",
       "attribution": "Attribution",
-      "catalog": "Catalogue"
+      "catalog": "Catalogue",
+      "origin": "Origine du domaine"
     },
     "wine": {
       "drinkWindow": "Apogée : {{from}} – {{to}}",
@@ -255,7 +256,14 @@
       "decanting": "Carafage",
       "decantingWithDuration": "Recommandé — {{minutes}} min",
       "decantingRecommended": "Recommandé",
-      "decantingNotNeeded": "Non nécessaire"
+      "decantingNotNeeded": "Non nécessaire",
+      "grapes": "Cépages",
+      "winemakerRenown": "Renommée",
+      "distinctiveness": "Particularités",
+      "priceCellarDoor": "Au domaine",
+      "priceMerchant": "Chez le caviste",
+      "priceRestaurant": "Au restaurant",
+      "originCaption": "Localisation du domaine"
     },
     "coin": {
       "gradeValue": "{{value}} (échelle {{scale}}, confiance {{confidence}} %)"

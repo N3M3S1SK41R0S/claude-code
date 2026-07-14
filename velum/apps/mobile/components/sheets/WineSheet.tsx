@@ -6,10 +6,21 @@ import { useTranslation } from 'react-i18next';
 import { VText } from '@velum/ui';
 import type { WineAnalysisPayload, WineDecantingAdvice } from '@velum/core';
 import { Bullets, KV, SheetSection } from './SheetSection';
+import { WineOriginMap } from '../WineOriginMap';
 
 /** Fourchette de température « 12–14 °C » (unité identique fr/en). */
 function formatTempRange(range: [number, number]): string {
   return `${range[0]}–${range[1]} °C`;
+}
+
+/** Cépages avec pourcentages : « Merlot 80 %, Cabernet 20 % ». */
+function formatGrapes(grapes: { name: string; percent?: number }[]): string {
+  return grapes.map((g) => (g.percent !== undefined ? `${g.name} ${g.percent} %` : g.name)).join(', ');
+}
+
+/** Fourchette de prix « 45–90 € » (unité identique fr/en). */
+function formatEURRange(range: [number, number]): string {
+  return `${range[0]}–${range[1]} €`;
 }
 
 export function WineSheet({ payload }: { payload: Partial<WineAnalysisPayload> | null }) {
@@ -38,10 +49,33 @@ export function WineSheet({ payload }: { payload: Partial<WineAnalysisPayload> |
         <SheetSection title={t('item.sections.identification')}>
           {identification.producer ? <KV label={t('candidates.fields.wineProducer')} value={identification.producer} /> : null}
           {identification.winemaker ? <KV label={t('item.wine.winemaker')} value={identification.winemaker} /> : null}
+          {identification.winemakerRenown ? <KV label={t('item.wine.winemakerRenown')} value={identification.winemakerRenown} /> : null}
           {identification.appellation ? <KV label={t('candidates.fields.wineAppellation')} value={identification.appellation} /> : null}
           {identification.vintage !== undefined ? <KV label={t('candidates.fields.wineVintage')} value={String(identification.vintage)} /> : null}
           {identification.region ? <KV label={t('candidates.fields.stampCountry')} value={[identification.region, identification.country].filter(Boolean).join(', ')} /> : null}
           {identification.color ? <VText variant="body">{identification.color}</VText> : null}
+          {identification.grapes && identification.grapes.length > 0 ? (
+            <KV label={t('item.wine.grapes')} value={formatGrapes(identification.grapes)} />
+          ) : null}
+          {identification.distinctiveness && identification.distinctiveness.length > 0 ? (
+            <>
+              <VText variant="caption">{t('item.wine.distinctiveness')}</VText>
+              <Bullets items={identification.distinctiveness} />
+            </>
+          ) : null}
+        </SheetSection>
+      ) : null}
+
+      {/* Carte d'origine : localisation du domaine (France ou monde). */}
+      {identification &&
+      (identification.appellation || identification.region || identification.country) ? (
+        <SheetSection title={t('item.sections.origin')}>
+          <WineOriginMap
+            appellation={identification.appellation}
+            region={identification.region}
+            country={identification.country}
+            caption={t('item.wine.originCaption')}
+          />
         </SheetSection>
       ) : null}
 
@@ -106,6 +140,15 @@ export function WineSheet({ payload }: { payload: Partial<WineAnalysisPayload> |
         <SheetSection title={t('item.sections.market')}>
           {market.averagePriceEUR !== undefined ? (
             <KV label={t('item.central')} value={`${market.averagePriceEUR} €`} />
+          ) : null}
+          {market.priceByChannel?.cellarDoorEUR !== undefined ? (
+            <KV label={t('item.wine.priceCellarDoor')} value={`${market.priceByChannel.cellarDoorEUR} €`} />
+          ) : null}
+          {market.priceByChannel?.wineMerchantEUR !== undefined ? (
+            <KV label={t('item.wine.priceMerchant')} value={`${market.priceByChannel.wineMerchantEUR} €`} />
+          ) : null}
+          {market.priceByChannel?.restaurantEUR ? (
+            <KV label={t('item.wine.priceRestaurant')} value={formatEURRange(market.priceByChannel.restaurantEUR)} />
           ) : null}
           <KV label={t('item.sections.market')} value={market.assetClass} />
           {market.marketTension ? <KV label="Tension" value={market.marketTension} /> : null}
