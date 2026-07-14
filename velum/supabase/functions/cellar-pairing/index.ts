@@ -15,6 +15,7 @@ import type { CellarWineEntry, WineAnalysisPayload, WineAttributes } from '@velu
 import { recommendForDish } from '@velum/domain-wine';
 import { getUser } from '../_shared/auth.ts';
 import { handleOptions } from '../_shared/cors.ts';
+import { guardAiCall } from '../_shared/guard.ts';
 import { createVisionModel } from '../_shared/llm.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
 
@@ -42,6 +43,11 @@ Deno.serve(async (req: Request): Promise<Response> => {
   if (dish.length === 0 || dish.length > 500) {
     return error('INVALID_INPUT', "Champ 'dish' requis (description du plat, ≤ 500 caractères)", 400);
   }
+
+  // Réservé aux plans payants (voir plus bas), donc jamais bridé en pratique —
+  // le garde-fou est là par principe : aucun appel IA ne doit être non plafonné.
+  const blocked = await guardAiCall(auth, req);
+  if (blocked) return blocked;
 
   // Le sommelier de cave fait partie du carnet virtuel : Gold et Platine.
   const { data: profile } = await auth.supabase

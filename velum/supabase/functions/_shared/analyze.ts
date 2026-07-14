@@ -10,6 +10,7 @@ import type { Candidate } from '@velum/core';
 import { getUser } from './auth.ts';
 import { handleOptions } from './cors.ts';
 import type { AnyDomainPlugin } from './domains.ts';
+import { guardAiCall } from './guard.ts';
 import { createVisionModel } from './llm.ts';
 import { error, errorFromException, json } from './respond.ts';
 
@@ -45,6 +46,12 @@ export function makeAnalyzeHandler(plugin: AnyDomainPlugin): (req: Request) => P
       );
     }
     const itemId = typeof body.itemId === 'string' ? body.itemId : undefined;
+
+    // `analyze` n'était soumis à AUCUN quota — alors qu'il demande 4096 tokens de
+    // sortie, donc coûte plus cher qu'une reconnaissance. Un seul compte gratuit
+    // pouvait l'appeler en boucle, indéfiniment, aux frais du propriétaire.
+    const blocked = await guardAiCall(auth, req);
+    if (blocked) return blocked;
 
     try {
       const result = await plugin.analyze(candidate, {

@@ -9,6 +9,7 @@ import type { CaptureInput } from '@velum/core';
 import { getUser } from '../_shared/auth.ts';
 import { handleOptions } from '../_shared/cors.ts';
 import { isVelumDomain, plugins } from '../_shared/domains.ts';
+import { guardAiCall } from '../_shared/guard.ts';
 import { createVisionModel } from '../_shared/llm.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
 
@@ -38,6 +39,11 @@ export async function handler(req: Request): Promise<Response> {
     return error('INVALID_INPUT', "Champ 'input' (CaptureInput) manquant", 400);
   }
   const input = body.input as CaptureInput;
+
+  // Garde-fou anti-abus (plafond de dépense, par utilisateur, par IP) — AVANT le
+  // quota produit : il protège la facture, pas le modèle économique.
+  const blocked = await guardAiCall(auth, req);
+  if (blocked) return blocked;
 
   // Quota freemium : 5 scans/semaine PAR module en plan 'free'
   // (premium/gold/platine : illimité — fonction security definer).

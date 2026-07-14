@@ -27,12 +27,14 @@ function jsonResponse(body: unknown, status = 200): Response {
  * Installe un stub fetch routé par URL.
  * @param opts.user       utilisateur renvoyé par /auth/v1/user (null → 401)
  * @param opts.quota      valeur de rpc consume_scan (true/false)
+ * @param opts.guard      verdict de rpc guard_ai_call ('ok' par défaut)
  * @param opts.vision     texte renvoyé par Anthropic (JSON attendu par le plugin)
  * @param opts.sources    observations renvoyées par les sources de prix ([] par défaut)
  */
 function stubFetch(opts: {
   user?: Record<string, unknown> | null;
   quota?: boolean;
+  guard?: 'ok' | 'budget' | 'user' | 'ip' | 'unauthorized';
   vision?: string;
   sources?: unknown;
 }) {
@@ -42,6 +44,9 @@ function stubFetch(opts: {
       return Promise.resolve(
         opts.user ? jsonResponse(opts.user) : jsonResponse({ error: 'invalid' }, 401),
       );
+    }
+    if (url.includes('/rest/v1/rpc/guard_ai_call')) {
+      return Promise.resolve(jsonResponse(opts.guard ?? 'ok'));
     }
     if (url.includes('/rest/v1/rpc/consume_scan')) {
       return Promise.resolve(jsonResponse(opts.quota ?? true));
@@ -108,6 +113,49 @@ Deno.test('recognize : quota atteint → 402 BUDGET_EXCEEDED', async () => {
   );
   assertEquals(res.status, 402);
   assertEquals((await res.json()).error.code, 'BUDGET_EXCEEDED');
+  restore();
+});
+
+// ── Garde-fou anti-abus ──────────────────────────────────────────────────────
+// Le quota produit (consume_scan) protège le modèle économique ; ces plafonds-ci
+// protègent la FACTURE. Ils s'appliquent avant lui, et à toutes les fonctions IA.
+
+Deno.test("garde-fou : plafond de dépense quotidien atteint → 503 (l'IA est coupée)", async () => {
+  stubFetch({ user: DEMO_USER, guard: 'budget', quota: true });
+  const res = await recognize(
+    post('https://x/recognize', { domain: 'wine', input: { kind: 'text', text: 'Bandol 2016' } }),
+  );
+  assertEquals(res.status, 503);
+  assertEquals((await res.json()).error.code, 'SOURCE_UNAVAILABLE');
+  restore();
+});
+
+Deno.test('garde-fou : trop d’appels pour cet utilisateur → 429', async () => {
+  stubFetch({ user: DEMO_USER, guard: 'user', quota: true });
+  const res = await recognize(
+    post('https://x/recognize', { domain: 'wine', input: { kind: 'text', text: 'Bandol 2016' } }),
+  );
+  assertEquals(res.status, 429);
+  assertEquals((await res.json()).error.code, 'RATE_LIMITED');
+  restore();
+});
+
+Deno.test('garde-fou : trop d’appels depuis cette IP → 429 (parade au multi-comptes)', async () => {
+  stubFetch({ user: DEMO_USER, guard: 'ip', quota: true });
+  const res = await recognize(
+    post('https://x/recognize', { domain: 'wine', input: { kind: 'text', text: 'Bandol 2016' } }),
+  );
+  assertEquals(res.status, 429);
+  restore();
+});
+
+Deno.test('garde-fou : il passe AVANT le quota produit (la facture prime)', async () => {
+  // Quota produit encore disponible, mais plafond de dépense atteint : on refuse.
+  stubFetch({ user: DEMO_USER, guard: 'budget', quota: true });
+  const res = await recognize(
+    post('https://x/recognize', { domain: 'wine', input: { kind: 'text', text: 'Bandol 2016' } }),
+  );
+  assertEquals(res.status, 503); // et non 200
   restore();
 });
 
