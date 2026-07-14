@@ -11,6 +11,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { MIN_TOUCH_TARGET, VBadge, VButton, VText, VTextInput, velumSpacing } from '@velum/ui';
 import type { VelumItem } from '@velum/core';
+import { sealFromEntries, verifyPassport } from '@velum/carnet';
 
 import { KV, SheetSection } from '../sheets/SheetSection';
 import { getVelumClient } from '../../lib/client';
@@ -200,6 +201,19 @@ export function ProvenanceSection({ itemId }: { itemId: string }) {
 
   const entries = query.data ?? [];
 
+  // Pari #8 — sceau d'intégrité DÉRIVÉ des entrées de provenance : un hash
+  // chaîné (SHA-256) rejouable ; toute altération casserait la vérification.
+  const seal =
+    entries.length > 0
+      ? sealFromEntries(
+          itemId,
+          [...entries].sort((a, b) =>
+            (a.eventDate ?? a.createdAt ?? '').localeCompare(b.eventDate ?? b.createdAt ?? ''),
+          ),
+        )
+      : null;
+  const sealVerified = seal ? verifyPassport(seal).valid : false;
+
   return (
     <SheetSection title={t('journal.provenanceTitle')}>
       {entries.length === 0 ? (
@@ -223,6 +237,14 @@ export function ProvenanceSection({ itemId }: { itemId: string }) {
           </View>
         ))
       )}
+
+      {seal ? (
+        <VText variant="caption" tone={sealVerified ? 'gold' : 'danger'}>
+          {sealVerified
+            ? `🔒 ${t('journal.provenanceSealed', { hash: seal.head.slice(0, 10) })}`
+            : t('journal.provenanceSealBroken')}
+        </VText>
+      ) : null}
 
       {open ? (
         <>

@@ -239,7 +239,8 @@
       "provenance": "Provenance",
       "comparables": "Œuvres comparables",
       "attribution": "Attribution",
-      "catalog": "Catalogue"
+      "catalog": "Catalogue",
+      "origin": "Origine du domaine"
     },
     "wine": {
       "drinkWindow": "Apogée : {{from}} – {{to}}",
@@ -255,10 +256,18 @@
       "decanting": "Carafage",
       "decantingWithDuration": "Recommandé — {{minutes}} min",
       "decantingRecommended": "Recommandé",
-      "decantingNotNeeded": "Non nécessaire"
+      "decantingNotNeeded": "Non nécessaire",
+      "grapes": "Cépages",
+      "winemakerRenown": "Renommée",
+      "distinctiveness": "Particularités",
+      "priceCellarDoor": "Au domaine",
+      "priceMerchant": "Chez le caviste",
+      "priceRestaurant": "Au restaurant",
+      "originCaption": "Localisation du domaine"
     },
     "coin": {
-      "gradeValue": "{{value}} (échelle {{scale}}, confiance {{confidence}} %)"
+      "gradeValue": "{{value}} (échelle {{scale}}, confiance {{confidence}} %)",
+      "frEquivalent": "Équivalent échelle FR"
     },
     "art": {
       "expertiseRecommended": "Expertise humaine recommandée avant toute transaction.",
@@ -278,7 +287,10 @@
         "oblitere": "Oblitéré (o)",
         "sur_lettre": "Sur lettre",
         "inconnu": "État inconnu"
-      }
+      },
+      "valueCoefficient": "Coefficient de cote",
+      "valueCoefficientHint": "vs cote de référence (neuf sans charnière, centrage parfait)",
+      "regummingRisk": "Indice faible : gomme suspecte sur un neuf sans charnière — regommage à faire vérifier."
     },
     "rarityLevels": {
       "courante": "Courante",
@@ -286,7 +298,8 @@
       "rare": "Rare",
       "tres_rare": "Très rare",
       "inconnue": "Inconnue"
-    }
+    },
+    "whyThisRange": "Pourquoi cette fourchette ?"
   },
   "collection": {
     "title": "Ma collection",
@@ -566,7 +579,9 @@
     "ownerLabel": "Propriétaire",
     "acquiredFrom": "Acquis auprès de",
     "acquiredFromPlaceholder": "ex. Drouot, galerie, don, héritage…",
-    "eventDate": "Date"
+    "eventDate": "Date",
+    "provenanceSealed": "Chaîne scellée · empreinte {{hash}}",
+    "provenanceSealBroken": "Intégrité de la chaîne compromise"
   },
   "community": {
     "title": "Communauté",

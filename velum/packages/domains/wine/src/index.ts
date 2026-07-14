@@ -29,6 +29,30 @@ export {
   type BlindStep,
   type BlindStepKey,
 } from './blindTasting.ts';
+export {
+  recalibrateDrinkWindow,
+  type OpeningEvent,
+  type OpeningVerdict,
+  type DrinkWindow,
+  type RecalibratedWindow,
+} from './recalibrate.ts';
+export {
+  resolveWineOrigin,
+  projectNorm,
+  bboxAspect,
+  normalizePlace,
+  FRANCE_BBOX,
+  WORLD_BBOX,
+  FRANCE_OUTLINE,
+  CORSICA_OUTLINE,
+  WORLD_OUTLINES,
+  FRENCH_PLACES,
+  FOREIGN_PLACES,
+  type WineOrigin,
+  type MapScope,
+  type BBox,
+  type LatLng,
+} from './geo.ts';
 export { extractBalancedJson, parseModelJson } from './json.ts';
 export { isoToAgeDays } from './transport.ts';
 export type { Transport, SourceAdapterOptions } from './transport.ts';

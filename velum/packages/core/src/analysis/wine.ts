@@ -8,11 +8,18 @@ export interface WineAttributes {
   producer?: string;
   /** Le vigneron (la personne), distinct du domaine/château producteur. */
   winemaker?: string;
+  /** Renommée / réputation du vigneron ou du domaine, en une phrase. */
+  winemakerRenown?: string;
   appellation?: string;
   cuvee?: string;
   vintage?: number;
   color?: 'rouge' | 'blanc' | 'rosé' | 'orange' | 'effervescent';
   grapes?: { name: string; percent?: number }[];
+  /**
+   * Particularités notables : vieilles vignes, vendanges manuelles, élevage
+   * (fût neuf, durée), rendement, cuvée confidentielle, terroir spécifique…
+   */
+  distinctiveness?: string[];
   farming?: 'conventionnel' | 'bio' | 'biodynamie' | 'HVE' | 'nature' | 'inconnu';
   region?: string;
   country?: string;
@@ -62,9 +69,25 @@ export interface WineRatings {
   positioning: 'confidentiel' | 'star_montante' | 'classique' | 'collector' | 'inconnu';
 }
 
+/**
+ * Prix indicatifs PAR CANAL de distribution — la même bouteille n'a pas le
+ * même prix au domaine, chez le caviste ou à la carte d'un restaurant.
+ * Valeurs EUR, INDICATIVES (jamais un tarif ferme).
+ */
+export interface WinePriceByChannel {
+  /** Prix départ domaine / caveau (au producteur). */
+  cellarDoorEUR?: number;
+  /** Prix de détail chez le caviste. */
+  wineMerchantEUR?: number;
+  /** Fourchette carte restaurant [min, max] (marge usuelle ×2–×4). */
+  restaurantEUR?: [number, number];
+}
+
 /** Module 4 — valeur marché & spéculation. */
 export interface WineMarket {
   averagePriceEUR?: number;
+  /** Prix indicatifs par canal (domaine / caviste / restaurant). */
+  priceByChannel?: WinePriceByChannel;
   priceTrend?: { horizonYears: 3 | 5 | 10; direction: 'hausse' | 'stable' | 'baisse'; note?: string }[];
   marketTension?: 'faible' | 'moyenne' | 'forte';
   /** Score spéculatif /10 — INFORMATIF, jamais un conseil d'investissement (§12.4). */

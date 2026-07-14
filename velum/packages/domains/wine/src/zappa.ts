@@ -73,10 +73,12 @@ EXACTEMENT à ce schéma (les champs marqués « optionnel » peuvent être omis
   "identification": {
     "producer": string (optionnel),
     "winemaker": string (optionnel — le vigneron, la personne, distinct du domaine),
+    "winemakerRenown": string (optionnel — réputation du vigneron/domaine en UNE phrase),
     "appellation": string (optionnel),
     "cuvee": string (optionnel), "vintage": number (optionnel),
     "color": "rouge"|"blanc"|"rosé"|"orange"|"effervescent" (optionnel),
-    "grapes": [{"name": string, "percent": number (optionnel)}] (optionnel),
+    "grapes": [{"name": string, "percent": number (optionnel)}] (optionnel — ENCÉPAGEMENT détaillé),
+    "distinctiveness": [string, ...] (optionnel — particularités : vieilles vignes, vendanges manuelles, élevage, rendement, cuvée confidentielle, terroir),
     "farming": "conventionnel"|"bio"|"biodynamie"|"HVE"|"nature"|"inconnu" (optionnel),
     "region": string (optionnel), "country": string (optionnel),
     "format": string ex. "750ml"|"magnum" (optionnel),
@@ -105,6 +107,7 @@ EXACTEMENT à ce schéma (les champs marqués « optionnel » peuvent être omis
   },
   "market": {
     "averagePriceEUR": number (optionnel),
+    "priceByChannel": {"cellarDoorEUR": number (optionnel — départ domaine), "wineMerchantEUR": number (optionnel — caviste), "restaurantEUR": [number min, number max] (optionnel — carte restaurant, marge ×2–×4)} (optionnel),
     "priceTrend": [{"horizonYears": 3|5|10, "direction": "hausse"|"stable"|"baisse", "note": string (optionnel)}] (optionnel),
     "marketTension": "faible"|"moyenne"|"forte" (optionnel),
     "speculativeScore": number 0..10 (optionnel, informatif),

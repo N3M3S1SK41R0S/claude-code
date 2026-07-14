@@ -51,6 +51,8 @@ export interface PlanEntitlements {
   alerts: boolean;
   /** Rapport assurance/succession. */
   insuranceReport: boolean;
+  /** Passeport de provenance à hash chaîné (pari #8) — carnet Gold+. */
+  provenancePassport: boolean;
 }
 
 export const PLAN_LIMITS: Record<PlanId, PlanEntitlements> = {
@@ -62,6 +64,7 @@ export const PLAN_LIMITS: Record<PlanId, PlanEntitlements> = {
     exportPdf: false,
     alerts: false,
     insuranceReport: false,
+    provenancePassport: false,
   },
   premium: {
     scansPerWeekPerModule: Infinity,
@@ -71,6 +74,7 @@ export const PLAN_LIMITS: Record<PlanId, PlanEntitlements> = {
     exportPdf: true,
     alerts: true,
     insuranceReport: false,
+    provenancePassport: false,
   },
   gold: {
     scansPerWeekPerModule: Infinity,
@@ -80,6 +84,7 @@ export const PLAN_LIMITS: Record<PlanId, PlanEntitlements> = {
     exportPdf: true,
     alerts: true,
     insuranceReport: false,
+    provenancePassport: true,
   },
   platine: {
     scansPerWeekPerModule: Infinity,
@@ -89,6 +94,7 @@ export const PLAN_LIMITS: Record<PlanId, PlanEntitlements> = {
     exportPdf: true,
     alerts: true,
     insuranceReport: true,
+    provenancePassport: true,
   },
 };
 

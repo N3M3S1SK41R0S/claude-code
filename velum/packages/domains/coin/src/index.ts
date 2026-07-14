@@ -13,6 +13,15 @@ export {
 export { NUMIS_SYSTEM_PROMPT } from './numis.ts';
 export { normalizeGrade, sheldonToFr, type GradeScale, type NormalizedGrade } from './grade.ts';
 export {
+  assessVarieties,
+  classifyVarietyHint,
+  type KnownVariety,
+  type VarietyKind,
+  type VarietyMatch,
+  type VarietyAssessment,
+  type VarietyDetectionInput,
+} from './variety.ts';
+export {
   ageDaysFromIso,
   toCurrency,
   toPositiveNumber,

@@ -6,12 +6,17 @@
 import { useTranslation } from 'react-i18next';
 import { VBadge, VText } from '@velum/ui';
 import type { StampAnalysisPayload } from '@velum/core';
+import { gradeStamp } from '@velum/domain-stamp';
 import { Bullets, KV, SheetSection } from './SheetSection';
 
 export function StampSheet({ payload }: { payload: Partial<StampAnalysisPayload> | null }) {
   const { t } = useTranslation();
   if (!payload) return null;
   const { identification, condition, rarity, varieties, neighborIssues, uncertainties } = payload;
+
+  // Pari #6 — traduit l'état (gomme, centrage, dentelure, défauts) en coefficient
+  // de valeur vs cote de référence (neuf sans charnière, centrage parfait).
+  const grade = condition ? gradeStamp(condition) : null;
 
   return (
     <>
@@ -34,6 +39,19 @@ export function StampSheet({ payload }: { payload: Partial<StampAnalysisPayload>
           {condition.gum ? <KV label="Gomme" value={condition.gum} /> : null}
           {condition.centering ? <KV label="Centrage" value={condition.centering} /> : null}
           {condition.faults.length > 0 ? <Bullets items={condition.faults} /> : null}
+          {grade ? (
+            <KV label={t('item.stamp.valueCoefficient')} value={`×${grade.valueMultiplier}`} tabular />
+          ) : null}
+          {grade ? (
+            <VText variant="caption" tone="dim">
+              {t('item.stamp.valueCoefficientHint')}
+            </VText>
+          ) : null}
+          {grade?.regummingRisk ? (
+            <VText variant="caption" tone="danger">
+              {t('item.stamp.regummingRisk')}
+            </VText>
+          ) : null}
           <VText variant="caption" tone="gold" accessibilityLabel={condition.caveat}>
             {condition.caveat}
           </VText>

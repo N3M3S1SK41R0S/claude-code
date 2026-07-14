@@ -123,3 +123,50 @@ dans les deux sens.
 - **Secrets** : uniquement `supabase secrets set` (voir `supabase/functions/.env.example`) — LLM, Numista, Artprice, eBay, Colnect, Delcampe, FX, Qdrant. Le client ne connaît que l'URL Supabase, l'anon key et les clés publiques RevenueCat.
 - **Médias** : bucket `item-media` privé, URLs signées générées à la volée, `base64` de capture jamais persisté.
 - **Erreurs typées** : `VelumError` avec codes stables (`NO_OBSERVATIONS`, `RATE_LIMITED`, `BUDGET_EXCEEDED`…) → messages i18n côté client, pas de fuite de détails serveur.
+
+## 7. Couche de différenciation (paris 2026)
+
+Extensions additives, dans le style source-first (paquets purs testés sans réseau,
+Edge Functions à deps injectées). Voir le tableau récapitulatif du [README](../README.md#différenciation--moteur-des-paris-2026).
+
+### 7.1 Extensions du moteur §7 — `@velum/valuation`
+
+- `explain.ts` — décompose une valorisation (sources retenues/écartées par la
+  règle MAD, poids fiabilité × récence, dispersion, score de fiabilité) pour
+  l'écran « pourquoi cette fourchette ». Réutilise `valuate()` : explication et
+  estimation ne peuvent jamais diverger.
+- `calibration.ts` — `calibrate()` mesure la couverture des IC 80/95 % vs prix
+  réalisé ; `backtest()` rejoue le moteur sur des ventes **publiques** (cold-start
+  J1) ; statut honnêtement borné (`calibrating` sous le seuil d'échantillon).
+- `portfolio.ts` — agrégation patrimoniale multi-actifs ; les IC sont sommés de
+  façon **comonotone** (borne large, honnête) plutôt que sous hypothèse
+  d'indépendance ; instantanés datés + mouvement.
+- `arbiter.ts` — croise fenêtre d'apogée × trajectoire de valeur ; le signal de
+  vente exige le **garde-fou** (apogée proche ET IC 80 % disjoints sur ≥ 3 points).
+
+### 7.2 Nouveaux paquets purs
+
+- `@velum/scan` — `capture.ts` (décision accepter/refuser + séquence multi-angle),
+  `cert.ts` (PCGS/NGC + slab-swap), `authenticity.ts` (drapeau de risque
+  déterministe, jamais un verdict ; registre Qdrant injectable).
+- `@velum/carnet` — `hash.ts` (SHA-256 pur/portable), `provenance.ts` (passeport
+  à hash chaîné + vérif d'intégrité), `report.ts` (rapport assurance/succession),
+  `card.ts` (cartes de confiance + musée de poche).
+
+### 7.3 Extensions de domaine
+
+`domain-stamp/grading.ts` (état → multiplicateur de cote), `domain-coin/variety.ts`
+(variétés cotées), `domain-wine/recalibrate.ts` (apogée recalibrée par les
+ouvertures réelles).
+
+### 7.4 Edge Functions & tables
+
+- Fonctions : `arbiter` (Gold+ : lit l'apogée + la trajectoire de la table
+  existante `valuations` → `arbitrate`), `calibration` (GET score public par
+  domaine ; POST cron protégé par `CRON_SECRET` → recalcule depuis
+  `calibration_outcomes`).
+- Tables (migration `0007`, sous RLS) : `calibration_outcomes` (service-role) et
+  `calibration_runs` (score **public** en lecture authentifiée). La trajectoire
+  réutilise `valuations` (0001) ; le passeport à hash chaîné de `@velum/carnet`
+  est un **sceau d'intégrité dérivé** de `provenance_entries` (0005), pas une
+  table parallèle.

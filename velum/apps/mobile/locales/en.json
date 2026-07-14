@@ -239,7 +239,8 @@
       "provenance": "Provenance",
       "comparables": "Comparable works",
       "attribution": "Attribution",
-      "catalog": "Catalogue"
+      "catalog": "Catalogue",
+      "origin": "Estate origin"
     },
     "wine": {
       "drinkWindow": "Drinking window: {{from}} – {{to}}",
@@ -255,10 +256,18 @@
       "decanting": "Decanting",
       "decantingWithDuration": "Recommended — {{minutes}} min",
       "decantingRecommended": "Recommended",
-      "decantingNotNeeded": "Not needed"
+      "decantingNotNeeded": "Not needed",
+      "grapes": "Grape varieties",
+      "winemakerRenown": "Renown",
+      "distinctiveness": "Distinctive features",
+      "priceCellarDoor": "At the estate",
+      "priceMerchant": "Wine merchant",
+      "priceRestaurant": "Restaurant list",
+      "originCaption": "Estate location"
     },
     "coin": {
-      "gradeValue": "{{value}} ({{scale}} scale, {{confidence}}% confidence)"
+      "gradeValue": "{{value}} ({{scale}} scale, {{confidence}}% confidence)",
+      "frEquivalent": "French scale equivalent"
     },
     "art": {
       "expertiseRecommended": "Human expert appraisal recommended before any transaction.",
@@ -278,7 +287,10 @@
         "oblitere": "Used (o)",
         "sur_lettre": "On cover",
         "inconnu": "Unknown condition"
-      }
+      },
+      "valueCoefficient": "Catalogue coefficient",
+      "valueCoefficientHint": "vs reference value (mint never hinged, perfect centering)",
+      "regummingRisk": "Weak signal: suspect gum on a never-hinged stamp — possible regumming to verify."
     },
     "rarityLevels": {
       "courante": "Common",
@@ -286,7 +298,8 @@
       "rare": "Rare",
       "tres_rare": "Very rare",
       "inconnue": "Unknown"
-    }
+    },
+    "whyThisRange": "Why this range?"
   },
   "collection": {
     "title": "My collection",
@@ -566,7 +579,9 @@
     "ownerLabel": "Owner",
     "acquiredFrom": "Acquired from",
     "acquiredFromPlaceholder": "e.g. auction house, gallery, gift, inheritance…",
-    "eventDate": "Date"
+    "eventDate": "Date",
+    "provenanceSealed": "Chain sealed · fingerprint {{hash}}",
+    "provenanceSealBroken": "Chain integrity compromised"
   },
   "community": {
     "title": "Community",
