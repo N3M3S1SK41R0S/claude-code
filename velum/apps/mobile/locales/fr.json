@@ -579,7 +579,9 @@
     "ownerLabel": "Propriétaire",
     "acquiredFrom": "Acquis auprès de",
     "acquiredFromPlaceholder": "ex. Drouot, galerie, don, héritage…",
-    "eventDate": "Date"
+    "eventDate": "Date",
+    "provenanceSealed": "Chaîne scellée · empreinte {{hash}}",
+    "provenanceSealBroken": "Intégrité de la chaîne compromise"
   },
   "community": {
     "title": "Communauté",

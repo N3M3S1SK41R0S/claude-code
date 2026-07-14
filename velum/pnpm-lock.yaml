@@ -54,6 +54,9 @@ importers:
       '@velum/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@velum/carnet':
+        specifier: workspace:*
+        version: link:../../packages/carnet
       '@velum/config':
         specifier: workspace:*
         version: link:../../packages/config

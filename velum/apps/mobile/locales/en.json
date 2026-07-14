@@ -579,7 +579,9 @@
     "ownerLabel": "Owner",
     "acquiredFrom": "Acquired from",
     "acquiredFromPlaceholder": "e.g. auction house, gallery, gift, inheritance…",
-    "eventDate": "Date"
+    "eventDate": "Date",
+    "provenanceSealed": "Chain sealed · fingerprint {{hash}}",
+    "provenanceSealBroken": "Chain integrity compromised"
   },
   "community": {
     "title": "Community",
