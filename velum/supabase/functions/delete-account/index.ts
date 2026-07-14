@@ -9,6 +9,7 @@
 import { createAdminClient, getUser } from '../_shared/auth.ts';
 import { corsHeaders, handleOptions } from '../_shared/cors.ts';
 import { error } from '../_shared/respond.ts';
+import { chunkStorageObjectNames, collectStorageObjectNames } from './storage.ts';
 
 Deno.serve(async (req: Request): Promise<Response> => {
   const preflight = handleOptions(req);
@@ -25,23 +26,33 @@ Deno.serve(async (req: Request): Promise<Response> => {
   const admin = createAdminClient();
 
   // 1. Purge Storage : tous les objets sous le préfixe <uid>/ du bucket
-  //    'item-media'. On liste via storage.objects (récursif, contrairement à
-  //    storage.list() qui ne descend pas dans les sous-dossiers).
-  const { data: objects, error: listError } = await admin
-    .schema('storage')
-    .from('objects')
-    .select('name')
-    .eq('bucket_id', 'item-media')
-    .like('name', `${uid}/%`);
+  //    'item-media'. La vue PostgREST est paginée explicitement et ordonnée :
+  //    une réponse plafonnée ne doit jamais laisser des médias après le compte.
+  let names: string[];
+  try {
+    names = await collectStorageObjectNames(async (from, to) => {
+      const { data: objects, error: listError } = await admin
+        .schema('storage')
+        .from('objects')
+        .select('name')
+        .eq('bucket_id', 'item-media')
+        .like('name', `${uid}/%`)
+        .order('name', { ascending: true })
+        .range(from, to);
 
-  if (listError) {
-    console.error('[delete-account] listage storage impossible :', listError.message);
+      if (listError) throw new Error(listError.message);
+      return objects ?? [];
+    });
+  } catch (listError) {
+    console.error(
+      '[delete-account] listage storage impossible :',
+      listError instanceof Error ? listError.message : String(listError),
+    );
     return error('SOURCE_UNAVAILABLE', 'Purge des médias impossible, réessayez', 503);
   }
 
-  const names = (objects ?? []).map((o) => o.name as string);
-  if (names.length > 0) {
-    const { error: removeError } = await admin.storage.from('item-media').remove(names);
+  for (const batch of chunkStorageObjectNames(names)) {
+    const { error: removeError } = await admin.storage.from('item-media').remove(batch);
     if (removeError) {
       console.error('[delete-account] suppression storage impossible :', removeError.message);
       return error('SOURCE_UNAVAILABLE', 'Purge des médias impossible, réessayez', 503);
