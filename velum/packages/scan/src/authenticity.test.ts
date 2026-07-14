@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { assessAuthenticity, type PhysicalReference } from './authenticity';
+import { assessAuthenticity, type PhysicalReference } from './authenticity.ts';
 
 // Napoléon 20 F or : 6,45 g, 21 mm, non magnétique, tranche inscrite.
 const ref: PhysicalReference = {

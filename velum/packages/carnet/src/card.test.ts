@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildMuseumGallery, buildShareCard, confidenceBadge, type ShareCardInput } from './card';
+import { buildMuseumGallery, buildShareCard, confidenceBadge, type ShareCardInput } from './card.ts';
 
 function input(partial: Partial<ShareCardInput> & Pick<ShareCardInput, 'itemId' | 'domain' | 'ci80' | 'reliability'>): ShareCardInput {
   return { title: partial.itemId, ...partial };

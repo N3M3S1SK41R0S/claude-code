@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ValuationResult } from '@velum/core';
-import { aggregatePortfolio, portfolioMovement, toSnapshot, type ItemValuation } from './portfolio';
+import { aggregatePortfolio, portfolioMovement, toSnapshot, type ItemValuation } from './portfolio.ts';
 
 function val(central: number, lo: number, hi: number, reliability = 70): ValuationResult {
   return {

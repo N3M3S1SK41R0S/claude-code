@@ -12,7 +12,7 @@ export {
   type CaptureIssue,
   type CaptureThresholds,
   type SequenceProgress,
-} from './capture';
+} from './capture.ts';
 
 export {
   parseCertScan,
@@ -20,7 +20,7 @@ export {
   detectSlabSwap,
   type CertScan,
   type GradingService,
-} from './cert';
+} from './cert.ts';
 
 export {
   assessAuthenticity,
@@ -34,4 +34,4 @@ export {
   type RiskLevel,
   type SignalConfidence,
   type Tolerance,
-} from './authenticity';
+} from './authenticity.ts';

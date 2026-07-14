@@ -10,7 +10,7 @@
  * Pur, déterministe, portable : les horodatages sont FOURNIS par l'appelant
  * (jamais Date.now()), donc la chaîne est rejouable et testable à l'identique.
  */
-import { sha256 } from './hash';
+import { sha256 } from './hash.ts';
 
 export type ProvenanceEventType =
   | 'created'

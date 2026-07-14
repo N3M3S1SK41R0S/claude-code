@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { FxRates, PriceObservation } from '@velum/core';
-import { valuate } from './engine';
-import { explainValuation, reliabilityFromExplanation } from './explain';
+import { valuate } from './engine.ts';
+import { explainValuation, reliabilityFromExplanation } from './explain.ts';
 
 const fx: FxRates = { USD: 0.9, GBP: 1.15 };
 

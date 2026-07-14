@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { assessFrame, sequenceProgress } from './capture';
+import { assessFrame, sequenceProgress } from './capture.ts';
 
 describe('assessFrame', () => {
   it('accepte une trame nette, sans reflet, bien cadrée', () => {

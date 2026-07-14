@@ -13,7 +13,7 @@
  * maison. Fonctions PURES, déterministes, sans réseau.
  */
 import type { FxRates, PriceObservation, ValuationResult, VelumDomain } from '@velum/core';
-import { valuate, type ValuateOptions } from './engine';
+import { valuate, type ValuateOptions } from './engine.ts';
 
 /** Une prédiction confrontée à son prix réellement réalisé (en EUR). */
 export interface PriceOutcome {

@@ -20,7 +20,7 @@ import {
   toEUR,
   valuate,
   type ValuateOptions,
-} from './engine';
+} from './engine.ts';
 
 /** Décomposition d'une observation dans la décision du moteur. */
 export interface ObservationBreakdown {

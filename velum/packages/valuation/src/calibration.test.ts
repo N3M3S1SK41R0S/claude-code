@@ -6,7 +6,7 @@ import {
   calibrateByDomain,
   learnSourceWeights,
   type PriceOutcome,
-} from './calibration';
+} from './calibration.ts';
 
 const fx: FxRates = {};
 

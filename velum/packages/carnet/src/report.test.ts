@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildInsuranceReport, type ReportItem } from './report';
+import { buildInsuranceReport, type ReportItem } from './report.ts';
 
 function item(partial: Partial<ReportItem> & Pick<ReportItem, 'itemId' | 'domain' | 'central' | 'ci80'>): ReportItem {
   return { title: partial.itemId, reliability: 70, ...partial };

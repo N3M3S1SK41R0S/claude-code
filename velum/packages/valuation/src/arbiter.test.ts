@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { arbitrate, valueTrend, type TrajectoryPoint } from './arbiter';
+import { arbitrate, valueTrend, type TrajectoryPoint } from './arbiter.ts';
 
 function pt(at: string, central: number, lo: number, hi: number): TrajectoryPoint {
   return { at, central, ci80: [lo, hi] };

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { detectSlabSwap, parseCertScan } from './cert';
+import { detectSlabSwap, parseCertScan } from './cert.ts';
 
 describe('parseCertScan', () => {
   it('URL NGC', () => {

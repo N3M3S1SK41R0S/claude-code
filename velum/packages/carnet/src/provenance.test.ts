@@ -5,7 +5,7 @@ import {
   provenanceSummary,
   verifyPassport,
   type ProvenanceEvent,
-} from './provenance';
+} from './provenance.ts';
 
 const genesis: ProvenanceEvent = { type: 'created', at: '2026-01-01T00:00:00Z', actor: 'owner-1' };
 

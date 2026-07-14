@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { sha256 } from './hash';
+import { sha256 } from './hash.ts';
 
 describe('sha256 — vecteurs de test FIPS 180-4', () => {
   it('chaîne vide', () => {

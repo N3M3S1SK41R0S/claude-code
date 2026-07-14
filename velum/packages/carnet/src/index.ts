@@ -3,7 +3,7 @@
  * Provenance à hash chaîné, rapport assurance/succession, cartes & musée.
  * Pur, déterministe, portable (horodatages fournis, jamais Date.now()).
  */
-export { sha256 } from './hash';
+export { sha256 } from './hash.ts';
 
 export {
   createPassport,
@@ -16,7 +16,7 @@ export {
   type ProvenanceLink,
   type ProvenancePassport,
   type PassportVerification,
-} from './provenance';
+} from './provenance.ts';
 
 export {
   buildInsuranceReport,
@@ -24,7 +24,7 @@ export {
   type ReportItem,
   type InsuranceReport,
   type ReportDomainLine,
-} from './report';
+} from './report.ts';
 
 export {
   buildShareCard,
@@ -36,4 +36,4 @@ export {
   type ConfidenceBadge,
   type MuseumExhibit,
   type MuseumGalleryInput,
-} from './card';
+} from './card.ts';
