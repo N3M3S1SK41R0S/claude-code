@@ -70,7 +70,7 @@ type ResultShape = 'rows' | 'single' | 'maybeSingle';
 
 class FakeQueryBuilder implements PromiseLike<FakeResult> {
   private operation: Operation = 'select';
-  private payload: Row | null = null;
+  private payload: Row | Row[] | null = null;
   private filters: { column: string; value: unknown }[] = [];
   private ordering: { column: string; ascending: boolean } | null = null;
   private max: number | null = null;
@@ -85,7 +85,7 @@ class FakeQueryBuilder implements PromiseLike<FakeResult> {
     return this; // la projection de colonnes n'est pas simulée
   }
 
-  insert(row: Row): this {
+  insert(row: Row | Row[]): this {
     this.operation = 'insert';
     this.payload = row;
     return this;
@@ -160,22 +160,27 @@ class FakeQueryBuilder implements PromiseLike<FakeResult> {
       }
 
       case 'insert': {
-        const row: Row = { ...this.payload };
-        if (row['id'] === undefined) row['id'] = `fake-${this.table}-${rows.length + 1}`;
-        if (row['created_at'] === undefined) row['created_at'] = new Date().toISOString();
-        if (this.table === 'items' && row['updated_at'] === undefined) {
-          row['updated_at'] = new Date().toISOString();
-        }
-        rows.push(row);
-        return this.finish([row]);
+        const payloads = Array.isArray(this.payload) ? this.payload : [this.payload ?? {}];
+        const inserted = payloads.map((payload) => {
+          const row: Row = { ...payload };
+          if (row['id'] === undefined) row['id'] = `fake-${this.table}-${rows.length + 1}`;
+          if (row['created_at'] === undefined) row['created_at'] = new Date().toISOString();
+          if (this.table === 'items' && row['updated_at'] === undefined) {
+            row['updated_at'] = new Date().toISOString();
+          }
+          rows.push(row);
+          return row;
+        });
+        return this.finish(inserted);
       }
 
       case 'update': {
+        const payload = Array.isArray(this.payload) ? {} : (this.payload ?? {});
         const updated: Row[] = [];
         for (let i = 0; i < rows.length; i++) {
           const current = rows[i];
           if (current !== undefined && matches(current)) {
-            const next: Row = { ...current, ...this.payload };
+            const next: Row = { ...current, ...payload };
             rows[i] = next;
             updated.push(next);
           }
@@ -184,7 +189,8 @@ class FakeQueryBuilder implements PromiseLike<FakeResult> {
       }
 
       case 'upsert': {
-        const row: Row = { ...this.payload };
+        const payload = Array.isArray(this.payload) ? {} : (this.payload ?? {});
+        const row: Row = { ...payload };
         const index =
           row['id'] === undefined ? -1 : rows.findIndex((r) => r['id'] === row['id']);
         if (index >= 0) {
