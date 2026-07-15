@@ -59,6 +59,7 @@ Deno.test('base64ByteLength refuse les types et paddings malformés', () => {
     'Type de média non pris en charge',
   );
   assertThrows(() => base64ByteLength('A='), VelumError, 'Contenu base64 image invalide');
+  assertThrows(() => base64ByteLength('A=='), VelumError, 'Contenu base64 image invalide');
   assertThrows(() => base64ByteLength('@@@'), VelumError, 'Contenu base64 image invalide');
 });
 
@@ -141,6 +142,21 @@ Deno.test('hydrateMedia télécharge séquentiellement, conserve l’ordre et le
   assertStringIncludes(result.media?.[0]?.base64 ?? '', 'data:image/jpeg;base64,');
   assertStringIncludes(result.media?.[1]?.base64 ?? '', 'data:image/png;base64,');
   assertEquals(result.media?.map((entry) => entry.role), ['label', 'capsule']);
+});
+
+Deno.test("hydrateMedia infère le type depuis l'extension si Storage renvoie octet-stream", async () => {
+  const auth = authWithDownload(async () => ({
+    data: new Blob([new Uint8Array([1, 2, 3])], { type: 'application/octet-stream' }),
+    error: null,
+  }));
+
+  const result = await hydrateMedia(
+    auth,
+    photo([{ role: 'front', storagePath: `${USER_ID}/front.webp` }]),
+    limits(),
+  );
+
+  assertStringIncludes(result.media?.[0]?.base64 ?? '', 'data:image/webp;base64,');
 });
 
 Deno.test('hydrateMedia borne le volume cumulé avant de convertir le second blob', async () => {
