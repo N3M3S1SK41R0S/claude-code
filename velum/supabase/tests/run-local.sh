@@ -16,30 +16,61 @@ DB=velum_sql_check
 PSQL=(psql -v ON_ERROR_STOP=1 -q -d "$DB")
 DIAGNOSTIC_FILE=${VELUM_SQL_DIAGNOSTIC_FILE:-/tmp/velum-sql-diagnostics.log}
 COMMAND_LOG=${VELUM_SQL_COMMAND_LOG:-/tmp/velum-sql-command.log}
+PLAN_FILE=${VELUM_SQL_PLAN_FILE:-/tmp/velum-migration-plan.tsv}
 : >"$DIAGNOSTIC_FILE"
+
+record_failure() {
+  local label=$1
+  local output_file=$2
+  {
+    printf 'Étape en échec : %s\n\n' "$label"
+    cat "$output_file"
+  } >"$DIAGNOSTIC_FILE"
+}
 
 run_sql_file() {
   local label=$1
   local path=$2
 
   : >"$COMMAND_LOG"
-  if ! "${PSQL[@]}" -f "$path" 2>&1 | tee "$COMMAND_LOG"; then
-    {
-      printf 'Étape SQL en échec : %s\n' "$label"
-      printf 'Fichier : %s\n\n' "$path"
-      cat "$COMMAND_LOG"
-    } >"$DIAGNOSTIC_FILE"
+  if ! "${PSQL[@]}" -f "$path" >"$COMMAND_LOG" 2>&1; then
+    record_failure "$label ($path)" "$COMMAND_LOG"
+    cat "$COMMAND_LOG" >&2
     return 1
   fi
+  cat "$COMMAND_LOG"
 }
 
 # Le plan est testé avant de toucher PostgreSQL : ordre stable, préfixes
 # numériques obligatoires et aucune version dupliquée.
-bash supabase/tests/migration-plan-test.sh
-mapfile -t MIGRATION_PLAN < <(bash supabase/tests/migration-plan.sh supabase/migrations)
+: >"$COMMAND_LOG"
+if ! bash supabase/tests/migration-plan-test.sh >"$COMMAND_LOG" 2>&1; then
+  record_failure "tests du plan de migrations" "$COMMAND_LOG"
+  cat "$COMMAND_LOG" >&2
+  exit 1
+fi
+cat "$COMMAND_LOG"
 
-dropdb --if-exists "$DB"
-createdb "$DB"
+: >"$COMMAND_LOG"
+if ! bash supabase/tests/migration-plan.sh supabase/migrations >"$PLAN_FILE" 2>"$COMMAND_LOG"; then
+  record_failure "génération du plan de migrations" "$COMMAND_LOG"
+  cat "$COMMAND_LOG" >&2
+  exit 1
+fi
+mapfile -t MIGRATION_PLAN <"$PLAN_FILE"
+
+: >"$COMMAND_LOG"
+if ! dropdb --if-exists "$DB" >"$COMMAND_LOG" 2>&1; then
+  record_failure "suppression de la base temporaire" "$COMMAND_LOG"
+  cat "$COMMAND_LOG" >&2
+  exit 1
+fi
+if ! createdb "$DB" >>"$COMMAND_LOG" 2>&1; then
+  record_failure "création de la base temporaire" "$COMMAND_LOG"
+  cat "$COMMAND_LOG" >&2
+  exit 1
+fi
+cat "$COMMAND_LOG"
 
 echo "· stub Supabase (auth/storage/rôles)"
 run_sql_file "stub Supabase" supabase/tests/supabase_stub.sql
@@ -57,7 +88,9 @@ for plan_entry in "${MIGRATION_PLAN[@]}"; do
       echo "· migration $migration_name — SAUTÉE (pg_cron/pg_net = plateforme Supabase)"
       ;;
     *)
-      echo "Action de migration inconnue : $action" >&2
+      printf 'Action de migration inconnue : %s\n' "$action" >"$COMMAND_LOG"
+      record_failure "lecture du plan de migrations" "$COMMAND_LOG"
+      cat "$COMMAND_LOG" >&2
       exit 1
       ;;
   esac
@@ -72,7 +105,7 @@ run_sql_file "tests d'idempotence des alertes" supabase/tests/alert_idempotency_
 echo "· tests de comportement (RLS, quota, Platine, storage, purge)"
 run_sql_file "tests RLS et comportement" supabase/tests/rls_checks.sql
 
-rm -f "$COMMAND_LOG" "$DIAGNOSTIC_FILE"
+rm -f "$COMMAND_LOG" "$PLAN_FILE" "$DIAGNOSTIC_FILE"
 
 echo
 echo "VALIDATION SQL : PASS"
