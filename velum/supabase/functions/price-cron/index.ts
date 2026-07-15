@@ -6,6 +6,10 @@
  *   - Free : aucun travail planifié ;
  *   - Premium / Gold : alertes uniquement ;
  *   - Platine : alertes + valorisation continue des cotes anciennes.
+ *
+ * Le déclenchement d'une alerte passe par `record_alert_evaluation` : PostgreSQL
+ * verrouille l'alerte, insère la notification et met à jour son état dans une
+ * transaction unique. Une condition qui reste vraie ne spamme donc plus chaque jour.
  */
 import {
   isVelumError,
@@ -54,6 +58,11 @@ interface NotificationInsert {
   body: string;
 }
 
+interface AlertEvaluationOutcome {
+  inserted: boolean;
+  error: string | null;
+}
+
 function logFailure(event: string, fields: Record<string, unknown>): void {
   console.error(
     JSON.stringify({
@@ -77,6 +86,32 @@ function candidateFromItem(item: ItemRow): Candidate {
 
 function uniqueStrings(values: readonly string[]): string[] {
   return [...new Set(values)];
+}
+
+/**
+ * Demande à PostgreSQL d'enregistrer l'évaluation. `data` contient l'UUID de la
+ * notification uniquement lors d'un nouveau passage faux → vrai.
+ */
+async function recordAlertEvaluation(
+  admin: ReturnType<typeof createAdminClient>,
+  alertId: string,
+  conditionMet: boolean,
+  notification: NotificationInsert,
+): Promise<AlertEvaluationOutcome> {
+  const { data, error: rpcError } = await admin.rpc('record_alert_evaluation', {
+    p_alert_id: alertId,
+    p_condition_met: conditionMet,
+    p_title: notification.title,
+    p_body: notification.body,
+  });
+
+  if (rpcError) {
+    return { inserted: false, error: rpcError.message };
+  }
+  return {
+    inserted: typeof data === 'string' && data.length > 0,
+    error: null,
+  };
 }
 
 export async function handler(req: Request): Promise<Response> {
@@ -147,9 +182,7 @@ export async function handler(req: Request): Promise<Response> {
       }
 
       const capabilities = scheduledPlanCapabilities(plan);
-      if (!capabilities.alerts && !capabilities.liveValuation) {
-        continue;
-      }
+      if (!capabilities.alerts && !capabilities.liveValuation) continue;
 
       let activeAlerts: AlertRow[] = [];
       if (capabilities.alerts) {
@@ -267,41 +300,55 @@ export async function handler(req: Request): Promise<Response> {
         }
       }
 
-      const notifications: NotificationInsert[] = [];
+      const pushNotifications: NotificationInsert[] = [];
       for (const alert of activeAlerts) {
+        let conditionMet: boolean | null = null;
+        let notification: NotificationInsert | null = null;
+
         if (alert.type === 'price_threshold' && result !== null) {
           const direction = alert.config['direction'];
           const threshold = alert.config['threshold'];
-          if (typeof threshold !== 'number' || !Number.isFinite(threshold)) continue;
-          const crossed =
+          if (
+            (direction !== 'above' && direction !== 'below') ||
+            typeof threshold !== 'number' ||
+            !Number.isFinite(threshold)
+          ) {
+            failures += 1;
+            logFailure('price_cron.alert_config_invalid', {
+              alertId: alert.id,
+              itemId: item.id,
+              type: alert.type,
+            });
+            continue;
+          }
+
+          conditionMet =
             (direction === 'above' && result.central >= threshold) ||
             (direction === 'below' && result.central <= threshold);
-          if (crossed) {
-            const label = item.title ?? 'Votre objet';
-            notifications.push({
-              owner_id: item.owner_id,
-              title: 'Alerte de prix',
-              body:
-                direction === 'above'
-                  ? `${label} est estimé à ${result.central} € — au-dessus de votre seuil de ${threshold} €.`
-                  : `${label} est estimé à ${result.central} € — en dessous de votre seuil de ${threshold} €.`,
-            });
-          }
+          const label = item.title ?? 'Votre objet';
+          notification = {
+            owner_id: item.owner_id,
+            title: 'Alerte de prix',
+            body:
+              direction === 'above'
+                ? `${label} est estimé à ${result.central} € — au-dessus de votre seuil de ${threshold} €.`
+                : `${label} est estimé à ${result.central} € — en dessous de votre seuil de ${threshold} €.`,
+          };
         }
 
         if (
           alert.type === 'drink_window' &&
           item.domain === 'wine' &&
           winePayloadAvailable &&
-          winePayload &&
-          isInDrinkWindow(winePayload, currentYear)
+          winePayload !== undefined
         ) {
+          conditionMet = isInDrinkWindow(winePayload, currentYear);
           const pairings = (winePayload.comparisons?.foodPairings ?? [])
             .filter((dish): dish is string => typeof dish === 'string')
             .slice(0, 2);
           const label = item.title ?? 'Une de vos bouteilles';
           const closing = winePayload.tasting?.drinkWindow?.to;
-          notifications.push({
+          notification = {
             owner_id: item.owner_id,
             title: 'À boire — apogée atteinte',
             body:
@@ -309,22 +356,34 @@ export async function handler(req: Request): Promise<Response> {
               (typeof closing === 'number' ? ` (jusqu'en ${closing})` : '') +
               '.' +
               (pairings.length > 0 ? ` Accord suggéré : ${pairings.join(' ou ')}.` : ''),
+          };
+        }
+
+        if (conditionMet === null || notification === null) continue;
+
+        const evaluation = await recordAlertEvaluation(
+          admin,
+          alert.id,
+          conditionMet,
+          notification,
+        );
+        if (evaluation.error !== null) {
+          failures += 1;
+          logFailure('price_cron.alert_evaluation_failed', {
+            alertId: alert.id,
+            itemId: item.id,
+            message: evaluation.error,
           });
+          continue;
+        }
+        if (evaluation.inserted) {
+          notified += 1;
+          pushNotifications.push(notification);
         }
       }
 
-      if (notifications.length > 0) {
-        const { error: notificationError } = await admin.from('notifications').insert(notifications);
-        if (notificationError) {
-          failures += 1;
-          logFailure('price_cron.notifications_insert_failed', {
-            itemId: item.id,
-            message: notificationError.message,
-          });
-        } else {
-          notified += notifications.length;
-          await sendExpoPush(admin, notifications);
-        }
+      if (pushNotifications.length > 0) {
+        await sendExpoPush(admin, pushNotifications);
       }
     }
 

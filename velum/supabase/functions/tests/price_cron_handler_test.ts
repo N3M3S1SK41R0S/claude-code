@@ -21,6 +21,8 @@ interface StubOptions {
   alerts?: unknown[];
   valuations?: unknown[];
   analyses?: unknown[];
+  alertEvaluationResult?: string | null;
+  alertEvaluationStatus?: number;
 }
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -43,6 +45,12 @@ function stubFetch(options: StubOptions = {}): RecordedCall[] {
     const body = method === 'GET' || method === 'HEAD' ? '' : await request.clone().text();
     calls.push({ url, method, body });
 
+    if (url.includes('/rest/v1/rpc/record_alert_evaluation')) {
+      if (options.alertEvaluationStatus && options.alertEvaluationStatus >= 400) {
+        return jsonResponse({ message: 'alert evaluation unavailable' }, options.alertEvaluationStatus);
+      }
+      return jsonResponse(options.alertEvaluationResult ?? null);
+    }
     if (url.includes('/rest/v1/items')) {
       return jsonResponse(options.items ?? []);
     }
@@ -61,9 +69,6 @@ function stubFetch(options: StubOptions = {}): RecordedCall[] {
     }
     if (url.includes('/rest/v1/analyses')) {
       return jsonResponse(options.analyses ?? []);
-    }
-    if (url.includes('/rest/v1/notifications')) {
-      return jsonResponse([], 201);
     }
     if (url.includes('api.frankfurter.app')) {
       return jsonResponse({ rates: { USD: 1.1 } });
@@ -113,7 +118,13 @@ Deno.test('price-cron ignore totalement un objet Free', async () => {
   const calls = stubFetch({
     items: [item(ownerId)],
     profiles: [{ id: ownerId, plan: 'free' }],
-    alerts: [{ id: 'alert-1', type: 'price_threshold', config: { threshold: 1 } }],
+    alerts: [
+      {
+        id: '55555555-5555-4555-8555-555555555555',
+        type: 'price_threshold',
+        config: { threshold: 1 },
+      },
+    ],
   });
 
   try {
@@ -130,14 +141,16 @@ Deno.test('price-cron ignore totalement un objet Free', async () => {
     assertEquals(calls.some((call) => call.url.includes('/rest/v1/alerts')), false);
     assertEquals(calls.some((call) => call.url.includes('/rest/v1/valuations')), false);
     assertEquals(calls.some((call) => call.url.includes('/rest/v1/analyses')), false);
+    assertEquals(calls.some((call) => call.url.includes('record_alert_evaluation')), false);
     assertEquals(calls.some((call) => call.url.includes('frankfurter')), false);
   } finally {
     globalThis.fetch = realFetch;
   }
 });
 
-Deno.test("price-cron évalue l'apogée Premium sans revalorisation ni FX", async () => {
+Deno.test("price-cron notifie un nouveau passage en apogée sans revalorisation ni FX", async () => {
   const ownerId = '33333333-3333-4333-8333-333333333333';
+  const alertId = '66666666-6666-4666-8666-666666666666';
   const year = new Date().getUTCFullYear();
   const calls = stubFetch({
     items: [
@@ -149,8 +162,9 @@ Deno.test("price-cron évalue l'apogée Premium sans revalorisation ni FX", asyn
       }),
     ],
     profiles: [{ id: ownerId, plan: 'premium' }],
-    alerts: [{ id: 'alert-1', type: 'drink_window', config: {} }],
+    alerts: [{ id: alertId, type: 'drink_window', config: {} }],
     analyses: [],
+    alertEvaluationResult: '77777777-7777-4777-8777-777777777777',
   });
 
   try {
@@ -169,12 +183,89 @@ Deno.test("price-cron évalue l'apogée Premium sans revalorisation ni FX", asyn
     assertEquals(
       calls.some(
         (call) =>
-          call.url.includes('/rest/v1/notifications') &&
+          call.url.includes('/rest/v1/rpc/record_alert_evaluation') &&
           call.method === 'POST' &&
+          call.body.includes(alertId) &&
+          call.body.includes('"p_condition_met":true') &&
           call.body.includes('À boire'),
       ),
       true,
     );
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+Deno.test("price-cron enregistre une condition d'apogée fausse pour réarmer", async () => {
+  const ownerId = '88888888-8888-4888-8888-888888888888';
+  const alertId = '99999999-9999-4999-8999-999999999999';
+  const year = new Date().getUTCFullYear();
+  const calls = stubFetch({
+    items: [
+      item(ownerId, {
+        analysis: {
+          tasting: { drinkWindow: { from: year + 5, to: year + 10 } },
+          comparisons: { foodPairings: [] },
+        },
+      }),
+    ],
+    profiles: [{ id: ownerId, plan: 'gold' }],
+    alerts: [{ id: alertId, type: 'drink_window', config: {} }],
+    analyses: [],
+    alertEvaluationResult: null,
+  });
+
+  try {
+    const response = await handler(cronRequest());
+    assertEquals(response.status, 200);
+    assertEquals((await response.json()).notified, 0);
+    assertEquals(
+      calls.some(
+        (call) =>
+          call.url.includes('/rest/v1/rpc/record_alert_evaluation') &&
+          call.body.includes('"p_condition_met":false'),
+      ),
+      true,
+    );
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+Deno.test('price-cron compte une panne du RPC d’alerte sans créer de faux succès', async () => {
+  const ownerId = '12121212-1212-4212-8212-121212121212';
+  const year = new Date().getUTCFullYear();
+  stubFetch({
+    items: [
+      item(ownerId, {
+        analysis: {
+          tasting: { drinkWindow: { from: year - 1, to: year + 1 } },
+          comparisons: { foodPairings: [] },
+        },
+      }),
+    ],
+    profiles: [{ id: ownerId, plan: 'premium' }],
+    alerts: [
+      {
+        id: '13131313-1313-4313-8313-131313131313',
+        type: 'drink_window',
+        config: {},
+      },
+    ],
+    analyses: [],
+    alertEvaluationStatus: 503,
+  });
+
+  try {
+    const response = await handler(cronRequest());
+    assertEquals(response.status, 200);
+    assertEquals(await response.json(), {
+      processed: 1,
+      eligible: 1,
+      revalued: 0,
+      notified: 0,
+      failures: 1,
+    });
   } finally {
     globalThis.fetch = realFetch;
   }
