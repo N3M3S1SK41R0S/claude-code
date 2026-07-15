@@ -113,3 +113,12 @@ jobs:
 
       - name: Migrations + RLS + quota + Platine sur Postgres réel
         run: sudo -u postgres bash velum/supabase/tests/run-local.sh
+
+      - name: Conserver le diagnostic SQL en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: velum-sql-diagnostics-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/velum-sql-diagnostics.log
+          if-no-files-found: error
+          retention-days: 7
