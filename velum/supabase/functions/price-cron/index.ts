@@ -1,18 +1,16 @@
 /**
- * Edge Function `price-cron` — re-valorisation quotidienne planifiée.
+ * Edge Function `price-cron` — revalorisation et alertes planifiées.
  *
- * Déclenchée par pg_cron (migration 0002) via net.http_post avec l'en-tête
- * `x-cron-secret`. Parcourt les items par lots de 50 (client service-role),
- * re-valorise ceux qui ont au moins une alerte active OU dont la dernière
- * valorisation date de 7 jours ou plus, insère les nouvelles valorisations,
- * puis évalue les alertes :
- *   - price_threshold : config { direction: 'above'|'below', threshold: number }
- *   - drink_window    : fenêtre de consommation optimale (vin, module 2 ZAPPA)
- * → insertion de notifications in-app.
+ * Le service-role parcourt les objets, mais les capacités produit restent
+ * déterminées par `PLAN_LIMITS` :
+ *   - Free : aucun travail planifié ;
+ *   - Premium / Gold : alertes uniquement ;
+ *   - Platine : alertes + valorisation continue des cotes anciennes.
  */
 import {
   isVelumError,
   type Candidate,
+  type FxRates,
   type ValuationResult,
   type VelumDomain,
   type WineAnalysisPayload,
@@ -24,6 +22,12 @@ import { buildSources, plugins } from '../_shared/domains.ts';
 import { getFxRates } from '../_shared/fx.ts';
 import { error, json } from '../_shared/respond.ts';
 import { serverTransport } from '../_shared/transport.ts';
+import {
+  isValuationStale,
+  parsePlanId,
+  scheduledItemDecision,
+  scheduledPlanCapabilities,
+} from './eligibility.ts';
 
 const BATCH_SIZE = 50;
 const STALE_AFTER_DAYS = 7;
@@ -44,7 +48,23 @@ interface AlertRow {
   config: Record<string, unknown>;
 }
 
-/** Reconstruit un Candidate depuis la ligne items (pour plugin.valuate). */
+interface NotificationInsert {
+  owner_id: string;
+  title: string;
+  body: string;
+}
+
+function logFailure(event: string, fields: Record<string, unknown>): void {
+  console.error(
+    JSON.stringify({
+      at: new Date().toISOString(),
+      event,
+      ...fields,
+    }),
+  );
+}
+
+/** Reconstruit un Candidate depuis une ligne `items`. */
 function candidateFromItem(item: ItemRow): Candidate {
   return {
     id: item.id,
@@ -55,83 +75,151 @@ function candidateFromItem(item: ItemRow): Candidate {
   };
 }
 
-Deno.serve(async (req: Request): Promise<Response> => {
-  // Sécurité : secret partagé avec pg_cron (vault) — pas d'auth utilisateur.
+function uniqueStrings(values: readonly string[]): string[] {
+  return [...new Set(values)];
+}
+
+export async function handler(req: Request): Promise<Response> {
   const secret = Deno.env.get('CRON_SECRET');
   if (!secret || req.headers.get('x-cron-secret') !== secret) {
     return error('UNAUTHORIZED', 'Secret cron invalide', 401);
   }
 
   const admin = createAdminClient();
-  const fx = await getFxRates();
   const now = Date.now();
   const staleBefore = new Date(now - STALE_AFTER_DAYS * 86_400_000).toISOString();
   const currentYear = new Date(now).getUTCFullYear();
+  let fxPromise: Promise<FxRates> | null = null;
+  const loadFx = (): Promise<FxRates> => {
+    fxPromise ??= getFxRates();
+    return fxPromise;
+  };
 
   let processed = 0;
+  let eligible = 0;
   let revalued = 0;
   let notified = 0;
   let failures = 0;
 
-  // Parcours par lots de 50, ordonné par id pour une pagination stable.
   for (let offset = 0; ; offset += BATCH_SIZE) {
-    const { data: items, error: itemsError } = await admin
+    const { data: rawItems, error: itemsError } = await admin
       .from('items')
       .select('id, owner_id, domain, title, attributes, confidence, condition')
       .order('id', { ascending: true })
       .range(offset, offset + BATCH_SIZE - 1);
 
     if (itemsError) {
-      console.error('[price-cron] lecture des items impossible :', itemsError.message);
+      logFailure('price_cron.items_read_failed', { message: itemsError.message });
       return error('SOURCE_UNAVAILABLE', 'Lecture des items impossible', 503);
     }
-    if (!items || items.length === 0) break;
 
-    for (const item of items as ItemRow[]) {
+    const items = (rawItems ?? []) as ItemRow[];
+    if (items.length === 0) break;
+
+    const ownerIds = uniqueStrings(items.map((item) => item.owner_id));
+    const { data: rawProfiles, error: profilesError } = await admin
+      .from('profiles')
+      .select('id, plan')
+      .in('id', ownerIds);
+
+    if (profilesError) {
+      logFailure('price_cron.profiles_read_failed', { message: profilesError.message });
+      return error('SOURCE_UNAVAILABLE', 'Lecture des droits produit impossible', 503);
+    }
+
+    const planByOwner = new Map<string, ReturnType<typeof parsePlanId>>();
+    for (const row of rawProfiles ?? []) {
+      const id = typeof row.id === 'string' ? row.id : null;
+      if (id !== null) planByOwner.set(id, parsePlanId(row.plan));
+    }
+
+    for (const item of items) {
       processed += 1;
 
-      // Alertes actives de l'item.
-      const { data: alerts } = await admin
-        .from('alerts')
-        .select('id, type, config')
-        .eq('item_id', item.id)
-        .eq('active', true);
-      const activeAlerts = (alerts ?? []) as AlertRow[];
+      const plan = planByOwner.get(item.owner_id) ?? null;
+      if (plan === null) {
+        logFailure('price_cron.plan_missing_or_invalid', {
+          itemId: item.id,
+          ownerId: item.owner_id,
+        });
+        failures += 1;
+        continue;
+      }
 
-      // Dernière valorisation (fraîcheur).
-      const { data: lastValuations } = await admin
-        .from('valuations')
-        .select('valued_at')
-        .eq('item_id', item.id)
-        .order('valued_at', { ascending: false })
-        .limit(1);
-      const lastValuedAt = lastValuations?.[0]?.valued_at as string | undefined;
-      const isStale = !lastValuedAt || lastValuedAt <= staleBefore;
+      const capabilities = scheduledPlanCapabilities(plan);
+      if (!capabilities.alerts && !capabilities.liveValuation) {
+        continue;
+      }
 
-      // Éligible : au moins une alerte active OU valorisation vieille de ≥ 7 j.
-      if (activeAlerts.length === 0 && !isStale) continue;
+      let activeAlerts: AlertRow[] = [];
+      if (capabilities.alerts) {
+        const { data: rawAlerts, error: alertsError } = await admin
+          .from('alerts')
+          .select('id, type, config')
+          .eq('item_id', item.id)
+          .eq('active', true);
 
-      // ── Re-valorisation ────────────────────────────────────────────────
-      let result: ValuationResult | null = null;
-      const sources = buildSources(item.domain, serverTransport);
-      if (sources.length > 0) {
-        try {
-          result = await plugins[item.domain].valuate(candidateFromItem(item), {
-            sources,
-            fx,
-            valuate: (obs, fxRates) => runValuation(obs, fxRates),
+        if (alertsError) {
+          failures += 1;
+          logFailure('price_cron.alerts_read_failed', {
+            itemId: item.id,
+            message: alertsError.message,
           });
-        } catch (err) {
-          if (isVelumError(err) && err.code === 'NO_OBSERVATIONS') {
-            // Pas de prix disponible : on passe sans bruit.
-          } else {
-            failures += 1;
-            console.error(`[price-cron] valorisation de ${item.id} échouée :`, err);
+          continue;
+        }
+        activeAlerts = (rawAlerts ?? []) as AlertRow[];
+      }
+
+      let isStale = false;
+      if (capabilities.liveValuation) {
+        const { data: lastValuations, error: valuationReadError } = await admin
+          .from('valuations')
+          .select('valued_at')
+          .eq('item_id', item.id)
+          .order('valued_at', { ascending: false })
+          .limit(1);
+
+        if (valuationReadError) {
+          failures += 1;
+          logFailure('price_cron.last_valuation_read_failed', {
+            itemId: item.id,
+            message: valuationReadError.message,
+          });
+          continue;
+        }
+        isStale = isValuationStale(lastValuations?.[0]?.valued_at, staleBefore);
+      }
+
+      const decision = scheduledItemDecision(plan, {
+        activeAlertTypes: activeAlerts.map((alert) => alert.type),
+        isStale,
+      });
+      if (!decision.evaluateAlerts && !decision.refreshValuation) continue;
+      eligible += 1;
+
+      let result: ValuationResult | null = null;
+      if (decision.refreshValuation) {
+        const sources = buildSources(item.domain, serverTransport);
+        if (sources.length > 0) {
+          try {
+            result = await plugins[item.domain].valuate(candidateFromItem(item), {
+              sources,
+              fx: await loadFx(),
+              valuate: (observations, rates) => runValuation(observations, rates),
+            });
+          } catch (cause) {
+            if (!(isVelumError(cause) && cause.code === 'NO_OBSERVATIONS')) {
+              failures += 1;
+              logFailure('price_cron.valuation_failed', {
+                itemId: item.id,
+                message: cause instanceof Error ? cause.message : String(cause),
+              });
+            }
           }
         }
       }
 
-      if (result) {
+      if (result !== null) {
         const { error: insertError } = await admin.from('valuations').insert({
           item_id: item.id,
           central: result.central,
@@ -144,17 +232,44 @@ Deno.serve(async (req: Request): Promise<Response> => {
         });
         if (insertError) {
           failures += 1;
-          console.error(`[price-cron] insertion valuation ${item.id} :`, insertError.message);
+          logFailure('price_cron.valuation_insert_failed', {
+            itemId: item.id,
+            message: insertError.message,
+          });
         } else {
           revalued += 1;
         }
       }
 
-      // ── Évaluation des alertes ─────────────────────────────────────────
-      const notifications: { owner_id: string; title: string; body: string }[] = [];
+      if (!decision.evaluateAlerts) continue;
 
+      let winePayload: WineAnalysisPayload | undefined;
+      let winePayloadAvailable = true;
+      if (item.domain === 'wine' && activeAlerts.some((alert) => alert.type === 'drink_window')) {
+        const { data: analyses, error: analysesError } = await admin
+          .from('analyses')
+          .select('payload')
+          .eq('item_id', item.id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (analysesError) {
+          failures += 1;
+          winePayloadAvailable = false;
+          logFailure('price_cron.analysis_read_failed', {
+            itemId: item.id,
+            message: analysesError.message,
+          });
+        } else {
+          winePayload = (analyses?.[0]?.payload ?? item.attributes['analysis']) as
+            | WineAnalysisPayload
+            | undefined;
+        }
+      }
+
+      const notifications: NotificationInsert[] = [];
       for (const alert of activeAlerts) {
-        if (alert.type === 'price_threshold' && result) {
+        if (alert.type === 'price_threshold' && result !== null) {
           const direction = alert.config['direction'];
           const threshold = alert.config['threshold'];
           if (typeof threshold !== 'number' || !Number.isFinite(threshold)) continue;
@@ -174,46 +289,38 @@ Deno.serve(async (req: Request): Promise<Response> => {
           }
         }
 
-        if (alert.type === 'drink_window' && item.domain === 'wine') {
-          // Dernière fiche d'analyse ZAPPA : fenêtre de consommation optimale.
-          const { data: analyses } = await admin
-            .from('analyses')
-            .select('payload')
-            .eq('item_id', item.id)
-            .order('created_at', { ascending: false })
-            .limit(1);
-          // Repli : l'app mobile persiste aussi l'analyse dans
-          // items.attributes.analysis (aucune ligne `analyses` dans ce cas).
-          const payload = (analyses?.[0]?.payload ??
-            (item.attributes as { analysis?: unknown })['analysis']) as
-            | WineAnalysisPayload
-            | undefined;
-          if (payload && isInDrinkWindow(payload, currentYear)) {
-            // Alerte transversale (sens 2) : apogée + accords mets-vins ZAPPA
-            // (« ce vin est prêt — servez-le par exemple avec… »).
-            const pairings = (payload.comparisons?.foodPairings ?? [])
-              .filter((d): d is string => typeof d === 'string')
-              .slice(0, 2);
-            const label = item.title ?? 'Une de vos bouteilles';
-            const closing = payload.tasting?.drinkWindow?.to;
-            notifications.push({
-              owner_id: item.owner_id,
-              title: 'À boire — apogée atteinte',
-              body:
-                `${label} est dans sa fenêtre de consommation optimale` +
-                (typeof closing === 'number' ? ` (jusqu'en ${closing})` : '') +
-                '.' +
-                (pairings.length > 0 ? ` Accord suggéré : ${pairings.join(' ou ')}.` : ''),
-            });
-          }
+        if (
+          alert.type === 'drink_window' &&
+          item.domain === 'wine' &&
+          winePayloadAvailable &&
+          winePayload &&
+          isInDrinkWindow(winePayload, currentYear)
+        ) {
+          const pairings = (winePayload.comparisons?.foodPairings ?? [])
+            .filter((dish): dish is string => typeof dish === 'string')
+            .slice(0, 2);
+          const label = item.title ?? 'Une de vos bouteilles';
+          const closing = winePayload.tasting?.drinkWindow?.to;
+          notifications.push({
+            owner_id: item.owner_id,
+            title: 'À boire — apogée atteinte',
+            body:
+              `${label} est dans sa fenêtre de consommation optimale` +
+              (typeof closing === 'number' ? ` (jusqu'en ${closing})` : '') +
+              '.' +
+              (pairings.length > 0 ? ` Accord suggéré : ${pairings.join(' ou ')}.` : ''),
+          });
         }
       }
 
       if (notifications.length > 0) {
-        const { error: notifError } = await admin.from('notifications').insert(notifications);
-        if (notifError) {
+        const { error: notificationError } = await admin.from('notifications').insert(notifications);
+        if (notificationError) {
           failures += 1;
-          console.error(`[price-cron] insertion notifications ${item.id} :`, notifError.message);
+          logFailure('price_cron.notifications_insert_failed', {
+            itemId: item.id,
+            message: notificationError.message,
+          });
         } else {
           notified += notifications.length;
           await sendExpoPush(admin, notifications);
@@ -224,52 +331,63 @@ Deno.serve(async (req: Request): Promise<Response> => {
     if (items.length < BATCH_SIZE) break;
   }
 
-  return json({ processed, revalued, notified, failures });
-});
+  return json({ processed, eligible, revalued, notified, failures });
+}
 
-/**
- * Envoi push Expo (best-effort, jamais bloquant pour le cron) :
- * POST https://exp.host/--/api/v2/push/send avec le jeton enregistré par
- * l'app dans profiles.expo_push_token. Les profils sans jeton sont ignorés
- * (la notification in-app reste visible dans l'onglet Marché).
- */
+/** Envoi push Expo best-effort ; la notification in-app reste la source durable. */
 async function sendExpoPush(
   admin: ReturnType<typeof createAdminClient>,
-  notifications: { owner_id: string; title: string; body: string }[],
+  notifications: NotificationInsert[],
 ): Promise<void> {
   try {
-    const ownerIds = [...new Set(notifications.map((n) => n.owner_id))];
-    const { data: profiles } = await admin
+    const ownerIds = uniqueStrings(notifications.map((notification) => notification.owner_id));
+    const { data: profiles, error: profilesError } = await admin
       .from('profiles')
       .select('id, expo_push_token')
       .in('id', ownerIds)
       .not('expo_push_token', 'is', null);
+
+    if (profilesError) {
+      logFailure('price_cron.push_profiles_read_failed', { message: profilesError.message });
+      return;
+    }
+
     const tokenByOwner = new Map<string, string>(
-      (profiles ?? []).map((p) => [p.id as string, p.expo_push_token as string]),
+      (profiles ?? [])
+        .filter(
+          (profile): profile is { id: string; expo_push_token: string } =>
+            typeof profile.id === 'string' && typeof profile.expo_push_token === 'string',
+        )
+        .map((profile) => [profile.id, profile.expo_push_token]),
     );
 
     const messages = notifications
-      .filter((n) => tokenByOwner.has(n.owner_id))
-      .map((n) => ({
-        to: tokenByOwner.get(n.owner_id),
-        title: n.title,
-        body: n.body,
+      .filter((notification) => tokenByOwner.has(notification.owner_id))
+      .map((notification) => ({
+        to: tokenByOwner.get(notification.owner_id),
+        title: notification.title,
+        body: notification.body,
         sound: 'default',
       }));
-    if (messages.length === 0) return;
 
-    // L'API Expo accepte des lots de 100 messages maximum.
-    for (let i = 0; i < messages.length; i += 100) {
+    for (let index = 0; index < messages.length; index += 100) {
       const response = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(messages.slice(i, i + 100)),
+        body: JSON.stringify(messages.slice(index, index + 100)),
       });
       if (!response.ok) {
-        console.error('[price-cron] push Expo :', response.status, await response.text());
+        logFailure('price_cron.push_send_failed', {
+          status: response.status,
+          body: (await response.text()).slice(0, 500),
+        });
       }
     }
-  } catch (err) {
-    console.error('[price-cron] push Expo (non bloquant) :', err);
+  } catch (cause) {
+    logFailure('price_cron.push_unavailable', {
+      message: cause instanceof Error ? cause.message : String(cause),
+    });
   }
 }
+
+if (import.meta.main) Deno.serve(handler);
