@@ -112,7 +112,7 @@ jobs:
           sudo -u postgres psql -c "select version();"
 
       - name: Migrations + RLS + quota + Platine sur Postgres réel
-        run: sudo -u postgres bash velum/supabase/tests/run-local.sh
+        run: bash velum/supabase/tests/run-local.sh
 
       - name: Conserver le diagnostic SQL en cas d'échec
         if: failure()
