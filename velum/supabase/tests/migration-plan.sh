@@ -21,8 +21,13 @@ declare -A filename_by_version=()
 
 for migration_path in "${migration_files[@]}"; do
   filename=${migration_path##*/}
-  if [[ ! "$filename" =~ ^([0-9]+)_.+\.sql$ ]]; then
-    echo "Nom de migration invalide (préfixe numérique requis) : $filename" >&2
+  # VELUM historique : 0001, 0002… ; Supabase CLI moderne : timestamp 14 chiffres.
+  # Toute autre largeur rendrait le tri lexical potentiellement différent de
+  # l'ordre numérique et est donc refusée.
+  if [[ ! "$filename" =~ ^([0-9]{4}|[0-9]{14})_.+\.sql$ ]]; then
+    echo \
+      "Nom de migration invalide (version sur 4 ou 14 chiffres requise) : $filename" \
+      >&2
     exit 1
   fi
 
