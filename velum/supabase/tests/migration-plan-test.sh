@@ -14,14 +14,6 @@ touch \
   "$TMP_DIR/valid/0002_cron.sql"
 
 actual=$(bash "$PLAN_SCRIPT" "$TMP_DIR/valid")
-expected=$(printf '%s\n' \
-  "apply${IFS:0:1}$TMP_DIR/valid/0001_init.sql" \
-  "skip${IFS:0:1}$TMP_DIR/valid/0002_cron.sql" \
-  "apply${IFS:0:1}$TMP_DIR/valid/0003_market.sql" \
-  "apply${IFS:0:1}$TMP_DIR/valid/20260715090000_alerts.sql")
-
-# IFS n'est pas garanti de commencer par une tabulation ; reconstruire
-# explicitement l'attendu au format du plan.
 expected=$(printf 'apply\t%s\nskip\t%s\napply\t%s\napply\t%s' \
   "$TMP_DIR/valid/0001_init.sql" \
   "$TMP_DIR/valid/0002_cron.sql" \
@@ -42,13 +34,21 @@ if bash "$PLAN_SCRIPT" "$TMP_DIR/duplicate" >"$TMP_DIR/duplicate.out" 2>"$TMP_DI
 fi
 grep -F "Version de migration dupliquée 0007" "$TMP_DIR/duplicate.err" >/dev/null
 
-mkdir -p "$TMP_DIR/invalid"
-touch "$TMP_DIR/invalid/not_a_version.sql"
-if bash "$PLAN_SCRIPT" "$TMP_DIR/invalid" >"$TMP_DIR/invalid.out" 2>"$TMP_DIR/invalid.err"; then
-  echo "Un nom sans préfixe numérique a été accepté" >&2
+mkdir -p "$TMP_DIR/invalid-name"
+touch "$TMP_DIR/invalid-name/not_a_version.sql"
+if bash "$PLAN_SCRIPT" "$TMP_DIR/invalid-name" >"$TMP_DIR/invalid-name.out" 2>"$TMP_DIR/invalid-name.err"; then
+  echo "Un nom sans version a été accepté" >&2
   exit 1
 fi
-grep -F "préfixe numérique requis" "$TMP_DIR/invalid.err" >/dev/null
+grep -F "version sur 4 ou 14 chiffres requise" "$TMP_DIR/invalid-name.err" >/dev/null
+
+mkdir -p "$TMP_DIR/invalid-width"
+touch "$TMP_DIR/invalid-width/010_short.sql"
+if bash "$PLAN_SCRIPT" "$TMP_DIR/invalid-width" >"$TMP_DIR/invalid-width.out" 2>"$TMP_DIR/invalid-width.err"; then
+  echo "Une version de largeur ambiguë a été acceptée" >&2
+  exit 1
+fi
+grep -F "version sur 4 ou 14 chiffres requise" "$TMP_DIR/invalid-width.err" >/dev/null
 
 mkdir -p "$TMP_DIR/empty"
 if bash "$PLAN_SCRIPT" "$TMP_DIR/empty" >"$TMP_DIR/empty.out" 2>"$TMP_DIR/empty.err"; then
