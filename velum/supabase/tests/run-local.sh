@@ -4,8 +4,10 @@
 # PostgreSQL 16 nu (stub des schémas Supabase), puis le seed et les tests de
 # comportement (RLS, quota, Platine, Storage, purge RGPD, alertes idempotentes).
 #
-#   sudo -u postgres bash supabase/tests/run-local.sh
+#   bash supabase/tests/run-local.sh
 #
+# Le shell reste sous l'utilisateur du checkout afin de lire les scripts Git ;
+# seules les commandes PostgreSQL sont exécutées sous le rôle système postgres.
 # La migration 0002 (pg_cron + pg_net) est la seule exception : ces extensions
 # n'existent que sur la plateforme Supabase et sont validées au `db push`.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -13,7 +15,12 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 DB=velum_sql_check
-PSQL=(psql -v ON_ERROR_STOP=1 -q -d "$DB")
+if [[ $(id -un) == 'postgres' ]]; then
+  PG_RUN=()
+else
+  PG_RUN=(sudo -u postgres)
+fi
+PSQL=("${PG_RUN[@]}" psql -v ON_ERROR_STOP=1 -q -d "$DB")
 DIAGNOSTIC_FILE=${VELUM_SQL_DIAGNOSTIC_FILE:-/tmp/velum-sql-diagnostics.log}
 COMMAND_LOG=${VELUM_SQL_COMMAND_LOG:-/tmp/velum-sql-command.log}
 PLAN_FILE=${VELUM_SQL_PLAN_FILE:-/tmp/velum-migration-plan.tsv}
@@ -60,12 +67,12 @@ fi
 mapfile -t MIGRATION_PLAN <"$PLAN_FILE"
 
 : >"$COMMAND_LOG"
-if ! dropdb --if-exists "$DB" >"$COMMAND_LOG" 2>&1; then
+if ! "${PG_RUN[@]}" dropdb --if-exists "$DB" >"$COMMAND_LOG" 2>&1; then
   record_failure "suppression de la base temporaire" "$COMMAND_LOG"
   cat "$COMMAND_LOG" >&2
   exit 1
 fi
-if ! createdb "$DB" >>"$COMMAND_LOG" 2>&1; then
+if ! "${PG_RUN[@]}" createdb "$DB" >>"$COMMAND_LOG" 2>&1; then
   record_failure "création de la base temporaire" "$COMMAND_LOG"
   cat "$COMMAND_LOG" >&2
   exit 1
