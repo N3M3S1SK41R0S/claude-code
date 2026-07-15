@@ -2,7 +2,7 @@
 -- STUB Supabase pour PostgreSQL « nu » — permet de rejouer les migrations et
 -- de tester la RLS sans la plateforme (CI, poste local sans Docker).
 -- Reproduit le minimum utilisé par les migrations VELUM : rôles, schéma auth
--- (users/identities/uid()), schéma storage (buckets/objects/foldername).
+-- (users/identities/uid()/role()), schéma storage (buckets/objects/foldername).
 -- NE PAS exécuter sur un vrai projet Supabase : tout existe déjà là-bas.
 -- ─────────────────────────────────────────────────────────────────────────────
 
@@ -58,6 +58,14 @@ returns uuid
 language sql
 stable
 as $$ select nullif(current_setting('velum.uid', true), '')::uuid $$;
+
+-- Supabase expose aussi auth.role(), utilisé par les policies qui distinguent
+-- anon/authenticated. Sur PostgreSQL nu, SET ROLE fournit la même information.
+create or replace function auth.role()
+returns text
+language sql
+stable
+as $$ select current_user::text $$;
 
 -- ── Schéma storage ───────────────────────────────────────────────────────────
 create schema if not exists storage;
