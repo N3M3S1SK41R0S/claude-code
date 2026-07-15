@@ -2,7 +2,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Validation SQL locale sans Docker : rejoue les migrations VELUM sur un
 # PostgreSQL 16 nu (stub des schémas Supabase), puis le seed et les tests de
-# comportement (RLS, quota hebdo/module, Platine, storage, purge RGPD).
+# comportement (RLS, quota, Platine, Storage, purge RGPD, alertes idempotentes).
 #
 #   sudo -u postgres bash supabase/tests/run-local.sh
 #
@@ -39,8 +39,14 @@ echo "· migration 0005_journal_provenance.sql"
 echo "· migration 0006_community_escrow.sql"
 "${PSQL[@]}" -f supabase/migrations/0006_community_escrow.sql
 
+echo "· migration 20260715090000_alert_delivery_state.sql"
+"${PSQL[@]}" -f supabase/migrations/20260715090000_alert_delivery_state.sql
+
 echo "· seed.sql (compte démo + collection)"
 "${PSQL[@]}" -f supabase/seed.sql
+
+echo "· tests d'idempotence des alertes"
+"${PSQL[@]}" -f supabase/tests/alert_idempotency_checks.sql
 
 echo "· tests de comportement (RLS, quota, Platine, storage, purge)"
 "${PSQL[@]}" -f supabase/tests/rls_checks.sql
