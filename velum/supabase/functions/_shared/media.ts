@@ -72,7 +72,11 @@ export function base64ByteLength(value: string): number {
 
   const compact = payload.replace(/[\t\n\r ]/g, '');
   if (compact.length === 0) return 0;
-  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(compact) || compact.length % 4 === 1) {
+
+  const validAlphabet = /^[A-Za-z0-9+/]*={0,2}$/.test(compact);
+  const hasPadding = compact.includes('=');
+  const validLength = compact.length % 4 !== 1 && (!hasPadding || compact.length % 4 === 0);
+  if (!validAlphabet || !validLength) {
     throw invalidMedia('Contenu base64 image invalide');
   }
 
@@ -91,7 +95,11 @@ function toBase64(bytes: Uint8Array): string {
 }
 
 function normalizedBlobMediaType(path: string, blobType: string): string {
-  const declared = blobType.split(';', 1)[0]?.trim().toLowerCase() ?? '';
+  let declared = blobType.split(';', 1)[0]?.trim().toLowerCase() ?? '';
+  // Supabase Storage peut restituer un type générique quand le type d'origine
+  // n'a pas été conservé. Dans ce seul cas, l'extension privée sert de repli.
+  if (declared === 'application/octet-stream') declared = '';
+
   if (declared.length > 0) {
     const accepted = ACCEPTED_MEDIA_TYPES.get(declared);
     if (!accepted) {
