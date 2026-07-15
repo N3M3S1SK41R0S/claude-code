@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 # ─────────────────────────────────────────────────────────────────────────────
-# Validation SQL locale sans Docker : rejoue les migrations VELUM sur un
+# Validation SQL locale sans Docker : rejoue TOUTES les migrations VELUM sur un
 # PostgreSQL 16 nu (stub des schémas Supabase), puis le seed et les tests de
 # comportement (RLS, quota, Platine, Storage, purge RGPD, alertes idempotentes).
 #
 #   sudo -u postgres bash supabase/tests/run-local.sh
 #
-# NOTE : la migration 0002 (pg_cron + pg_net) est volontairement SAUTÉE ici —
-# ces extensions n'existent que sur la plateforme Supabase. Elle est validée
-# au déploiement (`supabase db push`).
+# La migration 0002 (pg_cron + pg_net) est la seule exception : ces extensions
+# n'existent que sur la plateforme Supabase et sont validées au `db push`.
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 cd "$(dirname "$0")/../.."
@@ -16,31 +15,35 @@ cd "$(dirname "$0")/../.."
 DB=velum_sql_check
 PSQL=(psql -v ON_ERROR_STOP=1 -q -d "$DB")
 
+# Le plan est testé avant de toucher PostgreSQL : ordre stable, préfixes
+# numériques obligatoires et aucune version dupliquée.
+bash supabase/tests/migration-plan-test.sh
+mapfile -t MIGRATION_PLAN < <(bash supabase/tests/migration-plan.sh supabase/migrations)
+
 dropdb --if-exists "$DB"
 createdb "$DB"
 
 echo "· stub Supabase (auth/storage/rôles)"
 "${PSQL[@]}" -f supabase/tests/supabase_stub.sql
 
-echo "· migration 0001_init.sql"
-"${PSQL[@]}" -f supabase/migrations/0001_init.sql
+for plan_entry in "${MIGRATION_PLAN[@]}"; do
+  IFS=$'\t' read -r action migration_path <<<"$plan_entry"
+  migration_name=${migration_path##*/}
 
-echo "· migration 0002_cron.sql — SAUTÉE (pg_cron/pg_net = plateforme Supabase)"
-
-echo "· migration 0003_marketplace_platine.sql"
-"${PSQL[@]}" -f supabase/migrations/0003_marketplace_platine.sql
-
-echo "· migration 0004_commission_degressive.sql"
-"${PSQL[@]}" -f supabase/migrations/0004_commission_degressive.sql
-
-echo "· migration 0005_journal_provenance.sql"
-"${PSQL[@]}" -f supabase/migrations/0005_journal_provenance.sql
-
-echo "· migration 0006_community_escrow.sql"
-"${PSQL[@]}" -f supabase/migrations/0006_community_escrow.sql
-
-echo "· migration 20260715090000_alert_delivery_state.sql"
-"${PSQL[@]}" -f supabase/migrations/20260715090000_alert_delivery_state.sql
+  case "$action" in
+    apply)
+      echo "· migration $migration_name"
+      "${PSQL[@]}" -f "$migration_path"
+      ;;
+    skip)
+      echo "· migration $migration_name — SAUTÉE (pg_cron/pg_net = plateforme Supabase)"
+      ;;
+    *)
+      echo "Action de migration inconnue : $action" >&2
+      exit 1
+      ;;
+  esac
+done
 
 echo "· seed.sql (compte démo + collection)"
 "${PSQL[@]}" -f supabase/seed.sql
