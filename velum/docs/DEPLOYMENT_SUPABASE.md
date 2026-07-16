@@ -4,12 +4,18 @@ Le workflow `.github/workflows/velum-supabase-deploy.yml` déploie la production
 
 ## Configuration unique de GitHub
 
-Créer ou utiliser l’environnement GitHub `production`, puis y enregistrer deux secrets :
+Créer ou utiliser l’environnement GitHub `production`, puis appliquer cette configuration :
+
+1. **Deployment branches and tags** → `Selected branches and tags` → autoriser uniquement `main` ;
+2. enregistrer les deux secrets ci-dessous ;
+3. facultatif mais recommandé : ajouter une approbation humaine pour les migrations de production.
 
 | Secret | Usage |
 |---|---|
 | `SUPABASE_ACCESS_TOKEN` | Personal Access Token Supabase utilisé par la CLI et l’API de déploiement |
 | `SUPABASE_DB_PASSWORD` | Mot de passe PostgreSQL du projet distant, lu directement depuis l’environnement |
+
+La restriction de l’environnement à `main` est une frontière de sécurité : elle empêche GitHub de transmettre les secrets à une version du workflow lancée depuis une autre branche. Le job vérifie également `github.ref == refs/heads/main`, mais cette seconde vérification ne remplace pas la règle d’environnement.
 
 Le project ref `hbhfwfjdybvsoojvemdv` est public et reste versionné dans le workflow. Aucune clé anon, service-role, LLM ou source marchande n’est nécessaire au pipeline.
 
@@ -34,16 +40,18 @@ Le groupe de concurrence `velum-supabase-production` interdit deux déploiements
 - Un historique de migrations divergent bloque le pipeline au lieu d’être modifié silencieusement.
 - La base est déployée avant les fonctions afin que le nouveau code ne précède pas son schéma.
 - Les secrets ne sont ni passés en argument de commande, ni écrits dans le résumé GitHub.
+- Les credentials Supabase ne sont injectés que dans l’étape de shell qui publie ; checkout et setup-cli ne les reçoivent pas.
 - Le checkout désactive `persist-credentials` et les actions externes sont épinglées par SHA.
 - Lors d’un lancement manuel, le script ayant accès aux secrets vient toujours de `main` ; la cible est checkoutée dans un second arbre.
-- Toute cible manuelle doit être un ancêtre de `main`. Une branche non fusionnée ne peut donc jamais exécuter son propre code avec les secrets production.
+- Toute cible manuelle doit être un ancêtre de `main`. Une branche non fusionnée ne peut donc jamais fournir le code cible publié.
+- L’environnement GitHub `production` doit refuser tout workflow exécuté hors de `main`.
 - `config.toml` explicite `verify_jwt` pour les douze fonctions. Les handlers cron/webhook conservent leur propre vérification de secret.
 
 ## Déploiement ou rollback manuel
 
-Le bouton **Run workflow** expose quatre paramètres :
+Dans l’interface Actions, sélectionner impérativement **Use workflow from: main**. Le bouton **Run workflow** expose ensuite quatre paramètres :
 
-- `ref` : branche, tag ou SHA à checkout ;
+- `ref` : branche, tag ou SHA cible ;
 - `deploy_database` ;
 - `deploy_functions` ;
 - `dry_run`.
@@ -113,6 +121,7 @@ Variables acceptées :
 
 ## Diagnostic
 
+- Job ignoré en lancement manuel : le workflow n’a pas été exécuté depuis `main` ou l’environnement `production` refuse la branche.
 - Échec avant la CLI : secret GitHub absent ou variable locale manquante.
 - Cible refusée : le SHA demandé n’est pas dans l’historique de `main`.
 - Échec du dry-run DB : historique distant divergent ; inspecter `supabase migration list --linked`, sans réparation automatique.
