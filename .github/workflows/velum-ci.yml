@@ -141,7 +141,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Lire la fin du job production échoué
+      - name: Lire uniquement l’étape de publication échouée
         env:
           GH_TOKEN: ${{ github.token }}
           FAILED_JOB_ID: "87561981348"
@@ -160,12 +160,17 @@ jobs:
           from pathlib import Path
 
           lines = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace").splitlines()
-          print("===== FIN DU LOG PRODUCTION ÉCHOUÉ =====")
-          for line in lines[-140:]:
+          markers = (
+              "bash scripts/deploy-supabase.sh",
+              "Déployer la base et les fonctions",
+          )
+          starts = [
+              index
+              for index, line in enumerate(lines)
+              if any(marker in line for marker in markers)
+          ]
+          start = max(starts) - 8 if starts else max(0, len(lines) - 60)
+          print("===== ÉTAPE DE PUBLICATION ÉCHOUÉE =====")
+          for line in lines[max(0, start):]:
               print(line)
-          print("===== LIGNES DE DIAGNOSTIC =====")
-          needles = ("velum-deploy", "erreur", "error", "failed", "supabase")
-          for line in lines:
-              if any(needle in line.lower() for needle in needles):
-                  print(line)
           PY
