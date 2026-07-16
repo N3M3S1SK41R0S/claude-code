@@ -4,7 +4,12 @@
  */
 export { createVelumClient, type VelumClient, type VelumClientOptions } from './client';
 export { createAuthApi, type AuthApi, type AuthChangeCallback } from './auth';
-export { createEdgeApi, invokeEdgeFunction, type EdgeApi } from './edge';
+export {
+  createEdgeApi,
+  invokeEdgeFunction,
+  type CompleteEdgeApi,
+  type EdgeApi,
+} from './edge';
 export {
   createItemMediaRepo,
   newItemMediaToRow,
