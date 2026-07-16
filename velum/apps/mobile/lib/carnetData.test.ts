@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { ValuationRecord, VelumItem } from '@velum/core';
 
-import { countFailedValuations, loadCarnetData } from './carnetData';
+import {
+  MAX_CONCURRENT_VALUATION_READS,
+  countFailedValuations,
+  loadCarnetData,
+} from './carnetData';
 
 function item(id: string, domain: VelumItem['domain'] = 'wine'): VelumItem {
   return {
@@ -82,6 +86,47 @@ describe('loadCarnetData', () => {
     });
 
     expect(result.failedValuationItemIds).toEqual(['a', 'b', 'c']);
+  });
+
+  it('borne le nombre de lectures simultanées', async () => {
+    let active = 0;
+    let maximum = 0;
+    const items = Array.from({ length: 12 }, (_, index) => item(String(index)));
+
+    await loadCarnetData(
+      {
+        async listItems() {
+          return items;
+        },
+        async latestValuation(itemId) {
+          active += 1;
+          maximum = Math.max(maximum, active);
+          await Promise.resolve();
+          active -= 1;
+          return valuation(itemId);
+        },
+      },
+      { concurrency: 3 },
+    );
+
+    expect(maximum).toBe(3);
+    expect(maximum).toBeLessThanOrEqual(MAX_CONCURRENT_VALUATION_READS);
+  });
+
+  it('refuse une borne de concurrence invalide', async () => {
+    await expect(
+      loadCarnetData(
+        {
+          async listItems() {
+            return [item('a')];
+          },
+          async latestValuation() {
+            return null;
+          },
+        },
+        { concurrency: 0 },
+      ),
+    ).rejects.toThrow(RangeError);
   });
 });
 
