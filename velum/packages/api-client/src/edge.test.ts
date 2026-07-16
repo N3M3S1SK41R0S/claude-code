@@ -81,6 +81,27 @@ describe('edge api', () => {
     expect(fake.invocations[1]).toEqual({ fn: 'valuate', body: { domain: 'coin', candidate } });
   });
 
+  it('arbitrate transmet l’identifiant et l’année uniquement quand fournie', async () => {
+    const signal = {
+      verdict: 'watch' as const,
+      confidence: 0.2,
+      trend: 'unknown' as const,
+      sellWindow: false,
+      reasons: ['Historique insuffisant — aucun signal.'],
+    };
+    fake.invokeResponses['arbiter'] = { data: signal };
+
+    const api = createEdgeApi(asSupabase(fake));
+    expect(await api.arbitrate('itm-1', 2026)).toEqual(signal);
+    expect(fake.invocations[0]).toEqual({
+      fn: 'arbiter',
+      body: { itemId: 'itm-1', currentYear: 2026 },
+    });
+
+    await api.arbitrate('itm-2');
+    expect(fake.invocations[1]).toEqual({ fn: 'arbiter', body: { itemId: 'itm-2' } });
+  });
+
   it('mappe { error: { code, message } } vers VelumError (BUDGET_EXCEEDED)', async () => {
     fake.invokeResponses['recognize'] = {
       error: httpError('BUDGET_EXCEEDED', 'Quota mensuel de scans atteint'),
