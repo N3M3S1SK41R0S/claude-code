@@ -71,11 +71,13 @@ jobs:
 
           if [[ "$EVENT_NAME" == "workflow_run" ]]; then
             ref="$AUTO_REF"
+            controller_ref="$AUTO_REF"
             deploy_database=true
             deploy_functions=true
             dry_run=false
           else
             ref="${MANUAL_REF:-main}"
+            controller_ref=main
             deploy_database="${MANUAL_DATABASE:-true}"
             deploy_functions="${MANUAL_FUNCTIONS:-true}"
             dry_run="${MANUAL_DRY_RUN:-false}"
@@ -95,17 +97,44 @@ jobs:
 
           {
             echo "ref=$ref"
+            echo "controller_ref=$controller_ref"
             echo "deploy_database=$deploy_database"
             echo "deploy_functions=$deploy_functions"
             echo "dry_run=$dry_run"
           } >>"$GITHUB_OUTPUT"
 
-      - name: Checkout de la révision validée
+      # Le contrôleur provient toujours du SHA CI (automatique) ou de main
+      # (manuel). Une ref cible ne peut donc jamais remplacer le script qui a
+      # accès aux secrets de production.
+      - name: Checkout du contrôleur approuvé
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ steps.plan.outputs.controller_ref }}
+          path: controller
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Checkout de la révision cible
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ steps.plan.outputs.ref }}
+          path: target
           persist-credentials: false
-          fetch-depth: 1
+          fetch-depth: 0
+
+      - name: Vérifier que la cible appartient à main
+        id: target
+        working-directory: target
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          # Le dépôt est public ; aucun credential persistant n'est nécessaire.
+          git fetch --quiet --no-tags origin main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::La révision cible n'appartient pas à l'historique approuvé de main."
+            exit 1
+          fi
+          echo "sha=$(git rev-parse HEAD)" >>"$GITHUB_OUTPUT"
 
       - name: Installer Supabase CLI
         uses: supabase/setup-cli@3c2f5e2ae34c34e428e8e206e2c4d21fa2d20fbf # v2.1.1
@@ -113,9 +142,10 @@ jobs:
           version: 2.109.1
 
       - name: Déployer la base et les fonctions
-        working-directory: velum
+        working-directory: controller/velum
         env:
-          DEPLOY_REF: ${{ steps.plan.outputs.ref }}
+          VELUM_ROOT: ${{ github.workspace }}/target/velum
+          DEPLOY_REF: ${{ steps.target.outputs.sha }}
           DEPLOY_DATABASE: ${{ steps.plan.outputs.deploy_database }}
           DEPLOY_FUNCTIONS: ${{ steps.plan.outputs.deploy_functions }}
           DRY_RUN: ${{ steps.plan.outputs.dry_run }}
