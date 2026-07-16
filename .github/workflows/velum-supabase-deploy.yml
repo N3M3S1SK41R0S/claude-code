@@ -36,8 +36,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: Déployer Supabase production
+  preflight:
+    name: Valider la cible Supabase
     if: >-
       (
         github.event_name == 'workflow_dispatch' &&
@@ -50,9 +50,15 @@ jobs:
         github.event.workflow_run.head_branch == 'main'
       )
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    environment:
-      name: production
+    timeout-minutes: 10
+    outputs:
+      should_deploy: ${{ steps.target.outputs.should_deploy }}
+      target_sha: ${{ steps.target.outputs.sha }}
+      controller_ref: ${{ steps.plan.outputs.controller_ref }}
+      event_name: ${{ steps.plan.outputs.event_name }}
+      deploy_database: ${{ steps.plan.outputs.deploy_database }}
+      deploy_functions: ${{ steps.plan.outputs.deploy_functions }}
+      dry_run: ${{ steps.plan.outputs.dry_run }}
 
     steps:
       - name: Résoudre le plan de déploiement
@@ -103,18 +109,7 @@ jobs:
             echo "dry_run=$dry_run"
           } >>"$GITHUB_OUTPUT"
 
-      # Le contrôleur provient toujours du SHA CI (automatique) ou de main
-      # (manuel). Une ref cible ne peut donc jamais remplacer le script qui a
-      # accès aux secrets de production.
-      - name: Checkout du contrôleur approuvé
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          ref: ${{ steps.plan.outputs.controller_ref }}
-          path: controller
-          persist-credentials: false
-          fetch-depth: 1
-
-      - name: Checkout de la révision cible
+      - name: Checkout de la révision candidate
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: ${{ steps.plan.outputs.ref }}
@@ -151,24 +146,72 @@ jobs:
           echo "should_deploy=true" >>"$GITHUB_OUTPUT"
           echo "sha=$target_sha" >>"$GITHUB_OUTPUT"
 
+  deploy:
+    name: Déployer Supabase production
+    needs: preflight
+    if: needs.preflight.outputs.should_deploy == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: production
+
+    steps:
+      # Le contrôleur provient toujours du SHA CI (automatique) ou de main
+      # (manuel). Une ref cible ne peut donc jamais remplacer le script qui a
+      # accès aux secrets de production.
+      - name: Checkout du contrôleur approuvé
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ needs.preflight.outputs.controller_ref }}
+          path: controller
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Checkout de la révision cible immuable
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ needs.preflight.outputs.target_sha }}
+          path: target
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Revalider le HEAD avant publication
+        id: freshness
+        working-directory: target
+        shell: bash
+        env:
+          EVENT_NAME: ${{ needs.preflight.outputs.event_name }}
+          TARGET_SHA: ${{ needs.preflight.outputs.target_sha }}
+        run: |
+          set -Eeuo pipefail
+          git fetch --quiet --no-tags origin main:refs/remotes/origin/main
+          main_sha="$(git rev-parse origin/main)"
+
+          if [[ "$EVENT_NAME" == "workflow_run" && "$TARGET_SHA" != "$main_sha" ]]; then
+            echo "Publication ignorée : main a avancé de $TARGET_SHA vers $main_sha pendant le préflight." >>"$GITHUB_STEP_SUMMARY"
+            echo "publish=false" >>"$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >>"$GITHUB_OUTPUT"
+          fi
+
       - name: Installer Supabase CLI
-        if: steps.target.outputs.should_deploy == 'true'
+        if: steps.freshness.outputs.publish == 'true'
         uses: supabase/setup-cli@3c2f5e2ae34c34e428e8e206e2c4d21fa2d20fbf # v2.1.1
         with:
           version: 2.109.1
 
       - name: Déployer la base et les fonctions
-        if: steps.target.outputs.should_deploy == 'true'
+        if: steps.freshness.outputs.publish == 'true'
         working-directory: controller/velum
         env:
           # Les secrets ne sont disponibles que dans cette étape de shell approuvée,
-          # jamais dans checkout ni dans l'action d'installation de la CLI.
+          # jamais dans checkout, préflight ou setup-cli.
           SUPABASE_PROJECT_REF: hbhfwfjdybvsoojvemdv
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ steps.plan.outputs.deploy_database == 'true' && secrets.SUPABASE_DB_PASSWORD || '' }}
+          SUPABASE_DB_PASSWORD: ${{ needs.preflight.outputs.deploy_database == 'true' && secrets.SUPABASE_DB_PASSWORD || '' }}
           VELUM_ROOT: ${{ github.workspace }}/target/velum
-          DEPLOY_REF: ${{ steps.target.outputs.sha }}
-          DEPLOY_DATABASE: ${{ steps.plan.outputs.deploy_database }}
-          DEPLOY_FUNCTIONS: ${{ steps.plan.outputs.deploy_functions }}
-          DRY_RUN: ${{ steps.plan.outputs.dry_run }}
+          DEPLOY_REF: ${{ needs.preflight.outputs.target_sha }}
+          DEPLOY_DATABASE: ${{ needs.preflight.outputs.deploy_database }}
+          DEPLOY_FUNCTIONS: ${{ needs.preflight.outputs.deploy_functions }}
+          DRY_RUN: ${{ needs.preflight.outputs.dry_run }}
         run: bash scripts/deploy-supabase.sh
