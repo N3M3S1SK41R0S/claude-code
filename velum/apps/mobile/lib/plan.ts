@@ -12,6 +12,7 @@ import { getVelumClient } from './client';
 export { hasEntitlement, planRank } from './planRules';
 
 export interface ReadyPlan {
+  profileId: string;
   plan: PlanId;
   entitlements: PlanEntitlements;
 }
@@ -24,6 +25,7 @@ interface PlanStateBase {
 export type PlanState =
   | (PlanStateBase & {
       status: 'loading';
+      profileId: null;
       plan: null;
       entitlements: null;
       isLoading: true;
@@ -32,6 +34,7 @@ export type PlanState =
     })
   | (PlanStateBase & {
       status: 'error';
+      profileId: null;
       plan: null;
       entitlements: null;
       isLoading: false;
@@ -40,6 +43,7 @@ export type PlanState =
     })
   | (PlanStateBase & {
       status: 'ready';
+      profileId: string;
       plan: PlanId;
       entitlements: PlanEntitlements;
       isLoading: false;
@@ -59,7 +63,7 @@ export function planFromProfile(profile: Profile | null): ReadyPlan {
     );
   }
   const plan: PlanId = profile.plan;
-  return { plan, entitlements: PLAN_LIMITS[plan] };
+  return { profileId: profile.id, plan, entitlements: PLAN_LIMITS[plan] };
 }
 
 /**
@@ -81,6 +85,7 @@ export function usePlan(): PlanState {
   if (query.isLoading) {
     return {
       status: 'loading',
+      profileId: null,
       plan: null,
       entitlements: null,
       isLoading: true,
@@ -93,6 +98,7 @@ export function usePlan(): PlanState {
   if (query.isError) {
     return {
       status: 'error',
+      profileId: null,
       plan: null,
       entitlements: null,
       isLoading: false,
@@ -106,6 +112,7 @@ export function usePlan(): PlanState {
   if (query.data === undefined) {
     return {
       status: 'error',
+      profileId: null,
       plan: null,
       entitlements: null,
       isLoading: false,
@@ -117,6 +124,7 @@ export function usePlan(): PlanState {
 
   return {
     status: 'ready',
+    profileId: query.data.profileId,
     plan: query.data.plan,
     entitlements: query.data.entitlements,
     isLoading: false,
