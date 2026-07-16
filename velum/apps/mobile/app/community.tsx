@@ -47,25 +47,25 @@ export default function Community() {
   const router = useRouter();
   const client = getVelumClient();
   const queryClient = useQueryClient();
-  const { entitlements, isLoading: planLoading } = usePlan();
+  const planState = usePlan();
+  const canUseCommunity =
+    planState.status === 'ready' && planState.entitlements.community;
+  const uid = planState.status === 'ready' ? planState.profileId : null;
 
   const [shipFor, setShipFor] = useState<string | null>(null);
   const [tracking, setTracking] = useState('');
   const [disputeFor, setDisputeFor] = useState<string | null>(null);
   const [reason, setReason] = useState('');
 
-  const meQuery = useQuery({ queryKey: ['me'], queryFn: () => client.profile.get() });
-  const uid = meQuery.data?.id ?? null;
-
   const catalogueQuery = useQuery({
     queryKey: ['community', 'catalogue'],
     queryFn: () => client.marketplace.browseActive(),
-    enabled: entitlements.community,
+    enabled: canUseCommunity,
   });
   const ordersQuery = useQuery({
     queryKey: ['community', 'orders'],
     queryFn: () => client.marketplace.myOrders(),
-    enabled: entitlements.community,
+    enabled: canUseCommunity,
   });
 
   const invalidate = () => {
@@ -83,7 +83,13 @@ export default function Community() {
   });
   const advance = useMutation({
     mutationFn: (v: { id: string; state: EscrowState; trackingNumber?: string }) =>
-      client.marketplace.advanceOrder(v.id, v.state, v.trackingNumber ? { trackingNumber: v.trackingNumber, deliveredAt: new Date().toISOString() } : undefined),
+      client.marketplace.advanceOrder(
+        v.id,
+        v.state,
+        v.trackingNumber
+          ? { trackingNumber: v.trackingNumber, deliveredAt: new Date().toISOString() }
+          : undefined,
+      ),
     onSuccess: () => {
       setShipFor(null);
       setTracking('');
@@ -92,7 +98,8 @@ export default function Community() {
     onError,
   });
   const dispute = useMutation({
-    mutationFn: (v: { id: string; reason: string }) => client.marketplace.openDispute(v.id, v.reason),
+    mutationFn: (v: { id: string; reason: string }) =>
+      client.marketplace.openDispute(v.id, v.reason),
     onSuccess: () => {
       setDisputeFor(null);
       setReason('');
@@ -102,7 +109,7 @@ export default function Community() {
     onError,
   });
 
-  if (planLoading) {
+  if (planState.status === 'loading') {
     return (
       <Screen scroll={false}>
         <View style={styles.center}>
@@ -112,7 +119,21 @@ export default function Community() {
     );
   }
 
-  if (!entitlements.community) {
+  if (planState.status === 'error') {
+    return (
+      <Screen scroll={false}>
+        <View style={styles.center}>
+          <VEmptyState
+            title={t('community.title')}
+            message={errorMessage(planState.error, t)}
+            action={{ label: t('common.retry'), onPress: planState.retry }}
+          />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (!planState.entitlements.community) {
     return (
       <Screen scroll={false}>
         <View style={styles.center}>
@@ -126,10 +147,32 @@ export default function Community() {
     );
   }
 
+  const readError = catalogueQuery.error ?? ordersQuery.error;
+  if (readError) {
+    return (
+      <Screen scroll={false}>
+        <View style={styles.center}>
+          <VEmptyState
+            title={t('community.title')}
+            message={errorMessage(readError, t)}
+            action={{
+              label: t('common.retry'),
+              onPress: () => {
+                void catalogueQuery.refetch();
+                void ordersQuery.refetch();
+              },
+            }}
+          />
+        </View>
+      </Screen>
+    );
+  }
+
   const catalogue = (catalogueQuery.data ?? []).filter((l) => l.sellerId !== uid);
   const orders = ordersQuery.data ?? [];
 
-  const roleOf = (o: MarketOrder): 'buyer' | 'seller' => (o.buyerId === uid ? 'buyer' : 'seller');
+  const roleOf = (o: MarketOrder): 'buyer' | 'seller' =>
+    o.buyerId === uid ? 'buyer' : 'seller';
 
   return (
     <Screen>
@@ -177,7 +220,9 @@ export default function Community() {
       <VText variant="heading" tone="gold" style={styles.h}>
         {t('community.myOrders')}
       </VText>
-      {orders.length === 0 ? (
+      {ordersQuery.isLoading ? (
+        <VSpinner />
+      ) : orders.length === 0 ? (
         <VText variant="body" tone="dim">
           {t('community.ordersEmpty')}
         </VText>
@@ -217,7 +262,11 @@ export default function Community() {
                     <VButton
                       label={t('community.confirmShip')}
                       onPress={() =>
-                        advance.mutate({ id: o.id, state: 'shipped', trackingNumber: tracking.trim() })
+                        advance.mutate({
+                          id: o.id,
+                          state: 'shipped',
+                          trackingNumber: tracking.trim(),
+                        })
                       }
                       disabled={tracking.trim().length === 0}
                       loading={advance.isPending}
@@ -236,7 +285,8 @@ export default function Community() {
                 />
               ) : null}
 
-              {(o.escrowState === 'funds_held' || o.escrowState === 'shipped') && role === 'buyer' ? (
+              {(o.escrowState === 'funds_held' || o.escrowState === 'shipped') &&
+              role === 'buyer' ? (
                 disputeFor === o.id ? (
                   <>
                     <VTextInput
@@ -254,7 +304,11 @@ export default function Community() {
                     />
                   </>
                 ) : (
-                  <VButton label={t('community.reportProblem')} variant="ghost" onPress={() => setDisputeFor(o.id)} />
+                  <VButton
+                    label={t('community.reportProblem')}
+                    variant="ghost"
+                    onPress={() => setDisputeFor(o.id)}
+                  />
                 )
               ) : null}
 
@@ -275,7 +329,12 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center' },
   h: { marginTop: velumSpacing.xl },
   card: { gap: velumSpacing.sm, marginTop: velumSpacing.sm },
-  rowBetween: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: velumSpacing.sm },
+  rowBetween: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: velumSpacing.sm,
+  },
   badges: { flexDirection: 'row', gap: velumSpacing.sm, flexWrap: 'wrap' },
   flex: { flex: 1 },
 });
