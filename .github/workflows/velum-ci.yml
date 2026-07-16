@@ -141,7 +141,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Extraire le contexte de lib/plan.test.ts du run 295
+      - name: Extraire la stack de lib/plan.test.ts du run 295
         env:
           GH_TOKEN: ${{ github.token }}
           FAILED_JOB_ID: "87607742212"
@@ -161,12 +161,12 @@ jobs:
 
           lines = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace").splitlines()
           indexes = [i for i, line in enumerate(lines) if "FAIL" in line and "lib/plan.test.ts" in line]
-          print("===== CONTEXTE VITEST PR 29 =====")
+          print("===== STACK VITEST PR 29 =====")
           if indexes:
               index = indexes[-1]
-              for line in lines[max(0, index - 45): min(len(lines), index + 35)]:
+              for line in lines[max(0, index - 12): min(len(lines), index + 28)]:
                   print(line)
           else:
-              for line in lines[-180:]:
+              for line in lines[-80:]:
                   print(line)
           PY
