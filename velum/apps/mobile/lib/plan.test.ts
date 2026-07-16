@@ -39,8 +39,9 @@ describe('hasEntitlement (grille juillet 2026)', () => {
 });
 
 describe('planFromProfile', () => {
-  it('dérive les droits uniquement depuis un profil confirmé', () => {
+  it('dérive les droits et l’identité uniquement depuis un profil confirmé', () => {
     const resolved = planFromProfile(profile('gold'));
+    expect(resolved.profileId).toBe('11111111-1111-4111-8111-111111111111');
     expect(resolved.plan).toBe('gold');
     expect(resolved.entitlements.virtualBook).toBe(true);
     expect(resolved.entitlements.community).toBe(false);
