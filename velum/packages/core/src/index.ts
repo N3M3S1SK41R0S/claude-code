@@ -2,6 +2,7 @@ export * from './domain.ts';
 export * from './pricing.ts';
 export * from './items.ts';
 export * from './errors.ts';
+export * from './arbiter.ts';
 export * from './analysis/heritage.ts';
 export * from './analysis/wine.ts';
 export * from './analysis/coin.ts';
