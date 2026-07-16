@@ -4,10 +4,8 @@ IFS=$'\n\t'
 umask 077
 
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-readonly ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
+readonly DEFAULT_ROOT_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
 readonly DEFAULT_PROJECT_REF="hbhfwfjdybvsoojvemdv"
-
-cd "$ROOT_DIR"
 
 log() {
   printf '[velum-deploy] %s\n' "$*"
@@ -49,6 +47,12 @@ end_group() {
     printf '::endgroup::\n'
   fi
 }
+
+ROOT_DIR_INPUT="${VELUM_ROOT:-$DEFAULT_ROOT_DIR}"
+[[ -d "$ROOT_DIR_INPUT" ]] || die "racine VELUM introuvable: $ROOT_DIR_INPUT"
+readonly ROOT_DIR="$(cd -- "$ROOT_DIR_INPUT" && pwd)"
+cd "$ROOT_DIR"
+[[ -f supabase/config.toml ]] || die "supabase/config.toml absent de la racine VELUM"
 
 PROJECT_REF="${SUPABASE_PROJECT_REF:-$DEFAULT_PROJECT_REF}"
 DEPLOY_DATABASE_BOOL="$(normalize_bool "${DEPLOY_DATABASE:-true}")"
