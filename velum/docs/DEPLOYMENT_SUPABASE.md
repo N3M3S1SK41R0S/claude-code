@@ -26,13 +26,14 @@ Le chemin nominal est strictement sériel :
 1. un commit atteint `main` ;
 2. `VELUM CI` valide typecheck, lint, tests, PWA, accessibilité, Edge Functions et toutes les migrations ;
 3. le workflow de production checkout **le SHA exact validé** dans un arbre cible séparé ;
-4. le contrôleur de déploiement provient du même SHA validé, jamais d’une branche arbitraire ;
-5. `supabase db push --dry-run` vérifie l’historique distant ;
-6. `supabase db push` applique uniquement les migrations en attente ;
-7. `supabase functions deploy` publie toutes les fonctions du dépôt ;
-8. `supabase functions list --output json` prouve que chaque entrypoint local existe à distance.
+4. le SHA est comparé au HEAD distant courant de `main` ; un run CI terminé hors ordre est ignoré avant l’installation de la CLI et avant l’accès aux secrets ;
+5. le contrôleur de déploiement provient du même SHA validé, jamais d’une branche arbitraire ;
+6. `supabase db push --dry-run` vérifie l’historique distant ;
+7. `supabase db push` applique uniquement les migrations en attente ;
+8. `supabase functions deploy` publie toutes les fonctions du dépôt ;
+9. `supabase functions list --output json` prouve que chaque entrypoint local existe à distance.
 
-Le groupe de concurrence `velum-supabase-production` interdit deux déploiements simultanés. Les exécutions ne sont pas annulées lorsqu’un nouveau commit arrive : le déploiement courant termine avant le suivant.
+Le groupe de concurrence `velum-supabase-production` interdit deux déploiements simultanés. Les exécutions ne sont pas annulées lorsqu’un nouveau commit arrive : le déploiement courant termine avant le suivant. La vérification du HEAD empêche ensuite un run CI plus ancien, terminé tardivement, de redéployer un état obsolète après une révision plus récente.
 
 ## Invariants de sécurité
 
@@ -41,6 +42,7 @@ Le groupe de concurrence `velum-supabase-production` interdit deux déploiements
 - La base est déployée avant les fonctions afin que le nouveau code ne précède pas son schéma.
 - Les secrets ne sont ni passés en argument de commande, ni écrits dans le résumé GitHub.
 - Les credentials Supabase ne sont injectés que dans l’étape de shell qui publie ; checkout et setup-cli ne les reçoivent pas.
+- Le mot de passe DB est injecté uniquement lorsque `deploy_database=true`.
 - Le checkout désactive `persist-credentials` et les actions externes sont épinglées par SHA.
 - Lors d’un lancement manuel, le script ayant accès aux secrets vient toujours de `main` ; la cible est checkoutée dans un second arbre.
 - Toute cible manuelle doit être un ancêtre de `main`. Une branche non fusionnée ne peut donc jamais fournir le code cible publié.
@@ -122,6 +124,7 @@ Variables acceptées :
 ## Diagnostic
 
 - Job ignoré en lancement manuel : le workflow n’a pas été exécuté depuis `main` ou l’environnement `production` refuse la branche.
+- Déploiement automatique ignoré : une CI plus récente a déjà validé un nouveau HEAD de `main`.
 - Échec avant la CLI : secret GitHub absent ou variable locale manquante.
 - Cible refusée : le SHA demandé n’est pas dans l’historique de `main`.
 - Échec du dry-run DB : historique distant divergent ; inspecter `supabase migration list --linked`, sans réparation automatique.
