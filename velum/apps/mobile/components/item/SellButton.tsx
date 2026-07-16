@@ -18,7 +18,7 @@ export function SellButton({ itemId }: { itemId: string }) {
   const { t } = useTranslation();
   const router = useRouter();
   const client = getVelumClient();
-  const { entitlements } = usePlan();
+  const planState = usePlan();
   const [open, setOpen] = useState(false);
   const [price, setPrice] = useState('');
 
@@ -39,7 +39,22 @@ export function SellButton({ itemId }: { itemId: string }) {
     onError: (error) => showToast(errorMessage(error, t), 'danger'),
   });
 
-  if (!entitlements.community) {
+  if (planState.status === 'loading') {
+    return <VButton label={t('community.sell')} variant="secondary" disabled={true} loading={true} />;
+  }
+
+  if (planState.status === 'error') {
+    return (
+      <>
+        <VText variant="caption" tone="dim">
+          {errorMessage(planState.error, t)}
+        </VText>
+        <VButton label={t('common.retry')} variant="secondary" onPress={planState.retry} />
+      </>
+    );
+  }
+
+  if (!planState.entitlements.community) {
     return (
       <VButton
         label={t('community.sell')}
