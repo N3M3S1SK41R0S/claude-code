@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'vitest';
+import { isVelumError, type Profile } from '@velum/core';
+
+import { planFromProfile } from './planResolution';
 import { hasEntitlement, planRank } from './planRules';
+
+const profile = (plan: Profile['plan']): Profile => ({
+  id: '11111111-1111-4111-8111-111111111111',
+  displayName: 'Test',
+  locale: 'fr',
+  a11yMode: false,
+  plan,
+  createdAt: '2026-07-16T00:00:00.000Z',
+});
 
 describe('planRank', () => {
   it('ordonne free < premium < gold < platine', () => {
@@ -23,5 +35,25 @@ describe('hasEntitlement (grille juillet 2026)', () => {
     expect(hasEntitlement('platine', 'liveValuation')).toBe(true);
     expect(hasEntitlement('gold', 'community')).toBe(false);
     expect(hasEntitlement('platine', 'community')).toBe(true);
+  });
+});
+
+describe('planFromProfile', () => {
+  it('dérive les droits et l’identité uniquement depuis un profil confirmé', () => {
+    const resolved = planFromProfile(profile('gold'));
+    expect(resolved.profileId).toBe('11111111-1111-4111-8111-111111111111');
+    expect(resolved.plan).toBe('gold');
+    expect(resolved.entitlements.virtualBook).toBe(true);
+    expect(resolved.entitlements.community).toBe(false);
+  });
+
+  it("ne transforme jamais un profil absent en plan Free", () => {
+    try {
+      planFromProfile(null);
+      throw new Error('planFromProfile aurait dû échouer');
+    } catch (error) {
+      expect(isVelumError(error)).toBe(true);
+      if (isVelumError(error)) expect(error.code).toBe('SOURCE_UNAVAILABLE');
+    }
   });
 });

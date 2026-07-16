@@ -10,6 +10,7 @@ import { VBadge, VButton, VCard, VListRow, VText, velumSpacing } from '@velum/ui
 
 import { Screen } from '../../../components/Screen';
 import { getVelumClient } from '../../../lib/client';
+import { errorMessage } from '../../../lib/errors';
 import { getFeatures } from '../../../lib/features';
 import { formatDate, formatEUR } from '../../../lib/i18n';
 import { usePlan } from '../../../lib/plan';
@@ -26,7 +27,7 @@ export default function Market() {
   const router = useRouter();
   const client = getVelumClient();
   const features = getFeatures();
-  const { plan } = usePlan();
+  const planState = usePlan();
 
   const notificationsQuery = useQuery({
     queryKey: ['notifications'],
@@ -110,7 +111,25 @@ export default function Market() {
               <VText variant="body" tone="dim">
                 {t('market.communityBody')}
               </VText>
-              {plan === 'platine' ? (
+              {planState.status === 'loading' ? (
+                <VButton
+                  label={t('common.loading')}
+                  disabled={true}
+                  loading={true}
+                  onPress={() => undefined}
+                />
+              ) : planState.status === 'error' ? (
+                <>
+                  <VText variant="caption" tone="dim">
+                    {errorMessage(planState.error, t)}
+                  </VText>
+                  <VButton
+                    label={t('common.retry')}
+                    variant="secondary"
+                    onPress={planState.retry}
+                  />
+                </>
+              ) : planState.entitlements.community ? (
                 <VButton
                   label={t('community.open')}
                   onPress={() => router.push('/community')}
