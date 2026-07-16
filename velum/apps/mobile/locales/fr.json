@@ -636,5 +636,40 @@
     "granted": "Autorisé",
     "denied": "Refusé",
     "notAsked": "Non demandé"
+  },
+  "calibration": {
+    "inProgress": "Calibration en cours",
+    "inProgressHint": "{{count}} prédiction(s) confrontée(s) au prix réel — la preuve s’affiche dès 30.",
+    "sample": "{{count}} vente(s) vérifiée(s)",
+    "coverage": "IC 80 % couvert à {{p80}} % · IC 95 % couvert à {{p95}} %",
+    "computedAt": "Calculé le {{date}}",
+    "status": {
+      "well_calibrated": "Fourchettes fiables",
+      "overconfident": "Fourchettes trop étroites",
+      "underconfident": "Fourchettes prudentes"
+    }
+  },
+  "arbiter": {
+    "title": "Arbitre : boire, garder ou vendre ?",
+    "openButton": "Consulter l’arbitre",
+    "planRequired": "L’arbitre patrimonial fait partie du carnet virtuel — offre Gold ou Platine.",
+    "trendLabel": "Tendance de valeur",
+    "sellWindow": "Fenêtre de sortie : apogée proche ET tendance établie.",
+    "reasonsTitle": "Pourquoi ce signal",
+    "noReasons": "Aucune justification disponible.",
+    "disclaimerIndicative": "Signal indicatif fondé sur votre carnet — jamais un conseil d’investissement ni une expertise.",
+    "disclaimerOwner": "Vous restez seul décideur : aucune action n’est déclenchée automatiquement.",
+    "verdict": {
+      "drink": "À boire",
+      "hold": "À garder",
+      "sell": "Fenêtre de vente",
+      "watch": "À observer"
+    },
+    "trend": {
+      "rising": "Hausse établie",
+      "falling": "Baisse établie",
+      "flat": "Stable",
+      "unknown": "Historique insuffisant"
+    }
   }
 }

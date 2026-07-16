@@ -5,6 +5,7 @@
  */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { createAuthApi, type AuthApi } from './auth';
+import { createCalibrationRepo, type CalibrationRepo } from './calibration';
 import { createEdgeApi, type EdgeApi } from './edge';
 import { createItemMediaRepo, type ItemMediaRepo } from './item-media';
 import { MutationQueue } from './queue';
@@ -47,6 +48,11 @@ export interface VelumClient {
    * Optionnel pour préserver les clients injectés plus anciens (notamment démo).
    */
   itemMedia?: ItemMediaRepo;
+  /**
+   * Preuve de calibration publiée par domaine. Optionnelle pour les clients
+   * injectés historiques ; le client Supabase officiel la fournit toujours.
+   */
+  calibration?: CalibrationRepo;
   valuations: ValuationsRepo;
   alerts: AlertsRepo;
   profile: ProfileApi;
@@ -78,6 +84,7 @@ export function createVelumClient(opts: VelumClientOptions): VelumClient {
     edge: createEdgeApi(supabase),
     items: createItemsRepo(supabase),
     itemMedia: createItemMediaRepo(supabase),
+    calibration: createCalibrationRepo(supabase),
     valuations: createValuationsRepo(supabase),
     alerts: createAlertsRepo(supabase),
     profile: createProfileApi(supabase),

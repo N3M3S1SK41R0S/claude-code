@@ -34,6 +34,7 @@ import type {
 import { Screen } from '../../components/Screen';
 import { ValueChart } from '../../components/ValueChart';
 import { ValuationExplanation } from '../../components/ValuationExplanation';
+import { CalibrationEvidence } from '../../components/CalibrationEvidence';
 import { ArtSheet } from '../../components/sheets/ArtSheet';
 import { CoinSheet } from '../../components/sheets/CoinSheet';
 import { StampSheet } from '../../components/sheets/StampSheet';
@@ -273,6 +274,8 @@ export default function ItemSheet() {
             {valuation.sources.length > 0 ? (
               <ValuationExplanation valuation={valuation} label={t('item.whyThisRange')} />
             ) : null}
+            {/* Pari #1 — preuve de calibration du domaine (jamais trompeuse). */}
+            <CalibrationEvidence domain={item.domain} />
           </>
         ) : (
           <VText variant="body" tone="dim">
@@ -363,6 +366,12 @@ export default function ItemSheet() {
           <VButton label={t('item.setAlert')} variant="secondary" onPress={() => setAlertOpen(true)} />
         )}
         <VButton label={t('item.exportPdf')} variant="secondary" onPress={() => void exportPdf()} />
+        <VButton
+          label={t('arbiter.openButton')}
+          variant="secondary"
+          onPress={() => router.push(`/arbiter/${item.id}`)}
+          accessibilityHint={t('arbiter.title')}
+        />
         <SellButton itemId={item.id} />
         <VButton label={t('common.delete')} variant="danger" onPress={confirmDelete} />
         <VButton label={t('common.back')} variant="ghost" onPress={() => router.back()} />

@@ -8,7 +8,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
-import { ALERTS, ITEMS, LISTINGS, NOTIFICATIONS, ORDERS, PAIRING, PROFILE, SESSION, VALUATIONS } from './fixtures.mjs';
+import { ALERTS, ARBITER, CALIBRATION_RUN, ITEMS, LISTINGS, NOTIFICATIONS, ORDERS, PAIRING, PROFILE, SESSION, VALUATIONS } from './fixtures.mjs';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',
@@ -82,7 +82,13 @@ export async function stubSupabase(page) {
       return json(status ? LISTINGS.filter((l) => l.status === status) : LISTINGS);
     }
     if (path.endsWith('/rest/v1/orders')) return json(ORDERS);
+    // Dernier run de calibration (lu en maybeSingle → objet, pas tableau).
+    if (path.endsWith('/rest/v1/calibration_runs')) {
+      const domain = eqParam(url, 'domain');
+      return json(domain === CALIBRATION_RUN.domain ? CALIBRATION_RUN : null);
+    }
     if (path.includes('/functions/v1/cellar-pairing')) return json(PAIRING);
+    if (path.includes('/functions/v1/arbiter')) return json(ARBITER);
     if (path.includes('/functions/v1/')) return json({ ok: true });
     if (path.includes('/auth/v1/')) return json({});
     return json([]);

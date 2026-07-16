@@ -5,6 +5,12 @@
 export { createVelumClient, type VelumClient, type VelumClientOptions } from './client';
 export { createAuthApi, type AuthApi, type AuthChangeCallback } from './auth';
 export {
+  createCalibrationRepo,
+  rowToCalibrationRun,
+  type CalibrationRepo,
+  type CalibrationRunRow,
+} from './calibration';
+export {
   createEdgeApi,
   invokeEdgeFunction,
   type CompleteEdgeApi,
