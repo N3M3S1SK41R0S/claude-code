@@ -4,18 +4,14 @@
  * les droits sont dérivés de PLAN_LIMITS (@velum/config) — source unique.
  */
 import { useQuery } from '@tanstack/react-query';
-import { PLAN_LIMITS, type PlanEntitlements, type PlanId } from '@velum/config';
-import { VelumError, type Profile } from '@velum/core';
+import type { PlanEntitlements, PlanId } from '@velum/config';
+import { VelumError } from '@velum/core';
 
 import { getVelumClient } from './client';
+import { planFromProfile } from './planResolution';
 
 export { hasEntitlement, planRank } from './planRules';
-
-export interface ReadyPlan {
-  profileId: string;
-  plan: PlanId;
-  entitlements: PlanEntitlements;
-}
+export { planFromProfile, type ReadyPlan } from './planResolution';
 
 interface PlanStateBase {
   /** Relance explicitement la lecture du profil après une panne. */
@@ -50,21 +46,6 @@ export type PlanState =
       isError: false;
       error: null;
     });
-
-/**
- * Convertit un profil effectivement relu en droits produit. Un profil absent
- * n'est jamais assimilé au plan Free : il s'agit d'une donnée serveur manquante.
- */
-export function planFromProfile(profile: Profile | null): ReadyPlan {
-  if (profile === null) {
-    throw new VelumError(
-      'SOURCE_UNAVAILABLE',
-      "Le profil d'abonnement est indisponible — impossible de vérifier vos droits.",
-    );
-  }
-  const plan: PlanId = profile.plan;
-  return { profileId: profile.id, plan, entitlements: PLAN_LIMITS[plan] };
-}
 
 /**
  * Plan de l'utilisateur connecté. Les écrans doivent distinguer explicitement
