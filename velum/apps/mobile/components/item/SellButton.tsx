@@ -40,7 +40,15 @@ export function SellButton({ itemId }: { itemId: string }) {
   });
 
   if (planState.status === 'loading') {
-    return <VButton label={t('community.sell')} variant="secondary" disabled={true} loading={true} />;
+    return (
+      <VButton
+        label={t('community.sell')}
+        variant="secondary"
+        disabled={true}
+        loading={true}
+        onPress={() => undefined}
+      />
+    );
   }
 
   if (planState.status === 'error') {
