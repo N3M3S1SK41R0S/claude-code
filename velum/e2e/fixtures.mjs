@@ -335,3 +335,25 @@ export const LISTINGS = [
   { id: 'lst-2', item_id: 'x2', seller_id: '33333333-3333-4333-8333-333333333333', ask_price: 780, currency: 'EUR', status: 'active', title: 'Bloc CITEX 1949 neuf — authentifié', domain: 'stamp', created_at: '2026-07-03T00:00:00Z' },
 ];
 export const ORDERS = [];
+
+/** Signal d'arbitre (Edge `arbiter`) — verdict de démonstration réaliste. */
+export const ARBITER = {
+  verdict: 'drink',
+  confidence: 0.55,
+  trend: 'flat',
+  sellWindow: false,
+  reasons: [
+    'À son apogée (fenêtre 2022–2032) — à boire.',
+    'Tendance de valeur non séparée de plat : pas de signal de vente (anti-faux-signal).',
+  ],
+};
+
+/** Dernier run de calibration publié (table calibration_runs, maybeSingle). */
+export const CALIBRATION_RUN = {
+  domain: 'wine',
+  n: 124,
+  coverage80: 0.81,
+  coverage95: 0.95,
+  status: 'well_calibrated',
+  computed_at: '2026-07-15T06:00:00Z',
+};

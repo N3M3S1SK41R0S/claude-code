@@ -636,5 +636,40 @@
     "granted": "Allowed",
     "denied": "Declined",
     "notAsked": "Not asked yet"
+  },
+  "calibration": {
+    "inProgress": "Calibration in progress",
+    "inProgressHint": "{{count}} prediction(s) checked against realized prices — proof shows at 30.",
+    "sample": "{{count}} verified sale(s)",
+    "coverage": "80% CI covered {{p80}}% · 95% CI covered {{p95}}%",
+    "computedAt": "Computed on {{date}}",
+    "status": {
+      "well_calibrated": "Reliable ranges",
+      "overconfident": "Ranges too narrow",
+      "underconfident": "Conservative ranges"
+    }
+  },
+  "arbiter": {
+    "title": "Arbiter: drink, hold or sell?",
+    "openButton": "Ask the arbiter",
+    "planRequired": "The estate arbiter is part of the virtual book — Gold or Platine plan.",
+    "trendLabel": "Value trend",
+    "sellWindow": "Exit window: peak closing soon AND established trend.",
+    "reasonsTitle": "Why this signal",
+    "noReasons": "No rationale available.",
+    "disclaimerIndicative": "Indicative signal based on your book — never investment advice nor an appraisal.",
+    "disclaimerOwner": "You remain the sole decision-maker: nothing is triggered automatically.",
+    "verdict": {
+      "drink": "Drink",
+      "hold": "Hold",
+      "sell": "Sell window",
+      "watch": "Watch"
+    },
+    "trend": {
+      "rising": "Established rise",
+      "falling": "Established fall",
+      "flat": "Flat",
+      "unknown": "Insufficient history"
+    }
   }
 }
