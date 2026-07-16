@@ -29,7 +29,11 @@
     "capture": "Capturer un objet",
     "market": "Marché & alertes",
     "community": "Communauté",
-    "videoLabel": "Vidéo de lancement VELUM"
+    "videoLabel": "Vidéo de lancement VELUM",
+    "collectionHint": "Cave, cabinet, galerie, album",
+    "captureHint": "Photo, texte ou import de fichier",
+    "marketHint": "Valorisations, alertes, annonces",
+    "communityHint": "Transactions entre collectionneurs"
   },
   "heritage": {
     "title": "Histoire & rareté",

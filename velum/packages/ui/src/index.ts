@@ -51,6 +51,8 @@ export { VButton } from './components/VButton';
 export type { VButtonProps } from './components/VButton';
 export { VCard } from './components/VCard';
 export type { VCardProps } from './components/VCard';
+export { VOrnament } from './components/VOrnament';
+export type { VOrnamentProps } from './components/VOrnament';
 export { VTextInput } from './components/VTextInput';
 export type { VTextInputProps } from './components/VTextInput';
 export { VListRow } from './components/VListRow';

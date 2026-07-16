@@ -29,7 +29,11 @@
     "capture": "Capture an item",
     "market": "Market & alerts",
     "community": "Community",
-    "videoLabel": "VELUM launch video"
+    "videoLabel": "VELUM launch video",
+    "collectionHint": "Cellar, cabinet, gallery, album",
+    "captureHint": "Photo, text or file import",
+    "marketHint": "Valuations, alerts, listings",
+    "communityHint": "Collector-to-collector transactions"
   },
   "heritage": {
     "title": "History & rarity",
