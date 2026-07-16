@@ -14,9 +14,11 @@
  * Fonction PURE : aucune horloge interne, `currentYear` est fourni.
  * Toujours indicatif — l'utilisateur reste seul décideur (disclaimers en aval).
  */
+import type { ArbiterSignal, ValueTrend } from '@velum/core';
 
-export type ArbiterVerdict = 'drink' | 'hold' | 'sell' | 'watch';
-export type ValueTrend = 'rising' | 'falling' | 'flat' | 'unknown';
+// Compatibilité : ces types restent exportés depuis @velum/valuation, mais leur
+// définition canonique vit désormais dans @velum/core avec le contrat HTTP.
+export type { ArbiterSignal, ArbiterVerdict, ValueTrend } from '@velum/core';
 
 /** Un point de la trajectoire de valeur (instantané §7 daté). */
 export interface TrajectoryPoint {
@@ -35,17 +37,6 @@ export interface ArbiterInput {
   trajectory: TrajectoryPoint[];
   /** Horizon d'urgence : apogée se refermant sous N ans (défaut 3). */
   horizonYears?: number;
-}
-
-export interface ArbiterSignal {
-  verdict: ArbiterVerdict;
-  /** Confiance du signal 0..1 (croît avec le nombre de points et la marge). */
-  confidence: number;
-  trend: ValueTrend;
-  /** Garde-fou : true seulement si apogée proche ET tendance séparée de plat. */
-  sellWindow: boolean;
-  /** Justifications en français, prêtes à afficher. */
-  reasons: string[];
 }
 
 export const DEFAULT_HORIZON_YEARS = 3;
