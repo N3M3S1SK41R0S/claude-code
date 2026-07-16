@@ -57,10 +57,18 @@ export function toTrajectory(history: ValuationRecord[]): TrajectoryPoint[] {
     }));
 }
 
-/** Fenêtre d'apogée depuis un payload d'analyse (vin uniquement), sinon undefined. */
+/**
+ * Fenêtre d'apogée depuis un payload d'analyse (vin uniquement), sinon
+ * undefined. Le payload vient d'un JSONB : chaque niveau est validé par garde
+ * de type avant lecture, jamais de cast aveugle.
+ */
 export function usageWindowOf(payload: unknown): { from: number; to: number } | undefined {
-  const dw = (payload as Partial<WineAnalysisPayload> | null)?.tasting?.drinkWindow;
-  if (!dw || typeof dw.from !== 'number' || typeof dw.to !== 'number') return undefined;
+  if (!payload || typeof payload !== 'object') return undefined;
+  const tasting = (payload as Partial<WineAnalysisPayload>).tasting;
+  if (!tasting || typeof tasting !== 'object') return undefined;
+  const dw = tasting.drinkWindow;
+  if (!dw || typeof dw !== 'object') return undefined;
+  if (typeof dw.from !== 'number' || typeof dw.to !== 'number') return undefined;
   if (!Number.isFinite(dw.from) || !Number.isFinite(dw.to)) return undefined;
   return { from: dw.from, to: dw.to };
 }

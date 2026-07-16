@@ -1,8 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   VelumError,
+  isCalibrationStatus,
   type CalibrationRun,
-  type CalibrationStatus,
   type VelumDomain,
 } from '@velum/core';
 
@@ -14,13 +14,6 @@ export interface CalibrationRunRow {
   status: unknown;
   computed_at: unknown;
 }
-
-const STATUSES: ReadonlySet<CalibrationStatus> = new Set([
-  'calibrating',
-  'well_calibrated',
-  'overconfident',
-  'underconfident',
-]);
 
 function isDomain(value: unknown): value is VelumDomain {
   return value === 'wine' || value === 'coin' || value === 'art' || value === 'stamp';
@@ -52,8 +45,13 @@ export function rowToCalibrationRun(row: CalibrationRunRow): CalibrationRun {
   if (coverage95 === null || coverage95 < 0 || coverage95 > 1) {
     invalidRun('couverture IC95 invalide');
   }
+  // Intervalles emboîtés : l'IC95 contient l'IC80, sa couverture ne peut pas
+  // être inférieure — une telle ligne est malformée (jamais de fausse certitude).
+  if (coverage95 < coverage80) {
+    invalidRun('couvertures IC80 et IC95 incohérentes');
+  }
 
-  if (typeof row.status !== 'string' || !STATUSES.has(row.status as CalibrationStatus)) {
+  if (!isCalibrationStatus(row.status)) {
     invalidRun('statut inconnu');
   }
   const computedAt = row.computed_at;
@@ -66,7 +64,7 @@ export function rowToCalibrationRun(row: CalibrationRunRow): CalibrationRun {
     n,
     coverage80,
     coverage95,
-    status: row.status as CalibrationStatus,
+    status: row.status,
     computedAt,
   };
 }

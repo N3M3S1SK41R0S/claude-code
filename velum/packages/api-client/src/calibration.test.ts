@@ -75,4 +75,18 @@ describe('calibration repo', () => {
     expect(() => rowToCalibrationRun({ ...base, computed_at: 'demain' })).toThrow();
     expect(() => rowToCalibrationRun({ ...base, n: 3.5 })).toThrow();
   });
+
+  it('refuse une couverture IC95 inférieure à l’IC80 (intervalles emboîtés)', () => {
+    const base = {
+      domain: 'wine',
+      n: 30,
+      coverage80: 0.9,
+      coverage95: 0.8,
+      status: 'well_calibrated',
+      computed_at: '2026-07-15T00:00:00Z',
+    };
+    expect(() => rowToCalibrationRun(base)).toThrow(/incohérentes/);
+    // La borne d'égalité reste acceptée.
+    expect(() => rowToCalibrationRun({ ...base, coverage95: 0.9 })).not.toThrow();
+  });
 });
