@@ -141,7 +141,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
-      - name: Extraire la panne Vitest du run 295
+      - name: Extraire le contexte de lib/plan.test.ts du run 295
         env:
           GH_TOKEN: ${{ github.token }}
           FAILED_JOB_ID: "87607742212"
@@ -156,17 +156,17 @@ jobs:
             "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/jobs/$FAILED_JOB_ID/logs" \
             --output "$log_file"
           python3 - "$log_file" <<'PY'
-          import re
           import sys
           from pathlib import Path
 
           lines = Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace").splitlines()
-          needles = re.compile(r"(?:FAIL|Failed Tests|Error:|AssertionError|plan\.test|Test Files|Tests\s+\d+ failed|ELIFECYCLE)")
-          matches = [line for line in lines if needles.search(line)]
-          print("===== PANNE VITEST PR 29 =====")
-          for line in matches:
-              print(line)
-          if not matches:
-              for line in lines[-140:]:
+          indexes = [i for i, line in enumerate(lines) if "FAIL" in line and "lib/plan.test.ts" in line]
+          print("===== CONTEXTE VITEST PR 29 =====")
+          if indexes:
+              index = indexes[-1]
+              for line in lines[max(0, index - 45): min(len(lines), index + 35)]:
+                  print(line)
+          else:
+              for line in lines[-180:]:
                   print(line)
           PY
