@@ -111,13 +111,18 @@ export interface EdgeApi {
    */
   cellarPairing(dish: string): Promise<PairingResult>;
   /**
-   * Arbitre patrimonial (Gold+) — croise fenêtre d’usage et trajectoire de
-   * valeur. Le signal est indicatif et conserve les garde-fous anti-market-timing.
+   * Arbitre patrimonial (Gold+). Optionnel uniquement pour préserver les anciens
+   * clients injectés ; `createEdgeApi` le fournit toujours.
    */
+  arbitrate?(itemId: string, currentYear?: number): Promise<ArbiterSignal>;
+}
+
+/** Client Edge complet construit par la fabrique officielle. */
+export interface CompleteEdgeApi extends EdgeApi {
   arbitrate(itemId: string, currentYear?: number): Promise<ArbiterSignal>;
 }
 
-export function createEdgeApi(supabase: SupabaseClient): EdgeApi {
+export function createEdgeApi(supabase: SupabaseClient): CompleteEdgeApi {
   return {
     recognize(domain, input) {
       return invokeEdgeFunction<RecognitionResult>(supabase, 'recognize', { domain, input });
