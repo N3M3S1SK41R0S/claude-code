@@ -1,0 +1,122 @@
+name: VELUM Supabase Production
+
+on:
+  workflow_run:
+    workflows: ["VELUM CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branche, tag ou SHA à déployer (fonctions uniquement pour un rollback)"
+        required: true
+        default: main
+        type: string
+      deploy_database:
+        description: "Appliquer les migrations en attente"
+        required: true
+        default: true
+        type: boolean
+      deploy_functions:
+        description: "Déployer toutes les Edge Functions"
+        required: true
+        default: true
+        type: boolean
+      dry_run:
+        description: "Afficher le plan sans mutation distante"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: velum-supabase-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Déployer Supabase production
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main'
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: production
+    env:
+      # Le project ref identifie une ressource publique ; ce n'est pas un secret.
+      SUPABASE_PROJECT_REF: hbhfwfjdybvsoojvemdv
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+    steps:
+      - name: Résoudre le plan de déploiement
+        id: plan
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          AUTO_REF: ${{ github.event.workflow_run.head_sha }}
+          MANUAL_REF: ${{ inputs.ref }}
+          MANUAL_DATABASE: ${{ inputs.deploy_database }}
+          MANUAL_FUNCTIONS: ${{ inputs.deploy_functions }}
+          MANUAL_DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -Eeuo pipefail
+
+          if [[ "$EVENT_NAME" == "workflow_run" ]]; then
+            ref="$AUTO_REF"
+            deploy_database=true
+            deploy_functions=true
+            dry_run=false
+          else
+            ref="${MANUAL_REF:-main}"
+            deploy_database="${MANUAL_DATABASE:-true}"
+            deploy_functions="${MANUAL_FUNCTIONS:-true}"
+            dry_run="${MANUAL_DRY_RUN:-false}"
+
+            # Une ancienne révision peut être redéployée pour restaurer les
+            # fonctions, mais une base ne se rétrograde jamais automatiquement.
+            if [[ "$deploy_database" == "true" && "$ref" != "main" ]]; then
+              echo "::error::Pour un ref autre que main, désactive deploy_database. Les migrations se corrigent par une migration forward-only."
+              exit 1
+            fi
+          fi
+
+          if [[ "$deploy_database" != "true" && "$deploy_functions" != "true" ]]; then
+            echo "::error::Aucune cible de déploiement sélectionnée."
+            exit 1
+          fi
+
+          {
+            echo "ref=$ref"
+            echo "deploy_database=$deploy_database"
+            echo "deploy_functions=$deploy_functions"
+            echo "dry_run=$dry_run"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Checkout de la révision validée
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ steps.plan.outputs.ref }}
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Installer Supabase CLI
+        uses: supabase/setup-cli@3c2f5e2ae34c34e428e8e206e2c4d21fa2d20fbf # v2.1.1
+        with:
+          version: 2.109.1
+
+      - name: Déployer la base et les fonctions
+        working-directory: velum
+        env:
+          DEPLOY_REF: ${{ steps.plan.outputs.ref }}
+          DEPLOY_DATABASE: ${{ steps.plan.outputs.deploy_database }}
+          DEPLOY_FUNCTIONS: ${{ steps.plan.outputs.deploy_functions }}
+          DRY_RUN: ${{ steps.plan.outputs.dry_run }}
+        run: bash scripts/deploy-supabase.sh
