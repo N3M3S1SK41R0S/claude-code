@@ -21,10 +21,18 @@ export function setMuted(m: boolean): void {
 /** Once ElevenLabs answers 503/501 (no key), stop trying for the session. */
 let elevenAvailable: boolean | null = null;
 
+/**
+ * Cancellation generation: stop() bumps it, and every async step of a speech
+ * chain re-checks it, so a line whose TTS fetch is still in flight when the
+ * turn changes is dropped instead of playing stale audio later.
+ */
+let generation = 0;
+
 let currentAudio: HTMLAudioElement | null = null;
 let currentUrl: string | null = null;
 
-export function stop(): void {
+/** Silence whatever is playing right now, without cancelling pending chains. */
+function haltPlayback(): void {
   if (typeof window === "undefined") return;
   window.speechSynthesis?.cancel();
   if (currentAudio) {
@@ -37,8 +45,15 @@ export function stop(): void {
   }
 }
 
-async function playBlob(blob: Blob): Promise<void> {
-  stop();
+/** Cancel current playback AND every in-flight speech chain. */
+export function stop(): void {
+  generation += 1;
+  haltPlayback();
+}
+
+async function playBlob(blob: Blob, gen: number): Promise<void> {
+  if (gen !== generation) return;
+  haltPlayback();
   await new Promise<void>((resolve) => {
     const url = URL.createObjectURL(blob);
     const audio = new Audio(url);
@@ -57,15 +72,17 @@ async function playBlob(blob: Blob): Promise<void> {
   });
 }
 
-async function speakEleven(text: string, speaker: Speaker): Promise<boolean> {
+async function speakEleven(text: string, speaker: Speaker, gen: number): Promise<boolean> {
   if (elevenAvailable === false) return false;
   try {
     const key = idbAvailable() ? await audioKey(speaker, text) : null;
+    if (gen !== generation) return true; // cancelled: swallow, don't fall back
     if (key) {
       const cached = await idb.get<{ key: string; blob: Blob }>("audio", key);
+      if (gen !== generation) return true;
       if (cached?.blob) {
         elevenAvailable = true;
-        await playBlob(cached.blob);
+        await playBlob(cached.blob, gen);
         return true;
       }
     }
@@ -79,19 +96,21 @@ async function speakEleven(text: string, speaker: Speaker): Promise<boolean> {
       return false;
     }
     const blob = await res.blob();
+    if (gen !== generation) return true;
     elevenAvailable = true;
     // Audio sprite cache: same line never fetched twice.
     if (key) idb.put("audio", { key, blob }).catch(() => {});
-    await playBlob(blob);
+    await playBlob(blob, gen);
     return true;
   } catch {
     return false;
   }
 }
 
-function speakWebSpeech(text: string, speaker: Speaker): Promise<boolean> {
+function speakWebSpeech(text: string, speaker: Speaker, gen: number): Promise<boolean> {
   return new Promise((resolve) => {
     if (typeof window === "undefined" || !window.speechSynthesis) return resolve(false);
+    if (gen !== generation) return resolve(true);
     const synth = window.speechSynthesis;
     synth.cancel();
     const utter = new SpeechSynthesisUtterance(text);
@@ -112,12 +131,15 @@ function speakWebSpeech(text: string, speaker: Speaker): Promise<boolean> {
 /**
  * Speak a line with the character's voice profile.
  * Chain: ElevenLabs (if key configured server-side) → Web Speech API → silence.
- * Never throws, never blocks gameplay on failure.
+ * Never throws, never blocks gameplay on failure; stop() cancels it even
+ * while its network fetch is still pending.
  */
 export async function speak(text: string, speaker: Speaker = "mogul"): Promise<void> {
   if (muted || !text || typeof window === "undefined") return;
-  const viaEleven = await speakEleven(text, speaker);
-  if (!viaEleven) await speakWebSpeech(text, speaker);
+  const gen = generation;
+  const viaEleven = await speakEleven(text, speaker, gen);
+  if (gen !== generation) return;
+  if (!viaEleven) await speakWebSpeech(text, speaker, gen);
 }
 
 /** Warm the fr-FR voice list (Chrome loads it async). */

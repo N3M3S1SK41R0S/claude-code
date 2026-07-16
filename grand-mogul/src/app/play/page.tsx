@@ -6,10 +6,23 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CastBar } from "@/components/CastBar";
 import { HostBubble } from "@/components/HostBubble";
 import { ThemeWheel } from "@/components/ThemeWheel";
-import { TimerBar } from "@/components/TimerBar";
 import { bankStats, ensureSeedLoaded, flagQuestion, markAsked, nextQuestion, prefetchBatch } from "@/lib/bank";
 import { castLine, hostRetort } from "@/lib/cast";
-import { QUESTION_TIME_S, applyCorrect, applyWrong, makeHint, makePlayer, pickEliminations } from "@/lib/engine";
+import {
+  answerMatches,
+  applyCorrect,
+  applyWrong,
+  CCD_MULTIPLIER,
+  type CcdMode,
+  CONFIDENCE,
+  type ConfidenceLevel,
+  basePoints,
+  correctTexts,
+  gambitMultiplier,
+  makeHint,
+  makePlayer,
+  pickEliminations,
+} from "@/lib/engine";
 import { haptics } from "@/lib/haptics";
 import { host } from "@/lib/host";
 import { idb, idbAvailable } from "@/lib/db";
@@ -20,7 +33,7 @@ import type { CastId, MatchConfig, MatchRecord, PlayerState, StoredQuestion, The
 
 type Phase = "boot" | "intro" | "handoff" | "wheel" | "teaser" | "question" | "reveal" | "results" | "empty";
 
-type Outcome = "correct" | "wrong" | "timeout" | "skip";
+type Outcome = "correct" | "wrong" | "skip";
 
 interface CastEvent {
   castId: CastId;
@@ -28,7 +41,7 @@ interface CastEvent {
   retort: string | null;
 }
 
-const DEFAULT_CONFIG: MatchConfig = { mode: "solo", playerNames: ["Vous"], questionsPerPlayer: 10 };
+const DEFAULT_CONFIG: MatchConfig = { mode: "solo", playerNames: ["Vous"], questionsPerPlayer: 10, audience: "adulte" };
 
 function readConfig(): MatchConfig {
   try {
@@ -40,6 +53,7 @@ function readConfig(): MatchConfig {
       mode: parsed.mode === "party" ? "party" : "solo",
       playerNames: parsed.playerNames.slice(0, 8),
       questionsPerPlayer: [5, 10, 15].includes(parsed.questionsPerPlayer) ? parsed.questionsPerPlayer : 10,
+      audience: ["enfant", "ado", "adulte"].includes(parsed.audience) ? parsed.audience : "adulte",
     };
   } catch {
     return DEFAULT_CONFIG;
@@ -54,21 +68,38 @@ export default function PlayPage() {
   const [phase, setPhase] = useState<Phase>("boot");
   const [theme, setTheme] = useState<ThemeDef | null>(null);
   const [question, setQuestion] = useState<StoredQuestion | null>(null);
+
+  // Per-question interaction state.
   const [eliminated, setEliminated] = useState<number[]>([]);
   const [hint, setHint] = useState<string | null>(null);
   const [doubled, setDoubled] = useState(false);
-  const [extraTime, setExtraTime] = useState(0);
+  const [secondChance, setSecondChance] = useState(false);
+  const [secondChanceUsed, setSecondChanceUsed] = useState(false);
+  const [ccdMode, setCcdMode] = useState<CcdMode | null>(null);
+  const [duoChoices, setDuoChoices] = useState<number[]>([]);
+  const [confidence, setConfidence] = useState<ConfidenceLevel | null>(null);
+  const [textAnswer, setTextAnswer] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
+  const [typedAnswer, setTypedAnswer] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const [pointsEarned, setPointsEarned] = useState(0);
+  const [overrideOffered, setOverrideOffered] = useState(false);
+  const [pendingMultiplier, setPendingMultiplier] = useState(1);
+
   const [hostLine, setHostLine] = useState("");
   const [castEvent, setCastEvent] = useState<CastEvent | null>(null);
   const [reported, setReported] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [quitAsk, setQuitAsk] = useState(false);
 
   // Guards async callbacks from previous turns (wheel timers, TTS chains…).
   const turnToken = useRef(0);
   const playersRef = useRef(players);
   playersRef.current = players;
+  // Hashes served during this match: recycling the bank can't repeat them.
+  const servedRef = useRef<Set<string>>(new Set());
+  // Player state before the current resolution, for the honor-system override.
+  const snapshotRef = useRef<PlayerState | null>(null);
 
   const totalTurns = config.playerNames.length * config.questionsPerPlayer;
   const currentIndex = players.length > 0 ? turn % players.length : 0;
@@ -105,11 +136,22 @@ export default function PlayPage() {
     setEliminated([]);
     setHint(null);
     setDoubled(false);
-    setExtraTime(0);
+    setSecondChance(false);
+    setSecondChanceUsed(false);
+    setCcdMode(null);
+    setDuoChoices([]);
+    setConfidence(null);
+    setTextAnswer("");
     setSelected(null);
+    setTypedAnswer(null);
     setOutcome(null);
+    setPointsEarned(0);
+    setOverrideOffered(false);
+    setPendingMultiplier(1);
     setCastEvent(null);
     setReported(false);
+    setQuitAsk(false);
+    snapshotRef.current = null;
   };
 
   const enterTurn = useCallback(
@@ -135,7 +177,10 @@ export default function PlayPage() {
   );
 
   const startMatch = () => {
-    void speakSeq([[hostLine, "mogul"]]);
+    // Party mode announces the first player right away — speaking the intro
+    // too would make two concurrent voices fight for the speaker.
+    if (config.mode === "solo") void speakSeq([[hostLine, "mogul"]]);
+    servedRef.current.clear();
     enterTurn(0);
   };
 
@@ -147,22 +192,28 @@ export default function PlayPage() {
     setPhase("teaser");
     void speakSeq([[teaser, "mogul"]]);
     const tier = playersRef.current[turn % playersRef.current.length]?.tier ?? 2;
-    void nextQuestion(t.id, tier).then((q) => {
-      if (turnToken.current !== token) return;
-      if (!q) {
-        setPhase("empty");
-        return;
-      }
-      setQuestion(q);
-      window.setTimeout(() => {
-        if (turnToken.current === token) setPhase("question");
-      }, 1700);
-    });
+    nextQuestion(t.id, tier, config.audience, servedRef.current)
+      .then((q) => {
+        if (turnToken.current !== token) return;
+        if (!q) {
+          setPhase("empty");
+          return;
+        }
+        servedRef.current.add(q.hash);
+        setQuestion(q);
+        window.setTimeout(() => {
+          if (turnToken.current === token) setPhase("question");
+        }, 1700);
+      })
+      .catch(() => {
+        if (turnToken.current === token) setPhase("empty");
+      });
   };
 
   const finishReveal = useCallback(
-    (q: StoredQuestion, result: Outcome, quip: string) => {
+    (q: StoredQuestion, result: Outcome, quip: string, earned: number) => {
       setOutcome(result);
+      setPointsEarned(earned);
       setPhase("reveal");
       setHostLine(quip);
       void markAsked(q.hash);
@@ -172,34 +223,100 @@ export default function PlayPage() {
         [`${lead} ${q.anecdote}`, "mogul"],
       ]);
       // Keep the local bank fat: top up from the API while the player reads.
-      void bankStats().then((s) => {
-        if (s.fresh < 40) void prefetchBatch(q.theme, playersRef.current[turn % playersRef.current.length]?.tier ?? 3);
-      });
+      void bankStats()
+        .then((s) => {
+          if (s.fresh < 40) return prefetchBatch(q.theme, playersRef.current[turn % playersRef.current.length]?.tier ?? 3);
+        })
+        .catch(() => {});
     },
     [speakSeq, turn],
   );
 
-  const onAnswer = (i: number) => {
-    if (phase !== "question" || !question || !current) return;
-    setSelected(i);
-    const isCorrect = i === question.answerIndex;
-    setPlayers((ps) =>
-      ps.map((p, idx) =>
-        idx === currentIndex ? (isCorrect ? applyCorrect(p, question.difficulty, doubled) : applyWrong(p)) : p,
-      ),
-    );
-    if (isCorrect) haptics.correct();
-    else haptics.wrong();
-    finishReveal(question, isCorrect ? "correct" : "wrong", isCorrect ? host.quipCorrect() : host.quipWrong());
+  /** Format multiplier × jokers (BARGOL ×2, confident bet ×2). */
+  const jokerMultiplier = (doubledNow: boolean, confidenceNow: ConfidenceLevel | null) =>
+    (doubledNow ? 2 : 1) * (confidenceNow === "sur" ? CONFIDENCE.sur.multiplier : 1);
+
+  const resolve = useCallback(
+    (q: StoredQuestion, correct: boolean, multiplier: number, opts?: { allowOverride?: boolean }) => {
+      const player = playersRef.current[turn % playersRef.current.length];
+      if (!player) return;
+      snapshotRef.current = player;
+      setPendingMultiplier(multiplier);
+      let earned = 0;
+      if (correct) {
+        const after = applyCorrect(player, q.difficulty, multiplier);
+        earned = after.score - player.score;
+        setPlayers((ps) => ps.map((p, idx) => (idx === currentIndex ? after : p)));
+        haptics.correct();
+      } else {
+        const penalty = confidence === "sur" ? Math.round(basePoints(q.difficulty) * CONFIDENCE.sur.penaltyOfBase) : 0;
+        setPlayers((ps) => ps.map((p, idx) => (idx === currentIndex ? applyWrong(p, penalty) : p)));
+        earned = -Math.min(penalty, player.score);
+        haptics.wrong();
+      }
+      setOverrideOffered(Boolean(opts?.allowOverride) && !correct);
+      finishReveal(q, correct ? "correct" : "wrong", correct ? host.quipCorrect() : host.quipWrong(), earned);
+    },
+    [confidence, currentIndex, finishReveal, turn],
+  );
+
+  /** MÉLISSANDRE's second chance: absorb one wrong attempt, stay in play. */
+  const consumeSecondChance = (afterEffect?: () => void) => {
+    setSecondChance(false);
+    setSecondChanceUsed(true);
+    haptics.skill();
+    afterEffect?.();
   };
 
-  const onTimeout = useCallback(() => {
-    if (!question || !current) return;
-    setSelected(null);
-    setPlayers((ps) => ps.map((p, idx) => (idx === currentIndex ? applyWrong(p) : p)));
-    haptics.wrong();
-    finishReveal(question, "timeout", host.quipTimeout());
-  }, [question, current, currentIndex, finishReveal]);
+  const onChoiceAnswer = (i: number) => {
+    if (phase !== "question" || !question || !current) return;
+    if (question.format === "pari_confiance" && confidence === null) return;
+    const isCorrect = i === (question.answerIndex ?? 0);
+    if (!isCorrect && secondChance) {
+      consumeSecondChance(() => setEliminated((e) => [...e, i]));
+      return;
+    }
+    setSelected(i);
+    const fmt = question.format === "cash_carre_duo" && ccdMode ? CCD_MULTIPLIER[ccdMode] : 1;
+    resolve(question, isCorrect, fmt * jokerMultiplier(doubled, confidence));
+  };
+
+  const onTextSubmit = () => {
+    if (phase !== "question" || !question || !current || !textAnswer.trim()) return;
+    const accepted = correctTexts(question);
+    const isCorrect = answerMatches(textAnswer, accepted);
+    if (!isCorrect && secondChance) {
+      consumeSecondChance(() => setTextAnswer(""));
+      return;
+    }
+    setTypedAnswer(textAnswer.trim());
+    const fmt = question.format === "cash_carre_duo" ? CCD_MULTIPLIER.cash : 1;
+    resolve(question, isCorrect, fmt * jokerMultiplier(doubled, confidence), { allowOverride: true });
+  };
+
+  const onGambitSubmit = () => {
+    if (phase !== "question" || !question || !current || !textAnswer.trim()) return;
+    const guess = Number(textAnswer.replace(",", ".").replace(/\s+/g, ""));
+    const mult = gambitMultiplier(guess, question.numericAnswer ?? NaN);
+    if (mult === 0 && secondChance) {
+      consumeSecondChance(() => setTextAnswer(""));
+      return;
+    }
+    setTypedAnswer(textAnswer.trim());
+    resolve(question, mult > 0, mult * jokerMultiplier(doubled, confidence));
+  };
+
+  /** Honor-system correction for typed answers the matcher rejected. */
+  const onOverride = () => {
+    if (!question || !snapshotRef.current || outcome !== "wrong") return;
+    const before = snapshotRef.current;
+    const after = applyCorrect(before, question.difficulty, pendingMultiplier);
+    setPlayers((ps) => ps.map((p, idx) => (idx === currentIndex ? after : p)));
+    setOutcome("correct");
+    setPointsEarned(after.score - before.score);
+    setOverrideOffered(false);
+    setHostLine("Accordé. Ma confiance vous honore, ne la gaspillez pas.");
+  };
 
   const onSkill = (id: CastId) => {
     if (phase !== "question" || !question || !current || current.skillsUsed[id]) return;
@@ -217,20 +334,20 @@ export default function PlayPage() {
 
     switch (id) {
       case "gronk":
-        setEliminated(pickEliminations(question.answerIndex, question.choices.length));
+        setEliminated((e) => [...e, ...pickEliminations(question.answerIndex ?? 0, question.choices?.length ?? 4).filter((x) => !e.includes(x))]);
         break;
       case "lilune":
-        setHint(makeHint(question.choices[question.answerIndex] ?? ""));
+        setHint(makeHint(question));
         break;
       case "bargol":
         setDoubled(true);
         break;
       case "melissandre":
-        setExtraTime((s) => s + 15);
+        setSecondChance(true);
         break;
       case "fifrelin":
         // Skip: no points, streak preserved, but the anecdote is still served.
-        finishReveal(question, "skip", retort ?? hostRetort(id));
+        finishReveal(question, "skip", retort ?? hostRetort(id), 0);
         break;
     }
   };
@@ -239,6 +356,18 @@ export default function PlayPage() {
     if (!question || reported) return;
     setReported(true);
     void flagQuestion(question, "signalée par le joueur");
+  };
+
+  const restartMatch = () => {
+    turnToken.current += 1;
+    stopSpeech();
+    servedRef.current.clear();
+    resetQuestionState();
+    setPlayers(config.playerNames.map((name, i) => makePlayer(i, name)));
+    setSaved(false);
+    setHostLine(host.intro());
+    setPhase("intro");
+    setTurn(0);
   };
 
   const ranking = useMemo(() => [...players].sort((a, b) => b.score - a.score), [players]);
@@ -266,6 +395,46 @@ export default function PlayPage() {
     void speakSeq([[line, "mogul"]]);
   }, [phase, players, saved, config.mode, ranking, speakSeq]);
 
+  /* ---------- derived rendering state ---------- */
+
+  const visibleChoiceIndexes = useMemo(() => {
+    if (!question?.choices) return [];
+    if (question.format === "cash_carre_duo") {
+      if (ccdMode === "carre") return question.choices.map((_, i) => i);
+      if (ccdMode === "duo") return duoChoices;
+      return [];
+    }
+    return question.choices.map((_, i) => i);
+  }, [question, ccdMode, duoChoices]);
+
+  const showTextInput =
+    question &&
+    phase === "question" &&
+    (question.format === "equipe" || (question.format === "cash_carre_duo" && ccdMode === "cash"));
+  const showNumericInput = question && phase === "question" && question.format === "gambit_numerique";
+  const needsCcdPick = question?.format === "cash_carre_duo" && ccdMode === null && phase === "question";
+  const needsConfidencePick = question?.format === "pari_confiance" && confidence === null && phase === "question";
+
+  const skillUnavailable: Partial<Record<CastId, boolean>> = {
+    gronk: visibleChoiceIndexes.length < 4,
+    melissandre: secondChance || secondChanceUsed,
+  };
+
+  const correctAnswerText = question ? (correctTexts(question)[0] ?? "") : "";
+
+  const pickCcd = (mode: CcdMode) => {
+    if (!question?.choices) return;
+    setCcdMode(mode);
+    if (mode === "duo") {
+      const answer = question.answerIndex ?? 0;
+      const wrong = question.choices.map((_, i) => i).filter((i) => i !== answer);
+      const other = wrong[Math.floor(Math.random() * wrong.length)] ?? 0;
+      setDuoChoices([answer, other].sort((a, b) => a - b));
+    }
+  };
+
+  /* ---------- screens ---------- */
+
   if (phase === "boot") {
     return (
       <main className="flex min-h-dvh items-center justify-center text-soft">
@@ -280,7 +449,7 @@ export default function PlayPage() {
         <div className="text-4xl" aria-hidden>
           🎩
         </div>
-        <HostBubble line="Plus de questions en réserve. Même moi, ça me laisse sans voix." />
+        <HostBubble line="Plus de questions en réserve pour ce public. Même moi, ça me laisse sans voix." />
         <button
           type="button"
           className="rounded-full bg-gold px-6 py-3 font-bold text-bg"
@@ -297,18 +466,26 @@ export default function PlayPage() {
       {/* HUD */}
       {phase !== "intro" && phase !== "results" && current ? (
         <header className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2">
-            <span className="font-display font-bold text-ink">{current.name}</span>
-            <span className="rounded-full border border-line bg-surface px-2 py-0.5 text-xs text-soft">
+          <div className="flex min-w-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setQuitAsk(true)}
+              aria-label="Quitter la partie"
+              className="-ml-2 rounded-full p-2 text-soft hover:text-bad"
+            >
+              ✕
+            </button>
+            <span className="truncate font-display font-bold text-ink">{current.name}</span>
+            <span className="shrink-0 rounded-full border border-line bg-surface px-2 py-0.5 text-xs text-soft">
               Palier {current.tier}
             </span>
             {current.streak >= 2 ? (
-              <span className="text-xs" aria-label={`Série de ${current.streak}`}>
+              <span className="shrink-0 text-xs" aria-label={`Série de ${current.streak}`}>
                 🔥{current.streak}
               </span>
             ) : null}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <span className="text-xs text-soft">
               Q{Math.min(questionNumber, config.questionsPerPlayer)}/{config.questionsPerPlayer}
             </span>
@@ -323,6 +500,20 @@ export default function PlayPage() {
             </motion.span>
           </div>
         </header>
+      ) : null}
+
+      {quitAsk ? (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-bad/50 bg-surface px-4 py-2 text-sm" role="alertdialog" aria-label="Confirmer l'abandon">
+          <span className="text-ink">Quitter la partie ?</span>
+          <div className="flex gap-2">
+            <button type="button" className="rounded-full bg-bad px-4 py-1.5 font-semibold text-white" onClick={() => router.push("/")}>
+              Oui
+            </button>
+            <button type="button" className="rounded-full border border-line px-4 py-1.5 text-soft" onClick={() => setQuitAsk(false)}>
+              Non
+            </button>
+          </div>
+        </div>
       ) : null}
 
       <AnimatePresence mode="wait">
@@ -344,6 +535,9 @@ export default function PlayPage() {
               className="rounded-2xl bg-gold px-10 py-4 font-display text-xl font-bold text-bg shadow-lg active:scale-95"
             >
               C&apos;est parti
+            </button>
+            <button type="button" onClick={() => router.push("/")} className="-mt-4 text-sm text-soft underline-offset-4 hover:underline">
+              ← Retour
             </button>
           </motion.section>
         ) : null}
@@ -390,7 +584,8 @@ export default function PlayPage() {
             exit={{ opacity: 0 }}
             className="flex flex-1 flex-col items-center justify-center gap-6 text-center"
           >
-            <div className="flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-2 font-display text-lg font-bold" style={{ color: theme.color }}>
+            <div className="flex items-center gap-2 rounded-full border border-line bg-surface px-5 py-2 font-display text-lg font-bold text-ink">
+              <span aria-hidden className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: theme.color }} />
               <span aria-hidden>{theme.emoji}</span> {theme.name}
             </div>
             <HostBubble line={hostLine} />
@@ -406,18 +601,16 @@ export default function PlayPage() {
             className="flex flex-1 flex-col gap-4"
           >
             <div className="flex items-center justify-between text-xs text-soft">
-              <span className="flex items-center gap-1 font-semibold" style={{ color: THEME_BY_ID[question.theme].color }}>
+              <span className="flex items-center gap-1.5 font-semibold text-ink">
+                <span aria-hidden className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: THEME_BY_ID[question.theme].color }} />
                 <span aria-hidden>{THEME_BY_ID[question.theme].emoji}</span> {THEME_BY_ID[question.theme].name}
               </span>
               <span>
-                Difficulté {"★".repeat(question.difficulty)}
+                {"★".repeat(question.difficulty)}
                 {doubled ? " · MISE ×2" : ""}
+                {secondChance ? " · 2ᵉ CHANCE" : ""}
               </span>
             </div>
-
-            {phase === "question" ? (
-              <TimerBar seconds={QUESTION_TIME_S} extraSeconds={extraTime} running={phase === "question"} onTimeout={onTimeout} />
-            ) : null}
 
             <div className="rounded-2xl border border-line bg-card p-5">
               <p className="font-display text-lg font-semibold leading-snug text-ink">{question.question}</p>
@@ -426,66 +619,205 @@ export default function PlayPage() {
               ) : null}
             </div>
 
-            <div className="grid grid-cols-1 gap-2" role="group" aria-label="Choix de réponse">
-              {question.choices.map((choice, i) => {
-                const isAnswer = i === question.answerIndex;
-                const isSelected = i === selected;
-                const isEliminated = eliminated.includes(i);
-                let cls = "border-line bg-surface text-ink";
-                if (phase === "reveal") {
-                  if (isAnswer) cls = "border-good bg-good/15 text-ink font-bold";
-                  else if (isSelected) cls = "border-bad bg-bad/15 text-soft line-through";
-                  else cls = "border-line bg-surface text-soft opacity-60";
-                } else if (isEliminated) {
-                  cls = "border-line bg-surface text-soft opacity-30 line-through";
-                }
-                return (
+            {/* cash / carré / duo picker */}
+            {needsCcdPick ? (
+              <div className="flex flex-col gap-2" role="group" aria-label="Choisissez votre mise">
+                <p className="text-center text-sm text-soft">Comment répondez-vous ?</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {(
+                    [
+                      { mode: "cash", label: "CASH", desc: "réponse libre · ×3" },
+                      { mode: "carre", label: "CARRÉ", desc: "4 choix · ×2" },
+                      { mode: "duo", label: "DUO", desc: "2 choix · ×1" },
+                    ] as const
+                  ).map((o) => (
+                    <button
+                      key={o.mode}
+                      type="button"
+                      onClick={() => pickCcd(o.mode)}
+                      className="rounded-xl border border-line bg-surface px-2 py-3 text-center transition hover:border-gold active:scale-95"
+                    >
+                      <span className="block font-display font-bold text-gold">{o.label}</span>
+                      <span className="block text-[11px] text-soft">{o.desc}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {/* confidence bet picker */}
+            {needsConfidencePick ? (
+              <div className="flex flex-col gap-2" role="group" aria-label="Pari de confiance">
+                <p className="text-center text-sm text-soft">Pariez sur vous-même :</p>
+                <div className="grid grid-cols-2 gap-2">
                   <button
-                    key={i}
                     type="button"
-                    disabled={phase !== "question" || isEliminated}
-                    onClick={() => onAnswer(i)}
-                    className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition active:scale-[0.99] ${cls}`}
+                    onClick={() => setConfidence("sur")}
+                    className="rounded-xl border border-line bg-surface px-2 py-3 text-center transition hover:border-gold active:scale-95"
                   >
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line font-mono text-xs font-bold">
-                      {String.fromCharCode(65 + i)}
-                    </span>
-                    <span className="text-[15px] leading-snug">{choice}</span>
-                    {phase === "reveal" && isAnswer ? <span className="ml-auto" aria-hidden>✅</span> : null}
+                    <span className="block font-display font-bold text-gold">SÛR DE MOI</span>
+                    <span className="block text-[11px] text-soft">×2 · gage −{Math.round(CONFIDENCE.sur.penaltyOfBase * 100)} % si faux</span>
                   </button>
-                );
-              })}
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => setConfidence("prudent")}
+                    className="rounded-xl border border-line bg-surface px-2 py-3 text-center transition hover:border-gold active:scale-95"
+                  >
+                    <span className="block font-display font-bold text-ink">PRUDENT</span>
+                    <span className="block text-[11px] text-soft">×1 · sans gage</span>
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {/* choice grid */}
+            {!needsCcdPick && !needsConfidencePick && visibleChoiceIndexes.length > 0 ? (
+              <div
+                className={`grid gap-2 ${visibleChoiceIndexes.length === 2 ? "grid-cols-2" : "grid-cols-1"}`}
+                role="group"
+                aria-label="Choix de réponse"
+              >
+                {visibleChoiceIndexes.map((i, pos) => {
+                  const choice = question.choices?.[i] ?? "";
+                  const isAnswer = i === question.answerIndex;
+                  const isSelected = i === selected;
+                  const isEliminated = eliminated.includes(i);
+                  let cls = "border-line bg-surface text-ink";
+                  if (phase === "reveal") {
+                    if (isAnswer) cls = "border-good bg-good/15 text-ink font-bold";
+                    else if (isSelected) cls = "border-bad bg-bad/15 text-soft line-through";
+                    else cls = "border-line bg-surface text-soft opacity-60";
+                  } else if (isEliminated) {
+                    cls = "border-line bg-surface text-soft opacity-30 line-through";
+                  }
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      disabled={phase !== "question" || isEliminated}
+                      onClick={() => onChoiceAnswer(i)}
+                      className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition active:scale-[0.99] ${cls}`}
+                    >
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line font-mono text-xs font-bold" aria-hidden>
+                        {String.fromCharCode(65 + pos)}
+                      </span>
+                      <span className="text-[15px] leading-snug">{choice}</span>
+                      {phase === "reveal" && isAnswer ? (
+                        <span className="ml-auto" aria-hidden>
+                          ✅
+                        </span>
+                      ) : null}
+                      {phase === "reveal" && isAnswer ? <span className="sr-only">(bonne réponse)</span> : null}
+                      {phase === "reveal" && isSelected && !isAnswer ? <span className="sr-only">(votre réponse)</span> : null}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            {/* free text / numeric input */}
+            {showTextInput || showNumericInput ? (
+              <form
+                className="flex gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (showNumericInput) onGambitSubmit();
+                  else onTextSubmit();
+                }}
+              >
+                <input
+                  value={textAnswer}
+                  onChange={(e) => setTextAnswer(e.target.value)}
+                  inputMode={showNumericInput ? "decimal" : "text"}
+                  placeholder={showNumericInput ? "Votre estimation…" : "Votre réponse…"}
+                  aria-label={showNumericInput ? "Votre estimation numérique" : "Votre réponse"}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  className="min-w-0 flex-1 rounded-xl border border-line bg-card px-4 py-3 text-ink placeholder:text-soft"
+                />
+                <button
+                  type="submit"
+                  disabled={!textAnswer.trim()}
+                  className="rounded-xl bg-gold px-5 py-3 font-bold text-bg disabled:opacity-40"
+                >
+                  Valider
+                </button>
+              </form>
+            ) : null}
+
+            {question.format === "equipe" && phase === "question" ? (
+              <p className="text-center text-xs text-soft">Plusieurs réponses sont valables — il n&apos;en faut qu&apos;une.</p>
+            ) : null}
 
             {castEvent ? (
               <div className="rounded-xl border border-line bg-surface px-4 py-2 text-sm">
-                <p className="font-semibold text-ink">
-                  {castEvent.line}
-                </p>
+                <p className="font-semibold text-ink">{castEvent.line}</p>
                 {castEvent.retort ? <p className="mt-1 text-xs italic text-soft">🎩 {castEvent.retort}</p> : null}
               </div>
             ) : null}
 
             {phase === "question" ? (
               <div className="mt-auto">
-                <CastBar player={current} disabled={false} onSkill={onSkill} />
+                <CastBar player={current} disabled={false} unavailable={skillUnavailable} onSkill={onSkill} />
               </div>
             ) : null}
 
             {phase === "reveal" ? (
               <div className="flex flex-col gap-3">
+                {/* Screen readers get the verdict explicitly — color alone is not information. */}
+                <p className="sr-only" role="status" aria-live="polite">
+                  {outcome === "correct"
+                    ? `Bonne réponse. ${pointsEarned > 0 ? `${pointsEarned} points.` : ""}`
+                    : outcome === "skip"
+                      ? "Question passée."
+                      : "Mauvaise réponse."}{" "}
+                  La bonne réponse était : {question.format === "equipe" ? (question.acceptedAnswers ?? []).join(", ") : question.format === "gambit_numerique" ? String(question.numericAnswer) : correctAnswerText}.
+                </p>
+
                 <HostBubble
                   line={hostLine}
                   sub={
-                    outcome === "correct"
-                      ? doubled
-                        ? "Mise doublée encaissée."
-                        : undefined
+                    outcome === "correct" && pointsEarned > 0
+                      ? `+${pointsEarned} pts${doubled ? " (mise doublée)" : ""}`
                       : outcome === "skip"
                         ? "Question esquivée avec panache."
-                        : undefined
+                        : pointsEarned < 0
+                          ? `${pointsEarned} pts (pari perdu)`
+                          : undefined
                   }
                 />
+
+                {/* Typed-answer verdict */}
+                {typedAnswer !== null ? (
+                  <div className="rounded-xl border border-line bg-surface px-4 py-3 text-sm">
+                    <p className="text-soft">
+                      Votre réponse : <span className="font-semibold text-ink">« {typedAnswer} »</span>
+                    </p>
+                    {question.format === "gambit_numerique" ? (
+                      <p className="mt-1 text-soft">
+                        Réponse exacte : <span className="font-bold text-good">{question.numericAnswer}</span>
+                      </p>
+                    ) : question.format === "equipe" ? (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {(question.acceptedAnswers ?? []).map((a) => (
+                          <span key={a} className="rounded-full border border-good/40 bg-good/10 px-2.5 py-0.5 text-xs text-ink">
+                            {a}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-soft">
+                        Réponse attendue : <span className="font-bold text-good">{correctAnswerText}</span>
+                      </p>
+                    )}
+                    {overrideOffered ? (
+                      <button type="button" onClick={onOverride} className="mt-2 text-xs font-semibold text-gold underline-offset-2 hover:underline">
+                        Ma formulation était juste → compter comme bonne
+                      </button>
+                    ) : null}
+                  </div>
+                ) : null}
+
                 <div className="rounded-2xl border border-gold/40 bg-surface p-4">
                   <p className="text-xs font-bold uppercase tracking-widest text-gold">📜 L&apos;anecdote du Mogul</p>
                   <p className="mt-2 text-sm leading-relaxed text-ink">{question.anecdote}</p>
@@ -513,7 +845,7 @@ export default function PlayPage() {
                       type="button"
                       onClick={onReport}
                       disabled={reported}
-                      className="ml-auto text-[11px] text-soft underline-offset-2 hover:text-bad disabled:opacity-60"
+                      className="ml-auto p-1 text-[11px] text-soft underline-offset-2 hover:text-bad disabled:opacity-60"
                     >
                       {reported ? "🚩 Signalée — merci" : "🚩 Signaler une erreur"}
                     </button>
@@ -564,13 +896,7 @@ export default function PlayPage() {
             <div className="mt-auto flex flex-col gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  setPlayers(config.playerNames.map((name, i) => makePlayer(i, name)));
-                  setSaved(false);
-                  setHostLine(host.intro());
-                  setPhase("intro");
-                  setTurn(0);
-                }}
+                onClick={restartMatch}
                 className="rounded-2xl bg-gold py-4 font-display text-lg font-bold text-bg active:scale-[0.98]"
               >
                 Revanche

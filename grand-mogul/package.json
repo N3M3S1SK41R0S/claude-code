@@ -4,7 +4,9 @@
   "private": true,
   "description": "Le Grand Mogul — quiz de culture générale française, PWA offline-first",
   "scripts": {
+    "predev": "node scripts/stamp-sw.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/stamp-sw.mjs",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",

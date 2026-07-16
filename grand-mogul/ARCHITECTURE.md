@@ -24,9 +24,18 @@
 
 - `handoff` n'existe qu'en mode party (pass-and-play).
 - Un `turnToken` (ref) invalide les callbacks asynchrones périmés (TTS, timers de roue,
-  chargement de question) quand on change de tour.
-- Le chrono (`TimerBar`) est basé sur un horodatage de départ : MÉLISSANDRE ajoute 15 s
-  en décalant l'échéance sans redémarrer le temps écoulé.
+  chargement de question) quand on change de tour ; côté audio, `stop()` incrémente une
+  génération que chaque étape asynchrone de `speak()` revérifie — une lecture dont le
+  fetch TTS est encore en vol est abandonnée au lieu de rejouer en retard.
+- **Aucun chrono** : règle absolue du game_script, le temps n'influence jamais le score.
+- Formats : la phase `question` rend selon `question.format` — grille de choix (QCM,
+  Vrai/Faux), sélecteur de mise (Cash/Carré/Duo), pari de confiance, saisie libre
+  (cash, équipe) ou numérique (gambit). Correspondance des réponses tapées :
+  normalisation (articles, accents, ponctuation) + inclusion, avec bouton d'honneur
+  « compter comme bonne » si le matcher a rejeté une formulation valable.
+- Un ensemble `servedRef` (hashes déjà servis dans le match) garantit qu'un recyclage
+  de la banque ne ressert jamais une question du match en cours.
+- Bouton ✕ (avec confirmation inline) pour quitter la partie à toute phase.
 
 ## Moteur de questions (`src/lib/bank.ts`)
 
@@ -58,14 +67,31 @@ BARGOL (0.75, rapide), MÉLISSANDRE (1.1, précis), FIFRELIN (1.25, théâtral).
 ## PWA
 
 - `public/manifest.webmanifest` : standalone, portrait, icônes 192/512 + maskable.
-- `public/sw.js` (fait main) :
+- Service worker fait main, **généré à chaque build** depuis `sw/template.js` par
+  `scripts/stamp-sw.mjs` (hooks npm `prebuild`/`predev`) : l'identifiant de build stampé
+  dans `VERSION` fait re-installer le worker et rafraîchir le precache à chaque déploiement.
   - **precache** à l'installation : routes (`/`, `/play`, `/scores`), `bank.json`,
-    manifest, icônes, page hors-ligne ;
+    manifest, icônes, page hors-ligne, **plus les chunks `/_next/static` référencés par
+    le HTML précaché** (extraction best-effort à l'install) — les trois écrans sont
+    donc jouables hors-ligne même sans avoir été visités en ligne ;
+  - pas de `skipWaiting()` automatique : le nouveau worker attend la fermeture des
+    onglets du build précédent, l'activation ne peut donc pas détruire les caches d'un
+    match en cours ;
   - `/_next/static` + icônes : cache-first (assets immuables) ;
   - `/data/` : stale-while-revalidate ;
-  - navigations : network-first avec repli cache → `/` → `offline.html` ;
+  - navigations : network-first avec repli cache → `offline.html` (jamais une page
+    servie sous une mauvaise URL) ;
   - `/api/` : jamais mis en cache (le client a son propre repli).
 - `next.config.ts` sert `sw.js` en `no-store` pour des mises à jour immédiates.
+
+## Garde-fous API (`src/lib/apiGuard.ts`)
+
+Les deux routes payantes (`/api/questions` → Anthropic, `/api/tts` → ElevenLabs) sont
+protégées par un contrôle d'origine (les fetch cross-site sont refusés) et un rate limit
+en mémoire par IP (6/min pour la génération, 30/min pour le TTS). C'est une mitigation
+par isolat serverless, pas un quota global — ajouter un WAF/KV devant pour du garanti.
+`/api/questions` tourne en runtime **nodejs** avec `maxDuration = 60` : un appel modèle
+non streamé avec web_search dépasse le budget TTFB des fonctions edge.
 
 ## Design & accessibilité
 
@@ -77,6 +103,9 @@ BARGOL (0.75, rapide), MÉLISSANDRE (1.1, précis), FIFRELIN (1.25, théâtral).
 
 ## Choix notables
 
+- **Zéro chrono** : le game_script l'interdit ; la compétence de MÉLISSANDRE (« TEMPS
+  GELÉ », +15 s à l'origine) a été resémantisée en annulation rétroactive d'une mauvaise
+  réponse — conflit documenté dans `spec.md` §11.
 - **DOUBLE OU RIEN littéral** : conformément à la spec (« ×2 points ou 0 »), un échec avec
   la mise de BARGOL ne retire pas de points — il annule simplement le gain potentiel.
   (Variante « mise à perte » envisagée puis écartée : la spec prime.)

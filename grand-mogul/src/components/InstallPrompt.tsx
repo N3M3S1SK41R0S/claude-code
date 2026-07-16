@@ -37,7 +37,7 @@ export function InstallPrompt() {
     <div className="flex items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-sm">
       <div className="text-soft">
         {deferred ? (
-          <span>📲 Installe le jeu pour jouer plein écran, même hors-ligne.</span>
+          <span>📲 Installez le jeu pour jouer en plein écran, même hors-ligne.</span>
         ) : (
           <span>
             📲 Sur iPhone : <strong className="text-ink">Partager</strong> →{" "}
@@ -61,7 +61,7 @@ export function InstallPrompt() {
         <button
           type="button"
           aria-label="Masquer"
-          className="text-soft"
+          className="-m-1 rounded-full p-2.5 text-soft"
           onClick={() => setDismissed(true)}
         >
           ✕

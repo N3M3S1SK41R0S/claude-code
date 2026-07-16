@@ -1,6 +1,11 @@
-/* Le Grand Mogul — offline-first service worker (hand-rolled, no dependency). */
+/*
+ * Le Grand Mogul — offline-first service worker (hand-rolled, no dependency).
+ * SOURCE TEMPLATE: public/sw.js is generated from this file at build time
+ * (scripts/stamp-sw.mjs), stamping __BUILD_ID__ so every deploy re-installs
+ * the worker and refreshes the precache.
+ */
 
-const VERSION = "mogul-v1";
+const VERSION = "mogul-__BUILD_ID__";
 const STATIC_CACHE = `${VERSION}-static`;
 const PAGES_CACHE = `${VERSION}-pages`;
 
@@ -17,13 +22,45 @@ const PRECACHE = [
   "/icons/apple-touch-icon.png",
 ];
 
+/**
+ * Precache the app shell, then best-effort cache every /_next/static asset
+ * referenced by the precached HTML — without this, a page never visited
+ * online would render dead offline (HTML without its hydration chunks).
+ */
+async function precacheAll() {
+  const pages = await caches.open(PAGES_CACHE);
+  await pages.addAll(PRECACHE);
+  try {
+    const statics = await caches.open(STATIC_CACHE);
+    const assets = new Set();
+    for (const path of ["/", "/play", "/scores"]) {
+      const res = await pages.match(path);
+      if (!res) continue;
+      const html = await res.text();
+      for (const m of html.matchAll(/\/_next\/static\/[^"'\s>]+/g)) {
+        assets.add(m[0].replace(/&amp;/g, "&"));
+      }
+    }
+    await Promise.all(
+      [...assets].map(async (url) => {
+        try {
+          const res = await fetch(url);
+          if (res.ok) await statics.put(url, res);
+        } catch {
+          /* best effort: runtime caching will pick it up online */
+        }
+      }),
+    );
+  } catch {
+    /* asset discovery must never fail the install */
+  }
+}
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(PAGES_CACHE)
-      .then((cache) => cache.addAll(PRECACHE))
-      .then(() => self.skipWaiting()),
-  );
+  // No skipWaiting: the new worker waits until every tab from the previous
+  // build is closed, so activating (which deletes the old build's caches)
+  // can never yank the chunks out from under a running match.
+  event.waitUntil(precacheAll());
 });
 
 self.addEventListener("activate", (event) => {
@@ -109,10 +146,11 @@ self.addEventListener("fetch", (event) => {
         .catch(async () => {
           const cached = await caches.match(request);
           if (cached) return cached;
-          const shell = await caches.match(new URL(url.pathname, self.location.origin).pathname);
+          const shell = await caches.match(url.pathname);
           if (shell) return shell;
-          const home = await caches.match("/");
-          return home || caches.match("/offline.html");
+          // Unknown offline URL: the dedicated offline page, never a page
+          // served under the wrong address.
+          return caches.match("/offline.html");
         }),
     );
     return;

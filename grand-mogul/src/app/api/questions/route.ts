@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
+import { rateLimit, sameOrigin } from "@/lib/apiGuard";
 
-export const runtime = "edge";
-
-/**
+/*
  * On-demand question generation through the Anthropic API with web search.
  * Without ANTHROPIC_API_KEY the route answers 503 and the client falls back
  * to the local verified bank — the game never depends on this endpoint.
+ *
+ * Node runtime (not edge): a non-streamed model call with web search takes
+ * well over the edge TTFB budget; maxDuration gives it room to finish.
  */
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const THEME_IDS = [
   "histoire",
@@ -19,12 +23,14 @@ const THEME_IDS = [
   "gastronomie",
   "sport",
   "langue",
+  "pop-culture",
+  "insolite",
+  "general",
 ] as const;
 
 type ThemeId = (typeof THEME_IDS)[number];
 
-interface GeneratedQuestion {
-  id: string;
+interface RawQuestion {
   theme: ThemeId;
   difficulty: number;
   question: string;
@@ -34,7 +40,7 @@ interface GeneratedQuestion {
   sources: string[];
 }
 
-function isValid(q: unknown): q is Omit<GeneratedQuestion, "id"> {
+function isValid(q: unknown): q is RawQuestion {
   if (typeof q !== "object" || q === null) return false;
   const c = q as Record<string, unknown>;
   return (
@@ -74,17 +80,29 @@ export async function POST(req: Request): Promise<NextResponse> {
   if (!apiKey) {
     return NextResponse.json({ fallback: true, reason: "no-api-key" }, { status: 503 });
   }
+  if (!sameOrigin(req)) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+  if (!rateLimit(req, "questions", 6, 60_000)) {
+    return NextResponse.json({ error: "rate-limited" }, { status: 429 });
+  }
 
-  let body: { theme?: string | null; difficulty?: number; count?: number };
+  let body: { theme?: unknown; difficulty?: unknown; count?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "invalid-json" }, { status: 400 });
   }
 
+  // NaN would sail through Math.min/Math.max and corrupt the prompt.
+  const rawDifficulty = body.difficulty === undefined ? 3 : Number(body.difficulty);
+  const rawCount = body.count === undefined ? 8 : Number(body.count);
+  if (!Number.isFinite(rawDifficulty) || !Number.isFinite(rawCount)) {
+    return NextResponse.json({ error: "invalid-params" }, { status: 400 });
+  }
   const theme = THEME_IDS.includes(body.theme as ThemeId) ? (body.theme as ThemeId) : null;
-  const difficulty = Math.min(5, Math.max(1, Math.round(body.difficulty ?? 3)));
-  const count = Math.min(20, Math.max(1, Math.round(body.count ?? 10)));
+  const difficulty = Math.min(5, Math.max(1, Math.round(rawDifficulty)));
+  const count = Math.min(8, Math.max(1, Math.round(rawCount)));
 
   const userPrompt = `Génère ${count} questions${theme ? ` sur le thème "${theme}"` : " réparties sur des thèmes variés (parmi : " + THEME_IDS.join(", ") + ")"}, difficulté centrée sur ${difficulty}/5 (répartis sur ${Math.max(1, difficulty - 1)}–${Math.min(5, difficulty + 1)}). Vérifie chaque fait par recherche web avant de l'inclure.`;
 
@@ -98,9 +116,9 @@ export async function POST(req: Request): Promise<NextResponse> {
       },
       body: JSON.stringify({
         model: process.env.ANTHROPIC_MODEL ?? "claude-fable-5",
-        max_tokens: 8000,
+        max_tokens: 4000,
         system: SYSTEM_PROMPT,
-        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 8 }],
+        tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 4 }],
         messages: [{ role: "user", content: userPrompt }],
       }),
     });
@@ -122,9 +140,16 @@ export async function POST(req: Request): Promise<NextResponse> {
       return NextResponse.json({ fallback: true, reason: "no-json" }, { status: 503 });
     }
     const parsed = JSON.parse(text.slice(start, end + 1)) as { questions?: unknown[] };
-    const questions = (parsed.questions ?? [])
-      .filter(isValid)
-      .map((q, i) => ({ ...q, difficulty: Math.round(q.difficulty), id: `api-${Date.now()}-${i}` }));
+    const questions = (parsed.questions ?? []).filter(isValid).map((q, i) => {
+      const d = Math.round(q.difficulty);
+      return {
+        ...q,
+        difficulty: d,
+        format: "qcm" as const,
+        age: d <= 1 ? "enfant" : d <= 3 ? "ado" : "adulte",
+        id: `api-${Date.now()}-${i}`,
+      };
+    });
 
     return NextResponse.json({ questions });
   } catch {

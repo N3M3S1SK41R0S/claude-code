@@ -8,9 +8,15 @@ import { InstallPrompt } from "@/components/InstallPrompt";
 import { ensureSeedLoaded, bankStats } from "@/lib/bank";
 import { loadSettings, saveSettings } from "@/lib/settings";
 import { warmVoices } from "@/lib/tts";
-import { DEFAULT_SETTINGS, type GameMode, type MatchConfig, type Settings } from "@/lib/types";
+import { DEFAULT_SETTINGS, type AgeLevel, type GameMode, type MatchConfig, type Settings } from "@/lib/types";
 
 const QUESTIONS_CHOICES = [5, 10, 15] as const;
+
+const AUDIENCES: { id: AgeLevel; label: string; desc: string }[] = [
+  { id: "enfant", label: "Enfant", desc: "questions accessibles à tous" },
+  { id: "ado", label: "Ado", desc: "enfant + ado" },
+  { id: "adulte", label: "Adulte", desc: "tous les niveaux" },
+];
 
 export default function HomePage() {
   const router = useRouter();
@@ -19,6 +25,7 @@ export default function HomePage() {
   const [mode, setMode] = useState<GameMode>("solo");
   const [names, setNames] = useState<string[]>(["", ""]);
   const [perPlayer, setPerPlayer] = useState<number>(10);
+  const [audience, setAudience] = useState<AgeLevel>("adulte");
   const [online, setOnline] = useState(true);
 
   useEffect(() => {
@@ -61,6 +68,7 @@ export default function HomePage() {
       mode,
       playerNames: mode === "solo" ? ["Vous"] : partyNames.slice(0, 8),
       questionsPerPlayer: perPlayer,
+      audience,
     };
     try {
       sessionStorage.setItem("gm-config", JSON.stringify(config));
@@ -89,7 +97,7 @@ export default function HomePage() {
       <section aria-label="Mode de jeu" className="grid grid-cols-2 gap-3">
         {(
           [
-            { id: "solo", label: "Solo", desc: "10 questions, le Mogul et vous", emoji: "🧠" },
+            { id: "solo", label: "Solo", desc: "La roue, le Mogul et vous", emoji: "🧠" },
             { id: "party", label: "Party", desc: "2 à 8 joueurs, un seul appareil", emoji: "🎉" },
           ] as const
         ).map((m) => (
@@ -129,7 +137,7 @@ export default function HomePage() {
                   <button
                     type="button"
                     aria-label={`Retirer le joueur ${i + 1}`}
-                    className="text-soft"
+                    className="-my-1 rounded-full p-2.5 text-soft hover:text-bad"
                     onClick={() => setNames(names.filter((_, j) => j !== i))}
                   >
                     ✕
@@ -149,6 +157,29 @@ export default function HomePage() {
           ) : null}
         </section>
       ) : null}
+
+      <section aria-label="Public" className="rounded-2xl border border-line bg-surface px-4 py-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-soft">Public</span>
+          <div className="flex gap-1" role="radiogroup" aria-label="Public de la partie">
+            {AUDIENCES.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                role="radio"
+                aria-checked={audience === a.id}
+                onClick={() => setAudience(a.id)}
+                className={`rounded-full px-4 py-1.5 text-sm font-semibold transition ${
+                  audience === a.id ? "bg-gold text-bg" : "bg-card text-soft"
+                }`}
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="mt-1 text-right text-[11px] text-soft">{AUDIENCES.find((a) => a.id === audience)?.desc}</p>
+      </section>
 
       <section aria-label="Longueur de partie" className="flex items-center justify-between rounded-2xl border border-line bg-surface px-4 py-3">
         <span className="text-sm text-soft">Questions par joueur</span>

@@ -6,10 +6,15 @@
 
 ## Le jeu
 
-- **Solo** : 10 questions (5/10/15 au choix), difficulté adaptative, séries de bonnes réponses.
+- **Solo** : 5/10/15 questions, difficulté adaptative, séries de bonnes réponses.
 - **Party** : 2 à 8 joueurs en *pass-and-play* sur un seul appareil.
-- **Roue des thèmes** : 10 thèmes de culture générale (histoire, géographie, littérature,
-  sciences, arts, cinéma, musique, gastronomie, sport, langue française).
+- **Sélecteur de public** : enfant / ado / adulte (les questions « enfant » conviennent à tous).
+- **Aucun chrono** : le temps n'influence jamais le score (règle du game_script).
+- **6 formats de question** : QCM, Vrai/Faux, Cash-Carré-Duo (réponse libre ×3, 4 choix ×2,
+  2 choix ×1), Pari de confiance, Gambit numérique (estimation), Équipe (« Citez un… »).
+- **Roue des thèmes** : 13 thèmes de culture générale (histoire, géographie, littérature,
+  sciences, arts, cinéma, musique, gastronomie, sport, langue française, pop culture,
+  insolite, général).
 - **Anecdote sourcée après chaque question** — chaque question de la banque embarquée a été
   vérifiée contre au moins deux sources indépendantes, citées dans le jeu.
 - **LE GRAND MOGUL** commente tout : teaser avant la question, pique après la réponse
@@ -22,13 +27,15 @@
 | 🪓 | **GRONK**, barbare | CASSE-TOUT | élimine 2 mauvaises réponses |
 | 🌙 | **LILUNE**, elfe mystique | VISION | révèle un indice |
 | ⛏️ | **BARGOL**, nain râleur | DOUBLE OU RIEN | ×2 points si correct |
-| 📜 | **MÉLISSANDRE**, magicienne bureaucrate | TEMPS GELÉ | +15 s au chrono |
+| 📜 | **MÉLISSANDRE**, magicienne bureaucrate | TEMPS GELÉ | annule une mauvaise réponse, rejouez |
 | 🪕 | **FIFRELIN**, barde lâche | JOKER CHANTÉ | passe la question, série conservée |
 
 ### Score
 
-`100 × difficulté` + bonus de série (`+50 × min(série−1, 5)`) ; la difficulté s'adapte :
+`100 × difficulté` + bonus de série (`+50 × min(série−1, 5)`), multiplié par le format
+(cash ×3, carré ×2, gambit exact ×2…) et par BARGOL ; la difficulté s'adapte :
 3 bonnes réponses d'affilée → palier +1, deux échecs consécutifs → palier −1.
+Le temps n'entre jamais dans le score.
 
 ## Lancer en local
 
@@ -74,8 +81,12 @@ profils pitch/vitesse par personnage). Sans clé Anthropic, la banque locale suf
 
 ## Banque de questions
 
-- `public/data/bank.json` — questions vérifiées embarquées (voir `scripts/merge-bank.mjs`).
-- Chaque question : `{ theme, difficulty 1-5, question, 4 choices, answerIndex, anecdote, sources[≥2] }`.
+- `public/data/bank.json` — questions vérifiées embarquées, fusion de deux sources
+  (voir `scripts/merge-bank.mjs`) :
+  1. la **forge** : questions QCM générées puis fact-checkées adversarialement (2 sources min) ;
+  2. le **game_script** client (`data/game-script.json`), admis uniquement avec un verdict
+     de vérification + sourçage (`data/script-verification.json`).
+- Schéma : `{ theme, format, age, difficulty 1-5, question, choices?/acceptedAnswers?/numericAnswer?, anecdote, sources[≥2] }`.
 - En jeu : cache IndexedDB, déduplication par hash, préchargement de lots via l'API quand
   une clé est configurée, bouton 🚩 pour signaler une erreur (mise en quarantaine locale).
 

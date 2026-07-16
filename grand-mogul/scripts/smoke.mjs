@@ -85,20 +85,44 @@ try {
   const bankLine = await page.locator("footer p").first().textContent();
   check("seed bank loaded", /\d+ questions vérifiées/.test(bankLine ?? ""));
 
-  // Solo game: intro → wheel → teaser → question → reveal.
+  // Solo game: intro → wheel → teaser → question (any format) → reveal.
   await page.getByRole("button", { name: "Entrer sur le plateau" }).click();
   await page.getByRole("button", { name: "C'est parti" }).click();
   await page.getByRole("button", { name: "Tourner la roue" }).click();
-  await page.waitForSelector('div[role="group"][aria-label="Choix de réponse"] button', { timeout: 15000 });
+  await page.waitForSelector(
+    [
+      'div[role="group"][aria-label="Choix de réponse"] button',
+      'div[role="group"][aria-label="Choisissez votre mise"] button',
+      'div[role="group"][aria-label="Pari de confiance"] button',
+      'input[aria-label="Votre réponse"]',
+      'input[aria-label="Votre estimation numérique"]',
+    ].join(", "),
+    { timeout: 15000 },
+  );
   check("question displayed", true);
 
-  // Use LILUNE's hint, then answer the first available choice.
+  // Format-specific pre-steps: pick CARRÉ for cash/carré/duo, PRUDENT for a bet.
+  if (await page.getByRole("button", { name: /CARRÉ/ }).count()) {
+    await page.getByRole("button", { name: /CARRÉ/ }).click();
+  }
+  if (await page.getByRole("button", { name: /PRUDENT/ }).count()) {
+    await page.getByRole("button", { name: /PRUDENT/ }).click();
+  }
+
+  // Use LILUNE's hint, then answer whatever input the format offers.
   await page.locator('button[aria-label^="LILUNE"]').click();
-  check("hint shown", (await page.locator("text=La réponse commence par").count()) > 0);
-  await page.locator('div[aria-label="Choix de réponse"] button:not([disabled])').first().click();
+  check("hint shown", (await page.locator("text=🌙").count()) > 0);
+  const textInput = page.locator('input[aria-label="Votre réponse"], input[aria-label="Votre estimation numérique"]');
+  if (await textInput.count()) {
+    await textInput.fill("42");
+    await page.getByRole("button", { name: "Valider" }).click();
+  } else {
+    await page.locator('div[aria-label="Choix de réponse"] button:not([disabled])').first().click();
+  }
   await page.waitForSelector("text=L'anecdote du Mogul", { timeout: 8000 });
   check("reveal + anecdote", true);
   check("continue button", (await page.getByRole("button", { name: /Continuer|Voir le verdict/ }).count()) === 1);
+  check("quit button present", (await page.locator('button[aria-label="Quitter la partie"]').count()) === 1);
 
   // Offline: the service worker must serve the app shell.
   await page.waitForTimeout(1500);

@@ -1,11 +1,13 @@
 {
  "version": 0,
- "count": 6,
+ "count": 8,
  "questions": [
   {
    "id": "placeholder-001",
    "theme": "histoire",
-   "difficulty": 1,
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
    "question": "En quelle année la prise de la Bastille a-t-elle eu lieu ?",
    "choices": ["1789", "1792", "1804", "1815"],
    "answerIndex": 0,
@@ -15,7 +17,9 @@
   {
    "id": "placeholder-002",
    "theme": "geographie",
-   "difficulty": 2,
+   "format": "cash_carre_duo",
+   "age": "adulte",
+   "difficulty": 4,
    "question": "Quelle est la capitale de l'Australie ?",
    "choices": ["Sydney", "Melbourne", "Canberra", "Perth"],
    "answerIndex": 2,
@@ -25,6 +29,8 @@
   {
    "id": "placeholder-003",
    "theme": "litterature",
+   "format": "qcm",
+   "age": "enfant",
    "difficulty": 1,
    "question": "Qui a écrit « Les Misérables » ?",
    "choices": ["Émile Zola", "Victor Hugo", "Honoré de Balzac", "Gustave Flaubert"],
@@ -35,6 +41,8 @@
   {
    "id": "placeholder-004",
    "theme": "sciences",
+   "format": "qcm",
+   "age": "ado",
    "difficulty": 2,
    "question": "Quel est le symbole chimique de l'or ?",
    "choices": ["Or", "Au", "Ag", "Go"],
@@ -44,17 +52,43 @@
   },
   {
    "id": "placeholder-005",
-   "theme": "arts",
-   "difficulty": 1,
-   "question": "Qui a peint « La Joconde » ?",
-   "choices": ["Michel-Ange", "Raphaël", "Léonard de Vinci", "Botticelli"],
-   "answerIndex": 2,
-   "anecdote": "Volée au Louvre en 1911 par Vincenzo Peruggia, « La Joconde » est restée introuvable pendant plus de deux ans.",
-   "sources": ["https://fr.wikipedia.org/wiki/La_Joconde", "https://en.wikipedia.org/wiki/Mona_Lisa"]
+   "theme": "histoire",
+   "format": "vrai_faux",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Les Vikings portaient des casques à cornes.",
+   "choices": ["Vrai", "Faux"],
+   "answerIndex": 1,
+   "anecdote": "C'est une invention du XIXe siècle, popularisée par des costumes d'opéra.",
+   "sources": ["https://fr.wikipedia.org/wiki/Viking", "https://en.wikipedia.org/wiki/Horned_helmet"]
   },
   {
    "id": "placeholder-006",
+   "theme": "geographie",
+   "format": "gambit_numerique",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Combien de pays sont membres de l'ONU ?",
+   "numericAnswer": 193,
+   "anecdote": "Ce nombre n'a pas bougé depuis l'admission du Soudan du Sud en 2011, dernier pays admis en date.",
+   "sources": ["https://fr.wikipedia.org/wiki/Organisation_des_Nations_unies", "https://www.un.org/fr/about-us/member-states"]
+  },
+  {
+   "id": "placeholder-007",
+   "theme": "general",
+   "format": "equipe",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Citez une des langues officielles de la Suisse.",
+   "acceptedAnswers": ["allemand", "français", "italien", "romanche"],
+   "anecdote": "La Suisse compte 4 langues nationales, dont le romanche, parlé par moins de 1 % de la population.",
+   "sources": ["https://fr.wikipedia.org/wiki/Langues_en_Suisse", "https://fr.wikipedia.org/wiki/Romanche"]
+  },
+  {
+   "id": "placeholder-008",
    "theme": "langue",
+   "format": "qcm",
+   "age": "enfant",
    "difficulty": 1,
    "question": "Quel est le pluriel du nom « cheval » ?",
    "choices": ["Chevals", "Chevaux", "Chevaus", "Chevales"],

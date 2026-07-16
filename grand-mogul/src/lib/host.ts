@@ -10,7 +10,7 @@ export const MOGUL_NAME = "LE GRAND MOGUL";
 
 const matchIntros = [
   "Bienvenue. Le règlement tient en un mot : moi.",
-  "Dix questions, zéro pitié, et beaucoup de dignité à perdre. Commençons.",
+  "Des questions, zéro pitié, et beaucoup de dignité à perdre. Commençons.",
   "On m'appelle le Grand Mogul. Mes torts sont innombrables, mes questions aussi.",
   "Installez-vous. Le savoir n'attend pas, moi non plus, sauf le mardi.",
   "Ce plateau a vu des génies. Il s'en remettra ce soir aussi.",
@@ -57,6 +57,18 @@ const teasersByTheme: Record<ThemeId, string[]> = {
     "Langue française. Un piège par syllabe, cadeau de la maison.",
     "Langue française. L'accent circonflexe vous observe.",
   ],
+  "pop-culture": [
+    "Pop culture. Enfin une matière que personne n'a révisée. Officiellement.",
+    "Pop culture. Votre écran vous a préparé toute votre vie pour ça.",
+  ],
+  insolite: [
+    "Insolite. Plus c'est absurde, plus c'est vrai. Généralement.",
+    "Insolite. Je décline toute responsabilité sur ce qui suit.",
+  ],
+  general: [
+    "Culture générale. Le mot « générale » est un piège, évidemment.",
+    "Question générale. Comme l'anesthésie, ça peut endormir.",
+  ],
 };
 
 const genericTeasers = [
@@ -76,7 +88,7 @@ const quipsWrong = [
   "Faux. Magnifiquement faux. Bravo pour l'engagement.",
   "Raté. Mais avec une conviction qui force le respect.",
   "Non. La réponse a pris peur et s'est enfuie.",
-  "Faux. C'est un art aussi, ne le laissez personne dire.",
+  "Faux. C'est un art aussi, ne laissez personne dire le contraire.",
   "Erreur splendide. Je l'encadrerais volontiers.",
 ];
 
@@ -89,7 +101,7 @@ const quipsTimeout = [
 const resultsLines = {
   high: [
     "Un score respectable. Je vais devoir revoir mes questions. Ou mes standards.",
-    "Impressionnant. Le trône du savoir reste à moi, mais poussez-vous moins loin.",
+    "Impressionnant. Le trône du savoir reste à moi. De peu. N'en parlons plus.",
   ],
   mid: [
     "Honorable. Ni gloire ni naufrage : la moyenne, ce doux pays.",

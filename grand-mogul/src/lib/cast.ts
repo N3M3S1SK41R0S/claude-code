@@ -67,12 +67,14 @@ export const CAST: CastMember[] = [
     title: "Magicienne bureaucrate",
     emoji: "📜",
     color: "#3e9ec2",
-    skill: { id: "temps-gele", name: "TEMPS GELÉ", description: "+15 secondes au chrono" },
+    // The game_script bans timers entirely, so the time-freeze became a
+    // retroactive erasure: one wrong answer is annulled and replayed.
+    skill: { id: "temps-gele", name: "TEMPS GELÉ", description: "Annule une mauvaise réponse : rejouez le coup" },
     voice: { pitch: 1.1, rate: 1.0 },
     onUse: [
-      "Formulaire 12-B : demande d'extension temporelle. Accordée.",
-      "Quinze secondes de plus, tamponnées en trois exemplaires.",
-      "Le temps est gelé. Merci de ne pas glisser dessus.",
+      "Formulaire 12-B : annulation rétroactive d'erreur. Accordée.",
+      "Le temps est gelé. Votre faute n'a jamais existé, administrativement.",
+      "Rembobinage réglementaire, tamponné en trois exemplaires.",
     ],
     hostRetorts: [
       "Le temps s'arrête. Mon ennui, lui, continue.",

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { rateLimit, sameOrigin } from "@/lib/apiGuard";
 
 export const runtime = "edge";
 
@@ -25,15 +26,24 @@ export async function POST(req: Request): Promise<Response> {
   if (!apiKey) {
     return NextResponse.json({ fallback: true, reason: "no-api-key" }, { status: 503 });
   }
+  if (!sameOrigin(req)) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+  if (!rateLimit(req, "tts", 30, 60_000)) {
+    return NextResponse.json({ error: "rate-limited" }, { status: 429 });
+  }
 
-  let body: { text?: string; speaker?: string };
+  let body: { text?: unknown; speaker?: unknown };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "invalid-json" }, { status: 400 });
   }
 
-  const text = (body.text ?? "").slice(0, 600);
+  if (typeof body.text !== "string") {
+    return NextResponse.json({ error: "invalid-text" }, { status: 400 });
+  }
+  const text = body.text.slice(0, 600);
   const speaker: Speaker = SPEAKERS.includes(body.speaker as Speaker) ? (body.speaker as Speaker) : "mogul";
   if (!text.trim()) return NextResponse.json({ error: "empty-text" }, { status: 400 });
 
