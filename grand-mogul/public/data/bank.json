@@ -1,0 +1,66 @@
+{
+ "version": 0,
+ "count": 6,
+ "questions": [
+  {
+   "id": "placeholder-001",
+   "theme": "histoire",
+   "difficulty": 1,
+   "question": "En quelle année la prise de la Bastille a-t-elle eu lieu ?",
+   "choices": ["1789", "1792", "1804", "1815"],
+   "answerIndex": 0,
+   "anecdote": "Le 14 juillet 1789, la Bastille ne comptait que sept prisonniers, dont quatre faussaires.",
+   "sources": ["https://fr.wikipedia.org/wiki/Prise_de_la_Bastille", "https://en.wikipedia.org/wiki/Storming_of_the_Bastille"]
+  },
+  {
+   "id": "placeholder-002",
+   "theme": "geographie",
+   "difficulty": 2,
+   "question": "Quelle est la capitale de l'Australie ?",
+   "choices": ["Sydney", "Melbourne", "Canberra", "Perth"],
+   "answerIndex": 2,
+   "anecdote": "Canberra a été construite sur mesure pour départager Sydney et Melbourne, rivales pour le titre de capitale.",
+   "sources": ["https://fr.wikipedia.org/wiki/Canberra", "https://en.wikipedia.org/wiki/Canberra"]
+  },
+  {
+   "id": "placeholder-003",
+   "theme": "litterature",
+   "difficulty": 1,
+   "question": "Qui a écrit « Les Misérables » ?",
+   "choices": ["Émile Zola", "Victor Hugo", "Honoré de Balzac", "Gustave Flaubert"],
+   "answerIndex": 1,
+   "anecdote": "Victor Hugo a achevé « Les Misérables » en exil dans les îles Anglo-Normandes, loin de la France de Napoléon III.",
+   "sources": ["https://fr.wikipedia.org/wiki/Les_Mis%C3%A9rables", "https://fr.wikipedia.org/wiki/Victor_Hugo"]
+  },
+  {
+   "id": "placeholder-004",
+   "theme": "sciences",
+   "difficulty": 2,
+   "question": "Quel est le symbole chimique de l'or ?",
+   "choices": ["Or", "Au", "Ag", "Go"],
+   "answerIndex": 1,
+   "anecdote": "« Au » vient du latin aurum, qui a aussi donné l'adjectif « aurifère ».",
+   "sources": ["https://fr.wikipedia.org/wiki/Or", "https://en.wikipedia.org/wiki/Gold"]
+  },
+  {
+   "id": "placeholder-005",
+   "theme": "arts",
+   "difficulty": 1,
+   "question": "Qui a peint « La Joconde » ?",
+   "choices": ["Michel-Ange", "Raphaël", "Léonard de Vinci", "Botticelli"],
+   "answerIndex": 2,
+   "anecdote": "Volée au Louvre en 1911 par Vincenzo Peruggia, « La Joconde » est restée introuvable pendant plus de deux ans.",
+   "sources": ["https://fr.wikipedia.org/wiki/La_Joconde", "https://en.wikipedia.org/wiki/Mona_Lisa"]
+  },
+  {
+   "id": "placeholder-006",
+   "theme": "langue",
+   "difficulty": 1,
+   "question": "Quel est le pluriel du nom « cheval » ?",
+   "choices": ["Chevals", "Chevaux", "Chevaus", "Chevales"],
+   "answerIndex": 1,
+   "anecdote": "Le pluriel en -aux vient de l'ancien français : « chevals » s'est prononcé puis écrit « chevaus », la vocalisation du L ayant fait le reste.",
+   "sources": ["https://fr.wikipedia.org/wiki/Cheval", "https://fr.wiktionary.org/wiki/cheval"]
+  }
+ ]
+}

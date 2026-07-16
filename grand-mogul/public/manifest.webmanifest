@@ -1,0 +1,19 @@
+{
+  "name": "Le Grand Mogul — Quiz de culture générale",
+  "short_name": "Grand Mogul",
+  "description": "Quiz de culture générale française animé par LE GRAND MOGUL et ses cinq compagnons. Jouable hors-ligne, solo ou entre amis.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "fr",
+  "background_color": "#0e0b1e",
+  "theme_color": "#0e0b1e",
+  "categories": ["games", "education", "entertainment"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
