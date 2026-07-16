@@ -43,12 +43,14 @@ export default function ArbiterScreen() {
   const params = useLocalSearchParams<{ id: string }>();
   const itemId = params.id ?? '';
   const client = getVelumClient();
-  const { entitlements, isLoading: planLoading } = usePlan();
+  const planState = usePlan();
+  const canUseArbiter =
+    planState.status === 'ready' && planState.entitlements.virtualBook;
 
   const itemQuery = useQuery({
     queryKey: ['items', itemId],
     queryFn: () => client.items.get(itemId),
-    enabled: itemId.length > 0,
+    enabled: itemId.length > 0 && canUseArbiter,
   });
 
   const signalQuery = useQuery<ArbiterSignal>({
@@ -68,14 +70,30 @@ export default function ArbiterScreen() {
         item?.domain,
       );
     },
-    enabled: itemId.length > 0 && entitlements.virtualBook,
+    enabled: itemId.length > 0 && canUseArbiter,
     retry: false,
   });
 
-  // Gating Gold/Platine : droit local OU refus serveur (PLAN_REQUIRED).
+  if (planState.status === 'error') {
+    return (
+      <Screen scroll={false}>
+        <View style={styles.center}>
+          <VEmptyState
+            title={t('arbiter.title')}
+            message={errorMessage(planState.error, t)}
+            action={{ label: t('common.retry'), onPress: planState.retry }}
+          />
+        </View>
+      </Screen>
+    );
+  }
+
+  // Gating Gold/Platine : droit local CONFIRMÉ ou refus serveur PLAN_REQUIRED.
   const planBlocked =
-    (!planLoading && !entitlements.virtualBook) ||
-    (signalQuery.isError && isVelumError(signalQuery.error) && signalQuery.error.code === 'PLAN_REQUIRED');
+    (planState.status === 'ready' && !planState.entitlements.virtualBook) ||
+    (signalQuery.isError &&
+      isVelumError(signalQuery.error) &&
+      signalQuery.error.code === 'PLAN_REQUIRED');
 
   if (planBlocked) {
     return (
@@ -91,7 +109,7 @@ export default function ArbiterScreen() {
     );
   }
 
-  if (planLoading || signalQuery.isLoading || itemQuery.isLoading) {
+  if (planState.status === 'loading' || signalQuery.isLoading || itemQuery.isLoading) {
     return (
       <Screen scroll={false}>
         <View style={styles.center}>
