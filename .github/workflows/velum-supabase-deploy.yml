@@ -95,6 +95,7 @@ jobs:
           fi
 
           {
+            echo "event_name=$EVENT_NAME"
             echo "ref=$ref"
             echo "controller_ref=$controller_ref"
             echo "deploy_database=$deploy_database"
@@ -121,33 +122,50 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Vérifier que la cible appartient à main
+      - name: Vérifier la provenance et la fraîcheur de la cible
         id: target
         working-directory: target
         shell: bash
+        env:
+          EVENT_NAME: ${{ steps.plan.outputs.event_name }}
         run: |
           set -Eeuo pipefail
           # Le dépôt est public ; aucun credential persistant n'est nécessaire.
           git fetch --quiet --no-tags origin main:refs/remotes/origin/main
-          if ! git merge-base --is-ancestor HEAD origin/main; then
+
+          target_sha="$(git rev-parse HEAD)"
+          main_sha="$(git rev-parse origin/main)"
+
+          if ! git merge-base --is-ancestor "$target_sha" "$main_sha"; then
             echo "::error::La révision cible n'appartient pas à l'historique approuvé de main."
             exit 1
           fi
-          echo "sha=$(git rev-parse HEAD)" >>"$GITHUB_OUTPUT"
+
+          if [[ "$EVENT_NAME" == "workflow_run" && "$target_sha" != "$main_sha" ]]; then
+            echo "Déploiement automatique ignoré : le SHA validé $target_sha n'est plus le HEAD de main ($main_sha)." >>"$GITHUB_STEP_SUMMARY"
+            echo "should_deploy=false" >>"$GITHUB_OUTPUT"
+            echo "sha=$target_sha" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "should_deploy=true" >>"$GITHUB_OUTPUT"
+          echo "sha=$target_sha" >>"$GITHUB_OUTPUT"
 
       - name: Installer Supabase CLI
+        if: steps.target.outputs.should_deploy == 'true'
         uses: supabase/setup-cli@3c2f5e2ae34c34e428e8e206e2c4d21fa2d20fbf # v2.1.1
         with:
           version: 2.109.1
 
       - name: Déployer la base et les fonctions
+        if: steps.target.outputs.should_deploy == 'true'
         working-directory: controller/velum
         env:
           # Les secrets ne sont disponibles que dans cette étape de shell approuvée,
           # jamais dans checkout ni dans l'action d'installation de la CLI.
           SUPABASE_PROJECT_REF: hbhfwfjdybvsoojvemdv
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_DB_PASSWORD: ${{ steps.plan.outputs.deploy_database == 'true' && secrets.SUPABASE_DB_PASSWORD || '' }}
           VELUM_ROOT: ${{ github.workspace }}/target/velum
           DEPLOY_REF: ${{ steps.target.outputs.sha }}
           DEPLOY_DATABASE: ${{ steps.plan.outputs.deploy_database }}
