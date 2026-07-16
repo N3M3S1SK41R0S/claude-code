@@ -7,7 +7,7 @@
 import { StyleSheet, View } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 
-import { velumColors, velumSpacing } from '../tokens';
+import { velumColors, velumHairline, velumSpacing } from '../tokens';
 
 export interface VOrnamentProps {
   style?: StyleProp<ViewStyle>;
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   rule: {
     flex: 1,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(201, 162, 39, 0.35)',
+    backgroundColor: velumHairline.gilded,
   },
   diamond: {
     width: 6,

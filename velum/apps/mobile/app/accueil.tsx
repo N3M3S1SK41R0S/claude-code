@@ -4,12 +4,13 @@
  * lancement (cadre galerie, en boucle, muette, son réactivable) et les accès
  * rapides aux grandes sections, présentés en tuiles de catalogue.
  */
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import {
+  VCard,
   VOrnament,
   VText,
   velumColors,
@@ -25,7 +26,7 @@ import { usePlan } from '../lib/plan';
 const introVideo = require('../assets/brand/velum-intro.mp4') as number;
 const seal = require('../assets/brand/velum-seal.png');
 
-/** Tuile d'accès rapide — typographie de catalogue (titre serti + note). */
+/** Tuile d'accès rapide — VCard pressable, typographie de catalogue. */
 function QuickTile({
   label,
   hint,
@@ -38,12 +39,12 @@ function QuickTile({
   onPress: () => void;
 }) {
   return (
-    <Pressable
+    <VCard
       onPress={onPress}
-      accessibilityRole="button"
+      tone={gilded ? 'gilded' : 'default'}
       accessibilityLabel={label}
       accessibilityHint={hint}
-      style={({ pressed }) => [styles.tile, gilded && styles.tileGilded, pressed && styles.tilePressed]}
+      style={styles.tile}
     >
       <VText variant="heading" tone={gilded ? 'gold' : 'default'}>
         {label}
@@ -51,7 +52,7 @@ function QuickTile({
       <VText variant="caption" tone="dim">
         {hint}
       </VText>
-    </Pressable>
+    </VCard>
   );
 }
 
@@ -148,7 +149,8 @@ const styles = StyleSheet.create({
     height: SEAL_SIZE + 18,
     borderRadius: (SEAL_SIZE + 18) / 2,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(201, 162, 39, 0.18)',
+    borderColor: velumHairline.gildedFaint,
+    // Cire du sceau : bordeaux translucide (moment de marque, propre à l'accueil).
     backgroundColor: 'rgba(122, 34, 48, 0.22)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -157,7 +159,7 @@ const styles = StyleSheet.create({
   ornament: { marginTop: velumSpacing.lg },
   videoFrame: {
     marginTop: velumSpacing.sm,
-    borderRadius: 24,
+    borderRadius: velumRadius.frame,
     borderWidth: 1,
     borderColor: velumHairline.gilded,
     backgroundColor: velumColors.ink.soft,
@@ -183,14 +185,6 @@ const styles = StyleSheet.create({
     flexBasis: '47%',
     flexGrow: 1,
     gap: velumSpacing.xs,
-    backgroundColor: velumColors.ink.raised,
-    borderColor: velumHairline.warm,
-    borderWidth: 1,
-    borderRadius: velumRadius.card,
-    padding: velumSpacing.lg,
     minHeight: 96,
-    ...velumElevation.card,
   },
-  tileGilded: { borderColor: velumHairline.gilded },
-  tilePressed: { opacity: 0.94, transform: [{ scale: 0.985 }] },
 });

@@ -30,6 +30,8 @@ export const velumRadius = {
   seal: 999,
   /** Petits éléments (champs de saisie, badges rectangulaires). */
   field: 12,
+  /** Cadres « galerie » (passe-partout autour d'un média encadré). */
+  frame: 24,
 } as const;
 
 /**
@@ -71,6 +73,8 @@ export type VelumElevationKey = keyof typeof velumElevation;
 export const velumHairline = {
   warm: velumColors.ink.border,
   gilded: 'rgba(201, 162, 39, 0.38)',
+  /** Filet doré atténué (anneaux intérieurs, ornements discrets). */
+  gildedFaint: 'rgba(201, 162, 39, 0.18)',
 } as const;
 
 /**
