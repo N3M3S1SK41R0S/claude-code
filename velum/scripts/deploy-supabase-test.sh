@@ -143,10 +143,11 @@ if env \
 fi
 grep -Fq 'fonctions absentes après déploiement' "$TMP_DIR/missing.err"
 
-# Secret absent : échec avant tout appel CLI.
+# Secret absent : échec avant tout appel CLI, même si l'environnement parent
+# contient des credentials Supabase.
 secret_calls="$TMP_DIR/secret.calls"
 : >"$secret_calls"
-if env \
+if env -u SUPABASE_ACCESS_TOKEN -u SUPABASE_DB_PASSWORD \
   "PATH=$TMP_DIR/bin:$PATH" \
   "FAKE_INVENTORY=$TMP_DIR/inventory.json" \
   "FAKE_CALL_LOG=$secret_calls" \
