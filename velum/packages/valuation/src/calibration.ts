@@ -17,10 +17,11 @@ import {
   type CalibrationStatus,
   type FxRates,
   type PriceObservation,
+  type SourceKind,
   type ValuationResult,
   type VelumDomain,
 } from '@velum/core';
-import { valuate, type ValuateOptions } from './engine.ts';
+import { toEUR, valuate, type ValuateOptions } from './engine.ts';
 
 // Compatibilité : le type reste importable depuis @velum/valuation.
 export type { CalibrationStatus } from '@velum/core';
@@ -157,6 +158,8 @@ export interface BacktestCase {
   /** Prix de vente réel (vérité-terrain), en EUR. */
   realized: number;
   domain?: VelumDomain;
+  /** Ancienneté (jours) de la vente réalisée retenue comme vérité-terrain. */
+  realizedAgeDays?: number;
 }
 
 /**
@@ -192,6 +195,56 @@ export function backtest(
     });
   }
   return { calibration: calibrate(outcomes, options), outcomes, skipped };
+}
+
+/** Types de sources acceptés comme VÉRITÉ-TERRAIN d'un backtest. */
+export const DEFAULT_REALIZED_KINDS: readonly SourceKind[] = [
+  'auction_realized',
+  'marketplace_sold',
+];
+
+/** Nombre minimal d'observations restantes pour qu'un cas soit exploitable. */
+export const MIN_LOO_REMAINING = 3;
+
+export interface LeaveOneOutOptions {
+  /** Types de sources retenus comme réalisé (défaut : ventes réelles). */
+  realizedKinds?: readonly SourceKind[];
+  /** Observations restantes minimales par cas (défaut 3). */
+  minRemaining?: number;
+  domain?: VelumDomain;
+}
+
+/**
+ * Construit des cas de backtest « leave-one-out » à partir d'observations de
+ * marché COURANTES : chaque vente RÉELLE (jamais une cote ni une annonce)
+ * devient tour à tour la vérité-terrain, prédite depuis les autres
+ * observations. C'est le cold-start du pari #1 : la calibration se mesure sur
+ * les ventes publiques déjà branchées, sans attendre le volume maison.
+ *
+ * Un taux de change manquant lève INVALID_INPUT (une configuration cassée
+ * doit remonter, jamais s'effacer — même doctrine que `backtest`).
+ */
+export function leaveOneOutCases(
+  observations: PriceObservation[],
+  fx: FxRates,
+  options: LeaveOneOutOptions = {},
+): BacktestCase[] {
+  const realizedKinds = options.realizedKinds ?? DEFAULT_REALIZED_KINDS;
+  const minRemaining = options.minRemaining ?? MIN_LOO_REMAINING;
+  const cases: BacktestCase[] = [];
+  for (let i = 0; i < observations.length; i++) {
+    const held = observations[i] as PriceObservation;
+    if (!realizedKinds.includes(held.source.kind)) continue;
+    const others = observations.filter((_, j) => j !== i);
+    if (others.length < minRemaining) continue;
+    cases.push({
+      observations: others,
+      realized: Math.round(toEUR(held.price, held.currency, fx)),
+      realizedAgeDays: held.ageDays,
+      ...(options.domain ? { domain: options.domain } : {}),
+    });
+  }
+  return cases;
 }
 
 /**

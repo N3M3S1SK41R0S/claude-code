@@ -28,6 +28,9 @@ export {
   calibrate,
   calibrateByDomain,
   backtest,
+  leaveOneOutCases,
+  DEFAULT_REALIZED_KINDS,
+  MIN_LOO_REMAINING,
   learnSourceWeights,
   MIN_CALIBRATION_SAMPLE,
   COVERAGE80_TARGET,
@@ -36,6 +39,7 @@ export {
   type CalibrationResult,
   type CalibrationStatus,
   type BacktestCase,
+  type LeaveOneOutOptions,
 } from './calibration.ts';
 
 // Pari #2 — valorisation de portefeuille patrimonial + mouvement.

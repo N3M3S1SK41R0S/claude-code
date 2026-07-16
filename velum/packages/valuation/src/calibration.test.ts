@@ -4,6 +4,7 @@ import {
   backtest,
   calibrate,
   calibrateByDomain,
+  leaveOneOutCases,
   learnSourceWeights,
   type PriceOutcome,
 } from './calibration.ts';
@@ -142,5 +143,55 @@ describe('learnSourceWeights', () => {
   it('ignore les prédictions ≤ 0', () => {
     const w = learnSourceWeights([{ source: 'x', predicted: 0, realized: 100 }]);
     expect(w['x']).toBeUndefined();
+  });
+});
+
+describe('leaveOneOutCases — cold-start sur ventes publiques', () => {
+  function o(price: number, kind: PriceObservation['source']['kind'], ageDays = 10, currency = 'EUR'): PriceObservation {
+    return { price, currency, ageDays, sourceWeight: 0.9, source: { name: kind, kind } };
+  }
+  const fx: FxRates = { USD: 0.9 };
+
+  it('chaque vente RÉELLE devient tour à tour la vérité-terrain', () => {
+    const obs = [
+      o(100, 'auction_realized', 30),
+      o(105, 'marketplace_sold', 12),
+      o(98, 'official_quote'),
+      o(110, 'listing'),
+    ];
+    const cases = leaveOneOutCases(obs, fx, { domain: 'coin' });
+    // Seules les 2 ventes réelles sont retenues comme réalisé (jamais cote/annonce).
+    expect(cases).toHaveLength(2);
+    expect(cases[0]?.realized).toBe(100);
+    expect(cases[0]?.realizedAgeDays).toBe(30);
+    expect(cases[0]?.observations).toHaveLength(3);
+    expect(cases[0]?.domain).toBe('coin');
+    // L'observation retenue ne figure jamais dans ses propres prédicteurs.
+    expect(cases[0]?.observations.some((x) => x.price === 100 && x.source.kind === 'auction_realized')).toBe(false);
+  });
+
+  it('convertit le réalisé en EUR ; taux manquant → erreur visible', () => {
+    const obs = [o(100, 'auction_realized', 0, 'USD'), o(90, 'official_quote'), o(92, 'official_quote'), o(91, 'official_quote')];
+    expect(leaveOneOutCases(obs, fx)[0]?.realized).toBe(90); // 100 USD × 0.9
+    expect(() => leaveOneOutCases([o(100, 'auction_realized', 0, 'GBP'), o(90, 'official_quote'), o(92, 'official_quote'), o(91, 'official_quote')], fx)).toThrow(/change/i);
+  });
+
+  it('cas écartés sous le minimum d’observations restantes', () => {
+    const obs = [o(100, 'auction_realized'), o(105, 'marketplace_sold')];
+    expect(leaveOneOutCases(obs, fx)).toHaveLength(0); // 1 restante < 3
+    expect(leaveOneOutCases(obs, fx, { minRemaining: 1 })).toHaveLength(2);
+  });
+
+  it('les cas alimentent backtest() de bout en bout', () => {
+    const obs = [
+      o(100, 'auction_realized'),
+      o(102, 'marketplace_sold'),
+      o(98, 'official_quote'),
+      o(101, 'official_quote'),
+      o(99, 'marketplace_sold'),
+    ];
+    const { calibration, outcomes } = backtest(leaveOneOutCases(obs, fx, { domain: 'wine' }), fx, { minSample: 1 });
+    expect(outcomes.length).toBe(3); // 3 ventes réelles
+    expect(calibration.n).toBe(3);
   });
 });
