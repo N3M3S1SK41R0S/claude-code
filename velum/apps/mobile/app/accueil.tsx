@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { VButton, VText, velumHairline, velumSpacing } from '@velum/ui';
 
 import { Screen } from '../components/Screen';
+import { errorMessage } from '../lib/errors';
 import { usePlan } from '../lib/plan';
 
 const introVideo = require('../assets/brand/velum-intro.mp4') as number;
@@ -19,7 +20,7 @@ const seal = require('../assets/brand/velum-seal.png');
 export default function Accueil() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { plan } = usePlan();
+  const planState = usePlan();
 
   const player = useVideoPlayer(introVideo, (p) => {
     p.muted = true;
@@ -65,12 +66,34 @@ export default function Accueil() {
           variant="secondary"
           onPress={() => router.push('/(tabs)/market')}
         />
-        <VButton
-          label={t('accueil.community')}
-          variant={plan === 'platine' ? 'secondary' : 'ghost'}
-          onPress={() => router.push(plan === 'platine' ? '/community' : '/paywall')}
-          accessibilityHint={plan === 'platine' ? t('community.intro') : t('market.communityCta')}
-        />
+        {planState.status === 'error' ? (
+          <>
+            <VText variant="caption" tone="dim">
+              {errorMessage(planState.error, t)}
+            </VText>
+            <VButton label={t('common.retry')} variant="ghost" onPress={planState.retry} />
+          </>
+        ) : (
+          <VButton
+            label={t('accueil.community')}
+            variant={
+              planState.status === 'ready' && planState.entitlements.community
+                ? 'secondary'
+                : 'ghost'
+            }
+            disabled={planState.status === 'loading'}
+            loading={planState.status === 'loading'}
+            onPress={() => {
+              if (planState.status !== 'ready') return;
+              router.push(planState.entitlements.community ? '/community' : '/paywall');
+            }}
+            accessibilityHint={
+              planState.status === 'ready' && planState.entitlements.community
+                ? t('community.intro')
+                : t('market.communityCta')
+            }
+          />
+        )}
       </View>
     </Screen>
   );
