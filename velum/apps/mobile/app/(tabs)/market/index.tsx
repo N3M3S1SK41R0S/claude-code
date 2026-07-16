@@ -112,7 +112,12 @@ export default function Market() {
                 {t('market.communityBody')}
               </VText>
               {planState.status === 'loading' ? (
-                <VButton label={t('common.loading')} disabled={true} loading={true} />
+                <VButton
+                  label={t('common.loading')}
+                  disabled={true}
+                  loading={true}
+                  onPress={() => undefined}
+                />
               ) : planState.status === 'error' ? (
                 <>
                   <VText variant="caption" tone="dim">
