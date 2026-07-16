@@ -5,25 +5,123 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { PLAN_LIMITS, type PlanEntitlements, type PlanId } from '@velum/config';
+import { VelumError, type Profile } from '@velum/core';
 
 import { getVelumClient } from './client';
 
 export { hasEntitlement, planRank } from './planRules';
 
-export interface PlanState {
+export interface ReadyPlan {
   plan: PlanId;
   entitlements: PlanEntitlements;
-  isLoading: boolean;
 }
 
-/** Plan de l'utilisateur connecté (repli prudent : 'free'). */
+interface PlanStateBase {
+  /** Relance explicitement la lecture du profil après une panne. */
+  retry(): void;
+}
+
+export type PlanState =
+  | (PlanStateBase & {
+      status: 'loading';
+      plan: null;
+      entitlements: null;
+      isLoading: true;
+      isError: false;
+      error: null;
+    })
+  | (PlanStateBase & {
+      status: 'error';
+      plan: null;
+      entitlements: null;
+      isLoading: false;
+      isError: true;
+      error: unknown;
+    })
+  | (PlanStateBase & {
+      status: 'ready';
+      plan: PlanId;
+      entitlements: PlanEntitlements;
+      isLoading: false;
+      isError: false;
+      error: null;
+    });
+
+/**
+ * Convertit un profil effectivement relu en droits produit. Un profil absent
+ * n'est jamais assimilé au plan Free : il s'agit d'une donnée serveur manquante.
+ */
+export function planFromProfile(profile: Profile | null): ReadyPlan {
+  if (profile === null) {
+    throw new VelumError(
+      'SOURCE_UNAVAILABLE',
+      "Le profil d'abonnement est indisponible — impossible de vérifier vos droits.",
+    );
+  }
+  const plan: PlanId = profile.plan;
+  return { plan, entitlements: PLAN_LIMITS[plan] };
+}
+
+/**
+ * Plan de l'utilisateur connecté. Les écrans doivent distinguer explicitement
+ * chargement, panne et plan confirmé afin de ne jamais transformer une panne
+ * réseau/PostgREST en faux compte Free ou en faux paywall.
+ */
 export function usePlan(): PlanState {
   const client = getVelumClient();
   const query = useQuery({
     queryKey: ['profile', 'plan'],
-    queryFn: () => client.profile.get(),
+    queryFn: async () => planFromProfile(await client.profile.get()),
     staleTime: 5 * 60 * 1000,
   });
-  const plan: PlanId = query.data?.plan ?? 'free';
-  return { plan, entitlements: PLAN_LIMITS[plan], isLoading: query.isLoading };
+  const retry = () => {
+    void query.refetch();
+  };
+
+  if (query.isLoading) {
+    return {
+      status: 'loading',
+      plan: null,
+      entitlements: null,
+      isLoading: true,
+      isError: false,
+      error: null,
+      retry,
+    };
+  }
+
+  if (query.isError) {
+    return {
+      status: 'error',
+      plan: null,
+      entitlements: null,
+      isLoading: false,
+      isError: true,
+      error: query.error,
+      retry,
+    };
+  }
+
+  // Défense contre un état React Query impossible/incomplet : ne jamais déduire Free.
+  if (query.data === undefined) {
+    return {
+      status: 'error',
+      plan: null,
+      entitlements: null,
+      isLoading: false,
+      isError: true,
+      error: new VelumError('SOURCE_UNAVAILABLE', "Le profil d'abonnement n'a pas été chargé."),
+      retry,
+    };
+  }
+
+  return {
+    status: 'ready',
+    plan: query.data.plan,
+    entitlements: query.data.entitlements,
+    isLoading: false,
+    isError: false,
+    error: null,
+    retry,
+  };
 }
