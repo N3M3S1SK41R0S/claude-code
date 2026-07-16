@@ -62,7 +62,10 @@ export default function Carnet() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const client = getVelumClient();
-  const { plan, entitlements, isLoading: planLoading } = usePlan();
+  const planState = usePlan();
+  const canUseVirtualBook =
+    planState.status === 'ready' && planState.entitlements.virtualBook;
+  const plan = planState.status === 'ready' ? planState.plan : null;
 
   const domains = getActiveDomains();
   const [domain, setDomain] = useState<VelumDomain>(domains[0] ?? 'wine');
@@ -78,7 +81,7 @@ export default function Carnet() {
 
   const query = useQuery<CarnetData>({
     queryKey: ['items', 'carnet'],
-    enabled: entitlements.virtualBook,
+    enabled: canUseVirtualBook,
     queryFn: async () => {
       const items = await client.items.list();
       const latestByItem: Record<string, ValuationRecord | null> = {};
@@ -144,7 +147,7 @@ export default function Carnet() {
     }
   };
 
-  if (planLoading || (entitlements.virtualBook && query.isLoading)) {
+  if (planState.status === 'loading' || (canUseVirtualBook && query.isLoading)) {
     return (
       <Screen scroll={false}>
         <View style={styles.center}>
@@ -154,8 +157,22 @@ export default function Carnet() {
     );
   }
 
+  if (planState.status === 'error') {
+    return (
+      <Screen scroll={false}>
+        <View style={styles.center}>
+          <VEmptyState
+            title={t('carnet.title')}
+            message={errorMessage(planState.error, t)}
+            action={{ label: t('common.retry'), onPress: planState.retry }}
+          />
+        </View>
+      </Screen>
+    );
+  }
+
   // GATING : le carnet virtuel appartient à l'offre Gold (et Platine).
-  if (!entitlements.virtualBook) {
+  if (!planState.entitlements.virtualBook) {
     return (
       <Screen scroll={false}>
         <View style={styles.center}>
@@ -163,6 +180,20 @@ export default function Carnet() {
             title={t('carnet.upsellTitle')}
             message={t('carnet.upsellMessage')}
             action={{ label: t('carnet.upsellCta'), onPress: () => router.push('/paywall') }}
+          />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (query.isError) {
+    return (
+      <Screen scroll={false}>
+        <View style={styles.center}>
+          <VEmptyState
+            title={t('carnet.title')}
+            message={errorMessage(query.error, t)}
+            action={{ label: t('common.retry'), onPress: () => void query.refetch() }}
           />
         </View>
       </Screen>
@@ -645,7 +676,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: velumColors.ink.border,
   },
-  caveInfo: { flex: 1, minHeight: MIN_TOUCH_TARGET, justifyContent: 'center', paddingVertical: velumSpacing.sm },
+  caveInfo: {
+    flex: 1,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
+    paddingVertical: velumSpacing.sm,
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
