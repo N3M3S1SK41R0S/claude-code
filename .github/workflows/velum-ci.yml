@@ -2,9 +2,15 @@ name: VELUM CI
 
 on:
   push:
-    paths: ["velum/**", ".github/workflows/velum-ci.yml"]
+    paths:
+      - "velum/**"
+      - ".github/workflows/velum-ci.yml"
+      - ".github/workflows/velum-supabase-deploy.yml"
   pull_request:
-    paths: ["velum/**", ".github/workflows/velum-ci.yml"]
+    paths:
+      - "velum/**"
+      - ".github/workflows/velum-ci.yml"
+      - ".github/workflows/velum-supabase-deploy.yml"
 
 permissions:
   contents: read
@@ -100,6 +106,9 @@ jobs:
       - name: Tests des Edge Functions (helpers purs + handlers HTTP, fetch stubbé)
         working-directory: velum/supabase/functions
         run: deno test --import-map=import_map.json -A tests/
+
+      - name: Tests du déploiement Supabase (CLI simulée)
+        run: bash velum/scripts/deploy-supabase-test.sh
 
   sql:
     runs-on: ubuntu-latest

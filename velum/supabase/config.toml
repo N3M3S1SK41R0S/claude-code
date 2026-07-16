@@ -52,6 +52,7 @@ file_size_limit = "50MiB"
 [edge_runtime]
 enabled = true
 
+# Fonctions utilisateur : le gateway exige un JWT avant le handler.
 [functions.recognize]
 verify_jwt = true
 [functions.analyze-wine]
@@ -66,9 +67,16 @@ verify_jwt = true
 verify_jwt = true
 [functions.cellar-pairing]
 verify_jwt = true
+[functions.arbiter]
+verify_jwt = true
 [functions.delete-account]
 verify_jwt = true
-# Déclenchées par des secrets internes (pas de JWT utilisateur).
+
+# Fonctions mixtes ou internes : leur handler vérifie le secret cron/webhook.
+# `calibration` doit laisser passer le POST cron sans JWT ; son GET reste
+# protégé par la RLS et transmet le Bearer utilisateur lorsqu'il est présent.
+[functions.calibration]
+verify_jwt = false
 [functions.price-cron]
 verify_jwt = false
 [functions.revenuecat-webhook]

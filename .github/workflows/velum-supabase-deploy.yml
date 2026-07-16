@@ -1,0 +1,224 @@
+name: VELUM Supabase Production
+
+on:
+  workflow_run:
+    workflows: ["VELUM CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branche, tag ou SHA à déployer (fonctions uniquement pour un rollback)"
+        required: true
+        default: main
+        type: string
+      deploy_database:
+        description: "Appliquer les migrations en attente"
+        required: true
+        default: true
+        type: boolean
+      deploy_functions:
+        description: "Déployer toutes les Edge Functions"
+        required: true
+        default: true
+        type: boolean
+      dry_run:
+        description: "Afficher le plan sans mutation distante"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: velum-supabase-production
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Valider la cible Supabase
+    if: >-
+      (
+        github.event_name == 'workflow_dispatch' &&
+        github.ref == 'refs/heads/main'
+      ) ||
+      (
+        github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main'
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      should_deploy: ${{ steps.target.outputs.should_deploy }}
+      target_sha: ${{ steps.target.outputs.target_sha }}
+      controller_sha: ${{ steps.target.outputs.controller_sha }}
+      event_name: ${{ steps.plan.outputs.event_name }}
+      deploy_database: ${{ steps.plan.outputs.deploy_database }}
+      deploy_functions: ${{ steps.plan.outputs.deploy_functions }}
+      dry_run: ${{ steps.plan.outputs.dry_run }}
+
+    steps:
+      - name: Résoudre le plan de déploiement
+        id: plan
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          AUTO_REF: ${{ github.event.workflow_run.head_sha }}
+          MANUAL_REF: ${{ inputs.ref }}
+          MANUAL_DATABASE: ${{ inputs.deploy_database }}
+          MANUAL_FUNCTIONS: ${{ inputs.deploy_functions }}
+          MANUAL_DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -Eeuo pipefail
+
+          if [[ "$EVENT_NAME" == "workflow_run" ]]; then
+            ref="$AUTO_REF"
+            deploy_database=true
+            deploy_functions=true
+            dry_run=false
+          else
+            ref="${MANUAL_REF:-main}"
+            deploy_database="${MANUAL_DATABASE:-true}"
+            deploy_functions="${MANUAL_FUNCTIONS:-true}"
+            dry_run="${MANUAL_DRY_RUN:-false}"
+
+            # Une ancienne révision peut être redéployée pour restaurer les
+            # fonctions, mais une base ne se rétrograde jamais automatiquement.
+            if [[ "$deploy_database" == "true" && "$ref" != "main" ]]; then
+              echo "::error::Pour un ref autre que main, désactive deploy_database. Les migrations se corrigent par une migration forward-only."
+              exit 1
+            fi
+          fi
+
+          if [[ "$deploy_database" != "true" && "$deploy_functions" != "true" ]]; then
+            echo "::error::Aucune cible de déploiement sélectionnée."
+            exit 1
+          fi
+
+          {
+            echo "event_name=$EVENT_NAME"
+            echo "ref=$ref"
+            echo "deploy_database=$deploy_database"
+            echo "deploy_functions=$deploy_functions"
+            echo "dry_run=$dry_run"
+          } >>"$GITHUB_OUTPUT"
+
+      - name: Checkout de la révision candidate
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ steps.plan.outputs.ref }}
+          path: target
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Vérifier la provenance et la fraîcheur de la cible
+        id: target
+        working-directory: target
+        shell: bash
+        env:
+          EVENT_NAME: ${{ steps.plan.outputs.event_name }}
+        run: |
+          set -Eeuo pipefail
+          # Le dépôt est public ; aucun credential persistant n'est nécessaire.
+          git fetch --quiet --no-tags origin main:refs/remotes/origin/main
+
+          target_sha="$(git rev-parse HEAD)"
+          main_sha="$(git rev-parse origin/main)"
+
+          if ! git merge-base --is-ancestor "$target_sha" "$main_sha"; then
+            echo "::error::La révision cible n'appartient pas à l'historique approuvé de main."
+            exit 1
+          fi
+
+          # En automatique, le contrôleur est exactement le SHA validé. En manuel,
+          # il est figé sur le HEAD de main observé pendant ce préflight.
+          if [[ "$EVENT_NAME" == "workflow_run" ]]; then
+            controller_sha="$target_sha"
+          else
+            controller_sha="$main_sha"
+          fi
+
+          {
+            echo "target_sha=$target_sha"
+            echo "controller_sha=$controller_sha"
+          } >>"$GITHUB_OUTPUT"
+
+          if [[ "$EVENT_NAME" == "workflow_run" && "$target_sha" != "$main_sha" ]]; then
+            echo "Déploiement automatique ignoré : le SHA validé $target_sha n'est plus le HEAD de main ($main_sha)." >>"$GITHUB_STEP_SUMMARY"
+            echo "should_deploy=false" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "should_deploy=true" >>"$GITHUB_OUTPUT"
+
+  deploy:
+    name: Déployer Supabase production
+    needs: preflight
+    if: needs.preflight.outputs.should_deploy == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: production
+
+    steps:
+      # Les deux checkouts utilisent des SHA immuables produits par le préflight.
+      # La cible ne peut jamais remplacer le script qui accède aux secrets.
+      - name: Checkout du contrôleur approuvé
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ needs.preflight.outputs.controller_sha }}
+          path: controller
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Checkout de la révision cible immuable
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ needs.preflight.outputs.target_sha }}
+          path: target
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Revalider le HEAD avant publication
+        id: freshness
+        working-directory: target
+        shell: bash
+        env:
+          EVENT_NAME: ${{ needs.preflight.outputs.event_name }}
+          TARGET_SHA: ${{ needs.preflight.outputs.target_sha }}
+        run: |
+          set -Eeuo pipefail
+          git fetch --quiet --no-tags origin main:refs/remotes/origin/main
+          main_sha="$(git rev-parse origin/main)"
+
+          if [[ "$EVENT_NAME" == "workflow_run" && "$TARGET_SHA" != "$main_sha" ]]; then
+            echo "Publication ignorée : main a avancé de $TARGET_SHA vers $main_sha pendant le préflight." >>"$GITHUB_STEP_SUMMARY"
+            echo "publish=false" >>"$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >>"$GITHUB_OUTPUT"
+          fi
+
+      - name: Installer Supabase CLI
+        if: steps.freshness.outputs.publish == 'true'
+        uses: supabase/setup-cli@3c2f5e2ae34c34e428e8e206e2c4d21fa2d20fbf # v2.1.1
+        with:
+          version: 2.109.1
+
+      - name: Déployer la base et les fonctions
+        if: steps.freshness.outputs.publish == 'true'
+        working-directory: controller/velum
+        env:
+          # Les secrets ne sont disponibles que dans cette étape de shell approuvée,
+          # jamais dans checkout, préflight ou setup-cli.
+          SUPABASE_PROJECT_REF: hbhfwfjdybvsoojvemdv
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ needs.preflight.outputs.deploy_database == 'true' && secrets.SUPABASE_DB_PASSWORD || '' }}
+          VELUM_ROOT: ${{ github.workspace }}/target/velum
+          DEPLOY_REF: ${{ needs.preflight.outputs.target_sha }}
+          DEPLOY_DATABASE: ${{ needs.preflight.outputs.deploy_database }}
+          DEPLOY_FUNCTIONS: ${{ needs.preflight.outputs.deploy_functions }}
+          DRY_RUN: ${{ needs.preflight.outputs.dry_run }}
+        run: bash scripts/deploy-supabase.sh
