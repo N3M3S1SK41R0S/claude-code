@@ -94,8 +94,36 @@ describe('demoArbiterSignal — repli conservateur, rien d’inventé', () => {
       record('2026-03-01T00:00:00Z', 130, 120, 140),
       record('2026-06-01T00:00:00Z', 160, 150, 170),
     ];
-    const s = demoArbiterSignal(history, { tasting: { drinkWindow: { from: 2020, to: 2028 } } }, 2026);
+    const s = demoArbiterSignal(history, { tasting: { drinkWindow: { from: 2020, to: 2028 } } }, 2026, 'wine');
     expect(s.verdict).toBe('sell');
     expect(s.sellWindow).toBe(true);
+  });
+
+  // Sémantique vin du serveur (Edge arbiter) préservée dans le repli — revue Codex P2.
+  it('VIN sans fenêtre prouvée → refus conservateur, même avec hausse établie', () => {
+    const rising = [
+      record('2026-01-01T00:00:00Z', 100, 90, 110),
+      record('2026-03-01T00:00:00Z', 130, 120, 140),
+      record('2026-06-01T00:00:00Z', 160, 150, 170),
+    ];
+    for (const payload of [null, {}, { tasting: { drinkWindow: { from: '2023', to: 2032 } } }]) {
+      const s = demoArbiterSignal(rising, payload, 2026, 'wine');
+      expect(s.verdict).toBe('watch');
+      expect(s.confidence).toBe(0);
+      expect(s.trend).toBe('unknown');
+      expect(s.sellWindow).toBe(false);
+      expect(s.reasons.join(' ')).toMatch(/apogée indisponible/i);
+    }
+  });
+
+  it('actif NON périssable (pièce) sans fenêtre : branche normale conservée', () => {
+    const rising = [
+      record('2026-01-01T00:00:00Z', 100, 90, 110),
+      record('2026-03-01T00:00:00Z', 130, 120, 140),
+      record('2026-06-01T00:00:00Z', 160, 150, 170),
+    ];
+    const s = demoArbiterSignal(rising, null, 2026, 'coin');
+    expect(s.verdict).toBe('hold');
+    expect(s.trend).toBe('rising');
   });
 });

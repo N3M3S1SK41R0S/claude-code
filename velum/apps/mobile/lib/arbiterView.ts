@@ -10,7 +10,7 @@
  *   trajectoire n'est inventée : moins de 3 points → tendance 'unknown' et
  *   verdict prudent, exactement comme en production.
  */
-import type { ArbiterSignal, ValuationRecord, WineAnalysisPayload } from '@velum/core';
+import type { ArbiterSignal, ValuationRecord, VelumDomain, WineAnalysisPayload } from '@velum/core';
 import { arbitrate, type TrajectoryPoint } from '@velum/valuation';
 import type { VBadgeTone } from '@velum/ui';
 
@@ -66,15 +66,37 @@ export function usageWindowOf(payload: unknown): { from: number; to: number } | 
 }
 
 /**
- * Repli démo : moteur pur sur les données réelles du carnet démo.
+ * Miroir du refus serveur (Edge `arbiter`) : un VIN sans fenêtre d'apogée
+ * prouvée ne reçoit JAMAIS d'arbitrage — même signal conservateur que le
+ * handler (`unavailableWineWindow`), jamais la branche « actif non périssable ».
+ */
+function unavailableWineWindow(): ArbiterSignal {
+  return {
+    verdict: 'watch',
+    confidence: 0,
+    trend: 'unknown',
+    sellWindow: false,
+    reasons: [
+      'Fenêtre d’apogée indisponible ou invalide — aucun arbitrage boire/garder/vendre n’est publié.',
+    ],
+  };
+}
+
+/**
+ * Repli démo : moteur pur sur les données réelles du carnet démo, avec la
+ * MÊME sémantique vin que le serveur — sans fenêtre d'apogée prouvée, un vin
+ * n'est pas arbitré (signal conservateur), il n'est jamais traité comme un
+ * actif non périssable.
  * @param currentYear injecté (testabilité) ; l'écran passe l'année courante.
  */
 export function demoArbiterSignal(
   history: ValuationRecord[],
   analysisPayload: unknown,
   currentYear: number,
+  domain?: VelumDomain,
 ): ArbiterSignal {
   const usageWindow = usageWindowOf(analysisPayload);
+  if (domain === 'wine' && usageWindow === undefined) return unavailableWineWindow();
   return arbitrate({
     currentYear,
     ...(usageWindow ? { usageWindow } : {}),

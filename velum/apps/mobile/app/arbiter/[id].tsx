@@ -65,6 +65,7 @@ export default function ArbiterScreen() {
         history,
         item ? analysisPayload(item) : null,
         new Date().getUTCFullYear(),
+        item?.domain,
       );
     },
     enabled: itemId.length > 0 && entitlements.virtualBook,
