@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { isVelumError, type Profile } from '@velum/core';
 
-import { planFromProfile } from './plan';
+import { planFromProfile } from './planResolution';
 import { hasEntitlement, planRank } from './planRules';
 
 const profile = (plan: Profile['plan']): Profile => ({
