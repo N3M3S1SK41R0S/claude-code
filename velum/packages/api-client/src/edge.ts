@@ -3,6 +3,7 @@
  *   - recognize                       → étage 1 du pipeline (§10.1)
  *   - analyze-wine|coin|art|stamp     → fiche d'analyse, routée par domaine
  *   - valuate                         → moteur de valorisation (§7)
+ *   - arbiter                         → signal boire/garder/vendre (Gold+)
  *   - delete-account                  → purge RGPD (utilisée par auth.deleteAccount)
  *
  * Les erreurs normalisées { error: { code, message } } (voir
@@ -12,6 +13,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   VelumError,
   type AnalysisResult,
+  type ArbiterSignal,
   type Candidate,
   type CaptureInput,
   type PairingResult,
@@ -108,6 +110,11 @@ export interface EdgeApi {
    * si l'offre ne comprend pas le carnet virtuel.
    */
   cellarPairing(dish: string): Promise<PairingResult>;
+  /**
+   * Arbitre patrimonial (Gold+) — croise fenêtre d’usage et trajectoire de
+   * valeur. Le signal est indicatif et conserve les garde-fous anti-market-timing.
+   */
+  arbitrate(itemId: string, currentYear?: number): Promise<ArbiterSignal>;
 }
 
 export function createEdgeApi(supabase: SupabaseClient): EdgeApi {
@@ -125,6 +132,11 @@ export function createEdgeApi(supabase: SupabaseClient): EdgeApi {
     },
     cellarPairing(dish) {
       return invokeEdgeFunction<PairingResult>(supabase, 'cellar-pairing', { dish });
+    },
+    arbitrate(itemId, currentYear) {
+      const body: Record<string, unknown> = { itemId };
+      if (currentYear !== undefined) body['currentYear'] = currentYear;
+      return invokeEdgeFunction<ArbiterSignal>(supabase, 'arbiter', body);
     },
   };
 }
