@@ -14,12 +14,16 @@
  */
 import {
   isVelumError,
+  type CalibrationStatus,
   type FxRates,
   type PriceObservation,
   type ValuationResult,
   type VelumDomain,
 } from '@velum/core';
 import { valuate, type ValuateOptions } from './engine.ts';
+
+// Compatibilité : le type reste importable depuis @velum/valuation.
+export type { CalibrationStatus } from '@velum/core';
 
 /** Une prédiction confrontée à son prix réellement réalisé (en EUR). */
 export interface PriceOutcome {
@@ -30,12 +34,6 @@ export interface PriceOutcome {
   realized: number;
   domain?: VelumDomain;
 }
-
-export type CalibrationStatus =
-  | 'calibrating' // échantillon insuffisant — honnêtement borné
-  | 'well_calibrated'
-  | 'overconfident' // IC trop étroits : le réalisé sort trop souvent
-  | 'underconfident'; // IC trop larges : couverture au-delà de la cible
 
 export interface CalibrationResult {
   n: number;
