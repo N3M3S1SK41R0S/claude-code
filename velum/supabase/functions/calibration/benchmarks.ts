@@ -106,4 +106,24 @@ export const BENCHMARK_QUERIES: Record<VelumDomain, PriceQuery[]> = {
       limit: 24,
     },
   ],
+  watch: [
+    {
+      domain: 'watch',
+      label: 'Rolex Submariner 124060',
+      attributes: { brand: 'Rolex', model: 'Submariner', reference: '124060' },
+      limit: 24,
+    },
+    {
+      domain: 'watch',
+      label: 'Omega Speedmaster Professional 3570.50',
+      attributes: { brand: 'Omega', model: 'Speedmaster Professional', reference: '3570.50' },
+      limit: 24,
+    },
+    {
+      domain: 'watch',
+      label: 'Cartier Tank Must WSTA0041',
+      attributes: { brand: 'Cartier', model: 'Tank Must', reference: 'WSTA0041' },
+      limit: 24,
+    },
+  ],
 };

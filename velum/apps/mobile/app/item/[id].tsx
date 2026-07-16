@@ -28,6 +28,7 @@ import type {
   StampAnalysisPayload,
   ValuationRecord,
   VelumItem,
+  WatchAnalysisPayload,
   WineAnalysisPayload,
 } from '@velum/core';
 
@@ -38,6 +39,7 @@ import { CalibrationEvidence } from '../../components/CalibrationEvidence';
 import { ArtSheet } from '../../components/sheets/ArtSheet';
 import { CoinSheet } from '../../components/sheets/CoinSheet';
 import { StampSheet } from '../../components/sheets/StampSheet';
+import { WatchSheet } from '../../components/sheets/WatchSheet';
 import { WineSheet } from '../../components/sheets/WineSheet';
 import { KV, SheetSection } from '../../components/sheets/SheetSection';
 import { ProvenanceSection, TastingNotesSection } from '../../components/item/ItemJournalSections';
@@ -314,8 +316,11 @@ export default function ItemSheet() {
       {item.domain === 'stamp' ? (
         <StampSheet payload={payload as Partial<StampAnalysisPayload> | null} />
       ) : null}
+      {item.domain === 'watch' ? (
+        <WatchSheet payload={payload as Partial<WatchAnalysisPayload> | null} />
+      ) : null}
 
-      {/* Histoire, rareté, nombre d'exemplaires — commun aux 4 modules. */}
+      {/* Histoire, rareté, nombre d'exemplaires — commun aux 5 modules. */}
       <HeritageSection heritage={(payload as { heritage?: HeritageProfile } | null)?.heritage ?? null} />
 
       {/* Journal : dégustation (historique perso) + provenance (chaîne de possession) */}

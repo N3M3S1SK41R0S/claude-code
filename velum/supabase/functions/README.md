@@ -14,7 +14,7 @@ l'injection (vision, transport HTTP, clés API) diffère côté serveur.
 | `deno.json` | Pointe vers l'import map + active `sloppy-imports` (les packages du monorepo utilisent des imports relatifs sans extension) |
 | `_shared/` | Code commun : CORS, réponses, auth, vision Anthropic, FX, transport, routage plugins |
 | `recognize/` | Identification (étage 1 LLM vision), quota freemium |
-| `analyze-wine/` `analyze-coin/` `analyze-art/` `analyze-stamp/` | Fiches d'analyse par domaine |
+| `analyze-wine/` `analyze-coin/` `analyze-art/` `analyze-stamp/` `analyze-watch/` | Fiches d'analyse par domaine |
 | `valuate/` | Valorisation (moteur §7 `@velum/valuation`) |
 | `cellar-pairing/` | Sommelier de cave Gold+ (plat → vin de MA cave, anti-hallucination) |
 | `price-cron/` | Re-valorisation planifiée + alertes + notifications |

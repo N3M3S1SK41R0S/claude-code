@@ -75,14 +75,20 @@ export function bookTotals(
   return { count: items.length, totalEUR, valuedCount, lastValuedAt };
 }
 
-/** Clé i18n du « livre » d'un domaine (cave / médaillier / galerie / album). */
-export type CarnetBookKey = 'carnet.cave' | 'carnet.medaillier' | 'carnet.galerie' | 'carnet.album';
+/** Clé i18n du « livre » d'un domaine (cave / médaillier / galerie / album / écrin). */
+export type CarnetBookKey =
+  | 'carnet.cave'
+  | 'carnet.medaillier'
+  | 'carnet.galerie'
+  | 'carnet.album'
+  | 'carnet.ecrin';
 
 const BOOK_LABEL_KEYS: Record<VelumDomain, CarnetBookKey> = {
   wine: 'carnet.cave',
   coin: 'carnet.medaillier',
   art: 'carnet.galerie',
   stamp: 'carnet.album',
+  watch: 'carnet.ecrin',
 };
 
 /** Clé i18n de la mise en scène du carnet pour un domaine. */

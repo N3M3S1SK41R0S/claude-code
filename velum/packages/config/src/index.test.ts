@@ -10,17 +10,28 @@ import {
 } from './index';
 
 describe('feature flags', () => {
-  it('la philatélie est un module à part entière (activé par défaut)', () => {
+  it('philatélie et montres sont des modules à part entière (activés par défaut)', () => {
     expect(DEFAULT_FEATURES.enableStamps).toBe(true);
-    expect(activeDomains(DEFAULT_FEATURES)).toEqual(['wine', 'coin', 'art', 'stamp']);
+    expect(DEFAULT_FEATURES.enableWatches).toBe(true);
+    expect(activeDomains(DEFAULT_FEATURES)).toEqual(['wine', 'coin', 'art', 'stamp', 'watch']);
   });
 
-  it('le flag enableStamps reste désactivable', () => {
+  it('les flags enableStamps et enableWatches restent désactivables indépendamment', () => {
     expect(activeDomains({ ...DEFAULT_FEATURES, enableStamps: false })).toEqual([
       'wine',
       'coin',
       'art',
+      'watch',
     ]);
+    expect(activeDomains({ ...DEFAULT_FEATURES, enableWatches: false })).toEqual([
+      'wine',
+      'coin',
+      'art',
+      'stamp',
+    ]);
+    expect(
+      activeDomains({ ...DEFAULT_FEATURES, enableStamps: false, enableWatches: false }),
+    ).toEqual(['wine', 'coin', 'art']);
   });
 
   it('communauté ACTIVE en V1 (Platine), art = tableaux', () => {

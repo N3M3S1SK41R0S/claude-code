@@ -12,6 +12,7 @@
 2. **URL publique de politique de confidentialité requise** dans App Store Connect ET Play Console **et** dans l'app : `https://velum.app/privacy` (contenu : `docs/PRIVACY.md`). La fiche est refusée sans cette URL ; l'écran in-app `/privacy` existe déjà.
 3. **Re-vérifier chaque décompte après toute retouche.** Les nombres ci-dessous sont exacts pour le texte tel quel ; le moindre mot changé les invalide (procédure de recomptage en §6).
 4. Rappels connexes (bloquants ailleurs) : icône **provisoire** à remplacer avant build de prod (README « Identité visuelle ») ; compte démo `demo@velum.app` provisionné + notes de revue collées (DEMO_ACCOUNT.md) ; IAP « Ready to Submit » joints à la build ; labels privacy iOS / formulaire Data Safety alignés sur PRIVACY.md.
+5. **Copie à régénérer — 5e module (juillet 2026).** Le module **Montres** a été ajouté après la génération de cette fiche : sous-titres, mots-clés, descriptions (« LES 4 MODULES ») et jeu de captures ne le mentionnent pas encore. Régénérer l'ensemble (et re-vérifier chaque décompte, §6) avant toute soumission.
 
 ---
 
@@ -123,7 +124,7 @@ Terms of use: https://velum.app/terms
 
 ```
 Bienvenue dans VELUM 1.0 — lever le voile sur la valeur cachée.
-• 4 modules d'identification et d'estimation : Vin, Pièces, Tableaux, Timbres
+• 5 modules d'identification et d'estimation : Vin, Pièces, Tableaux, Timbres, Montres
 • Capture photo guidée, saisie texte libre ou import de fichier (CSV/JSON)
 • Estimation en fourchette (IC 80 % / 95 %) avec score de fiabilité et sources
 • Collection organisée : cave, cabinet, galerie, album — valeur totale et plus-value latente
@@ -263,7 +264,7 @@ Mise en scène commune : compte démo `demo@velum.app` (collection pré-remplie,
 Notes :
 - Les captures 3 et 4 sont le même écran `/item/[id]` (fiche de l'item vin seedé) à deux positions de scroll — ouvrir l'item depuis l'onglet Collection.
 - La capture 1 exige un appareil physique (caméra) ; toutes les autres passent sur simulateur/émulateur.
-- Règle 2.3 Apple : les captures doivent montrer l'app réelle — aucun mockup embelli, aucun contenu absent de la build. Montrer les 4 modules sur l'ensemble du jeu (exigence DEPLOYMENT.md §7) : c'est le cas via les captures 1 (Vin), 5 (les 4 groupes) et 3–4.
+- Règle 2.3 Apple : les captures doivent montrer l'app réelle — aucun mockup embelli, aucun contenu absent de la build. Montrer les 5 modules sur l'ensemble du jeu (exigence DEPLOYMENT.md §7) : les captures actuelles (1 Vin, 5 les 4 groupes, 3–4) précèdent le module Montres — à refaire avec l'écrin visible.
 
 ### Formats requis
 

@@ -59,6 +59,8 @@ await screen('19-fiche-piece', '/item/demo-coin', '5 Francs Semeuse');
 await screen('20-fiche-timbre', '/item/demo-stamp', 'Semeuse lignée');
 // 21. Fiche tableau — attribution prudente, comparables Drouot/Artprice.
 await screen('21-fiche-tableau', '/item/demo-art', 'Paysage aux oliviers');
+// 23. Fiche montre — spécifications, mécanisme, histoire du modèle, dernières ventes.
+await screen('23-fiche-montre', '/item/demo-watch', 'Histoire du modèle');
 // 22. Arbitre patrimonial (Gold+) — verdict boire/garder/vendre + raisons.
 await screen('22-arbitre', '/arbiter/demo-wine', 'Pourquoi ce signal');
 // 09. Sommelier de cave — saisir un plat puis lancer la recherche.

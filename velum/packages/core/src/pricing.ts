@@ -43,7 +43,7 @@ export interface PriceObservation {
 
 /** Requête envoyée aux adaptateurs de sources. */
 export interface PriceQuery {
-  domain: 'wine' | 'coin' | 'art' | 'stamp';
+  domain: 'wine' | 'coin' | 'art' | 'stamp' | 'watch';
   /** Libellé canonique de l'objet (ex. "Clos Rougeard Le Bourg 2014"). */
   label: string;
   /** Attributs structurés du candidat (millésime, atelier, artiste…). */

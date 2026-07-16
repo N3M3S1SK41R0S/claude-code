@@ -33,9 +33,10 @@ const DOMAIN_ROLES: Record<VelumDomain, MediaRole[]> = {
   coin: ['obverse', 'reverse', 'edge'],
   art: ['front', 'signature', 'back'],
   stamp: ['front', 'back'],
+  watch: ['dial', 'caseback', 'clasp'],
 };
 
-const DOMAINS: VelumDomain[] = ['wine', 'coin', 'art', 'stamp'];
+const DOMAINS: VelumDomain[] = ['wine', 'coin', 'art', 'stamp', 'watch'];
 
 type Tab = 'photo' | 'text' | 'file';
 

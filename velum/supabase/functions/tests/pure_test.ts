@@ -56,16 +56,17 @@ Deno.test('handleOptions répond 204 au préflight, null sinon', () => {
   assertEquals(handleOptions(new Request('http://x', { method: 'POST' })), null);
 });
 
-Deno.test('isVelumDomain : accepte les 4 domaines, rejette le reste', () => {
-  for (const d of ['wine', 'coin', 'art', 'stamp']) assertEquals(isVelumDomain(d), true);
-  for (const d of ['', 'timbre', 42, null, undefined]) assertEquals(isVelumDomain(d), false);
+Deno.test('isVelumDomain : accepte les 5 domaines, rejette le reste', () => {
+  for (const d of ['wine', 'coin', 'art', 'stamp', 'watch']) assertEquals(isVelumDomain(d), true);
+  for (const d of ['', 'timbre', 'montre', 42, null, undefined]) assertEquals(isVelumDomain(d), false);
 });
 
-Deno.test('plugins : les 4 domaines sont routés vers le bon moteur', () => {
+Deno.test('plugins : les 5 domaines sont routés vers le bon moteur', () => {
   assertEquals(plugins.wine.domain, 'wine');
   assertEquals(plugins.coin.domain, 'coin');
   assertEquals(plugins.art.domain, 'art');
   assertEquals(plugins.stamp.domain, 'stamp');
+  assertEquals(plugins.watch.domain, 'watch');
 });
 
 Deno.test('buildSources : sans clés, seules les sources publiques sont présentes', () => {

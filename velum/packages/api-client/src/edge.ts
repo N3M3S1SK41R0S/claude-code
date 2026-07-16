@@ -1,7 +1,7 @@
 /**
  * Appels aux Edge Functions VELUM via `supabase.functions.invoke` :
  *   - recognize                       → étage 1 du pipeline (§10.1)
- *   - analyze-wine|coin|art|stamp     → fiche d'analyse, routée par domaine
+ *   - analyze-wine|coin|art|stamp|watch → fiche d'analyse, routée par domaine
  *   - valuate                         → moteur de valorisation (§7)
  *   - arbiter                         → signal boire/garder/vendre (Gold+)
  *   - delete-account                  → purge RGPD (utilisée par auth.deleteAccount)

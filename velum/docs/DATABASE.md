@@ -26,7 +26,7 @@ Un objet de collection, tous domaines confondus.
 |---|---|---|
 | `id` | `uuid` PK | |
 | `owner_id` | `uuid` FK → `auth.users` | index ; clé de partitionnement cible |
-| `domain` | `text` CHECK in (`'wine'`,`'coin'`,`'art'`,`'stamp'`) | 4 modules à part entière |
+| `domain` | enum `velum_domain` (`'wine'`,`'coin'`,`'art'`,`'stamp'`,`'watch'`) | 5 modules à part entière |
 | `title` | `text` null | libellé affiché |
 | `attributes` | `jsonb` not null default `'{}'` | attributs structurés du domaine (millésime, atelier, n° catalogue…) |
 | `confidence` | `numeric` null CHECK 0..1 | confiance d'identification |

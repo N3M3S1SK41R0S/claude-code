@@ -208,7 +208,8 @@ Deno.test('arbiter ne publie aucun signal vin sans fenêtre d’apogée fiable',
 
 Deno.test('arbiter injecte l’année courante et refuse un domaine Postgres inconnu', async () => {
   const injectedHandler = createArbiterHandler({ currentYear: () => 2030 });
-  stubFetch({ item: coinItem({ domain: 'watch' }) });
+  // 'vinyle' n'existe pas dans velum_domain — 'watch' est un domaine valide depuis le 5e module.
+  stubFetch({ item: coinItem({ domain: 'vinyle' }) });
   try {
     const response = await injectedHandler(
       post({ itemId: '22222222-2222-4222-8222-222222222222' }),

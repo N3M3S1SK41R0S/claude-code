@@ -36,7 +36,7 @@ Checklist opérationnelle complète pour publier VELUM sur l'App Store et Google
 
 ### Guidelines fréquemment fatales — auto-audit
 - [ ] **2.1 (App Completeness)** : aucune fonctionnalité en panne, pas d'écran placeholder, backend de prod up pendant la revue, IAP en état « Ready to Submit » joints à la build.
-- [ ] **2.3 (Accurate Metadata)** : captures d'écran reflétant l'app réelle (les 4 modules), pas de promesse non tenue (« expertise certifiée » interdit — nous affichons des estimations indicatives).
+- [ ] **2.3 (Accurate Metadata)** : captures d'écran reflétant l'app réelle (les 5 modules), pas de promesse non tenue (« expertise certifiée » interdit — nous affichons des estimations indicatives).
 - [ ] **3.1 (Payments)** : tout contenu numérique (premium) passe par IAP/RevenueCat, aucun lien de paiement externe, prix affichés cohérents.
 - [ ] **4.8 (Login Services)** : Sign in with Apple offert à parité avec Google.
 - [ ] **5.1 (Privacy)** : consentement photos/IA, labels exacts, suppression de compte, politique liée dans la fiche ET dans l'app.
@@ -100,7 +100,7 @@ eas submit --platform android    # → Play Console (piste choisie)
 ## 7. Derniers verrous avant « Submit »
 
 - [ ] 2 cycles de soumission provisionnés dans le planning (J+7 à J+14 de marge).
-- [ ] Captures d'écran par plateforme et par taille d'écran, en français, montrant les **4 modules**.
+- [ ] Captures d'écran par plateforme et par taille d'écran, en français, montrant les **5 modules**.
 - [ ] Vidéo d'intro (`velum-intro.mp4`) testée sur device bas de gamme (temps de chargement, skip possible).
 - [ ] Politique de confidentialité liée dans App Store Connect, Play Console **et** dans l'app (réglages).
 - [ ] Notes de revue + compte démo à jour dans les deux consoles ([DEMO_ACCOUNT.md](./DEMO_ACCOUNT.md)).

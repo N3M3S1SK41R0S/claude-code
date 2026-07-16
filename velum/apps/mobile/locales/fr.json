@@ -89,6 +89,11 @@
       "name": "Timbres",
       "subtitle": "Recto, verso, dentelure",
       "group": "Album"
+    },
+    "watch": {
+      "name": "Montres",
+      "subtitle": "Cadran, fond, fermoir",
+      "group": "Écrin"
     }
   },
   "roles": {
@@ -101,12 +106,16 @@
     "back": "Verso",
     "signature": "Signature",
     "frame": "Cadre",
-    "detail": "Détail"
+    "detail": "Détail",
+    "dial": "Cadran",
+    "caseback": "Fond de boîte",
+    "movement": "Mouvement",
+    "clasp": "Fermoir"
   },
   "onboarding": {
     "skipVideo": "Passer",
     "pitch": "Levez le voile sur la valeur de vos objets",
-    "pitchDetail": "Photographiez un vin, une pièce, un tableau ou un timbre : VELUM l'identifie, l'analyse et l'estime à partir de sources de prix réelles.",
+    "pitchDetail": "Photographiez un vin, une pièce, un tableau, un timbre ou une montre : VELUM l'identifie, l'analyse et l'estime à partir de sources de prix réelles.",
     "chooseModules": "Quelles collections vous intéressent ?",
     "seniorTitle": "Confort de lecture",
     "seniorMessage": "Préférez-vous de gros boutons et des textes agrandis ? Vous pourrez changer d'avis à tout moment dans le profil.",
@@ -190,7 +199,11 @@
       "artTechnique": "Technique",
       "stampCountry": "Pays",
       "stampCatalog": "N° de catalogue (ex. YT 1234)",
-      "stampYear": "Année"
+      "stampYear": "Année",
+      "watchBrand": "Marque",
+      "watchModel": "Modèle",
+      "watchReference": "Référence constructeur (ex. 124060)",
+      "watchYear": "Année"
     }
   },
   "item": {
@@ -295,6 +308,58 @@
       "valueCoefficient": "Coefficient de cote",
       "valueCoefficientHint": "vs cote de référence (neuf sans charnière, centrage parfait)",
       "regummingRisk": "Indice faible : gomme suspecte sur un neuf sans charnière — regommage à faire vérifier."
+    },
+    "watch": {
+      "movementTitle": "Mécanisme",
+      "storyTitle": "Histoire du modèle",
+      "gender": "Destination",
+      "genderValues": {
+        "homme": "Homme",
+        "femme": "Femme",
+        "mixte": "Mixte"
+      },
+      "caseMaterial": "Boîtier",
+      "caseDiameter": "Diamètre",
+      "dialColor": "Cadran",
+      "bracelet": "Bracelet",
+      "crystal": "Verre",
+      "waterResistance": "Étanchéité",
+      "boxPapersLabel": "Coffret & papiers",
+      "boxPapers": {
+        "full_set": "Full set — coffret et papiers d'origine",
+        "boite_seule": "Boîte seule",
+        "papiers_seuls": "Papiers seuls",
+        "montre_seule": "Montre seule",
+        "inconnu": "Indéterminé"
+      },
+      "limitedEdition": "Édition limitée",
+      "movementType": {
+        "automatique": "Automatique",
+        "manuel": "Remontage manuel",
+        "quartz": "Quartz",
+        "squelette": "Squelette",
+        "inconnu": "Mouvement indéterminé"
+      },
+      "calibre": "Calibre",
+      "powerReserve": "Réserve de marche",
+      "frequency": "Fréquence",
+      "frequencyValue": "{{vph}} alternances/h",
+      "jewels": "Rubis",
+      "complications": "Complications",
+      "certification": "Certification",
+      "storyWhy": "Pourquoi ce modèle a été créé",
+      "storyByWhom": "Par qui",
+      "modelLaunchYear": "Lancement du modèle",
+      "milestones": "Jalons du modèle",
+      "serviceHistory": "Entretien",
+      "polishedLabel": "Repolissage",
+      "polished": {
+        "non": "Boîtier non repoli",
+        "leger": "Repolissage léger",
+        "important": "Repolissage important",
+        "inconnu": "Indéterminé"
+      },
+      "nonOriginalParts": "Pièces non d'origine suspectées"
     },
     "rarityLevels": {
       "courante": "Courante",
@@ -443,9 +508,10 @@
     "medaillier": "Médaillier",
     "galerie": "Galerie",
     "album": "Album",
+    "ecrin": "Écrin",
     "moduleSelector": "Choisir le module du carnet",
     "upsellTitle": "Carnet virtuel",
-    "upsellMessage": "Le carnet virtuel fait partie de l'offre Gold : cave à vin avec emplacements, médaillier, galerie et album philatélique.",
+    "upsellMessage": "Le carnet virtuel fait partie de l'offre Gold : cave à vin avec emplacements, médaillier, galerie, album philatélique et écrin à montres.",
     "upsellCta": "Découvrir l'offre Gold",
     "totalValue": "Valeur du carnet",
     "itemsCount": "{{count}} objet(s)",

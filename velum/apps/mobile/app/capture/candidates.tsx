@@ -56,6 +56,12 @@ const ASSISTED_FIELDS: Record<VelumDomain, AssistedField[]> = {
     { key: 'catalogNumber', labelKey: 'candidates.fields.stampCatalog' },
     { key: 'year', labelKey: 'candidates.fields.stampYear', numeric: true },
   ],
+  watch: [
+    { key: 'brand', labelKey: 'candidates.fields.watchBrand' },
+    { key: 'model', labelKey: 'candidates.fields.watchModel' },
+    { key: 'reference', labelKey: 'candidates.fields.watchReference' },
+    { key: 'year', labelKey: 'candidates.fields.watchYear', numeric: true },
+  ],
 };
 
 export default function Candidates() {

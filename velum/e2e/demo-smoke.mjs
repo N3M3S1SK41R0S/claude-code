@@ -47,7 +47,7 @@ const onCapture = await page
   .waitForSelector('text=Vin', { timeout: 20000 })
   .then(() => true)
   .catch(() => false);
-check('grille des 4 modules (Capturer)', onCapture);
+check('grille des 5 modules (Capturer)', onCapture);
 await page.getByText('Vin', { exact: true }).first().click();
 await page.waitForTimeout(800);
 

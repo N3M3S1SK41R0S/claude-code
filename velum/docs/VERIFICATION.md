@@ -69,7 +69,7 @@ pnpm --filter velum-mobile build:web   # expo export : toutes les routes statiqu
 pnpm e2e                               # E2E web : PASS
 ```
 Parcours vérifié en navigateur réel : vidéo d'intro du sceau → « Passer » →
-pitch → les 4 modules proposés → `/privacy` rendue → zéro erreur JS.
+pitch → les 5 modules proposés → `/privacy` rendue → zéro erreur JS.
 
 **Écrans authentifiés** (`pnpm e2e:auth`) : les routes protégées sont rendues
 hors-ligne en interceptant le réseau Supabase (REST + Edge Functions) avec des

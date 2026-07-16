@@ -38,6 +38,14 @@ import {
   YvertCoteSource,
   stampPlugin,
 } from '@velum/domain-stamp';
+import {
+  CatawikiSource as WatchCatawikiSource,
+  Chrono24Source,
+  EbaySoldSource as WatchEbaySoldSource,
+  HeritageSource as WatchHeritageSource,
+  WatchChartsSource,
+  watchPlugin,
+} from '@velum/domain-watch';
 
 /**
  * Plugin de domaine dont le payload d'analyse est traité de façon opaque
@@ -46,16 +54,23 @@ import {
  */
 export type AnyDomainPlugin = DomainPlugin<unknown>;
 
-/** Les 4 modules VELUM — le philatélique est un module à part entière. */
+/** Les 5 modules VELUM — philatélie et montres sont des modules à part entière. */
 export const plugins: Record<VelumDomain, AnyDomainPlugin> = {
   wine: winePlugin,
   coin: coinPlugin,
   art: artPlugin,
   stamp: stampPlugin,
+  watch: watchPlugin,
 };
 
 export function isVelumDomain(value: unknown): value is VelumDomain {
-  return value === 'wine' || value === 'coin' || value === 'art' || value === 'stamp';
+  return (
+    value === 'wine' ||
+    value === 'coin' ||
+    value === 'art' ||
+    value === 'stamp' ||
+    value === 'watch'
+  );
 }
 
 /** Lit une clé API optionnelle depuis l'environnement. */
@@ -130,6 +145,20 @@ export function buildSources(domain: VelumDomain, transport: Transport): PriceSo
       if (ebay) sources.push(new StampEbaySoldSource({ transport, apiKey: ebay }));
       const catawiki = key('CATAWIKI_API_KEY');
       if (catawiki) sources.push(new StampCatawikiSource({ transport, apiKey: catawiki }));
+      return sources;
+    }
+    case 'watch': {
+      const sources: PriceSource[] = [];
+      const watchCharts = key('WATCHCHARTS_API_KEY');
+      if (watchCharts) sources.push(new WatchChartsSource({ transport, apiKey: watchCharts }));
+      const heritage = key('HERITAGE_API_KEY');
+      if (heritage) sources.push(new WatchHeritageSource({ transport, apiKey: heritage }));
+      const ebay = key('EBAY_API_KEY');
+      if (ebay) sources.push(new WatchEbaySoldSource({ transport, apiKey: ebay }));
+      const catawiki = key('CATAWIKI_API_KEY');
+      if (catawiki) sources.push(new WatchCatawikiSource({ transport, apiKey: catawiki }));
+      const chrono24 = key('CHRONO24_API_KEY');
+      if (chrono24) sources.push(new Chrono24Source({ transport, apiKey: chrono24 }));
       return sources;
     }
   }

@@ -23,6 +23,7 @@ const ONE_WINE_BENCHMARK = {
   coin: [],
   art: [],
   stamp: [],
+  watch: [],
 } as Record<VelumDomain, PriceQuery[]>;
 
 Deno.test('seed : chaque vente réelle devient une ligne datée public_backtest', async () => {

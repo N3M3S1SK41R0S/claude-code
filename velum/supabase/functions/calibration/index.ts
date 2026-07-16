@@ -28,7 +28,7 @@ import { BENCHMARK_QUERIES } from './benchmarks.ts';
 import { parseCalibrationOutcomes } from './outcomes.ts';
 import { buildSeedRows } from './seed.ts';
 
-const DOMAINS: VelumDomain[] = ['wine', 'coin', 'art', 'stamp'];
+const DOMAINS: VelumDomain[] = ['wine', 'coin', 'art', 'stamp', 'watch'];
 
 interface CalibrationRunInsert {
   domain: VelumDomain;

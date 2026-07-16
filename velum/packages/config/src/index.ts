@@ -11,6 +11,12 @@ export interface VelumFeatures {
    * révision du CDC v1.0 §0.1) : activé par défaut, désactivable par flag.
    */
   enableStamps: boolean;
+  /**
+   * Module montres de collection (hommes et femmes) — 5e MODULE À PART
+   * ENTIÈRE (décision produit juillet 2026) : activé par défaut,
+   * désactivable par flag.
+   */
+  enableWatches: boolean;
   /** Bascule paramétrable du module art (§6.4). */
   artDomain: ArtDomainMode;
   /** Marketplace = phase 2 (KYC/AML/DSP2 requis, §12.4). */
@@ -19,6 +25,7 @@ export interface VelumFeatures {
 
 export const DEFAULT_FEATURES: VelumFeatures = {
   enableStamps: true,
+  enableWatches: true,
   artDomain: 'tableaux',
   // Communauté marchande à séquestre ACTIVE en V1 (Platine) — décision produit
   // juillet 2026. L'UI est gatée par l'entitlement `community` (Platine).
@@ -152,10 +159,17 @@ export function canScan(plan: PlanId, scansThisWeekForModule: number): boolean {
   return scansThisWeekForModule < PLAN_LIMITS[plan].scansPerWeekPerModule;
 }
 
-/** Domaines actifs selon les flags — `stamp` n'apparaît que si enableStamps. */
-export function activeDomains(features: VelumFeatures): ('wine' | 'coin' | 'art' | 'stamp')[] {
-  const base: ('wine' | 'coin' | 'art' | 'stamp')[] = ['wine', 'coin', 'art'];
-  return features.enableStamps ? [...base, 'stamp'] : base;
+/**
+ * Domaines actifs selon les flags — `stamp` n'apparaît que si enableStamps,
+ * `watch` que si enableWatches.
+ */
+export function activeDomains(
+  features: VelumFeatures,
+): ('wine' | 'coin' | 'art' | 'stamp' | 'watch')[] {
+  const domains: ('wine' | 'coin' | 'art' | 'stamp' | 'watch')[] = ['wine', 'coin', 'art'];
+  if (features.enableStamps) domains.push('stamp');
+  if (features.enableWatches) domains.push('watch');
+  return domains;
 }
 
 /**

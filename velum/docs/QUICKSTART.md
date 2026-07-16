@@ -48,7 +48,7 @@ printf 'EXPO_PUBLIC_SUPABASE_URL=https://demo.supabase.co\nEXPO_PUBLIC_SUPABASE_
 pnpm --filter velum-mobile dev      # puis appuie sur "w" (ouvre http://localhost:8081)
 ```
 
-Tu peux parcourir : onboarding (vidéo du sceau) → choix des 4 modules →
+Tu peux parcourir : onboarding (vidéo du sceau) → choix des 5 modules →
 écrans de capture, formules, confidentialité. Sur téléphone : installe
 **Expo Go** et scanne le QR affiché.
 
@@ -76,7 +76,7 @@ pnpm screens                            # régénère les 13 captures (docs/scre
 
 Preuves individuelles (chacune affiche PASS/FAIL) :
 ```bash
-pnpm e2e        # parcours d'entrée (onboarding → 4 modules → confidentialité)
+pnpm e2e        # parcours d'entrée (onboarding → 5 modules → confidentialité)
 pnpm e2e:auth   # écrans connectés (collection, carnet, fiche, sommelier, marché, profil)
 pnpm a11y       # audit accessibilité WCAG 2.2 AA (axe-core) — 0 violation
 pnpm senior     # mode senior : bouton 46→56 pt, titre 28→35 px

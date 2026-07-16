@@ -244,6 +244,48 @@ export const ITEMS = [
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2026-04-01T00:00:00Z',
   },
+  {
+    id: 'demo-watch',
+    owner_id: OWNER,
+    domain: 'watch',
+    title: 'Omega Speedmaster Professional 3570.50',
+    attributes: {
+      brand: 'Omega',
+      model: 'Speedmaster Professional',
+      reference: '3570.50',
+      year: 1998,
+      analysis: {
+        identification: { brand: 'Omega', model: 'Speedmaster Professional', reference: '3570.50', year: 1998, gender: 'homme', caseMaterial: 'acier', caseDiameterMm: 42, dialColor: 'noir', bracelet: 'acier', crystal: 'hésalite (plexiglas)', waterResistanceM: 50, boxPapers: 'montre_seule' },
+        movement: { type: 'manuel', calibre: 'Omega 1861', powerReserveHours: 48, frequencyVph: 21600, jewels: 18, complications: ['chronographe', 'petite seconde'], certification: 'qualifiée NASA pour les vols habités' },
+        condition: { summary: 'Bel état général, patine homogène du boîtier.', polished: 'leger', issues: ['rayures superficielles sur le verre'], confidence: 0.7, caveat: 'Estimation visuelle — seul un horloger ouvrant le boîtier peut attester du mouvement et de l’authenticité.' },
+        story: {
+          why: 'Chronographe conçu en 1957 pour la course automobile et l’ingénierie, devenu la montre des missions Apollo après les tests de qualification de la NASA.',
+          byWhom: 'Omega — calibre chronographe développé avec Lemania (321, puis 861/1861).',
+          modelLaunchYear: 1957,
+          milestones: [
+            { year: 1965, note: 'Qualifiée par la NASA pour tous les vols spatiaux habités' },
+            { year: 1969, note: 'Première montre portée sur la Lune (Apollo 11)' },
+          ],
+        },
+        heritage: {
+          history:
+            'La « Moonwatch » : lancée en 1957 dans la trilogie des montres professionnelles Omega, elle accompagne toutes les missions Apollo à partir de 1965. Production continue depuis, ce qui en fait l’un des chronographes les plus documentés du marché de collection.',
+          rarity: { level: 'courante', note: 'Grande série ; références anciennes, cadrans particuliers et full sets recherchés.' },
+          editionSize: { unit: 'exemplaires', note: 'Production continue, non limitée.' },
+        },
+        neighborReferences: [{ reference: '145.022', note: 'Génération calibre 861 précédente, cote proche' }],
+        uncertainties: ['Référence et année exactes à confirmer par le numéro de série (fond de boîte).'],
+      },
+    },
+    confidence: 0.84,
+    acquired_at: '2021-03-15',
+    acquired_price: 3200,
+    condition: 'bel état, révisée en 2023',
+    notes: null,
+    storage_location: 'Écrin — emplacement 1',
+    created_at: '2024-01-01T00:00:00Z',
+    updated_at: '2026-06-15T00:00:00Z',
+  },
 ];
 
 export const VALUATIONS = {
@@ -285,6 +327,16 @@ export const VALUATIONS = {
         { price: 7.5, currency: 'EUR', ageDays: 134, sourceWeight: 0.7, source: { name: 'eBay (vendu)', kind: 'marketplace_sold' }, matchedLabel: 'France n°130 Semeuse 15c vert neuf charnière (*) — lot vendu' },
         { price: 10, currency: 'EUR', ageDays: 221, sourceWeight: 0.9, source: { name: 'Yvert & Tellier', kind: 'official_quote' }, matchedLabel: 'Cote catalogue Y&T n°130 — Semeuse lignée 15c vert, neuf avec charnière (*)' },
         { price: 9, currency: 'EUR', ageDays: 301, sourceWeight: 0.9, source: { name: 'Colnect', kind: 'official_quote' }, matchedLabel: 'Valeur estimée Semeuse lignée 15c vert (Y&T 130), neuf avec charnière' },
+      ] },
+  ],
+  'demo-watch': [
+    { id: 'v7', item_id: 'demo-watch', central: 4250, ci80_low: 3900, ci80_high: 4650, ci95_low: 3600, ci95_high: 5100, reliability: 72, valued_at: '2026-06-20T00:00:00Z',
+      sources: [
+        { price: 4380, currency: 'EUR', ageDays: 21, sourceWeight: 1, source: { name: 'Heritage Auctions', kind: 'auction_realized' }, matchedLabel: 'Omega Speedmaster Professional 3570.50, 1998 — adjugé, frais compris' },
+        { price: 4200, currency: 'EUR', ageDays: 9, sourceWeight: 0.9, source: { name: 'WatchCharts', kind: 'official_quote' }, matchedLabel: 'Cote de marché — Speedmaster Professional 3570.50, montre seule' },
+        { price: 4050, currency: 'EUR', ageDays: 47, sourceWeight: 0.7, source: { name: 'eBay (vendu)', kind: 'marketplace_sold' }, matchedLabel: 'Omega Speedmaster Moonwatch 3570.50 calibre 1861 (vendu)' },
+        { price: 4450, currency: 'EUR', ageDays: 88, sourceWeight: 0.7, source: { name: 'Catawiki', kind: 'marketplace_sold' }, matchedLabel: 'Omega — Speedmaster Professional — 3570.50 — Homme — 1990-1999 (adjugé)' },
+        { price: 4790, currency: 'EUR', ageDays: 3, sourceWeight: 0.4, source: { name: 'Chrono24', kind: 'listing' }, matchedLabel: 'Speedmaster Professional 3570.50 full set (annonce en cours)' },
       ] },
   ],
 };

@@ -96,6 +96,7 @@ export const REQUIRED_ROLES: Record<VelumDomain, MediaRole[]> = {
   coin: ['obverse', 'reverse', 'edge'],
   art: ['front', 'back', 'signature'],
   stamp: ['front', 'back'],
+  watch: ['dial', 'caseback', 'clasp'],
 };
 
 const ROLE_GUIDANCE: Partial<Record<MediaRole, string>> = {
@@ -107,6 +108,10 @@ const ROLE_GUIDANCE: Partial<Record<MediaRole, string>> = {
   front: 'Photographiez l’objet de face, entier.',
   back: 'Photographiez le dos (verso, gomme, cachets).',
   signature: 'Cadrez la signature ou la marque.',
+  dial: 'Photographiez le cadran de face, sans reflet.',
+  caseback: 'Photographiez le fond de boîte (gravures, référence).',
+  movement: 'Photographiez le mouvement si le fond est transparent.',
+  clasp: 'Photographiez le fermoir et le bracelet.',
   frame: 'Photographiez le cadre.',
   detail: 'Cadrez le détail utile (dentelure, défaut…).',
 };

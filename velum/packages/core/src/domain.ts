@@ -5,7 +5,7 @@
  */
 import type { FxRates, PriceObservation, PriceQuery, PriceSource, SourceRef, ValuationResult } from './pricing.ts';
 
-export type VelumDomain = 'wine' | 'coin' | 'art' | 'stamp';
+export type VelumDomain = 'wine' | 'coin' | 'art' | 'stamp' | 'watch';
 
 /** Rôle d'un cliché — guide de cadrage par domaine (§6.1.2). */
 export type MediaRole =
@@ -18,6 +18,10 @@ export type MediaRole =
   | 'back' // verso / étiquettes de dos (tableau)
   | 'signature' // détail signature (tableau)
   | 'frame' // cadre (tableau)
+  | 'dial' // cadran (montre)
+  | 'caseback' // fond de boîte (montre)
+  | 'movement' // mouvement visible (montre)
+  | 'clasp' // fermoir / boucle (montre)
   | 'detail'; // détail libre
 
 export interface CaptureMedia {

@@ -33,7 +33,7 @@ function post(domain: string): Request {
   });
 }
 
-Deno.test('recognize : les imports fichier des quatre domaines n’appellent ni quota ni IA', async () => {
+Deno.test('recognize : les imports fichier des cinq domaines n’appellent ni quota ni IA', async () => {
   const calls: string[] = [];
   globalThis.fetch = ((input: string | URL | Request): Promise<Response> => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
@@ -54,7 +54,7 @@ Deno.test('recognize : les imports fichier des quatre domaines n’appellent ni 
   }) as typeof fetch;
 
   try {
-    for (const domain of ['wine', 'coin', 'art', 'stamp']) {
+    for (const domain of ['wine', 'coin', 'art', 'stamp', 'watch']) {
       const response = await recognize(post(domain));
       assertEquals(response.status, 200);
       const body = await response.json();
@@ -64,7 +64,7 @@ Deno.test('recognize : les imports fichier des quatre domaines n’appellent ni 
       assertEquals(body.candidates[0].label, `Objet importé ${domain}`);
     }
 
-    assertEquals(calls.filter((url) => url.includes('/auth/v1/user')).length, 4);
+    assertEquals(calls.filter((url) => url.includes('/auth/v1/user')).length, 5);
     assertEquals(calls.some((url) => url.includes('guard_ai_call')), false);
     assertEquals(calls.some((url) => url.includes('consume_scan')), false);
     assertEquals(calls.some((url) => url.includes('/storage/v1/object/')), false);

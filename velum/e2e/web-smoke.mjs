@@ -2,7 +2,7 @@
  * E2E de fumée — PWA VELUM (export statique `expo export --platform web`).
  *
  * Vérifie sur un vrai Chromium que l'app web démarre et rend le parcours
- * d'entrée : onboarding (pitch « Levez le voile… »), choix des 4 modules,
+ * d'entrée : onboarding (pitch « Levez le voile… »), choix des 5 modules,
  * navigation vers la création de compte. Aucune dépendance réseau : le
  * bundle exporté est servi localement, Supabase n'est pas contacté avant
  * l'authentification.
@@ -83,13 +83,13 @@ try {
   await page.waitForSelector('text=Levez le voile sur la valeur de vos objets', { timeout: 20000 });
   console.log('✓ Pitch affiché après la vidéo');
 
-  // 2) Les 4 modules sont proposés (philatélie incluse).
-  for (const moduleName of ['Vin', 'Pièces', 'Tableaux', 'Timbres']) {
+  // 2) Les 5 modules sont proposés (philatélie et horlogerie incluses).
+  for (const moduleName of ['Vin', 'Pièces', 'Tableaux', 'Timbres', 'Montres']) {
     if ((await page.locator(`text=${moduleName}`).count()) === 0) {
       fail(`Module absent de l'onboarding : ${moduleName}`);
     }
   }
-  console.log('✓ Les 4 modules sont proposés (dont Timbres)');
+  console.log('✓ Les 5 modules sont proposés (dont Timbres et Montres)');
 
   // 3) La page de confidentialité embarquée répond (exigence stores).
   await page.goto(`${base}/privacy`, { waitUntil: 'networkidle' });
