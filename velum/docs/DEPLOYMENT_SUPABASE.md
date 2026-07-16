@@ -25,15 +25,17 @@ Le chemin nominal est strictement sériel :
 
 1. un commit atteint `main` ;
 2. `VELUM CI` valide typecheck, lint, tests, PWA, accessibilité, Edge Functions et toutes les migrations ;
-3. le workflow de production checkout **le SHA exact validé** dans un arbre cible séparé ;
-4. le SHA est comparé au HEAD distant courant de `main` ; un run CI terminé hors ordre est ignoré avant l’installation de la CLI et avant l’accès aux secrets ;
-5. le contrôleur de déploiement provient du même SHA validé, jamais d’une branche arbitraire ;
-6. `supabase db push --dry-run` vérifie l’historique distant ;
-7. `supabase db push` applique uniquement les migrations en attente ;
-8. `supabase functions deploy` publie toutes les fonctions du dépôt ;
-9. `supabase functions list --output json` prouve que chaque entrypoint local existe à distance.
+3. un job de préflight, sans environnement production ni secret, checkout **le SHA exact validé** ;
+4. ce SHA est comparé au HEAD distant courant de `main` ; un run CI terminé hors ordre est ignoré avant la création du job production ;
+5. le préflight produit deux identifiants immuables : `target_sha` et `controller_sha` ;
+6. en automatique, ces deux SHA sont identiques au commit validé ; en manuel, le contrôleur est figé sur le HEAD de `main` observé au préflight et la cible peut être un ancien ancêtre ;
+7. le job production checkout exclusivement ces SHA, puis revalide une dernière fois le HEAD automatique ;
+8. `supabase db push --dry-run` vérifie l’historique distant ;
+9. `supabase db push` applique uniquement les migrations en attente ;
+10. `supabase functions deploy` publie toutes les fonctions du dépôt ;
+11. `supabase functions list --output json` prouve que chaque entrypoint local existe à distance.
 
-Le groupe de concurrence `velum-supabase-production` interdit deux déploiements simultanés. Les exécutions ne sont pas annulées lorsqu’un nouveau commit arrive : le déploiement courant termine avant le suivant. La vérification du HEAD empêche ensuite un run CI plus ancien, terminé tardivement, de redéployer un état obsolète après une révision plus récente.
+Le groupe de concurrence `velum-supabase-production` interdit deux déploiements simultanés. Les exécutions ne sont pas annulées lorsqu’un nouveau commit arrive : le déploiement courant termine avant le suivant. La double vérification du HEAD empêche un run CI plus ancien, terminé tardivement ou devenu obsolète pendant le préflight, de redéployer un état antérieur.
 
 ## Invariants de sécurité
 
@@ -41,10 +43,10 @@ Le groupe de concurrence `velum-supabase-production` interdit deux déploiements
 - Un historique de migrations divergent bloque le pipeline au lieu d’être modifié silencieusement.
 - La base est déployée avant les fonctions afin que le nouveau code ne précède pas son schéma.
 - Les secrets ne sont ni passés en argument de commande, ni écrits dans le résumé GitHub.
-- Les credentials Supabase ne sont injectés que dans l’étape de shell qui publie ; checkout et setup-cli ne les reçoivent pas.
+- Les credentials Supabase ne sont injectés que dans l’étape de shell qui publie ; checkout, préflight et setup-cli ne les reçoivent pas.
 - Le mot de passe DB est injecté uniquement lorsque `deploy_database=true`.
 - Le checkout désactive `persist-credentials` et les actions externes sont épinglées par SHA.
-- Lors d’un lancement manuel, le script ayant accès aux secrets vient toujours de `main` ; la cible est checkoutée dans un second arbre.
+- Lors d’un lancement manuel, le script ayant accès aux secrets vient d’un `controller_sha` de `main` figé avant le job production ; la cible est checkoutée dans un second arbre.
 - Toute cible manuelle doit être un ancêtre de `main`. Une branche non fusionnée ne peut donc jamais fournir le code cible publié.
 - L’environnement GitHub `production` doit refuser tout workflow exécuté hors de `main`.
 - `config.toml` explicite `verify_jwt` pour les douze fonctions. Les handlers cron/webhook conservent leur propre vérification de secret.
