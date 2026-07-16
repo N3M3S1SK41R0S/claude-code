@@ -19,11 +19,12 @@ Le chemin nominal est strictement sériel :
 
 1. un commit atteint `main` ;
 2. `VELUM CI` valide typecheck, lint, tests, PWA, accessibilité, Edge Functions et toutes les migrations ;
-3. le workflow de production checkout **le SHA exact validé** ;
-4. `supabase db push --dry-run` vérifie l’historique distant ;
-5. `supabase db push` applique uniquement les migrations en attente ;
-6. `supabase functions deploy` publie toutes les fonctions du dépôt ;
-7. `supabase functions list --output json` prouve que chaque entrypoint local existe à distance.
+3. le workflow de production checkout **le SHA exact validé** dans un arbre cible séparé ;
+4. le contrôleur de déploiement provient du même SHA validé, jamais d’une branche arbitraire ;
+5. `supabase db push --dry-run` vérifie l’historique distant ;
+6. `supabase db push` applique uniquement les migrations en attente ;
+7. `supabase functions deploy` publie toutes les fonctions du dépôt ;
+8. `supabase functions list --output json` prouve que chaque entrypoint local existe à distance.
 
 Le groupe de concurrence `velum-supabase-production` interdit deux déploiements simultanés. Les exécutions ne sont pas annulées lorsqu’un nouveau commit arrive : le déploiement courant termine avant le suivant.
 
@@ -34,6 +35,8 @@ Le groupe de concurrence `velum-supabase-production` interdit deux déploiements
 - La base est déployée avant les fonctions afin que le nouveau code ne précède pas son schéma.
 - Les secrets ne sont ni passés en argument de commande, ni écrits dans le résumé GitHub.
 - Le checkout désactive `persist-credentials` et les actions externes sont épinglées par SHA.
+- Lors d’un lancement manuel, le script ayant accès aux secrets vient toujours de `main` ; la cible est checkoutée dans un second arbre.
+- Toute cible manuelle doit être un ancêtre de `main`. Une branche non fusionnée ne peut donc jamais exécuter son propre code avec les secrets production.
 - `config.toml` explicite `verify_jwt` pour les douze fonctions. Les handlers cron/webhook conservent leur propre vérification de secret.
 
 ## Déploiement ou rollback manuel
@@ -66,13 +69,13 @@ dry_run=true
 ### Restaurer les Edge Functions d’un ancien SHA
 
 ```text
-ref=<ancien-sha-validé>
+ref=<ancien-sha-validé-et-présent-dans-main>
 deploy_database=false
 deploy_functions=true
 dry_run=false
 ```
 
-Le workflow refuse toute tentative de déploiement de base depuis un ref autre que `main`. Une migration PostgreSQL déjà appliquée ne se rétrograde jamais automatiquement : la correction se fait par une nouvelle migration **forward-only**.
+Le workflow refuse toute cible absente de l’historique de `main`, ainsi que toute tentative de déploiement de base depuis un ref autre que `main`. Une migration PostgreSQL déjà appliquée ne se rétrograde jamais automatiquement : la correction se fait par une nouvelle migration **forward-only**.
 
 ## Exécution locale avec un `.env`
 
@@ -106,10 +109,12 @@ Variables acceptées :
 | `DEPLOY_FUNCTIONS` | `true` |
 | `DRY_RUN` | `false` |
 | `DEPLOY_REF` | SHA Git courant, uniquement pour l’observabilité |
+| `VELUM_ROOT` | racine contenant `supabase/config.toml`, utile lorsque contrôleur et cible sont séparés |
 
 ## Diagnostic
 
 - Échec avant la CLI : secret GitHub absent ou variable locale manquante.
+- Cible refusée : le SHA demandé n’est pas dans l’historique de `main`.
 - Échec du dry-run DB : historique distant divergent ; inspecter `supabase migration list --linked`, sans réparation automatique.
 - Échec du déploiement de fonction : relancer le même SHA après correction de l’incident Supabase.
 - Inventaire incomplet : le script échoue même si la CLI a retourné zéro, afin de ne pas déclarer une publication partielle réussie.
