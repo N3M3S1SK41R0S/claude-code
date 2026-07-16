@@ -53,8 +53,8 @@ jobs:
     timeout-minutes: 10
     outputs:
       should_deploy: ${{ steps.target.outputs.should_deploy }}
-      target_sha: ${{ steps.target.outputs.sha }}
-      controller_ref: ${{ steps.plan.outputs.controller_ref }}
+      target_sha: ${{ steps.target.outputs.target_sha }}
+      controller_sha: ${{ steps.target.outputs.controller_sha }}
       event_name: ${{ steps.plan.outputs.event_name }}
       deploy_database: ${{ steps.plan.outputs.deploy_database }}
       deploy_functions: ${{ steps.plan.outputs.deploy_functions }}
@@ -76,13 +76,11 @@ jobs:
 
           if [[ "$EVENT_NAME" == "workflow_run" ]]; then
             ref="$AUTO_REF"
-            controller_ref="$AUTO_REF"
             deploy_database=true
             deploy_functions=true
             dry_run=false
           else
             ref="${MANUAL_REF:-main}"
-            controller_ref=main
             deploy_database="${MANUAL_DATABASE:-true}"
             deploy_functions="${MANUAL_FUNCTIONS:-true}"
             dry_run="${MANUAL_DRY_RUN:-false}"
@@ -103,7 +101,6 @@ jobs:
           {
             echo "event_name=$EVENT_NAME"
             echo "ref=$ref"
-            echo "controller_ref=$controller_ref"
             echo "deploy_database=$deploy_database"
             echo "deploy_functions=$deploy_functions"
             echo "dry_run=$dry_run"
@@ -136,15 +133,26 @@ jobs:
             exit 1
           fi
 
+          # En automatique, le contrôleur est exactement le SHA validé. En manuel,
+          # il est figé sur le HEAD de main observé pendant ce préflight.
+          if [[ "$EVENT_NAME" == "workflow_run" ]]; then
+            controller_sha="$target_sha"
+          else
+            controller_sha="$main_sha"
+          fi
+
+          {
+            echo "target_sha=$target_sha"
+            echo "controller_sha=$controller_sha"
+          } >>"$GITHUB_OUTPUT"
+
           if [[ "$EVENT_NAME" == "workflow_run" && "$target_sha" != "$main_sha" ]]; then
             echo "Déploiement automatique ignoré : le SHA validé $target_sha n'est plus le HEAD de main ($main_sha)." >>"$GITHUB_STEP_SUMMARY"
             echo "should_deploy=false" >>"$GITHUB_OUTPUT"
-            echo "sha=$target_sha" >>"$GITHUB_OUTPUT"
             exit 0
           fi
 
           echo "should_deploy=true" >>"$GITHUB_OUTPUT"
-          echo "sha=$target_sha" >>"$GITHUB_OUTPUT"
 
   deploy:
     name: Déployer Supabase production
@@ -156,13 +164,12 @@ jobs:
       name: production
 
     steps:
-      # Le contrôleur provient toujours du SHA CI (automatique) ou de main
-      # (manuel). Une ref cible ne peut donc jamais remplacer le script qui a
-      # accès aux secrets de production.
+      # Les deux checkouts utilisent des SHA immuables produits par le préflight.
+      # La cible ne peut jamais remplacer le script qui accède aux secrets.
       - name: Checkout du contrôleur approuvé
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
-          ref: ${{ needs.preflight.outputs.controller_ref }}
+          ref: ${{ needs.preflight.outputs.controller_sha }}
           path: controller
           persist-credentials: false
           fetch-depth: 1
