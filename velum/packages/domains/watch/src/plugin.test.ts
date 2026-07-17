@@ -388,13 +388,14 @@ function obs(
   currency: string,
   kind: PriceSource['kind'],
   ageDays: number,
+  sourceName: string,
 ): PriceObservation {
   return {
     price,
     currency,
     ageDays,
     sourceWeight: kind === 'auction_realized' ? 1 : 0.7,
-    source: { name: 'fixture', kind },
+    source: { name: sourceName, kind },
   };
 }
 
@@ -412,15 +413,15 @@ describe('watchPlugin.valuate — bout-en-bout avec @velum/valuation', () => {
       name: 'eBay sold',
       kind: 'marketplace_sold',
       fetch: async () => [
-        obs(10800, 'EUR', 'marketplace_sold', 10),
-        obs(11600, 'EUR', 'marketplace_sold', 30),
-        obs(11100, 'EUR', 'marketplace_sold', 5),
+        obs(10800, 'EUR', 'marketplace_sold', 10, 'eBay sold'),
+        obs(11600, 'EUR', 'marketplace_sold', 30, 'eBay sold'),
+        obs(11100, 'EUR', 'marketplace_sold', 5, 'eBay sold'),
       ],
     };
     const sourceB: PriceSource = {
       name: 'Heritage Auctions',
       kind: 'auction_realized',
-      fetch: async () => [obs(12500, 'USD', 'auction_realized', 60)],
+      fetch: async () => [obs(12500, 'USD', 'auction_realized', 60, 'Heritage Auctions')],
     };
     const failing: PriceSource = {
       name: 'en panne',
@@ -435,7 +436,7 @@ describe('watchPlugin.valuate — bout-en-bout avec @velum/valuation', () => {
       deps([sourceA, sourceB, failing]),
     );
 
-    expect(result.nSources).toBe(4);
+    expect(result.nSources).toBe(2); // 2 plateformes distinctes, 4 observations conservées
     expect(result.currency).toBe('EUR');
     expect(result.central).toBeGreaterThanOrEqual(10800);
     expect(result.central).toBeLessThanOrEqual(11600);
