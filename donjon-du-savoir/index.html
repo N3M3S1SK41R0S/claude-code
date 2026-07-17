@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Le Donjon du Savoir — jeu de plateau de culture générale</title>
+  <meta name="description" content="Jeu de plateau interactif de culture générale : 1 à 20 joueurs, questions vérifiées avec anecdotes, zéro chronomètre. Se cultiver en jouant !" />
+  <meta name="theme-color" content="#1a1230" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span aria-hidden="true">🏰</span>
+      <strong>LE DONJON DU SAVOIR</strong>
+    </div>
+    <div class="topbar-actions">
+      <button id="voice-toggle" class="btn btn-small" type="button" aria-pressed="false">🔇 Héraut muet</button>
+      <button id="quit-btn" class="btn btn-small" type="button">🏠</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Accueil -->
+    <section id="screen-home" class="screen screen-centre">
+      <p class="home-emoji" aria-hidden="true">🏰</p>
+      <h1 class="home-title">LE DONJON DU SAVOIR</h1>
+      <p class="home-tagline">Se cultiver en jouant — 1 à 20 aventuriers, aucune montre au mur.</p>
+      <div class="herald-bubble herald-home">
+        <span class="herald-avatar" aria-hidden="true">📯</span>
+        <p class="herald-text">« Oyez ! Ici, chaque question offre son anecdote, et nul chronomètre ne viendra jamais vous presser. Parole de Héraut. »</p>
+      </div>
+      <div id="home-actions" class="home-actions"></div>
+      <p id="bank-info" class="bank-info"></p>
+    </section>
+
+    <!-- Configuration -->
+    <section id="screen-setup" class="screen" hidden>
+      <h1 class="screen-title">Préparez l'expédition</h1>
+      <div id="setup-zone"></div>
+    </section>
+
+    <!-- Partie -->
+    <section id="screen-game" class="screen screen-game" hidden>
+      <div id="board" class="board" role="img" aria-label="Plateau du Donjon"></div>
+      <div id="herald-zone" class="herald-zone" aria-live="polite"></div>
+      <div id="panel" class="panel"></div>
+      <div id="players" class="players-strip" aria-label="Aventuriers"></div>
+    </section>
+
+    <!-- Victoire -->
+    <section id="screen-victory" class="screen screen-centre" hidden>
+      <div id="victory-zone"></div>
+    </section>
+  </main>
+
+  <noscript><p style="padding:2rem;text-align:center">Le Donjon du Savoir a besoin de JavaScript pour ouvrir ses portes.</p></noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
