@@ -55,14 +55,21 @@ grand-mogul/
 | P5 Polish | ✅ | framer-motion, prefers-reduced-motion, haptique, dark mode, a11y (26 constats de revue corrigés). |
 | P6 Ship | ⚠️ à faire | Config Vercel prête (`vercel.json`), **déploiement effectif non fait** (requiert le compte du propriétaire). |
 
-## 4. Banque de questions — ✅ COMPLÉTÉE (mise à jour post-reprise)
+## 4. Banque de questions — ✅ 289 vérifiées, 13 thèmes, 5 formats
 
-> **Mise à jour** : la forge de complément a tourné après le rétablissement du
-> budget — la banque embarquée compte désormais **256 questions vérifiées**
-> couvrant les **13 thèmes** (les plus légers : langue 8, gastronomie 10,
-> musique 11 — le fact-check adversarial à seuil 0,9 rejette beaucoup sur ces
-> thèmes ; relancer le même workflow pour les renforcer). Le récit ci-dessous
-> décrit l'incident d'origine et reste utile pour la procédure de récupération.
+> **Mise à jour 2** : après trois vagues de forge, la banque embarquée compte
+> **289 questions vérifiées** (237 qcm, 26 vrai_faux, 16 gambit_numerique,
+> 8 equipe, 2 cash_carre_duo). La vague 3 (formats rares) a été COUPÉE par la
+> limite de dépense mensuelle après 5 thèmes sur 13 : les questions
+> vrai_faux/gambit/equipe manquent encore pour cinema, musique, gastronomie,
+> sport, langue, pop-culture, insolite et general — relancer le workflow
+> `mogul-bank-formats` (script sauvegardé, listes anti-doublons dans
+> scratchpad/completion-input2.json à régénérer depuis la banque) quand le
+> budget le permet. Les questions vérifiées mais non écrites se récupèrent
+> TOUJOURS via `scripts/recover-forge.mjs` sur le dossier de transcripts du
+> workflow (payloads embarqués dans les prompts des copistes).
+> Le jeu frère `donjon-du-savoir/` consomme cette banque via son
+> `tools/build-questions.mjs` (291 questions : 289 + S7/B4 corrigées).
 
 ### Historique de l'incident (résolu)
 

@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 258,
+ "count": 291,
  "questions": [
   {
    "id": "arts-001",
@@ -4126,6 +4126,590 @@
     "Jim Hines"
    ],
    "bonne_reponse": "Jim Hines"
+  },
+  {
+   "id": "arts-024",
+   "categorie": "Arts",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La tour Eiffel devait initialement être démontée vingt ans après sa construction.",
+   "anecdote": "La convention de 1887 accordait à Gustave Eiffel une exploitation de vingt ans, après quoi la tour devait disparaître. Elle fut sauvée grâce à son utilité pour la télégraphie sans fil, expérimentée depuis son sommet dès 1903.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_Eiffel",
+    "https://www.toureiffel.paris/fr/le-monument/histoire"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "arts-025",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La Joconde de Léonard de Vinci est peinte sur toile.",
+   "anecdote": "La Joconde est peinte à l'huile sur un panneau de bois de peuplier. Ce support fragile, traversé par une fente, explique en partie pourquoi le Louvre refuse désormais de prêter le tableau.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Joconde",
+    "https://www.louvre.fr/decouvrir/le-palais/la-joconde"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "arts-026",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Il n'existe qu'une seule version du Cri d'Edvard Munch.",
+   "anecdote": "Munch a réalisé quatre versions du Cri entre 1893 et 1910 : deux peintures et deux pastels, sans compter une lithographie. La version pastel de 1895 a été adjugée 119,9 millions de dollars en 2012, alors un record mondial aux enchères.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Cri",
+    "https://en.wikipedia.org/wiki/The_Scream"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "arts-027",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le musée du Louvre a-t-il ouvert ses portes au public ?",
+   "anecdote": "Le musée ouvre le 10 août 1793, un an jour pour jour après la chute de la monarchie, sous le nom de Muséum central des arts de la République. Il présente alors quelque 537 peintures, en grande partie issues des collections royales.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Musée_du_Louvre",
+    "https://www.louvre.fr/decouvrir/le-palais"
+   ],
+   "reponse_numerique": 1793
+  },
+  {
+   "id": "arts-028",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "gambit_numerique",
+   "texte": "Combien de colonnes compte l'œuvre Les Deux Plateaux de Daniel Buren, dans la cour d'honneur du Palais-Royal ?",
+   "anecdote": "Les 260 colonnes rayées de marbre blanc et noir, installées en 1985-1986, ont déclenché une violente polémique : des opposants avaient placardé « Démontez les colonnes » sur les palissades du chantier.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Colonnes_de_Buren",
+    "https://passerelles.essentiels.bnf.fr/fr/image/204fb75e-95fe-46b3-85f0-60e53f71245d-colonnes-buren-palais-royal"
+   ],
+   "reponse_numerique": 260
+  },
+  {
+   "id": "geographie-024",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Sydney est la capitale de l'Australie.",
+   "anecdote": "La capitale est Canberra, ville créée de toutes pièces en 1913 pour mettre fin à la rivalité entre Sydney et Melbourne, qui se disputaient ce titre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Canberra",
+    "https://fr.wikipedia.org/wiki/Australie",
+    "https://fr.wikipedia.org/wiki/Sydney"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "geographie-025",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le Danube est le plus long fleuve d'Europe.",
+   "anecdote": "C'est la Volga, avec environ 3 530 km, qui est le plus long fleuve d'Europe. Le Danube (environ 2 850 km) n'arrive qu'en deuxième position.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Volga",
+    "https://fr.wikipedia.org/wiki/Danube"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "geographie-026",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Sucre est la capitale constitutionnelle de la Bolivie.",
+   "anecdote": "La Paz n'est que le siège du gouvernement bolivien. Perchée à plus de 3 500 m d'altitude, elle est souvent citée comme la capitale administrative la plus haute du monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sucre_(Bolivie)",
+    "https://fr.wikipedia.org/wiki/Bolivie",
+    "https://fr.wikipedia.org/wiki/La_Paz"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "geographie-027",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de pays partagent une frontière terrestre avec la France métropolitaine ?",
+   "anecdote": "Espagne, Andorre, Monaco, Italie, Suisse, Allemagne, Luxembourg et Belgique. Mais avec l'outre-mer, la plus longue frontière terrestre de la France est celle qui sépare la Guyane du Brésil.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fronti%C3%A8res_de_la_France",
+    "https://fr.wikipedia.org/wiki/France"
+   ],
+   "reponse_numerique": 8
+  },
+  {
+   "id": "geographie-028",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le tunnel sous la Manche a-t-il été inauguré ?",
+   "anecdote": "Inauguré le 6 mai 1994 par la reine Élisabeth II et François Mitterrand, il possède, avec environ 38 km sous la mer, la plus longue section sous-marine de tous les tunnels du monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tunnel_sous_la_Manche",
+    "https://fr.wikipedia.org/wiki/Manche_(mer)"
+   ],
+   "reponse_numerique": 1994
+  },
+  {
+   "id": "geographie-029",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le canal de Suez a-t-il été inauguré ?",
+   "anecdote": "L'inauguration, le 17 novembre 1869, se fit en présence de l'impératrice Eugénie, épouse de Napoléon III et cousine de Ferdinand de Lesseps, le promoteur du canal.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Canal_de_Suez",
+    "https://fr.wikipedia.org/wiki/Ferdinand_de_Lesseps"
+   ],
+   "reponse_numerique": 1869
+  },
+  {
+   "id": "geographie-030",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez un des dix pays traversés ou longés par le Danube.",
+   "anecdote": "Avec dix pays arrosés, le Danube détient le record mondial. Il est aussi le seul fleuve à traverser quatre capitales : Vienne, Bratislava, Budapest et Belgrade.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Danube",
+    "https://fr.wikipedia.org/wiki/Delta_du_Danube"
+   ],
+   "reponses_acceptees": [
+    "Allemagne",
+    "Autriche",
+    "Slovaquie",
+    "Hongrie",
+    "Croatie",
+    "Serbie",
+    "Roumanie",
+    "Bulgarie",
+    "Moldavie",
+    "Ukraine"
+   ]
+  },
+  {
+   "id": "histoire-025",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La guerre de Cent Ans a réellement duré cent ans.",
+   "anecdote": "Le conflit s'étira en réalité sur 116 ans, de 1337 à 1453. Et aucun traité de paix ne fut signé en 1453 : il fallut attendre le traité de Picquigny, en 1475, pour une paix officielle entre les deux couronnes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guerre_de_Cent_Ans",
+    "https://fr.wikipedia.org/wiki/Bataille_de_Castillon",
+    "https://fr.wikipedia.org/wiki/Trait%C3%A9_de_Picquigny"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "histoire-026",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Louis XIV est devenu roi de France à l'âge de quatre ans.",
+   "anecdote": "Né le 5 septembre 1638, il monta sur le trône le 14 mai 1643, à quatre ans et huit mois, sous la régence de sa mère Anne d'Autriche. Ses 72 ans de règne constituent le plus long règne vérifié d'un monarque souverain de l'histoire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Louis_XIV",
+    "https://fr.wikipedia.org/wiki/Liste_des_monarques_de_France"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "histoire-027",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Clovis fut le premier roi des Francs à être sacré à Reims.",
+   "anecdote": "Clovis fut baptisé à Reims, et non sacré : le premier roi franc sacré est Pépin le Bref, en 751. La légende de la sainte ampoule apportée par une colombe lors du baptême n'apparaît qu'au IXe siècle, sous la plume de l'archevêque Hincmar.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bapt%C3%AAme_de_Clovis",
+    "https://fr.wikipedia.org/wiki/Sacre_des_rois_de_France",
+    "https://fr.wikipedia.org/wiki/P%C3%A9pin_le_Bref"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "histoire-028",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Henri IV a-t-il signé l'édit de Nantes ?",
+   "anecdote": "Cet édit de tolérance envers les protestants fut révoqué en 1685 par Louis XIV avec l'édit de Fontainebleau, poussant environ 200 000 huguenots à s'exiler, notamment vers les Provinces-Unies, l'Angleterre et la Prusse.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89dit_de_Nantes",
+    "https://fr.wikipedia.org/wiki/Henri_IV_(roi_de_France)"
+   ],
+   "reponse_numerique": 1598
+  },
+  {
+   "id": "histoire-029",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le traité de Verdun a-t-il partagé l'empire carolingien entre les petits-fils de Charlemagne ?",
+   "anecdote": "Un an avant ce partage, Charles le Chauve et Louis le Germanique avaient scellé leur alliance par les Serments de Strasbourg (842), considérés comme le plus ancien texte conservé en langue romane, ancêtre du français.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Trait%C3%A9_de_Verdun",
+    "https://fr.wikipedia.org/wiki/Serments_de_Strasbourg"
+   ],
+   "reponse_numerique": 843
+  },
+  {
+   "id": "histoire-030",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "equipe",
+   "texte": "Citez un président de la Ve République française.",
+   "anecdote": "Georges Pompidou est le seul président de la Ve République à être mort en cours de mandat, le 2 avril 1974. Charles de Gaulle, lui, est le seul à avoir démissionné, après l'échec du référendum de 1969.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Liste_des_pr%C3%A9sidents_de_la_R%C3%A9publique_fran%C3%A7aise",
+    "https://fr.wikipedia.org/wiki/Cinqui%C3%A8me_R%C3%A9publique_(France)"
+   ],
+   "reponses_acceptees": [
+    "Charles de Gaulle",
+    "De Gaulle",
+    "Georges Pompidou",
+    "Pompidou",
+    "Valéry Giscard d'Estaing",
+    "Giscard d'Estaing",
+    "Giscard",
+    "François Mitterrand",
+    "Mitterrand",
+    "Jacques Chirac",
+    "Chirac",
+    "Nicolas Sarkozy",
+    "Sarkozy",
+    "François Hollande",
+    "Hollande",
+    "Emmanuel Macron",
+    "Macron"
+   ]
+  },
+  {
+   "id": "litterature-025",
+   "categorie": "Littérature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Jules Verne a reçu le prix Nobel de littérature.",
+   "anecdote": "Bien qu'il soit l'un des auteurs les plus traduits au monde, Jules Verne n'a jamais reçu le Nobel, décerné à partir de 1901, ni siégé à l'Académie française. Il meurt en 1905, quatre ans seulement après la création du prix.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jules_Verne",
+    "https://fr.wikipedia.org/wiki/Liste_des_laur%C3%A9ats_du_prix_Nobel_de_litt%C3%A9rature"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "litterature-026",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Molière est mort sur scène, en pleine représentation du Malade imaginaire.",
+   "anecdote": "C'est une idée reçue : pris d'un malaise lors de la quatrième représentation, le 17 février 1673, Molière est ramené chez lui, rue de Richelieu, où il meurt quelques heures plus tard. Les comédiens étant privés de sépulture chrétienne, il n'est enterré que de nuit.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Moli%C3%A8re",
+    "https://fr.wikipedia.org/wiki/Le_Malade_imaginaire"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "litterature-027",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le Petit Prince de Saint-Exupéry a d'abord été publié aux États-Unis, et non en France.",
+   "anecdote": "Le Petit Prince paraît à New York en avril 1943, en anglais et en français, alors que Saint-Exupéry y est exilé. Les lecteurs français ne le découvrent chez Gallimard qu'en 1946, deux ans après la disparition de l'auteur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Petit_Prince",
+    "https://fr.wikipedia.org/wiki/Antoine_de_Saint-Exup%C3%A9ry"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "litterature-028",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Quel montant, en euros, accompagne le chèque remis au lauréat du prix Goncourt ?",
+   "anecdote": "Le chèque de 10 euros est purement symbolique : la plupart des lauréats l'encadrent sans jamais l'encaisser. La véritable récompense est l'explosion des ventes, souvent plusieurs centaines de milliers d'exemplaires.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Prix_Goncourt",
+    "https://fr.wikipedia.org/wiki/Acad%C3%A9mie_Goncourt"
+   ],
+   "reponse_numerique": 10
+  },
+  {
+   "id": "litterature-029",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Albert Camus a-t-il reçu le prix Nobel de littérature ?",
+   "anecdote": "À 44 ans, Camus est l'un des plus jeunes lauréats de l'histoire du Nobel de littérature, derrière Rudyard Kipling. Il meurt moins de trois ans plus tard dans un accident de voiture, le 4 janvier 1960.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Albert_Camus",
+    "https://fr.wikipedia.org/wiki/Prix_Nobel_de_litt%C3%A9rature"
+   ],
+   "reponse_numerique": 1957
+  },
+  {
+   "id": "litterature-030",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le prix Goncourt a-t-il été décerné pour la première fois ?",
+   "anecdote": "Le tout premier Goncourt est attribué en 1903 à John-Antoine Nau pour Force ennemie, un roman aujourd'hui presque oublié dont le narrateur est interné dans un asile et possédé par un extraterrestre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Prix_Goncourt",
+    "https://fr.wikipedia.org/wiki/John-Antoine_Nau"
+   ],
+   "reponse_numerique": 1903
+  },
+  {
+   "id": "litterature-031",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez un écrivain de nationalité française lauréat du prix Nobel de littérature.",
+   "anecdote": "Avec 16 lauréats, la France détient le record mondial de prix Nobel de littérature. Jean-Paul Sartre est le seul à l'avoir refusé, en 1964, expliquant qu'un écrivain ne doit pas « se laisser transformer en institution ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Liste_des_laur%C3%A9ats_du_prix_Nobel_de_litt%C3%A9rature",
+    "https://fr.wikipedia.org/wiki/Prix_Nobel_de_litt%C3%A9rature"
+   ],
+   "reponses_acceptees": [
+    "Sully Prudhomme",
+    "Frédéric Mistral",
+    "Romain Rolland",
+    "Anatole France",
+    "Henri Bergson",
+    "Roger Martin du Gard",
+    "André Gide",
+    "François Mauriac",
+    "Albert Camus",
+    "Saint-John Perse",
+    "Jean-Paul Sartre",
+    "Claude Simon",
+    "Gao Xingjian",
+    "Jean-Marie Gustave Le Clézio",
+    "Patrick Modiano",
+    "Annie Ernaux"
+   ]
+  },
+  {
+   "id": "sciences-025",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "L'être humain n'utilise que 10 % de son cerveau, le reste demeurant inactif.",
+   "anecdote": "C'est un neuromythe tenace : l'imagerie cérébrale montre qu'au fil d'une journée, la quasi-totalité du cerveau s'active, même durant le sommeil.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Neuromythe",
+    "https://fr.wikipedia.org/wiki/Cerveau_humain"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sciences-026",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le sang pauvre en oxygène qui circule dans les veines est réellement de couleur bleue.",
+   "anecdote": "Le sang désoxygéné est rouge sombre, jamais bleu. Les veines paraissent bleuâtres à travers la peau à cause de la façon dont la lumière est absorbée et diffusée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sang",
+    "https://fr.wikipedia.org/wiki/Veine"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sciences-027",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "L'étrier, osselet de l'oreille moyenne, est le plus petit os du corps humain.",
+   "anecdote": "L'étrier mesure environ 3 mm et pèse quelques milligrammes ; c'est le plus petit et le plus léger des os du squelette humain.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89trier_(os)",
+    "https://fr.wikipedia.org/wiki/Osselet"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "sciences-028",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "L'eau pure bout toujours à 100 °C, quelle que soit l'altitude.",
+   "anecdote": "La température d'ébullition dépend de la pression : en altitude, la pression atmosphérique diminue et l'eau bout en dessous de 100 °C, au sommet de l'Everest vers 68 °C.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89bullition",
+    "https://fr.wikipedia.org/wiki/Point_d%27%C3%A9bullition"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sciences-029",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Quelle est la vitesse de la lumière dans le vide, en mètres par seconde ?",
+   "anecdote": "Cette valeur est exacte par définition depuis 1983 : le mètre est défini comme la distance parcourue par la lumière dans le vide en 1/299 792 458 de seconde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vitesse_de_la_lumi%C3%A8re",
+    "https://fr.wikipedia.org/wiki/M%C3%A8tre"
+   ],
+   "reponse_numerique": 299792458
+  },
+  {
+   "id": "sciences-030",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Quel est le numéro atomique de l'oxygène dans le tableau périodique ?",
+   "anecdote": "L'oxygène est l'élément le plus abondant de la croûte terrestre en masse et le troisième de l'Univers après l'hydrogène et l'hélium.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Oxyg%C3%A8ne",
+    "https://fr.wikipedia.org/wiki/Num%C3%A9ro_atomique"
+   ],
+   "reponse_numerique": 8
+  },
+  {
+   "id": "sciences-031",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année un être humain a-t-il posé le pied sur la Lune pour la première fois ?",
+   "anecdote": "Le 21 juillet 1969 (heure française), Neil Armstrong descend du module lunaire d'Apollo 11 et devient le premier homme à marcher sur la Lune.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Apollo_11",
+    "https://fr.wikipedia.org/wiki/Neil_Armstrong"
+   ],
+   "reponse_numerique": 1969
+  },
+  {
+   "id": "sciences-032",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "equipe",
+   "texte": "Citez un gaz noble (aussi appelé gaz rare), élément du groupe 18 du tableau périodique.",
+   "anecdote": "Le radon est radioactif et l'oganesson, synthétisé au XXIe siècle, est si instable qu'on n'en a produit que quelques atomes. Le terme « gaz rares » est trompeur : l'argon représente près de 1 % de l'atmosphère.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Gaz_noble",
+    "https://fr.wikipedia.org/wiki/Groupe_18_du_tableau_p%C3%A9riodique"
+   ],
+   "reponses_acceptees": [
+    "Hélium",
+    "Néon",
+    "Argon",
+    "Krypton",
+    "Xénon",
+    "Radon",
+    "Oganesson"
+   ]
   },
   {
    "id": "script-G1",

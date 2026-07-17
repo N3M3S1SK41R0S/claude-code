@@ -89,7 +89,7 @@ réelle.
 
 ## La banque de questions
 
-`data/questions.json` — **258 questions vérifiées** (chaque fait contrôlé
+`data/questions.json` — **291 questions vérifiées** (chaque fait contrôlé
 contre ≥ 2 sources indépendantes, citées sous chaque anecdote), 13 catégories,
 3 tranches d'âge, 6 formats. Elle est générée depuis la banque fact-checkée du
 projet frère `../grand-mogul` :
@@ -133,12 +133,12 @@ seulement par tranche d'âge), sauvegarde/reprise automatique, PWA hors-ligne.
 
 **Pas encore fait** (conforme au §12) : illustrations dessinées (prompts §6
 prêts — les personnages sont représentés par des emoji en attendant), voix
-professionnelle, banque 500-1000 questions (195 aujourd'hui, pipeline prêt),
-architecture multi-écrans façon Jackbox (un téléphone par joueur), assurance
-anti-malus payante (v2). Banque : 258 questions aujourd'hui — le pipeline de
-génération + fact-check peut produire les lots suivants vers l'objectif
-500-1000 (les catégories Langue française, Gastronomie et Musique sont les
-prochaines à renforcer).
+professionnelle, architecture multi-écrans façon Jackbox (un téléphone par
+joueur), assurance anti-malus payante (v2). Banque : 291 questions vérifiées
+aujourd'hui — le pipeline de génération + fact-check peut produire les lots
+suivants vers l'objectif 500-1000 (priorités : Langue française, Gastronomie,
+Musique, et davantage de gambits/vrai-faux sur les 8 thèmes que la limite de
+budget a coupés en vague 3).
 
 **Notes IP** (décisions conformes aux §6 et §9 du cahier) : personnages et
 narrateur 100 % originaux ; aucun nom, personnage ou élément du Donjon de
