@@ -5,7 +5,7 @@
 //  - nothing is ever timed (non-negotiable rule of the cahier des charges);
 //  - anecdote after EVERY question, no exception.
 import { drawEasier, drawEvent, drawGambit, drawHardest, drawQuestion } from "./data.js";
-import { BOARD_LENGTH, CASE_TYPES, renderBoard } from "./board.js";
+import { BOARD_LENGTH, renderBoard } from "./board.js";
 import { herald } from "./herald.js";
 import { canRecharge, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { characterById, currentPion, getState, isLast, nextTurn, porteParole, ranking, save } from "./state.js";
@@ -104,7 +104,11 @@ function startTurn({ silent = false } = {}) {
 
 function rollDie() {
   const value = 1 + Math.floor(Math.random() * 6);
-  showDieResult(value, { rerollAvailable: true });
+  // Short tumble animation — pure spectacle, the player is never rushed.
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduced) return showDieResult(value, { rerollAvailable: true });
+  setPanel(el("div", { class: "die die-rolling", "aria-hidden": "true" }, "🎲"));
+  window.setTimeout(() => showDieResult(value, { rerollAvailable: true }), 600);
 }
 
 function showDieResult(value, { rerollAvailable }) {
