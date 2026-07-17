@@ -84,6 +84,7 @@ Le parcours authentifié couvre notamment : accueil, collection, Carnet et Écri
 - Une analyse LLM n’est jamais présentée comme une source de marché.
 - Les données de prix partenaires restent désactivées sans clé **et** autorisation contractuelle.
 - Les secrets restent côté serveur et hors `EXPO_PUBLIC_*`.
+- Aucun workflow ponctuel disposant de droits d’écriture ne reste dans le diff soumis à fusion.
 
 ## Validation manuelle requise avant publication
 
