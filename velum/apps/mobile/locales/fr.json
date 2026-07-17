@@ -30,7 +30,7 @@
     "market": "Marché & alertes",
     "community": "Communauté",
     "videoLabel": "Vidéo de lancement VELUM",
-    "collectionHint": "Cave, cabinet, galerie, album",
+    "collectionHint": "Cave, cabinet, galerie, album, écrin",
     "captureHint": "Photo, texte ou import de fichier",
     "marketHint": "Valorisations, alertes, annonces",
     "communityHint": "Transactions entre collectionneurs"
@@ -421,12 +421,12 @@
     "free": {
       "name": "Gratuit",
       "price": "0 €",
-      "features": "5 scans par semaine pour CHAQUE module (Vin, Pièces, Tableaux, Timbres) · fiche d'analyse et estimation"
+      "features": "5 scans par semaine pour CHAQUE module (Vin, Pièces, Tableaux, Timbres, Montres) · fiche d'analyse et estimation"
     },
     "premium": {
       "name": "Premium",
       "price": "9,99 € / mois",
-      "features": "Scans illimités sur les 4 modules · exports PDF/CSV · alertes de cote — sans carnet virtuel"
+      "features": "Scans illimités sur les 5 modules · exports PDF/CSV · alertes de cote — sans carnet virtuel"
     },
     "subscribe": "Choisir cette formule",
     "restore": "Restaurer les achats",
@@ -440,7 +440,7 @@
       "name": "Gold",
       "price": "19,99 € / mois",
       "badge": "Populaire",
-      "features": "Tout Premium + carnet virtuel : cave à vin avec emplacements, table de pièces, galerie, album philatélique · sommelier de cave (quel vin de MA cave pour ce plat ?)"
+      "features": "Tout Premium + carnet virtuel : cave à vin avec emplacements, table de pièces, galerie, album philatélique, écrin à montres · sommelier de cave (quel vin de MA cave pour ce plat ?)"
     },
     "platine": {
       "name": "Platine",

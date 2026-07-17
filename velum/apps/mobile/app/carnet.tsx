@@ -119,6 +119,10 @@ export default function Carnet() {
     () => (domain === 'wine' ? groupByLocation(domainItems) : []),
     [domain, domainItems],
   );
+  const watchGroups = useMemo(
+    () => (domain === 'watch' ? groupByLocation(domainItems) : []),
+    [domain, domainItems],
+  );
   const stats = useMemo(
     () => (domain === 'wine' ? cellarStats(domainItems, latestByItem, new Date().getFullYear()) : null),
     [domain, domainItems, latestByItem],
@@ -265,7 +269,7 @@ export default function Carnet() {
     <Screen>
       <VText variant="title">{t('carnet.title')}</VText>
 
-      {/* Sélecteur de module (chips des 4 domaines actifs) */}
+      {/* Sélecteur de module (chips des 5 domaines actifs) */}
       <View style={styles.chips} accessibilityLabel={t('carnet.moduleSelector')}>
         {domains.map((d) => {
           const selected = d === domain;
@@ -573,6 +577,65 @@ export default function Carnet() {
           })}
         </View>
       ) : null}
+
+
+      {/* ÉCRIN — montres groupées par emplacement physique. */}
+      {domain === 'watch'
+        ? watchGroups.map((group) => {
+            const groupTotals = bookTotals(group.items, latestByItem);
+            const groupValuationFailures = countFailedValuations(
+              group.items,
+              failedValuationItemIds,
+            );
+            return (
+              <View key={`watch:${group.location ?? '__no_location__'}`} style={styles.group}>
+                <View style={styles.groupHeader}>
+                  <VText variant="heading" tone="gold">
+                    {group.location ?? t('carnet.noLocation')}
+                  </VText>
+                  <VText variant="caption" tone="dim">
+                    {`${t('carnet.itemsCount', { count: group.items.length })}${
+                      groupTotals.valuedCount > 0 && groupValuationFailures === 0
+                        ? ` · ${formatEUR(groupTotals.totalEUR)}`
+                        : ''
+                    }`}
+                  </VText>
+                </View>
+                {group.items.map((item) => {
+                  const latest = latestByItem[item.id] ?? null;
+                  const reference = attributeString(item, 'reference');
+                  const year = attributeNumber(item, 'year');
+                  const parts: string[] = [];
+                  if (reference) parts.push(reference);
+                  if (year !== null) parts.push(String(year));
+                  parts.push(
+                    failedValuationIds.has(item.id)
+                      ? t('errors.SOURCE_UNAVAILABLE')
+                      : latest
+                        ? formatEUR(latest.central)
+                        : t('item.noValuation'),
+                  );
+                  return (
+                    <View key={item.id} style={styles.caveRow}>
+                      <Pressable
+                        style={({ pressed }) => [styles.caveInfo, pressed && styles.pressed]}
+                        onPress={() => openItem(item)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${item.title ?? t('common.unknown')}, ${parts.join(' · ')}`}
+                      >
+                        <VText variant="body">{item.title ?? t('common.unknown')}</VText>
+                        <VText variant="caption" tone="dim">
+                          {parts.join(' · ')}
+                        </VText>
+                      </Pressable>
+                      {moveAction(item)}
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          })
+        : null}
 
       <View style={styles.footer}>
         <VButton label={t('common.back')} variant="ghost" onPress={() => router.back()} />

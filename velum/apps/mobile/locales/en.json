@@ -30,7 +30,7 @@
     "market": "Market & alerts",
     "community": "Community",
     "videoLabel": "VELUM launch video",
-    "collectionHint": "Cellar, cabinet, gallery, album",
+    "collectionHint": "Cellar, cabinet, gallery, album, watch box",
     "captureHint": "Photo, text or file import",
     "marketHint": "Valuations, alerts, listings",
     "communityHint": "Collector-to-collector transactions"
@@ -421,12 +421,12 @@
     "free": {
       "name": "Free",
       "price": "€0",
-      "features": "5 scans per week for EACH module (Wine, Coins, Paintings, Stamps) · analysis sheet and estimate"
+      "features": "5 scans per week for EACH module (Wine, Coins, Paintings, Stamps, Watches) · analysis sheet and estimate"
     },
     "premium": {
       "name": "Premium",
       "price": "€9.99 / month",
-      "features": "Unlimited scans across all 4 modules · PDF/CSV exports · price alerts — without the virtual book"
+      "features": "Unlimited scans across all 5 modules · PDF/CSV exports · price alerts — without the virtual book"
     },
     "subscribe": "Choose this plan",
     "restore": "Restore purchases",
@@ -440,7 +440,7 @@
       "name": "Gold",
       "price": "€19.99 / month",
       "badge": "Popular",
-      "features": "Everything in Premium + virtual book: wine cellar with slot locations, coin table, gallery, stamp album · cellar sommelier (which wine from MY cellar for tonight's dish?)"
+      "features": "Everything in Premium + virtual book: wine cellar with slot locations, coin table, gallery, stamp album, watch box · cellar sommelier (which wine from MY cellar for tonight's dish?)"
     },
     "platine": {
       "name": "Platinum",

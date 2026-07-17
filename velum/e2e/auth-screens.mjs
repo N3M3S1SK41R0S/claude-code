@@ -51,6 +51,11 @@ await screen('18-accueil', '/accueil', 'Accès rapide');
 await screen('06-collection', '/collection', 'Bandol Domaine Tempier 2016');
 // 07. Carnet virtuel (Gold/Platine) — mise en scène par module.
 await screen('07-carnet', '/carnet', 'Bandol Domaine Tempier 2016');
+// 07b. Écrin — le cinquième carnet doit rendre ses montres, pas un panneau vide.
+await screen('07b-carnet-montres', '/carnet', 'Omega Speedmaster Professional 3570.50', async () => {
+  await page.getByText('Écrin', { exact: true }).first().click();
+  await page.waitForTimeout(300);
+});
 // 08. Fiche d'un objet — analyse ZAPPA + valorisation IC + histoire & dernières ventes.
 await screen('08-fiche-vin', '/item/demo-wine', 'Bandol Domaine Tempier 2016');
 // 19. Fiche pièce — grade, tirage, dernières ventes numismatiques (CGB, Numista…).
