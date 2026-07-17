@@ -119,26 +119,52 @@ Deno.serve(async (req: Request): Promise<Response> => {
           return error('SOURCE_UNAVAILABLE', 'Seed du backtest impossible', 503);
         }
 
-        // Remplacement atomique par domaine : compute d'abord (fait), écrit ensuite.
+        // Un lot vide peut provenir d'une panne amont temporaire. Dans ce cas,
+        // les preuves précédentes restent intactes. Un lot non vide est remplacé
+        // par une seule fonction PostgreSQL transactionnelle : delete + insert
+        // réussissent ensemble ou sont intégralement annulés.
         for (const domain of DOMAINS) {
-          const { error: deleteError } = await admin
-            .from('calibration_outcomes')
-            .delete()
-            .eq('domain', domain)
-            .eq('origin', 'public_backtest');
-          if (deleteError) {
-            logFailure('calibration.seed_replace_failed', domain, deleteError.message);
+          const domainRows = report.rows.filter((row) => row.domain === domain);
+          if (domainRows.length === 0) {
+            console.info(
+              JSON.stringify({
+                event: 'calibration.seed_preserved',
+                domain,
+                reason: 'no_new_rows',
+              }),
+            );
+            continue;
+          }
+
+          const rpcRows = domainRows.map((row) => ({
+            central: row.central,
+            ci80_low: row.ci80_low,
+            ci80_high: row.ci80_high,
+            ci95_low: row.ci95_low,
+            ci95_high: row.ci95_high,
+            realized: row.realized,
+            realized_at: row.realized_at,
+          }));
+          const { data: inserted, error: replaceError } = await admin.rpc(
+            'replace_calibration_backtest',
+            {
+              p_domain: domain,
+              p_rows: rpcRows,
+            },
+          );
+          if (replaceError) {
+            logFailure('calibration.seed_replace_failed', domain, replaceError.message);
             return error('SOURCE_UNAVAILABLE', 'Remplacement du backtest impossible', 503);
           }
-          const domainRows = report.rows.filter((r) => r.domain === domain);
-          if (domainRows.length > 0) {
-            const { error: insertError } = await admin
-              .from('calibration_outcomes')
-              .insert(domainRows);
-            if (insertError) {
-              logFailure('calibration.seed_insert_failed', domain, insertError.message);
-              return error('SOURCE_UNAVAILABLE', 'Insertion du backtest impossible', 503);
-            }
+
+          const insertedCount = typeof inserted === 'number' ? inserted : Number(inserted);
+          if (!Number.isInteger(insertedCount) || insertedCount !== rpcRows.length) {
+            logFailure(
+              'calibration.seed_replace_count_invalid',
+              domain,
+              `attendu=${rpcRows.length}, reçu=${String(inserted)}`,
+            );
+            return error('SOURCE_UNAVAILABLE', 'Remplacement du backtest incomplet', 503);
           }
         }
         console.info(JSON.stringify({ event: 'calibration.seeded', perDomain: report.perDomain }));
