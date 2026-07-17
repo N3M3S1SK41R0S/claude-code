@@ -38,7 +38,19 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck (13 packages, TypeScript strict)
-        run: pnpm typecheck
+        shell: bash
+        run: |
+          set -o pipefail
+          pnpm typecheck 2>&1 | tee /tmp/velum-typecheck.log
+
+      - name: Conserver le diagnostic TypeScript en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: velum-typecheck-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/velum-typecheck.log
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Lint (13 packages)
         run: pnpm lint
@@ -110,7 +122,17 @@ jobs:
           fi
           printf 'Edge Functions vérifiées (%d):\n' "${#edge_entries[@]}"
           printf ' - %s\n' "${edge_entries[@]}"
-          deno check --import-map=import_map.json "${edge_entries[@]}"
+          set -o pipefail
+          deno check --import-map=import_map.json "${edge_entries[@]}" 2>&1 | tee /tmp/velum-deno-check.log
+
+      - name: Conserver le diagnostic Deno en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: velum-deno-check-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/velum-deno-check.log
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Tests des Edge Functions (helpers purs + handlers HTTP, fetch stubbé)
         working-directory: velum/supabase/functions
