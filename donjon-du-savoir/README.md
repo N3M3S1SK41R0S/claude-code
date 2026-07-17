@@ -26,7 +26,18 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
 
 1. **Préparez l'expédition** : 1 à 20 joueurs (ou 2 à 6 équipes — un pion par
    équipe, porte-parole tournant), chacun avec un nom, un profil
-   👶 enfant / 🎩 adulte et un personnage du Donjon.
+   👶 enfant / 🎩 adulte et un personnage du Donjon — puis **choisissez votre
+   donjon** parmi 5 plateaux :
+
+   | Donjon | Cases | Caractère |
+   |--------|-------|-----------|
+   | 🕯️ La Crypte d'Initiation | 28 | clémente, sans trou noir — idéale enfants/découverte |
+   | 🏰 Le Grand Donjon | 42 | le parcours classique équilibré |
+   | 🗼 La Tour du Vertige | 48 | malus fréquents, DEUX trous noirs |
+   | 💀 Les Catacombes du Chaos | 44 | trois gambits, événements collectifs à gogo |
+   | 💰 Le Labyrinthe Doré | 56 | marathon à trésors, pièces et jokers abondants |
+
+   Chaque partie re-mélange en plus les cases libres du plateau choisi.
 2. À son tour : **lancer le dé** (1d6), avancer, subir la case.
 3. Cases : ❓ Question · 🍀 Chance · 🎪 Événement collectif · 💀 Coup dur ·
    🪙 Pièces · 🃏 Joker · 🎲 Gambit (×2) · 🕳️ Trou Noir (fin de parcours) ·
@@ -91,6 +102,13 @@ Pour l'étendre : enrichir la banque de `grand-mogul` (pipeline de génération 
 fact-check adversarial) puis relancer le script — ou ajouter des entrées à la
 main dans `data/questions.json` en respectant le schéma du cahier (§7), avec
 2 sources minimum par question.
+
+**Fraîcheur inter-parties** : un registre local (localStorage) mémorise les
+questions déjà vues — une question ne revient que lorsque toutes les autres
+ont été vues autant de fois. Avec le choix du donjon, le re-mélange des cases
+à chaque partie et les modes appliqués aux QCM (≈15 % deviennent un Pari de
+confiance, ≈20 % un CASH/CARRÉ/DUO), la même banque se rejoue très longtemps
+sans lassitude.
 
 ## Tests
 

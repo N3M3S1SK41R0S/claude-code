@@ -5,7 +5,7 @@
 //  - nothing is ever timed (non-negotiable rule of the cahier des charges);
 //  - anecdote after EVERY question, no exception.
 import { drawEasier, drawEvent, drawGambit, drawHardest, drawQuestion } from "./data.js";
-import { BOARD_LENGTH, renderBoard } from "./board.js";
+import { boardById, renderBoard } from "./board.js";
 import { herald } from "./herald.js";
 import { canRecharge, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { characterById, currentPion, getState, isLast, nextTurn, porteParole, ranking, save } from "./state.js";
@@ -33,6 +33,10 @@ function pionView(p) {
   return { ...p, emoji: c.emoji, couleur: c.couleur };
 }
 
+function boardLen() {
+  return getState().board.length;
+}
+
 function render() {
   const state = getState();
   renderBoard(
@@ -40,6 +44,7 @@ function render() {
     state.board,
     state.pions.map(pionView),
     currentPion().id,
+    boardById(state.boardId),
   );
   renderPlayersStrip();
 }
@@ -134,19 +139,19 @@ function showDieResult(value, { rerollAvailable }) {
 
 /** Move without triggering the landing case (rewards/penalties). */
 function shift(pion, delta) {
-  pion.position = Math.max(0, Math.min(BOARD_LENGTH - 1, pion.position + delta));
+  pion.position = Math.max(0, Math.min(boardLen() - 1, pion.position + delta));
   save();
   render();
-  if (pion.position >= BOARD_LENGTH - 1) return finishGame(pion);
+  if (pion.position >= boardLen() - 1) return finishGame(pion);
   return false;
 }
 
 function moveAndResolve(steps) {
   const pion = currentPion();
-  pion.position = Math.max(0, Math.min(BOARD_LENGTH - 1, pion.position + steps));
+  pion.position = Math.max(0, Math.min(boardLen() - 1, pion.position + steps));
   save();
   render();
-  if (pion.position >= BOARD_LENGTH - 1) return finishGame(pion);
+  if (pion.position >= boardLen() - 1) return finishGame(pion);
   const type = getState().board[pion.position];
   heraldSays(herald.surCase(type));
   resolveCase(type);
@@ -325,16 +330,22 @@ function doQuestion() {
   const pion = currentPion();
   const q = drawQuestion(pion, { formats: ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_confiance"] });
   if (!q) return endPanel("La banque de questions est épuisée. Le Donjon est impressionné.");
-  // TTMC-style confidence bet: applied to a share of the classic QCM draws.
-  if (q.format === "qcm" && Math.random() < 0.15) return confianceFlow(pion, q);
+  // Variety on classic QCM draws: some become a TTMC-style confidence bet,
+  // some a CASH/CARRÉ/DUO risk pick — the same bank plays many ways.
+  if (q.format === "qcm") {
+    const r = Math.random();
+    if (r < 0.15) return confianceFlow(pion, q);
+    if (r < 0.35) return ccdPicker(pion, q);
+  }
   questionFlow(pion, q);
 }
 
 function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {}) {
+  // Risk picker first — the spokesperson is announced once, after the pick.
+  if (q.format === "cash_carre_duo" && cashMode === null) return ccdPicker(pion, q);
+
   const intro = speakerIntro(pion);
   if (intro) heraldSays(intro);
-
-  if (q.format === "cash_carre_duo" && cashMode === null) return ccdPicker(pion, q);
   if (q.format === "equipe") return openAnswerFlow(pion, q, { advance: ADVANCE.equipe, accepted: q.reponses_acceptees ?? [] });
   if (q.format === "gambit_numerique") return openAnswerFlow(pion, q, { advance: 2, accepted: [String(q.reponse_numerique)] });
   if (cashMode === "cash") return openAnswerFlow(pion, q, { advance: ADVANCE.cash, accepted: [q.bonne_reponse] });

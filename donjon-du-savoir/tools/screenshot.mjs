@@ -49,6 +49,10 @@ await page.getByRole("button", { name: "⚔️ Nouvelle partie" }).click();
 // 4 players for a lively board.
 await page.getByRole("button", { name: "＋ Ajouter un joueur" }).click();
 await page.getByRole("button", { name: "＋ Ajouter un joueur" }).click();
+// Optional: pick a specific dungeon (env SELECT_BOARD = visible board name).
+if (process.env.SELECT_BOARD) {
+  await page.locator(".board-card", { hasText: process.env.SELECT_BOARD }).click();
+}
 await page.getByRole("button", { name: "🏰 Entrer dans le Donjon" }).click();
 await page.waitForSelector(".case");
 // A couple of turns so tokens spread out.

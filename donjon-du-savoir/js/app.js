@@ -1,7 +1,7 @@
 // Screens and wiring: home → setup → game → victory. Pass-and-play, 1-20
 // players (individual) or teams sharing a pion with rotating spokesperson.
 import { loadBank, bankSize } from "./data.js";
-import { generateBoard } from "./board.js";
+import { BOARDS, boardById, generateBoard } from "./board.js";
 import { resumeGame, startGame } from "./game.js";
 import { CHARACTERS, characterById, clearSave, loadSave, newGame } from "./state.js";
 import { setVoice, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
@@ -44,6 +44,7 @@ function renderHome() {
 /* ---------- setup ---------- */
 
 let setupMode = "individuel";
+let selectedBoardId = "grand-donjon";
 let players = [{ nom: "", profil: "adulte", characterId: "cageot" }, { nom: "", profil: "adulte", characterId: "etincelle" }];
 let teams = [
   { nom: "Les Dragons", characterId: "cageot", membres: [{ nom: "", profil: "adulte" }] },
@@ -178,6 +179,25 @@ function renderSetup() {
     }
   }
 
+  // Board picker: five dungeons, five moods.
+  zone.append(
+    el("h2", { class: "setup-subtitle", text: "Choisissez votre donjon" }),
+    el("div", { class: "board-picker", role: "radiogroup", "aria-label": "Choix du plateau" },
+      ...BOARDS.map((b) =>
+        el("button", {
+          class: "board-card" + (selectedBoardId === b.id ? " board-card-on" : ""),
+          type: "button", role: "radio", "aria-checked": String(selectedBoardId === b.id),
+          onclick: () => { selectedBoardId = b.id; renderSetup(); },
+        },
+          el("span", { class: "board-card-emoji", "aria-hidden": "true", text: b.emoji }),
+          el("strong", { class: "board-card-nom", text: b.nom }),
+          el("span", { class: "board-card-meta", text: `${b.length} cases · ${b.gambits.length} gambit${b.gambits.length > 1 ? "s" : ""} · ${b.trounoirs.length === 0 ? "sans trou noir" : `${b.trounoirs.length} trou${b.trounoirs.length > 1 ? "s" : ""} noir${b.trounoirs.length > 1 ? "s" : ""}`}` }),
+          el("span", { class: "board-card-desc", text: b.desc }),
+        ),
+      ),
+    ),
+  );
+
   zone.append(
     el("p", { class: "help-note", text: "Les questions « enfant » conviennent à tout le monde ; le profil ne sert qu'à adapter la difficulté. En équipe, un porte-parole différent répond à chaque question." }),
     el("button", { class: "btn btn-big btn-gold", type: "button", onclick: launchGame }, "🏰 Entrer dans le Donjon"),
@@ -210,7 +230,8 @@ function launchGame() {
     if (pions.length < 2) return;
   }
   clearSave();
-  newGame({ mode: setupMode, pions }, generateBoard());
+  const def = boardById(selectedBoardId);
+  newGame({ mode: setupMode, pions, boardId: def.id }, generateBoard(def));
   show("game");
   startGame(showVictory);
 }

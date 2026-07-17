@@ -35,6 +35,7 @@ export function newGame(config, boardLayout) {
   state = {
     version: 1,
     mode: config.mode,
+    boardId: config.boardId ?? "grand-donjon",
     board: boardLayout,
     pions: config.pions.map((p, i) => ({
       id: i,
@@ -130,6 +131,7 @@ export function loadSave() {
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.pions)) return null;
+    if (!parsed.boardId) parsed.boardId = "grand-donjon"; // saves from before multi-boards
     state = parsed;
     return state;
   } catch {

@@ -1,7 +1,42 @@
-// Question bank: loading, adaptive drawing, no repeats within a game cycle.
+// Question bank: loading, adaptive drawing, no repeats within a game — and a
+// persistent cross-game ledger so a question only comes back once EVERY other
+// question has been seen as often ("inexhaustible" feeling on replays).
 import { getState, isLast, isLeader, markAsked, resetAskedIfNeeded } from "./state.js";
 
 let bank = [];
+
+const SEEN_KEY = "donjon-seen-v1";
+let seenCounts = null;
+
+function seen() {
+  if (seenCounts === null) {
+    try {
+      seenCounts = JSON.parse(localStorage.getItem(SEEN_KEY)) ?? {};
+    } catch {
+      seenCounts = {};
+    }
+  }
+  return seenCounts;
+}
+
+function bumpSeen(id) {
+  const s = seen();
+  s[id] = (s[id] ?? 0) + 1;
+  try {
+    localStorage.setItem(SEEN_KEY, JSON.stringify(s));
+  } catch {
+    /* private mode: the in-memory ledger still works for this session */
+  }
+}
+
+/** Keep only the least-seen candidates (cross-game freshness). */
+function preferUnseen(candidates) {
+  if (candidates.length <= 1) return candidates;
+  const s = seen();
+  let min = Infinity;
+  for (const q of candidates) min = Math.min(min, s[q.id] ?? 0);
+  return candidates.filter((q) => (s[q.id] ?? 0) === min);
+}
 
 export async function loadBank() {
   const res = await fetch("data/questions.json");
@@ -31,7 +66,10 @@ function pool(profil, { formats = null } = {}) {
 }
 
 function pick(candidates) {
-  return candidates[Math.floor(Math.random() * candidates.length)] ?? null;
+  const fresh = preferUnseen(candidates);
+  const q = fresh[Math.floor(Math.random() * fresh.length)] ?? null;
+  if (q) bumpSeen(q.id);
+  return q;
 }
 
 /**
