@@ -22,7 +22,7 @@ import {
   type WatchMovement,
   type WatchStory,
 } from '@velum/core';
-import { clamp01, isRecord, parseLooseJson } from './json.ts';
+import { isRecord, parseLooseJson } from './json.ts';
 import { WATCH_SYSTEM_PROMPT } from './horo.ts';
 
 export const WATCH_ENGINE = 'watch_v1';
@@ -38,7 +38,7 @@ const BASE_DISCLAIMER = 'Estimation indicative — ni expertise légale, ni cons
 export const WATCH_DISCLAIMERS: readonly string[] = [
   BASE_DISCLAIMER,
   'État et mouvement estimés visuellement — une révision par un horloger fait foi.',
-  "L'authenticité (mouvement, cadran, pièces d'origine) n'est PAS vérifiée : le marché horloger est exposé aux contrefaçons et aux montres recomposées — en cas de doute, consultez un expert.",
+  'L’authenticité (mouvement, cadran, pièces d’origine) n’est PAS vérifiée : le marché horloger est exposé aux contrefaçons et aux montres recomposées — en cas de doute, consultez un expert.',
 ];
 
 const GENDER_VALUES: readonly NonNullable<WatchAttributes['gender']>[] = ['homme', 'femme', 'mixte'];
@@ -88,6 +88,78 @@ function nextCandidateId(): string {
   return `watch-${candidateSeq}`;
 }
 
+function nonEmptyString(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function finitePositive(value: unknown): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : undefined;
+}
+
+function probability(value: unknown, fallback: number): number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1
+    ? value
+    : fallback;
+}
+
+/** Parse uniquement les attributs horlogers connus et valides. */
+function parseWatchAttributes(value: unknown): WatchAttributes {
+  const source = isRecord(value) ? value : {};
+  const attributes: WatchAttributes = {};
+
+  const brand = nonEmptyString(source['brand']);
+  if (brand !== undefined) attributes.brand = brand;
+  const model = nonEmptyString(source['model']);
+  if (model !== undefined) attributes.model = model;
+  const reference = nonEmptyString(source['reference']);
+  if (reference !== undefined) attributes.reference = reference;
+
+  const year = source['year'];
+  if (typeof year === 'number' && Number.isFinite(year)) attributes.year = year;
+
+  const gender = source['gender'];
+  if (typeof gender === 'string' && (GENDER_VALUES as readonly string[]).includes(gender)) {
+    attributes.gender = gender as WatchAttributes['gender'];
+  }
+
+  const caseMaterial = nonEmptyString(source['caseMaterial']);
+  if (caseMaterial !== undefined) attributes.caseMaterial = caseMaterial;
+  const caseDiameterMm = finitePositive(source['caseDiameterMm']);
+  if (caseDiameterMm !== undefined) attributes.caseDiameterMm = caseDiameterMm;
+  const dialColor = nonEmptyString(source['dialColor']);
+  if (dialColor !== undefined) attributes.dialColor = dialColor;
+  const bracelet = nonEmptyString(source['bracelet']);
+  if (bracelet !== undefined) attributes.bracelet = bracelet;
+  const crystal = nonEmptyString(source['crystal']);
+  if (crystal !== undefined) attributes.crystal = crystal;
+  const waterResistanceM = finitePositive(source['waterResistanceM']);
+  if (waterResistanceM !== undefined) attributes.waterResistanceM = waterResistanceM;
+
+  const boxPapers = source['boxPapers'];
+  if (
+    typeof boxPapers === 'string' &&
+    (BOX_PAPERS_VALUES as readonly string[]).includes(boxPapers)
+  ) {
+    attributes.boxPapers = boxPapers as WatchAttributes['boxPapers'];
+  }
+
+  const limitedEdition = nonEmptyString(source['limitedEdition']);
+  if (limitedEdition !== undefined) attributes.limitedEdition = limitedEdition;
+
+  return attributes;
+}
+
+/** Attributs candidats : identification validée + état textuel utile à la cote. */
+function parseCandidateAttributes(value: unknown): Record<string, unknown> {
+  const source = isRecord(value) ? value : {};
+  const attributes: Record<string, unknown> = { ...parseWatchAttributes(source) };
+  const condition = nonEmptyString(source['condition']);
+  if (condition !== undefined) attributes['condition'] = condition;
+  const etat = nonEmptyString(source['etat']);
+  if (etat !== undefined) attributes['etat'] = etat;
+  return attributes;
+}
+
 /** Convertit un média de capture en image vision (gère les data URLs). */
 function toVisionImage(media: CaptureMedia): { base64: string; mediaType: string } {
   const b64 = media.base64 ?? '';
@@ -99,13 +171,14 @@ function toVisionImage(media: CaptureMedia): { base64: string; mediaType: string
 }
 
 function photoPrompt(input: CaptureInput): string {
-  const withImage = (input.media ?? []).filter((m) => m.base64);
+  const withImage = (input.media ?? []).filter((media) => media.base64);
   const roles = withImage
-    .map((m, i) => `image ${i + 1} : ${ROLE_LABELS_FR[m.role] ?? m.role}`)
+    .map((media, index) => `image ${index + 1} : ${ROLE_LABELS_FR[media.role] ?? media.role}`)
     .join(' ; ');
-  const hint = input.text !== undefined && input.text.trim() !== ''
-    ? `\nIndication de l'utilisateur (peut être imprécise) : « ${input.text.trim()} »`
-    : '';
+  const hint =
+    input.text !== undefined && input.text.trim() !== ''
+      ? `\nIndication de l'utilisateur (peut être imprécise) : « ${input.text.trim()} »`
+      : '';
   return `Identifie la montre photographiée (${roles || 'photos fournies'}).${hint}
 ${RECOGNITION_JSON_SPEC}`;
 }
@@ -116,43 +189,60 @@ Description : « ${text} »
 ${RECOGNITION_JSON_SPEC}`;
 }
 
-/** Libellé lisible d'une ligne d'import (marque + modèle + référence/année). */
-function fileRowLabel(row: Record<string, unknown>): string {
+function explicitFileLabel(row: Record<string, unknown>): string | undefined {
   for (const key of ['label', 'title', 'name', 'designation']) {
-    const v = row[key];
-    if (typeof v === 'string' && v.trim() !== '') return v.trim();
+    const value = nonEmptyString(row[key]);
+    if (value !== undefined) return value;
   }
-  const brand = typeof row['brand'] === 'string' ? row['brand'].trim() : '';
-  const model = typeof row['model'] === 'string' ? row['model'].trim() : '';
-  const reference = typeof row['reference'] === 'string' ? row['reference'].trim() : '';
-  const parts = [brand, model, reference].filter((p) => p !== '');
-  if (parts.length > 0) return parts.join(' ');
-  return 'Montre importée (à préciser)';
+  return undefined;
+}
+
+/** Libellé lisible d'une ligne d'import (marque + modèle + référence/année). */
+function fileRowLabel(row: Record<string, unknown>, attributes: WatchAttributes): string {
+  const explicit = explicitFileLabel(row);
+  if (explicit !== undefined) return explicit;
+  const parts = [attributes.brand, attributes.model, attributes.reference].filter(
+    (part): part is string => part !== undefined,
+  );
+  return parts.length > 0 ? parts.join(' ') : 'Montre importée (à préciser)';
+}
+
+/** Confiance d'import fondée sur les identifiants réellement présents. */
+function fileRowConfidence(row: Record<string, unknown>, attributes: WatchAttributes): number {
+  if (attributes.reference && (attributes.brand || attributes.model)) return 0.95;
+  if (attributes.brand && attributes.model) return 0.85;
+  if (explicitFileLabel(row) !== undefined) return 0.65;
+  if (attributes.brand || attributes.model || attributes.reference) return 0.5;
+  return 0.1;
 }
 
 /** Parse la réponse de reconnaissance ; null si totalement illisible. */
 function parseCandidates(raw: string): Candidate[] | null {
   const parsed = parseLooseJson(raw);
   if (!isRecord(parsed) || !Array.isArray(parsed['candidates'])) return null;
-  const out: Candidate[] = [];
+  const candidates: Candidate[] = [];
   for (const entry of parsed['candidates']) {
     if (!isRecord(entry)) continue;
-    const label = typeof entry['label'] === 'string' ? entry['label'].trim() : '';
-    if (label === '') continue;
-    const rawConfidence = entry['confidence'];
-    const confidence = clamp01(typeof rawConfidence === 'number' ? rawConfidence : 0);
-    const attributes = isRecord(entry['attributes']) ? entry['attributes'] : {};
-    out.push({ id: nextCandidateId(), domain: 'watch', label, confidence, attributes });
+    const label = nonEmptyString(entry['label']);
+    if (label === undefined) continue;
+    candidates.push({
+      id: nextCandidateId(),
+      domain: 'watch',
+      label,
+      // Une valeur hors [0,1] est non fiable : elle devient 0, jamais 1.
+      confidence: probability(entry['confidence'], 0),
+      attributes: parseCandidateAttributes(entry['attributes']),
+    });
   }
-  out.sort((a, b) => b.confidence - a.confidence);
-  return out.slice(0, 3);
+  candidates.sort((left, right) => right.confidence - left.confidence);
+  return candidates.slice(0, 3);
 }
 
-function recognitionFrom(candidates: Candidate[]): RecognitionResult {
+function recognitionFrom(candidates: Candidate[], stage: RecognitionResult['stage']): RecognitionResult {
   const best = candidates[0]?.confidence ?? 0;
   return {
     candidates,
-    stage: 'llm_vision',
+    stage,
     needsAssistedEntry: candidates.length === 0 || best < ASSISTED_ENTRY_THRESHOLD,
   };
 }
@@ -165,81 +255,64 @@ const UNREADABLE_RECOGNITION: RecognitionResult = {
 
 // ── Mapping robuste du payload d'analyse ──────────────────────────────────
 
-function toStringArray(v: unknown): string[] {
-  if (!Array.isArray(v)) return [];
-  return v.filter((x): x is string => typeof x === 'string' && x.trim() !== '');
+function toStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map(nonEmptyString)
+    .filter((entry): entry is string => entry !== undefined);
 }
 
-function finitePositive(v: unknown): number | undefined {
-  return typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : undefined;
+/** Fusionne le fallback validé avec les seuls champs d'analyse validés. */
+function toIdentification(value: unknown, fallback: unknown): WatchAttributes {
+  return {
+    ...parseWatchAttributes(fallback),
+    ...parseWatchAttributes(value),
+  };
 }
 
-function toIdentification(v: unknown, fallback: Record<string, unknown>): WatchAttributes {
-  const src = isRecord(v) ? v : fallback;
-  const id: WatchAttributes = {};
-  if (typeof src['brand'] === 'string') id.brand = src['brand'];
-  if (typeof src['model'] === 'string') id.model = src['model'];
-  if (typeof src['reference'] === 'string' && src['reference'].trim() !== '') {
-    id.reference = src['reference'].trim();
-  }
-  if (typeof src['year'] === 'number' && Number.isFinite(src['year'])) id.year = src['year'];
-  if (typeof src['gender'] === 'string' && (GENDER_VALUES as readonly string[]).includes(src['gender'])) {
-    id.gender = src['gender'] as WatchAttributes['gender'];
-  }
-  if (typeof src['caseMaterial'] === 'string') id.caseMaterial = src['caseMaterial'];
-  const diameter = finitePositive(src['caseDiameterMm']);
-  if (diameter !== undefined) id.caseDiameterMm = diameter;
-  if (typeof src['dialColor'] === 'string') id.dialColor = src['dialColor'];
-  if (typeof src['bracelet'] === 'string') id.bracelet = src['bracelet'];
-  if (typeof src['crystal'] === 'string') id.crystal = src['crystal'];
-  const water = finitePositive(src['waterResistanceM']);
-  if (water !== undefined) id.waterResistanceM = water;
-  if (
-    typeof src['boxPapers'] === 'string' &&
-    (BOX_PAPERS_VALUES as readonly string[]).includes(src['boxPapers'])
-  ) {
-    id.boxPapers = src['boxPapers'] as WatchAttributes['boxPapers'];
-  }
-  if (typeof src['limitedEdition'] === 'string') id.limitedEdition = src['limitedEdition'];
-  return id;
-}
-
-function toMovement(v: unknown): WatchMovement {
-  const src = isRecord(v) ? v : {};
-  const rawType = src['type'];
+function toMovement(value: unknown): WatchMovement {
+  const source = isRecord(value) ? value : {};
+  const rawType = source['type'];
   const type = (
     typeof rawType === 'string' && (MOVEMENT_TYPES as readonly string[]).includes(rawType)
       ? rawType
       : 'inconnu'
   ) as WatchMovement['type'];
-  const movement: WatchMovement = { type, complications: toStringArray(src['complications']) };
-  if (typeof src['calibre'] === 'string' && src['calibre'].trim() !== '') {
-    movement.calibre = src['calibre'].trim();
-  }
-  const reserve = finitePositive(src['powerReserveHours']);
+  const movement: WatchMovement = { type, complications: toStringArray(source['complications']) };
+  const calibre = nonEmptyString(source['calibre']);
+  if (calibre !== undefined) movement.calibre = calibre;
+  const reserve = finitePositive(source['powerReserveHours']);
   if (reserve !== undefined) movement.powerReserveHours = reserve;
-  const vph = finitePositive(src['frequencyVph']);
-  if (vph !== undefined) movement.frequencyVph = vph;
-  const jewels = finitePositive(src['jewels']);
+  const frequency = finitePositive(source['frequencyVph']);
+  if (frequency !== undefined) movement.frequencyVph = frequency;
+  const jewels = finitePositive(source['jewels']);
   if (jewels !== undefined) movement.jewels = jewels;
-  if (typeof src['certification'] === 'string') movement.certification = src['certification'];
-  if (typeof src['note'] === 'string') movement.note = src['note'];
+  const certification = nonEmptyString(source['certification']);
+  if (certification !== undefined) movement.certification = certification;
+  const note = nonEmptyString(source['note']);
+  if (note !== undefined) movement.note = note;
   return movement;
 }
 
-function toStory(v: unknown): WatchStory {
-  const src = isRecord(v) ? v : {};
+function toStory(value: unknown): WatchStory {
+  const source = isRecord(value) ? value : {};
   const story: WatchStory = {};
-  if (typeof src['why'] === 'string') story.why = src['why'];
-  if (typeof src['byWhom'] === 'string') story.byWhom = src['byWhom'];
-  if (typeof src['modelLaunchYear'] === 'number' && Number.isFinite(src['modelLaunchYear'])) {
-    story.modelLaunchYear = src['modelLaunchYear'];
+  const why = nonEmptyString(source['why']);
+  if (why !== undefined) story.why = why;
+  const byWhom = nonEmptyString(source['byWhom']);
+  if (byWhom !== undefined) story.byWhom = byWhom;
+  const modelLaunchYear = source['modelLaunchYear'];
+  if (typeof modelLaunchYear === 'number' && Number.isFinite(modelLaunchYear)) {
+    story.modelLaunchYear = modelLaunchYear;
   }
-  if (Array.isArray(src['milestones'])) {
+  if (Array.isArray(source['milestones'])) {
     const milestones: { year: number; note: string }[] = [];
-    for (const m of src['milestones']) {
-      if (isRecord(m) && typeof m['year'] === 'number' && typeof m['note'] === 'string') {
-        milestones.push({ year: m['year'], note: m['note'] });
+    for (const milestone of source['milestones']) {
+      if (!isRecord(milestone)) continue;
+      const year = milestone['year'];
+      const note = nonEmptyString(milestone['note']);
+      if (typeof year === 'number' && Number.isFinite(year) && note !== undefined) {
+        milestones.push({ year, note });
       }
     }
     if (milestones.length > 0) story.milestones = milestones;
@@ -256,68 +329,70 @@ const RARITY_LEVELS: readonly string[] = [
   'inconnue',
 ];
 
-function toHeritage(v: unknown): HeritageProfile | undefined {
-  const src = isRecord(v) ? v : {};
+function toHeritage(value: unknown): HeritageProfile | undefined {
+  const source = isRecord(value) ? value : {};
   const heritage: HeritageProfile = {};
-  if (typeof src['history'] === 'string' && src['history'].trim() !== '') {
-    heritage.history = src['history'];
-  }
-  const rawRarity = src['rarity'];
-  if (isRecord(rawRarity) && typeof rawRarity['level'] === 'string' && RARITY_LEVELS.includes(rawRarity['level'])) {
+  const history = nonEmptyString(source['history']);
+  if (history !== undefined) heritage.history = history;
+  const rawRarity = source['rarity'];
+  if (
+    isRecord(rawRarity) &&
+    typeof rawRarity['level'] === 'string' &&
+    RARITY_LEVELS.includes(rawRarity['level'])
+  ) {
+    const note = nonEmptyString(rawRarity['note']);
     heritage.rarity = {
       level: rawRarity['level'] as NonNullable<HeritageProfile['rarity']>['level'],
-      ...(typeof rawRarity['note'] === 'string' ? { note: rawRarity['note'] } : {}),
+      ...(note !== undefined ? { note } : {}),
     };
   }
-  const rawEdition = src['editionSize'];
+  const rawEdition = source['editionSize'];
   if (isRecord(rawEdition)) {
     const count = finitePositive(rawEdition['count']);
-    const unit = typeof rawEdition['unit'] === 'string' ? rawEdition['unit'] : 'exemplaires';
+    const unit = nonEmptyString(rawEdition['unit']) ?? 'exemplaires';
+    const note = nonEmptyString(rawEdition['note']);
     heritage.editionSize = {
       ...(count !== undefined ? { count } : {}),
       unit,
-      ...(typeof rawEdition['note'] === 'string' ? { note: rawEdition['note'] } : {}),
+      ...(note !== undefined ? { note } : {}),
     };
   }
   return Object.keys(heritage).length > 0 ? heritage : undefined;
 }
 
-function toCondition(v: unknown): WatchCondition {
-  const src = isRecord(v) ? v : {};
-  const summary =
-    typeof src['summary'] === 'string' && src['summary'].trim() !== ''
-      ? src['summary']
-      : 'État non déterminé depuis les photos.';
+function toCondition(value: unknown): WatchCondition {
+  const source = isRecord(value) ? value : {};
+  const summary = nonEmptyString(source['summary']) ?? 'État non déterminé depuis les photos.';
   const polished =
-    typeof src['polished'] === 'string' && (POLISHED_VALUES as readonly string[]).includes(src['polished'])
-      ? (src['polished'] as WatchCondition['polished'])
+    typeof source['polished'] === 'string' &&
+    (POLISHED_VALUES as readonly string[]).includes(source['polished'])
+      ? (source['polished'] as WatchCondition['polished'])
       : undefined;
-  const nonOriginal = toStringArray(src['nonOriginalParts']);
-  const confidence = clamp01(typeof src['confidence'] === 'number' ? src['confidence'] : 0.3);
-  const rawCaveat = typeof src['caveat'] === 'string' ? src['caveat'].trim() : '';
-  // Le caveat horloger est OBLIGATOIRE — on l'impose s'il manque.
+  const nonOriginalParts = toStringArray(source['nonOriginalParts']);
+  const rawCaveat = nonEmptyString(source['caveat']) ?? '';
   const caveat = /horloger|expert/i.test(rawCaveat) ? rawCaveat : CONDITION_CAVEAT;
+  const serviceHistory = nonEmptyString(source['serviceHistory']);
   return {
     summary,
-    ...(typeof src['serviceHistory'] === 'string' ? { serviceHistory: src['serviceHistory'] } : {}),
+    ...(serviceHistory !== undefined ? { serviceHistory } : {}),
     ...(polished !== undefined ? { polished } : {}),
-    ...(nonOriginal.length > 0 ? { nonOriginalParts: nonOriginal } : {}),
-    issues: toStringArray(src['issues']),
-    confidence,
+    ...(nonOriginalParts.length > 0 ? { nonOriginalParts } : {}),
+    issues: toStringArray(source['issues']),
+    confidence: probability(source['confidence'], 0.3),
     caveat,
   };
 }
 
-function toNeighborReferences(v: unknown): { reference: string; note: string }[] | undefined {
-  if (!Array.isArray(v)) return undefined;
-  const out: { reference: string; note: string }[] = [];
-  for (const entry of v) {
+function toNeighborReferences(value: unknown): { reference: string; note: string }[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const references: { reference: string; note: string }[] = [];
+  for (const entry of value) {
     if (!isRecord(entry)) continue;
-    if (typeof entry['reference'] === 'string' && typeof entry['note'] === 'string') {
-      out.push({ reference: entry['reference'], note: entry['note'] });
-    }
+    const reference = nonEmptyString(entry['reference']);
+    const note = nonEmptyString(entry['note']);
+    if (reference !== undefined && note !== undefined) references.push({ reference, note });
   }
-  return out;
+  return references.length > 0 ? references : undefined;
 }
 
 function analysisPrompt(candidate: Candidate): string {
@@ -335,7 +410,7 @@ Réponds UNIQUEMENT avec un JSON strict conforme au schéma WatchAnalysisPayload
   "heritage"?: {"history"?:string, "rarity"?:{"level":"courante"|"peu_courante"|"rare"|"tres_rare"|"exceptionnelle"|"inconnue","note"?:string}, "editionSize"?:{"count"?:number,"unit":string,"note"?:string}},
   "neighborReferences"?: [{"reference":string, "note":string}],
   "uncertainties": string[],
-  "confidence": number entre 0 et 1,
+  "confidence": number entre 0 et 1
 }
 Aucun texte hors du JSON, pas de fences markdown.`;
 }
@@ -348,14 +423,19 @@ export class WatchDomainPlugin implements DomainPlugin<WatchAnalysisPayload> {
   async recognize(input: CaptureInput, deps: RecognizeDeps): Promise<RecognitionResult> {
     if (input.kind === 'file') {
       const rows = input.fileRows ?? [];
-      const candidates: Candidate[] = rows.map((row) => ({
-        id: nextCandidateId(),
-        domain: 'watch' as const,
-        label: fileRowLabel(row),
-        confidence: 0.95,
-        attributes: row,
-      }));
-      return { candidates, stage: 'assisted', needsAssistedEntry: candidates.length === 0 };
+      const candidates: Candidate[] = rows.map((row) => {
+        const attributes = parseCandidateAttributes(row);
+        const identity = parseWatchAttributes(attributes);
+        return {
+          id: nextCandidateId(),
+          domain: 'watch' as const,
+          label: fileRowLabel(row, identity),
+          confidence: fileRowConfidence(row, identity),
+          attributes,
+        };
+      });
+      candidates.sort((left, right) => right.confidence - left.confidence);
+      return recognitionFrom(candidates, 'assisted');
     }
 
     let raw: string;
@@ -363,7 +443,7 @@ export class WatchDomainPlugin implements DomainPlugin<WatchAnalysisPayload> {
       raw = await deps.vision.complete({
         system: WATCH_RECOGNITION_SYSTEM_PROMPT,
         prompt: photoPrompt(input),
-        images: input.media?.filter((m) => m.base64).map((m) => toVisionImage(m)),
+        images: input.media?.filter((media) => media.base64).map((media) => toVisionImage(media)),
         maxTokens: 1024,
       });
     } else {
@@ -376,7 +456,7 @@ export class WatchDomainPlugin implements DomainPlugin<WatchAnalysisPayload> {
 
     const candidates = parseCandidates(raw);
     if (candidates === null) return { ...UNREADABLE_RECOGNITION };
-    return recognitionFrom(candidates);
+    return recognitionFrom(candidates, 'llm_vision');
   }
 
   async analyze(candidate: Candidate, deps: AnalyzeDeps): Promise<AnalysisResult<WatchAnalysisPayload>> {
@@ -395,7 +475,6 @@ export class WatchDomainPlugin implements DomainPlugin<WatchAnalysisPayload> {
     const condition = toCondition(parsed['condition']);
     const uncertainties = toStringArray(parsed['uncertainties']);
     if (uncertainties.length === 0) {
-      // Jamais de fiche sans réserve explicite (§3.3).
       uncertainties.push(
         'Analyse automatique non exhaustive : référence, mouvement et authenticité à confirmer par un horloger.',
       );
@@ -413,12 +492,10 @@ export class WatchDomainPlugin implements DomainPlugin<WatchAnalysisPayload> {
       uncertainties,
     };
 
-    const rawConfidence = parsed['confidence'];
-    const confidence = clamp01(typeof rawConfidence === 'number' ? rawConfidence : condition.confidence);
     return {
       engine: WATCH_ENGINE,
       payload,
-      confidence,
+      confidence: probability(parsed['confidence'], condition.confidence),
       // L'analyse LLM n'est pas une source de marché. Les références ne sont
       // publiées que par les adaptateurs ayant réellement récupéré une donnée.
       sources: [],
@@ -427,38 +504,34 @@ export class WatchDomainPlugin implements DomainPlugin<WatchAnalysisPayload> {
   }
 
   buildPriceQuery(candidate: Candidate): PriceQuery {
-    const attrs = candidate.attributes;
-    const brand = typeof attrs['brand'] === 'string' ? attrs['brand'].trim() : undefined;
-    const model = typeof attrs['model'] === 'string' ? attrs['model'].trim() : undefined;
-    const reference = typeof attrs['reference'] === 'string' ? attrs['reference'].trim() : undefined;
-
-    // Libellé canonique : "marque modèle référence" — la référence constructeur
-    // est le meilleur discriminant du marché horloger.
+    const attributes = parseCandidateAttributes(candidate.attributes);
+    const identity = parseWatchAttributes(attributes);
     const label =
-      brand !== undefined || reference !== undefined
-        ? [brand, model, reference].filter((p): p is string => p !== undefined && p !== '').join(' ')
+      identity.brand !== undefined || identity.reference !== undefined
+        ? [identity.brand, identity.model, identity.reference]
+            .filter((part): part is string => part !== undefined)
+            .join(' ')
         : candidate.label;
 
     const query: PriceQuery = {
       domain: 'watch',
       label,
-      attributes: attrs,
+      attributes,
       limit: 20,
     };
 
-    const rawCondition = attrs['condition'] ?? attrs['etat'];
-    if (typeof rawCondition === 'string' && rawCondition.trim() !== '') {
-      query.condition = rawCondition.trim();
-    }
+    const rawCondition = attributes['condition'] ?? attributes['etat'];
+    if (typeof rawCondition === 'string') query.condition = rawCondition;
     return query;
   }
 
   async valuate(candidate: Candidate, deps: ValuateDeps): Promise<ValuationResult> {
     const query = this.buildPriceQuery(candidate);
-    const results = await Promise.allSettled(deps.sources.map((s) => s.fetch(query)));
-    const obs = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
-    // Le moteur lève VelumError NO_OBSERVATIONS si obs est vide — on laisse remonter.
-    return deps.valuate(obs, deps.fx);
+    const results = await Promise.allSettled(deps.sources.map((source) => source.fetch(query)));
+    const observations = results.flatMap((result) =>
+      result.status === 'fulfilled' ? result.value : [],
+    );
+    return deps.valuate(observations, deps.fx);
   }
 }
 
