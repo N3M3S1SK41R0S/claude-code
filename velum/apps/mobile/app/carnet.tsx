@@ -26,7 +26,7 @@ import {
   velumRadius,
   velumSpacing,
 } from '@velum/ui';
-import type { ValuationRecord, VelumDomain, VelumItem } from '@velum/core';
+import type { VelumDomain, VelumItem } from '@velum/core';
 
 import { Screen } from '../components/Screen';
 import {
@@ -42,6 +42,11 @@ import {
   parseCellarSlot,
   stampConditionStatus,
 } from '../lib/carnet';
+import {
+  countFailedValuations,
+  loadCarnetData,
+  type CarnetData,
+} from '../lib/carnetData';
 import { getVelumClient } from '../lib/client';
 import { cellarStats } from '../lib/cellarStats';
 import { seriesGapsForItems } from '../lib/seriesGaps';
@@ -52,17 +57,15 @@ import { formatDate, formatEUR } from '../lib/i18n';
 import { usePlan } from '../lib/plan';
 import { showToast } from '../stores/toastStore';
 
-interface CarnetData {
-  items: VelumItem[];
-  latestByItem: Record<string, ValuationRecord | null>;
-}
-
 export default function Carnet() {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
   const client = getVelumClient();
-  const { plan, entitlements, isLoading: planLoading } = usePlan();
+  const planState = usePlan();
+  const canUseVirtualBook =
+    planState.status === 'ready' && planState.entitlements.virtualBook;
+  const plan = planState.status === 'ready' ? planState.plan : null;
 
   const domains = getActiveDomains();
   const [domain, setDomain] = useState<VelumDomain>(domains[0] ?? 'wine');
@@ -78,21 +81,12 @@ export default function Carnet() {
 
   const query = useQuery<CarnetData>({
     queryKey: ['items', 'carnet'],
-    enabled: entitlements.virtualBook,
-    queryFn: async () => {
-      const items = await client.items.list();
-      const latestByItem: Record<string, ValuationRecord | null> = {};
-      await Promise.all(
-        items.map(async (item) => {
-          try {
-            latestByItem[item.id] = await client.valuations.latest(item.id);
-          } catch {
-            latestByItem[item.id] = null;
-          }
-        }),
-      );
-      return { items, latestByItem };
-    },
+    enabled: canUseVirtualBook,
+    queryFn: () =>
+      loadCarnetData({
+        listItems: () => client.items.list(),
+        latestValuation: (itemId) => client.valuations.latest(itemId),
+      }),
   });
 
   const moveMutation = useMutation({
@@ -109,8 +103,17 @@ export default function Carnet() {
 
   const items = query.data?.items ?? [];
   const latestByItem = query.data?.latestByItem ?? {};
+  const failedValuationItemIds = query.data?.failedValuationItemIds ?? [];
+  const failedValuationIds = useMemo(
+    () => new Set(failedValuationItemIds),
+    [failedValuationItemIds],
+  );
 
   const domainItems = useMemo(() => items.filter((i) => i.domain === domain), [items, domain]);
+  const domainValuationFailures = useMemo(
+    () => countFailedValuations(domainItems, failedValuationItemIds),
+    [domainItems, failedValuationItemIds],
+  );
   const totals = useMemo(() => bookTotals(domainItems, latestByItem), [domainItems, latestByItem]);
   const wineGroups = useMemo(
     () => (domain === 'wine' ? groupByLocation(domainItems) : []),
@@ -128,6 +131,10 @@ export default function Carnet() {
 
   const shareCellar = async () => {
     if (sharing) return;
+    if (domainValuationFailures > 0) {
+      showToast(t('errors.SOURCE_UNAVAILABLE'), 'danger');
+      return;
+    }
     setSharing(true);
     try {
       const html = buildCellarShareHtml(domainItems, latestByItem, t);
@@ -144,7 +151,7 @@ export default function Carnet() {
     }
   };
 
-  if (planLoading || (entitlements.virtualBook && query.isLoading)) {
+  if (planState.status === 'loading' || (canUseVirtualBook && query.isLoading)) {
     return (
       <Screen scroll={false}>
         <View style={styles.center}>
@@ -154,8 +161,22 @@ export default function Carnet() {
     );
   }
 
+  if (planState.status === 'error') {
+    return (
+      <Screen scroll={false}>
+        <View style={styles.center}>
+          <VEmptyState
+            title={t('carnet.title')}
+            message={errorMessage(planState.error, t)}
+            action={{ label: t('common.retry'), onPress: planState.retry }}
+          />
+        </View>
+      </Screen>
+    );
+  }
+
   // GATING : le carnet virtuel appartient à l'offre Gold (et Platine).
-  if (!entitlements.virtualBook) {
+  if (!planState.entitlements.virtualBook) {
     return (
       <Screen scroll={false}>
         <View style={styles.center}>
@@ -163,6 +184,20 @@ export default function Carnet() {
             title={t('carnet.upsellTitle')}
             message={t('carnet.upsellMessage')}
             action={{ label: t('carnet.upsellCta'), onPress: () => router.push('/paywall') }}
+          />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (query.isError) {
+    return (
+      <Screen scroll={false}>
+        <View style={styles.center}>
+          <VEmptyState
+            title={t('carnet.title')}
+            message={errorMessage(query.error, t)}
+            action={{ label: t('common.retry'), onPress: () => void query.refetch() }}
           />
         </View>
       </Screen>
@@ -220,6 +255,11 @@ export default function Carnet() {
   );
 
   const openItem = (item: VelumItem) => router.push(`/item/${item.id}`);
+  const displayedTotal =
+    domainValuationFailures > 0 ? '—' : formatEUR(totals.totalEUR);
+  const totalAccessibilityLabel =
+    `${t('carnet.totalValue')} : ${displayedTotal}` +
+    (domainValuationFailures > 0 ? `. ${t('errors.SOURCE_UNAVAILABLE')}` : '');
 
   return (
     <Screen>
@@ -264,9 +304,9 @@ export default function Carnet() {
           variant="title"
           tone="gold"
           tabularNums
-          accessibilityLabel={`${t('carnet.totalValue')} : ${formatEUR(totals.totalEUR)}`}
+          accessibilityLabel={totalAccessibilityLabel}
         >
-          {formatEUR(totals.totalEUR)}
+          {displayedTotal}
         </VText>
         <VText variant="caption" tone="dim">
           {`${t('carnet.itemsCount', { count: totals.count })} · ${t('carnet.valuedCount', {
@@ -274,6 +314,18 @@ export default function Carnet() {
             count: totals.count,
           })}`}
         </VText>
+        {domainValuationFailures > 0 ? (
+          <View style={styles.partialWarning}>
+            <VText variant="caption" tone="gold">
+              {t('errors.SOURCE_UNAVAILABLE')}
+            </VText>
+            <VButton
+              label={t('common.retry')}
+              variant="secondary"
+              onPress={() => void query.refetch()}
+            />
+          </View>
+        ) : null}
         {totals.lastValuedAt ? (
           <VText variant="caption" tone="dim">
             {t('carnet.lastValuedAt', { date: formatDate(totals.lastValuedAt) })}
@@ -350,8 +402,12 @@ export default function Carnet() {
             variant="secondary"
             onPress={shareCellar}
             loading={sharing}
-            disabled={sharing}
-            accessibilityHint={t('cellarShare.hint')}
+            disabled={sharing || domainValuationFailures > 0}
+            accessibilityHint={
+              domainValuationFailures > 0
+                ? t('errors.SOURCE_UNAVAILABLE')
+                : t('cellarShare.hint')
+            }
           />
         </VCard>
       ) : null}
@@ -383,6 +439,10 @@ export default function Carnet() {
       {domain === 'wine'
         ? wineGroups.map((group) => {
             const groupTotals = bookTotals(group.items, latestByItem);
+            const groupValuationFailures = countFailedValuations(
+              group.items,
+              failedValuationItemIds,
+            );
             return (
               <View key={group.location ?? '__no_location__'} style={styles.group}>
                 <View style={styles.groupHeader}>
@@ -391,7 +451,9 @@ export default function Carnet() {
                   </VText>
                   <VText variant="caption" tone="dim">
                     {`${t('carnet.bottleCount', { count: group.items.length })}${
-                      groupTotals.valuedCount > 0 ? ` · ${formatEUR(groupTotals.totalEUR)}` : ''
+                      groupTotals.valuedCount > 0 && groupValuationFailures === 0
+                        ? ` · ${formatEUR(groupTotals.totalEUR)}`
+                        : ''
                     }`}
                   </VText>
                 </View>
@@ -400,7 +462,13 @@ export default function Carnet() {
                   const vintage = attributeNumber(item, 'vintage');
                   const parts: string[] = [];
                   if (vintage !== null) parts.push(t('carnet.vintage', { year: vintage }));
-                  parts.push(latest ? formatEUR(latest.central) : t('item.noValuation'));
+                  parts.push(
+                    failedValuationIds.has(item.id)
+                      ? t('errors.SOURCE_UNAVAILABLE')
+                      : latest
+                        ? formatEUR(latest.central)
+                        : t('item.noValuation'),
+                  );
                   // Deux boutons FRÈRES (info + déplacer) plutôt qu'un bouton
                   // « Déplacer » imbriqué dans une ligne cliquable (WCAG :
                   // nested-interactive).
@@ -634,6 +702,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: velumSpacing.sm,
   },
+  partialWarning: { gap: velumSpacing.sm, alignItems: 'flex-start' },
   upgradeLink: { minHeight: MIN_TOUCH_TARGET, justifyContent: 'center' },
   group: { marginTop: velumSpacing.lg, gap: velumSpacing.xs },
   groupHeader: { gap: velumSpacing.xs / 2 },
@@ -645,7 +714,12 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: velumColors.ink.border,
   },
-  caveInfo: { flex: 1, minHeight: MIN_TOUCH_TARGET, justifyContent: 'center', paddingVertical: velumSpacing.sm },
+  caveInfo: {
+    flex: 1,
+    minHeight: MIN_TOUCH_TARGET,
+    justifyContent: 'center',
+    paddingVertical: velumSpacing.sm,
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
