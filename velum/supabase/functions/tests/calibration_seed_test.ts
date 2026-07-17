@@ -26,29 +26,27 @@ const ONE_WINE_BENCHMARK = {
   watch: [],
 } as Record<VelumDomain, PriceQuery[]>;
 
-Deno.test('seed : chaque vente réelle devient une ligne datée public_backtest', async () => {
+Deno.test('seed : chaque vente réelle exploitable devient une ligne point-in-time', async () => {
   const report = await buildSeedRows(ONE_WINE_BENCHMARK, {
     fetchObservations: () =>
       Promise.resolve([
         obs(100, 'auction_realized', 30),
         obs(102, 'marketplace_sold', 5),
-        obs(98, 'official_quote'),
-        obs(101, 'official_quote'),
+        obs(98, 'official_quote', 45),
+        obs(101, 'official_quote', 40),
+        obs(99, 'listing', 35),
       ]),
     fx: FX,
     now: NOW,
   });
 
-  // 2 ventes réelles → 2 cas leave-one-out → 2 lignes.
   assertEquals(report.rows.length, 2);
   assertEquals(report.perDomain['wine'], { cases: 2, kept: 2, skipped: 0 });
   const first = report.rows[0];
   assertEquals(first.domain, 'wine');
   assertEquals(first.origin, 'public_backtest');
   assertEquals(first.realized, 100);
-  // realized_at = now − 30 jours.
   assertEquals(first.realized_at, '2026-06-16T12:00:00.000Z');
-  // L'IC est bien ordonné.
   if (!(first.ci80_low <= first.central && first.central <= first.ci80_high)) {
     throw new Error('IC80 incohérent');
   }
@@ -75,7 +73,7 @@ Deno.test('seed : taux de change manquant → erreur VISIBLE (jamais avalée)', 
             obs(92, 'official_quote'),
             obs(91, 'official_quote'),
           ]),
-        fx: FX, // pas de GBP
+        fx: FX,
         now: NOW,
       }),
     Error,
