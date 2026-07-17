@@ -1,25 +1,6 @@
 /**
- * Adaptateur Catawiki — lots ADJUGÉS (ventes conclues aux enchères en ligne).
- * kind: 'marketplace_sold' → poids par défaut 0.7.
- *
- * URL construite :
- *   GET https://api.catawiki.com/v1/lots/sold
- *       ?q=<label>&category=watches
- *   avec l'en-tête 'Authorization: Bearer <apiKey>' si une clé est fournie.
- *
- * Forme de réponse attendue (exemple) :
- * {
- *   "lots": [
- *     {
- *       "title": "Cartier - Tank Must - WSTA0041 - Unisexe - 2021",
- *       "sold_at": "2026-05-30",
- *       "sold_price": { "amount": 2450, "currency": "EUR" }
- *     }
- *   ]
- * }
- *
- * Un lot sans date ou sans prix exploitable est ignoré.
- * Réponse invalide ou vide → [] (dégradation gracieuse, jamais de throw).
+ * Adaptateur Catawiki — lots ADJUGÉS. L'endpoint reste désactivé sans contrat
+ * partenaire confirmant son accès et le droit d'utiliser les données.
  */
 import {
   DEFAULT_SOURCE_WEIGHTS,
@@ -48,7 +29,7 @@ export class CatawikiSource implements PriceSource {
   constructor(options: SourceAdapterOptions) {
     this.transport = options.transport;
     this.apiKey = options.apiKey;
-    this.now = options.now ?? (() => new Date());
+    this.now = options.now;
   }
 
   async fetch(query: PriceQuery): Promise<PriceObservation[]> {
@@ -67,15 +48,15 @@ export class CatawikiSource implements PriceSource {
 
   private mapResponse(raw: unknown, query: PriceQuery): PriceObservation[] {
     if (!isRecord(raw) || !Array.isArray(raw['lots'])) return [];
-    const out: PriceObservation[] = [];
+    const observations: PriceObservation[] = [];
     for (const lot of raw['lots']) {
       if (!isRecord(lot)) continue;
       const soldPrice = lot['sold_price'];
       if (!isRecord(soldPrice)) continue;
       const price = toPositiveNumber(soldPrice['amount']);
       const ageDays = ageDaysFromIso(lot['sold_at'], this.now);
-      if (price === null || ageDays === null) continue; // vente non datée → inexploitable
-      out.push({
+      if (price === null || ageDays === null) continue;
+      observations.push({
         price,
         currency: toCurrency(soldPrice['currency'], 'EUR'),
         ageDays,
@@ -84,6 +65,6 @@ export class CatawikiSource implements PriceSource {
         matchedLabel: typeof lot['title'] === 'string' ? lot['title'] : query.label,
       });
     }
-    return query.limit !== undefined ? out.slice(0, query.limit) : out;
+    return query.limit !== undefined ? observations.slice(0, query.limit) : observations;
   }
 }
