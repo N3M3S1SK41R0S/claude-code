@@ -1,5 +1,5 @@
 /**
- * Moteur de valorisation VELUM (§7) — commun aux 3 modules.
+ * Moteur de valorisation VELUM (§7) — commun aux 5 modules.
  *
  * Pipeline : normalisation devise → pondération récence × fiabilité source
  * → rejet d'outliers (MAD) → médiane pondérée → IC 80/95 % par bootstrap
@@ -83,6 +83,20 @@ export function effectiveWeight(o: PriceObservation, halfLifeDays = HALF_LIFE_DA
 }
 
 /**
+ * Compte les plateformes réellement distinctes après normalisation légère du
+ * nom. Plusieurs ventes ou annonces provenant du même adaptateur ne créent
+ * qu'une seule source indépendante pour le score de fiabilité.
+ */
+export function countDistinctSources(obs: PriceObservation[]): number {
+  const names = new Set<string>();
+  for (const observation of obs) {
+    const name = observation.source.name.normalize('NFKC').trim().toLowerCase();
+    if (name.length > 0) names.add(name);
+  }
+  return names.size;
+}
+
+/**
  * Rejet d'outliers par MAD : conserve les points où |x−med|/MAD ≤ k (§7.2-2).
  * MAD = 0 (majorité de prix identiques) → aucune information d'échelle :
  * on conserve tout, plutôt que de rejeter arbitrairement tout point divergent
@@ -100,10 +114,10 @@ export function rejectOutliers(
   return obs.filter((_, i) => Math.abs((prices[i] as number) - med) / mad <= k);
 }
 
-/** Score de fiabilité 0..100 : nombre de sources + resserrement de l'IC (§7.2-5). */
-export function reliabilityScore(n: number, lo: number, hi: number, central: number): number {
+/** Score de fiabilité 0..100 : sources distinctes + resserrement de l'IC (§7.2-5). */
+export function reliabilityScore(nSources: number, lo: number, hi: number, central: number): number {
   const spread = central ? (hi - lo) / central : 1;
-  const nScore = Math.min(1, n / 8);
+  const nScore = Math.min(1, nSources / 8);
   const spreadScore = Math.max(0, 1 - spread);
   return Math.round((0.5 * nScore + 0.5 * spreadScore) * 100);
 }
@@ -148,13 +162,14 @@ export function valuate(
 
   const ci80: [number, number] = [Math.round(q(0.1)), Math.round(q(0.9))];
   const ci95: [number, number] = [Math.round(q(0.025)), Math.round(q(0.975))];
+  const nSources = countDistinctSources(kept);
 
   return {
     central: Math.round(central),
     ci80,
     ci95,
-    nSources: kept.length,
-    reliability: reliabilityScore(kept.length, q(0.1), q(0.9), central),
+    nSources,
+    reliability: reliabilityScore(nSources, q(0.1), q(0.9), central),
     currency: 'EUR',
     observations: kept,
   };
