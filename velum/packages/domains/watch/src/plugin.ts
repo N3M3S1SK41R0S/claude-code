@@ -14,7 +14,6 @@ import {
   type PriceQuery,
   type RecognitionResult,
   type RecognizeDeps,
-  type SourceRef,
   type ValuateDeps,
   type ValuationResult,
   type WatchAnalysisPayload,
@@ -40,12 +39,6 @@ export const WATCH_DISCLAIMERS: readonly string[] = [
   BASE_DISCLAIMER,
   'État et mouvement estimés visuellement — une révision par un horloger fait foi.',
   "L'authenticité (mouvement, cadran, pièces d'origine) n'est PAS vérifiée : le marché horloger est exposé aux contrefaçons et aux montres recomposées — en cas de doute, consultez un expert.",
-];
-
-/** Références éditoriales par défaut si le moteur n'en cite aucune. */
-const DEFAULT_ANALYSIS_SOURCES: readonly SourceRef[] = [
-  { name: 'WatchCharts — cotes de marché', kind: 'official_quote', url: 'https://watchcharts.com' },
-  { name: 'Archives constructeurs (Rolex, Omega…)', kind: 'official_quote' },
 ];
 
 const GENDER_VALUES: readonly NonNullable<WatchAttributes['gender']>[] = ['homme', 'femme', 'mixte'];
@@ -327,23 +320,6 @@ function toNeighborReferences(v: unknown): { reference: string; note: string }[]
   return out;
 }
 
-function toSourceRefs(v: unknown): SourceRef[] {
-  if (!Array.isArray(v)) return [];
-  const out: SourceRef[] = [];
-  for (const entry of v) {
-    if (typeof entry === 'string' && entry.trim() !== '') {
-      out.push({ name: entry.trim(), kind: 'official_quote' });
-      continue;
-    }
-    if (isRecord(entry) && typeof entry['name'] === 'string' && entry['name'].trim() !== '') {
-      const ref: SourceRef = { name: entry['name'].trim(), kind: 'official_quote' };
-      if (typeof entry['url'] === 'string') ref.url = entry['url'];
-      out.push(ref);
-    }
-  }
-  return out;
-}
-
 function analysisPrompt(candidate: Candidate): string {
   return `Analyse la montre suivante et produis la fiche watch_v1 complète.
 
@@ -360,7 +336,6 @@ Réponds UNIQUEMENT avec un JSON strict conforme au schéma WatchAnalysisPayload
   "neighborReferences"?: [{"reference":string, "note":string}],
   "uncertainties": string[],
   "confidence": number entre 0 et 1,
-  "sources"?: [{"name":string, "url"?:string}]
 }
 Aucun texte hors du JSON, pas de fences markdown.`;
 }
@@ -440,13 +415,13 @@ export class WatchDomainPlugin implements DomainPlugin<WatchAnalysisPayload> {
 
     const rawConfidence = parsed['confidence'];
     const confidence = clamp01(typeof rawConfidence === 'number' ? rawConfidence : condition.confidence);
-    const cited = toSourceRefs(parsed['sources']);
-
     return {
       engine: WATCH_ENGINE,
       payload,
       confidence,
-      sources: cited.length > 0 ? cited : [...DEFAULT_ANALYSIS_SOURCES],
+      // L'analyse LLM n'est pas une source de marché. Les références ne sont
+      // publiées que par les adaptateurs ayant réellement récupéré une donnée.
+      sources: [],
       disclaimers: [...WATCH_DISCLAIMERS],
     };
   }

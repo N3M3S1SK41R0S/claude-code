@@ -286,7 +286,7 @@ describe('watchPlugin.analyze', () => {
       'Estimation indicative — ni expertise légale, ni conseil en investissement.',
     );
     expect(result.disclaimers.some((d) => /contrefaçon/i.test(d))).toBe(true);
-    expect(result.sources.length).toBeGreaterThan(0);
+    expect(result.sources).toEqual([]);
   });
 
   it('payload minimal ou hors référentiel → coercition défensive', async () => {
@@ -311,8 +311,8 @@ describe('watchPlugin.analyze', () => {
     expect(result.payload.heritage).toBeUndefined();
     // confidence global absent → celui de l'état.
     expect(result.confidence).toBe(0.3);
-    // Aucune source citée → références éditoriales par défaut.
-    expect(result.sources.length).toBeGreaterThan(0);
+    // Une réponse LLM ne devient jamais une provenance de marché.
+    expect(result.sources).toEqual([]);
   });
 
   it('réponse corrompue → VelumError ANALYSIS_FAILED', async () => {

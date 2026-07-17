@@ -5,7 +5,7 @@
 -- (pg_net) vers l'Edge Function `calibration` en mode 'seed' :
 --   1. backtest leave-one-out sur les références de marché (ventes publiques)
 --      → remplace les lignes calibration_outcomes 'public_backtest' ;
---   2. recalcul et publication des runs (calibration_runs) pour les 4 domaines.
+--   2. recalcul et publication des runs (calibration_runs) pour les 5 domaines.
 --
 -- Réutilise les secrets vault déjà requis par 0002 (price-cron) :
 --   'project_url' et 'cron_secret' — voir l'en-tête de 0002_cron.sql pour la
@@ -50,7 +50,7 @@ begin
           )
         ),
         body := '{"mode":"seed"}'::jsonb,
-        -- Fan-out sources + backtest 4 domaines : timeout large.
+        -- Fan-out sources + backtest 5 domaines : timeout large.
         timeout_milliseconds := 300000
       );
       $job$

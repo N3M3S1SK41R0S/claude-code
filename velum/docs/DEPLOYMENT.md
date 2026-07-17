@@ -75,7 +75,7 @@ Checklist opérationnelle complète pour publier VELUM sur l'App Store et Google
 
 - [ ] `supabase db push` — migrations appliquées (DDL + RLS + triggers + `consume_scan`).
 - [ ] `supabase functions deploy` — toutes les Edge Functions (`recognize`, `analyze-*`, `valuate`, webhooks).
-- [ ] `supabase secrets set --env-file supabase/functions/.env` — d'après `supabase/functions/.env.example` : `LLM_VISION_API_KEY`, `LLM_VISION_PROVIDER`, `NUMISTA_API_KEY`, `ARTPRICE_API_KEY`, `EBAY_API_KEY`, `COLNECT_API_KEY`, `DELCAMPE_API_KEY`, `FX_API_KEY`, `QDRANT_URL`, `QDRANT_API_KEY`. **Aucun de ces secrets côté client.**
+- [ ] `supabase secrets set --env-file supabase/functions/.env` — partir du modèle exhaustif. Pour les montres, une clé ne suffit pas : activer `WATCHCHARTS_APP_LICENSED`, `HERITAGE_WATCH_API_ENABLED`, `EBAY_MARKETPLACE_INSIGHTS_ENABLED`, `CATAWIKI_WATCH_API_ENABLED` ou `CHRONO24_WATCH_API_ENABLED` uniquement après confirmation contractuelle. **Aucun secret côté client.**
 - [ ] Jobs **pg_cron** planifiés (revalorisation, FX, alertes, purges) avec secrets d'appel dans **Vault**.
 - [ ] Bucket `item-media` créé, policies Storage en place, quotas vérifiés.
 - [ ] Sauvegardes automatiques + PITR activés ; RLS re-vérifiée table par table (`select` anonyme doit échouer partout).
