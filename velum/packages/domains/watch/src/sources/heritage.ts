@@ -1,27 +1,6 @@
 /**
  * Adaptateur Heritage Auctions — PRIX RÉALISÉS en maison de vente
- * (département Timepieces).
- * kind: 'auction_realized' → poids par défaut 1.0 (source la plus fiable).
- *
- * URL construite :
- *   GET https://api.ha.com/v1/search/realized
- *       ?q=<label>&department=timepieces
- *   avec l'en-tête 'X-Api-Key: <apiKey>' si une clé est fournie.
- *
- * Forme de réponse attendue (exemple) :
- * {
- *   "results": [
- *     {
- *       "lotTitle": "Rolex Submariner 124060, 2022, full set",
- *       "saleDate": "2026-04-12",
- *       "realizedPrice": 11200,
- *       "currency": "USD"
- *     }
- *   ]
- * }
- *
- * Une adjudication sans date ou sans prix exploitable est ignorée.
- * Réponse invalide ou vide → [] (dégradation gracieuse, jamais de throw).
+ * (département Timepieces). L'endpoint reste désactivé sans agrément partenaire.
  */
 import {
   DEFAULT_SOURCE_WEIGHTS,
@@ -50,7 +29,7 @@ export class HeritageSource implements PriceSource {
   constructor(options: SourceAdapterOptions) {
     this.transport = options.transport;
     this.apiKey = options.apiKey;
-    this.now = options.now ?? (() => new Date());
+    this.now = options.now;
   }
 
   async fetch(query: PriceQuery): Promise<PriceObservation[]> {
@@ -69,13 +48,13 @@ export class HeritageSource implements PriceSource {
 
   private mapResponse(raw: unknown, query: PriceQuery): PriceObservation[] {
     if (!isRecord(raw) || !Array.isArray(raw['results'])) return [];
-    const out: PriceObservation[] = [];
+    const observations: PriceObservation[] = [];
     for (const lot of raw['results']) {
       if (!isRecord(lot)) continue;
       const price = toPositiveNumber(lot['realizedPrice']);
       const ageDays = ageDaysFromIso(lot['saleDate'], this.now);
-      if (price === null || ageDays === null) continue; // adjudication non datée → inexploitable
-      out.push({
+      if (price === null || ageDays === null) continue;
+      observations.push({
         price,
         currency: toCurrency(lot['currency'], 'USD'),
         ageDays,
@@ -84,6 +63,6 @@ export class HeritageSource implements PriceSource {
         matchedLabel: typeof lot['lotTitle'] === 'string' ? lot['lotTitle'] : query.label,
       });
     }
-    return query.limit !== undefined ? out.slice(0, query.limit) : out;
+    return query.limit !== undefined ? observations.slice(0, query.limit) : observations;
   }
 }
