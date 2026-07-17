@@ -55,7 +55,16 @@ grand-mogul/
 | P5 Polish | ✅ | framer-motion, prefers-reduced-motion, haptique, dark mode, a11y (26 constats de revue corrigés). |
 | P6 Ship | ⚠️ à faire | Config Vercel prête (`vercel.json`), **déploiement effectif non fait** (requiert le compte du propriétaire). |
 
-## 4. ⚠️ LE point de reprise principal : la banque de questions
+## 4. Banque de questions — ✅ COMPLÉTÉE (mise à jour post-reprise)
+
+> **Mise à jour** : la forge de complément a tourné après le rétablissement du
+> budget — la banque embarquée compte désormais **256 questions vérifiées**
+> couvrant les **13 thèmes** (les plus légers : langue 8, gastronomie 10,
+> musique 11 — le fact-check adversarial à seuil 0,9 rejette beaucoup sur ces
+> thèmes ; relancer le même workflow pour les renforcer). Le récit ci-dessous
+> décrit l'incident d'origine et reste utile pour la procédure de récupération.
+
+### Historique de l'incident (résolu)
 
 **Ce qui s'est passé.** La génération de banque tournait via un workflow
 multi-agents (fan-out par thème → fact-check adversarial par question). Le

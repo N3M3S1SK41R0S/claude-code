@@ -1,6 +1,6 @@
 {
- "version": 1784233930627,
- "count": 193,
+ "version": 1784295290494,
+ "count": 256,
  "questions": [
   {
    "id": "arts-001",
@@ -2863,6 +2863,1268 @@
    "sources": [
     "https://fr.wikipedia.org/wiki/Neptune_(planète)",
     "https://fr.wikipedia.org/wiki/Système_solaire"
+   ]
+  },
+  {
+   "id": "gastronomie-001",
+   "theme": "gastronomie",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Quel plat emblématique de Marseille est une soupe de poissons traditionnellement servie avec sa rouille ?",
+   "choices": [
+    "La bouillabaisse",
+    "La cotriade",
+    "Le ttoro",
+    "La garbure"
+   ],
+   "answerIndex": 0,
+   "anecdote": "En 1980, des restaurateurs marseillais ont signé une « charte de la bouillabaisse » pour codifier la recette et les poissons admis, comme la rascasse.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bouillabaisse",
+    "https://en.wikipedia.org/wiki/Bouillabaisse"
+   ]
+  },
+  {
+   "id": "gastronomie-002",
+   "theme": "gastronomie",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Avec quel lait le roquefort est-il exclusivement fabriqué ?",
+   "choices": [
+    "Du lait de vache",
+    "Du lait de chèvre",
+    "Du lait de brebis",
+    "Du lait de bufflonne"
+   ],
+   "answerIndex": 2,
+   "anecdote": "Le roquefort fut, en 1925, le premier fromage français à obtenir une appellation d'origine ; il est affiné dans des caves naturelles ventilées par des failles appelées « fleurines ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Roquefort_(fromage)",
+    "https://en.wikipedia.org/wiki/Roquefort"
+   ]
+  },
+  {
+   "id": "gastronomie-003",
+   "theme": "gastronomie",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quel cépage rouge domine les grands vins de la côte de Nuits, en Bourgogne ?",
+   "choices": [
+    "Le gamay",
+    "Le pinot noir",
+    "La syrah",
+    "Le cabernet franc"
+   ],
+   "answerIndex": 1,
+   "anecdote": "En 1395, le duc de Bourgogne Philippe le Hardi ordonna d'arracher le gamay, qualifié de plant « déloyal », au profit du pinot noir.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pinot_noir",
+    "https://fr.wikipedia.org/wiki/Vignoble_de_Bourgogne"
+   ]
+  },
+  {
+   "id": "gastronomie-004",
+   "theme": "gastronomie",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quel chef a créé la pêche Melba en hommage à la cantatrice australienne Nellie Melba ?",
+   "choices": [
+    "Marie-Antoine Carême",
+    "Prosper Montagné",
+    "Fernand Point",
+    "Auguste Escoffier"
+   ],
+   "answerIndex": 3,
+   "anecdote": "Escoffier imagina le dessert à Londres dans les années 1890 : les pêches étaient servies dans un cygne de glace, clin d'œil à l'opéra Lohengrin que chantait Nellie Melba.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/P%C3%AAche_Melba",
+    "https://fr.wikipedia.org/wiki/Auguste_Escoffier"
+   ]
+  },
+  {
+   "id": "gastronomie-005",
+   "theme": "gastronomie",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "En quelle année paraît le tout premier guide Michelin, alors offert gratuitement aux automobilistes ?",
+   "choices": [
+    "1900",
+    "1911",
+    "1920",
+    "1926"
+   ],
+   "answerIndex": 0,
+   "anecdote": "À sa sortie, la France ne comptait qu'environ 2 400 conducteurs d'automobiles ; le guide n'est devenu payant qu'en 1920.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guide_Michelin",
+    "https://en.wikipedia.org/wiki/Michelin_Guide"
+   ]
+  },
+  {
+   "id": "gastronomie-006",
+   "theme": "gastronomie",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel fromage AOP du Haut-Doubs est cerclé d'une sangle d'épicéa et vendu dans une boîte en bois ?",
+   "choices": [
+    "Le reblochon",
+    "Le munster",
+    "Le mont d'or",
+    "Le maroilles"
+   ],
+   "answerIndex": 2,
+   "anecdote": "C'est un fromage strictement saisonnier : fabriqué entre août et mars, il n'est disponible à la vente que de septembre à mai.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mont_d%27or_(fromage)",
+    "https://en.wikipedia.org/wiki/Mont_d%27Or_(cheese)"
+   ]
+  },
+  {
+   "id": "gastronomie-007",
+   "theme": "gastronomie",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel chef lyonnais a détenu trois étoiles Michelin sans interruption de 1965 à sa mort, en 2018 ?",
+   "choices": [
+    "Alain Chapel",
+    "Paul Bocuse",
+    "Pierre Troisgros",
+    "Georges Blanc"
+   ],
+   "answerIndex": 1,
+   "anecdote": "Sacré « cuisinier du siècle » par Gault et Millau en 1989, Paul Bocuse régnait sur son auberge de Collonges-au-Mont-d'Or, près de Lyon.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Paul_Bocuse",
+    "https://en.wikipedia.org/wiki/Paul_Bocuse"
+   ]
+  },
+  {
+   "id": "gastronomie-008",
+   "theme": "gastronomie",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel maître d'hôtel du prince de Condé se donna la mort en 1671, lors d'une fête donnée pour Louis XIV à Chantilly ?",
+   "choices": [
+    "François Pierre de La Varenne",
+    "Guillaume Tirel, dit Taillevent",
+    "François Massialot",
+    "François Vatel"
+   ],
+   "answerIndex": 3,
+   "anecdote": "Désespéré par le retard de la « marée », la livraison de poisson, Vatel se transperça de son épée ; l'épisode nous est connu par les lettres de Madame de Sévigné.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fran%C3%A7ois_Vatel",
+    "https://en.wikipedia.org/wiki/Fran%C3%A7ois_Vatel"
+   ]
+  },
+  {
+   "id": "gastronomie-009",
+   "theme": "gastronomie",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel est le seul fromage corse à bénéficier d'une AOP ?",
+   "choices": [
+    "Le brocciu",
+    "Le niolo",
+    "Le venaco",
+    "Le calenzana"
+   ],
+   "answerIndex": 0,
+   "anecdote": "Considéré comme le « fromage national » corse, le brocciu n'est pas fait de lait caillé mais de lactosérum, le petit-lait de brebis ou de chèvre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Brocciu",
+    "https://en.wikipedia.org/wiki/Brocciu"
+   ]
+  },
+  {
+   "id": "gastronomie-010",
+   "theme": "gastronomie",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quelle « mère » lyonnaise cumule six étoiles Michelin dès 1933 grâce à ses deux restaurants trois étoiles ?",
+   "choices": [
+    "La Mère Fillioux",
+    "La Mère Bourgeois",
+    "La Mère Brazier",
+    "La Mère Blanc"
+   ],
+   "answerIndex": 2,
+   "anecdote": "Première personne, femmes et hommes confondus, à réussir cet exploit, Eugénie Brazier eut pour apprenti un certain Paul Bocuse, au col de la Luère, en 1946.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Eug%C3%A9nie_Brazier",
+    "https://en.wikipedia.org/wiki/Eug%C3%A9nie_Brazier"
+   ]
+  },
+  {
+   "id": "general-001",
+   "theme": "general",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Quelle est la monnaie officielle du Japon ?",
+   "choices": [
+    "Le yuan",
+    "Le won",
+    "Le yen",
+    "Le baht"
+   ],
+   "answerIndex": 2,
+   "anecdote": "En japonais, le mot « en » désigne un objet rond, en référence à la forme des pièces. La prononciation « yen » utilisée en Occident provient d'anciennes transcriptions du japonais.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Yen",
+    "https://en.wikipedia.org/wiki/Japanese_yen"
+   ]
+  },
+  {
+   "id": "general-002",
+   "theme": "general",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Combien de jours compte le mois de février lors d'une année bissextile ?",
+   "choices": [
+    "28 jours",
+    "29 jours",
+    "30 jours",
+    "31 jours"
+   ],
+   "answerIndex": 1,
+   "anecdote": "Dans le calendrier grégorien, les années séculaires ne sont bissextiles que si elles sont divisibles par 400 : l'an 2000 l'était, mais pas 1900.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ann%C3%A9e_bissextile",
+    "https://fr.wikipedia.org/wiki/Calendrier_gr%C3%A9gorien"
+   ]
+  },
+  {
+   "id": "general-003",
+   "theme": "general",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Dans quelle ville siège la Cour internationale de justice, principal organe judiciaire de l'ONU ?",
+   "choices": [
+    "Genève",
+    "New York",
+    "Vienne",
+    "La Haye"
+   ],
+   "answerIndex": 3,
+   "anecdote": "Installée au palais de la Paix, elle est le seul des six organes principaux des Nations unies à ne pas siéger à New York.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cour_internationale_de_justice",
+    "https://www.icj-cij.org/"
+   ]
+  },
+  {
+   "id": "general-004",
+   "theme": "general",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "De quel pays le forint est-il la monnaie officielle ?",
+   "choices": [
+    "La Hongrie",
+    "La Pologne",
+    "La Tchéquie",
+    "La Roumanie"
+   ],
+   "answerIndex": 0,
+   "anecdote": "Le forint a été réintroduit le 1er août 1946 après l'hyperinflation record du pengő : il fallait alors 4 × 10²⁹ pengős pour obtenir un seul forint. Son nom vient du « fiorino d'oro », le florin d'or de Florence.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Forint",
+    "https://en.wikipedia.org/wiki/Hungarian_forint"
+   ]
+  },
+  {
+   "id": "general-005",
+   "theme": "general",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quelle langue compte le plus grand nombre de locuteurs natifs au monde ?",
+   "choices": [
+    "L'anglais",
+    "L'espagnol",
+    "Le chinois mandarin",
+    "L'hindi"
+   ],
+   "answerIndex": 2,
+   "anecdote": "Si l'on additionne locuteurs natifs et locuteurs de seconde langue, c'est en revanche l'anglais qui arrive en tête du classement mondial.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mandarin_(langue)",
+    "https://en.wikipedia.org/wiki/List_of_languages_by_number_of_native_speakers"
+   ]
+  },
+  {
+   "id": "general-006",
+   "theme": "general",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Combien d'unités de base compte le Système international d'unités (SI) ?",
+   "choices": [
+    "Six",
+    "Sept",
+    "Huit",
+    "Neuf"
+   ],
+   "answerIndex": 1,
+   "anecdote": "Depuis la réforme de 2019, les sept unités de base sont toutes définies à partir de constantes fondamentales : le kilogramme n'est plus rattaché au prototype en platine iridié conservé près de Paris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Syst%C3%A8me_international_d%27unit%C3%A9s",
+    "https://en.wikipedia.org/wiki/International_System_of_Units"
+   ]
+  },
+  {
+   "id": "general-007",
+   "theme": "general",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Dans le Système international, quelle grandeur physique la candela mesure-t-elle ?",
+   "choices": [
+    "L'intensité lumineuse",
+    "Le flux lumineux",
+    "L'éclairement lumineux",
+    "La luminance"
+   ],
+   "answerIndex": 0,
+   "anecdote": "Son nom vient du latin « candela », la chandelle : une bougie ordinaire émet une intensité lumineuse de l'ordre d'une candela.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Candela",
+    "https://en.wikipedia.org/wiki/Candela"
+   ]
+  },
+  {
+   "id": "general-008",
+   "theme": "general",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Dans le calendrier républicain français, quel mois correspondait à l'époque des vendanges ?",
+   "choices": [
+    "Vendémiaire",
+    "Brumaire",
+    "Fructidor",
+    "Messidor"
+   ],
+   "answerIndex": 0,
+   "anecdote": "Vendémiaire ouvrait l'année républicaine, qui commençait à l'équinoxe d'automne : l'an I débuta ainsi le 22 septembre 1792. Les noms poétiques des mois sont dus à Fabre d'Églantine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vend%C3%A9miaire",
+    "https://fr.wikipedia.org/wiki/Calendrier_r%C3%A9publicain"
+   ]
+  },
+  {
+   "id": "insolite-001",
+   "theme": "insolite",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Combien de cœurs possède une pieuvre (poulpe) ?",
+   "choices": [
+    "Trois",
+    "Deux",
+    "Un",
+    "Quatre"
+   ],
+   "answerIndex": 0,
+   "anecdote": "Deux cœurs branchiaux oxygènent le sang, un troisième le propulse dans le corps ; ce dernier s'arrête quand l'animal nage, ce qui explique qu'il préfère ramper.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pieuvre",
+    "https://en.wikipedia.org/wiki/Octopus"
+   ]
+  },
+  {
+   "id": "insolite-002",
+   "theme": "insolite",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Quel est l'animal terrestre le plus rapide du monde ?",
+   "choices": [
+    "Le lion",
+    "L'antilope pronghorn",
+    "Le cheval",
+    "Le guépard"
+   ],
+   "answerIndex": 3,
+   "anecdote": "Le guépard atteint environ 110 km/h et passe de 0 à 100 km/h en quelques secondes, mais ne tient cette allure que sur quelques centaines de mètres.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Gu%C3%A9pard",
+    "https://en.wikipedia.org/wiki/Cheetah"
+   ]
+  },
+  {
+   "id": "insolite-003",
+   "theme": "insolite",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Quel est le plus grand animal ayant jamais existé sur Terre ?",
+   "choices": [
+    "Le diplodocus",
+    "La baleine bleue",
+    "Le requin-baleine",
+    "L'éléphant de mer"
+   ],
+   "answerIndex": 1,
+   "anecdote": "La baleine bleue peut dépasser 30 mètres et 150 tonnes ; sa langue seule pèse autant qu'un éléphant.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rorqual_bleu",
+    "https://en.wikipedia.org/wiki/Blue_whale"
+   ]
+  },
+  {
+   "id": "insolite-004",
+   "theme": "insolite",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "De quelle couleur est le sang de la pieuvre ?",
+   "choices": [
+    "Rouge",
+    "Vert",
+    "Bleu",
+    "Violet"
+   ],
+   "answerIndex": 2,
+   "anecdote": "Son sang transporte l'oxygène grâce à l'hémocyanine, une protéine à base de cuivre, et non à l'hémoglobine à base de fer comme chez nous.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/H%C3%A9mocyanine",
+    "https://fr.wikipedia.org/wiki/Pieuvre"
+   ]
+  },
+  {
+   "id": "insolite-005",
+   "theme": "insolite",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Combien d'os compte le squelette d'un être humain adulte ?",
+   "choices": [
+    "198",
+    "206",
+    "216",
+    "264"
+   ],
+   "answerIndex": 1,
+   "anecdote": "Un nouveau-né possède environ 300 os ; beaucoup fusionnent avec la croissance pour n'en laisser que 206 à l'âge adulte.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Squelette_humain",
+    "https://en.wikipedia.org/wiki/Human_skeleton"
+   ]
+  },
+  {
+   "id": "insolite-006",
+   "theme": "insolite",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quel pays possède le seul drapeau national qui n'est pas rectangulaire ?",
+   "choices": [
+    "La Suisse",
+    "Le Bhoutan",
+    "Le Vatican",
+    "Le Népal"
+   ],
+   "answerIndex": 3,
+   "anecdote": "Le drapeau du Népal est formé de deux fanions triangulaires superposés ; la Suisse et le Vatican, souvent citées, ont un drapeau carré mais bien quadrilatère.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_du_N%C3%A9pal",
+    "https://en.wikipedia.org/wiki/Flag_of_Nepal"
+   ]
+  },
+  {
+   "id": "insolite-007",
+   "theme": "insolite",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel est le seul mammifère capable de vol actif (battant) ?",
+   "choices": [
+    "L'écureuil volant",
+    "Le colugo",
+    "La chauve-souris",
+    "Le polatouche"
+   ],
+   "answerIndex": 2,
+   "anecdote": "Les écureuils volants et colugos ne font que planer ; seules les chauves-souris (chiroptères) volent réellement en battant des ailes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chiroptera",
+    "https://en.wikipedia.org/wiki/Bat"
+   ]
+  },
+  {
+   "id": "insolite-008",
+   "theme": "insolite",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel animal terrestre possède le plus gros œil du règne animal ?",
+   "choices": [
+    "L'autruche",
+    "L'éléphant",
+    "Le cheval",
+    "La girafe"
+   ],
+   "answerIndex": 0,
+   "anecdote": "L'œil de l'autruche mesure près de 5 cm de diamètre, soit un diamètre supérieur à celui de son propre cerveau.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Autruche",
+    "https://en.wikipedia.org/wiki/Common_ostrich"
+   ]
+  },
+  {
+   "id": "insolite-009",
+   "theme": "insolite",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel animal a survécu à une exposition directe au vide spatial ?",
+   "choices": [
+    "Le tardigrade",
+    "Le rotifère",
+    "Le nématode",
+    "La blatte"
+   ],
+   "answerIndex": 0,
+   "anecdote": "En 2007, lors de la mission FOTON-M3, des tardigrades ont survécu au vide et aux radiations en orbite terrestre puis se sont reproduits au retour.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tardigrada",
+    "https://en.wikipedia.org/wiki/Tardigrade"
+   ]
+  },
+  {
+   "id": "insolite-010",
+   "theme": "insolite",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quel pays s'étale sur le plus grand nombre de fuseaux horaires, territoires compris ?",
+   "choices": [
+    "Les États-Unis",
+    "La Russie",
+    "Le Royaume-Uni",
+    "La France"
+   ],
+   "answerIndex": 3,
+   "anecdote": "Grâce à ses territoires d'outre-mer, la France couvre 12 fuseaux horaires, soit plus qu'aucun autre pays au monde, devant la Russie et les États-Unis.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Heure_en_France",
+    "https://fr.wikipedia.org/wiki/Fuseau_horaire"
+   ]
+  },
+  {
+   "id": "langue-001",
+   "theme": "langue",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Combien l'Académie française compte-t-elle de fauteuils ?",
+   "choices": [
+    "Trente",
+    "Quarante",
+    "Cinquante",
+    "Soixante"
+   ],
+   "answerIndex": 1,
+   "anecdote": "Les académiciens sont surnommés « les Immortels », d'après la devise « À l'immortalité » qui figure sur le sceau donné à l'Académie par le cardinal de Richelieu.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Acad%C3%A9mie_fran%C3%A7aise",
+    "https://www.academie-francaise.fr/"
+   ]
+  },
+  {
+   "id": "langue-002",
+   "theme": "langue",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Que signifie l'expression « poser un lapin » ?",
+   "choices": [
+    "Faire une farce à quelqu'un",
+    "Offrir un cadeau sans valeur",
+    "Ne pas se présenter à un rendez-vous",
+    "Abandonner une partie en cours"
+   ],
+   "answerIndex": 2,
+   "anecdote": "Au XIXe siècle, « poser un lapin » signifiait d'abord partir sans payer ce que l'on devait ; le sens actuel de rendez-vous manqué s'est imposé ensuite.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/poser_un_lapin",
+    "https://www.cnrtl.fr/definition/lapin"
+   ]
+  },
+  {
+   "id": "langue-003",
+   "theme": "langue",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quel homme d'État a fondé l'Académie française en 1635 ?",
+   "choices": [
+    "Le cardinal de Richelieu",
+    "Le cardinal Mazarin",
+    "Colbert",
+    "Sully"
+   ],
+   "answerIndex": 0,
+   "anecdote": "L'Académie mit près de soixante ans à achever la première édition de son Dictionnaire, finalement publiée en 1694.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Acad%C3%A9mie_fran%C3%A7aise",
+    "https://fr.wikipedia.org/wiki/Armand_Jean_du_Plessis_de_Richelieu"
+   ]
+  },
+  {
+   "id": "langue-004",
+   "theme": "langue",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Qui fut la première femme élue à l'Académie française, en 1980 ?",
+   "choices": [
+    "Jacqueline de Romilly",
+    "Hélène Carrère d'Encausse",
+    "Assia Djebar",
+    "Marguerite Yourcenar"
+   ],
+   "answerIndex": 3,
+   "anecdote": "Naturalisée américaine en 1947, Marguerite Yourcenar vivait sur l'île des Monts Déserts, dans le Maine, au moment de son élection sous la Coupole.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marguerite_Yourcenar",
+    "https://fr.wikipedia.org/wiki/Acad%C3%A9mie_fran%C3%A7aise"
+   ]
+  },
+  {
+   "id": "langue-005",
+   "theme": "langue",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "L'expression « victoire à la Pyrrhus » fait référence à un roi de quel royaume antique ?",
+   "choices": [
+    "La Macédoine",
+    "L'Épire",
+    "Le Pont",
+    "La Thrace"
+   ],
+   "answerIndex": 1,
+   "anecdote": "Selon Plutarque, après sa coûteuse victoire d'Ausculum contre les Romains, Pyrrhus aurait déclaré qu'une autre victoire de ce genre le perdrait entièrement.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Victoire_%C3%A0_la_Pyrrhus",
+    "https://fr.wikipedia.org/wiki/Pyrrhus_Ier"
+   ]
+  },
+  {
+   "id": "langue-006",
+   "theme": "langue",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "En quelle année la loi Toubon, relative à l'emploi de la langue française, a-t-elle été promulguée ?",
+   "choices": [
+    "1975",
+    "1986",
+    "1994",
+    "2002"
+   ],
+   "answerIndex": 2,
+   "anecdote": "Ses détracteurs l'avaient surnommée par dérision « loi Allgood », traduction littérale en anglais du nom du ministre Jacques Toubon.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Loi_Toubon",
+    "https://en.wikipedia.org/wiki/Toubon_Law"
+   ]
+  },
+  {
+   "id": "langue-007",
+   "theme": "langue",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Dans quelle ville a été signé, en 1970, le traité créant l'ACCT, ancêtre de l'Organisation internationale de la Francophonie ?",
+   "choices": [
+    "Niamey",
+    "Dakar",
+    "Hanoï",
+    "Tunis"
+   ],
+   "answerIndex": 0,
+   "anecdote": "Le 20 mars, date de la signature du traité de Niamey en 1970, est depuis devenu la Journée internationale de la Francophonie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Organisation_internationale_de_la_Francophonie",
+    "https://www.francophonie.org/"
+   ]
+  },
+  {
+   "id": "langue-008",
+   "theme": "langue",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "De quel mot latin est issu le mot français « rien » ?",
+   "choices": [
+    "Nihil, « rien »",
+    "Rem, accusatif de res, « chose »",
+    "Nullum, « aucun »",
+    "Vacuum, « vide »"
+   ],
+   "answerIndex": 1,
+   "anecdote": "Étymologiquement, « rien » signifie donc « chose » : en ancien français, le mot avait encore ce sens positif avant de devenir négatif par son emploi avec « ne ».",
+   "sources": [
+    "https://www.cnrtl.fr/etymologie/rien",
+    "https://fr.wiktionary.org/wiki/rien"
+   ]
+  },
+  {
+   "id": "musique-003",
+   "theme": "musique",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Qui a composé l'opéra « La Flûte enchantée » ?",
+   "choices": [
+    "Ludwig van Beethoven",
+    "Joseph Haydn",
+    "Wolfgang Amadeus Mozart",
+    "Franz Schubert"
+   ],
+   "answerIndex": 2,
+   "anecdote": "Créée à Vienne le 30 septembre 1791, l'œuvre précède de quelques semaines seulement la mort de Mozart, survenue le 5 décembre de la même année.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Fl%C3%BBte_enchant%C3%A9e",
+    "https://fr.wikipedia.org/wiki/Wolfgang_Amadeus_Mozart"
+   ]
+  },
+  {
+   "id": "musique-004",
+   "theme": "musique",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quel compositeur français a écrit le célèbre « Boléro », créé en 1928 ?",
+   "choices": [
+    "Maurice Ravel",
+    "Claude Debussy",
+    "Erik Satie",
+    "Gabriel Fauré"
+   ],
+   "answerIndex": 0,
+   "anecdote": "Le « Boléro » fut créé le 22 novembre 1928 à l'Opéra de Paris comme ballet pour la danseuse Ida Rubinstein, qui l'avait commandé à Ravel.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bol%C3%A9ro_(Ravel)",
+    "https://fr.wikipedia.org/wiki/Maurice_Ravel"
+   ]
+  },
+  {
+   "id": "musique-005",
+   "theme": "musique",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Qui est le compositeur de l'opéra « Carmen », créé à Paris en 1875 ?",
+   "choices": [
+    "Charles Gounod",
+    "Jules Massenet",
+    "Jacques Offenbach",
+    "Georges Bizet"
+   ],
+   "answerIndex": 3,
+   "anecdote": "Bizet est mort le 3 juin 1875, trois mois jour pour jour après la première de « Carmen », sans avoir connu le triomphe mondial de son œuvre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Carmen_(op%C3%A9ra)",
+    "https://fr.wikipedia.org/wiki/Georges_Bizet"
+   ]
+  },
+  {
+   "id": "musique-006",
+   "theme": "musique",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quelle était la nationalité du chanteur Jacques Brel ?",
+   "choices": [
+    "Française",
+    "Belge",
+    "Suisse",
+    "Canadienne"
+   ],
+   "answerIndex": 1,
+   "anecdote": "Né à Schaerbeek en 1929, Brel repose aux îles Marquises, à Hiva Oa, à quelques mètres de la tombe du peintre Paul Gauguin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jacques_Brel",
+    "https://en.wikipedia.org/wiki/Jacques_Brel"
+   ]
+  },
+  {
+   "id": "musique-007",
+   "theme": "musique",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Combien de symphonies Ludwig van Beethoven a-t-il achevées ?",
+   "choices": [
+    "Sept",
+    "Huit",
+    "Neuf",
+    "Dix"
+   ],
+   "answerIndex": 2,
+   "anecdote": "Le thème du finale de la Neuvième, l'« Ode à la joie », est devenu l'hymne officiel de l'Union européenne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ludwig_van_Beethoven",
+    "https://en.wikipedia.org/wiki/Symphony_No._9_(Beethoven)"
+   ]
+  },
+  {
+   "id": "musique-008",
+   "theme": "musique",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel compositeur français a écrit l'opéra-ballet « Les Indes galantes » ?",
+   "choices": [
+    "Jean-Philippe Rameau",
+    "Jean-Baptiste Lully",
+    "François Couperin",
+    "Marc-Antoine Charpentier"
+   ],
+   "answerIndex": 0,
+   "anecdote": "Rameau y a réutilisé « Les Sauvages », une pièce pour clavecin qu'il avait composée après avoir vu danser des Amérindiens de Louisiane à Paris en 1725.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Indes_galantes",
+    "https://fr.wikipedia.org/wiki/Jean-Philippe_Rameau"
+   ]
+  },
+  {
+   "id": "musique-009",
+   "theme": "musique",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel prix l'Académie française a-t-elle décerné à Georges Brassens en 1967 ?",
+   "choices": [
+    "Le Grand Prix du roman",
+    "Le Grand Prix de littérature",
+    "Le Grand Prix du théâtre",
+    "Le Grand Prix de poésie"
+   ],
+   "answerIndex": 3,
+   "anecdote": "Parrainé par Marcel Pagnol et Joseph Kessel, Brassens reçut ce prix le 8 juin 1967 pour l'ensemble de son œuvre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Georges_Brassens",
+    "https://en.wikipedia.org/wiki/Georges_Brassens"
+   ]
+  },
+  {
+   "id": "musique-010",
+   "theme": "musique",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "D'après quel écrivain Debussy a-t-il composé son unique opéra achevé, « Pelléas et Mélisande » ?",
+   "choices": [
+    "Paul Verlaine",
+    "Maurice Maeterlinck",
+    "Stéphane Mallarmé",
+    "Villiers de L'Isle-Adam"
+   ],
+   "answerIndex": 1,
+   "anecdote": "Furieux que le rôle de Mélisande ne soit pas confié à sa compagne Georgette Leblanc, Maeterlinck souhaita publiquement l'échec de l'opéra avant sa création en 1902 à l'Opéra-Comique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pell%C3%A9as_et_M%C3%A9lisande_(op%C3%A9ra)",
+    "https://fr.wikipedia.org/wiki/Claude_Debussy"
+   ]
+  },
+  {
+   "id": "musique-011",
+   "theme": "musique",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quel compositeur d'opéras italien est né le 29 février 1792 ?",
+   "choices": [
+    "Gioachino Rossini",
+    "Gaetano Donizetti",
+    "Vincenzo Bellini",
+    "Giuseppe Verdi"
+   ],
+   "answerIndex": 0,
+   "anecdote": "Né un jour bissextile à Pesaro, l'auteur du « Barbier de Séville » ne pouvait fêter son véritable anniversaire que tous les quatre ans ; il cessa d'écrire des opéras après « Guillaume Tell », à 37 ans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Gioachino_Rossini",
+    "https://en.wikipedia.org/wiki/Gioachino_Rossini"
+   ]
+  },
+  {
+   "id": "pop-culture-001",
+   "theme": "pop-culture",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Quel studio a produit « Toy Story » (1995), premier long-métrage entièrement réalisé en images de synthèse ?",
+   "choices": [
+    "DreamWorks Animation",
+    "Blue Sky Studios",
+    "Pixar",
+    "Illumination"
+   ],
+   "answerIndex": 2,
+   "anecdote": "En 1996, John Lasseter a reçu un Oscar spécial pour « Toy Story », récompensant le premier long-métrage entièrement réalisé par ordinateur de l'histoire du cinéma.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Toy_Story",
+    "https://en.wikipedia.org/wiki/Toy_Story"
+   ]
+  },
+  {
+   "id": "pop-culture-002",
+   "theme": "pop-culture",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Dans quel jeu vidéo de 1981 le personnage de Mario apparaît-il pour la première fois, sous le nom de « Jumpman » ?",
+   "choices": [
+    "Donkey Kong",
+    "Mario Bros.",
+    "Super Mario Bros.",
+    "Donkey Kong Jr."
+   ],
+   "answerIndex": 0,
+   "anecdote": "Mario doit son nom à Mario Segale, le propriétaire de l'entrepôt que louait Nintendo of America au début des années 1980.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mario",
+    "https://fr.wikipedia.org/wiki/Donkey_Kong",
+    "https://en.wikipedia.org/wiki/Mario"
+   ]
+  },
+  {
+   "id": "pop-culture-003",
+   "theme": "pop-culture",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Qui est le créateur de la série animée « Les Simpson » ?",
+   "choices": [
+    "Seth MacFarlane",
+    "Matt Groening",
+    "Mike Judge",
+    "Trey Parker"
+   ],
+   "answerIndex": 1,
+   "anecdote": "Les Simpson sont d'abord apparus en 1987 sous forme de courts-métrages diffusés dans l'émission « The Tracey Ullman Show », avant d'obtenir leur propre série fin 1989.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Simpson",
+    "https://fr.wikipedia.org/wiki/Matt_Groening"
+   ]
+  },
+  {
+   "id": "pop-culture-004",
+   "theme": "pop-culture",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "En quelle année le tout premier film « Star Wars » est-il sorti au cinéma ?",
+   "choices": [
+    "1975",
+    "1979",
+    "1980",
+    "1977"
+   ],
+   "answerIndex": 3,
+   "anecdote": "À sa sortie, le film s'intitulait simplement « Star Wars » : le sous-titre « Épisode IV – Un nouvel espoir » n'a été ajouté que lors d'une ressortie en 1981.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Star_Wars",
+    "https://en.wikipedia.org/wiki/Star_Wars_(film)"
+   ]
+  },
+  {
+   "id": "pop-culture-005",
+   "theme": "pop-culture",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel film sud-coréen est devenu en 2020 le premier film non anglophone à remporter l'Oscar du meilleur film ?",
+   "choices": [
+    "Parasite",
+    "Old Boy",
+    "Snowpiercer",
+    "Memories of Murder"
+   ],
+   "answerIndex": 0,
+   "anecdote": "L'année précédente, « Parasite » de Bong Joon-ho avait déjà remporté la Palme d'or au Festival de Cannes 2019, un doublé Palme d'or–Oscar du meilleur film extrêmement rare.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Parasite_(film,_2019)",
+    "https://en.wikipedia.org/wiki/Parasite_(2019_film)"
+   ]
+  },
+  {
+   "id": "pop-culture-006",
+   "theme": "pop-culture",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "En quelle année la première vidéo de l'histoire de YouTube, « Me at the zoo », a-t-elle été mise en ligne ?",
+   "choices": [
+    "2003",
+    "2004",
+    "2005",
+    "2006"
+   ],
+   "answerIndex": 2,
+   "anecdote": "Cette vidéo d'environ 19 secondes, tournée au zoo de San Diego, a été mise en ligne le 23 avril 2005 par Jawed Karim, l'un des trois cofondateurs de YouTube.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Me_at_the_zoo",
+    "https://fr.wikipedia.org/wiki/YouTube"
+   ]
+  },
+  {
+   "id": "pop-culture-007",
+   "theme": "pop-culture",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "En quelle année les tout premiers jeux vidéo Pokémon sont-ils sortis au Japon ?",
+   "choices": [
+    "1994",
+    "1996",
+    "1998",
+    "2000"
+   ],
+   "answerIndex": 1,
+   "anecdote": "Au Japon, les deux versions originales s'appelaient « Pokémon Rouge » et « Pokémon Vert » ; c'est en Occident que le duo est devenu « Rouge et Bleu ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pok%C3%A9mon_Rouge_et_Bleu",
+    "https://en.wikipedia.org/wiki/Pok%C3%A9mon_Red_and_Blue"
+   ]
+  },
+  {
+   "id": "pop-culture-008",
+   "theme": "pop-culture",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Qui a réalisé le film d'animation japonais « Akira », sorti en 1988 ?",
+   "choices": [
+    "Hayao Miyazaki",
+    "Isao Takahata",
+    "Mamoru Oshii",
+    "Katsuhiro Ōtomo"
+   ],
+   "answerIndex": 3,
+   "anecdote": "Katsuhiro Ōtomo a adapté son propre manga, dont la publication n'était d'ailleurs pas encore terminée au moment de la sortie du film.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Akira_(1988_film)",
+    "https://fr.wikipedia.org/wiki/Katsuhiro_%C5%8Ctomo"
+   ]
+  },
+  {
+   "id": "pop-culture-009",
+   "theme": "pop-culture",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Combien d'Oscars le film « Titanic » de James Cameron a-t-il remportés en 1998 ?",
+   "choices": [
+    "11",
+    "9",
+    "10",
+    "13"
+   ],
+   "answerIndex": 0,
+   "anecdote": "Avec 11 statuettes, « Titanic » égale le record de « Ben-Hur » (1959), un record ensuite rejoint par « Le Seigneur des anneaux : Le Retour du roi » en 2004.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Titanic_(film,_1997)",
+    "https://en.wikipedia.org/wiki/Titanic_(1997_film)"
+   ]
+  },
+  {
+   "id": "pop-culture-010",
+   "theme": "pop-culture",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Sous quel nom de code la console Wii de Nintendo a-t-elle été développée ?",
+   "choices": [
+    "Dolphin",
+    "Revolution",
+    "Project Café",
+    "NX"
+   ],
+   "answerIndex": 1,
+   "anecdote": "Présentée sous le nom « Revolution » à l'E3 2005, la console a été rebaptisée « Wii », un nom évoquant le pronom anglais « we » pour souligner sa vocation familiale. « Dolphin », « Project Café » et « NX » sont les noms de code d'autres consoles Nintendo.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Wii",
+    "https://en.wikipedia.org/wiki/Wii"
+   ]
+  },
+  {
+   "id": "sport-001",
+   "theme": "sport",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "En quelle année l'équipe de France de football a-t-elle remporté sa première Coupe du monde ?",
+   "choices": [
+    "1986",
+    "1994",
+    "1998",
+    "2002"
+   ],
+   "answerIndex": 2,
+   "anecdote": "En finale au Stade de France, les Bleus ont battu le Brésil 3-0, avec deux buts de la tête de Zinédine Zidane sur corner.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Coupe_du_monde_de_football_1998",
+    "https://fr.wikipedia.org/wiki/%C3%89quipe_de_France_de_football"
+   ]
+  },
+  {
+   "id": "sport-002",
+   "theme": "sport",
+   "format": "qcm",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Qui détient le record du monde du 100 mètres masculin ?",
+   "choices": [
+    "Tyson Gay",
+    "Usain Bolt",
+    "Asafa Powell",
+    "Yohan Blake"
+   ],
+   "answerIndex": 1,
+   "anecdote": "Usain Bolt a établi son record de 9 s 58 aux Championnats du monde de Berlin en 2009, améliorant de 11 centièmes son propre record des Jeux de Pékin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Usain_Bolt",
+    "https://fr.wikipedia.org/wiki/100_m%C3%A8tres_(athl%C3%A9tisme)",
+    "https://en.wikipedia.org/wiki/Usain_Bolt"
+   ]
+  },
+  {
+   "id": "sport-003",
+   "theme": "sport",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Combien de fois Rafael Nadal a-t-il remporté le tournoi de Roland-Garros en simple ?",
+   "choices": [
+    "11",
+    "12",
+    "13",
+    "14"
+   ],
+   "answerIndex": 3,
+   "anecdote": "Une statue en acier à l'effigie de Rafael Nadal a été inaugurée en 2021 dans l'enceinte même du stade Roland-Garros, honneur rarissime pour un joueur en activité.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rafael_Nadal",
+    "https://fr.wikipedia.org/wiki/Internationaux_de_France_de_tennis"
+   ]
+  },
+  {
+   "id": "sport-004",
+   "theme": "sport",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quel pays a remporté la Coupe du monde de rugby 2023, disputée en France ?",
+   "choices": [
+    "Afrique du Sud",
+    "Nouvelle-Zélande",
+    "Angleterre",
+    "Argentine"
+   ],
+   "answerIndex": 0,
+   "anecdote": "Les Springboks ont battu les All Blacks 12-11 en finale sans inscrire le moindre essai, décrochant un quatrième titre mondial, record absolu.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Coupe_du_monde_de_rugby_%C3%A0_XV_2023",
+    "https://fr.wikipedia.org/wiki/%C3%89quipe_d%27Afrique_du_Sud_de_rugby_%C3%A0_XV"
+   ]
+  },
+  {
+   "id": "sport-005",
+   "theme": "sport",
+   "format": "qcm",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel coureur détient le record de victoires d'étapes sur le Tour de France, avec 35 succès ?",
+   "choices": [
+    "Eddy Merckx",
+    "André Darrigade",
+    "Bernard Hinault",
+    "Mark Cavendish"
+   ],
+   "answerIndex": 3,
+   "anecdote": "En juillet 2024, à Saint-Vulbas, le sprinteur britannique a dépassé le record d'Eddy Merckx (34 victoires), qui tenait depuis 1975.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mark_Cavendish",
+    "https://fr.wikipedia.org/wiki/Tour_de_France_2024"
+   ]
+  },
+  {
+   "id": "sport-006",
+   "theme": "sport",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Combien de médailles d'or olympiques le nageur américain Michael Phelps a-t-il remportées au cours de sa carrière ?",
+   "choices": [
+    "18",
+    "20",
+    "23",
+    "28"
+   ],
+   "answerIndex": 2,
+   "anecdote": "Avec 28 médailles au total, Phelps est l'athlète le plus médaillé de l'histoire des Jeux ; aux seuls JO de Pékin en 2008, il a décroché huit titres, battant le record de Mark Spitz.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Michael_Phelps",
+    "https://en.wikipedia.org/wiki/Michael_Phelps"
+   ]
+  },
+  {
+   "id": "sport-007",
+   "theme": "sport",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Qui a remporté le tout premier Tour de France, en 1903 ?",
+   "choices": [
+    "Maurice Garin",
+    "Henri Cornet",
+    "Louis Trousselier",
+    "Lucien Petit-Breton"
+   ],
+   "answerIndex": 0,
+   "anecdote": "Surnommé « le Petit Ramoneur », Maurice Garin franchit de nouveau la ligne en tête en 1904, avant d'être déclassé pour irrégularités avec plusieurs autres coureurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Maurice_Garin",
+    "https://fr.wikipedia.org/wiki/Tour_de_France_1903"
+   ]
+  },
+  {
+   "id": "sport-008",
+   "theme": "sport",
+   "format": "qcm",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quel sprinteur fut le premier crédité de moins de 10 secondes au 100 m en chronométrage électronique ?",
+   "choices": [
+    "Bob Hayes",
+    "Calvin Smith",
+    "Carl Lewis",
+    "Jim Hines"
+   ],
+   "answerIndex": 3,
+   "anecdote": "Jim Hines a couru en 9 s 95 en finale des JO de Mexico en 1968, en altitude ; ce record du monde a tenu quinze ans, jusqu'à Calvin Smith en 1983.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jim_Hines",
+    "https://en.wikipedia.org/wiki/Jim_Hines"
    ]
   },
   {
