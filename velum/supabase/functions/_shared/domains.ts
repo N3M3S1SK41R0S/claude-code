@@ -69,26 +69,19 @@ export function isVelumDomain(value: unknown): value is VelumDomain {
   );
 }
 
-/** Lit une clé API optionnelle depuis l'environnement. */
 function key(name: string): string | undefined {
   const value = Deno.env.get(name);
   return value && value.length > 0 ? value : undefined;
 }
 
-/** Un contrat/agrément externe n'est actif que sur opt-in explicite. */
 function enabled(name: string): boolean {
   return Deno.env.get(name)?.trim().toLowerCase() === 'true';
 }
 
 /**
- * Construit les sources de prix du domaine dont la clé et, lorsqu'il s'agit
- * d'une API partenaire ou restreinte, l'agrément explicite existent.
- *
- * Une clé seule ne prouve ni le droit de redistribuer les données ni l'accès à
- * l'endpoint revendiqué. Les sources montres sont donc fail-closed :
- * - WatchCharts exige une licence couvrant l'affichage dans l'application ;
- * - eBay Marketplace Insights exige un compte historiquement approuvé ;
- * - Heritage, Catawiki et Chrono24 exigent un contrat partenaire confirmé.
+ * Construit les sources dont la clé et, pour une API partenaire ou restreinte,
+ * l'agrément explicite existent. Une clé seule ne prouve jamais le droit de
+ * redistribuer les données.
  */
 export function buildSources(domain: VelumDomain, transport: Transport): PriceSource[] {
   switch (domain) {
@@ -148,30 +141,31 @@ export function buildSources(domain: VelumDomain, transport: Transport): PriceSo
     }
     case 'watch': {
       const sources: PriceSource[] = [];
+      const now = (): Date => new Date();
 
       const watchCharts = key('WATCHCHARTS_API_KEY');
       if (watchCharts && enabled('WATCHCHARTS_APP_LICENSED')) {
-        sources.push(new WatchChartsSource({ transport, apiKey: watchCharts }));
+        sources.push(new WatchChartsSource({ transport, apiKey: watchCharts, now }));
       }
 
       const heritage = key('HERITAGE_API_KEY');
       if (heritage && enabled('HERITAGE_WATCH_API_ENABLED')) {
-        sources.push(new WatchHeritageSource({ transport, apiKey: heritage }));
+        sources.push(new WatchHeritageSource({ transport, apiKey: heritage, now }));
       }
 
       const ebay = key('EBAY_API_KEY');
       if (ebay && enabled('EBAY_MARKETPLACE_INSIGHTS_ENABLED')) {
-        sources.push(new WatchEbaySoldSource({ transport, apiKey: ebay }));
+        sources.push(new WatchEbaySoldSource({ transport, apiKey: ebay, now }));
       }
 
       const catawiki = key('CATAWIKI_API_KEY');
       if (catawiki && enabled('CATAWIKI_WATCH_API_ENABLED')) {
-        sources.push(new WatchCatawikiSource({ transport, apiKey: catawiki }));
+        sources.push(new WatchCatawikiSource({ transport, apiKey: catawiki, now }));
       }
 
       const chrono24 = key('CHRONO24_API_KEY');
       if (chrono24 && enabled('CHRONO24_WATCH_API_ENABLED')) {
-        sources.push(new Chrono24Source({ transport, apiKey: chrono24 }));
+        sources.push(new Chrono24Source({ transport, apiKey: chrono24, now }));
       }
 
       return sources;
