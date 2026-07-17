@@ -9,4 +9,5 @@ export * from './analysis/wine.ts';
 export * from './analysis/coin.ts';
 export * from './analysis/art.ts';
 export * from './analysis/stamp.ts';
+export * from './analysis/watch.ts';
 export * from './cellar.ts';

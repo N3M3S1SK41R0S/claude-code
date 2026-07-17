@@ -15,7 +15,7 @@ Hébergeur retenu : **Vercel** (offre gratuite suffisante).
 ## A. Démo web + iPhone — immédiat, sans backend
 
 Le mode démo tourne 100 % en mémoire (client factice, données fictives) — idéal
-pour montrer les 4 modules et l'ergonomie tout de suite.
+pour montrer les 5 modules et l'ergonomie tout de suite.
 
 ```bash
 # à la racine velum/

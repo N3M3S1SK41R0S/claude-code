@@ -47,6 +47,7 @@ const DOMAIN_LABEL: Record<VelumDomain, string> = {
   coin: 'Pièce',
   art: 'Tableau',
   stamp: 'Timbre',
+  watch: 'Montre',
 };
 
 export function confidenceBadge(reliability: number): ConfidenceBadge {

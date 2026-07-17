@@ -3,13 +3,6 @@
 # Validation SQL locale sans Docker : rejoue TOUTES les migrations VELUM sur un
 # PostgreSQL 16 nu (stub des schémas Supabase), puis le seed et les tests de
 # comportement (RLS, quota, Platine, Storage, purge RGPD, alertes idempotentes).
-#
-#   bash supabase/tests/run-local.sh
-#
-# Le shell reste sous l'utilisateur du checkout afin de lire les scripts Git ;
-# seules les commandes PostgreSQL sont exécutées sous le rôle système postgres.
-# La migration 0002 (pg_cron + pg_net) est la seule exception : ces extensions
-# n'existent que sur la plateforme Supabase et sont validées au `db push`.
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 cd "$(dirname "$0")/../.."
@@ -48,8 +41,6 @@ run_sql_file() {
   cat "$COMMAND_LOG"
 }
 
-# Le plan est testé avant de toucher PostgreSQL : ordre stable, préfixes
-# numériques obligatoires et aucune version dupliquée.
 : >"$COMMAND_LOG"
 if ! bash supabase/tests/migration-plan-test.sh >"$COMMAND_LOG" 2>&1; then
   record_failure "tests du plan de migrations" "$COMMAND_LOG"
@@ -102,6 +93,16 @@ for plan_entry in "${MIGRATION_PLAN[@]}"; do
       ;;
   esac
 done
+
+echo "· tests du remplacement atomique des preuves de calibration"
+run_sql_file \
+  "tests du remplacement atomique des preuves de calibration" \
+  supabase/tests/calibration_backtest_checks.sql
+
+echo "· tests des rôles média du module Montres"
+run_sql_file \
+  "tests des rôles média du module Montres" \
+  supabase/tests/watch_media_roles_checks.sql
 
 echo "· seed.sql (compte démo + collection)"
 run_sql_file "seed" supabase/seed.sql

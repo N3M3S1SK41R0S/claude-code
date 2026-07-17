@@ -38,57 +38,65 @@ import {
   YvertCoteSource,
   stampPlugin,
 } from '@velum/domain-stamp';
+import {
+  CatawikiSource as WatchCatawikiSource,
+  Chrono24Source,
+  EbaySoldSource as WatchEbaySoldSource,
+  HeritageSource as WatchHeritageSource,
+  WatchChartsSource,
+  watchPlugin,
+} from '@velum/domain-watch';
 
-/**
- * Plugin de domaine dont le payload d'analyse est traité de façon opaque
- * (chaque plugin expose son propre payload typé ; côté Edge Function on le
- * sérialise tel quel vers analyses.payload JSONB).
- */
+/** Plugin de domaine dont le payload d'analyse est traité de façon opaque. */
 export type AnyDomainPlugin = DomainPlugin<unknown>;
 
-/** Les 4 modules VELUM — le philatélique est un module à part entière. */
+/** Les 5 modules VELUM — philatélie et montres sont des modules à part entière. */
 export const plugins: Record<VelumDomain, AnyDomainPlugin> = {
   wine: winePlugin,
   coin: coinPlugin,
   art: artPlugin,
   stamp: stampPlugin,
+  watch: watchPlugin,
 };
 
 export function isVelumDomain(value: unknown): value is VelumDomain {
-  return value === 'wine' || value === 'coin' || value === 'art' || value === 'stamp';
+  return (
+    value === 'wine' ||
+    value === 'coin' ||
+    value === 'art' ||
+    value === 'stamp' ||
+    value === 'watch'
+  );
 }
 
-/** Lit une clé API optionnelle depuis l'environnement. */
 function key(name: string): string | undefined {
   const value = Deno.env.get(name);
   return value && value.length > 0 ? value : undefined;
 }
 
+function enabled(name: string): boolean {
+  return Deno.env.get(name)?.trim().toLowerCase() === 'true';
+}
+
 /**
- * Construit les sources de prix du domaine dont la clé existe.
- * Règle : une source dont l'API exige une clé n'est incluse que si la clé
- * est configurée ; une source publique est toujours incluse (avec sa clé
- * optionnelle si elle est configurée, pour des quotas plus élevés).
+ * Construit les sources dont la clé et, pour une API partenaire ou restreinte,
+ * l'agrément explicite existent. Une clé seule ne prouve jamais le droit de
+ * redistribuer les données.
  */
 export function buildSources(domain: VelumDomain, transport: Transport): PriceSource[] {
   switch (domain) {
     case 'wine': {
       const sources: PriceSource[] = [
-        // Cotes marchandes consultables publiquement : toujours incluses.
         new IdealwineSource({ transport, apiKey: key('IDEALWINE_API_KEY') }),
         new VivinoSource({ transport, apiKey: key('VIVINO_API_KEY') }),
         new CavissimaSource({ transport, apiKey: key('CAVISSIMA_API_KEY') }),
       ];
-      // Wine-Searcher pro : cote officielle, clé requise.
       const wineSearcher = key('WINE_SEARCHER_API_KEY');
       if (wineSearcher) sources.push(new WineSearcherSource({ transport, apiKey: wineSearcher }));
       return sources;
     }
     case 'coin': {
-      const sources: PriceSource[] = [
-        // Boutique CGB : prix publics, clé optionnelle.
-        new CgbSource({ transport, apiKey: key('CGB_API_KEY') }),
-      ];
+      const sources: PriceSource[] = [new CgbSource({ transport, apiKey: key('CGB_API_KEY') })];
       const numista = key('NUMISTA_API_KEY');
       if (numista) sources.push(new NumistaSource({ transport, apiKey: numista }));
       const pcgs = key('PCGS_API_KEY');
@@ -105,7 +113,6 @@ export function buildSources(domain: VelumDomain, transport: Transport): PriceSo
     }
     case 'art': {
       const sources: PriceSource[] = [
-        // Résultats de ventes Drouot publiés publiquement : toujours inclus.
         new DrouotSource({ transport, apiKey: key('DROUOT_API_KEY') }),
       ];
       const artprice = key('ARTPRICE_API_KEY');
@@ -130,6 +137,37 @@ export function buildSources(domain: VelumDomain, transport: Transport): PriceSo
       if (ebay) sources.push(new StampEbaySoldSource({ transport, apiKey: ebay }));
       const catawiki = key('CATAWIKI_API_KEY');
       if (catawiki) sources.push(new StampCatawikiSource({ transport, apiKey: catawiki }));
+      return sources;
+    }
+    case 'watch': {
+      const sources: PriceSource[] = [];
+      const now = (): Date => new Date();
+
+      const watchCharts = key('WATCHCHARTS_API_KEY');
+      if (watchCharts && enabled('WATCHCHARTS_APP_LICENSED')) {
+        sources.push(new WatchChartsSource({ transport, apiKey: watchCharts, now }));
+      }
+
+      const heritage = key('HERITAGE_API_KEY');
+      if (heritage && enabled('HERITAGE_WATCH_API_ENABLED')) {
+        sources.push(new WatchHeritageSource({ transport, apiKey: heritage, now }));
+      }
+
+      const ebay = key('EBAY_API_KEY');
+      if (ebay && enabled('EBAY_MARKETPLACE_INSIGHTS_ENABLED')) {
+        sources.push(new WatchEbaySoldSource({ transport, apiKey: ebay, now }));
+      }
+
+      const catawiki = key('CATAWIKI_API_KEY');
+      if (catawiki && enabled('CATAWIKI_WATCH_API_ENABLED')) {
+        sources.push(new WatchCatawikiSource({ transport, apiKey: catawiki, now }));
+      }
+
+      const chrono24 = key('CHRONO24_API_KEY');
+      if (chrono24 && enabled('CHRONO24_WATCH_API_ENABLED')) {
+        sources.push(new Chrono24Source({ transport, apiKey: chrono24, now }));
+      }
+
       return sources;
     }
   }

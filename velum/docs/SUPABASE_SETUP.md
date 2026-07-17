@@ -63,7 +63,7 @@ supabase secrets set --env-file supabase/functions/.env
 
 # 4. Déployer les Edge Functions
 supabase functions deploy recognize analyze-wine analyze-coin analyze-art \
-  analyze-stamp valuate cellar-pairing price-cron revenuecat-webhook delete-account
+  analyze-stamp analyze-watch valuate cellar-pairing price-cron revenuecat-webhook delete-account
 
 # 5. Cron de re-valorisation (une seule fois, via le SQL editor du dashboard) :
 #    voir l'en-tête de supabase/migrations/0002_cron.sql

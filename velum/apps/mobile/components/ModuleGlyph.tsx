@@ -1,7 +1,8 @@
 /**
- * Illustrations vectorielles des 4 modules — dessinées « maison » (or sur
+ * Illustrations vectorielles des 5 modules — dessinées « maison » (or sur
  * velours) plutôt que des icônes génériques : bouteille de vin, pièce,
- * tableau encadré, timbre dentelé. Rendu via react-native-svg (web + natif).
+ * tableau encadré, timbre dentelé, montre de collection. Rendu via
+ * react-native-svg (web + natif).
  */
 import Svg, { Circle, Line, Path, Rect, Text as SvgText } from 'react-native-svg';
 import type { VelumDomain } from '@velum/core';
@@ -85,6 +86,26 @@ function StampGlyph({ color, s }: { color: string; s: number }) {
   );
 }
 
+/** Montre : bracelet, boîtier rond, lunette, couronne, aiguilles sur 10h10. */
+function WatchGlyph({ color, s }: { color: string; s: number }) {
+  return (
+    <Svg width={s} height={s} viewBox="0 0 48 48" fill="none">
+      <Path d="M17.5 12.5 L16 4.5 A1.5 1.5 0 0 1 17.5 3 H30.5 A1.5 1.5 0 0 1 32 4.5 L30.5 12.5" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
+      <Path d="M17.5 35.5 L16 43.5 A1.5 1.5 0 0 0 17.5 45 H30.5 A1.5 1.5 0 0 0 32 43.5 L30.5 35.5" stroke={color} strokeWidth={1.6} strokeLinejoin="round" />
+      <Circle cx="24" cy="24" r="12.5" stroke={color} strokeWidth={2} />
+      <Circle cx="24" cy="24" r="9.6" stroke={color} strokeWidth={1.1} opacity={0.75} />
+      <Rect x="37.4" y="22" width="3" height="4" rx="1" fill={color} />
+      <Line x1="24" y1="16" x2="24" y2="17.8" stroke={color} strokeWidth={1.1} opacity={0.8} />
+      <Line x1="24" y1="30.2" x2="24" y2="32" stroke={color} strokeWidth={1.1} opacity={0.8} />
+      <Line x1="16" y1="24" x2="17.8" y2="24" stroke={color} strokeWidth={1.1} opacity={0.8} />
+      <Line x1="30.2" y1="24" x2="32" y2="24" stroke={color} strokeWidth={1.1} opacity={0.8} />
+      <Line x1="24" y1="24" x2="19.6" y2="20.4" stroke={color} strokeWidth={1.7} strokeLinecap="round" />
+      <Line x1="24" y1="24" x2="27.4" y2="19" stroke={color} strokeWidth={1.4} strokeLinecap="round" />
+      <Circle cx="24" cy="24" r="1.1" fill={color} />
+    </Svg>
+  );
+}
+
 export function ModuleGlyph({ domain, size = 40, color = '#E4C878' }: ModuleGlyphProps) {
   switch (domain) {
     case 'wine':
@@ -95,5 +116,7 @@ export function ModuleGlyph({ domain, size = 40, color = '#E4C878' }: ModuleGlyp
       return <ArtGlyph color={color} s={size} />;
     case 'stamp':
       return <StampGlyph color={color} s={size} />;
+    case 'watch':
+      return <WatchGlyph color={color} s={size} />;
   }
 }

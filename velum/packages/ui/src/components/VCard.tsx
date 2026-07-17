@@ -21,9 +21,11 @@ export interface VCardProps {
   tone?: 'default' | 'gilded';
   /** Libellé lu par les lecteurs d'écran quand la carte est pressable. */
   accessibilityLabel?: string;
+  /** Complément lu après le libellé (conséquence de l'action). */
+  accessibilityHint?: string;
 }
 
-export function VCard({ children, onPress, style, tone = 'default', accessibilityLabel }: VCardProps) {
+export function VCard({ children, onPress, style, tone = 'default', accessibilityLabel, accessibilityHint }: VCardProps) {
   const { senior } = useSeniorMode();
   const toneStyle = tone === 'gilded' ? styles.gilded : null;
 
@@ -33,6 +35,7 @@ export function VCard({ children, onPress, style, tone = 'default', accessibilit
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
         style={({ pressed }) => [
           styles.card,
           toneStyle,

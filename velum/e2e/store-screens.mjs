@@ -1,7 +1,7 @@
 /**
  * Screenshots stores (brouillons) — capturés depuis la PWA exportée aux
  * dimensions App Store iPhone 6,9" (1320×2868). Couvre les écrans accessibles
- * SANS compte : onboarding (vidéo du sceau), pitch + 4 modules, connexion,
+ * SANS compte : onboarding (vidéo du sceau), pitch + 5 modules, connexion,
  * formules, politique de confidentialité.
  * Les écrans authentifiés (collection, carnet, fiche, sommelier) se capturent
  * depuis un simulateur avec le compte démo — voir docs/STORE_LISTING.md §3.
@@ -79,7 +79,7 @@ await page.goto(base, { waitUntil: 'networkidle' });
 await page.waitForSelector('text=Passer', { timeout: 20000 });
 await shot('01-onboarding-sceau');
 
-// 2. Pitch + choix des 4 modules.
+// 2. Pitch + choix des 5 modules.
 await page.click('text=Passer');
 await page.waitForSelector('text=Levez le voile sur la valeur de vos objets', { timeout: 20000 });
 await shot('02-onboarding-modules');

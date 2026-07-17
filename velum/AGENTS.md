@@ -38,7 +38,12 @@ pnpm typecheck && pnpm test
 
 `node_modules` est déjà installé — **ne lance jamais `pnpm install` ni `pnpm add`**. Ne modifie pas `package.json` / `tsconfig.json` / `vitest.config.ts` sauf indication contraire. N'écris que dans le répertoire qui t'est assigné.
 
-## Ajouter un 5e domaine — checklist plugin
+## Ajouter un 6e domaine — checklist plugin
+
+> Le 5e domaine, montres (`watch`), a été implémenté en juillet 2026 en suivant
+> exactement cette checklist — `packages/domains/watch/` sert désormais de
+> second modèle de référence à côté de `stamp/`. L'exemple ci-dessous est
+> conservé tel quel.
 
 Exemple : montres (`watch`). Tout est additif :
 

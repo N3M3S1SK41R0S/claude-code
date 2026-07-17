@@ -1,14 +1,25 @@
 /**
  * Accueil VELUM : la page « maison » vers laquelle ramène le sceau présent sur
- * tous les écrans. Porte le sceau, la vidéo de lancement (en boucle, muette,
- * son réactivable) et les accès rapides aux grandes sections.
+ * tous les écrans. Porte le sceau (serti dans son écrin), la vidéo de
+ * lancement (cadre galerie, en boucle, muette, son réactivable) et les accès
+ * rapides aux grandes sections, présentés en tuiles de catalogue.
  */
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
-import { VButton, VText, velumHairline, velumSpacing } from '@velum/ui';
+import {
+  VButton,
+  VCard,
+  VOrnament,
+  VText,
+  velumColors,
+  velumElevation,
+  velumHairline,
+  velumRadius,
+  velumSpacing,
+} from '@velum/ui';
 
 import { Screen } from '../components/Screen';
 import { errorMessage } from '../lib/errors';
@@ -16,6 +27,36 @@ import { usePlan } from '../lib/plan';
 
 const introVideo = require('../assets/brand/velum-intro.mp4') as number;
 const seal = require('../assets/brand/velum-seal.png');
+
+/** Tuile d'accès rapide — VCard pressable, typographie de catalogue. */
+function QuickTile({
+  label,
+  hint,
+  gilded,
+  onPress,
+}: {
+  label: string;
+  hint: string;
+  gilded?: boolean;
+  onPress?: () => void;
+}) {
+  return (
+    <VCard
+      onPress={onPress}
+      tone={gilded ? 'gilded' : 'default'}
+      accessibilityLabel={label}
+      accessibilityHint={hint}
+      style={styles.tile}
+    >
+      <VText variant="heading" tone={gilded ? 'gold' : 'default'}>
+        {label}
+      </VText>
+      <VText variant="caption" tone="dim">
+        {hint}
+      </VText>
+    </VCard>
+  );
+}
 
 export default function Accueil() {
   const { t } = useTranslation();
@@ -32,7 +73,12 @@ export default function Accueil() {
     // brand={false} : le sceau est déjà le héros de l'accueil.
     <Screen brand={false}>
       <View style={styles.header}>
-        <Image source={seal} style={styles.seal} contentFit="contain" accessibilityLabel={t('brand.name')} />
+        {/* Écrin du sceau : double anneau doré sur fond de cire. */}
+        <View style={styles.sealMount}>
+          <View style={styles.sealWax}>
+            <Image source={seal} style={styles.seal} contentFit="contain" accessibilityLabel={t('brand.name')} />
+          </View>
+        </View>
         <VText variant="display" tone="gold" center>
           {t('brand.name')}
         </VText>
@@ -41,56 +87,64 @@ export default function Accueil() {
         </VText>
       </View>
 
-      <View style={styles.videoCard}>
-        <VideoView
-          player={player}
-          style={styles.video}
-          contentFit="cover"
-          nativeControls
-          accessibilityLabel={t('accueil.videoLabel')}
-        />
+      <VOrnament style={styles.ornament} />
+
+      {/* Cadre galerie : passe-partout sombre serti d'un filet doré. */}
+      <View style={styles.videoFrame}>
+        <View style={styles.videoCard}>
+          <VideoView
+            player={player}
+            style={styles.video}
+            contentFit="cover"
+            nativeControls
+            accessibilityLabel={t('accueil.videoLabel')}
+          />
+        </View>
       </View>
 
       <VText variant="heading" tone="gold" style={styles.sectionTitle}>
         {t('accueil.quickAccess')}
       </VText>
-      <View style={styles.actions}>
-        <VButton label={t('accueil.collection')} onPress={() => router.push('/(tabs)/collection')} />
-        <VButton
+      <View style={styles.tiles}>
+        <QuickTile
+          label={t('accueil.collection')}
+          hint={t('accueil.collectionHint')}
+          onPress={() => router.push('/(tabs)/collection')}
+        />
+        <QuickTile
           label={t('accueil.capture')}
-          variant="secondary"
+          hint={t('accueil.captureHint')}
           onPress={() => router.push('/(tabs)/capture')}
         />
-        <VButton
+        <QuickTile
           label={t('accueil.market')}
-          variant="secondary"
+          hint={t('accueil.marketHint')}
           onPress={() => router.push('/(tabs)/market')}
         />
         {planState.status === 'error' ? (
-          <>
+          <VCard style={styles.tile} accessibilityLabel={t('accueil.community')}>
+            <VText variant="heading">{t('accueil.community')}</VText>
             <VText variant="caption" tone="dim">
               {errorMessage(planState.error, t)}
             </VText>
             <VButton label={t('common.retry')} variant="ghost" onPress={planState.retry} />
-          </>
-        ) : (
-          <VButton
+          </VCard>
+        ) : planState.status === 'loading' ? (
+          <QuickTile
             label={t('accueil.community')}
-            variant={
-              planState.status === 'ready' && planState.entitlements.community
-                ? 'secondary'
-                : 'ghost'
-            }
-            disabled={planState.status === 'loading'}
-            loading={planState.status === 'loading'}
-            onPress={() => {
-              if (planState.status !== 'ready') return;
-              router.push(planState.entitlements.community ? '/community' : '/paywall');
-            }}
-            accessibilityHint={
-              planState.status === 'ready' && planState.entitlements.community
-                ? t('community.intro')
+            hint={t('common.loading')}
+          />
+        ) : (
+          <QuickTile
+            label={t('accueil.community')}
+            hint={
+              planState.entitlements.community
+                ? t('accueil.communityHint')
                 : t('market.communityCta')
+            }
+            gilded={planState.entitlements.community}
+            onPress={() =>
+              router.push(planState.entitlements.community ? '/community' : '/paywall')
             }
           />
         )}
@@ -99,19 +153,61 @@ export default function Accueil() {
   );
 }
 
+const SEAL_SIZE = 96;
+
 const styles = StyleSheet.create({
   header: { alignItems: 'center', gap: velumSpacing.sm, marginTop: velumSpacing.md },
-  seal: { width: 96, height: 96, marginBottom: velumSpacing.xs },
-  videoCard: {
-    marginTop: velumSpacing.xl,
-    borderRadius: 20,
-    overflow: 'hidden',
+  sealMount: {
+    width: SEAL_SIZE + 36,
+    height: SEAL_SIZE + 36,
+    borderRadius: (SEAL_SIZE + 36) / 2,
     borderWidth: 1,
     borderColor: velumHairline.gilded,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: velumSpacing.xs,
+  },
+  sealWax: {
+    width: SEAL_SIZE + 18,
+    height: SEAL_SIZE + 18,
+    borderRadius: (SEAL_SIZE + 18) / 2,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: velumHairline.gildedFaint,
+    // Cire du sceau : bordeaux translucide (moment de marque, propre à l'accueil).
+    backgroundColor: 'rgba(122, 34, 48, 0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  seal: { width: SEAL_SIZE, height: SEAL_SIZE },
+  ornament: { marginTop: velumSpacing.lg },
+  videoFrame: {
+    marginTop: velumSpacing.sm,
+    borderRadius: velumRadius.frame,
+    borderWidth: 1,
+    borderColor: velumHairline.gilded,
+    backgroundColor: velumColors.ink.soft,
+    padding: velumSpacing.sm,
+    ...velumElevation.raised,
+  },
+  videoCard: {
+    borderRadius: velumRadius.card,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: velumHairline.warm,
     backgroundColor: '#000',
     aspectRatio: 16 / 9,
   },
   video: { flex: 1 },
   sectionTitle: { marginTop: velumSpacing.xl, marginBottom: velumSpacing.sm },
-  actions: { gap: velumSpacing.md },
+  tiles: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: velumSpacing.md,
+  },
+  tile: {
+    flexBasis: '47%',
+    flexGrow: 1,
+    gap: velumSpacing.xs,
+    minHeight: 96,
+  },
 });

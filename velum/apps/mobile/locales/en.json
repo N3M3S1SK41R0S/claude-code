@@ -29,7 +29,11 @@
     "capture": "Capture an item",
     "market": "Market & alerts",
     "community": "Community",
-    "videoLabel": "VELUM launch video"
+    "videoLabel": "VELUM launch video",
+    "collectionHint": "Cellar, cabinet, gallery, album, watch box",
+    "captureHint": "Photo, text or file import",
+    "marketHint": "Valuations, alerts, listings",
+    "communityHint": "Collector-to-collector transactions"
   },
   "heritage": {
     "title": "History & rarity",
@@ -85,6 +89,11 @@
       "name": "Stamps",
       "subtitle": "Front, back, perforation",
       "group": "Album"
+    },
+    "watch": {
+      "name": "Watches",
+      "subtitle": "Dial, caseback, clasp",
+      "group": "Watch box"
     }
   },
   "roles": {
@@ -97,12 +106,16 @@
     "back": "Back",
     "signature": "Signature",
     "frame": "Frame",
-    "detail": "Detail"
+    "detail": "Detail",
+    "dial": "Dial",
+    "caseback": "Caseback",
+    "movement": "Movement",
+    "clasp": "Clasp"
   },
   "onboarding": {
     "skipVideo": "Skip",
     "pitch": "Unveil the value of your treasures",
-    "pitchDetail": "Photograph a wine, a coin, a painting or a stamp: VELUM identifies it, analyses it and estimates its value from real price sources.",
+    "pitchDetail": "Photograph a wine, a coin, a painting, a stamp or a watch: VELUM identifies it, analyses it and estimates its value from real price sources.",
     "chooseModules": "Which collections interest you?",
     "seniorTitle": "Reading comfort",
     "seniorMessage": "Would you prefer large buttons and bigger text? You can change this anytime in your profile.",
@@ -186,7 +199,11 @@
       "artTechnique": "Technique",
       "stampCountry": "Country",
       "stampCatalog": "Catalogue no. (e.g. YT 1234)",
-      "stampYear": "Year"
+      "stampYear": "Year",
+      "watchBrand": "Brand",
+      "watchModel": "Model",
+      "watchReference": "Manufacturer reference (e.g. 124060)",
+      "watchYear": "Year"
     }
   },
   "item": {
@@ -292,6 +309,58 @@
       "valueCoefficientHint": "vs reference value (mint never hinged, perfect centering)",
       "regummingRisk": "Weak signal: suspect gum on a never-hinged stamp — possible regumming to verify."
     },
+    "watch": {
+      "movementTitle": "Movement",
+      "storyTitle": "Model history",
+      "gender": "Intended for",
+      "genderValues": {
+        "homme": "Men",
+        "femme": "Women",
+        "mixte": "Unisex"
+      },
+      "caseMaterial": "Case",
+      "caseDiameter": "Diameter",
+      "dialColor": "Dial",
+      "bracelet": "Bracelet",
+      "crystal": "Crystal",
+      "waterResistance": "Water resistance",
+      "boxPapersLabel": "Box & papers",
+      "boxPapers": {
+        "full_set": "Full set — original box and papers",
+        "boite_seule": "Box only",
+        "papiers_seuls": "Papers only",
+        "montre_seule": "Watch only",
+        "inconnu": "Unknown"
+      },
+      "limitedEdition": "Limited edition",
+      "movementType": {
+        "automatique": "Automatic",
+        "manuel": "Hand-wound",
+        "quartz": "Quartz",
+        "squelette": "Skeleton",
+        "inconnu": "Movement undetermined"
+      },
+      "calibre": "Calibre",
+      "powerReserve": "Power reserve",
+      "frequency": "Frequency",
+      "frequencyValue": "{{vph}} vph",
+      "jewels": "Jewels",
+      "complications": "Complications",
+      "certification": "Certification",
+      "storyWhy": "Why this model was created",
+      "storyByWhom": "By whom",
+      "modelLaunchYear": "Model launch",
+      "milestones": "Model milestones",
+      "serviceHistory": "Service history",
+      "polishedLabel": "Polishing",
+      "polished": {
+        "non": "Unpolished case",
+        "leger": "Light polish",
+        "important": "Heavy polish",
+        "inconnu": "Unknown"
+      },
+      "nonOriginalParts": "Suspected non-original parts"
+    },
     "rarityLevels": {
       "courante": "Common",
       "peu_courante": "Less common",
@@ -352,12 +421,12 @@
     "free": {
       "name": "Free",
       "price": "€0",
-      "features": "5 scans per week for EACH module (Wine, Coins, Paintings, Stamps) · analysis sheet and estimate"
+      "features": "5 scans per week for EACH module (Wine, Coins, Paintings, Stamps, Watches) · analysis sheet and estimate"
     },
     "premium": {
       "name": "Premium",
       "price": "€9.99 / month",
-      "features": "Unlimited scans across all 4 modules · PDF/CSV exports · price alerts — without the virtual book"
+      "features": "Unlimited scans across all 5 modules · PDF/CSV exports · price alerts — without the virtual book"
     },
     "subscribe": "Choose this plan",
     "restore": "Restore purchases",
@@ -371,7 +440,7 @@
       "name": "Gold",
       "price": "€19.99 / month",
       "badge": "Popular",
-      "features": "Everything in Premium + virtual book: wine cellar with slot locations, coin table, gallery, stamp album · cellar sommelier (which wine from MY cellar for tonight's dish?)"
+      "features": "Everything in Premium + virtual book: wine cellar with slot locations, coin table, gallery, stamp album, watch box · cellar sommelier (which wine from MY cellar for tonight's dish?)"
     },
     "platine": {
       "name": "Platinum",
@@ -439,9 +508,10 @@
     "medaillier": "Coin cabinet",
     "galerie": "Gallery",
     "album": "Album",
+    "ecrin": "Watch box",
     "moduleSelector": "Choose the book module",
     "upsellTitle": "Virtual book",
-    "upsellMessage": "The virtual book is part of the Gold plan: wine cellar with slot locations, coin cabinet, gallery and stamp album.",
+    "upsellMessage": "The virtual book is part of the Gold plan: wine cellar with slot locations, coin cabinet, gallery, stamp album and watch box.",
     "upsellCta": "Discover the Gold plan",
     "totalValue": "Book value",
     "itemsCount": "{{count}} object(s)",

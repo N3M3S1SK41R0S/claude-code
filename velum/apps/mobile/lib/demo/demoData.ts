@@ -115,14 +115,39 @@ function stampAnalysis(label: string): Record<string, unknown> {
   };
 }
 
+function watchAnalysis(label: string): Record<string, unknown> {
+  return {
+    identification: { brand: 'Omega', model: label, reference: '3570.50', year: 1998, gender: 'homme', caseMaterial: 'acier', caseDiameterMm: 42, dialColor: 'noir', bracelet: 'acier', crystal: 'hésalite (plexiglas)', waterResistanceM: 50, boxPapers: 'montre_seule' },
+    movement: { type: 'manuel', calibre: 'Omega 1861', powerReserveHours: 48, frequencyVph: 21600, jewels: 18, complications: ['chronographe', 'petite seconde'], certification: 'qualifiée NASA pour les vols habités' },
+    condition: { summary: 'Bel état général, patine homogène du boîtier.', polished: 'leger', issues: ['rayures superficielles sur le verre'], confidence: 0.7, caveat: 'Estimation visuelle — seul un horloger ouvrant le boîtier peut attester du mouvement et de l’authenticité.' },
+    story: {
+      why: 'Chronographe conçu en 1957 pour la course automobile et l’ingénierie, devenu la montre des missions Apollo après les tests de qualification de la NASA.',
+      byWhom: 'Omega — calibre chronographe développé avec Lemania (321, puis 861/1861).',
+      modelLaunchYear: 1957,
+      milestones: [
+        { year: 1965, note: 'Qualifiée par la NASA pour tous les vols spatiaux habités' },
+        { year: 1969, note: 'Première montre portée sur la Lune (Apollo 11)' },
+      ],
+    },
+    heritage: {
+      history:
+        'La « Moonwatch » : lancée en 1957 dans la trilogie des montres professionnelles Omega, elle accompagne toutes les missions Apollo. Production continue depuis, ce qui en fait l’un des chronographes les plus documentés du marché.',
+      rarity: { level: 'courante', note: 'grande série ; références anciennes et cadrans particuliers recherchés' },
+      editionSize: { unit: 'exemplaires', note: 'production continue, non limitée' },
+    },
+    uncertainties: ['Mode démo : fiche illustrative générée localement.'],
+  };
+}
+
 const ANALYSIS: Record<VelumDomain, (label: string) => Record<string, unknown>> = {
   wine: wineAnalysis,
   coin: coinAnalysis,
   art: artAnalysis,
   stamp: stampAnalysis,
+  watch: watchAnalysis,
 };
-const ENGINE: Record<VelumDomain, string> = { wine: 'zappa_vini', coin: 'numis_v1', art: 'art_v1', stamp: 'phila_v1' };
-const BASE_PRICE: Record<VelumDomain, number> = { wine: 55, coin: 20, art: 600, stamp: 12 };
+const ENGINE: Record<VelumDomain, string> = { wine: 'zappa_vini', coin: 'numis_v1', art: 'art_v1', stamp: 'phila_v1', watch: 'watch_v1' };
+const BASE_PRICE: Record<VelumDomain, number> = { wine: 55, coin: 20, art: 600, stamp: 12, watch: 4200 };
 
 const DISCLAIMERS = [
   'Estimation indicative — ni expertise légale, ni conseil en investissement.',
@@ -136,6 +161,7 @@ const DOMAIN_LABELS: Record<VelumDomain, string[]> = {
   coin: ['5 Francs Semeuse argent 1960', '20 Francs Or Marianne 1907', '2 Euros commémorative 2012'],
   art: ['École provençale — Paysage aux oliviers', 'Nature morte, huile sur toile', 'Marine impressionniste'],
   stamp: ['YT 130 — Semeuse 15c vert', 'YT 216 — Merson 3f', 'Bloc CITEX 1949'],
+  watch: ['Omega Speedmaster Professional 3570.50', 'Rolex Datejust 36 16234', 'Cartier Tank Must WSTA0041'],
 };
 
 export function demoRecognize(domain: VelumDomain, input: CaptureInput): RecognitionResult {
@@ -208,6 +234,14 @@ const SALES_SOURCES: Record<VelumDomain, { name: string; kind: PriceObservation[
     { name: 'Artsy', kind: 'listing' },
     { name: 'Drouot', kind: 'auction_realized' },
   ],
+  watch: [
+    { name: 'Heritage Auctions', kind: 'auction_realized' },
+    { name: 'WatchCharts', kind: 'official_quote' },
+    { name: 'eBay (vendu)', kind: 'marketplace_sold' },
+    { name: 'Catawiki', kind: 'marketplace_sold' },
+    { name: 'Chrono24', kind: 'listing' },
+    { name: 'Heritage Auctions', kind: 'auction_realized' },
+  ],
 };
 
 const KIND_WEIGHT: Record<PriceObservation['source']['kind'], number> = {
@@ -266,6 +300,7 @@ export function seedItems(): VelumItem[] {
     makeItem('coin', '5 Francs Semeuse argent 1960', { storageLocation: 'Médaillier — plateau 2', attributes: { grade: 'SUP', year: 1960, analysis: coinAnalysis('5 Francs Semeuse') } }),
     makeItem('art', 'École provençale — Paysage aux oliviers', { storageLocation: 'Salon', confidence: 0.62, attributes: { analysis: artAnalysis('Paysage aux oliviers') } }),
     makeItem('stamp', 'Semeuse lignée 15c vert — YT 130', { storageLocation: 'Album 1 — page 12', attributes: { catalogNumber: 'YT 130', analysis: stampAnalysis('YT 130') } }),
+    makeItem('watch', 'Omega Speedmaster Professional 3570.50', { storageLocation: 'Écrin — emplacement 1', attributes: { brand: 'Omega', reference: '3570.50', analysis: watchAnalysis('Speedmaster Professional') } }),
   ];
 }
 

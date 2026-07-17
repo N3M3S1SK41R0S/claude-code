@@ -28,6 +28,7 @@ const SCREENS = [
   { name: 'item-coin', path: '/item/demo-coin', auth: true, expect: 'Valorisation' },
   { name: 'item-stamp', path: '/item/demo-stamp', auth: true, expect: 'Valorisation' },
   { name: 'item-art', path: '/item/demo-art', auth: true, expect: 'Valorisation' },
+  { name: 'item-watch', path: '/item/demo-watch', auth: true, expect: 'Valorisation' },
   { name: 'profile', path: '/profile', auth: true, expect: 'Compte Démo VELUM' },
 ];
 

@@ -1,25 +1,34 @@
 /**
  * Edge Function `calibration` — score de calibration auditable (pari #1).
  *
- * Deux usages :
- *   • GET            → renvoie le dernier score publié par domaine (lecture
+ * Trois usages :
+ *   • GET                     → dernier score publié par domaine (lecture
  *     publique, table calibration_runs, RLS « authenticated »).
- *   • POST (cron)    → recalcule la calibration depuis calibration_outcomes
- *     (backtest de ventes publiques + ventes réelles) et publie un run par
- *     domaine. Réservé au cron : exige l'en-tête secret CRON_SECRET
- *     (service-role, bypass RLS) — jamais déclenchable par un client.
+ *   • POST {"mode":"seed"}    → backtest leave-one-out sur les références de
+ *     marché (benchmarks.ts, ventes publiques) : remplace les lignes
+ *     'public_backtest' de calibration_outcomes (les 'real_sale' sont
+ *     intouchées), puis enchaîne le recalcul ci-dessous.
+ *   • POST (défaut)           → recalcule la calibration depuis
+ *     calibration_outcomes et publie un run par domaine.
+ *   Les POST sont réservés au cron : en-tête secret CRON_SECRET
+ *   (service-role, bypass RLS) — jamais déclenchables par un client.
  *
  * La douve : une métrique reproductible de « à quelle fréquence le prix réalisé
  * tombe dans l'IC annoncé » qu'aucun scanner one-shot ne peut afficher.
  */
-import type { VelumDomain } from '@velum/core';
+import type { PriceObservation, VelumDomain } from '@velum/core';
 import { calibrate } from '@velum/valuation';
 import { createAdminClient, createUserClient } from '../_shared/auth.ts';
 import { handleOptions } from '../_shared/cors.ts';
+import { buildSources } from '../_shared/domains.ts';
+import { getFxRates } from '../_shared/fx.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
+import { serverTransport } from '../_shared/transport.ts';
+import { BENCHMARK_QUERIES } from './benchmarks.ts';
 import { parseCalibrationOutcomes } from './outcomes.ts';
+import { buildSeedRows } from './seed.ts';
 
-const DOMAINS: VelumDomain[] = ['wine', 'coin', 'art', 'stamp'];
+const DOMAINS: VelumDomain[] = ['wine', 'coin', 'art', 'stamp', 'watch'];
 
 interface CalibrationRunInsert {
   domain: VelumDomain;
@@ -66,17 +75,104 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return json({ runs: results });
     }
 
-    // ── Recalcul (cron only) ──
+    // ── Seed backtest + recalcul (cron only) ──
     if (req.method === 'POST') {
       const secret = req.headers.get('x-cron-secret');
       if (!secret || secret !== Deno.env.get('CRON_SECRET')) {
         return error('UNAUTHORIZED', 'Recalcul réservé au cron', 401);
       }
       const admin = createAdminClient();
+
+      // Mode 'seed' : rejoue le backtest leave-one-out sur les références de
+      // marché (ventes publiques) et REMPLACE les lignes 'public_backtest'
+      // (les ventes réelles 'real_sale' ne sont jamais touchées), puis
+      // enchaîne sur le recalcul ci-dessous.
+      let body: { mode?: unknown } = {};
+      try {
+        body = (await req.json()) as { mode?: unknown };
+      } catch {
+        // Corps vide toléré : mode par défaut 'recompute'.
+      }
+      const mode = body.mode === 'seed' ? 'seed' : 'recompute';
+
+      if (mode === 'seed') {
+        let report;
+        try {
+          report = await buildSeedRows(BENCHMARK_QUERIES, {
+            fetchObservations: async (domain, query) => {
+              // Même sémantique que les plugins : une source en panne se
+              // dégrade (allSettled), elle ne casse jamais le lot.
+              const sources = buildSources(domain, serverTransport);
+              const settled = await Promise.allSettled(sources.map((s) => s.fetch(query)));
+              return settled
+                .filter(
+                  (r): r is PromiseFulfilledResult<PriceObservation[]> => r.status === 'fulfilled',
+                )
+                .flatMap((r) => r.value);
+            },
+            fx: await getFxRates(),
+            now: () => new Date(),
+          });
+        } catch (seedError) {
+          // Configuration cassée (FX manquant…) : visible, jamais avalée.
+          logFailure('calibration.seed_failed', null, seedError);
+          return error('SOURCE_UNAVAILABLE', 'Seed du backtest impossible', 503);
+        }
+
+        // Un lot vide peut provenir d'une panne amont temporaire. Dans ce cas,
+        // les preuves précédentes restent intactes. Un lot non vide est remplacé
+        // par une seule fonction PostgreSQL transactionnelle : delete + insert
+        // réussissent ensemble ou sont intégralement annulés.
+        for (const domain of DOMAINS) {
+          const domainRows = report.rows.filter((row) => row.domain === domain);
+          if (domainRows.length === 0) {
+            console.info(
+              JSON.stringify({
+                event: 'calibration.seed_preserved',
+                domain,
+                reason: 'no_new_rows',
+              }),
+            );
+            continue;
+          }
+
+          const rpcRows = domainRows.map((row) => ({
+            central: row.central,
+            ci80_low: row.ci80_low,
+            ci80_high: row.ci80_high,
+            ci95_low: row.ci95_low,
+            ci95_high: row.ci95_high,
+            realized: row.realized,
+            realized_at: row.realized_at,
+          }));
+          const { data: inserted, error: replaceError } = await admin.rpc(
+            'replace_calibration_backtest',
+            {
+              p_domain: domain,
+              p_rows: rpcRows,
+            },
+          );
+          if (replaceError) {
+            logFailure('calibration.seed_replace_failed', domain, replaceError.message);
+            return error('SOURCE_UNAVAILABLE', 'Remplacement du backtest impossible', 503);
+          }
+
+          const insertedCount = typeof inserted === 'number' ? inserted : Number(inserted);
+          if (!Number.isInteger(insertedCount) || insertedCount !== rpcRows.length) {
+            logFailure(
+              'calibration.seed_replace_count_invalid',
+              domain,
+              `attendu=${rpcRows.length}, reçu=${String(inserted)}`,
+            );
+            return error('SOURCE_UNAVAILABLE', 'Remplacement du backtest incomplet', 503);
+          }
+        }
+        console.info(JSON.stringify({ event: 'calibration.seeded', perDomain: report.perDomain }));
+      }
       const published: Record<string, unknown> = {};
       const runs: CalibrationRunInsert[] = [];
 
-      // On calcule les quatre domaines AVANT toute écriture. Une donnée invalide
+      // On calcule les cinq domaines AVANT toute écriture. Une donnée invalide
       // ne doit jamais laisser un sous-ensemble de runs plus récent que les autres.
       for (const domain of DOMAINS) {
         const { data: rows, error: readError } = await admin
@@ -113,7 +209,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         };
       }
 
-      // Une seule instruction INSERT : PostgreSQL publie les quatre domaines ou
+      // Une seule instruction INSERT : PostgreSQL publie les cinq domaines ou
       // aucun. Le client ne peut plus observer un run partiellement renouvelé.
       const { error: insertError } = await admin.from('calibration_runs').insert(runs);
       if (insertError) {
