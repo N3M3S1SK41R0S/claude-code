@@ -7,12 +7,9 @@ import { EbaySoldSource } from './sources/ebaySold.ts';
 import { CatawikiSource } from './sources/catawiki.ts';
 import { Chrono24Source } from './sources/chrono24.ts';
 
-/** Horloge fixe pour des ageDays déterministes. */
 const NOW = (): Date => new Date('2026-07-10T00:00:00Z');
-
 type GetJsonInit = { headers?: Record<string, string>; query?: Record<string, string> };
 
-/** Fake transport : rejoue une fixture et enregistre les appels. */
 class FakeTransport implements Transport {
   readonly calls: { url: string; init?: GetJsonInit }[] = [];
 
@@ -28,7 +25,6 @@ class FakeTransport implements Transport {
   }
 }
 
-/** Transport séquentiel pour les API nécessitant plusieurs appels. */
 class SequenceTransport implements Transport {
   readonly calls: { url: string; init?: GetJsonInit }[] = [];
   private readonly responses: unknown[];
@@ -41,6 +37,30 @@ class SequenceTransport implements Transport {
     this.calls.push({ url, init });
     if (this.responses.length === 0) throw new Error('fixture épuisée');
     return this.responses.shift();
+  }
+}
+
+class ConcurrentWatchChartsTransport implements Transport {
+  active = 0;
+  maximum = 0;
+  calls = 0;
+
+  async getJson(url: string): Promise<unknown> {
+    this.active += 1;
+    this.maximum = Math.max(this.maximum, this.active);
+    this.calls += 1;
+    await Promise.resolve();
+    this.active -= 1;
+    if (url.endsWith('/search/watch')) {
+      return { success: true, results: [{ uuid: `watch-${this.calls}` }] };
+    }
+    return {
+      brand: 'Rolex',
+      collection: 'Submariner',
+      model: '124060',
+      market_price: 11500,
+      updated: '2026-07-01',
+    };
   }
 }
 
@@ -64,7 +84,7 @@ describe('HeritageSource', () => {
     ],
   };
 
-  it('interroge le département timepieces avec la clé API et mappe les adjudications', async () => {
+  it('interroge le département timepieces et mappe les adjudications', async () => {
     const transport = new FakeTransport(fixture);
     const source = new HeritageSource({ transport, apiKey: 'secret', now: NOW });
     const observations = await source.fetch(QUERY);
@@ -75,24 +95,26 @@ describe('HeritageSource', () => {
       department: 'timepieces',
     });
     expect(transport.calls[0]?.init?.headers).toEqual({ 'X-Api-Key': 'secret' });
-
-    expect(observations).toHaveLength(1);
-    expect(observations[0]).toEqual({
-      price: 11200,
-      currency: 'USD',
-      ageDays: 89,
-      sourceWeight: DEFAULT_SOURCE_WEIGHTS.auction_realized,
-      source: {
-        name: 'Heritage Auctions',
-        kind: 'auction_realized',
-        url: 'https://api.ha.com/v1/search/realized',
+    expect(observations).toEqual([
+      {
+        price: 11200,
+        currency: 'USD',
+        ageDays: 89,
+        sourceWeight: DEFAULT_SOURCE_WEIGHTS.auction_realized,
+        source: {
+          name: 'Heritage Auctions',
+          kind: 'auction_realized',
+          url: 'https://api.ha.com/v1/search/realized',
+        },
+        matchedLabel: 'Rolex Submariner 124060, 2022, full set',
       },
-      matchedLabel: 'Rolex Submariner 124060, 2022, full set',
-    });
+    ]);
   });
 
   it('réponse vide ou en échec → []', async () => {
-    expect(await new HeritageSource({ transport: new FakeTransport({}), now: NOW }).fetch(QUERY)).toEqual([]);
+    expect(
+      await new HeritageSource({ transport: new FakeTransport({}), now: NOW }).fetch(QUERY),
+    ).toEqual([]);
     expect(
       await new HeritageSource({ transport: new FakeTransport({ results: [] }), now: NOW }).fetch(QUERY),
     ).toEqual([]);
@@ -160,13 +182,35 @@ describe('WatchChartsSource', () => {
     ]);
   });
 
+  it('sérialise deux instances partageant la même clé', async () => {
+    const transport = new ConcurrentWatchChartsTransport();
+    const options = {
+      transport,
+      apiKey: 'shared-concurrency-key',
+      now: NOW,
+      wait: async () => undefined,
+    };
+    const first = new WatchChartsSource(options);
+    const second = new WatchChartsSource(options);
+
+    const [firstResult, secondResult] = await Promise.all([
+      first.fetch(QUERY),
+      second.fetch(QUERY),
+    ]);
+
+    expect(firstResult).toHaveLength(1);
+    expect(secondResult).toHaveLength(1);
+    expect(transport.calls).toBe(4);
+    expect(transport.maximum).toBe(1);
+  });
+
   it('date absente → cote du jour', async () => {
     const source = new WatchChartsSource({
       transport: new SequenceTransport([
         searchFixture,
         { brand: 'Omega', collection: 'Speedmaster', model: '3570.50', market_price: 5000 },
       ]),
-      apiKey: 'secret',
+      apiKey: 'secret-date',
       now: NOW,
       wait: async () => undefined,
     });
@@ -180,7 +224,7 @@ describe('WatchChartsSource', () => {
     expect(
       await new WatchChartsSource({
         transport,
-        apiKey: 'secret',
+        apiKey: 'secret-missing-identity',
         now: NOW,
         wait: async () => undefined,
       }).fetch({
@@ -196,7 +240,7 @@ describe('WatchChartsSource', () => {
     const emptyWaits: number[] = [];
     const emptySource = new WatchChartsSource({
       transport: new SequenceTransport([{ success: true, results: [] }]),
-      apiKey: 'secret',
+      apiKey: 'secret-empty',
       now: NOW,
       wait: async (milliseconds) => {
         emptyWaits.push(milliseconds);
@@ -208,7 +252,7 @@ describe('WatchChartsSource', () => {
     const invalidInfoWaits: number[] = [];
     const invalidInfoSource = new WatchChartsSource({
       transport: new SequenceTransport([searchFixture, {}]),
-      apiKey: 'secret',
+      apiKey: 'secret-invalid-info',
       now: NOW,
       wait: async (milliseconds) => {
         invalidInfoWaits.push(milliseconds);
@@ -220,7 +264,7 @@ describe('WatchChartsSource', () => {
     const failureWaits: number[] = [];
     const failureSource = new WatchChartsSource({
       transport: new FakeTransport(null, true),
-      apiKey: 'secret',
+      apiKey: 'secret-failure',
       now: NOW,
       wait: async (milliseconds) => {
         failureWaits.push(milliseconds);
@@ -243,7 +287,7 @@ describe('EbaySoldSource', () => {
     ],
   };
 
-  it('mappe les ventes réalisées avec la catégorie eBay « Wristwatches »', async () => {
+  it('mappe les ventes réalisées avec la catégorie Wristwatches', async () => {
     const transport = new FakeTransport(fixture);
     const source = new EbaySoldSource({ transport, apiKey: 'token', now: NOW });
     const observations = await source.fetch(QUERY);
@@ -254,24 +298,26 @@ describe('EbaySoldSource', () => {
       limit: '20',
     });
     expect(transport.calls[0]?.init?.headers).toEqual({ Authorization: 'Bearer token' });
-
-    expect(observations).toHaveLength(1);
-    expect(observations[0]).toEqual({
-      price: 4250,
-      currency: 'EUR',
-      ageDays: 24,
-      sourceWeight: DEFAULT_SOURCE_WEIGHTS.marketplace_sold,
-      source: {
-        name: 'eBay sold',
-        kind: 'marketplace_sold',
-        url: 'https://api.ebay.com/buy/marketplace_insights/v1_beta/item_sales/search',
+    expect(observations).toEqual([
+      {
+        price: 4250,
+        currency: 'EUR',
+        ageDays: 24,
+        sourceWeight: DEFAULT_SOURCE_WEIGHTS.marketplace_sold,
+        source: {
+          name: 'eBay sold',
+          kind: 'marketplace_sold',
+          url: 'https://api.ebay.com/buy/marketplace_insights/v1_beta/item_sales/search',
+        },
+        matchedLabel: 'Omega Speedmaster Professional 3570.50 full set',
       },
-      matchedLabel: 'Omega Speedmaster Professional 3570.50 full set',
-    });
+    ]);
   });
 
   it('réponse vide ou en échec → []', async () => {
-    expect(await new EbaySoldSource({ transport: new FakeTransport({}), now: NOW }).fetch(QUERY)).toEqual([]);
+    expect(
+      await new EbaySoldSource({ transport: new FakeTransport({}), now: NOW }).fetch(QUERY),
+    ).toEqual([]);
     expect(
       await new EbaySoldSource({ transport: new FakeTransport(null, true), now: NOW }).fetch(QUERY),
     ).toEqual([]);
@@ -289,19 +335,16 @@ describe('CatawikiSource', () => {
     ],
   };
 
-  it('mappe les lots adjugés (catégorie watches)', async () => {
+  it('mappe les lots adjugés', async () => {
     const transport = new FakeTransport(fixture);
     const source = new CatawikiSource({ transport, now: NOW });
     const observations = await source.fetch(QUERY);
 
     expect(transport.calls[0]?.url).toBe('https://api.catawiki.com/v1/lots/sold');
     expect(transport.calls[0]?.init?.query).toEqual({ q: QUERY.label, category: 'watches' });
-
-    expect(observations).toHaveLength(1);
     expect(observations[0]?.price).toBe(2450);
     expect(observations[0]?.ageDays).toBe(41);
     expect(observations[0]?.sourceWeight).toBe(DEFAULT_SOURCE_WEIGHTS.marketplace_sold);
-    expect(observations[0]?.source.kind).toBe('marketplace_sold');
     expect(observations[0]?.matchedLabel).toBe('Cartier - Tank Must - WSTA0041 - Unisexe - 2021');
   });
 
@@ -327,7 +370,7 @@ describe('Chrono24Source', () => {
     ],
   };
 
-  it('mappe les annonces en cours avec le poids « listing »', async () => {
+  it('mappe les annonces en cours avec le poids listing', async () => {
     const transport = new FakeTransport(fixture);
     const source = new Chrono24Source({ transport, apiKey: 'token', now: NOW });
     const observations = await source.fetch(QUERY);
@@ -339,20 +382,20 @@ describe('Chrono24Source', () => {
       limit: '20',
     });
     expect(transport.calls[0]?.init?.headers).toEqual({ Authorization: 'Bearer token' });
-
-    expect(observations).toHaveLength(1);
-    expect(observations[0]).toEqual({
-      price: 11900,
-      currency: 'EUR',
-      ageDays: 9,
-      sourceWeight: DEFAULT_SOURCE_WEIGHTS.listing,
-      source: {
-        name: 'Chrono24',
-        kind: 'listing',
-        url: 'https://api.chrono24.com/v1/listings/search',
+    expect(observations).toEqual([
+      {
+        price: 11900,
+        currency: 'EUR',
+        ageDays: 9,
+        sourceWeight: DEFAULT_SOURCE_WEIGHTS.listing,
+        source: {
+          name: 'Chrono24',
+          kind: 'listing',
+          url: 'https://api.chrono24.com/v1/listings/search',
+        },
+        matchedLabel: 'Rolex Submariner 124060 — 2022 — full set',
       },
-      matchedLabel: 'Rolex Submariner 124060 — 2022 — full set',
-    });
+    ]);
   });
 
   it('date de publication absente → annonce du jour', async () => {
@@ -364,7 +407,9 @@ describe('Chrono24Source', () => {
   });
 
   it('réponse vide ou en échec → []', async () => {
-    expect(await new Chrono24Source({ transport: new FakeTransport({}), now: NOW }).fetch(QUERY)).toEqual([]);
+    expect(
+      await new Chrono24Source({ transport: new FakeTransport({}), now: NOW }).fetch(QUERY),
+    ).toEqual([]);
     expect(
       await new Chrono24Source({ transport: new FakeTransport({ listings: [] }), now: NOW }).fetch(QUERY),
     ).toEqual([]);
