@@ -13,7 +13,6 @@ import { WATCH_SYSTEM_PROMPT } from './horo.ts';
 
 type VisionRequest = Parameters<VisionModel['complete']>[0];
 
-/** Fake vision : rejoue des réponses fixtures et enregistre les requêtes. */
 class FakeVision implements VisionModel {
   readonly requests: VisionRequest[] = [];
   private readonly responses: string[];
@@ -37,9 +36,6 @@ function candidate(
   return { id: 'w1', domain: 'watch', label, confidence: 0.8, attributes };
 }
 
-// ── Fixtures de reconnaissance ────────────────────────────────────────────
-
-/** Réponse AVEC fences markdown, désordonnée, avec confiance hors bornes. */
 const RECOGNITION_FENCED = [
   '```json',
   JSON.stringify({
@@ -48,13 +44,14 @@ const RECOGNITION_FENCED = [
         label: 'Rolex Submariner 124060',
         confidence: 0.64,
         attributes: {
-          brand: 'Rolex',
+          brand: ' Rolex ',
           model: 'Submariner',
           reference: '124060',
           year: 2022,
           gender: 'homme',
           caseMaterial: 'acier',
           caseDiameterMm: 41,
+          arbitrary: 'écarté',
         },
       },
       { label: 'Rolex Submariner 114060', confidence: 1.6, attributes: { reference: '114060' } },
@@ -65,10 +62,8 @@ const RECOGNITION_FENCED = [
   '```',
 ].join('\n');
 
-/** Réponse corrompue : aucun JSON exploitable. */
 const RECOGNITION_CORRUPTED = 'Désolé, je ne peux pas identifier cette montre avec certitude...';
 
-/** Réponse à faible confiance (entrée floue). */
 const RECOGNITION_LOW_CONFIDENCE = JSON.stringify({
   candidates: [
     { label: 'Montre de plongée acier (incertain)', confidence: 0.2, attributes: {} },
@@ -76,7 +71,7 @@ const RECOGNITION_LOW_CONFIDENCE = JSON.stringify({
 });
 
 describe('watchPlugin.recognize — photo', () => {
-  it('appelle la vision avec les images, trie, borne et tronque à 3 candidats', async () => {
+  it('appelle la vision, valide les attributs et dégrade une confiance hors plage', async () => {
     const vision = new FakeVision([RECOGNITION_FENCED]);
     const result = await watchPlugin.recognize(
       {
@@ -84,13 +79,12 @@ describe('watchPlugin.recognize — photo', () => {
         media: [
           { role: 'dial', storagePath: 'a', base64: 'data:image/png;base64,AAA=' },
           { role: 'caseback', storagePath: 'b', base64: 'BBB=' },
-          { role: 'clasp', storagePath: 'c' }, // sans base64 → exclu de l'appel vision
+          { role: 'clasp', storagePath: 'c' },
         ],
       },
       { vision },
     );
 
-    // L'appel vision ne reçoit que les médias porteurs de base64.
     const req = vision.requests[0];
     expect(req?.images).toHaveLength(2);
     expect(req?.images?.[0]).toEqual({ base64: 'AAA=', mediaType: 'image/png' });
@@ -100,17 +94,25 @@ describe('watchPlugin.recognize — photo', () => {
     expect(req?.prompt).toContain('fond de boîte');
     expect(req?.system).toContain('horlogère');
 
-    // Tri décroissant, confiance bornée à 1, top 3.
     expect(result.stage).toBe('llm_vision');
     expect(result.candidates).toHaveLength(3);
-    expect(result.candidates.map((c) => c.confidence)).toEqual([1, 0.64, 0.41]);
-    expect(result.candidates[0]?.label).toBe('Rolex Submariner 114060');
-    expect(result.candidates[1]?.attributes['brand']).toBe('Rolex');
+    expect(result.candidates.map((entry) => entry.confidence)).toEqual([0.64, 0.41, 0.12]);
+    expect(result.candidates[0]?.label).toBe('Rolex Submariner 124060');
+    expect(result.candidates[0]?.attributes).toEqual({
+      brand: 'Rolex',
+      model: 'Submariner',
+      reference: '124060',
+      year: 2022,
+      gender: 'homme',
+      caseMaterial: 'acier',
+      caseDiameterMm: 41,
+    });
+    expect(result.candidates.some((entry) => entry.label === 'Rolex Submariner 114060')).toBe(false);
     expect(result.needsAssistedEntry).toBe(false);
-    expect(result.candidates.every((c) => c.domain === 'watch')).toBe(true);
+    expect(result.candidates.every((entry) => entry.domain === 'watch')).toBe(true);
   });
 
-  it('réponse corrompue → aucun candidat et bascule en saisie assistée', async () => {
+  it('réponse corrompue → aucun candidat et saisie assistée', async () => {
     const vision = new FakeVision([RECOGNITION_CORRUPTED]);
     const result = await watchPlugin.recognize(
       { kind: 'photo', media: [{ role: 'dial', storagePath: 'a', base64: 'AAA=' }] },
@@ -119,7 +121,7 @@ describe('watchPlugin.recognize — photo', () => {
     expect(result).toEqual({ candidates: [], stage: 'llm_vision', needsAssistedEntry: true });
   });
 
-  it('meilleure confiance < 0.35 → needsAssistedEntry (jamais de fausse certitude)', async () => {
+  it('meilleure confiance < 0.35 → saisie assistée', async () => {
     const vision = new FakeVision([RECOGNITION_LOW_CONFIDENCE]);
     const result = await watchPlugin.recognize(
       { kind: 'photo', media: [{ role: 'dial', storagePath: 'a', base64: 'AAA=' }] },
@@ -158,28 +160,37 @@ describe('watchPlugin.recognize — texte flou', () => {
 });
 
 describe('watchPlugin.recognize — fichier', () => {
-  it('mappe chaque ligne en candidat (confiance 0.95, stage assisted)', async () => {
+  it('dérive la confiance des identifiants réellement fournis', async () => {
     const vision = new FakeVision([]);
     const rows = [
       { brand: 'Rolex', model: 'Submariner', reference: '124060', year: 2022 },
       { label: 'Cartier Tank Must WSTA0041' },
-      { boxPapers: 'full_set' }, // aucune identité → libellé générique
+      { boxPapers: 'full_set' },
     ];
     const result = await watchPlugin.recognize({ kind: 'file', fileRows: rows }, { vision });
 
-    expect(vision.requests).toHaveLength(0); // aucun appel vision pour un import
+    expect(vision.requests).toHaveLength(0);
     expect(result.stage).toBe('assisted');
     expect(result.needsAssistedEntry).toBe(false);
     expect(result.candidates).toHaveLength(3);
-    expect(result.candidates[0]?.confidence).toBe(0.95);
+    expect(result.candidates.map((entry) => entry.confidence)).toEqual([0.95, 0.65, 0.1]);
     expect(result.candidates[0]?.label).toBe('Rolex Submariner 124060');
     expect(result.candidates[0]?.attributes).toEqual(rows[0]);
     expect(result.candidates[1]?.label).toBe('Cartier Tank Must WSTA0041');
+    expect(result.candidates[1]?.attributes).toEqual({});
     expect(result.candidates[2]?.label).toBe('Montre importée (à préciser)');
+    expect(result.candidates[2]?.attributes).toEqual({ boxPapers: 'full_set' });
+  });
+
+  it('une ligne sans identité reste explicitement à préciser', async () => {
+    const result = await watchPlugin.recognize(
+      { kind: 'file', fileRows: [{ boxPapers: 'full_set' }] },
+      { vision: new FakeVision([]) },
+    );
+    expect(result.candidates[0]?.confidence).toBe(0.1);
+    expect(result.needsAssistedEntry).toBe(true);
   });
 });
-
-// ── Analyse ───────────────────────────────────────────────────────────────
 
 const ANALYSIS_FENCED = [
   'Voici la fiche :',
@@ -188,7 +199,7 @@ const ANALYSIS_FENCED = [
     identification: {
       brand: 'Omega',
       model: 'Speedmaster Professional',
-      reference: ' 3570.50 ', // espaces superflus → normalisé
+      reference: ' 3570.50 ',
       year: 1998,
       gender: 'homme',
       caseMaterial: 'acier',
@@ -205,7 +216,7 @@ const ANALYSIS_FENCED = [
       powerReserveHours: 48,
       frequencyVph: 21600,
       jewels: 18,
-      complications: ['chronographe', 'petite seconde', 42], // 42 → filtré
+      complications: ['chronographe', 'petite seconde', 42],
       certification: 'qualifiée NASA pour les vols habités',
     },
     condition: {
@@ -213,7 +224,7 @@ const ANALYSIS_FENCED = [
       polished: 'leger',
       issues: ['rayures superficielles sur le verre'],
       confidence: 0.55,
-      caveat: 'à faire confirmer', // caveat non conforme → le plugin impose le sien
+      caveat: 'à faire confirmer',
     },
     story: {
       why: 'Chronographe conçu pour la course automobile, devenu la montre des missions Apollo.',
@@ -222,7 +233,7 @@ const ANALYSIS_FENCED = [
       milestones: [
         { year: 1965, note: 'Qualifiée par la NASA pour les vols habités' },
         { year: 1969, note: 'Première montre portée sur la Lune (Apollo 11)' },
-        { note: 'jalon sans année' }, // filtré
+        { note: 'jalon sans année' },
       ],
     },
     heritage: {
@@ -233,41 +244,38 @@ const ANALYSIS_FENCED = [
       { reference: '145.022', note: 'Génération calibre 861 précédente, cote proche' },
     ],
     confidence: 0.6,
-    // uncertainties volontairement ABSENT → le plugin doit en imposer une.
   }),
   '```',
 ].join('\n');
 
 describe('watchPlugin.analyze', () => {
-  it('produit un payload watch_v1 conforme avec disclaimers et uncertainties', async () => {
+  it('produit un payload watch_v1 conforme avec réserves', async () => {
     const vision = new FakeVision([ANALYSIS_FENCED]);
     const result = await watchPlugin.analyze(
-      candidate({ brand: 'Omega', model: 'Speedmaster Professional' }, 'Omega Speedmaster Professional 3570.50'),
+      candidate(
+        { brand: 'Omega', model: 'Speedmaster Professional' },
+        'Omega Speedmaster Professional 3570.50',
+      ),
       { vision },
     );
 
     expect(vision.requests[0]?.system).toBe(WATCH_SYSTEM_PROMPT);
     expect(vision.requests[0]?.prompt).toContain('Omega Speedmaster Professional');
-
     expect(result.engine).toBe(WATCH_ENGINE);
     expect(result.confidence).toBe(0.6);
-    // Spécifications complètes, référence normalisée.
     expect(result.payload.identification.brand).toBe('Omega');
     expect(result.payload.identification.reference).toBe('3570.50');
     expect(result.payload.identification.gender).toBe('homme');
     expect(result.payload.identification.caseDiameterMm).toBe(42);
     expect(result.payload.identification.boxPapers).toBe('montre_seule');
-    // Mécanisme : type, calibre, complications (entrées non-texte filtrées).
     expect(result.payload.movement.type).toBe('manuel');
     expect(result.payload.movement.calibre).toBe('Omega 1861');
     expect(result.payload.movement.frequencyVph).toBe(21600);
     expect(result.payload.movement.complications).toEqual(['chronographe', 'petite seconde']);
-    // Histoire du modèle : pourquoi, par qui, jalons (jalon sans année filtré).
     expect(result.payload.story.why).toContain('missions Apollo');
     expect(result.payload.story.byWhom).toContain('Omega');
     expect(result.payload.story.modelLaunchYear).toBe(1957);
     expect(result.payload.story.milestones).toHaveLength(2);
-    // État : caveat horloger imposé (celui du moteur était non conforme).
     expect(result.payload.condition).toEqual({
       summary: 'Bel état général, patine homogène.',
       polished: 'leger',
@@ -279,29 +287,51 @@ describe('watchPlugin.analyze', () => {
     expect(result.payload.neighborReferences).toEqual([
       { reference: '145.022', note: 'Génération calibre 861 précédente, cote proche' },
     ]);
-    // uncertainties absent de la réponse → au moins une entrée imposée.
     expect(result.payload.uncertainties.length).toBeGreaterThanOrEqual(1);
-    // Disclaimers TOUJOURS non vides : mention de base + contrefaçons.
     expect(result.disclaimers).toContain(
       'Estimation indicative — ni expertise légale, ni conseil en investissement.',
     );
-    expect(result.disclaimers.some((d) => /contrefaçon/i.test(d))).toBe(true);
+    expect(result.disclaimers.some((entry) => /contrefaçon/i.test(entry))).toBe(true);
     expect(result.sources).toEqual([]);
+  });
+
+  it('préserve les identifiants connus quand l’analyse est partielle', async () => {
+    const vision = new FakeVision([
+      JSON.stringify({
+        identification: { model: 'Submariner Date' },
+        movement: { type: 'automatique', complications: [] },
+        condition: { confidence: 0.4, issues: [] },
+        story: {},
+        uncertainties: ['référence exacte à confirmer'],
+        confidence: 0.5,
+      }),
+    ]);
+    const result = await watchPlugin.analyze(
+      candidate({ brand: 'Rolex', model: 'Submariner', reference: '16610' }),
+      { vision },
+    );
+
+    expect(result.payload.identification).toMatchObject({
+      brand: 'Rolex',
+      model: 'Submariner Date',
+      reference: '16610',
+    });
   });
 
   it('payload minimal ou hors référentiel → coercition défensive', async () => {
     const vision = new FakeVision([
       JSON.stringify({
-        movement: { type: 'solaire' }, // hors référentiel → 'inconnu'
-        condition: {},
+        movement: { type: 'solaire' },
+        condition: { confidence: 1.5 },
         uncertainties: ['référence exacte à confirmer'],
+        confidence: -2,
       }),
     ]);
-    const result = await watchPlugin.analyze(candidate({ brand: 'Rolex', model: 'Submariner' }), {
-      vision,
-    });
+    const result = await watchPlugin.analyze(
+      candidate({ brand: 'Rolex', model: 'Submariner' }),
+      { vision },
+    );
 
-    // identification absente → retombe sur les attributs du candidat.
     expect(result.payload.identification.brand).toBe('Rolex');
     expect(result.payload.movement.type).toBe('inconnu');
     expect(result.payload.movement.complications).toEqual([]);
@@ -309,9 +339,7 @@ describe('watchPlugin.analyze', () => {
     expect(result.payload.condition.confidence).toBe(0.3);
     expect(result.payload.condition.caveat).toBe(CONDITION_CAVEAT);
     expect(result.payload.heritage).toBeUndefined();
-    // confidence global absent → celui de l'état.
     expect(result.confidence).toBe(0.3);
-    // Une réponse LLM ne devient jamais une provenance de marché.
     expect(result.sources).toEqual([]);
   });
 
@@ -319,14 +347,12 @@ describe('watchPlugin.analyze', () => {
     const vision = new FakeVision(['<html>erreur 502</html>']);
     await expect(
       watchPlugin.analyze(candidate({}), { vision }),
-    ).rejects.toSatisfy((e: unknown) => isVelumError(e) && e.code === 'ANALYSIS_FAILED');
+    ).rejects.toSatisfy((error: unknown) => isVelumError(error) && error.code === 'ANALYSIS_FAILED');
   });
 });
 
-// ── buildPriceQuery ───────────────────────────────────────────────────────
-
 describe('watchPlugin.buildPriceQuery', () => {
-  it('compose le libellé canonique « marque modèle référence » et passe la condition', () => {
+  it('compose le libellé canonique et passe l’état validé', () => {
     const query = watchPlugin.buildPriceQuery(
       candidate({
         brand: 'Rolex',
@@ -334,23 +360,28 @@ describe('watchPlugin.buildPriceQuery', () => {
         reference: '124060',
         year: 2022,
         condition: 'tres_bon',
+        arbitrary: 'écarté',
       }),
     );
     expect(query.domain).toBe('watch');
     expect(query.label).toBe('Rolex Submariner 124060');
     expect(query.condition).toBe('tres_bon');
-    expect(query.attributes['year']).toBe(2022);
+    expect(query.attributes).toEqual({
+      brand: 'Rolex',
+      model: 'Submariner',
+      reference: '124060',
+      year: 2022,
+      condition: 'tres_bon',
+    });
     expect(query.limit).toBe(20);
   });
 
-  it('sans marque ni référence, retombe sur le label du candidat ; sans état, pas de condition', () => {
+  it('sans marque ni référence, retombe sur le label du candidat', () => {
     const query = watchPlugin.buildPriceQuery(candidate({}, 'Montre de plongée acier années 70'));
     expect(query.label).toBe('Montre de plongée acier années 70');
     expect(query.condition).toBeUndefined();
   });
 });
-
-// ── Valorisation bout-en-bout avec le moteur RÉEL ─────────────────────────
 
 function obs(
   price: number,
@@ -372,11 +403,11 @@ describe('watchPlugin.valuate — bout-en-bout avec @velum/valuation', () => {
   const deps = (sources: PriceSource[]) => ({
     sources,
     fx,
-    valuate: (o: PriceObservation[], f: FxRates) =>
-      engineValuate(o, f, { rng: mulberry32(42) }),
+    valuate: (observations: PriceObservation[], rates: FxRates) =>
+      engineValuate(observations, rates, { rng: mulberry32(42) }),
   });
 
-  it('agrège 2 sources, tolère une source en échec, et retourne central/IC/nSources', async () => {
+  it('agrège les sources, tolère une panne et retourne central/IC', async () => {
     const sourceA: PriceSource = {
       name: 'eBay sold',
       kind: 'marketplace_sold',
@@ -404,7 +435,6 @@ describe('watchPlugin.valuate — bout-en-bout avec @velum/valuation', () => {
       deps([sourceA, sourceB, failing]),
     );
 
-    // 4 observations conservées (10800, 11600, 11100 EUR + 12500 USD → 11250 EUR).
     expect(result.nSources).toBe(4);
     expect(result.currency).toBe('EUR');
     expect(result.central).toBeGreaterThanOrEqual(10800);
@@ -417,11 +447,11 @@ describe('watchPlugin.valuate — bout-en-bout avec @velum/valuation', () => {
     expect(result.observations).toHaveLength(4);
   });
 
-  it('aucune observation → VelumError NO_OBSERVATIONS remonte du moteur', async () => {
+  it('aucune observation → VelumError NO_OBSERVATIONS', async () => {
     const empty: PriceSource = { name: 'vide', kind: 'listing', fetch: async () => [] };
     await expect(
       watchPlugin.valuate(candidate({}), deps([empty])),
-    ).rejects.toSatisfy((e: unknown) => isVelumError(e) && e.code === 'NO_OBSERVATIONS');
+    ).rejects.toSatisfy((error: unknown) => isVelumError(error) && error.code === 'NO_OBSERVATIONS');
   });
 });
 
