@@ -73,7 +73,7 @@ export interface ValuationResult {
   ci80: [number, number];
   /** Intervalle de confiance 95 % [bas, haut] en EUR. */
   ci95: [number, number];
-  /** Nombre d'observations conservées après rejet des outliers. */
+  /** Nombre de plateformes distinctes après rejet des observations aberrantes. */
   nSources: number;
   /** Score de fiabilité de l'estimation, 0..100 (§7.2-5). */
   reliability: number;
