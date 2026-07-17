@@ -60,7 +60,7 @@ describe('HeritageSource', () => {
         realizedPrice: 11200,
         currency: 'USD',
       },
-      { lotTitle: 'adjudication non datée', realizedPrice: 9000, currency: 'USD' }, // ignorée
+      { lotTitle: 'adjudication non datée', realizedPrice: 9000, currency: 'USD' },
     ],
   };
 
@@ -93,8 +93,12 @@ describe('HeritageSource', () => {
 
   it('réponse vide ou en échec → []', async () => {
     expect(await new HeritageSource({ transport: new FakeTransport({}), now: NOW }).fetch(QUERY)).toEqual([]);
-    expect(await new HeritageSource({ transport: new FakeTransport({ results: [] }), now: NOW }).fetch(QUERY)).toEqual([]);
-    expect(await new HeritageSource({ transport: new FakeTransport(null, true), now: NOW }).fetch(QUERY)).toEqual([]);
+    expect(
+      await new HeritageSource({ transport: new FakeTransport({ results: [] }), now: NOW }).fetch(QUERY),
+    ).toEqual([]);
+    expect(
+      await new HeritageSource({ transport: new FakeTransport(null, true), now: NOW }).fetch(QUERY),
+    ).toEqual([]);
   });
 });
 
@@ -139,7 +143,7 @@ describe('WatchChartsSource', () => {
         query: { uuid: 'watch-uuid', currency: 'EUR' },
       },
     });
-    expect(waits).toEqual([1100]);
+    expect(waits).toEqual([1100, 1100]);
     expect(observations).toEqual([
       {
         price: 11500,
@@ -174,7 +178,12 @@ describe('WatchChartsSource', () => {
     const noKey = new WatchChartsSource({ transport, now: NOW, wait: async () => undefined });
     expect(await noKey.fetch(QUERY)).toEqual([]);
     expect(
-      await new WatchChartsSource({ transport, apiKey: 'secret', now: NOW, wait: async () => undefined }).fetch({
+      await new WatchChartsSource({
+        transport,
+        apiKey: 'secret',
+        now: NOW,
+        wait: async () => undefined,
+      }).fetch({
         domain: 'watch',
         label: 'Omega Speedmaster',
         attributes: {},
@@ -183,17 +192,42 @@ describe('WatchChartsSource', () => {
     expect(transport.calls).toHaveLength(0);
   });
 
-  it('recherche vide, info invalide ou panne → []', async () => {
-    const options = { apiKey: 'secret', now: NOW, wait: async () => undefined };
-    expect(
-      await new WatchChartsSource({ transport: new SequenceTransport([{ success: true, results: [] }]), ...options }).fetch(QUERY),
-    ).toEqual([]);
-    expect(
-      await new WatchChartsSource({ transport: new SequenceTransport([searchFixture, {}]), ...options }).fetch(QUERY),
-    ).toEqual([]);
-    expect(
-      await new WatchChartsSource({ transport: new FakeTransport(null, true), ...options }).fetch(QUERY),
-    ).toEqual([]);
+  it('applique aussi le cooldown après réponse vide, info invalide ou panne', async () => {
+    const emptyWaits: number[] = [];
+    const emptySource = new WatchChartsSource({
+      transport: new SequenceTransport([{ success: true, results: [] }]),
+      apiKey: 'secret',
+      now: NOW,
+      wait: async (milliseconds) => {
+        emptyWaits.push(milliseconds);
+      },
+    });
+    expect(await emptySource.fetch(QUERY)).toEqual([]);
+    expect(emptyWaits).toEqual([1100]);
+
+    const invalidInfoWaits: number[] = [];
+    const invalidInfoSource = new WatchChartsSource({
+      transport: new SequenceTransport([searchFixture, {}]),
+      apiKey: 'secret',
+      now: NOW,
+      wait: async (milliseconds) => {
+        invalidInfoWaits.push(milliseconds);
+      },
+    });
+    expect(await invalidInfoSource.fetch(QUERY)).toEqual([]);
+    expect(invalidInfoWaits).toEqual([1100, 1100]);
+
+    const failureWaits: number[] = [];
+    const failureSource = new WatchChartsSource({
+      transport: new FakeTransport(null, true),
+      apiKey: 'secret',
+      now: NOW,
+      wait: async (milliseconds) => {
+        failureWaits.push(milliseconds);
+      },
+    });
+    expect(await failureSource.fetch(QUERY)).toEqual([]);
+    expect(failureWaits).toEqual([1100]);
   });
 });
 
@@ -238,7 +272,9 @@ describe('EbaySoldSource', () => {
 
   it('réponse vide ou en échec → []', async () => {
     expect(await new EbaySoldSource({ transport: new FakeTransport({}), now: NOW }).fetch(QUERY)).toEqual([]);
-    expect(await new EbaySoldSource({ transport: new FakeTransport(null, true), now: NOW }).fetch(QUERY)).toEqual([]);
+    expect(
+      await new EbaySoldSource({ transport: new FakeTransport(null, true), now: NOW }).fetch(QUERY),
+    ).toEqual([]);
   });
 });
 
@@ -270,8 +306,12 @@ describe('CatawikiSource', () => {
   });
 
   it('réponse vide ou en échec → []', async () => {
-    expect(await new CatawikiSource({ transport: new FakeTransport({ lots: [] }), now: NOW }).fetch(QUERY)).toEqual([]);
-    expect(await new CatawikiSource({ transport: new FakeTransport(null, true), now: NOW }).fetch(QUERY)).toEqual([]);
+    expect(
+      await new CatawikiSource({ transport: new FakeTransport({ lots: [] }), now: NOW }).fetch(QUERY),
+    ).toEqual([]);
+    expect(
+      await new CatawikiSource({ transport: new FakeTransport(null, true), now: NOW }).fetch(QUERY),
+    ).toEqual([]);
   });
 });
 
@@ -325,7 +365,11 @@ describe('Chrono24Source', () => {
 
   it('réponse vide ou en échec → []', async () => {
     expect(await new Chrono24Source({ transport: new FakeTransport({}), now: NOW }).fetch(QUERY)).toEqual([]);
-    expect(await new Chrono24Source({ transport: new FakeTransport({ listings: [] }), now: NOW }).fetch(QUERY)).toEqual([]);
-    expect(await new Chrono24Source({ transport: new FakeTransport(null, true), now: NOW }).fetch(QUERY)).toEqual([]);
+    expect(
+      await new Chrono24Source({ transport: new FakeTransport({ listings: [] }), now: NOW }).fetch(QUERY),
+    ).toEqual([]);
+    expect(
+      await new Chrono24Source({ transport: new FakeTransport(null, true), now: NOW }).fetch(QUERY),
+    ).toEqual([]);
   });
 });
