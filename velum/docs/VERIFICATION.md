@@ -1,6 +1,8 @@
 # VELUM — Rapport de vérification
 
 > État documentaire : **17 juillet 2026**. Le verdict exécutable d’une révision est le run **VELUM CI attaché à son SHA**. Ce rapport ne fige plus de compteurs de tests, de packages ou de fonctions : ils évoluent avec le monorepo et la CI les découvre dynamiquement.
+>
+> En cas d’échec, les sorties complètes du typecheck TypeScript, du `deno check` et du rejeu SQL sont conservées comme artefacts GitHub Actions pendant sept jours ; le diagnostic n’est donc plus dépendant des logs tronqués de l’interface.
 
 ## Definition of Done
 
