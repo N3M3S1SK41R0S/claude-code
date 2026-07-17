@@ -8,9 +8,8 @@
  *      → market_price et date de mise à jour.
  *
  * Chaque requête utilise `x-api-key`. WatchCharts limite une clé à une requête
- * par seconde : chaque tentative réseau est suivie d'un cooldown de 1,1 s,
- * même si la réponse est vide ou en erreur. La source reste inutilisable sans
- * marque, référence ou clé explicite.
+ * par seconde : toutes les instances partageant une clé passent par la même
+ * file FIFO et chaque tentative réseau est suivie d'un cooldown de 1,1 s.
  */
 import {
   DEFAULT_SOURCE_WEIGHTS,
@@ -21,7 +20,9 @@ import {
 import { isRecord } from '../json.ts';
 import {
   ageDaysFromIso,
+  createKeyedRateLimiter,
   toPositiveNumber,
+  type KeyedRateLimiter,
   type SourceAdapterOptions,
   type Transport,
 } from './transport.ts';
@@ -29,6 +30,7 @@ import {
 const WATCHCHARTS_SEARCH_URL = 'https://api.watchcharts.com/v3/search/watch';
 const WATCHCHARTS_INFO_URL = 'https://api.watchcharts.com/v3/watch/info';
 const REQUEST_INTERVAL_MS = 1_100;
+const SHARED_LIMITER = createKeyedRateLimiter();
 
 type RequestInit = { headers?: Record<string, string>; query?: Record<string, string> };
 
@@ -60,22 +62,28 @@ export class WatchChartsSource implements PriceSource {
   private readonly apiKey: string | undefined;
   private readonly now: () => Date;
   private readonly wait: (milliseconds: number) => Promise<void>;
+  private readonly limiter: KeyedRateLimiter;
 
   constructor(options: SourceAdapterOptions) {
     this.transport = options.transport;
     this.apiKey = options.apiKey;
-    this.now = options.now ?? (() => new Date());
-    this.wait = options.wait ?? ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
+    this.now = options.now;
+    this.wait =
+      options.wait ??
+      ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
+    this.limiter = options.limiter ?? SHARED_LIMITER;
   }
 
-  private async getJsonRateLimited(url: string, init: RequestInit): Promise<unknown> {
-    try {
-      return await this.transport.getJson(url, init);
-    } finally {
-      // Le prochain appel — y compris celui d'un autre objet traité ensuite par
-      // le cron — ne peut partir avant la fin de cette attente.
-      await this.wait(REQUEST_INTERVAL_MS);
-    }
+  private getJsonRateLimited(
+    apiKey: string,
+    url: string,
+    init: RequestInit,
+  ): Promise<unknown> {
+    return this.limiter.run(
+      apiKey,
+      () => this.transport.getJson(url, init),
+      () => this.wait(REQUEST_INTERVAL_MS),
+    );
   }
 
   async fetch(query: PriceQuery): Promise<PriceObservation[]> {
@@ -86,7 +94,7 @@ export class WatchChartsSource implements PriceSource {
 
     const headers = { 'x-api-key': apiKey };
     try {
-      const search = await this.getJsonRateLimited(WATCHCHARTS_SEARCH_URL, {
+      const search = await this.getJsonRateLimited(apiKey, WATCHCHARTS_SEARCH_URL, {
         headers,
         query: {
           brand_name: brand,
@@ -97,7 +105,7 @@ export class WatchChartsSource implements PriceSource {
       const uuid = firstWatchUuid(search);
       if (uuid === null) return [];
 
-      const info = await this.getJsonRateLimited(WATCHCHARTS_INFO_URL, {
+      const info = await this.getJsonRateLimited(apiKey, WATCHCHARTS_INFO_URL, {
         headers,
         query: { uuid, currency: 'EUR' },
       });
