@@ -140,3 +140,62 @@ jobs:
           path: /tmp/velum-sql-diagnostics.log
           if-no-files-found: error
           retention-days: 7
+
+  watch-integration-patch:
+    name: Correctif ponctuel Écrin (auto-nettoyant)
+    if: github.event_name == 'pull_request' && github.head_ref == 'claude/velum-production-spec-1lyh3m'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Refuser une exécution obsolète
+        id: freshness
+        env:
+          EVENT_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -Eeuo pipefail
+          remote_head="$(git ls-remote origin "refs/heads/${GITHUB_HEAD_REF}" | awk '{print $1}')"
+          if [[ "$remote_head" != "$EVENT_HEAD_SHA" ]]; then
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            echo "Run obsolète : event=$EVENT_HEAD_SHA, branche=$remote_head"
+          else
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Appliquer le rendu Écrin et ses preuves
+        if: steps.freshness.outputs.current == 'true'
+        run: python3 velum/scripts/apply-watch-integration.py
+
+      - name: Retirer les mécanismes ponctuels
+        if: steps.freshness.outputs.current == 'true'
+        run: |
+          set -Eeuo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+
+          workflow = Path('.github/workflows/velum-ci.yml')
+          text = workflow.read_text(encoding='utf-8')
+          marker = '\n  watch-integration-patch:\n'
+          if text.count(marker) != 1:
+              raise SystemExit('Bloc ponctuel CI introuvable ou dupliqué')
+          workflow.write_text(text.split(marker, 1)[0].rstrip() + '\n', encoding='utf-8')
+
+          Path('.github/workflows/velum-watch-integration-patch.yml').unlink(missing_ok=True)
+          Path('velum/scripts/apply-watch-integration.py').unlink()
+          PY
+
+      - name: Publier le correctif atomique
+        if: steps.freshness.outputs.current == 'true'
+        run: |
+          set -Eeuo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "fix(velum/watch): rendre l’Écrin et couvrir son parcours"
+          git push origin "HEAD:${GITHUB_HEAD_REF}"
