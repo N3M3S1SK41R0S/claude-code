@@ -40,7 +40,7 @@ export const BOARDS = [
     length: 42,
     gambits: [14, 28],
     trounoirs: [38],
-    dist: { question: 19, chance: 5, evenement: 4, malus: 5, pieces: 3, joker: 2 },
+    dist: { question: 18, chance: 5, evenement: 4, malus: 5, pieces: 3, joker: 2 },
     road: "#4a3a78",
     theme: "donjon",
   },
@@ -52,7 +52,7 @@ export const BOARDS = [
     length: 48,
     gambits: [16, 33],
     trounoirs: [40, 44],
-    dist: { question: 20, chance: 4, evenement: 4, malus: 9, pieces: 3, joker: 3 },
+    dist: { question: 19, chance: 4, evenement: 4, malus: 9, pieces: 3, joker: 3 },
     road: "#6e3a3a",
     theme: "tour",
   },
@@ -64,7 +64,7 @@ export const BOARDS = [
     length: 44,
     gambits: [11, 22, 33],
     trounoirs: [40],
-    dist: { question: 17, chance: 5, evenement: 8, malus: 5, pieces: 2, joker: 2 },
+    dist: { question: 16, chance: 5, evenement: 8, malus: 5, pieces: 2, joker: 2 },
     road: "#2e5f63",
     theme: "catacombes",
   },
@@ -76,7 +76,7 @@ export const BOARDS = [
     length: 56,
     gambits: [18, 37],
     trounoirs: [50],
-    dist: { question: 24, chance: 6, evenement: 5, malus: 6, pieces: 7, joker: 4 },
+    dist: { question: 23, chance: 6, evenement: 5, malus: 6, pieces: 7, joker: 4 },
     road: "#7a6428",
     theme: "labyrinthe",
   },
@@ -104,7 +104,10 @@ export function generateBoard(def = boardById("grand-donjon")) {
 
   const fill = [];
   for (const [type, count] of Object.entries(def.dist)) fill.push(...Array(count).fill(type));
+  // dist sums are tuned to equal the free-case count; pad with questions if a
+  // definition ever undershoots (never silently drop an announced case).
   while (fill.length < free.length) fill.push("question");
+  if (fill.length > free.length) fill.length = free.length;
 
   for (let i = fill.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));

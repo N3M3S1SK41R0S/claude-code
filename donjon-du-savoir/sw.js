@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v4";
+const VERSION = "donjon-v5";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -59,7 +59,15 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() => null);
-      return cached || refresh.then((res) => res || cache.match("./index.html"));
+      // Keep the worker alive until the background refresh has been written,
+      // otherwise the update may never land when serving from cache.
+      event.waitUntil(refresh.then(() => undefined).catch(() => undefined));
+      // The index fallback is for NAVIGATIONS only — a missing sub-resource
+      // must fail, not silently receive HTML instead of JS/CSS/JSON.
+      return (
+        cached ||
+        refresh.then((res) => res || (request.mode === "navigate" ? cache.match("./index.html") : Response.error()))
+      );
     }),
   );
 });

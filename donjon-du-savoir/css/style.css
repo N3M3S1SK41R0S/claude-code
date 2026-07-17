@@ -78,7 +78,7 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 
 .btn-big { font-size: 1.15rem; font-weight: bold; padding: 1rem 1.6rem; width: 100%; }
 .btn-gold { background: var(--gold); color: var(--gold-dark); border-color: var(--gold); }
-.btn-small { min-height: 40px; padding: 0.4rem 0.8rem; font-size: 0.9rem; }
+.btn-small { min-height: 44px; padding: 0.4rem 0.8rem; font-size: 0.9rem; }
 .btn-choice { width: 100%; text-align: left; font-size: 1.05rem; }
 .btn-toggle { font-size: 0.9rem; white-space: nowrap; }
 .btn-toggle-on { border-color: var(--gold); background: var(--gold); color: var(--gold-dark); font-weight: bold; }
@@ -336,6 +336,7 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
   color: var(--soft);
 }
 .badge-cat { color: var(--gold); border-color: var(--gold); }
+.badge-joueur { color: var(--ink); border-color: var(--ink); font-weight: bold; }
 .question-texte { font-size: 1.2rem; line-height: 1.4; font-weight: bold; }
 
 .choices { display: flex; flex-direction: column; gap: 0.5rem; }

@@ -55,11 +55,27 @@ export function newGame(config, boardLayout) {
     currentIndex: 0,
     tour: 1,
     askedIds: [],
+    // Case landed on but not yet resolved — lets a reload resume mid-turn
+    // instead of offering a free second dice roll (and prevents dodging a
+    // malus or the Trou Noir by refreshing the page).
+    pendingCase: null,
     finished: false,
     ranking: null,
   };
   save();
   return state;
+}
+
+export function setPendingCase(type) {
+  state.pendingCase = type;
+  save();
+}
+
+export function clearPendingCase() {
+  if (state.pendingCase !== null) {
+    state.pendingCase = null;
+    save();
+  }
 }
 
 export function currentPion() {
@@ -83,21 +99,24 @@ export function isLeader(pion) {
   return state.pions.length >= 2 && rankOf(pion) === 0;
 }
 
-/** Advance to the next pion that does not skip its turn. */
+/** Advance to the next pion; returns the skipped players so the table is
+ *  told WHO lost their turn (the nap is public knowledge). */
 export function nextTurn() {
+  const skipped = [];
   for (let hop = 0; hop < state.pions.length + 1; hop++) {
     state.currentIndex = (state.currentIndex + 1) % state.pions.length;
     if (state.currentIndex === 0) state.tour += 1;
     const pion = currentPion();
     if (pion.tourASauter) {
-      pion.tourASauter = false; // the skip is consumed silently
+      pion.tourASauter = false;
+      skipped.push(pion.nom);
       continue;
     }
     save();
-    return pion;
+    return { pion, skipped };
   }
   save();
-  return currentPion();
+  return { pion: currentPion(), skipped };
 }
 
 /** Rotating spokesperson for team pions (returns null in individual mode). */
@@ -132,6 +151,7 @@ export function loadSave() {
     const parsed = JSON.parse(raw);
     if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.pions)) return null;
     if (!parsed.boardId) parsed.boardId = "grand-donjon"; // saves from before multi-boards
+    if (parsed.pendingCase === undefined) parsed.pendingCase = null;
     state = parsed;
     return state;
   } catch {

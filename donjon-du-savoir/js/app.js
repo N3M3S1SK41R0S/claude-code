@@ -21,8 +21,9 @@ function show(name) {
 function renderHome() {
   const zone = document.getElementById("home-actions");
   zone.innerHTML = "";
+  const bankOk = bankSize() > 0;
   const save = loadSave();
-  if (save && !save.finished) {
+  if (bankOk && save && !save.finished) {
     zone.append(
       el("button", {
         class: "btn btn-big",
@@ -34,11 +35,12 @@ function renderHome() {
       }, "▶️ Reprendre la partie en cours"),
     );
   }
-  zone.append(
-    el("button", { class: "btn btn-big btn-gold", type: "button", onclick: () => { renderSetup(); show("setup"); } }, "⚔️ Nouvelle partie"),
-  );
-  document.getElementById("bank-info").textContent =
-    `${bankSize()} questions vérifiées et sourcées · 13 catégories · zéro chronomètre`;
+  const newBtn = el("button", { class: "btn btn-big btn-gold", type: "button", onclick: () => { renderSetup(); show("setup"); } }, "⚔️ Nouvelle partie");
+  if (!bankOk) newBtn.disabled = true;
+  zone.append(newBtn);
+  document.getElementById("bank-info").textContent = bankOk
+    ? `${bankSize()} questions vérifiées et sourcées · 13 catégories · zéro chronomètre`
+    : "⚠️ Impossible de charger les questions (data/questions.json). Rechargez la page une fois en ligne.";
 }
 
 /* ---------- setup ---------- */
@@ -210,6 +212,11 @@ function totalMembers() {
 }
 
 function launchGame() {
+  if (bankSize() === 0) {
+    renderHome();
+    show("home");
+    return;
+  }
   let pions;
   if (setupMode === "individuel") {
     pions = players
@@ -301,8 +308,7 @@ async function boot() {
   try {
     await loadBank();
   } catch {
-    document.getElementById("bank-info").textContent =
-      "⚠️ Impossible de charger les questions (fichier data/questions.json).";
+    // renderHome() shows the warning and disables new games (bankSize() === 0).
   }
   renderHome();
   show("home");

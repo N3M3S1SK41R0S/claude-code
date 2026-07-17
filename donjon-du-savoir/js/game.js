@@ -8,7 +8,7 @@ import { drawEasier, drawEvent, drawGambit, drawHardest, drawQuestion } from "./
 import { boardById, renderBoard } from "./board.js";
 import { herald } from "./herald.js";
 import { canRecharge, powerOf, recharge, RECHARGE_COST } from "./powers.js";
-import { characterById, currentPion, getState, isLast, nextTurn, porteParole, ranking, save } from "./state.js";
+import { characterById, clearPendingCase, currentPion, getState, isLast, nextTurn, porteParole, ranking, save, setPendingCase } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, setPanel } from "./ui.js";
 
 let onVictory = null;
@@ -23,6 +23,19 @@ export function startGame(victoryCallback) {
 export function resumeGame(victoryCallback) {
   onVictory = victoryCallback;
   render();
+  // A reload mid-turn resumes at the unresolved case: no free re-roll, no
+  // dodging a malus or the Trou Noir by refreshing the page. A case already
+  // resolved ("resolu") hands over to the next player instead of re-rolling.
+  const pending = getState().pendingCase;
+  if (pending === "resolu") {
+    finishTurn();
+    return;
+  }
+  if (pending) {
+    heraldSays(herald.surCase(pending));
+    resolveCase(pending);
+    return;
+  }
   startTurn({ silent: true });
 }
 
@@ -53,6 +66,9 @@ function renderPlayersStrip() {
   const state = getState();
   const strip = document.getElementById("players");
   strip.innerHTML = "";
+  window.requestAnimationFrame(() => {
+    strip.querySelector(".player-chip-actif")?.scrollIntoView({ inline: "nearest", block: "nearest" });
+  });
   for (const p of ranking()) {
     const c = characterById(p.characterId);
     const power = powerOf(p);
@@ -73,12 +89,12 @@ function renderPlayersStrip() {
 
 /* ---------- turn start ---------- */
 
-function startTurn({ silent = false } = {}) {
+function startTurn({ silent = false, prefix = "" } = {}) {
   const state = getState();
   if (state.finished) return;
   const pion = currentPion();
   render();
-  if (!silent) heraldSays(herald.debutTour(pion.nom));
+  if (!silent) heraldSays(`${prefix}${herald.debutTour(pion.nom)}`);
 
   const actions = [bigButton("🎲 Lancer le dé", () => rollDie())];
 
@@ -153,6 +169,7 @@ function moveAndResolve(steps) {
   render();
   if (pion.position >= boardLen() - 1) return finishGame(pion);
   const type = getState().board[pion.position];
+  setPendingCase(type);
   heraldSays(herald.surCase(type));
   resolveCase(type);
 }
@@ -171,11 +188,13 @@ function resolveCase(type) {
     case "malus":
       return doMalus(pion);
     case "pieces": {
+      setPendingCase("resolu");
       const gain = 3 + Math.floor(Math.random() * 3);
       addCoins(pion, gain);
       return endPanel(`Vous ramassez ${gain} pièces d'or ! 🪙`);
     }
     case "joker":
+      setPendingCase("resolu");
       pion.jokers += 1;
       save();
       return endPanel("Vous gagnez une carte Joker ! 🃏 Elle recharge un pouvoir déjà utilisé.");
@@ -184,6 +203,7 @@ function resolveCase(type) {
     case "trounoir":
       return doTrouNoir(pion);
     default:
+      setPendingCase("resolu");
       return endPanel("Case tranquille. Le Donjon vous laisse souffler.");
   }
 }
@@ -213,12 +233,20 @@ const MALUS_EFFECTS = [
   { texte: "Petite chute : reculez d'1 case.", apply: (p) => shift(p, -1) },
 ];
 
-function doChance(pion, { forced = null } = {}) {
+function doChance(pion, { forced = null, onDone = null } = {}) {
+  setPendingCase("resolu");
   const effect = forced ?? CHANCE_EFFECTS[Math.floor(Math.random() * CHANCE_EFFECTS.length)];
   const won = effect.apply(pion) === true; // shift() returns true on victory
   save();
   render();
   if (won) return;
+  if (onDone) {
+    setPanel(
+      el("p", { class: "panel-text panel-event", text: `🍀 ${effect.texte}` }),
+      bigButton("Continuer", onDone),
+    );
+    return;
+  }
   endPanel(`🍀 ${effect.texte}`);
 }
 
@@ -226,6 +254,7 @@ function doMalus(pion) {
   const effect = MALUS_EFFECTS[Math.floor(Math.random() * MALUS_EFFECTS.length)];
   const power = powerOf(pion);
   const apply = () => {
+    setPendingCase("resolu");
     effect.apply(pion);
     save();
     render();
@@ -236,6 +265,7 @@ function doMalus(pion) {
       el("h2", { class: "panel-title", text: "Coup dur en approche…" }),
       el("p", { class: "panel-text", text: effect.texte }),
       choiceButton(`${characterById(pion.characterId).emoji} ${power.nom} — annuler ce malus`, () => {
+        setPendingCase("resolu");
         pion.pouvoirUtilise = true;
         save();
         heraldSays(herald.pouvoir());
@@ -279,18 +309,19 @@ function useTurnPower(pion) {
       return done();
     case "gobelin:enfant": {
       const [a, b] = [...CHANCE_EFFECTS].sort(() => Math.random() - 0.5).slice(0, 2);
+      // The chosen card resolves, then the turn CONTINUES: the die roll is
+      // never sacrificed to the power (same contract as the other powers).
+      const useCard = (card) => {
+        pion.pouvoirUtilise = true;
+        save();
+        heraldSays(herald.pouvoir());
+        doChance(pion, { forced: card, onDone: () => startTurn({ silent: true }) });
+      };
       setPanel(
-        el("h2", { class: "panel-title", text: "Petit Trésor — choisis ta carte Chance !" }),
-        choiceButton(`🍀 ${a.texte}`, () => {
-          pion.pouvoirUtilise = true;
-          save();
-          doChance(pion, { forced: a });
-        }),
-        choiceButton(`🍀 ${b.texte}`, () => {
-          pion.pouvoirUtilise = true;
-          save();
-          doChance(pion, { forced: b });
-        }),
+        el("h2", { class: "panel-title", text: "Petit Trésor — choisissez votre carte Chance !" }),
+        choiceButton(`🍀 ${a.texte}`, () => useCard(a)),
+        choiceButton(`🍀 ${b.texte}`, () => useCard(b)),
+        choiceButton("Annuler", () => startTurn({ silent: true })),
       );
       return;
     }
@@ -387,23 +418,48 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
   setPanel(container);
 }
 
-function questionHeader(q) {
+function questionHeader(q, pion = null) {
+  // The answering pion is always named — essential at a 20-player table.
+  const who = pion ?? currentPion();
+  const c = characterById(who.characterId);
   return el("div", { class: "question-head" },
+    el("span", { class: "badge badge-joueur", text: `${c.emoji} ${who.nom}` }),
     el("span", { class: "badge badge-cat", text: q.categorie }),
     el("span", { class: "badge", text: q.niveau_age === "enfant" ? "👶 enfant" : q.niveau_age === "ado" ? "🧢 ado" : "🎩 adulte" }),
     el("span", { class: "badge", text: "★".repeat(q.difficulte ?? 3) }),
   );
 }
 
-/** Powers usable while a question is displayed (Cageot & Duchesse). */
-function appendQuestionPowers(container, hintZone, pion, q, { cashMode }) {
+/** Anecdote block with its source links — served after EVERY question. */
+function anecdoteCardEl(q) {
+  const sources = (q.sources ?? []).slice(0, 3).map((src) => {
+    let label = "source";
+    try {
+      label = new URL(src).hostname.replace(/^www\./, "");
+    } catch {
+      /* keep default label */
+    }
+    return el("a", { class: "source-link", href: src, target: "_blank", rel: "noopener noreferrer", text: label });
+  });
+  return el("div", { class: "anecdote-card" },
+    el("p", { class: "anecdote-title", text: "📜 L'anecdote du Héraut" }),
+    el("p", { class: "anecdote-texte", text: q.anecdote }),
+    sources.length > 0 ? el("div", { class: "sources" }, ...sources) : null,
+  );
+}
+
+/** Powers usable while a question is displayed (Cageot & Duchesse).
+ *  `blockCageot` protects special stakes (Trou Noir) from being bypassed. */
+function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCageot = false }) {
   const power = powerOf(pion);
   if (!power || pion.pouvoirUtilise || power.quand !== "question") return;
   const c = characterById(pion.characterId);
   const zone = el("div", { class: "power-zone" });
 
   const key = `${pion.characterId}:${pion.profil}`;
-  if (key === "cageot:adulte" && (q.format === "qcm" || (q.format === "cash_carre_duo" && cashMode === "carre"))) {
+  if (blockCageot && (key === "cageot:adulte" || key === "cageot:enfant")) {
+    // The Trou Noir keeps its stakes: no CASH shortcut, no easier question.
+  } else if (key === "cageot:adulte" && (q.format === "qcm" || (q.format === "cash_carre_duo" && cashMode === "carre"))) {
     zone.append(choiceButton(`${c.emoji} ${power.nom} — répondre CASH (+${ADVANCE.cash} cases)`, () => {
       pion.pouvoirUtilise = true;
       save();
@@ -412,11 +468,16 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode }) {
     }));
   } else if (key === "cageot:enfant") {
     zone.append(choiceButton(`${c.emoji} ${power.nom} — question plus facile`, () => {
+      // Draw BEFORE consuming: if nothing easier exists, the power is kept.
+      const easier = drawEasier(pion, q.difficulte);
+      if (!easier) {
+        hintZone.append(el("p", { class: "hint", text: "🛡️ Aucune question plus facile en réserve — le pouvoir est conservé." }));
+        return;
+      }
       pion.pouvoirUtilise = true;
       save();
       heraldSays(herald.pouvoir());
-      const easier = drawEasier(pion, q.difficulte);
-      if (easier) questionFlow(pion, easier);
+      questionFlow(pion, easier);
     }));
   } else if (key === "duchesse:adulte") {
     zone.append(choiceButton(`${c.emoji} ${power.nom} — lire l'anecdote maintenant`, () => {
@@ -483,7 +544,7 @@ function openAnswerFlow(pion, q, { advance, accepted, onResolve = null }) {
   setPanel(container);
 }
 
-/** TTMC-style confidence bet on a classic QCM: bet 1-10 BEFORE seeing it. */
+/** Confidence bet on a classic QCM: self-evaluate 1-10 BEFORE seeing it. */
 function confianceFlow(pion, q) {
   const intro = speakerIntro(pion);
   if (intro) heraldSays(intro);
@@ -502,8 +563,8 @@ function confianceFlow(pion, q) {
   setPanel(
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: "🎯 Pari de confiance" }),
-      questionHeader(q),
-      el("p", { class: "panel-text", text: `Thème : ${q.categorie}. Tu te mets combien, de 1 à 10 ? Bonne réponse = avance de la moitié de ta mise. Mise ≥ 6 ratée = recul d'une case.` }),
+      questionHeader(q, pion),
+      el("p", { class: "panel-text", text: `Thème : ${q.categorie}. Évaluez votre confiance de 1 à 10 avant de voir la question. Bonne réponse : avancez de la moitié de votre mise. Mise de 6 ou plus ratée : reculez d'une case.` }),
       bets,
     ),
   );
@@ -512,6 +573,7 @@ function confianceFlow(pion, q) {
 /* ---------- answer resolution + anecdote (always) ---------- */
 
 function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
+  setPendingCase("resolu");
   pion.stats.questions += 1;
   let moveDelta = 0;
   let coinGain = 0;
@@ -536,24 +598,11 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
 }
 
 function showAnecdote(q, { verdictHtml, onContinue }) {
-  const sources = (q.sources ?? []).slice(0, 3).map((src) => {
-    let label = "source";
-    try {
-      label = new URL(src).hostname.replace(/^www\./, "");
-    } catch {
-      /* keep default label */
-    }
-    return el("a", { class: "source-link", href: src, target: "_blank", rel: "noopener noreferrer", text: label });
-  });
   heraldSays(`${herald.anecdote()} ${q.anecdote}`, { speak: false });
   setPanel(
     el("div", { class: "question-block" },
       el("p", { class: "verdict", html: verdictHtml }),
-      el("div", { class: "anecdote-card" },
-        el("p", { class: "anecdote-title", text: "📜 L'anecdote du Héraut" }),
-        el("p", { class: "anecdote-texte", text: q.anecdote }),
-        sources.length > 0 ? el("div", { class: "sources" }, ...sources) : null,
-      ),
+      anecdoteCardEl(q),
       bigButton("Continuer", onContinue),
     ),
   );
@@ -563,47 +612,78 @@ function showAnecdote(q, { verdictHtml, onContinue }) {
 
 function doTrouNoir(pion) {
   const q = drawHardest(pion);
-  if (!q) return endPanel("Le Trou Noir est vide. Il médite.");
   const advance = 3;
   const recul = -6;
+  const resolveTrouNoir = (correct) => {
+    setPendingCase("resolu");
+    pion.stats.questions += 1;
+    if (correct) pion.stats.bonnes += 1;
+    save();
+    heraldSays(correct ? herald.bonne() : herald.mauvaise());
+    showAnecdote(q, {
+      verdictHtml: correct
+        ? `✅ <strong>Le Trou Noir s'incline !</strong> +${advance} cases`
+        : `❌ <strong>Englouti…</strong> La bonne réponse était : <strong>${q.bonne_reponse}</strong> · recul de 6 cases`,
+      onContinue: () => {
+        if (shift(pion, correct ? advance : recul)) return;
+        finishTurn();
+      },
+    });
+  };
+  if (!q) {
+    setPendingCase("resolu");
+    return endPanel("Le Trou Noir est vide. Il médite.");
+  }
   const container = el("div", { class: "question-block trou-noir" });
   container.append(
     el("h2", { class: "panel-title", text: "🕳️ LE TROU NOIR" }),
     el("p", { class: "panel-text", text: "La question la plus redoutable de votre rang. Réussite : +3 cases. Échec : recul de 6 cases. Jamais d'élimination — le Donjon est joueur, pas cruel." }),
-    questionHeader(q),
+    questionHeader(q, pion),
     el("p", { class: "question-texte", text: q.texte }),
   );
   const hintZone = el("div", { class: "hint-zone" });
   container.append(hintZone);
-  const grid = el("div", { class: `choices ${(q.choix ?? []).length === 2 ? "choices-2" : ""}` });
-  (q.choix ?? []).forEach((choice) => {
-    grid.append(choiceButton(choice, () => {
-      const correct = choice === q.bonne_reponse;
-      pion.stats.questions += 1;
-      if (correct) pion.stats.bonnes += 1;
-      heraldSays(correct ? herald.bonne() : herald.mauvaise());
-      showAnecdote(q, {
-        verdictHtml: correct
-          ? `✅ <strong>Le Trou Noir s'incline !</strong> +${advance} cases`
-          : `❌ <strong>Englouti…</strong> La bonne réponse était : <strong>${q.bonne_reponse}</strong> · recul de 6 cases`,
-        onContinue: () => {
-          if (shift(pion, correct ? advance : recul)) return;
-          finishTurn();
-        },
-      });
-    }));
-  });
-  container.append(grid);
-  appendQuestionPowers(container, hintZone, pion, q, { cashMode: null });
+  const choices = q.choix ?? [];
+  if (choices.length === 0) {
+    // Belt and braces: drawHardest only returns choice questions, but a
+    // choix-less one must still never soft-lock the table.
+    container.append(
+      el("p", { class: "help-note", text: "🗣️ Répondez à voix haute, puis révélez — la table est juge." }),
+      bigButton("Révéler la réponse", () => {
+        const accepted = q.bonne_reponse ?? String(q.reponse_numerique ?? (q.reponses_acceptees ?? []).join(" · "));
+        setPanel(
+          el("div", { class: "question-block" },
+            el("p", { class: "reveal-answer", html: `✅ Réponse : <strong>${accepted}</strong>` }),
+            el("div", { class: "choices choices-2" },
+              choiceButton("👍 Bonne réponse !", () => resolveTrouNoir(true)),
+              choiceButton("👎 Raté…", () => resolveTrouNoir(false)),
+            ),
+          ),
+        );
+      }),
+    );
+  } else {
+    const grid = el("div", { class: `choices ${choices.length === 2 ? "choices-2" : ""}` });
+    choices.forEach((choice) => {
+      grid.append(choiceButton(choice, () => resolveTrouNoir(choice === q.bonne_reponse)));
+    });
+    container.append(grid);
+  }
+  // Hints allowed, but no power may rewrite the Trou Noir's stakes.
+  appendQuestionPowers(container, hintZone, pion, q, { cashMode: null, blockCageot: true });
   setPanel(container);
 }
 
 /** Gambit: numeric answer + the other pions bet "trop haut / trop bas / juste". */
 function doGambit(pion) {
   const q = drawGambit(pion);
-  if (!q) return endPanel("Plus de questions numériques en réserve — le Gambit tousse.");
+  if (!q) {
+    // No numeric question fits this pion's age bracket: the case falls back
+    // to a classic question rather than serving an adult one to a child.
+    heraldSays("Le Gambit se transforme… en question classique ! Le Donjon a ses mystères.");
+    return doQuestion();
+  }
   const others = getState().pions.filter((p) => p.id !== pion.id);
-  const answer = Number(q.reponse_numerique);
 
   const input = el("input", {
     class: "num-input",
@@ -613,25 +693,28 @@ function doGambit(pion) {
     "aria-label": "Votre réponse numérique",
     placeholder: "Votre nombre…",
   });
-  setPanel(
-    el("div", { class: "question-block" },
-      el("h2", { class: "panel-title", text: "🎲 GAMBIT" }),
-      questionHeader(q),
-      el("p", { class: "question-texte", text: q.texte }),
-      el("p", { class: "help-note", text: `${pion.nom} annonce un nombre — puis les autres parieront si la vraie réponse est plus haute, plus basse, ou si c'est juste.` }),
-      input,
-      bigButton("Valider mon nombre", () => {
-        const guess = Number(String(input.value).replace(",", ".").replace(/\s+/g, ""));
-        if (!Number.isFinite(guess)) {
-          input.value = "";
-          input.placeholder = "Il faut un nombre !";
-          return;
-        }
-        if (others.length === 0) return gambitReveal(pion, q, guess, []);
-        gambitBets(pion, q, guess, others);
-      }),
-    ),
+  const form = el("form", { class: "question-block" },
+    el("h2", { class: "panel-title", text: "🎲 GAMBIT" }),
+    questionHeader(q, pion),
+    el("p", { class: "question-texte", text: q.texte }),
+    el("p", { class: "help-note", text: `${pion.nom} annonce un nombre — puis les autres parieront si la vraie réponse est plus haute, plus basse, ou si c'est juste.` }),
+    input,
+    el("button", { class: "btn btn-big", type: "submit" }, "Valider mon nombre"),
   );
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const raw = String(input.value).trim();
+    const guess = Number(raw.replace(",", ".").replace(/\s+/g, ""));
+    if (raw === "" || !Number.isFinite(guess)) {
+      input.value = "";
+      input.placeholder = "Il faut un nombre !";
+      input.focus();
+      return;
+    }
+    if (others.length === 0) return gambitReveal(pion, q, guess, []);
+    gambitBets(pion, q, guess, others);
+  });
+  setPanel(form);
   input.focus();
 }
 
@@ -640,24 +723,27 @@ function gambitBets(pion, q, guess, others) {
   const rows = others.map((p) => {
     const row = el("div", { class: "bet-row" }, el("strong", { class: "bet-name", text: p.nom }));
     const group = el("div", { class: "bet-buttons", role: "group", "aria-label": `Pari de ${p.nom}` });
-    for (const [key, label] of [["bas", "⬇️ Trop bas"], ["juste", "🎯 Juste"], ["haut", "⬆️ Trop haut"]]) {
+    for (const [key, label] of [["bas", "⬇️ Trop bas"], ["juste", "🎯 Juste"], ["haut", "⬆️ Trop haut"], ["absent", "🚫"]]) {
       const btn = choiceButton(label, () => {
         bets.set(p.id, key);
         group.querySelectorAll("button").forEach((b) => b.classList.remove("bet-selected"));
         btn.classList.add("bet-selected");
         if (bets.size === others.length) validateBtn.disabled = false;
       }, "btn-bet");
+      if (key === "absent") btn.setAttribute("aria-label", `${p.nom} ne parie pas (absent)`);
       group.append(btn);
     }
     row.append(group);
     return row;
   });
-  const validateBtn = bigButton("Révéler la vraie réponse", () => gambitReveal(pion, q, guess, others.map((p) => ({ pion: p, bet: bets.get(p.id) }))));
+  const validateBtn = bigButton("Révéler la vraie réponse", () =>
+    gambitReveal(pion, q, guess, others.filter((p) => bets.get(p.id) !== "absent").map((p) => ({ pion: p, bet: bets.get(p.id) }))));
   validateBtn.disabled = true;
   setPanel(
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: "🎲 Les paris sont ouverts !" }),
       el("p", { class: "panel-text", html: `${pion.nom} annonce : <strong>${guess}</strong>. La vraie réponse est-elle plus haute, plus basse, ou est-ce juste ?` }),
+      el("p", { class: "help-note", text: "Chaque aventurier place son pari (🚫 pour un joueur absent), puis on révèle." }),
       ...rows,
       validateBtn,
     ),
@@ -665,6 +751,7 @@ function gambitBets(pion, q, guess, others) {
 }
 
 function gambitReveal(pion, q, guess, bets) {
+  setPendingCase("resolu");
   const answer = Number(q.reponse_numerique);
   const diff = Math.abs(guess - answer);
   const yearLike = Number.isInteger(answer) && answer >= 1000 && answer <= 2100;
@@ -687,10 +774,7 @@ function gambitReveal(pion, q, guess, bets) {
     el("div", { class: "question-block" },
       el("p", { class: "verdict", html: `La vraie réponse était <strong>${answer}</strong> — ${pion.nom} annonçait ${guess}. ${advance > 0 ? `<strong>+${advance} case${advance > 1 ? "s" : ""} !</strong>` : "<strong>Trop loin, pas de bonus.</strong>"}` }),
       ...betLines,
-      el("div", { class: "anecdote-card" },
-        el("p", { class: "anecdote-title", text: "📜 L'anecdote du Héraut" }),
-        el("p", { class: "anecdote-texte", text: q.anecdote }),
-      ),
+      anecdoteCardEl(q),
       bigButton("Continuer", () => {
         if (advance !== 0 && shift(pion, advance)) return;
         finishTurn();
@@ -702,28 +786,41 @@ function gambitReveal(pion, q, guess, bets) {
 /** Événement: everyone answers the same Vrai/Faux; each correct pion +2 🪙. */
 function doEvent() {
   const q = drawEvent();
-  if (!q) return endPanel("Pas d'événement disponible — le Donjon improvise une pause.");
+  if (!q) {
+    setPendingCase("resolu");
+    return endPanel("Pas d'événement disponible — le Donjon improvise une pause.");
+  }
   const pions = getState().pions;
   const answers = new Map();
   const rows = pions.map((p) => {
     const row = el("div", { class: "bet-row" }, el("strong", { class: "bet-name", text: p.nom }));
     const group = el("div", { class: "bet-buttons", role: "group", "aria-label": `Réponse de ${p.nom}` });
-    for (const choice of q.choix ?? ["Vrai", "Faux"]) {
+    for (const choice of [...(q.choix ?? ["Vrai", "Faux"]), "🚫"]) {
       const btn = choiceButton(choice, () => {
         answers.set(p.id, choice);
         group.querySelectorAll("button").forEach((b) => b.classList.remove("bet-selected"));
         btn.classList.add("bet-selected");
         if (answers.size === pions.length) validateBtn.disabled = false;
       }, "btn-bet");
+      if (choice === "🚫") btn.setAttribute("aria-label", `${p.nom} ne répond pas (absent)`);
       group.append(btn);
     }
     row.append(group);
     return row;
   });
   const validateBtn = bigButton("Révéler !", () => {
+    setPendingCase("resolu");
+    const current = currentPion();
     const lines = pions.map((p) => {
+      if (answers.get(p.id) === "🚫") {
+        return el("p", { class: "bet-result", text: `🚫 ${p.nom} (absent)` });
+      }
       const good = answers.get(p.id) === q.bonne_reponse;
-      if (good) p.pieces += 2;
+      // addCoins routes through Bonus Comptable for the pion whose turn it is.
+      if (good) {
+        if (p.id === current.id) addCoins(p, 2);
+        else p.pieces += 2;
+      }
       return el("p", { class: "bet-result", text: `${good ? "✅ +2 🪙" : "❌"} ${p.nom}` });
     });
     save();
@@ -736,7 +833,7 @@ function doEvent() {
       el("h2", { class: "panel-title", text: "🎪 Événement collectif !" }),
       questionHeader(q),
       el("p", { class: "question-texte", text: q.texte }),
-      el("p", { class: "help-note", text: "Tout le monde répond ! +2 pièces par bonne réponse." }),
+      el("p", { class: "help-note", text: "Tout le monde répond (🚫 pour un joueur absent), puis on révèle — +2 pièces par bonne réponse." }),
       ...rows,
       validateBtn,
     ),
@@ -748,10 +845,7 @@ function showAnecdoteEvent(q, lines) {
     el("div", { class: "question-block" },
       el("p", { class: "verdict", html: `La bonne réponse était : <strong>${q.bonne_reponse}</strong>` }),
       ...lines,
-      el("div", { class: "anecdote-card" },
-        el("p", { class: "anecdote-title", text: "📜 L'anecdote du Héraut" }),
-        el("p", { class: "anecdote-texte", text: q.anecdote }),
-      ),
+      anecdoteCardEl(q),
       bigButton("Continuer", () => finishTurn()),
     ),
   );
@@ -769,14 +863,18 @@ function endPanel(message) {
 function finishTurn() {
   const state = getState();
   if (state.finished) return;
+  clearPendingCase(); // the turn is truly over — next reload starts fresh
   const pion = currentPion();
   pion.doublePieces = false;
-  nextTurn();
-  startTurn();
+  const { skipped } = nextTurn();
+  // The nap is public: the table hears WHO loses their turn and why.
+  const prefix = skipped.length > 0 ? `💤 ${skipped.join(" et ")} passe${skipped.length > 1 ? "nt" : ""} son tour (sieste involontaire) ! ` : "";
+  startTurn({ prefix });
 }
 
 function finishGame(winner) {
   const state = getState();
+  clearPendingCase();
   state.finished = true;
   state.ranking = ranking().map((p) => ({
     nom: p.nom,
