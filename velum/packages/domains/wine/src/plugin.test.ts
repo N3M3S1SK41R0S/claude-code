@@ -336,7 +336,8 @@ describe('winePlugin.valuate', () => {
     const result = await winePlugin.valuate(makeCandidate(), deps);
 
     expect(result.currency).toBe('EUR');
-    expect(result.nSources).toBe(4); // les 4 observations survivent au MAD, la source en panne est ignorée
+    expect(result.nSources).toBe(2); // 2 plateformes distinctes ; la source en panne est ignorée
+    expect(result.observations).toHaveLength(4); // les 4 observations survivent au MAD
     expect(result.central).toBeGreaterThanOrEqual(300);
     expect(result.central).toBeLessThanOrEqual(340);
     expect(result.ci80[0]).toBeLessThanOrEqual(result.central);
