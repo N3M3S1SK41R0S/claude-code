@@ -103,6 +103,11 @@ for plan_entry in "${MIGRATION_PLAN[@]}"; do
   esac
 done
 
+echo "· tests du remplacement atomique des preuves de calibration"
+run_sql_file \
+  "tests du remplacement atomique des preuves de calibration" \
+  supabase/tests/calibration_backtest_checks.sql
+
 echo "· seed.sql (compte démo + collection)"
 run_sql_file "seed" supabase/seed.sql
 
