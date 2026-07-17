@@ -63,28 +63,44 @@ for (const forgeDir of forgeDirs.filter((d) => existsSync(d))) {
     }
     let kept = report.forge[theme] ?? 0;
     for (const q of data.questions ?? []) {
-      const valid =
+      // Wave-1/2 forge files are implicit QCM; wave-3 carries a format field.
+      const format = q.format ?? "qcm";
+      const base =
         q && typeof q.question === "string" && q.question.length > 10 &&
-        Array.isArray(q.choices) && q.choices.length === 4 &&
-        q.choices.every((c) => typeof c === "string" && c.length > 0) &&
-        new Set(q.choices.map(norm)).size === 4 &&
-        Number.isInteger(q.answerIndex) && q.answerIndex >= 0 && q.answerIndex <= 3 &&
         Number.isInteger(q.difficulty) && q.difficulty >= 1 && q.difficulty <= 5 &&
         typeof q.anecdote === "string" && q.anecdote.length > 10 &&
         Array.isArray(q.sources) && q.sources.length >= 2 &&
         q.sources.every((u) => typeof u === "string" && u.startsWith("https://"));
-      if (!valid) continue;
+      if (!base) continue;
+
+      const choicesOk = (n) =>
+        Array.isArray(q.choices) && q.choices.length === n &&
+        q.choices.every((c) => typeof c === "string" && c.length > 0) &&
+        new Set(q.choices.map(norm)).size === n &&
+        Number.isInteger(q.answerIndex) && q.answerIndex >= 0 && q.answerIndex < n;
+
+      let entry = null;
+      if (format === "qcm" && choicesOk(4)) {
+        entry = { format, choices: q.choices.map((c) => c.trim()), answerIndex: q.answerIndex };
+      } else if (format === "vrai_faux" && choicesOk(2)) {
+        entry = { format, choices: q.choices.map((c) => c.trim()), answerIndex: q.answerIndex };
+      } else if (format === "gambit_numerique" && Number.isFinite(q.numericAnswer)) {
+        entry = { format, numericAnswer: q.numericAnswer };
+      } else if (format === "equipe" && Array.isArray(q.acceptedAnswers) &&
+        q.acceptedAnswers.length >= 3 && q.acceptedAnswers.every((a) => typeof a === "string" && a.length > 0)) {
+        entry = { format, acceptedAnswers: q.acceptedAnswers.map((a) => a.trim()) };
+      }
+      if (!entry) continue;
+
       const added = push({
         id: `${theme}-${String(kept + 1).padStart(3, "0")}`,
         theme,
-        format: "qcm",
         age: DIFFICULTY_TO_AGE(q.difficulty),
         difficulty: q.difficulty,
         question: q.question.trim(),
-        choices: q.choices.map((c) => c.trim()),
-        answerIndex: q.answerIndex,
         anecdote: q.anecdote.trim(),
         sources: q.sources,
+        ...entry,
       });
       if (added) kept += 1;
     }
