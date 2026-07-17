@@ -18,6 +18,8 @@ describe('explainValuation', () => {
     expect(e.ci80).toEqual(v.ci80);
     expect(e.ci95).toEqual(v.ci95);
     expect(e.reliability).toBe(v.reliability);
+    expect(e.nKept).toBe(v.observations.length);
+    expect(e.nSources).toBe(v.nSources);
   });
 
   it('marque les aberrants (règle MAD) comme écartés avec une raison', () => {
@@ -35,6 +37,20 @@ describe('explainValuation', () => {
     expect(outlier?.kept).toBe(false);
     expect(outlier?.rejectionReason).toBe('outlier_mad');
     expect(outlier?.madDeviation).toBeGreaterThan(3.5);
+  });
+
+  it('sépare le nombre d’observations du nombre de plateformes distinctes', () => {
+    const data = [
+      obs(100, 'marketplace_sold'),
+      obs(102, 'marketplace_sold'),
+      obs(101, 'auction_realized'),
+    ];
+    const e = explainValuation(data, fx);
+
+    expect(e.nKept).toBe(3);
+    expect(e.nSources).toBe(2);
+    expect(e.reliabilityFactors.countScore).toBe(0.25);
+    expect(e.notes.join(' ')).toMatch(/3 observations.*2 sources distinctes/i);
   });
 
   it('décompose fiabilité × récence dans le poids effectif', () => {
@@ -81,7 +97,8 @@ describe('explainFromResult (client, sans FX)', () => {
     expect(e.central).toBe(result.central);
     expect(e.ci80).toEqual(result.ci80);
     expect(e.reliability).toBe(result.reliability);
-    expect(e.nKept).toBe(result.nSources);
+    expect(e.nKept).toBe(result.observations.length);
+    expect(e.nSources).toBe(result.nSources);
     // Toutes les observations d'un résultat sont conservées.
     expect(e.breakdown.every((b) => b.kept)).toBe(true);
     expect(reliabilityFromExplanation(e)).toBe(e.reliability);
