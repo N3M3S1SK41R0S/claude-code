@@ -10,6 +10,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types --test tests/engine.test.ts",
     "icons": "node scripts/make-icons.mjs",
     "bank:merge": "node scripts/merge-bank.mjs"
   },

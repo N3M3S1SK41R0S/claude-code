@@ -1,8 +1,9 @@
 // Builds public/data/bank.json from the two verified sources:
 //   1. the forge output (per-theme JSON files of generated+fact-checked QCM),
+//      from one or several directories — later dirs top up earlier ones,
 //   2. the client game_script (data/game-script.json), admitted only with a
 //      passing verdict in data/script-verification.json (sources + fixes).
-// Usage: node scripts/merge-bank.mjs <forge-dir>
+// Usage: node scripts/merge-bank.mjs <forge-dir> [forge-dir-2 …]
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,7 +28,7 @@ const AGE_TO_DIFFICULTY = { enfant: 1, ado: 3, adulte: 4 };
 const DIFFICULTY_TO_AGE = (d) => (d <= 1 ? "enfant" : d <= 3 ? "ado" : "adulte");
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const forgeDir = process.argv[2];
+const forgeDirs = process.argv.slice(2);
 const scriptFile = join(root, "data", "game-script.json");
 const verifFile = join(root, "data", "script-verification.json");
 const outFile = join(root, "public", "data", "bank.json");
@@ -49,7 +50,7 @@ function push(q) {
 
 /* ---------- 1. forge output (QCM, difficulty 1-5) ---------- */
 
-if (forgeDir && existsSync(forgeDir)) {
+for (const forgeDir of forgeDirs.filter((d) => existsSync(d))) {
   for (const file of readdirSync(forgeDir).filter((f) => f.endsWith(".json")).sort()) {
     const theme = file.replace(/\.json$/, "");
     if (!THEME_IDS.includes(theme)) continue;
@@ -60,7 +61,7 @@ if (forgeDir && existsSync(forgeDir)) {
       console.warn(`! skipping ${file}: invalid JSON (${err.message})`);
       continue;
     }
-    let kept = 0;
+    let kept = report.forge[theme] ?? 0;
     for (const q of data.questions ?? []) {
       const valid =
         q && typeof q.question === "string" && q.question.length > 10 &&
@@ -89,8 +90,9 @@ if (forgeDir && existsSync(forgeDir)) {
     }
     report.forge[theme] = kept;
   }
-} else {
-  console.warn("! no forge dir provided or not found — merging script questions only");
+}
+if (forgeDirs.length === 0) {
+  console.warn("! no forge dir provided — merging script questions only");
 }
 
 /* ---------- 2. game_script questions, gated by their verification ---------- */
