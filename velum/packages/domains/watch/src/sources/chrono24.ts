@@ -1,27 +1,6 @@
 /**
- * Adaptateur Chrono24 — ANNONCES EN COURS (prix demandés, pas des ventes).
- * kind: 'listing' → poids par défaut 0.4 : un prix demandé n'est pas un prix
- * payé ; l'observation informe la fourchette sans jamais dominer les ventes
- * réalisées (Heritage, eBay vendu, Catawiki).
- *
- * URL construite :
- *   GET https://api.chrono24.com/v1/listings/search
- *       ?q=<label>[&reference=<référence constructeur>][&limit=<limit>]
- *   avec l'en-tête 'Authorization: Bearer <apiKey>' si une clé est fournie.
- *
- * Forme de réponse attendue (exemple) :
- * {
- *   "listings": [
- *     {
- *       "title": "Rolex Submariner 124060 — 2022 — full set",
- *       "listed_at": "2026-07-01",
- *       "price": { "amount": 11900, "currency": "EUR" }
- *     }
- *   ]
- * }
- *
- * Une annonce sans prix exploitable est ignorée ; date de publication absente
- * → annonce du jour. Réponse invalide ou vide → [] (jamais de throw).
+ * Adaptateur Chrono24 — annonces EN COURS, pondérées comme prix demandés.
+ * L'endpoint reste désactivé sans contrat partenaire confirmé.
  */
 import {
   DEFAULT_SOURCE_WEIGHTS,
@@ -50,7 +29,7 @@ export class Chrono24Source implements PriceSource {
   constructor(options: SourceAdapterOptions) {
     this.transport = options.transport;
     this.apiKey = options.apiKey;
-    this.now = options.now ?? (() => new Date());
+    this.now = options.now;
   }
 
   async fetch(query: PriceQuery): Promise<PriceObservation[]> {
@@ -72,23 +51,22 @@ export class Chrono24Source implements PriceSource {
 
   private mapResponse(raw: unknown, query: PriceQuery): PriceObservation[] {
     if (!isRecord(raw) || !Array.isArray(raw['listings'])) return [];
-    const out: PriceObservation[] = [];
+    const observations: PriceObservation[] = [];
     for (const listing of raw['listings']) {
       if (!isRecord(listing)) continue;
       const askPrice = listing['price'];
       if (!isRecord(askPrice)) continue;
       const price = toPositiveNumber(askPrice['amount']);
       if (price === null) continue;
-      out.push({
+      observations.push({
         price,
         currency: toCurrency(askPrice['currency'], 'EUR'),
-        // Annonce en cours : date de publication absente → observation du jour.
         ageDays: ageDaysFromIso(listing['listed_at'], this.now) ?? 0,
         sourceWeight: DEFAULT_SOURCE_WEIGHTS[this.kind],
         source: { name: this.name, kind: this.kind, url: CHRONO24_URL },
         matchedLabel: typeof listing['title'] === 'string' ? listing['title'] : query.label,
       });
     }
-    return query.limit !== undefined ? out.slice(0, query.limit) : out;
+    return query.limit !== undefined ? observations.slice(0, query.limit) : observations;
   }
 }
