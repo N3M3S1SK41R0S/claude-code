@@ -115,7 +115,10 @@ export function calibrate(
   let status: CalibrationStatus;
   if (n < minSample) {
     status = 'calibrating';
-  } else if (coverage80 < COVERAGE80_TARGET - COVERAGE80_TOL || coverage95 < COVERAGE95_TARGET - COVERAGE95_TOL) {
+  } else if (
+    coverage80 < COVERAGE80_TARGET - COVERAGE80_TOL ||
+    coverage95 < COVERAGE95_TARGET - COVERAGE95_TOL
+  ) {
     status = 'overconfident';
   } else if (coverage80 > COVERAGE80_TARGET + COVERAGE80_TOL) {
     status = 'underconfident';
@@ -215,11 +218,11 @@ export interface LeaveOneOutOptions {
 }
 
 /**
- * Construit des cas de backtest « leave-one-out » à partir d'observations de
- * marché COURANTES : chaque vente RÉELLE (jamais une cote ni une annonce)
- * devient tour à tour la vérité-terrain, prédite depuis les autres
- * observations. C'est le cold-start du pari #1 : la calibration se mesure sur
- * les ventes publiques déjà branchées, sans attendre le volume maison.
+ * Construit des cas de backtest point-in-time à partir d'observations de marché :
+ * chaque vente RÉELLE devient tour à tour la vérité-terrain, prédite uniquement
+ * depuis les observations disponibles à cette date. Une observation dont
+ * `ageDays` est inférieur à celui de la vente retenue est plus récente : elle
+ * appartient au futur relatif du cas et doit être exclue.
  *
  * Un taux de change manquant lève INVALID_INPUT (une configuration cassée
  * doit remonter, jamais s'effacer — même doctrine que `backtest`).
@@ -235,7 +238,9 @@ export function leaveOneOutCases(
   for (let i = 0; i < observations.length; i++) {
     const held = observations[i] as PriceObservation;
     if (!realizedKinds.includes(held.source.kind)) continue;
-    const others = observations.filter((_, j) => j !== i);
+    const others = observations.filter(
+      (observation, index) => index !== i && observation.ageDays >= held.ageDays,
+    );
     if (others.length < minRemaining) continue;
     cases.push({
       observations: others,
