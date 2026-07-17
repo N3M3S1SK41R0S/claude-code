@@ -10,6 +10,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import {
+  VButton,
   VCard,
   VOrnament,
   VText,
@@ -21,6 +22,7 @@ import {
 } from '@velum/ui';
 
 import { Screen } from '../components/Screen';
+import { errorMessage } from '../lib/errors';
 import { usePlan } from '../lib/plan';
 
 const introVideo = require('../assets/brand/velum-intro.mp4') as number;
@@ -36,7 +38,7 @@ function QuickTile({
   label: string;
   hint: string;
   gilded?: boolean;
-  onPress: () => void;
+  onPress?: () => void;
 }) {
   return (
     <VCard
@@ -59,7 +61,7 @@ function QuickTile({
 export default function Accueil() {
   const { t } = useTranslation();
   const router = useRouter();
-  const { plan } = usePlan();
+  const planState = usePlan();
 
   const player = useVideoPlayer(introVideo, (p) => {
     p.muted = true;
@@ -119,12 +121,33 @@ export default function Accueil() {
           hint={t('accueil.marketHint')}
           onPress={() => router.push('/(tabs)/market')}
         />
-        <QuickTile
-          label={t('accueil.community')}
-          hint={plan === 'platine' ? t('accueil.communityHint') : t('market.communityCta')}
-          gilded={plan === 'platine'}
-          onPress={() => router.push(plan === 'platine' ? '/community' : '/paywall')}
-        />
+        {planState.status === 'error' ? (
+          <VCard style={styles.tile} accessibilityLabel={t('accueil.community')}>
+            <VText variant="heading">{t('accueil.community')}</VText>
+            <VText variant="caption" tone="dim">
+              {errorMessage(planState.error, t)}
+            </VText>
+            <VButton label={t('common.retry')} variant="ghost" onPress={planState.retry} />
+          </VCard>
+        ) : planState.status === 'loading' ? (
+          <QuickTile
+            label={t('accueil.community')}
+            hint={t('common.loading')}
+          />
+        ) : (
+          <QuickTile
+            label={t('accueil.community')}
+            hint={
+              planState.entitlements.community
+                ? t('accueil.communityHint')
+                : t('market.communityCta')
+            }
+            gilded={planState.entitlements.community}
+            onPress={() =>
+              router.push(planState.entitlements.community ? '/community' : '/paywall')
+            }
+          />
+        )}
       </View>
     </Screen>
   );
