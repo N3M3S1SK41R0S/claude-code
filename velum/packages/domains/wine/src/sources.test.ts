@@ -205,11 +205,15 @@ describe('CavissimaSource', () => {
     });
   });
 
-  it('date absente → ageDays 0 (observation traitée comme fraîche)', async () => {
-    const transport = new FakeTransport({ items: [{ title: 'sans date', priceEur: 100 }] });
+  it('date absente ou illisible → observation ignorée', async () => {
+    const transport = new FakeTransport({
+      items: [
+        { title: 'sans date', priceEur: 100 },
+        { title: 'date illisible', priceEur: 120, publishedAt: 'date-invalide' },
+      ],
+    });
     const source = new CavissimaSource({ transport, now: NOW });
-    const observations = await source.fetch(QUERY);
-    expect(observations[0]?.ageDays).toBe(0);
+    expect(await source.fetch(QUERY)).toEqual([]);
   });
 
   it('transport en panne → []', async () => {

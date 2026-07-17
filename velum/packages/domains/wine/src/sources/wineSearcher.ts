@@ -59,11 +59,12 @@ export class WineSearcherSource implements PriceSource {
       for (const entry of raw['results']) {
         if (!isRecord(entry)) continue;
         const price = asFiniteNumber(entry['price']);
-        if (price === undefined || price <= 0) continue;
+        const ageDays = isoToAgeDays(entry['updated'], this.now);
+        if (price === undefined || price <= 0 || ageDays === null) continue;
         observations.push({
           price,
           currency: asNonEmptyString(entry['currency']) ?? 'EUR',
-          ageDays: isoToAgeDays(entry['updated'], this.now),
+          ageDays,
           sourceWeight: DEFAULT_SOURCE_WEIGHTS[this.kind],
           source: {
             name: this.name,

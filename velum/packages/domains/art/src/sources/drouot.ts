@@ -58,11 +58,12 @@ export class DrouotSource implements PriceSource {
       for (const entry of raw['resultats']) {
         if (!isRecord(entry)) continue;
         const price = asFiniteNumber(entry['adjudicationEur']);
-        if (price === undefined || price <= 0) continue;
+        const ageDays = isoToAgeDays(entry['dateVente'], this.now);
+        if (price === undefined || price <= 0 || ageDays === null) continue;
         observations.push({
           price,
           currency: 'EUR',
-          ageDays: isoToAgeDays(entry['dateVente'], this.now),
+          ageDays,
           sourceWeight: DEFAULT_SOURCE_WEIGHTS[this.kind],
           source: {
             name: this.name,

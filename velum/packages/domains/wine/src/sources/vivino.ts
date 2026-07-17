@@ -58,11 +58,12 @@ export class VivinoSource implements PriceSource {
       for (const entry of raw['listings']) {
         if (!isRecord(entry)) continue;
         const price = asFiniteNumber(entry['amount']);
-        if (price === undefined || price <= 0) continue;
+        const ageDays = isoToAgeDays(entry['listedAt'], this.now);
+        if (price === undefined || price <= 0 || ageDays === null) continue;
         observations.push({
           price,
           currency: asNonEmptyString(entry['currency']) ?? 'EUR',
-          ageDays: isoToAgeDays(entry['listedAt'], this.now),
+          ageDays,
           sourceWeight: DEFAULT_SOURCE_WEIGHTS[this.kind],
           source: {
             name: this.name,

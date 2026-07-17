@@ -273,11 +273,15 @@ describe('MagnusSource', () => {
     });
   });
 
-  it('date absente → ageDays 0 (observation traitée comme fraîche)', async () => {
-    const transport = new FakeTransport({ sales: [{ artwork: 'sans date', soldPrice: 100 }] });
+  it('date absente ou illisible → observation ignorée', async () => {
+    const transport = new FakeTransport({
+      sales: [
+        { artwork: 'sans date', soldPrice: 100 },
+        { artwork: 'date illisible', soldPrice: 120, soldAt: 'date-invalide' },
+      ],
+    });
     const source = new MagnusSource({ transport, now: NOW });
-    const observations = await source.fetch(QUERY);
-    expect(observations[0]?.ageDays).toBe(0);
+    expect(await source.fetch(QUERY)).toEqual([]);
   });
 
   it('réponse de forme inattendue → []', async () => {
