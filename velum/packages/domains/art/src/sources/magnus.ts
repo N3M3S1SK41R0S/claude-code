@@ -58,11 +58,12 @@ export class MagnusSource implements PriceSource {
       for (const entry of raw['sales']) {
         if (!isRecord(entry)) continue;
         const price = asFiniteNumber(entry['soldPrice']);
-        if (price === undefined || price <= 0) continue;
+        const ageDays = isoToAgeDays(entry['soldAt'], this.now);
+        if (price === undefined || price <= 0 || ageDays === null) continue;
         observations.push({
           price,
           currency: asNonEmptyString(entry['currency']) ?? 'EUR',
-          ageDays: isoToAgeDays(entry['soldAt'], this.now),
+          ageDays,
           sourceWeight: DEFAULT_SOURCE_WEIGHTS[this.kind],
           source: {
             name: this.name,
