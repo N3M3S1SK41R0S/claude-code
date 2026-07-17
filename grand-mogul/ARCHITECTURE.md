@@ -119,6 +119,11 @@ non streamé avec web_search dépasse le budget TTFB des fonctions edge.
 ## Tests
 
 - `npm run typecheck` — TS strict (`noUncheckedIndexedAccess` inclus).
+- `npm test` — tests unitaires du moteur (`tests/engine.test.ts`, node:test) : score,
+  multiplicateurs, séries/paliers, tolérances du gambit, matching des réponses libres.
 - `node scripts/smoke.mjs` — bout-en-bout Chromium headless : accueil, manifest, service
-  worker, banque chargée, roue → question → joker VISION → révélation/anecdote, puis
-  rechargement **hors-ligne** servi par le SW.
+  worker, banque chargée, roue → question (tout format) → joker VISION →
+  révélation/anecdote, bouton quitter, puis rechargement **hors-ligne** servi par le SW.
+- Lighthouse 12 (build de prod, mobile) : **performance 90, accessibilité 100,
+  bonnes pratiques 100, SEO 100** — la catégorie PWA n'existe plus dans Lighthouse 12 ;
+  installabilité et hors-ligne sont vérifiés par le smoke test.
