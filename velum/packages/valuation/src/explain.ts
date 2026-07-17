@@ -14,6 +14,7 @@ import { DEFAULT_SOURCE_WEIGHTS, type FxRates, type PriceObservation } from '@ve
 import {
   HALF_LIFE_DAYS,
   MAD_K,
+  countDistinctSources,
   median,
   recencyWeight,
   reliabilityScore,
@@ -48,7 +49,10 @@ export interface ValuationExplanation {
   reliability: number;
   /** Largeur de l'IC 80 % relative à la valeur centrale (dispersion, 0..1+). */
   ci80WidthRatio: number;
+  /** Nombre d'observations conservées après rejet MAD. */
   nKept: number;
+  /** Nombre de plateformes distinctes parmi les observations conservées. */
+  nSources: number;
   nRejected: number;
   breakdown: ObservationBreakdown[];
   /** Décomposition du score de fiabilité (chaque terme 0..1). */
@@ -103,17 +107,19 @@ export function explainValuation(
     };
   });
 
-  const nKept = result.nSources;
+  const nKept = result.observations.length;
+  const nSources = result.nSources;
   const nRejected = obs.length - nKept;
   const ci80WidthRatio = result.central
     ? Number(((result.ci80[1] - result.ci80[0]) / result.central).toFixed(3))
     : 1;
-  const countScore = Math.min(1, nKept / 8);
+  const countScore = Math.min(1, nSources / 8);
   const tightnessScore = Math.max(0, 1 - ci80WidthRatio);
 
   const notes: string[] = [];
   notes.push(
-    `Estimation fondée sur ${nKept} observation${nKept > 1 ? 's' : ''} conservée${nKept > 1 ? 's' : ''}` +
+    `Estimation fondée sur ${nKept} observation${nKept > 1 ? 's' : ''} conservée${nKept > 1 ? 's' : ''}, ` +
+      `issue${nKept > 1 ? 's' : ''} de ${nSources} source${nSources > 1 ? 's' : ''} distincte${nSources > 1 ? 's' : ''}` +
       (nRejected > 0 ? ` (${nRejected} écartée${nRejected > 1 ? 's' : ''} comme aberrante${nRejected > 1 ? 's' : ''}, règle MAD k=${k}).` : '.'),
   );
 
@@ -148,6 +154,7 @@ export function explainValuation(
     reliability: result.reliability,
     ci80WidthRatio,
     nKept,
+    nSources,
     nRejected,
     breakdown,
     reliabilityFactors: {
@@ -160,7 +167,7 @@ export function explainValuation(
 
 /** Cohérence : le score de fiabilité recalculé depuis l'explication == moteur. */
 export function reliabilityFromExplanation(e: ValuationExplanation): number {
-  return reliabilityScore(e.nKept, e.ci80[0], e.ci80[1], e.central);
+  return reliabilityScore(e.nSources, e.ci80[0], e.ci80[1], e.central);
 }
 
 /**
@@ -193,15 +200,19 @@ export function explainFromResult(result: {
     };
   });
 
-  const nKept = result.nSources || result.observations.length;
+  const nKept = result.observations.length;
+  const nSources = countDistinctSources(result.observations);
   const ci80WidthRatio = result.central
     ? Number(((result.ci80[1] - result.ci80[0]) / result.central).toFixed(3))
     : 1;
-  const countScore = Math.min(1, nKept / 8);
+  const countScore = Math.min(1, nSources / 8);
   const tightnessScore = Math.max(0, 1 - ci80WidthRatio);
 
   const notes: string[] = [];
-  notes.push(`Estimation fondée sur ${nKept} observation${nKept > 1 ? 's' : ''} conservée${nKept > 1 ? 's' : ''}.`);
+  notes.push(
+    `Estimation fondée sur ${nKept} observation${nKept > 1 ? 's' : ''} conservée${nKept > 1 ? 's' : ''}, ` +
+      `issue${nKept > 1 ? 's' : ''} de ${nSources} source${nSources > 1 ? 's' : ''} distincte${nSources > 1 ? 's' : ''}.`,
+  );
 
   const kinds = new Map<string, number>();
   for (const b of breakdown) kinds.set(b.observation.source.kind, (kinds.get(b.observation.source.kind) ?? 0) + 1);
@@ -227,6 +238,7 @@ export function explainFromResult(result: {
     reliability: result.reliability,
     ci80WidthRatio,
     nKept,
+    nSources,
     nRejected: 0,
     breakdown,
     reliabilityFactors: { countScore: Number(countScore.toFixed(3)), tightnessScore: Number(tightnessScore.toFixed(3)) },
