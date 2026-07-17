@@ -1,27 +1,15 @@
 /**
- * Adaptateur WatchCharts — cote de marché PAR RÉFÉRENCE (agrégateur de prix
- * horlogers, référence du marché secondaire).
- * kind: 'official_quote' → poids par défaut 0.9.
+ * Adaptateur WatchCharts — cote de marché par marque + référence.
  *
- * URL construite :
- *   GET https://api.watchcharts.com/v3/watch/price
- *       ?q=<label>[&reference=<référence constructeur>]
- *   avec l'en-tête 'Authorization: Bearer <apiKey>' si une clé est fournie.
+ * Contrat officiel v3 :
+ *   1. GET /v3/search/watch?brand_name=...&reference=...&exact_match=true
+ *      → UUID de la montre ;
+ *   2. GET /v3/watch/info?uuid=...&currency=EUR
+ *      → market_price et date de mise à jour.
  *
- * Forme de réponse attendue (exemple) :
- * {
- *   "quotes": [
- *     {
- *       "name": "Rolex Submariner 124060",
- *       "market_price": 11500,
- *       "currency": "EUR",
- *       "updated_at": "2026-07-01"
- *     }
- *   ]
- * }
- *
- * Une cote sans prix exploitable est ignorée ; date de mise à jour absente →
- * cote du jour. Réponse invalide ou vide → [] (jamais de throw).
+ * Chaque requête utilise `x-api-key`. WatchCharts limite une clé à une requête
+ * par seconde : une attente de 1,1 s est imposée entre les deux appels. La
+ * source reste inutilisable sans marque, référence ou clé explicite.
  */
 import {
   DEFAULT_SOURCE_WEIGHTS,
@@ -32,13 +20,35 @@ import {
 import { isRecord } from '../json.ts';
 import {
   ageDaysFromIso,
-  toCurrency,
   toPositiveNumber,
   type SourceAdapterOptions,
   type Transport,
 } from './transport.ts';
 
-const WATCHCHARTS_URL = 'https://api.watchcharts.com/v3/watch/price';
+const WATCHCHARTS_SEARCH_URL = 'https://api.watchcharts.com/v3/search/watch';
+const WATCHCHARTS_INFO_URL = 'https://api.watchcharts.com/v3/watch/info';
+const REQUEST_INTERVAL_MS = 1_100;
+
+function nonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
+}
+
+function firstWatchUuid(raw: unknown): string | null {
+  if (!isRecord(raw) || !Array.isArray(raw['results'])) return null;
+  for (const result of raw['results']) {
+    if (!isRecord(result)) continue;
+    const uuid = nonEmptyString(result['uuid']);
+    if (uuid !== null) return uuid;
+  }
+  return null;
+}
+
+function matchedLabel(raw: Record<string, unknown>, fallback: string): string {
+  const parts = [raw['brand'], raw['collection'], raw['model']]
+    .map(nonEmptyString)
+    .filter((value): value is string => value !== null);
+  return parts.length > 0 ? parts.join(' ') : fallback;
+}
 
 export class WatchChartsSource implements PriceSource {
   readonly name = 'WatchCharts';
@@ -46,46 +56,56 @@ export class WatchChartsSource implements PriceSource {
   private readonly transport: Transport;
   private readonly apiKey: string | undefined;
   private readonly now: () => Date;
+  private readonly wait: (milliseconds: number) => Promise<void>;
 
   constructor(options: SourceAdapterOptions) {
     this.transport = options.transport;
     this.apiKey = options.apiKey;
     this.now = options.now ?? (() => new Date());
+    this.wait = options.wait ?? ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
   }
 
   async fetch(query: PriceQuery): Promise<PriceObservation[]> {
+    const brand = nonEmptyString(query.attributes['brand']);
+    const reference = nonEmptyString(query.attributes['reference']);
+    const apiKey = nonEmptyString(this.apiKey);
+    if (brand === null || reference === null || apiKey === null) return [];
+
+    const headers = { 'x-api-key': apiKey };
     try {
-      const params: Record<string, string> = { q: query.label };
-      const reference = query.attributes['reference'];
-      if (typeof reference === 'string' && reference.trim() !== '') {
-        params['reference'] = reference.trim();
-      }
-      const headers: Record<string, string> = {};
-      if (this.apiKey !== undefined) headers['Authorization'] = `Bearer ${this.apiKey}`;
-      const raw = await this.transport.getJson(WATCHCHARTS_URL, { headers, query: params });
-      return this.mapResponse(raw, query);
+      const search = await this.transport.getJson(WATCHCHARTS_SEARCH_URL, {
+        headers,
+        query: {
+          brand_name: brand,
+          reference,
+          exact_match: 'true',
+        },
+      });
+      const uuid = firstWatchUuid(search);
+      if (uuid === null) return [];
+
+      await this.wait(REQUEST_INTERVAL_MS);
+      const info = await this.transport.getJson(WATCHCHARTS_INFO_URL, {
+        headers,
+        query: { uuid, currency: 'EUR' },
+      });
+      if (!isRecord(info)) return [];
+
+      const price = toPositiveNumber(info['market_price']);
+      if (price === null) return [];
+
+      return [
+        {
+          price,
+          currency: 'EUR',
+          ageDays: ageDaysFromIso(info['updated'], this.now) ?? 0,
+          sourceWeight: DEFAULT_SOURCE_WEIGHTS[this.kind],
+          source: { name: this.name, kind: this.kind, url: WATCHCHARTS_INFO_URL },
+          matchedLabel: matchedLabel(info, query.label),
+        },
+      ];
     } catch {
       return [];
     }
-  }
-
-  private mapResponse(raw: unknown, query: PriceQuery): PriceObservation[] {
-    if (!isRecord(raw) || !Array.isArray(raw['quotes'])) return [];
-    const out: PriceObservation[] = [];
-    for (const quote of raw['quotes']) {
-      if (!isRecord(quote)) continue;
-      const price = toPositiveNumber(quote['market_price']);
-      if (price === null) continue;
-      out.push({
-        price,
-        currency: toCurrency(quote['currency'], 'EUR'),
-        // Cote courante : date de mise à jour absente → observation du jour.
-        ageDays: ageDaysFromIso(quote['updated_at'], this.now) ?? 0,
-        sourceWeight: DEFAULT_SOURCE_WEIGHTS[this.kind],
-        source: { name: this.name, kind: this.kind, url: WATCHCHARTS_URL },
-        matchedLabel: typeof quote['name'] === 'string' ? quote['name'] : query.label,
-      });
-    }
-    return query.limit !== undefined ? out.slice(0, query.limit) : out;
   }
 }
