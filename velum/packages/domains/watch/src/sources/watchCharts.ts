@@ -112,13 +112,14 @@ export class WatchChartsSource implements PriceSource {
       if (!isRecord(info)) return [];
 
       const price = toPositiveNumber(info['market_price']);
-      if (price === null) return [];
+      const ageDays = ageDaysFromIso(info['updated'], this.now);
+      if (price === null || ageDays === null) return [];
 
       return [
         {
           price,
           currency: 'EUR',
-          ageDays: ageDaysFromIso(info['updated'], this.now) ?? 0,
+          ageDays,
           sourceWeight: DEFAULT_SOURCE_WEIGHTS[this.kind],
           source: { name: this.name, kind: this.kind, url: WATCHCHARTS_INFO_URL },
           matchedLabel: matchedLabel(info, query.label),
