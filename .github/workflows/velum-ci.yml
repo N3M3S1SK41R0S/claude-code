@@ -171,23 +171,9 @@ jobs:
         if: steps.freshness.outputs.current == 'true'
         run: python3 velum/scripts/apply-watch-integration.py
 
-      - name: Retirer les mécanismes ponctuels
+      - name: Retirer le script ponctuel
         if: steps.freshness.outputs.current == 'true'
-        run: |
-          set -Eeuo pipefail
-          python3 <<'PY'
-          from pathlib import Path
-
-          workflow = Path('.github/workflows/velum-ci.yml')
-          text = workflow.read_text(encoding='utf-8')
-          marker = '\n  watch-integration-patch:\n'
-          if text.count(marker) != 1:
-              raise SystemExit('Bloc ponctuel CI introuvable ou dupliqué')
-          workflow.write_text(text.split(marker, 1)[0].rstrip() + '\n', encoding='utf-8')
-
-          Path('.github/workflows/velum-watch-integration-patch.yml').unlink(missing_ok=True)
-          Path('velum/scripts/apply-watch-integration.py').unlink()
-          PY
+        run: rm velum/scripts/apply-watch-integration.py
 
       - name: Publier le correctif atomique
         if: steps.freshness.outputs.current == 'true'
