@@ -2,16 +2,11 @@
  * Seed du backtest de calibration (pari #1, cold-start J1).
  *
  * Pour chaque référence de marché (benchmarks.ts) : collecte les observations
- * de prix courantes chez les sources branchées, construit les cas
- * « leave-one-out » (chaque VENTE RÉELLE devient tour à tour la vérité-terrain)
- * et rejoue le moteur §7 sur le reste. Les lignes produites alimentent
- * `calibration_outcomes` (origin = 'public_backtest').
+ * disponibles, construit des cas point-in-time leave-one-out et rejoue le
+ * moteur §7. Les lignes alimentent calibration_outcomes.
  *
- * Doctrine d'erreur (héritée de la PR #10) : seul NO_OBSERVATIONS est un cas
- * légitime à écarter ; toute autre erreur (taux de change manquant, source
- * mal configurée) REMONTE — une configuration cassée ne s'efface jamais.
- *
- * Dépendances injectées → testable en Deno sans réseau.
+ * Doctrine d'erreur : seul NO_OBSERVATIONS est un cas légitime à écarter ;
+ * toute autre erreur remonte.
  */
 import {
   isVelumError,
@@ -22,7 +17,6 @@ import {
 } from '@velum/core';
 import { leaveOneOutCases, valuate } from '@velum/valuation';
 
-/** Ligne prête pour l'insertion dans calibration_outcomes. */
 export interface OutcomeRow {
   domain: VelumDomain;
   central: number;
@@ -36,28 +30,22 @@ export interface OutcomeRow {
 }
 
 export interface SeedDeps {
-  /** Fan-out sources d'un domaine pour une requête (adaptateurs §9). */
   fetchObservations(domain: VelumDomain, query: PriceQuery): Promise<PriceObservation[]>;
   fx: FxRates;
-  /** Horloge injectée (réalisé daté = now − ageDays). */
   now: () => Date;
 }
 
 export interface SeedReport {
   rows: OutcomeRow[];
-  /** Par domaine : cas construits / écartés (NO_OBSERVATIONS uniquement). */
   perDomain: Record<string, { cases: number; kept: number; skipped: number }>;
 }
 
 function realizedAt(now: Date, ageDays: number | undefined): string {
-  const days = typeof ageDays === 'number' && Number.isFinite(ageDays) ? Math.max(0, ageDays) : 0;
+  const days =
+    typeof ageDays === 'number' && Number.isFinite(ageDays) ? Math.max(0, ageDays) : 0;
   return new Date(now.getTime() - days * 86_400_000).toISOString();
 }
 
-/**
- * Construit les lignes de backtest pour un jeu de références par domaine.
- * N'écrit rien : l'appelant persiste (remplacement des `public_backtest`).
- */
 export async function buildSeedRows(
   benchmarks: Record<VelumDomain, PriceQuery[]>,
   deps: SeedDeps,
@@ -70,15 +58,17 @@ export async function buildSeedRows(
     let cases = 0;
     let kept = 0;
     let skipped = 0;
+    const queries = benchmarks[domain];
+    if (!queries) continue;
 
-    for (const query of benchmarks[domain]) {
+    for (const query of queries) {
       const observations = await deps.fetchObservations(domain, query);
-      const looCases = leaveOneOutCases(observations, deps.fx, { domain });
-      cases += looCases.length;
+      const leaveOneOut = leaveOneOutCases(observations, deps.fx, { domain });
+      cases += leaveOneOut.length;
 
-      for (const c of looCases) {
+      for (const backtestCase of leaveOneOut) {
         try {
-          const result = valuate(c.observations, deps.fx);
+          const result = valuate(backtestCase.observations, deps.fx);
           rows.push({
             domain,
             central: result.central,
@@ -86,18 +76,17 @@ export async function buildSeedRows(
             ci80_high: result.ci80[1],
             ci95_low: result.ci95[0],
             ci95_high: result.ci95[1],
-            realized: c.realized,
+            realized: backtestCase.realized,
             origin: 'public_backtest',
-            realized_at: realizedAt(now, c.realizedAgeDays),
+            realized_at: realizedAt(now, backtestCase.realizedAgeDays),
           });
-          kept++;
-        } catch (err) {
-          // Seul « aucun comparable » est légitime ; le reste remonte.
-          if (isVelumError(err) && err.code === 'NO_OBSERVATIONS') {
-            skipped++;
+          kept += 1;
+        } catch (error) {
+          if (isVelumError(error) && error.code === 'NO_OBSERVATIONS') {
+            skipped += 1;
             continue;
           }
-          throw err;
+          throw error;
         }
       }
     }
