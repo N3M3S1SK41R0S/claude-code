@@ -1,52 +1,63 @@
 # VELUM — Edge Functions (Deno)
 
-Les Edge Functions portent tout ce qui exige un secret (clé LLM vision, clés
-des sources de prix, service-role) : **aucun secret côté client** (§12.1).
-Elles importent **les mêmes plugins de domaine que l'app**
-(`@velum/domain-wine|coin|art|stamp` via `import_map.json`) — seule
-l'injection (vision, transport HTTP, clés API) diffère côté serveur.
+Les Edge Functions portent tout ce qui exige un secret : modèles vision, sources
+de prix, service-role et appels internes. **Aucun secret côté client.** Elles
+réutilisent les plugins `@velum/domain-wine|coin|art|stamp|watch` du monorepo ;
+seule l'injection des transports et identifiants diffère côté serveur.
 
 ## Arborescence
 
 | Chemin | Rôle |
 | --- | --- |
-| `import_map.json` | Alias `@velum/*` → sources du monorepo (`../../packages/...`) |
-| `deno.json` | Pointe vers l'import map + active `sloppy-imports` (les packages du monorepo utilisent des imports relatifs sans extension) |
-| `_shared/` | Code commun : CORS, réponses, auth, vision Anthropic, FX, transport, routage plugins |
-| `recognize/` | Identification (étage 1 LLM vision), quota freemium |
-| `analyze-wine/` `analyze-coin/` `analyze-art/` `analyze-stamp/` `analyze-watch/` | Fiches d'analyse par domaine |
-| `valuate/` | Valorisation (moteur §7 `@velum/valuation`) |
-| `cellar-pairing/` | Sommelier de cave Gold+ (plat → vin de MA cave, anti-hallucination) |
-| `price-cron/` | Re-valorisation planifiée + alertes + notifications |
-| `delete-account/` | Purge RGPD (storage + compte) |
+| `import_map.json` | Alias `@velum/*` vers les packages du monorepo |
+| `_shared/` | CORS, réponses, auth, vision, FX, transport et routage plugins |
+| `recognize/` | Identification multi-domaines, quota freemium |
+| `analyze-{wine,coin,art,stamp,watch}/` | Fiche d'analyse propre à chaque domaine |
+| `valuate/` | Valorisation déterministe avec observations attribuées |
+| `arbiter/` | Signal patrimonial indicatif Gold+ |
+| `calibration/` | Backtests et publication des couvertures IC80/IC95 |
+| `cellar-pairing/` | Sommelier Gold+ contraint à la cave réelle |
+| `price-cron/` | Revalorisation, alertes, notifications et GC médias |
+| `revenuecat-webhook/` | Synchronisation serveur du plan |
+| `delete-account/` | Purge RGPD Storage + compte |
 
-## Secrets (jamais dans le code, jamais en `EXPO_PUBLIC_*`)
+## Secrets
 
 ```sh
-# Fichier .env local à partir du modèle, puis :
 supabase secrets set --env-file supabase/functions/.env
-
-# Ou individuellement :
-supabase secrets set LLM_VISION_API_KEY=sk-ant-...
-supabase secrets set LLM_VISION_MODEL=claude-sonnet-5   # défaut si absent
-supabase secrets set CRON_SECRET=<valeur-aleatoire-forte>
-supabase secrets set NUMISTA_API_KEY=... PCGS_API_KEY=... NGC_API_KEY=...
-supabase secrets set EBAY_API_KEY=... CATAWIKI_API_KEY=... HERITAGE_API_KEY=...
-supabase secrets set ARTPRICE_API_KEY=... ARTSY_API_KEY=... DROUOT_API_KEY=... MAGNUS_API_KEY=...
-supabase secrets set COLNECT_API_KEY=... YVERT_API_KEY=... DELCAMPE_API_KEY=...
-supabase secrets set WINE_SEARCHER_API_KEY=... IDEALWINE_API_KEY=... VIVINO_API_KEY=... CAVISSIMA_API_KEY=...
 ```
 
-`SUPABASE_URL`, `SUPABASE_ANON_KEY` et `SUPABASE_SERVICE_ROLE_KEY` sont
-injectés automatiquement par la plateforme.
+Le modèle exhaustif se trouve dans `.env.example`. Variables structurantes :
 
-Une source dont l'API **exige** une clé n'est instanciée que si sa clé est
-configurée ; les sources publiques (iDealwine, Vivino, Cavissima, CGB, Drouot)
-sont toujours incluses. Si aucune source n'est disponible pour un domaine,
-`valuate` répond `503 SOURCE_UNAVAILABLE`.
+```text
+LLM_VISION_PROVIDER
+LLM_VISION_API_KEY
+LLM_VISION_MODEL
+CRON_SECRET
+REVENUECAT_WEBHOOK_SECRET
+FX_API_KEY
+```
 
-Le `CRON_SECRET` doit aussi être posé dans le Vault Postgres (voir
-`migrations/0002_cron.sql`) :
+Les sources de prix publiques ou déjà contractuelles suivent la règle habituelle
+clé optionnelle/obligatoire. Les sources montres partenaires sont plus strictes :
+**la présence d'une clé ne les active pas**.
+
+| Source montres | Clé | Drapeau obligatoire | Condition |
+| --- | --- | --- | --- |
+| WatchCharts | `WATCHCHARTS_API_KEY` | `WATCHCHARTS_APP_LICENSED=true` | contrat couvrant l'affichage dans VELUM |
+| Heritage | `HERITAGE_API_KEY` | `HERITAGE_WATCH_API_ENABLED=true` | endpoint et schéma confirmés par contrat |
+| eBay sold | `EBAY_API_KEY` | `EBAY_MARKETPLACE_INSIGHTS_ENABLED=true` | compte approuvé pour Marketplace Insights |
+| Catawiki | `CATAWIKI_API_KEY` | `CATAWIKI_WATCH_API_ENABLED=true` | endpoint et schéma confirmés par contrat |
+| Chrono24 | `CHRONO24_API_KEY` | `CHRONO24_WATCH_API_ENABLED=true` | endpoint et schéma confirmés par contrat |
+
+Sans ce double opt-in, `buildSources('watch')` retourne uniquement les sources
+réellement autorisées, éventuellement aucune. L'API renvoie alors
+`NO_OBSERVATIONS`/`SOURCE_UNAVAILABLE` au lieu d'inventer une cote.
+
+`SUPABASE_URL`, `SUPABASE_ANON_KEY` et `SUPABASE_SERVICE_ROLE_KEY` sont injectés
+par Supabase.
+
+Le `CRON_SECRET` doit également exister dans Vault :
 
 ```sql
 select vault.create_secret('https://<project-ref>.supabase.co', 'project_url');
@@ -55,131 +66,115 @@ select vault.create_secret('<meme-valeur-que-CRON_SECRET>', 'cron_secret');
 
 ## Déploiement
 
+Le chemin normal est le workflow `.github/workflows/velum-supabase-deploy.yml`,
+qui découvre les fonctions au lieu de maintenir une liste manuelle. En local :
+
 ```sh
-supabase functions deploy recognize
-supabase functions deploy analyze-wine
-supabase functions deploy analyze-coin
-supabase functions deploy analyze-art
-supabase functions deploy analyze-stamp
-supabase functions deploy valuate
-supabase functions deploy price-cron --no-verify-jwt   # sécurisée par x-cron-secret
-supabase functions deploy delete-account
+bash velum/scripts/deploy-supabase.sh
 ```
 
-`price-cron` est appelée par pg_cron (pas de JWT utilisateur) : elle est
-protégée par l'en-tête `x-cron-secret` — d'où `--no-verify-jwt`.
+Pour une publication ciblée :
+
+```sh
+supabase functions deploy analyze-watch
+supabase functions deploy calibration --no-verify-jwt
+supabase functions deploy price-cron --no-verify-jwt
+```
+
+Les fonctions internes sans JWT utilisateur restent protégées par
+`x-cron-secret` ou leur secret de webhook.
 
 ## Lancement local
 
 ```sh
-supabase start                         # Postgres + auth + storage locaux
-supabase db reset                      # applique migrations/0001 + 0002
+supabase start
+supabase db reset
 supabase functions serve --env-file supabase/functions/.env
 
-# Exemple d'appel :
 curl -s http://127.0.0.1:54321/functions/v1/recognize \
   -H "Authorization: Bearer <jwt-utilisateur>" \
   -H "Content-Type: application/json" \
-  -d '{"domain":"wine","input":{"kind":"text","text":"Château Margaux 2015"}}'
+  -d '{"domain":"watch","input":{"kind":"text","text":"Omega Speedmaster 3570.50"}}'
 ```
 
-Vérification de types (depuis `supabase/functions/`) :
+Vérification de toutes les fonctions, identique à la CI :
 
 ```sh
-# deno.json fournit l'import map et active sloppy-imports :
-deno check _shared/*.ts recognize/index.ts analyze-*/index.ts \
-  valuate/index.ts price-cron/index.ts delete-account/index.ts
+cd supabase/functions
+mapfile -t edge_entries < <(
+  find . -mindepth 2 -maxdepth 2 -type f -name index.ts \
+    -not -path './_shared/*' -not -path './tests/*' -print | sort
+)
+deno check --import-map=import_map.json "${edge_entries[@]}"
+deno test --import-map=import_map.json -A tests/
 ```
 
-## Routes et payloads
+## Contrats HTTP
 
-Toutes les routes acceptent `POST` (+ pré-vol `OPTIONS`) et exigent
-`Authorization: Bearer <jwt>` — sauf `price-cron` (en-tête `x-cron-secret`).
-Format d'erreur stable : `{ "error": { "code": "<VelumErrorCode>", "message": "…" } }`.
+Toutes les routes utilisateur acceptent `POST` avec pré-vol `OPTIONS` et exigent
+`Authorization: Bearer <jwt>`. Contrat d'erreur stable :
+
+```json
+{ "error": { "code": "<VelumErrorCode>", "message": "…" } }
+```
 
 ### `POST /recognize`
 
 ```jsonc
-// Requête
-{ "domain": "wine" | "coin" | "art" | "stamp", "input": CaptureInput }
-// Réponse 200 : RecognitionResult { candidates: Candidate[], stage, needsAssistedEntry }
+{
+  "domain": "wine" | "coin" | "art" | "stamp" | "watch",
+  "input": CaptureInput
+}
 ```
 
-Erreurs : `401 UNAUTHORIZED`, `402 BUDGET_EXCEEDED` (quota freemium : 5
-scans/semaine PAR module en plan `free`, via `rpc consume_scan(p_domain)`), `400 INVALID_INPUT`,
-`502 RECOGNITION_FAILED`, `503 SOURCE_UNAVAILABLE`.
+Réponse : `RecognitionResult`. Erreurs principales : `UNAUTHORIZED`,
+`BUDGET_EXCEEDED`, `INVALID_INPUT`, `RECOGNITION_FAILED`, `SOURCE_UNAVAILABLE`.
 
-### `POST /analyze-{wine|coin|art|stamp}`
+### `POST /analyze-{wine|coin|art|stamp|watch}`
 
 ```jsonc
-// Requête
-{ "candidate": Candidate, "itemId": "uuid (optionnel)" }
-// Réponse 200 : AnalysisResult { engine, payload, confidence, sources, disclaimers }
+{ "candidate": Candidate, "itemId": "uuid optionnel" }
 ```
 
-Si `itemId` est fourni, la fiche est insérée dans `analyses` **via le client
-utilisateur** : la RLS garantit que l'item appartient à l'appelant (sinon
-`403`).
+Réponse : `AnalysisResult`. Quand `itemId` est fourni, l'insertion utilise le
+client utilisateur ; la RLS vérifie la propriété de l'objet.
 
 ### `POST /valuate`
 
 ```jsonc
-// Requête
-{ "domain": "wine" | "coin" | "art" | "stamp", "candidate": Candidate, "itemId": "uuid (optionnel)" }
-// Réponse 200 : ValuationResult { central, ci80, ci95, nSources, reliability, currency: "EUR", observations }
+{
+  "domain": "wine" | "coin" | "art" | "stamp" | "watch",
+  "candidate": Candidate,
+  "itemId": "uuid optionnel"
+}
 ```
 
-Erreurs : `404 NO_OBSERVATIONS` (aucun prix exploitable — l'UI affiche
-« estimation indisponible », jamais un zéro trompeur), `503
-SOURCE_UNAVAILABLE` (aucune source configurée pour le domaine). Si `itemId`
-est fourni : insertion dans `valuations` (central, ci80_low/high,
-ci95_low/high, reliability, sources = observations JSONB).
+Réponse : `ValuationResult`. Une absence d'observation exploitable ne devient
+jamais zéro : `NO_OBSERVATIONS` ou `SOURCE_UNAVAILABLE` est propagé.
 
-### `POST /cellar-pairing` (Gold+)
+### `POST /arbiter`
 
-Sommelier de cave — sens 1 de l'intelligence transversale mets ⇄ vins :
-« ce soir je cuisine tel plat → quel vin DÉJÀ DANS MA CAVE ? ». Lit la cave
-de l'utilisateur (items `wine` + analyse ZAPPA persistée, RLS active),
-interroge le LLM avec un prompt sommelier contraint à l'inventaire
-(anti-hallucination : tout `itemId` hors cave est écarté côté serveur).
+Gold/Platine. Croise la trajectoire de valorisation avec la fenêtre d'usage
+lorsqu'elle existe. Le résultat reste indicatif et ne constitue pas un conseil
+d'investissement.
 
-```jsonc
-// Requête
-{ "dish": "magret de canard aux figues" }
-// Réponse 200 : PairingResult
-{ "recommendations": [{ "itemId": "…", "label": "…", "score": 0.92, "reasoning": "…", "serveAt": "17 °C, carafé 1 h" }], "fallbackAdvice": "…" }
-```
+### `POST /cellar-pairing`
 
-Erreurs : `403 PLAN_REQUIRED` (le sommelier fait partie du carnet virtuel —
-offres Gold et Platine), `400 INVALID_INPUT`.
+Gold/Platine. Le modèle ne peut recommander que des `itemId` présents dans la
+cave de l'utilisateur ; toute recommandation hors inventaire est rejetée.
 
-Le sens 2 (apogée → « à boire, servez-le avec tel plat ») est géré par
-`price-cron` : les alertes `drink_window` joignent les accords mets-vins de
-l'analyse ZAPPA au corps de la notification.
+### `POST /calibration` et `POST /price-cron`
 
-### `POST /price-cron` (interne)
+Routes internes protégées par `x-cron-secret`. La calibration couvre les cinq
+domaines. Le cron de prix applique droits produit, revalorisation, alertes et
+nettoyage média.
 
-En-tête requis : `x-cron-secret: <CRON_SECRET>`. Parcourt les items par lots
-de 50 ; re-valorise ceux qui ont une alerte active ou une valorisation vieille
-de 7 jours ou plus ; évalue les alertes `price_threshold`
-(`config: { direction: "above" | "below", threshold: number }`) et
-`drink_window` (vin) ; insère les `notifications`.
+### `POST /revenuecat-webhook`
 
-```jsonc
-// Réponse 200
-{ "processed": 123, "revalued": 45, "notified": 6, "failures": 0 }
-```
-
-### `POST /revenuecat-webhook` (interne)
-
-Synchronisation serveur du plan (`profiles.plan`) depuis les événements
-RevenueCat. Configurer dans le dashboard RevenueCat : URL de la fonction +
-en-tête `Authorization: Bearer <REVENUECAT_WEBHOOK_SECRET>`. L'app lie
-l'identité RevenueCat au compte (`Purchases.logIn(uid)`) à la connexion ;
-les événements `EXPIRATION`/`CANCELLATION` ramènent au plan `free`.
+Synchronise `profiles.plan`. Configurer l'en-tête
+`Authorization: Bearer <REVENUECAT_WEBHOOK_SECRET>`.
 
 ### `POST /delete-account`
 
-Purge RGPD : supprime les objets Storage du préfixe `<uid>/` du bucket
-`item-media`, puis le compte (`auth.admin.deleteUser`) — la cascade SQL efface
-profil, items et toutes les données liées. Réponse : `204` sans corps.
+Supprime les objets Storage du préfixe utilisateur puis le compte. La cascade SQL
+efface les données liées. Réponse `204` sans corps.
