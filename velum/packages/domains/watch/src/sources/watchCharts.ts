@@ -8,8 +8,9 @@
  *      → market_price et date de mise à jour.
  *
  * Chaque requête utilise `x-api-key`. WatchCharts limite une clé à une requête
- * par seconde : une attente de 1,1 s est imposée entre les deux appels. La
- * source reste inutilisable sans marque, référence ou clé explicite.
+ * par seconde : chaque tentative réseau est suivie d'un cooldown de 1,1 s,
+ * même si la réponse est vide ou en erreur. La source reste inutilisable sans
+ * marque, référence ou clé explicite.
  */
 import {
   DEFAULT_SOURCE_WEIGHTS,
@@ -28,6 +29,8 @@ import {
 const WATCHCHARTS_SEARCH_URL = 'https://api.watchcharts.com/v3/search/watch';
 const WATCHCHARTS_INFO_URL = 'https://api.watchcharts.com/v3/watch/info';
 const REQUEST_INTERVAL_MS = 1_100;
+
+type RequestInit = { headers?: Record<string, string>; query?: Record<string, string> };
 
 function nonEmptyString(value: unknown): string | null {
   return typeof value === 'string' && value.trim().length > 0 ? value.trim() : null;
@@ -65,6 +68,16 @@ export class WatchChartsSource implements PriceSource {
     this.wait = options.wait ?? ((milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)));
   }
 
+  private async getJsonRateLimited(url: string, init: RequestInit): Promise<unknown> {
+    try {
+      return await this.transport.getJson(url, init);
+    } finally {
+      // Le prochain appel — y compris celui d'un autre objet traité ensuite par
+      // le cron — ne peut partir avant la fin de cette attente.
+      await this.wait(REQUEST_INTERVAL_MS);
+    }
+  }
+
   async fetch(query: PriceQuery): Promise<PriceObservation[]> {
     const brand = nonEmptyString(query.attributes['brand']);
     const reference = nonEmptyString(query.attributes['reference']);
@@ -73,7 +86,7 @@ export class WatchChartsSource implements PriceSource {
 
     const headers = { 'x-api-key': apiKey };
     try {
-      const search = await this.transport.getJson(WATCHCHARTS_SEARCH_URL, {
+      const search = await this.getJsonRateLimited(WATCHCHARTS_SEARCH_URL, {
         headers,
         query: {
           brand_name: brand,
@@ -84,8 +97,7 @@ export class WatchChartsSource implements PriceSource {
       const uuid = firstWatchUuid(search);
       if (uuid === null) return [];
 
-      await this.wait(REQUEST_INTERVAL_MS);
-      const info = await this.transport.getJson(WATCHCHARTS_INFO_URL, {
+      const info = await this.getJsonRateLimited(WATCHCHARTS_INFO_URL, {
         headers,
         query: { uuid, currency: 'EUR' },
       });
