@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { FxRates, PriceObservation, SourceKind } from '@velum/core';
 import { isVelumError } from '@velum/core';
 import {
+  countDistinctSources,
   effectiveWeight,
   median,
   mulberry32,
@@ -22,6 +23,7 @@ function obs(
     ageDays = 0,
     weight = 1,
     kind = 'auction_realized' as SourceKind,
+    sourceName = 'test-source',
   } = {},
 ): PriceObservation {
   return {
@@ -29,7 +31,7 @@ function obs(
     currency,
     ageDays,
     sourceWeight: weight,
-    source: { name: 'test-source', kind },
+    source: { name: sourceName, kind },
   };
 }
 
@@ -87,6 +89,19 @@ describe('effectiveWeight', () => {
   });
 });
 
+describe('countDistinctSources', () => {
+  it('normalise casse, espaces et Unicode sans dédoubler une plateforme', () => {
+    expect(
+      countDistinctSources([
+        obs(100, { sourceName: 'Chrono24' }),
+        obs(105, { sourceName: ' chrono24 ' }),
+        obs(110, { sourceName: 'CHRONO24' }),
+        obs(115, { sourceName: 'Drouot' }),
+      ]),
+    ).toBe(2);
+  });
+});
+
 describe('rejectOutliers (MAD)', () => {
   it('écarte les valeurs aberrantes, conserve le cœur', () => {
     const sample = [98, 100, 102, 101, 99, 5000].map((p) => obs(p));
@@ -118,7 +133,8 @@ describe('valuate — moteur complet §7', () => {
   it('rejette l’outlier et centre sur le cœur du marché', () => {
     const sample = [95, 100, 105, 110, 90, 4000].map((p) => obs(p));
     const r = valuate(sample, FX);
-    expect(r.nSources).toBe(5);
+    expect(r.observations).toHaveLength(5);
+    expect(r.nSources).toBe(1);
     expect(r.central).toBeGreaterThanOrEqual(90);
     expect(r.central).toBeLessThanOrEqual(110);
   });
@@ -167,12 +183,33 @@ describe('valuate — moteur complet §7', () => {
     expect(r.reliability).toBeLessThanOrEqual(60);
   });
 
-  it('la fiabilité croît avec le nombre de sources et la faible dispersion', () => {
-    const tight = valuate(
-      Array.from({ length: 8 }, (_, i) => obs(100 + (i % 3))),
+  it('plusieurs lignes d’une plateforme ne simulent pas plusieurs sources', () => {
+    const duplicated = valuate(
+      Array.from({ length: 8 }, (_, i) => obs(100 + (i % 3), { sourceName: 'Chrono24' })),
       FX,
     );
-    const sparse = valuate([obs(50), obs(150)], FX);
+    const diverse = valuate(
+      Array.from({ length: 8 }, (_, i) => obs(100 + (i % 3), { sourceName: `source-${i}` })),
+      FX,
+    );
+
+    expect(duplicated.observations).toHaveLength(8);
+    expect(duplicated.nSources).toBe(1);
+    expect(diverse.nSources).toBe(8);
+    expect(diverse.reliability).toBeGreaterThan(duplicated.reliability);
+  });
+
+  it('la fiabilité croît avec le nombre de sources et la faible dispersion', () => {
+    const tight = valuate(
+      Array.from({ length: 8 }, (_, i) =>
+        obs(100 + (i % 3), { sourceName: `source-${i}` }),
+      ),
+      FX,
+    );
+    const sparse = valuate([
+      obs(50, { sourceName: 'source-a' }),
+      obs(150, { sourceName: 'source-b' }),
+    ], FX);
     expect(tight.reliability).toBeGreaterThan(sparse.reliability);
     expect(tight.reliability).toBeGreaterThanOrEqual(80);
   });
