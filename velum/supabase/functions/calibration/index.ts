@@ -146,7 +146,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
       const published: Record<string, unknown> = {};
       const runs: CalibrationRunInsert[] = [];
 
-      // On calcule les quatre domaines AVANT toute écriture. Une donnée invalide
+      // On calcule les cinq domaines AVANT toute écriture. Une donnée invalide
       // ne doit jamais laisser un sous-ensemble de runs plus récent que les autres.
       for (const domain of DOMAINS) {
         const { data: rows, error: readError } = await admin
@@ -183,7 +183,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
         };
       }
 
-      // Une seule instruction INSERT : PostgreSQL publie les quatre domaines ou
+      // Une seule instruction INSERT : PostgreSQL publie les cinq domaines ou
       // aucun. Le client ne peut plus observer un run partiellement renouvelé.
       const { error: insertError } = await admin.from('calibration_runs').insert(runs);
       if (insertError) {
