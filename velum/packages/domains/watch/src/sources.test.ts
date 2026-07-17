@@ -204,17 +204,34 @@ describe('WatchChartsSource', () => {
     expect(transport.maximum).toBe(1);
   });
 
-  it('date absente → cote du jour', async () => {
-    const source = new WatchChartsSource({
+  it('date absente ou illisible → aucune cote exploitable', async () => {
+    const missingDate = new WatchChartsSource({
       transport: new SequenceTransport([
         searchFixture,
         { brand: 'Omega', collection: 'Speedmaster', model: '3570.50', market_price: 5000 },
       ]),
-      apiKey: 'secret-date',
+      apiKey: 'secret-missing-date',
       now: NOW,
       wait: async () => undefined,
     });
-    expect((await source.fetch(QUERY))[0]?.ageDays).toBe(0);
+    expect(await missingDate.fetch(QUERY)).toEqual([]);
+
+    const invalidDate = new WatchChartsSource({
+      transport: new SequenceTransport([
+        searchFixture,
+        {
+          brand: 'Omega',
+          collection: 'Speedmaster',
+          model: '3570.50',
+          market_price: 5000,
+          updated: 'date-invalide',
+        },
+      ]),
+      apiKey: 'secret-invalid-date',
+      now: NOW,
+      wait: async () => undefined,
+    });
+    expect(await invalidDate.fetch(QUERY)).toEqual([]);
   });
 
   it('sans marque, référence ou clé, ne consomme aucun crédit', async () => {
@@ -398,12 +415,21 @@ describe('Chrono24Source', () => {
     ]);
   });
 
-  it('date de publication absente → annonce du jour', async () => {
+  it('date de publication absente ou illisible → aucune annonce exploitable', async () => {
     const source = new Chrono24Source({
-      transport: new FakeTransport({ listings: [{ price: { amount: 800, currency: 'EUR' } }] }),
+      transport: new FakeTransport({
+        listings: [
+          { title: 'sans date', price: { amount: 800, currency: 'EUR' } },
+          {
+            title: 'date illisible',
+            listed_at: 'date-invalide',
+            price: { amount: 900, currency: 'EUR' },
+          },
+        ],
+      }),
       now: NOW,
     });
-    expect((await source.fetch(QUERY))[0]?.ageDays).toBe(0);
+    expect(await source.fetch(QUERY)).toEqual([]);
   });
 
   it('réponse vide ou en échec → []', async () => {

@@ -57,11 +57,12 @@ export class Chrono24Source implements PriceSource {
       const askPrice = listing['price'];
       if (!isRecord(askPrice)) continue;
       const price = toPositiveNumber(askPrice['amount']);
-      if (price === null) continue;
+      const ageDays = ageDaysFromIso(listing['listed_at'], this.now);
+      if (price === null || ageDays === null) continue;
       observations.push({
         price,
         currency: toCurrency(askPrice['currency'], 'EUR'),
-        ageDays: ageDaysFromIso(listing['listed_at'], this.now) ?? 0,
+        ageDays,
         sourceWeight: DEFAULT_SOURCE_WEIGHTS[this.kind],
         source: { name: this.name, kind: this.kind, url: CHRONO24_URL },
         matchedLabel: typeof listing['title'] === 'string' ? listing['title'] : query.label,
