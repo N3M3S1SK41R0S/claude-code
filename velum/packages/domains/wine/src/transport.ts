@@ -21,11 +21,11 @@ export interface SourceAdapterOptions {
   now?: () => Date;
 }
 
-/** Convertit une date ISO en ancienneté (jours entiers, ≥ 0). Date absente/invalide → 0. */
-export function isoToAgeDays(iso: unknown, now: () => Date): number {
-  if (typeof iso !== 'string' || iso.trim().length === 0) return 0;
+/** Convertit une date ISO en ancienneté. Date absente ou invalide → null. */
+export function isoToAgeDays(iso: unknown, now: () => Date): number | null {
+  if (typeof iso !== 'string' || iso.trim().length === 0) return null;
   const timestamp = Date.parse(iso);
-  if (Number.isNaN(timestamp)) return 0;
+  if (Number.isNaN(timestamp)) return null;
   const diffMs = now().getTime() - timestamp;
   return Math.max(0, Math.floor(diffMs / 86_400_000));
 }
