@@ -37,7 +37,7 @@ function candidate(
   return { id: 's1', domain: 'stamp', label, confidence: 0.8, attributes };
 }
 
-// ── Fixtures de reconnaissance ────────────────────────────────────────────
+// ── Fixtures de reconnaissance ───────────────────────────────────────────
 
 /** Réponse AVEC fences markdown, désordonnée, avec confiance hors bornes. */
 const RECOGNITION_FENCED = [
@@ -201,7 +201,7 @@ const ANALYSIS_FENCED = [
       caveat: 'à faire confirmer', // caveat non conforme → le plugin impose le sien
     },
     rarity: { level: 'courante', note: 'Émission très courante, sauf nuances rares' },
-    varieties: ['Nuance vert-bleu cotée séparément', 'Papier GC (Grande Consommation)'],
+    varieties: ['Nuance vert-bleu cotéd séparément', 'Papier GC (Grande Consommation)'],
     neighborIssues: [
       { catalogNumber: 'YT 129', note: 'Type I/II de la 10c, valeur très différente' },
     ],
@@ -299,20 +299,21 @@ describe('stampPlugin.buildPriceQuery', () => {
   });
 });
 
-// ── Valorisation bout-en-bout avec le moteur RÉEL ─────────────────────────
+// ── Valorisation bout-en-bout avec le moteur RÉEL ────────────────────────
 
 function obs(
   price: number,
   currency: string,
   kind: PriceSource['kind'],
   ageDays: number,
+  sourceName: string,
 ): PriceObservation {
   return {
     price,
     currency,
     ageDays,
     sourceWeight: kind === 'official_quote' ? 0.9 : 0.7,
-    source: { name: 'fixture', kind },
+    source: { name: sourceName, kind },
   };
 }
 
@@ -330,15 +331,15 @@ describe('stampPlugin.valuate — bout-en-bout avec @velum/valuation', () => {
       name: 'Delcampe',
       kind: 'marketplace_sold',
       fetch: async () => [
-        obs(40, 'EUR', 'marketplace_sold', 10),
-        obs(46, 'EUR', 'marketplace_sold', 30),
-        obs(42, 'EUR', 'marketplace_sold', 5),
+        obs(40, 'EUR', 'marketplace_sold', 10, 'Delcampe'),
+        obs(46, 'EUR', 'marketplace_sold', 30, 'Delcampe'),
+        obs(42, 'EUR', 'marketplace_sold', 5, 'Delcampe'),
       ],
     };
     const sourceB: PriceSource = {
       name: 'Yvert & Tellier',
       kind: 'official_quote',
-      fetch: async () => [obs(50, 'USD', 'official_quote', 60)],
+      fetch: async () => [obs(50, 'USD', 'official_quote', 60, 'Yvert & Tellier')],
     };
     const failing: PriceSource = {
       name: 'en panne',
@@ -353,8 +354,8 @@ describe('stampPlugin.valuate — bout-en-bout avec @velum/valuation', () => {
       deps([sourceA, sourceB, failing]),
     );
 
-    // 4 observations conservées (40, 46, 42 EUR + 50 USD → 45 EUR).
-    expect(result.nSources).toBe(4);
+    // 4 observations conservées, issues de 2 plateformes distinctes.
+    expect(result.nSources).toBe(2);
     expect(result.currency).toBe('EUR');
     expect(result.central).toBeGreaterThanOrEqual(40);
     expect(result.central).toBeLessThanOrEqual(46);
