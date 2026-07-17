@@ -1,0 +1,71 @@
+name: VELUM — diagnostic TypeScript ponctuel
+
+on:
+  push:
+    branches:
+      - claude/velum-production-spec-1lyh3m
+    paths:
+      - .github/workflows/velum-type-diagnostic.yml
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/velum-production-spec-1lyh3m
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: velum/pnpm-lock.yaml
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Capturer les erreurs sans tronquage
+        shell: bash
+        run: |
+          set -u
+          cd velum
+          pnpm install --frozen-lockfile >/tmp/velum-install.log 2>&1
+          pnpm typecheck >/tmp/velum-typecheck.log 2>&1
+          type_status=$?
+          cd supabase/functions
+          mapfile -t edge_entries < <(
+            find . -mindepth 2 -maxdepth 2 -type f -name index.ts \
+              -not -path './_shared/*' \
+              -not -path './tests/*' \
+              -print | sort
+          )
+          deno check --import-map=import_map.json "${edge_entries[@]}" >/tmp/velum-deno-check.log 2>&1
+          deno_status=$?
+          cd ../../..
+          {
+            printf 'TYPECHECK_STATUS=%s\n' "$type_status"
+            cat /tmp/velum-typecheck.log
+            printf '\nDENO_STATUS=%s\n' "$deno_status"
+            cat /tmp/velum-deno-check.log
+          } > velum/type-diagnostic.log
+
+      - name: Publier puis retirer le workflow ponctuel
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          git config user.name "VELUM maintenance bot"
+          git config user.email "actions@users.noreply.github.com"
+          git rm .github/workflows/velum-type-diagnostic.yml
+          git add velum/type-diagnostic.log
+          git commit -m "chore(velum): enregistrer le diagnostic TypeScript"
+          git pull --rebase origin claude/velum-production-spec-1lyh3m
+          git push origin HEAD:claude/velum-production-spec-1lyh3m
