@@ -14,6 +14,14 @@ export function WatchSheet({ payload }: { payload: Partial<WatchAnalysisPayload>
   const { t } = useTranslation();
   if (!payload) return null;
   const { identification, movement, story, condition, neighborReferences, uncertainties } = payload;
+  const complications = Array.isArray(movement?.complications) ? movement.complications : [];
+  const milestones = Array.isArray(story?.milestones) ? story.milestones : [];
+  const nonOriginalParts = Array.isArray(condition?.nonOriginalParts)
+    ? condition.nonOriginalParts
+    : [];
+  const issues = Array.isArray(condition?.issues) ? condition.issues : [];
+  const neighbors = Array.isArray(neighborReferences) ? neighborReferences : [];
+  const uncertaintyList = Array.isArray(uncertainties) ? uncertainties : [];
 
   return (
     <>
@@ -54,12 +62,12 @@ export function WatchSheet({ payload }: { payload: Partial<WatchAnalysisPayload>
             <KV label={t('item.watch.frequency')} value={t('item.watch.frequencyValue', { vph: movement.frequencyVph })} tabular />
           ) : null}
           {movement.jewels !== undefined ? <KV label={t('item.watch.jewels')} value={String(movement.jewels)} tabular /> : null}
-          {movement.complications.length > 0 ? (
+          {complications.length > 0 ? (
             <>
               <VText variant="caption" tone="dim">
                 {t('item.watch.complications')}
               </VText>
-              <Bullets items={movement.complications} />
+              <Bullets items={complications} />
             </>
           ) : null}
           {movement.certification ? <KV label={t('item.watch.certification')} value={movement.certification} /> : null}
@@ -72,7 +80,7 @@ export function WatchSheet({ payload }: { payload: Partial<WatchAnalysisPayload>
       ) : null}
 
       {/* Histoire du MODÈLE : pourquoi il a été créé, par qui, jalons. */}
-      {story && (story.why || story.byWhom || story.modelLaunchYear !== undefined || story.milestones?.length) ? (
+      {story && (story.why || story.byWhom || story.modelLaunchYear !== undefined || milestones.length > 0) ? (
         <SheetSection title={t('item.watch.storyTitle')}>
           {story.why ? (
             <>
@@ -86,12 +94,12 @@ export function WatchSheet({ payload }: { payload: Partial<WatchAnalysisPayload>
           {story.modelLaunchYear !== undefined ? (
             <KV label={t('item.watch.modelLaunchYear')} value={String(story.modelLaunchYear)} tabular />
           ) : null}
-          {story.milestones && story.milestones.length > 0 ? (
+          {milestones.length > 0 ? (
             <>
               <VText variant="caption" tone="dim">
                 {t('item.watch.milestones')}
               </VText>
-              <Bullets items={story.milestones.map((m) => `${m.year} — ${m.note}`)} />
+              <Bullets items={milestones.map((milestone) => `${milestone.year} — ${milestone.note}`)} />
             </>
           ) : null}
         </SheetSection>
@@ -104,30 +112,30 @@ export function WatchSheet({ payload }: { payload: Partial<WatchAnalysisPayload>
           {condition.polished && condition.polished !== 'inconnu' ? (
             <KV label={t('item.watch.polishedLabel')} value={t(`item.watch.polished.${condition.polished}`)} />
           ) : null}
-          {condition.nonOriginalParts && condition.nonOriginalParts.length > 0 ? (
+          {nonOriginalParts.length > 0 ? (
             <>
               <VText variant="caption" tone="danger">
                 {t('item.watch.nonOriginalParts')}
               </VText>
-              <Bullets items={condition.nonOriginalParts} />
+              <Bullets items={nonOriginalParts} />
             </>
           ) : null}
-          {condition.issues.length > 0 ? <Bullets items={condition.issues} /> : null}
+          {issues.length > 0 ? <Bullets items={issues} /> : null}
           <VText variant="caption" tone="gold" accessibilityLabel={condition.caveat}>
             {condition.caveat}
           </VText>
         </SheetSection>
       ) : null}
 
-      {neighborReferences && neighborReferences.length > 0 ? (
+      {neighbors.length > 0 ? (
         <SheetSection title={t('item.sections.comparisons')}>
-          <Bullets items={neighborReferences.map((n) => `${n.reference} — ${n.note}`)} />
+          <Bullets items={neighbors.map((neighbor) => `${neighbor.reference} — ${neighbor.note}`)} />
         </SheetSection>
       ) : null}
 
-      {uncertainties && uncertainties.length > 0 ? (
+      {uncertaintyList.length > 0 ? (
         <SheetSection title={t('item.sections.uncertainties')}>
-          <Bullets items={uncertainties} />
+          <Bullets items={uncertaintyList} />
         </SheetSection>
       ) : null}
     </>
