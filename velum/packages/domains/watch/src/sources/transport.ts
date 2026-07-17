@@ -27,7 +27,11 @@ export function createKeyedRateLimiter(): KeyedRateLimiter {
   const tails = new Map<string, Promise<void>>();
 
   return {
-    async run<T>(key, task, cooldown): Promise<T> {
+    async run<T>(
+      key: string,
+      task: () => Promise<T>,
+      cooldown: () => Promise<void>,
+    ): Promise<T> {
       const previous = tails.get(key) ?? Promise.resolve();
       let release: (() => void) | undefined;
       const gate = new Promise<void>((resolve) => {
