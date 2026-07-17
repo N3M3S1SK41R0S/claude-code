@@ -57,11 +57,12 @@ export class CavissimaSource implements PriceSource {
       for (const entry of raw['items']) {
         if (!isRecord(entry)) continue;
         const price = asFiniteNumber(entry['priceEur']);
-        if (price === undefined || price <= 0) continue;
+        const ageDays = isoToAgeDays(entry['publishedAt'], this.now);
+        if (price === undefined || price <= 0 || ageDays === null) continue;
         observations.push({
           price,
           currency: 'EUR', // catalogue exclusivement en euros
-          ageDays: isoToAgeDays(entry['publishedAt'], this.now),
+          ageDays,
           sourceWeight: DEFAULT_SOURCE_WEIGHTS[this.kind],
           source: {
             name: this.name,
