@@ -1,8 +1,7 @@
 /**
- * Contrat de transport HTTP des adaptateurs de sources de prix — IDENTIQUE
- * dans les 4 domaines VELUM. L'implémentation réelle (fetch côté Edge
- * Function, avec les clés API côté serveur) est injectée ; les tests
- * injectent un FakeTransport à fixtures.
+ * Contrat de transport HTTP des adaptateurs de sources de prix. L'implémentation
+ * réelle (fetch côté Edge Function, clés uniquement côté serveur) est injectée ;
+ * les tests utilisent des transports à fixtures.
  */
 export interface Transport {
   getJson(
@@ -18,6 +17,8 @@ export interface SourceAdapterOptions {
   apiKey?: string;
   /** Horloge injectable (défaut : () => new Date()) pour des tests déterministes. */
   now?: () => Date;
+  /** Attente injectable pour respecter les limites de débit sans ralentir les tests. */
+  wait?: (milliseconds: number) => Promise<void>;
 }
 
 const DAY_MS = 86_400_000;
