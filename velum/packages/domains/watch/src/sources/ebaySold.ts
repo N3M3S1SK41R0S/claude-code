@@ -1,27 +1,6 @@
 /**
- * Adaptateur eBay Marketplace Insights — ventes RÉALISÉES (item_sales),
- * jamais les annonces en cours.
- * kind: 'marketplace_sold' → poids par défaut 0.7.
- *
- * URL construite :
- *   GET https://api.ebay.com/buy/marketplace_insights/v1_beta/item_sales/search
- *       ?q=<label>&category_ids=31387[&limit=<limit>]
- *   (31387 = catégorie eBay « Wristwatches »)
- *   avec l'en-tête 'Authorization: Bearer <apiKey>' si une clé est fournie.
- *
- * Forme de réponse attendue (exemple) :
- * {
- *   "itemSales": [
- *     {
- *       "title": "Omega Speedmaster Professional 3570.50 full set",
- *       "lastSoldDate": "2026-06-15T10:30:00.000Z",
- *       "lastSoldPrice": { "value": "4250.00", "currency": "EUR" }
- *     }
- *   ]
- * }
- *
- * Une vente sans date ou sans prix exploitable est ignorée.
- * Réponse invalide ou vide → [] (dégradation gracieuse, jamais de throw).
+ * Adaptateur eBay Marketplace Insights — ventes RÉALISÉES, jamais les annonces.
+ * L'API reste désactivée sans accès Marketplace Insights explicitement approuvé.
  */
 import {
   DEFAULT_SOURCE_WEIGHTS,
@@ -51,7 +30,7 @@ export class EbaySoldSource implements PriceSource {
   constructor(options: SourceAdapterOptions) {
     this.transport = options.transport;
     this.apiKey = options.apiKey;
-    this.now = options.now ?? (() => new Date());
+    this.now = options.now;
   }
 
   async fetch(query: PriceQuery): Promise<PriceObservation[]> {
@@ -72,15 +51,15 @@ export class EbaySoldSource implements PriceSource {
 
   private mapResponse(raw: unknown, query: PriceQuery): PriceObservation[] {
     if (!isRecord(raw) || !Array.isArray(raw['itemSales'])) return [];
-    const out: PriceObservation[] = [];
+    const observations: PriceObservation[] = [];
     for (const sale of raw['itemSales']) {
       if (!isRecord(sale)) continue;
       const soldPrice = sale['lastSoldPrice'];
       if (!isRecord(soldPrice)) continue;
       const price = toPositiveNumber(soldPrice['value']);
       const ageDays = ageDaysFromIso(sale['lastSoldDate'], this.now);
-      if (price === null || ageDays === null) continue; // vente non datée → inexploitable
-      out.push({
+      if (price === null || ageDays === null) continue;
+      observations.push({
         price,
         currency: toCurrency(soldPrice['currency'], 'EUR'),
         ageDays,
@@ -89,6 +68,6 @@ export class EbaySoldSource implements PriceSource {
         matchedLabel: typeof sale['title'] === 'string' ? sale['title'] : query.label,
       });
     }
-    return query.limit !== undefined ? out.slice(0, query.limit) : out;
+    return query.limit !== undefined ? observations.slice(0, query.limit) : observations;
   }
 }
