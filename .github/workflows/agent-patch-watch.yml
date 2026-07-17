@@ -1,0 +1,51 @@
+name: Agent patch watch fixture
+
+on:
+  push:
+    branches:
+      - agent/velum-distinct-source-reliability
+    paths:
+      - .github/workflows/agent-patch-watch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-watch-fixture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/velum-distinct-source-reliability
+
+      - name: Aligner la fixture Montres sur les plateformes distinctes
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('velum/packages/domains/watch/src/plugin.test.ts')
+          text = path.read_text(encoding='utf-8')
+          replacements = {
+              "  ageDays: number,\n): PriceObservation {": "  ageDays: number,\n  sourceName: string,\n): PriceObservation {",
+              "    source: { name: 'fixture', kind },": "    source: { name: sourceName, kind },",
+              "obs(10800, 'EUR', 'marketplace_sold', 10)": "obs(10800, 'EUR', 'marketplace_sold', 10, 'eBay sold')",
+              "obs(11600, 'EUR', 'marketplace_sold', 30)": "obs(11600, 'EUR', 'marketplace_sold', 30, 'eBay sold')",
+              "obs(11100, 'EUR', 'marketplace_sold', 5)": "obs(11100, 'EUR', 'marketplace_sold', 5, 'eBay sold')",
+              "obs(12500, 'USD', 'auction_realized', 60)": "obs(12500, 'USD', 'auction_realized', 60, 'Heritage Auctions')",
+              "    expect(result.nSources).toBe(4);": "    expect(result.nSources).toBe(2); // 2 plateformes distinctes, 4 observations conservées",
+          }
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'motif absent: {old!r}')
+              text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add velum/packages/domains/watch/src/plugin.test.ts
+          git diff --cached --check
+          git commit -m "test(velum/watch): distinguer plateformes et observations"
+          git push
