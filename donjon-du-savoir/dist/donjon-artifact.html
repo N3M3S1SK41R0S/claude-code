@@ -466,6 +466,18 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 }
 .victory-item-first { border-color: var(--gold); }
 .victory-meta { color: var(--soft); font-size: 0.85rem; }
+.bonus-stars {
+  width: min(30rem, 100%);
+  background: color-mix(in srgb, var(--gold) 10%, var(--card));
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.bonus-stars-title { color: var(--gold); font-size: 1rem; margin: 0; }
+.bonus-star-line { font-size: 0.9rem; margin: 0; }
 #victory-zone { display: flex; flex-direction: column; gap: 1rem; align-items: center; width: 100%; }
 #victory-zone .btn { width: min(26rem, 100%); }
 
@@ -1322,6 +1334,62 @@ function moveStar() {
   return pos;
 }
 
+/* ---------- étoiles bonus de fin de partie (façon Mario Party) ---------- */
+// À la fin d'une partie Étoiles, 3 récompenses tirées au sort sur des compteurs
+// MESURABLES (jamais l'humeur du meneur) peuvent renverser le classement — un
+// dernier frisson. Chaque prix couronne un exploit chiffré de la partie.
+
+const BONUS_STAR_POOL = [
+  { key: "lievre", titre: "Le Lièvre", emoji: "🐇", desc: "a galopé le plus de cases", metric: (p) => p.casesParcourues ?? 0, dir: "max" },
+  { key: "tortue", titre: "La Tortue Sage", emoji: "🐢", desc: "a avancé le moins, tout en sagesse", metric: (p) => p.casesParcourues ?? 0, dir: "min" },
+  { key: "roi_questions", titre: "Le Roi des Questions", emoji: "🧠", desc: "a donné le plus de bonnes réponses", metric: (p) => p.stats?.bonnes ?? 0, dir: "max", minValue: 1 },
+  { key: "oeil_de_lynx", titre: "L'Œil de Lynx", emoji: "🦉", desc: "a le meilleur taux de réussite", metric: (p) => (p.stats?.questions ?? 0) >= 3 ? (p.stats.bonnes / p.stats.questions) : -1, dir: "max", minValue: 0 },
+  { key: "magnat", titre: "Le Magnat", emoji: "💰", desc: "a amassé le plus d'or de toute la partie", metric: (p) => p.orGagne ?? 0, dir: "max", minValue: 1 },
+  { key: "souffre_douleur", titre: "Le Souffre-Douleur", emoji: "🤕", desc: "a vaillamment encaissé le plus de coups durs", metric: (p) => p.malusSubis ?? 0, dir: "max", minValue: 1 },
+  { key: "chouchou", titre: "Le Chouchou du Destin", emoji: "🍀", desc: "a été désigné par le pur hasard des dés", metric: () => 0, dir: "random" },
+];
+
+function shuffled(arr, rng) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * Choisit jusqu'à `count` prix bonus DISTINCTS et leur lauréat, sans muter les
+ * pions. Un prix n'entre dans le tirage que s'il a au moins un lauréat éligible.
+ * Départage des ex æquo : d'abord vers le pion qui a le MOINS d'étoiles (esprit
+ * anti-runaway / comeback), puis par ordre de jeu. `rng` injectable pour les tests.
+ */
+function computeBonusStars(pions, { count = 3, rng = Math.random } = {}) {
+  if (!Array.isArray(pions) || pions.length === 0) return [];
+  const eligibleFor = (award, p) => award.minValue === undefined || award.metric(p) >= award.minValue;
+  const pool = BONUS_STAR_POOL.filter((a) =>
+    a.dir === "random" ? true : pions.some((p) => eligibleFor(a, p)),
+  );
+  const chosen = shuffled(pool, rng).slice(0, Math.min(count, pool.length));
+  return chosen.map((a) => {
+    let winner;
+    if (a.dir === "random") {
+      winner = pions[Math.floor(rng() * pions.length)];
+    } else {
+      winner = pions
+        .filter((p) => eligibleFor(a, p))
+        .slice()
+        .sort((x, y) => {
+          const vx = a.metric(x), vy = a.metric(y);
+          if (vx !== vy) return a.dir === "max" ? vy - vx : vx - vy;
+          if ((x.etoiles ?? 0) !== (y.etoiles ?? 0)) return (x.etoiles ?? 0) - (y.etoiles ?? 0);
+          return x.id - y.id;
+        })[0];
+    }
+    return { key: a.key, titre: a.titre, emoji: a.emoji, desc: a.desc, pionId: winner.id, nom: winner.nom, characterId: winner.characterId };
+  });
+}
+
 function setPendingCase(type) {
   state.pendingCase = type;
   save();
@@ -1428,7 +1496,7 @@ function clearSave() {
   }
 }
 
-;Object.assign(module.exports, {characterById, getState, newGame, isEtoiles, starPrice, moveStar, setPendingCase, clearPendingCase, currentPion, ranking, rankOf, isLast, isLeader, nextTurn, porteParole, markAsked, resetAskedIfNeeded, save, loadSave, clearSave, SAVE_KEY, CHARACTERS, STAR_BASE_PRICE, STAR_STEP, LAP_BONUS, LAST_ROUND_BONUS});
+;Object.assign(module.exports, {characterById, getState, newGame, isEtoiles, starPrice, moveStar, computeBonusStars, setPendingCase, clearPendingCase, currentPion, ranking, rankOf, isLast, isLeader, nextTurn, porteParole, markAsked, resetAskedIfNeeded, save, loadSave, clearSave, SAVE_KEY, CHARACTERS, STAR_BASE_PRICE, STAR_STEP, LAP_BONUS, LAST_ROUND_BONUS, BONUS_STAR_POOL});
 };
 __modules["./board.js"] = function(module, exports, require) {
 // Boards — Mario-Party-style winding maps, now PLURAL: five dungeons with
@@ -2004,7 +2072,7 @@ const { drawEasier, drawEvent, drawGambit, drawHardest, drawQuestion } = require
 const { boardById, renderBoard } = require("./board.js");
 const { herald } = require("./herald.js");
 const { canRecharge, powerOf, recharge, RECHARGE_COST } = require("./powers.js");
-const { characterById, clearPendingCase, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } = require("./state.js");
+const { characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } = require("./state.js");
 const { bigButton, choiceButton, el, heraldSays, setPanel } = require("./ui.js");
 const { portraitEl } = require("./portraits.js");
 const { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } = require("./items.js");
@@ -2192,6 +2260,24 @@ function useItem(pion, id) {
   if (!item) return startTurn({ silent: true });
   const others = getState().pions.filter((p) => p.id !== pion.id);
 
+  // Sceptre du Larcin : on ne peut voler qu'un pion QUI a une étoile — sinon on
+  // le garde plutôt que de le gaspiller.
+  if (id === "sceptre_larcin") {
+    const cibles = others.filter((p) => (p.etoiles ?? 0) > 0);
+    if (cibles.length === 0) {
+      return setPanel(
+        el("h2", { class: "panel-title", text: "👑 Sceptre du Larcin" }),
+        el("p", { class: "panel-text", text: "Personne n'a d'étoile à dérober pour l'instant. Gardez le sceptre pour un meilleur moment !" }),
+        bigButton("↩︎ Retour à la besace", () => openBag(pion)),
+      );
+    }
+    return setPanel(
+      el("h2", { class: "panel-title", text: "👑 Voler une étoile — à qui ?" }),
+      ...cibles.map((t) => choiceButton(`${characterById(t.characterId).emoji} ${t.nom} (⭐${t.etoiles ?? 0})`, () => applyItem(pion, id, t))),
+      bigButton("↩︎ Annuler", () => openBag(pion)),
+    );
+  }
+
   // Malus/échange visant autrui : choisir la cible d'abord.
   if (item.cible === "autre") {
     if (others.length === 0) return openBag(pion);
@@ -2269,9 +2355,14 @@ function applyItem(pion, id, target) {
     case "racket":
       if (target) { applyMalusTo(target, () => { const stolen = Math.min(5, target.pieces); target.pieces -= stolen; pion.pieces += stolen; renderPlayersStrip(); }); }
       return endPanel(`🪙 Racket sur ${target ? target.nom : "la cible"} !`);
-    case "sceptre_larcin":
-      if (target) { applyMalusTo(target, () => { if ((target.etoiles ?? 0) > 0) { target.etoiles -= 1; pion.etoiles = (pion.etoiles ?? 0) + 1; renderPlayersStrip(); } }); }
-      return endPanel(`👑 Le Sceptre du Larcin frappe ${target ? target.nom : "la cible"} !`);
+    case "sceptre_larcin": {
+      if (!target) return endPanel("👑 Le Sceptre du Larcin n'a trouvé personne à détrousser.");
+      const pare = target.bouclier;
+      applyMalusTo(target, () => { if ((target.etoiles ?? 0) > 0) { target.etoiles -= 1; pion.etoiles = (pion.etoiles ?? 0) + 1; renderPlayersStrip(); } });
+      return endPanel(pare
+        ? `👑🛡️ Le bouclier de ${target.nom} a protégé son étoile ! Le sceptre repart bredouille.`
+        : `👑 Le Sceptre du Larcin dérobe une ⭐ à ${target.nom} pour ${pion.nom} !`);
+    }
     default:
       return openBag(pion);
   }
@@ -2501,9 +2592,12 @@ function resolveCase(type) {
 function doBoutique(pion, onDone = null) {
   const done = onDone ?? (() => finishTurn());
   setPendingCase("resolu");
+  // Le Sceptre du Larcin (vol d'étoile) n'a de sens qu'en mode Étoiles : on ne
+  // le propose donc qu'ici, tout en bas et hors de prix, comme un coup d'éclat.
+  const shopIds = isEtoiles() ? [...SHOP_ORDER, "sceptre_larcin"] : SHOP_ORDER;
   const render$ = () => {
     const rows = [];
-    for (const id of SHOP_ORDER) {
+    for (const id of shopIds) {
       const it = ITEMS[id];
       const abordable = pion.pieces >= it.cout && hasRoom(pion);
       const btn = choiceButton(
@@ -2600,8 +2694,30 @@ const MALUS_EFFECTS = [
   { texte: "Petite chute : reculez d'1 case.", apply: (p) => shift(p, -1) },
 ];
 
+/** Larcin fortuné : un vol d'étoile GRATUIT (~4 %) offert par la pure chance,
+ *  toujours dirigé sur le meneur en étoiles — parable par un bouclier. */
+function larcinFortune(voleur, cible) {
+  setPendingCase("resolu");
+  heraldSays("Un renversement de fortune ! La chance glisse une étoile dans votre besace…");
+  const pare = cible.bouclier;
+  applyMalusTo(cible, () => {
+    if ((cible.etoiles ?? 0) > 0) { cible.etoiles -= 1; voleur.etoiles = (voleur.etoiles ?? 0) + 1; }
+  });
+  render();
+  endPanel(pare
+    ? `🍀🛡️ Larcin fortuné ! Mais le bouclier de ${cible.nom} a sauvé son étoile.`
+    : `🍀 Larcin fortuné ! ${voleur.nom} subtilise une ⭐ à ${cible.nom} par pure chance !`);
+}
+
 function doChance(pion, { forced = null, onDone = null } = {}) {
   setPendingCase("resolu");
+  // ~4 % (mode Étoiles, case Chance naturelle) : vol d'étoile gratuit au meneur.
+  if (!forced && isEtoiles() && Math.random() < 0.04) {
+    const cibles = getState().pions
+      .filter((p) => p.id !== pion.id && (p.etoiles ?? 0) > 0)
+      .sort((a, b) => (b.etoiles ?? 0) - (a.etoiles ?? 0));
+    if (cibles.length > 0) return larcinFortune(pion, cibles[0]);
+  }
   const effect = forced ?? CHANCE_EFFECTS[Math.floor(Math.random() * CHANCE_EFFECTS.length)];
   const won = effect.apply(pion) === true; // shift() returns true on victory
   save();
@@ -3266,6 +3382,14 @@ function endStarGame() {
   const state = getState();
   state.finished = true;
   clearPendingCase();
+  // 3 étoiles bonus de fin (façon Mario Party) : tirées sur des exploits chiffrés,
+  // appliquées AVANT le classement final — elles peuvent tout renverser.
+  const bonus = computeBonusStars(state.pions, { count: 3 });
+  for (const b of bonus) {
+    const p = state.pions.find((x) => x.id === b.pionId);
+    if (p) p.etoiles = (p.etoiles ?? 0) + 1;
+  }
+  state.bonusStars = bonus;
   const classement = ranking();
   state.ranking = classement.map((p) => ({
     nom: p.nom,
@@ -3278,8 +3402,11 @@ function endStarGame() {
   }));
   save();
   const winner = classement[0];
-  heraldSays(`Rideau ! ${winner.nom} règne sur le Donjon avec ${winner.etoiles ?? 0} étoile${(winner.etoiles ?? 0) > 1 ? "s" : ""} !`);
-  if (onVictory) onVictory(winner, state.ranking);
+  const primes = bonus.length
+    ? ` Étoiles bonus : ${bonus.map((b) => `${b.emoji} ${b.nom}`).join(", ")}.`
+    : "";
+  heraldSays(`Rideau ! ${winner.nom} règne sur le Donjon avec ${winner.etoiles ?? 0} étoile${(winner.etoiles ?? 0) > 1 ? "s" : ""} !${primes}`);
+  if (onVictory) onVictory(winner, state.ranking, { bonusStars: bonus });
 }
 
 function finishGame(winner) {
@@ -3735,15 +3862,28 @@ function launchGame() {
 
 /* ---------- victory ---------- */
 
-function showVictory(winner, rankingData) {
+function showVictory(winner, rankingData, extras = {}) {
   show("victory");
   const zone = document.getElementById("victory-zone");
   zone.innerHTML = "";
   const etoilesMode = rankingData.some((p) => p.etoiles !== undefined);
+  const bonusStars = extras.bonusStars ?? [];
   zone.append(
     el("h2", { class: "victory-title", text: etoilesMode
       ? `🏆 ${winner.nom} remporte le Donjon avec ${winner.etoiles ?? 0} ⭐ !`
       : `🏆 ${winner.nom} remporte le Trésor du Savoir !` }),
+  );
+  if (bonusStars.length > 0) {
+    zone.append(
+      el("div", { class: "bonus-stars" },
+        el("h3", { class: "bonus-stars-title", text: "✨ Étoiles bonus de fin de partie" }),
+        ...bonusStars.map((b) =>
+          el("p", { class: "bonus-star-line", text: `${b.emoji} ${b.titre} : ${b.nom} ${b.desc} — +1 ⭐` }),
+        ),
+      ),
+    );
+  }
+  zone.append(
     el("ol", { class: "victory-list" },
       ...rankingData.map((p, i) =>
         el("li", { class: "victory-item" + (i === 0 ? " victory-item-first" : "") },

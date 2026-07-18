@@ -430,15 +430,28 @@ function launchGame() {
 
 /* ---------- victory ---------- */
 
-function showVictory(winner, rankingData) {
+function showVictory(winner, rankingData, extras = {}) {
   show("victory");
   const zone = document.getElementById("victory-zone");
   zone.innerHTML = "";
   const etoilesMode = rankingData.some((p) => p.etoiles !== undefined);
+  const bonusStars = extras.bonusStars ?? [];
   zone.append(
     el("h2", { class: "victory-title", text: etoilesMode
       ? `🏆 ${winner.nom} remporte le Donjon avec ${winner.etoiles ?? 0} ⭐ !`
       : `🏆 ${winner.nom} remporte le Trésor du Savoir !` }),
+  );
+  if (bonusStars.length > 0) {
+    zone.append(
+      el("div", { class: "bonus-stars" },
+        el("h3", { class: "bonus-stars-title", text: "✨ Étoiles bonus de fin de partie" }),
+        ...bonusStars.map((b) =>
+          el("p", { class: "bonus-star-line", text: `${b.emoji} ${b.titre} : ${b.nom} ${b.desc} — +1 ⭐` }),
+        ),
+      ),
+    );
+  }
+  zone.append(
     el("ol", { class: "victory-list" },
       ...rankingData.map((p, i) =>
         el("li", { class: "victory-item" + (i === 0 ? " victory-item-first" : "") },

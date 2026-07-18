@@ -109,6 +109,62 @@ export function moveStar() {
   return pos;
 }
 
+/* ---------- étoiles bonus de fin de partie (façon Mario Party) ---------- */
+// À la fin d'une partie Étoiles, 3 récompenses tirées au sort sur des compteurs
+// MESURABLES (jamais l'humeur du meneur) peuvent renverser le classement — un
+// dernier frisson. Chaque prix couronne un exploit chiffré de la partie.
+
+export const BONUS_STAR_POOL = [
+  { key: "lievre", titre: "Le Lièvre", emoji: "🐇", desc: "a galopé le plus de cases", metric: (p) => p.casesParcourues ?? 0, dir: "max" },
+  { key: "tortue", titre: "La Tortue Sage", emoji: "🐢", desc: "a avancé le moins, tout en sagesse", metric: (p) => p.casesParcourues ?? 0, dir: "min" },
+  { key: "roi_questions", titre: "Le Roi des Questions", emoji: "🧠", desc: "a donné le plus de bonnes réponses", metric: (p) => p.stats?.bonnes ?? 0, dir: "max", minValue: 1 },
+  { key: "oeil_de_lynx", titre: "L'Œil de Lynx", emoji: "🦉", desc: "a le meilleur taux de réussite", metric: (p) => (p.stats?.questions ?? 0) >= 3 ? (p.stats.bonnes / p.stats.questions) : -1, dir: "max", minValue: 0 },
+  { key: "magnat", titre: "Le Magnat", emoji: "💰", desc: "a amassé le plus d'or de toute la partie", metric: (p) => p.orGagne ?? 0, dir: "max", minValue: 1 },
+  { key: "souffre_douleur", titre: "Le Souffre-Douleur", emoji: "🤕", desc: "a vaillamment encaissé le plus de coups durs", metric: (p) => p.malusSubis ?? 0, dir: "max", minValue: 1 },
+  { key: "chouchou", titre: "Le Chouchou du Destin", emoji: "🍀", desc: "a été désigné par le pur hasard des dés", metric: () => 0, dir: "random" },
+];
+
+function shuffled(arr, rng) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * Choisit jusqu'à `count` prix bonus DISTINCTS et leur lauréat, sans muter les
+ * pions. Un prix n'entre dans le tirage que s'il a au moins un lauréat éligible.
+ * Départage des ex æquo : d'abord vers le pion qui a le MOINS d'étoiles (esprit
+ * anti-runaway / comeback), puis par ordre de jeu. `rng` injectable pour les tests.
+ */
+export function computeBonusStars(pions, { count = 3, rng = Math.random } = {}) {
+  if (!Array.isArray(pions) || pions.length === 0) return [];
+  const eligibleFor = (award, p) => award.minValue === undefined || award.metric(p) >= award.minValue;
+  const pool = BONUS_STAR_POOL.filter((a) =>
+    a.dir === "random" ? true : pions.some((p) => eligibleFor(a, p)),
+  );
+  const chosen = shuffled(pool, rng).slice(0, Math.min(count, pool.length));
+  return chosen.map((a) => {
+    let winner;
+    if (a.dir === "random") {
+      winner = pions[Math.floor(rng() * pions.length)];
+    } else {
+      winner = pions
+        .filter((p) => eligibleFor(a, p))
+        .slice()
+        .sort((x, y) => {
+          const vx = a.metric(x), vy = a.metric(y);
+          if (vx !== vy) return a.dir === "max" ? vy - vx : vx - vy;
+          if ((x.etoiles ?? 0) !== (y.etoiles ?? 0)) return (x.etoiles ?? 0) - (y.etoiles ?? 0);
+          return x.id - y.id;
+        })[0];
+    }
+    return { key: a.key, titre: a.titre, emoji: a.emoji, desc: a.desc, pionId: winner.id, nom: winner.nom, characterId: winner.characterId };
+  });
+}
+
 export function setPendingCase(type) {
   state.pendingCase = type;
   save();

@@ -44,6 +44,13 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
    départage). En mode Étoiles, **on passe DEVANT** la boutique et l'étoile —
    pas besoin de s'arrêter pile dessus ; l'étoile change de place après chaque
    achat, et les grands plateaux ont plusieurs boutiques.
+   **Vol d'étoile** : au marchand, on peut s'offrir le 👑 **Sceptre du Larcin**
+   (cher) pour dérober une étoile à un adversaire ; et sur une case Chance, une
+   rare (~4 %) *aubaine du destin* subtilise gratuitement une étoile au meneur
+   (un bouclier pare le larcin). **Fin de partie** : 3 **étoiles bonus** tirées
+   au sort récompensent des exploits chiffrés (🐇 le plus de cases, 🧠 le plus
+   de bonnes réponses, 💰 le plus d'or, 🤕 le plus de coups durs encaissés…) et
+   peuvent renverser le classement au tout dernier moment.
 2. À son tour : **lancer le dé** (1d6), avancer, subir la case — et **utiliser
    ses objets** (besace) quand on veut.
 3. Cases : ❓ Question · 🍀 Chance · 🎪 Événement collectif · 💀 Coup dur ·
@@ -133,6 +140,11 @@ collectifs), mais clairement marquées 🏠 « non vérifiée par le Donjon » e
 ```bash
 node tools/smoke.mjs             # E2E Chromium : setup → dés → cases →
                                  # question → anecdote → reprise → hors-ligne
+node tools/smoke-shop.mjs        # E2E boutique + objets + toast d'ouverture
+node tools/smoke-etoiles.mjs     # E2E mode Étoiles : achat d'étoile au passage,
+                                 # sceptre du larcin, 3 étoiles bonus de fin
+node tools/test-bonus.mjs        # unitaire : tirage des étoiles bonus de fin
+node tools/test-minigames.mjs    # unitaire : anagramme / pendu / plus proche
 node tools/make-icons.mjs        # régénère les icônes PWA (vectoriel → PNG)
 node tools/build-standalone.mjs  # → dist/donjon-standalone.html (un seul fichier)
 node tools/smoke-standalone.mjs  # joue le fichier unique en headless (file://)

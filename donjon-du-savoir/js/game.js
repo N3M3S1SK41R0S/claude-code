@@ -8,7 +8,7 @@ import { drawEasier, drawEvent, drawGambit, drawHardest, drawQuestion } from "./
 import { boardById, renderBoard } from "./board.js";
 import { herald } from "./herald.js";
 import { canRecharge, powerOf, recharge, RECHARGE_COST } from "./powers.js";
-import { characterById, clearPendingCase, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
+import { characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, setPanel } from "./ui.js";
 import { portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
@@ -196,6 +196,24 @@ function useItem(pion, id) {
   if (!item) return startTurn({ silent: true });
   const others = getState().pions.filter((p) => p.id !== pion.id);
 
+  // Sceptre du Larcin : on ne peut voler qu'un pion QUI a une étoile — sinon on
+  // le garde plutôt que de le gaspiller.
+  if (id === "sceptre_larcin") {
+    const cibles = others.filter((p) => (p.etoiles ?? 0) > 0);
+    if (cibles.length === 0) {
+      return setPanel(
+        el("h2", { class: "panel-title", text: "👑 Sceptre du Larcin" }),
+        el("p", { class: "panel-text", text: "Personne n'a d'étoile à dérober pour l'instant. Gardez le sceptre pour un meilleur moment !" }),
+        bigButton("↩︎ Retour à la besace", () => openBag(pion)),
+      );
+    }
+    return setPanel(
+      el("h2", { class: "panel-title", text: "👑 Voler une étoile — à qui ?" }),
+      ...cibles.map((t) => choiceButton(`${characterById(t.characterId).emoji} ${t.nom} (⭐${t.etoiles ?? 0})`, () => applyItem(pion, id, t))),
+      bigButton("↩︎ Annuler", () => openBag(pion)),
+    );
+  }
+
   // Malus/échange visant autrui : choisir la cible d'abord.
   if (item.cible === "autre") {
     if (others.length === 0) return openBag(pion);
@@ -273,9 +291,14 @@ function applyItem(pion, id, target) {
     case "racket":
       if (target) { applyMalusTo(target, () => { const stolen = Math.min(5, target.pieces); target.pieces -= stolen; pion.pieces += stolen; renderPlayersStrip(); }); }
       return endPanel(`🪙 Racket sur ${target ? target.nom : "la cible"} !`);
-    case "sceptre_larcin":
-      if (target) { applyMalusTo(target, () => { if ((target.etoiles ?? 0) > 0) { target.etoiles -= 1; pion.etoiles = (pion.etoiles ?? 0) + 1; renderPlayersStrip(); } }); }
-      return endPanel(`👑 Le Sceptre du Larcin frappe ${target ? target.nom : "la cible"} !`);
+    case "sceptre_larcin": {
+      if (!target) return endPanel("👑 Le Sceptre du Larcin n'a trouvé personne à détrousser.");
+      const pare = target.bouclier;
+      applyMalusTo(target, () => { if ((target.etoiles ?? 0) > 0) { target.etoiles -= 1; pion.etoiles = (pion.etoiles ?? 0) + 1; renderPlayersStrip(); } });
+      return endPanel(pare
+        ? `👑🛡️ Le bouclier de ${target.nom} a protégé son étoile ! Le sceptre repart bredouille.`
+        : `👑 Le Sceptre du Larcin dérobe une ⭐ à ${target.nom} pour ${pion.nom} !`);
+    }
     default:
       return openBag(pion);
   }
@@ -505,9 +528,12 @@ function resolveCase(type) {
 function doBoutique(pion, onDone = null) {
   const done = onDone ?? (() => finishTurn());
   setPendingCase("resolu");
+  // Le Sceptre du Larcin (vol d'étoile) n'a de sens qu'en mode Étoiles : on ne
+  // le propose donc qu'ici, tout en bas et hors de prix, comme un coup d'éclat.
+  const shopIds = isEtoiles() ? [...SHOP_ORDER, "sceptre_larcin"] : SHOP_ORDER;
   const render$ = () => {
     const rows = [];
-    for (const id of SHOP_ORDER) {
+    for (const id of shopIds) {
       const it = ITEMS[id];
       const abordable = pion.pieces >= it.cout && hasRoom(pion);
       const btn = choiceButton(
@@ -604,8 +630,30 @@ const MALUS_EFFECTS = [
   { texte: "Petite chute : reculez d'1 case.", apply: (p) => shift(p, -1) },
 ];
 
+/** Larcin fortuné : un vol d'étoile GRATUIT (~4 %) offert par la pure chance,
+ *  toujours dirigé sur le meneur en étoiles — parable par un bouclier. */
+function larcinFortune(voleur, cible) {
+  setPendingCase("resolu");
+  heraldSays("Un renversement de fortune ! La chance glisse une étoile dans votre besace…");
+  const pare = cible.bouclier;
+  applyMalusTo(cible, () => {
+    if ((cible.etoiles ?? 0) > 0) { cible.etoiles -= 1; voleur.etoiles = (voleur.etoiles ?? 0) + 1; }
+  });
+  render();
+  endPanel(pare
+    ? `🍀🛡️ Larcin fortuné ! Mais le bouclier de ${cible.nom} a sauvé son étoile.`
+    : `🍀 Larcin fortuné ! ${voleur.nom} subtilise une ⭐ à ${cible.nom} par pure chance !`);
+}
+
 function doChance(pion, { forced = null, onDone = null } = {}) {
   setPendingCase("resolu");
+  // ~4 % (mode Étoiles, case Chance naturelle) : vol d'étoile gratuit au meneur.
+  if (!forced && isEtoiles() && Math.random() < 0.04) {
+    const cibles = getState().pions
+      .filter((p) => p.id !== pion.id && (p.etoiles ?? 0) > 0)
+      .sort((a, b) => (b.etoiles ?? 0) - (a.etoiles ?? 0));
+    if (cibles.length > 0) return larcinFortune(pion, cibles[0]);
+  }
   const effect = forced ?? CHANCE_EFFECTS[Math.floor(Math.random() * CHANCE_EFFECTS.length)];
   const won = effect.apply(pion) === true; // shift() returns true on victory
   save();
@@ -1270,6 +1318,14 @@ function endStarGame() {
   const state = getState();
   state.finished = true;
   clearPendingCase();
+  // 3 étoiles bonus de fin (façon Mario Party) : tirées sur des exploits chiffrés,
+  // appliquées AVANT le classement final — elles peuvent tout renverser.
+  const bonus = computeBonusStars(state.pions, { count: 3 });
+  for (const b of bonus) {
+    const p = state.pions.find((x) => x.id === b.pionId);
+    if (p) p.etoiles = (p.etoiles ?? 0) + 1;
+  }
+  state.bonusStars = bonus;
   const classement = ranking();
   state.ranking = classement.map((p) => ({
     nom: p.nom,
@@ -1282,8 +1338,11 @@ function endStarGame() {
   }));
   save();
   const winner = classement[0];
-  heraldSays(`Rideau ! ${winner.nom} règne sur le Donjon avec ${winner.etoiles ?? 0} étoile${(winner.etoiles ?? 0) > 1 ? "s" : ""} !`);
-  if (onVictory) onVictory(winner, state.ranking);
+  const primes = bonus.length
+    ? ` Étoiles bonus : ${bonus.map((b) => `${b.emoji} ${b.nom}`).join(", ")}.`
+    : "";
+  heraldSays(`Rideau ! ${winner.nom} règne sur le Donjon avec ${winner.etoiles ?? 0} étoile${(winner.etoiles ?? 0) > 1 ? "s" : ""} !${primes}`);
+  if (onVictory) onVictory(winner, state.ranking, { bonusStars: bonus });
 }
 
 function finishGame(winner) {

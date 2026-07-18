@@ -45,6 +45,7 @@ try {
   check("round chip shows", (await page.getByText(/Manche \d+\/6/).count()) >= 1);
 
   let boughtStar = false;
+  let sawSceptre = false;
   let guard = 0;
   while (guard++ < 200) {
     if (await page.locator("#screen-victory:not([hidden])").count()) break;
@@ -57,6 +58,8 @@ try {
     }
     // Boutique : acheter un Tuyau d'Or dès qu'on peut (déterministe : il mène à l'étoile).
     if (await page.getByText("La Boutique du Donjon").count()) {
+      // Le Sceptre du Larcin (vol d'étoile) n'est proposé qu'en mode Étoiles.
+      if (await page.locator(".panel .btn-choice", { hasText: "Sceptre du Larcin" }).count()) sawSceptre = true;
       const tuyau = page.locator(".panel .btn-choice", { hasText: "Tuyau d'Or" });
       if ((await tuyau.count()) && await tuyau.first().isEnabled().catch(() => false)) await tuyau.first().click();
       await page.getByRole("button", { name: "Quitter la boutique" }).click();
@@ -94,6 +97,8 @@ try {
   check("game reached victory", (await page.locator("#screen-victory:not([hidden])").count()) === 1);
   check("victory shows stars", (await page.locator(".victory-meta", { hasText: "⭐" }).count()) >= 1);
   check("star was purchasable & bought at least once", boughtStar);
+  check("sceptre du larcin offered in star-mode shop", sawSceptre);
+  check("3 end-game bonus stars awarded", (await page.locator(".bonus-star-line").count()) === 3);
   check("no page errors", errors.length === 0);
   if (errors.length) console.log("  errors:", errors.slice(0, 3).join(" | "));
 } catch (err) {

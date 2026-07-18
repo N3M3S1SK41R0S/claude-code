@@ -465,6 +465,18 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 }
 .victory-item-first { border-color: var(--gold); }
 .victory-meta { color: var(--soft); font-size: 0.85rem; }
+.bonus-stars {
+  width: min(30rem, 100%);
+  background: color-mix(in srgb, var(--gold) 10%, var(--card));
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.bonus-stars-title { color: var(--gold); font-size: 1rem; margin: 0; }
+.bonus-star-line { font-size: 0.9rem; margin: 0; }
 #victory-zone { display: flex; flex-direction: column; gap: 1rem; align-items: center; width: 100%; }
 #victory-zone .btn { width: min(26rem, 100%); }
 

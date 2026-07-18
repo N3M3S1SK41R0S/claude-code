@@ -123,6 +123,10 @@ try {
       await page.waitForTimeout(150);
     }
     if (await page.locator("#screen-victory:not([hidden])").count()) break;
+    // Stop as soon as a QCM and its anecdote have been exercised: playing
+    // further only risks finishing the race, which would leave no in-progress
+    // save for the resume check below (the two goals conflict otherwise).
+    if (sawQuestion && sawAnecdote) break;
   }
   check("question flow exercised", sawQuestion);
   check("anecdote displayed", sawAnecdote);
