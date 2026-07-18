@@ -1,0 +1,51 @@
+name: Alignement ponctuel des tests de dates futures
+
+on:
+  push:
+    branches:
+      - agent/velum-reject-future-market-dates
+    paths:
+      - .github/workflows/agent-align-future-date-tests.yml
+
+permissions:
+  contents: write
+
+jobs:
+  align-future-date-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/velum-reject-future-market-dates
+          fetch-depth: 0
+
+      - name: Remplacer l’ancien contrat futur → aujourd’hui
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          paths = [
+              Path('velum/packages/domains/coin/src/sources.test.ts'),
+              Path('velum/packages/domains/stamp/src/sources.test.ts'),
+          ]
+          old = "expect(ageDaysFromIso('2027-01-01T00:00:00Z', NOW)).toBe(0); // futur → borné à 0"
+          new = "expect(ageDaysFromIso('2027-01-01T00:00:00Z', NOW)).toBeNull(); // futur lointain → rejeté"
+
+          for path in paths:
+              text = path.read_text(encoding='utf-8')
+              if old not in text:
+                  raise SystemExit(f'{path}: assertion historique absente')
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/agent-align-future-date-tests.yml
+          git add \
+            velum/packages/domains/coin/src/sources.test.ts \
+            velum/packages/domains/stamp/src/sources.test.ts
+          git diff --cached --check
+          git commit -m "test(velum/pricing): aligner le rejet des dates futures"
+          git push origin HEAD:agent/velum-reject-future-market-dates
