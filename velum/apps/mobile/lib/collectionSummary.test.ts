@@ -52,6 +52,19 @@ describe('collectionSummary', () => {
     expect(result).toEqual({ totalValue: 300, gainLoss: 90 });
   });
 
+  it('exclut de la plus-value un objet valorisé sans prix d’acquisition', () => {
+    const result = collectionSummary(
+      [item('comparable', 60), item('unknown-cost', null)],
+      {
+        comparable: valuation('comparable', 100),
+        'unknown-cost': valuation('unknown-cost', 200),
+      },
+      [],
+    );
+
+    expect(result).toEqual({ totalValue: 300, gainLoss: 40 });
+  });
+
   it('n’invente pas de plus-value sans prix d’acquisition comparable', () => {
     expect(
       collectionSummary([item('a', null)], { a: valuation('a', 100) }, []),
