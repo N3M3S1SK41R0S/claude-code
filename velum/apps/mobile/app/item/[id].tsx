@@ -196,18 +196,12 @@ export default function ItemSheet() {
           void (async () => {
             try {
               await client.items.remove(itemId);
-            } catch {
-              await client.queue.enqueue({
-                id: `mut-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                table: 'items',
-                type: 'delete',
-                payload: { id: itemId },
-                queuedAt: new Date().toISOString(),
-              });
+              showToast(t('item.deleted'), 'success');
+              void queryClient.invalidateQueries({ queryKey: ['items'] });
+              router.back();
+            } catch (error) {
+              showToast(errorMessage(error, t), 'danger');
             }
-            showToast(t('item.deleted'), 'success');
-            void queryClient.invalidateQueries({ queryKey: ['items'] });
-            router.back();
           })();
         },
       },
