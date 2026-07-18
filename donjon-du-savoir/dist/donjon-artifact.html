@@ -500,6 +500,23 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 }
 .bonus-stars-title { color: var(--gold); font-size: 1rem; margin: 0; }
 .bonus-star-line { font-size: 0.9rem; margin: 0; }
+
+/* Confettis de victoire (festif, coupé si l'utilisateur réduit les animations). */
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 60; }
+.confetti-piece {
+  position: absolute;
+  top: -14px;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0.9;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translateY(-14px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(104vh) rotate(560deg); opacity: 0.55; }
+}
+@media (prefers-reduced-motion: reduce) { .confetti { display: none; } }
 #victory-zone { display: flex; flex-direction: column; gap: 1rem; align-items: center; width: 100%; }
 #victory-zone .btn { width: min(26rem, 100%); }
 
@@ -527,6 +544,7 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
       <strong>LE DONJON DU SAVOIR</strong>
     </div>
     <div class="topbar-actions">
+      <button id="sfx-toggle" class="btn btn-small" type="button" aria-pressed="false">🔕 Sons</button>
       <button id="voice-toggle" class="btn btn-small" type="button" aria-pressed="false">🔇 Héraut muet</button>
       <button id="quit-btn" class="btn btn-small" type="button" aria-label="Retour à l'accueil">🏠</button>
     </div>
@@ -688,6 +706,72 @@ function warmVoices() {
 }
 
 ;Object.assign(module.exports, {setVoice, voiceEnabled, voiceAvailable, stop, say, warmVoices});
+};
+__modules["./sfx.js"] = function(module, exports, require) {
+// Effets sonores SYNTHÉTISÉS (Web Audio) — aucun fichier, hors-ligne, muetables.
+// De petits bips joyeux qui ponctuent les moments clés, jamais envahissants.
+// Désactivés par défaut ; l'utilisateur les active via le bouton 🔊 de l'en-tête.
+
+let ctx = null;
+let enabled = false;
+
+function sfxAvailable() {
+  return typeof window !== "undefined" && !!(window.AudioContext || window.webkitAudioContext);
+}
+
+function setSfx(on) {
+  enabled = !!on;
+  if (enabled) audio(); // débloque le contexte audio sur le geste utilisateur
+}
+
+function sfxEnabled() {
+  return enabled;
+}
+
+function audio() {
+  if (!enabled || !sfxAvailable()) return null;
+  if (!ctx) {
+    const C = window.AudioContext || window.webkitAudioContext;
+    try { ctx = new C(); } catch { return null; }
+  }
+  if (ctx.state === "suspended") ctx.resume().catch(() => {});
+  return ctx;
+}
+
+/** Une note enveloppée (attack/decay court) — brique de tous les effets. */
+function tone(freq, dur, { type = "sine", gain = 0.14, delay = 0, sweep = 0 } = {}) {
+  const c = audio();
+  if (!c) return;
+  const t0 = c.currentTime + delay;
+  const osc = c.createOscillator();
+  const g = c.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t0);
+  if (sweep) osc.frequency.exponentialRampToValueAtTime(Math.max(20, freq + sweep), t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(gain, t0 + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  osc.connect(g).connect(c.destination);
+  osc.start(t0);
+  osc.stop(t0 + dur + 0.03);
+}
+
+const SFX = {
+  dice: () => { tone(200, 0.05, { type: "square", gain: 0.06 }); tone(280, 0.05, { type: "square", gain: 0.06, delay: 0.06 }); },
+  coin: () => { tone(880, 0.07, { type: "triangle", gain: 0.11 }); tone(1320, 0.1, { type: "triangle", gain: 0.09, delay: 0.05 }); },
+  good: () => { tone(523, 0.1, { gain: 0.11 }); tone(659, 0.1, { gain: 0.11, delay: 0.08 }); tone(784, 0.16, { gain: 0.11, delay: 0.16 }); },
+  bad: () => { tone(240, 0.22, { type: "sawtooth", gain: 0.09, sweep: -120 }); },
+  star: () => { tone(659, 0.09, { gain: 0.11 }); tone(988, 0.09, { gain: 0.11, delay: 0.08 }); tone(1319, 0.22, { type: "triangle", gain: 0.11, delay: 0.16 }); },
+  win: () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.22, { type: "triangle", gain: 0.13, delay: i * 0.13 })); },
+  malus: () => { tone(320, 0.2, { type: "sawtooth", gain: 0.09, sweep: -180 }); },
+};
+
+/** Joue un effet nommé ; silencieux si désactivé ou si l'audio est indisponible. */
+function sfx(name) {
+  try { SFX[name]?.(); } catch { /* audio non autorisé dans ce contexte */ }
+}
+
+;Object.assign(module.exports, {sfxAvailable, setSfx, sfxEnabled, sfx});
 };
 __modules["./herald.js"] = function(module, exports, require) {
 // LE GRAND HÉRAUT DU DONJON — original mascot narrator (option B of §9).
@@ -2174,6 +2258,7 @@ const { portraitEl } = require("./portraits.js");
 const { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } = require("./items.js");
 const { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } = require("./minigames.js");
 const { drawDefi } = require("./wordgames.js");
+const { sfx } = require("./sfx.js");
 
 /** Seam de test déterministe (jamais posé en jeu réel) : force un mini-jeu
  *  précis, ou une question bonus, pour couvrir ces panneaux en E2E. */
@@ -2507,6 +2592,7 @@ function showItemDie(value, label) {
 
 function rollDie() {
   const value = 1 + Math.floor(Math.random() * 6);
+  sfx("dice");
   // Short tumble animation — pure spectacle, the player is never rushed.
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reduced) return showDieResult(value, { rerollAvailable: true });
@@ -2639,6 +2725,7 @@ function doStar(pion, onDone = null) {
       moveStar(); // l'étoile file s'installer ailleurs, au hasard
       save();
       render();
+      sfx("star");
       heraldSays(`Une étoile pour ${pion.nom} ! Le marchand file s'installer ailleurs.`);
       endPanel(`⭐ ${pion.nom} possède maintenant ${pion.etoiles} étoile${pion.etoiles > 1 ? "s" : ""} !`, done);
     }));
@@ -2670,6 +2757,7 @@ function resolveCase(type) {
       setPendingCase("resolu");
       const gain = 6 + Math.floor(Math.random() * 5);
       addCoins(pion, gain);
+      sfx("coin");
       return endPanel(`Vous ramassez ${gain} pièces d'or ! 🪙`);
     }
     case "joker":
@@ -2963,6 +3051,7 @@ function doMalus(pion) {
     setPendingCase("resolu");
     effect.apply(pion);
     save();
+    sfx("malus");
     render();
     endPanel(`💀 ${effect.texte}`);
   };
@@ -3406,6 +3495,7 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
     moveDelta = penalty;
   }
   save();
+  sfx(correct ? "good" : "bad");
   heraldSays(correct ? herald.bonne() : herald.mauvaise());
   showAnecdote(q, {
     verdictHtml: correct
@@ -3781,6 +3871,7 @@ function endStarGame() {
   const primes = bonus.length
     ? ` Étoiles bonus : ${bonus.map((b) => `${b.emoji} ${b.nom}`).join(", ")}.`
     : "";
+  sfx("win");
   heraldSays(`Rideau ! ${winner.nom} règne sur le Donjon avec ${winner.etoiles ?? 0} étoile${(winner.etoiles ?? 0) > 1 ? "s" : ""} !${primes}`);
   if (onVictory) onVictory(winner, state.ranking, { bonusStars: bonus });
 }
@@ -3798,6 +3889,7 @@ function finishGame(winner) {
     questions: p.stats.questions,
   }));
   save();
+  sfx("win");
   heraldSays(herald.victoire(winner.nom));
   if (onVictory) onVictory(winner, state.ranking);
   return true;
@@ -3817,6 +3909,7 @@ const { CHARACTERS, characterById, clearSave, loadSave, newGame } = require("./s
 const { portraitEl } = require("./portraits.js");
 const { POWERS } = require("./powers.js");
 const { setVoice, voiceAvailable, voiceEnabled, warmVoices } = require("./tts.js");
+const { setSfx, sfx, sfxAvailable, sfxEnabled } = require("./sfx.js");
 const { el } = require("./ui.js");
 
 const MAX_PLAYERS = 20;
@@ -4239,8 +4332,26 @@ function launchGame() {
 
 /* ---------- victory ---------- */
 
+/** Pluie de confettis festive sur l'écran de victoire (coupée en reduced-motion). */
+function spawnConfetti() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const colors = ["#e0b04a", "#8e5cc2", "#3ec27a", "#3e6ec2", "#c23e6b", "#58c98b"];
+  const box = el("div", { class: "confetti", "aria-hidden": "true" });
+  for (let i = 0; i < 28; i++) {
+    const piece = el("span", { class: "confetti-piece" });
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDelay = `${Math.random() * 0.8}s`;
+    piece.style.animationDuration = `${1.6 + Math.random() * 1.4}s`;
+    box.append(piece);
+  }
+  document.body.append(box);
+  setTimeout(() => box.remove(), 4200);
+}
+
 function showVictory(winner, rankingData, extras = {}) {
   show("victory");
+  spawnConfetti();
   const zone = document.getElementById("victory-zone");
   zone.innerHTML = "";
   const etoilesMode = rankingData.some((p) => p.etoiles !== undefined);
@@ -4300,6 +4411,25 @@ function wireHeader() {
     if (localStorage.getItem("donjon-voice") === "1") setVoice(true);
   } catch { /* ignore */ }
   refresh();
+
+  // Effets sonores synthétisés (muetables, désactivés par défaut).
+  const sfxBtn = document.getElementById("sfx-toggle");
+  if (!sfxAvailable()) {
+    sfxBtn.hidden = true;
+  } else {
+    const refreshSfx = () => {
+      sfxBtn.textContent = sfxEnabled() ? "🔔 Sons" : "🔕 Sons";
+      sfxBtn.setAttribute("aria-pressed", String(sfxEnabled()));
+    };
+    sfxBtn.addEventListener("click", () => {
+      setSfx(!sfxEnabled());
+      try { localStorage.setItem("donjon-sfx", sfxEnabled() ? "1" : "0"); } catch { /* ignore */ }
+      refreshSfx();
+      if (sfxEnabled()) sfx("coin"); // petit retour immédiat à l'activation
+    });
+    try { if (localStorage.getItem("donjon-sfx") === "1") setSfx(true); } catch { /* ignore */ }
+    refreshSfx();
+  }
 
   document.getElementById("rules-back").addEventListener("click", () => {
     renderHome();

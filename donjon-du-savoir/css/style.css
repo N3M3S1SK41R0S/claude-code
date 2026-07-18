@@ -499,6 +499,23 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 }
 .bonus-stars-title { color: var(--gold); font-size: 1rem; margin: 0; }
 .bonus-star-line { font-size: 0.9rem; margin: 0; }
+
+/* Confettis de victoire (festif, coupé si l'utilisateur réduit les animations). */
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 60; }
+.confetti-piece {
+  position: absolute;
+  top: -14px;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0.9;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translateY(-14px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(104vh) rotate(560deg); opacity: 0.55; }
+}
+@media (prefers-reduced-motion: reduce) { .confetti { display: none; } }
 #victory-zone { display: flex; flex-direction: column; gap: 1rem; align-items: center; width: 100%; }
 #victory-zone .btn { width: min(26rem, 100%); }
 

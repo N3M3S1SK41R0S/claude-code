@@ -14,6 +14,7 @@ import { portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
 import { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } from "./minigames.js";
 import { drawDefi } from "./wordgames.js";
+import { sfx } from "./sfx.js";
 
 /** Seam de test déterministe (jamais posé en jeu réel) : force un mini-jeu
  *  précis, ou une question bonus, pour couvrir ces panneaux en E2E. */
@@ -347,6 +348,7 @@ function showItemDie(value, label) {
 
 function rollDie() {
   const value = 1 + Math.floor(Math.random() * 6);
+  sfx("dice");
   // Short tumble animation — pure spectacle, the player is never rushed.
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (reduced) return showDieResult(value, { rerollAvailable: true });
@@ -479,6 +481,7 @@ function doStar(pion, onDone = null) {
       moveStar(); // l'étoile file s'installer ailleurs, au hasard
       save();
       render();
+      sfx("star");
       heraldSays(`Une étoile pour ${pion.nom} ! Le marchand file s'installer ailleurs.`);
       endPanel(`⭐ ${pion.nom} possède maintenant ${pion.etoiles} étoile${pion.etoiles > 1 ? "s" : ""} !`, done);
     }));
@@ -510,6 +513,7 @@ function resolveCase(type) {
       setPendingCase("resolu");
       const gain = 6 + Math.floor(Math.random() * 5);
       addCoins(pion, gain);
+      sfx("coin");
       return endPanel(`Vous ramassez ${gain} pièces d'or ! 🪙`);
     }
     case "joker":
@@ -803,6 +807,7 @@ function doMalus(pion) {
     setPendingCase("resolu");
     effect.apply(pion);
     save();
+    sfx("malus");
     render();
     endPanel(`💀 ${effect.texte}`);
   };
@@ -1246,6 +1251,7 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
     moveDelta = penalty;
   }
   save();
+  sfx(correct ? "good" : "bad");
   heraldSays(correct ? herald.bonne() : herald.mauvaise());
   showAnecdote(q, {
     verdictHtml: correct
@@ -1621,6 +1627,7 @@ function endStarGame() {
   const primes = bonus.length
     ? ` Étoiles bonus : ${bonus.map((b) => `${b.emoji} ${b.nom}`).join(", ")}.`
     : "";
+  sfx("win");
   heraldSays(`Rideau ! ${winner.nom} règne sur le Donjon avec ${winner.etoiles ?? 0} étoile${(winner.etoiles ?? 0) > 1 ? "s" : ""} !${primes}`);
   if (onVictory) onVictory(winner, state.ranking, { bonusStars: bonus });
 }
@@ -1638,6 +1645,7 @@ function finishGame(winner) {
     questions: p.stats.questions,
   }));
   save();
+  sfx("win");
   heraldSays(herald.victoire(winner.nom));
   if (onVictory) onVictory(winner, state.ranking);
   return true;

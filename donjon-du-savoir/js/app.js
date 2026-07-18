@@ -9,6 +9,7 @@ import { CHARACTERS, characterById, clearSave, loadSave, newGame } from "./state
 import { portraitEl } from "./portraits.js";
 import { POWERS } from "./powers.js";
 import { setVoice, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
+import { setSfx, sfx, sfxAvailable, sfxEnabled } from "./sfx.js";
 import { el } from "./ui.js";
 
 const MAX_PLAYERS = 20;
@@ -431,8 +432,26 @@ function launchGame() {
 
 /* ---------- victory ---------- */
 
+/** Pluie de confettis festive sur l'écran de victoire (coupée en reduced-motion). */
+function spawnConfetti() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const colors = ["#e0b04a", "#8e5cc2", "#3ec27a", "#3e6ec2", "#c23e6b", "#58c98b"];
+  const box = el("div", { class: "confetti", "aria-hidden": "true" });
+  for (let i = 0; i < 28; i++) {
+    const piece = el("span", { class: "confetti-piece" });
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDelay = `${Math.random() * 0.8}s`;
+    piece.style.animationDuration = `${1.6 + Math.random() * 1.4}s`;
+    box.append(piece);
+  }
+  document.body.append(box);
+  setTimeout(() => box.remove(), 4200);
+}
+
 function showVictory(winner, rankingData, extras = {}) {
   show("victory");
+  spawnConfetti();
   const zone = document.getElementById("victory-zone");
   zone.innerHTML = "";
   const etoilesMode = rankingData.some((p) => p.etoiles !== undefined);
@@ -492,6 +511,25 @@ function wireHeader() {
     if (localStorage.getItem("donjon-voice") === "1") setVoice(true);
   } catch { /* ignore */ }
   refresh();
+
+  // Effets sonores synthétisés (muetables, désactivés par défaut).
+  const sfxBtn = document.getElementById("sfx-toggle");
+  if (!sfxAvailable()) {
+    sfxBtn.hidden = true;
+  } else {
+    const refreshSfx = () => {
+      sfxBtn.textContent = sfxEnabled() ? "🔔 Sons" : "🔕 Sons";
+      sfxBtn.setAttribute("aria-pressed", String(sfxEnabled()));
+    };
+    sfxBtn.addEventListener("click", () => {
+      setSfx(!sfxEnabled());
+      try { localStorage.setItem("donjon-sfx", sfxEnabled() ? "1" : "0"); } catch { /* ignore */ }
+      refreshSfx();
+      if (sfxEnabled()) sfx("coin"); // petit retour immédiat à l'activation
+    });
+    try { if (localStorage.getItem("donjon-sfx") === "1") setSfx(true); } catch { /* ignore */ }
+    refreshSfx();
+  }
 
   document.getElementById("rules-back").addEventListener("click", () => {
     renderHome();

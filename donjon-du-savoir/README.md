@@ -117,6 +117,12 @@ du cahier des charges), commentaires écrits + lecture vocale optionnelle via
 la synthèse du navigateur (bouton 🔊 en haut). Aucune imitation de personne
 réelle.
 
+**Effets sonores** (bouton 🔕/🔔 en haut) : de petits bips **synthétisés** au
+vol (Web Audio, aucun fichier, hors-ligne) ponctuent dé, pièces, bonne/mauvaise
+réponse, achat d'étoile et victoire. Désactivés par défaut, muetables, et
+l'écran de victoire fête l'événement d'une pluie de confettis (coupée si le
+système demande de réduire les animations).
+
 ## La banque de questions
 
 `data/questions.json` — **620 questions vérifiées** (chaque fait contrôlé
