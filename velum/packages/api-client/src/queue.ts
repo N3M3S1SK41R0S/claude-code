@@ -10,6 +10,7 @@
  * suivantes seront retentées plus tard, dans l'ordre.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { deleteItemWithMedia } from './item-deletion';
 import { itemPayloadToRow } from './mappers';
 import type { StorageAdapter } from './storage';
 
@@ -124,8 +125,10 @@ export class MutationQueue {
         case 'delete': {
           const id = mutation.payload['id'];
           if (typeof id !== 'string') return 'skipped'; // mutation malformée
-          const { error } = await this.supabase.from(mutation.table).delete().eq('id', id);
-          return error ? 'failed' : 'applied';
+          // Compatibilité avec les anciennes files persistées : une suppression
+          // rejouée purge elle aussi les blobs privés avant la cascade SQL.
+          await deleteItemWithMedia(this.supabase, id);
+          return 'applied';
         }
       }
     } catch {
