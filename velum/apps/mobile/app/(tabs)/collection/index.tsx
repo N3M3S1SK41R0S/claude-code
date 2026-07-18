@@ -112,7 +112,10 @@ export default function Collection() {
     );
   }
 
-  if (query.isError) {
+  // Un échec de chargement initial ne doit jamais être présenté comme une
+  // collection vide. En revanche, une donnée restaurée du cache reste lisible
+  // si son rafraîchissement réseau échoue (contrat hors-ligne).
+  if (query.isError && query.data === undefined) {
     return (
       <Screen scroll={false}>
         <View style={styles.center}>
