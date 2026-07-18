@@ -112,6 +112,24 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 .herald-text { font-style: italic; line-height: 1.35; }
 .herald-zone { display: flex; justify-content: center; min-height: 3.2rem; }
 
+/* ---------- rules ---------- */
+
+.rules-body { display: flex; flex-direction: column; gap: 0.6rem; max-width: 44rem; margin: 0 auto; }
+.rules-body h2 { color: var(--gold); font-size: 1.05rem; margin-top: 0.6rem; }
+.rules-body p { line-height: 1.5; }
+.rules-cast { display: flex; flex-direction: column; gap: 0.7rem; }
+.rules-cast-item {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  background: var(--stone);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.6rem 0.8rem;
+}
+.rules-power { color: var(--soft); font-size: 0.88rem; line-height: 1.4; }
+#rules-back { max-width: 44rem; margin: 0 auto; width: 100%; }
+
 /* ---------- setup ---------- */
 
 .mode-switch { display: flex; gap: 0.6rem; justify-content: center; }

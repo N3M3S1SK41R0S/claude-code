@@ -5,12 +5,13 @@ import { BOARDS, boardById, generateBoard } from "./board.js";
 import { resumeGame, startGame } from "./game.js";
 import { CHARACTERS, characterById, clearSave, loadSave, newGame } from "./state.js";
 import { portraitEl } from "./portraits.js";
+import { POWERS } from "./powers.js";
 import { setVoice, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
 import { el } from "./ui.js";
 
 const MAX_PLAYERS = 20;
 
-const screens = ["home", "setup", "game", "victory"];
+const screens = ["home", "rules", "setup", "game", "victory"];
 function show(name) {
   for (const s of screens) {
     document.getElementById(`screen-${s}`).hidden = s !== name;
@@ -39,9 +40,30 @@ function renderHome() {
   const newBtn = el("button", { class: "btn btn-big btn-gold", type: "button", onclick: () => { renderSetup(); show("setup"); } }, "⚔️ Nouvelle partie");
   if (!bankOk) newBtn.disabled = true;
   zone.append(newBtn);
+  zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderRules(); show("rules"); } }, "📖 Les règles"));
   document.getElementById("bank-info").textContent = bankOk
     ? `${bankSize()} questions vérifiées et sourcées · 13 catégories · zéro chronomètre`
     : "⚠️ Impossible de charger les questions (data/questions.json). Rechargez la page une fois en ligne.";
+}
+
+/* ---------- rules ---------- */
+
+function renderRules() {
+  const cast = document.getElementById("rules-cast");
+  cast.innerHTML = "";
+  for (const c of CHARACTERS) {
+    const p = POWERS[c.id];
+    cast.append(
+      el("div", { class: "rules-cast-item" },
+        portraitEl(c.id, 44),
+        el("div", {},
+          el("strong", { text: `${c.nom} — ${c.titre}` }),
+          el("p", { class: "rules-power", text: `🎩 ${p.adulte.nom} : ${p.adulte.desc}` }),
+          el("p", { class: "rules-power", text: `👶 ${p.enfant.nom} : ${p.enfant.desc}` }),
+        ),
+      ),
+    );
+  }
 }
 
 /* ---------- setup ---------- */
@@ -289,6 +311,11 @@ function wireHeader() {
     if (localStorage.getItem("donjon-voice") === "1") setVoice(true);
   } catch { /* ignore */ }
   refresh();
+
+  document.getElementById("rules-back").addEventListener("click", () => {
+    renderHome();
+    show("home");
+  });
 
   document.getElementById("quit-btn").addEventListener("click", () => {
     const gameVisible = !document.getElementById("screen-game").hidden;
