@@ -18,6 +18,7 @@ export interface ValuationExplanationProps {
   label: string;
 }
 
+/** Affiche à la demande la décomposition auditable d’une valorisation persistée. */
 export function ValuationExplanation({ valuation, label }: ValuationExplanationProps) {
   const [open, setOpen] = useState(false);
 
