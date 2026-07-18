@@ -96,6 +96,18 @@ export const PORTRAITS = {
   `),
 };
 
+// Illustrations peintes (PNG) posées PAR-DESSUS le médaillon SVG : si une image
+// manque, le SVG d'origine reste visible (repli garanti). En version un seul
+// fichier, le bundler remplace ces chemins par des data-URI.
+const PORTRAIT_ART = {
+  cageot: "assets/portrait-cageot.png",
+  etincelle: "assets/portrait-etincelle.png",
+  gobelin: "assets/portrait-gobelin.png",
+  nebulia: "assets/portrait-nebulia.png",
+  boumbastien: "assets/portrait-boumbastien.png",
+  duchesse: "assets/portrait-duchesse.png",
+};
+
 /** DOM element for a character medallion (decorative; name is given elsewhere). */
 export function portraitEl(characterId, size = 56) {
   const div = document.createElement("div");
@@ -104,5 +116,15 @@ export function portraitEl(characterId, size = 56) {
   div.style.height = `${size}px`;
   div.setAttribute("aria-hidden", "true");
   div.innerHTML = PORTRAITS[characterId] ?? "";
+  const src = PORTRAIT_ART[characterId];
+  if (src) {
+    const img = document.createElement("img");
+    img.className = "portrait-art";
+    img.alt = "";
+    img.decoding = "async";
+    img.src = src;
+    img.onerror = () => img.remove(); // repli : le médaillon SVG reste
+    div.appendChild(img);
+  }
   return div;
 }

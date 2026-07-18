@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v24";
+const VERSION = "donjon-v25";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -30,6 +30,24 @@ const SHELL = [
   "./icons/icon-512.png",
   "./icons/maskable-512.png",
   "./icons/apple-touch-icon.png",
+  "./assets/portrait-cageot.png",
+  "./assets/portrait-etincelle.png",
+  "./assets/portrait-gobelin.png",
+  "./assets/portrait-nebulia.png",
+  "./assets/portrait-boumbastien.png",
+  "./assets/portrait-duchesse.png",
+  "./assets/case-question.png",
+  "./assets/case-chance.png",
+  "./assets/case-evenement.png",
+  "./assets/case-malus.png",
+  "./assets/case-pieces.png",
+  "./assets/case-joker.png",
+  "./assets/case-gambit.png",
+  "./assets/case-trounoir.png",
+  "./assets/case-boutique.png",
+  "./assets/case-insolite.png",
+  "./assets/case-expression.png",
+  "./assets/case-tresor.png",
 ];
 
 self.addEventListener("install", (event) => {

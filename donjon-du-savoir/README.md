@@ -198,15 +198,17 @@ personnages × 2 pouvoirs, tous les formats de questions, zéro chronomètre,
 banque vérifiée avec anecdotes systématiques et sources, narrateur-mascotte
 original + synthèse vocale, 1-20 joueurs pass-and-play, équipes avec
 porte-parole tournant, difficulté adaptative (bonus : par score fin 1-5, pas
-seulement par tranche d'âge), sauvegarde/reprise automatique, PWA hors-ligne.
+seulement par tranche d'âge), sauvegarde/reprise automatique, PWA hors-ligne,
+**illustrations peintes originales** (portraits des 6 compagnons et jetons des
+12 cases dans `assets/`, plus les icônes de l'app — posés par-dessus les
+médaillons SVG / emojis d'origine, qui restent en repli si une image manque).
 
-**Pas encore fait** (conforme au §12) : illustrations riches dessinées
-(les compagnons ont des médaillons SVG originaux — `js/portraits.js` — et les
-prompts §6 restent prêts pour une passe de génération d'images), voix
-professionnelle, architecture multi-écrans façon Jackbox (un téléphone par
-joueur), assurance anti-malus payante (v2). Banque : 647 questions vérifiées
-sur 6 formats et 13 catégories — le pipeline de génération + fact-check peut
-produire les lots suivants vers l'objectif 500-1000 du cahier.
+**Pas encore fait** (conforme au §12) : voix professionnelle, architecture
+multi-écrans façon Jackbox (un téléphone par joueur), assurance anti-malus
+payante (v2), et quelques visuels d'ambiance optionnels (fonds de plateau,
+bannière d'accueil — voir `docs/BRIEF-VISUELS.md`). Banque : 647 questions
+vérifiées sur 6 formats et 13 catégories — le pipeline de génération +
+fact-check peut produire les lots suivants vers l'objectif 500-1000 du cahier.
 
 **Notes IP** (décisions conformes aux §6 et §9 du cahier) : personnages et
 narrateur 100 % originaux ; aucun nom, personnage ou élément du Donjon de

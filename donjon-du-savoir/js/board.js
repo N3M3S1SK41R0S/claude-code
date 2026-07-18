@@ -2,20 +2,23 @@
 // different lengths, hazards, distributions and moods. Geometry and layout
 // are fully parametric; §4 frequencies remain the baseline of the classic.
 
+// `art` : jeton peint (PNG) posé par-dessus l'emoji ; si l'image manque, l'emoji
+// reste (repli garanti). Le bundler du fichier unique remplace ces chemins par
+// des data-URI. (depart/arrivee réutilisent le jeton trésor / n'ont pas d'art.)
 export const CASE_TYPES = {
   depart: { label: "Départ", emoji: "🚪", couleur: "#58a24f" },
-  question: { label: "Question", emoji: "❓", couleur: "#4a6fb5" },
-  chance: { label: "Chance", emoji: "🍀", couleur: "#3ec27a" },
-  evenement: { label: "Événement", emoji: "🎪", couleur: "#c28a3e" },
-  malus: { label: "Coup dur", emoji: "💀", couleur: "#b54a4a" },
-  pieces: { label: "Pièces", emoji: "🪙", couleur: "#c2a93e" },
-  joker: { label: "Joker", emoji: "🃏", couleur: "#8e5cc2" },
-  gambit: { label: "Gambit", emoji: "🎲", couleur: "#3eb8c2" },
-  trounoir: { label: "Trou Noir", emoji: "🕳️", couleur: "#181026" },
-  arrivee: { label: "Trésor", emoji: "🏆", couleur: "#e0b04a" },
-  boutique: { label: "Boutique", emoji: "🛒", couleur: "#c25ea0" },
-  insolite: { label: "Savoir insolite", emoji: "🦩", couleur: "#e0568f" },
-  expression: { label: "Défi d'expression", emoji: "🎭", couleur: "#c2683e" },
+  question: { label: "Question", emoji: "❓", couleur: "#4a6fb5", art: "assets/case-question.png" },
+  chance: { label: "Chance", emoji: "🍀", couleur: "#3ec27a", art: "assets/case-chance.png" },
+  evenement: { label: "Événement", emoji: "🎪", couleur: "#c28a3e", art: "assets/case-evenement.png" },
+  malus: { label: "Coup dur", emoji: "💀", couleur: "#b54a4a", art: "assets/case-malus.png" },
+  pieces: { label: "Pièces", emoji: "🪙", couleur: "#c2a93e", art: "assets/case-pieces.png" },
+  joker: { label: "Joker", emoji: "🃏", couleur: "#8e5cc2", art: "assets/case-joker.png" },
+  gambit: { label: "Gambit", emoji: "🎲", couleur: "#3eb8c2", art: "assets/case-gambit.png" },
+  trounoir: { label: "Trou Noir", emoji: "🕳️", couleur: "#181026", art: "assets/case-trounoir.png" },
+  arrivee: { label: "Trésor", emoji: "🏆", couleur: "#e0b04a", art: "assets/case-tresor.png" },
+  boutique: { label: "Boutique", emoji: "🛒", couleur: "#c25ea0", art: "assets/case-boutique.png" },
+  insolite: { label: "Savoir insolite", emoji: "🦩", couleur: "#e0568f", art: "assets/case-insolite.png" },
+  expression: { label: "Défi d'expression", emoji: "🎭", couleur: "#c2683e", art: "assets/case-expression.png" },
 };
 
 /**
@@ -281,6 +284,15 @@ function buildStatic(container, layout, def) {
     cell.dataset.index = String(i);
     cell.title = `Case ${i} — ${defCase.label}`;
     cell.innerHTML = `<span class="case-emoji" aria-hidden="true">${defCase.emoji}</span>`;
+    if (defCase.art) {
+      const art = document.createElement("img");
+      art.className = "case-art";
+      art.alt = "";
+      art.decoding = "async";
+      art.src = defCase.art;
+      art.onerror = () => art.remove(); // repli : l'emoji reste visible
+      cell.appendChild(art);
+    }
     if (i !== 0 && i !== layout.length - 1) {
       cell.innerHTML += `<span class="case-num" aria-hidden="true">${i}</span>`;
     }

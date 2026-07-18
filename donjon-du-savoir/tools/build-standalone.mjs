@@ -5,7 +5,7 @@
 // are inlined, and fetch("data/questions.json") is intercepted.
 // Emits: dist/donjon-standalone.html (full page, for file:// + tests)
 //        dist/donjon-artifact.html   (body-only, for the Artifact tool)
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -102,7 +102,25 @@ body = body.replace(/<script[^>]*type="module"[^>]*><\/script>/, "");
 
 const css = R("css/style.css");
 
-const artifactContent = `<style>\n${css}\n</style>\n${body}\n<script>${runtime}</script>\n`;
+// Inline the painted artwork (portraits + case tokens) as data-URI : the single
+// file has no server, so the "assets/…png" references in the JS must be embedded.
+function inlineAssets(text) {
+  const dir = join(root, "assets");
+  let out = text;
+  let count = 0;
+  for (const file of readdirSync(dir).filter((f) => f.endsWith(".png"))) {
+    const ref = `assets/${file}`;
+    if (!out.includes(ref)) continue;
+    const dataUri = `data:image/png;base64,${readFileSync(join(dir, file)).toString("base64")}`;
+    out = out.split(ref).join(dataUri);
+    count += 1;
+  }
+  assetCount = count;
+  return out;
+}
+let assetCount = 0;
+
+const artifactContent = inlineAssets(`<style>\n${css}\n</style>\n${body}\n<script>${runtime}</script>\n`);
 
 const fullPage = `<!doctype html>
 <html lang="fr">
@@ -121,5 +139,5 @@ mkdirSync(join(root, "dist"), { recursive: true });
 writeFileSync(join(root, "dist", "donjon-standalone.html"), fullPage, "utf8");
 writeFileSync(join(root, "dist", "donjon-artifact.html"), artifactContent, "utf8");
 const kb = (s) => Math.round(Buffer.byteLength(s) / 1024);
-console.log(`✓ dist/donjon-standalone.html (${kb(fullPage)} Ko, ${bank.questions.length} questions)`);
+console.log(`✓ dist/donjon-standalone.html (${kb(fullPage)} Ko, ${bank.questions.length} questions, ${assetCount} illustrations inline)`);
 console.log(`✓ dist/donjon-artifact.html (${kb(artifactContent)} Ko)`);

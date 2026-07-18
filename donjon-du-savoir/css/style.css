@@ -276,6 +276,8 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 }
 .case-arrivee { box-shadow: 0 0 18px rgba(224, 176, 74, 0.65), inset 0 -3px 5px rgba(0, 0, 0, 0.3); }
 .case-gambit { box-shadow: 0 0 12px rgba(62, 184, 194, 0.5), inset 0 -3px 5px rgba(0, 0, 0, 0.3); }
+/* Jeton peint posé par-dessus la pastille (emoji en repli si l'image manque). */
+.case-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 
 .landmark {
   position: absolute;
@@ -463,8 +465,10 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 .round-chip { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--card)); }
 .player-emoji { font-size: 1.3rem; }
 
-.portrait { flex-shrink: 0; }
+.portrait { flex-shrink: 0; position: relative; }
 .portrait svg { width: 100%; height: 100%; display: block; }
+/* Illustration peinte par-dessus le médaillon SVG (repli si l'image manque). */
+.portrait-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .btn-character { display: inline-flex; align-items: center; gap: 0.5rem; }
 .victory-who { display: inline-flex; align-items: center; gap: 0.5rem; }
 .player-info { display: flex; flex-direction: column; }
