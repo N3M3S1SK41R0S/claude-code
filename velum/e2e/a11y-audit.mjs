@@ -63,7 +63,7 @@ for (const screen of SCREENS) {
   await page.goto(`${base}${screen.path}`, { waitUntil: 'networkidle' });
   if (screen.name === 'onboarding') await page.waitForTimeout(1200);
   if (screen.expect) {
-    await page.waitForSelector(`text=${screen.expect}`, { timeout: 20000 }).catch(() => {});
+    await page.waitForSelector(`text=${screen.expect}`, { timeout: 20000 });
   }
   await page.waitForTimeout(600);
 
