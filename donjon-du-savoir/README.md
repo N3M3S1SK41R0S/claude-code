@@ -89,7 +89,7 @@ réelle.
 
 ## La banque de questions
 
-`data/questions.json` — **398 questions vérifiées** (chaque fait contrôlé
+`data/questions.json` — **475 questions vérifiées** (chaque fait contrôlé
 contre ≥ 2 sources indépendantes, citées sous chaque anecdote), 13 catégories,
 3 tranches d'âge, 6 formats. Elle est générée depuis la banque fact-checkée du
 projet frère `../grand-mogul` :
@@ -142,7 +142,7 @@ seulement par tranche d'âge), sauvegarde/reprise automatique, PWA hors-ligne.
 (les compagnons ont des médaillons SVG originaux — `js/portraits.js` — et les
 prompts §6 restent prêts pour une passe de génération d'images), voix
 professionnelle, architecture multi-écrans façon Jackbox (un téléphone par
-joueur), assurance anti-malus payante (v2). Banque : 398 questions vérifiées
+joueur), assurance anti-malus payante (v2). Banque : 475 questions vérifiées
 sur 6 formats et 13 catégories — le pipeline de génération + fact-check peut
 produire les lots suivants vers l'objectif 500-1000 du cahier.
 

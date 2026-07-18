@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 398,
+ "count": 475,
  "questions": [
   {
    "id": "arts-001",
@@ -6577,6 +6577,1351 @@
     "Australie",
     "Angleterre"
    ]
+  },
+  {
+   "id": "arts-036",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Michel-Ange a peint le plafond de la chapelle Sixtine allongé sur le dos.",
+   "anecdote": "Contrairement à l'image popularisée par le cinéma, Michel-Ange peignait debout sur un échafaudage, la tête renversée en arrière. Il a même décrit ses souffrances dans un sonnet adressé à son ami Giovanni da Pistoia.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Plafond_de_la_chapelle_Sixtine",
+    "https://fr.wikipedia.org/wiki/Michel-Ange"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "arts-037",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La structure métallique interne de la statue de la Liberté a été conçue par Gustave Eiffel.",
+   "anecdote": "La sculpture est l'œuvre d'Auguste Bartholdi, mais c'est Gustave Eiffel qui a conçu l'ossature métallique interne, après la mort en 1879 de l'architecte initialement chargé de la structure, Eugène Viollet-le-Duc.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Statue_de_la_Libert%C3%A9",
+    "https://fr.wikipedia.org/wiki/Fr%C3%A9d%C3%A9ric_Auguste_Bartholdi",
+    "https://fr.wikipedia.org/wiki/Gustave_Eiffel"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "arts-038",
+   "categorie": "Arts",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année la tour Eiffel a-t-elle été inaugurée ?",
+   "anecdote": "Construite pour l'Exposition universelle célébrant le centenaire de la Révolution française, la tour ne devait durer que vingt ans : son utilité pour les transmissions radio l'a sauvée du démontage.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_Eiffel",
+    "https://fr.wikipedia.org/wiki/Exposition_universelle_de_1889"
+   ],
+   "reponse_numerique": 1889
+  },
+  {
+   "id": "cinema-034",
+   "categorie": "Cinéma",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "« Le Voyage dans la Lune » de Georges Méliès est le premier film projeté en public dans l'histoire du cinéma.",
+   "anecdote": "Le film de Méliès date de 1902, sept ans après la première projection publique payante des frères Lumière, le 28 décembre 1895 à Paris. Méliès assistait d'ailleurs à cette séance historique et proposa en vain d'acheter le Cinématographe.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Voyage_dans_la_Lune",
+    "https://fr.wikipedia.org/wiki/Auguste_et_Louis_Lumi%C3%A8re"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "cinema-035",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "En 1993, la Palme d'or du Festival de Cannes a été attribuée ex æquo à deux films.",
+   "anecdote": "« Adieu ma concubine » de Chen Kaige et « La Leçon de piano » de Jane Campion ont partagé la Palme. Campion devenait la première femme à remporter la récompense, et resta la seule jusqu'à Julia Ducournau en 2021.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Festival_de_Cannes_1993",
+    "https://fr.wikipedia.org/wiki/Palme_d%27or"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "cinema-036",
+   "categorie": "Cinéma",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année a eu lieu la première projection publique payante du Cinématographe des frères Lumière à Paris ?",
+   "anecdote": "La séance du 28 décembre 1895, au Salon indien du Grand Café, boulevard des Capucines, n'attira qu'une trentaine de spectateurs. Quelques semaines plus tard, les files d'attente s'étiraient sur le boulevard.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Auguste_et_Louis_Lumi%C3%A8re",
+    "https://fr.wikipedia.org/wiki/Salon_indien_du_Grand_Caf%C3%A9"
+   ],
+   "reponse_numerique": 1895
+  },
+  {
+   "id": "gastronomie-025",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le roquefort est fabriqué à partir de lait de vache.",
+   "anecdote": "Le roquefort est exclusivement fabriqué au lait cru de brebis, principalement de race Lacaune. En 1925, il est devenu le tout premier fromage français protégé par une appellation d'origine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Roquefort_(fromage)",
+    "https://fr.wikipedia.org/wiki/Roquefort-sur-Soulzon"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "gastronomie-026",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le croissant a été inventé en France.",
+   "anecdote": "Le croissant descend du kipferl autrichien, popularisé à Paris au XIXe siècle par la boulangerie viennoise d'August Zang. Seule sa version en pâte feuilletée au beurre est une création française.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Croissant_(viennoiserie)",
+    "https://fr.wikipedia.org/wiki/Viennoiserie"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "gastronomie-027",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "La sauce béarnaise a été créée dans le Béarn.",
+   "anecdote": "Elle est née vers 1837 au Pavillon Henri IV, à Saint-Germain-en-Laye, d'une réduction d'échalote ratée rattrapée par le chef Collinet. Le nom fut improvisé devant un buste d'Henri IV, natif du Béarn.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sauce_b%C3%A9arnaise",
+    "https://fr.wikipedia.org/wiki/Saint-Germain-en-Laye"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "gastronomie-028",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Auguste Escoffier a-t-il publié la première édition du « Guide culinaire » ?",
+   "anecdote": "Surnommé « le roi des cuisiniers, le cuisinier des rois », Escoffier a aussi créé la pêche Melba en hommage à la cantatrice Nellie Melba. Son Guide culinaire reste une bible des cuisiniers professionnels.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Guide_culinaire",
+    "https://fr.wikipedia.org/wiki/Auguste_Escoffier"
+   ],
+   "reponse_numerique": 1903
+  },
+  {
+   "id": "gastronomie-029",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez l'un des cinq fromages d'Auvergne bénéficiant d'une AOP.",
+   "anecdote": "Parmi ces cinq AOP, le salers est le plus contraignant : il ne peut être fabriqué qu'à la ferme, entre le 15 avril et le 15 novembre, lorsque les vaches pâturent l'herbe des estives.",
+   "sources": [
+    "https://www.fromages-aop-auvergne.com/nos-appellations/",
+    "https://fr.wikipedia.org/wiki/Cantal_(fromage)",
+    "https://fr.wikipedia.org/wiki/Saint-nectaire"
+   ],
+   "reponses_acceptees": [
+    "Bleu d'Auvergne",
+    "Cantal",
+    "Fourme d'Ambert",
+    "Saint-Nectaire",
+    "Salers",
+    "Saint Nectaire",
+    "Fourme d'Ambert AOP",
+    "Le Cantal",
+    "Le Salers"
+   ]
+  },
+  {
+   "id": "general-020",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Dans le calendrier grégorien, une année divisible par quatre est toujours bissextile.",
+   "anecdote": "Les années séculaires ne sont bissextiles que si elles sont divisibles par 400 : 1900 n'a donc pas été bissextile, contrairement à l'an 2000.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ann%C3%A9e_bissextile",
+    "https://fr.wikipedia.org/wiki/Calendrier_gr%C3%A9gorien"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "general-021",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le kilogramme est encore défini par un cylindre en platine iridié conservé près de Paris.",
+   "anecdote": "Depuis le 20 mai 2019, le kilogramme est défini à partir de la constante de Planck. Le « Grand K » de Sèvres avait dérivé d'environ 50 microgrammes par rapport à ses copies officielles.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kilogramme",
+    "https://fr.wikipedia.org/wiki/Prototype_international_du_kilogramme"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "general-022",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "La Cour internationale de justice, principal organe judiciaire de l'ONU, siège à Genève.",
+   "anecdote": "Elle siège au palais de la Paix, à La Haye : c'est le seul des six organes principaux de l'ONU dont le siège ne se trouve pas à New York.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cour_internationale_de_justice",
+    "https://fr.wikipedia.org/wiki/Palais_de_la_Paix"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "general-023",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le dollar américain est la monnaie officielle de l'Équateur.",
+   "anecdote": "En pleine crise économique, l'Équateur a abandonné sa monnaie, le sucre, au profit du dollar américain en 2000. Le Salvador a fait de même en 2001.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dollarisation",
+    "https://fr.wikipedia.org/wiki/%C3%89quateur_(pays)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "general-024",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le pape Grégoire XIII a-t-il promulgué le calendrier grégorien ?",
+   "anecdote": "Pour rattraper le retard accumulé par le calendrier julien, dix jours furent supprimés : à Rome, on passa directement du jeudi 4 octobre au vendredi 15 octobre 1582.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Calendrier_gr%C3%A9gorien",
+    "https://fr.wikipedia.org/wiki/Calendrier_julien"
+   ],
+   "reponse_numerique": 1582
+  },
+  {
+   "id": "general-025",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez un pays membre de l'Union européenne dont la monnaie officielle n'est pas l'euro.",
+   "anecdote": "Depuis l'adoption de l'euro par la Bulgarie le 1ᵉʳ janvier 2026, il ne reste que six pays de l'UE hors zone euro. Le Danemark bénéficie d'une clause d'exemption, tandis que la Suède est en principe tenue d'adopter l'euro mais s'en abstient.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Zone_euro",
+    "https://fr.wikipedia.org/wiki/Euro",
+    "https://fr.wikipedia.org/wiki/Union_europ%C3%A9enne"
+   ],
+   "reponses_acceptees": [
+    "Danemark",
+    "Hongrie",
+    "Pologne",
+    "Roumanie",
+    "Suède",
+    "Tchéquie",
+    "République tchèque"
+   ]
+  },
+  {
+   "id": "geographie-031",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le Sahara est le plus grand désert du monde.",
+   "anecdote": "Un désert se définit par l'aridité, pas par la chaleur : l'Antarctique, avec environ 14 millions de km², est le plus grand désert du monde. Le Sahara n'est « que » le plus grand désert chaud.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/D%C3%A9sert",
+    "https://fr.wikipedia.org/wiki/Antarctique",
+    "https://fr.wikipedia.org/wiki/Sahara"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "geographie-032",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "La Haye est la capitale des Pays-Bas.",
+   "anecdote": "Amsterdam est la capitale constitutionnelle des Pays-Bas, alors que le gouvernement, le Parlement et la Cour internationale de justice siègent à La Haye. Un cas rare de dissociation.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Amsterdam",
+    "https://fr.wikipedia.org/wiki/La_Haye"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "geographie-033",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La Volga est le plus long fleuve d'Europe.",
+   "anecdote": "Longue d'environ 3 530 km, la Volga devance largement le Danube. Elle ne se jette pas dans un océan mais dans la mer Caspienne, une mer fermée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Volga",
+    "https://fr.wikipedia.org/wiki/Mer_Caspienne"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "geographie-034",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de pays le Danube traverse-t-il ou borde-t-il ?",
+   "anecdote": "Avec dix pays traversés ou bordés, le Danube détient le record mondial. Il arrose aussi quatre capitales : Vienne, Bratislava, Budapest et Belgrade.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Danube",
+    "https://fr.wikipedia.org/wiki/Delta_du_Danube"
+   ],
+   "reponse_numerique": 10
+  },
+  {
+   "id": "geographie-035",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez un pays partageant une frontière terrestre avec la France métropolitaine.",
+   "anecdote": "Huit pays bordent la métropole, mais en comptant l'outre-mer, la plus longue frontière terrestre de la France est celle qui sépare la Guyane du Brésil, avec environ 730 km.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fronti%C3%A8res_de_la_France",
+    "https://fr.wikipedia.org/wiki/G%C3%A9ographie_de_la_France"
+   ],
+   "reponses_acceptees": [
+    "Espagne",
+    "Andorre",
+    "Monaco",
+    "Italie",
+    "Suisse",
+    "Allemagne",
+    "Luxembourg",
+    "Belgique"
+   ]
+  },
+  {
+   "id": "histoire-031",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La guerre de Cent Ans a duré exactement cent ans.",
+   "anecdote": "Le conflit entre les royaumes de France et d'Angleterre a duré en réalité 116 ans, de 1337 à 1453, entrecoupé de longues trêves. L'expression « guerre de Cent Ans » a été forgée bien plus tard par les historiens.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guerre_de_Cent_Ans",
+    "https://en.wikipedia.org/wiki/Hundred_Years%27_War"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "histoire-032",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Napoléon Ier était nettement plus petit que la moyenne des Français de son époque.",
+   "anecdote": "Napoléon mesurait environ 1,68 m, une taille tout à fait dans la moyenne de son époque. La légende du « petit caporal » doit beaucoup aux caricatures anglaises et à la confusion entre pouces français et anglais.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Napol%C3%A9on_Ier",
+    "https://en.wikipedia.org/wiki/Napoleon"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "histoire-033",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le 14 juillet 1789, la prise de la Bastille n'a libéré que sept prisonniers.",
+   "anecdote": "La forteresse, symbole de l'arbitraire royal, ne comptait ce jour-là que sept détenus : quatre faussaires, deux fous et un aristocrate, le comte de Solages, embastillé à la demande de sa famille.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Prise_de_la_Bastille",
+    "https://en.wikipedia.org/wiki/Storming_of_the_Bastille"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "histoire-034",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année a débuté la Première Guerre mondiale ?",
+   "anecdote": "L'engrenage fatal part de l'assassinat de l'archiduc François-Ferdinand à Sarajevo le 28 juin 1914 ; l'Allemagne déclare la guerre à la France le 3 août suivant.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Premi%C3%A8re_Guerre_mondiale",
+    "https://fr.wikipedia.org/wiki/Attentat_de_Sarajevo"
+   ],
+   "reponse_numerique": 1914
+  },
+  {
+   "id": "histoire-035",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Charlemagne a-t-il été couronné empereur à Rome ?",
+   "anecdote": "Charlemagne est couronné par le pape Léon III le jour de Noël de l'an 800, dans la basilique Saint-Pierre de Rome, restaurant ainsi un titre impérial disparu en Occident depuis 476.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Charlemagne",
+    "https://fr.wikipedia.org/wiki/Empire_carolingien"
+   ],
+   "reponse_numerique": 800
+  },
+  {
+   "id": "histoire-036",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Philippe Auguste a-t-il remporté la bataille de Bouvines ?",
+   "anecdote": "Remportée un dimanche, le 27 juillet 1214, face à une coalition menée par l'empereur Otton IV, Bouvines est souvent présentée comme l'un des premiers grands événements fondateurs du sentiment national français.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bataille_de_Bouvines",
+    "https://en.wikipedia.org/wiki/Battle_of_Bouvines"
+   ],
+   "reponse_numerique": 1214
+  },
+  {
+   "id": "histoire-037",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez l'une des trois grandes dynasties de rois ayant régné sur les Francs puis la France (hors branches comme Valois ou Bourbons).",
+   "anecdote": "Les Capétiens, arrivés au pouvoir avec Hugues Capet en 987, ont régné sans interruption dynastique jusqu'en 1848 grâce à leurs branches Valois, Bourbon puis Orléans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/M%C3%A9rovingiens",
+    "https://fr.wikipedia.org/wiki/Carolingiens",
+    "https://fr.wikipedia.org/wiki/Cap%C3%A9tiens",
+    "https://fr.wikipedia.org/wiki/Liste_des_monarques_de_France"
+   ],
+   "reponses_acceptees": [
+    "Mérovingiens",
+    "Les Mérovingiens",
+    "Dynastie mérovingienne",
+    "Mérovingien",
+    "Carolingiens",
+    "Les Carolingiens",
+    "Dynastie carolingienne",
+    "Carolingien",
+    "Capétiens",
+    "Les Capétiens",
+    "Dynastie capétienne",
+    "Capétien"
+   ]
+  },
+  {
+   "id": "insolite-023",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Face au danger, l'autruche s'enfouit la tête dans le sable.",
+   "anecdote": "Cette légende remonterait à Pline l'Ancien. En réalité, l'autruche fuit — elle peut dépasser 70 km/h à la course — ou se plaque au sol, cou tendu, pour passer inaperçue.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Autruche_d%27Afrique",
+    "https://fr.wikipedia.org/wiki/Liste_d%27id%C3%A9es_re%C3%A7ues"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "insolite-024",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le poisson rouge n'a qu'une mémoire d'environ trois secondes.",
+   "anecdote": "Des expériences ont montré que le poisson rouge mémorise des tâches pendant des mois : on peut le dresser à réagir à des signaux sonores ou lumineux pour obtenir de la nourriture.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Poisson_rouge",
+    "https://fr.wikipedia.org/wiki/Liste_d%27id%C3%A9es_re%C3%A7ues"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "insolite-025",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le drapeau du Népal est le seul drapeau national au monde qui n'est pas un quadrilatère.",
+   "anecdote": "Formé de deux fanions triangulaires superposés, il compte cinq côtés. Sa construction géométrique exacte est décrite dans la Constitution népalaise elle-même.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_du_N%C3%A9pal",
+    "https://fr.wikipedia.org/wiki/N%C3%A9pal"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "insolite-026",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "gambit_numerique",
+   "texte": "En quelle année une station météo a-t-elle relevé la température la plus basse jamais mesurée sur Terre, −89,2 °C, à Vostok ?",
+   "anecdote": "Le record a été enregistré le 21 juillet 1983 à la base soviétique Vostok, en Antarctique. À cette température, l'acier ordinaire devient cassant comme du verre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Base_antarctique_Vostok",
+    "https://fr.wikipedia.org/wiki/Antarctique"
+   ],
+   "reponse_numerique": 1983
+  },
+  {
+   "id": "insolite-027",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "equipe",
+   "texte": "Citez l'un des quatre groupes sanguins du système ABO.",
+   "anecdote": "Karl Landsteiner a découvert les groupes A, B et O en 1900, ce qui lui a valu le prix Nobel de médecine en 1930. Le groupe AB, plus rare, n'a été décrit qu'en 1902.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Groupe_sanguin",
+    "https://fr.wikipedia.org/wiki/Syst%C3%A8me_ABO",
+    "https://fr.wikipedia.org/wiki/Karl_Landsteiner"
+   ],
+   "reponses_acceptees": [
+    "A",
+    "B",
+    "AB",
+    "O"
+   ]
+  },
+  {
+   "id": "langue-022",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "L'expression « faire long feu » signifie « durer longtemps ».",
+   "anecdote": "« Faire long feu » vient des armes à feu : une charge de poudre humide brûlait lentement et le tir échouait. L'expression signifie donc « échouer », tandis que « ne pas faire long feu » veut dire « ne pas durer ».",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/faire_long_feu",
+    "https://fr.wiktionary.org/wiki/ne_pas_faire_long_feu"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "langue-023",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Dans l'usage littéraire, « amour », « délice » et « orgue » sont masculins au singulier et féminins au pluriel.",
+   "anecdote": "Ces trois noms sont les seuls du français à changer ainsi de genre : on écrit « un grand orgue » mais « les grandes orgues », et les poètes chantent « les belles amours ».",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/amour",
+    "https://fr.wiktionary.org/wiki/d%C3%A9lice"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "langue-024",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Paris est la ville francophone la plus peuplée du monde.",
+   "anecdote": "Kinshasa, capitale de la République démocratique du Congo, a dépassé l'agglomération parisienne dans les années 2010 : elle compte aujourd'hui plus de 17 millions d'habitants.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kinshasa",
+    "https://fr.wikipedia.org/wiki/Francophonie"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "langue-025",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "vrai_faux",
+   "texte": "Le mot « quarteron », comme dans « un quarteron de généraux », désigne un groupe de quatre personnes.",
+   "anecdote": "Un quarteron est historiquement le quart d'un cent, soit environ vingt-cinq. Quand de Gaulle fustige « un quarteron de généraux en retraite » lors du putsch d'avril 1961, il ne parle donc pas de quatre hommes.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/quarteron",
+    "https://fr.wikipedia.org/wiki/Putsch_des_g%C3%A9n%C3%A9raux"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "langue-026",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année l'Académie française a-t-elle été fondée ?",
+   "anecdote": "Fondée par Richelieu en 1635, l'Académie rédige toujours son dictionnaire : la neuvième édition, entamée en 1986, n'a été achevée qu'en 2024.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Acad%C3%A9mie_fran%C3%A7aise",
+    "https://fr.wikipedia.org/wiki/Dictionnaire_de_l%27Acad%C3%A9mie_fran%C3%A7aise"
+   ],
+   "reponse_numerique": 1635
+  },
+  {
+   "id": "langue-027",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année ont été publiées les rectifications orthographiques recommandant « nénufar » et « ognon » ?",
+   "anecdote": "Ces rectifications, publiées au Journal officiel en 1990, restent de simples recommandations : « nénuphar » et « nénufar » sont donc tous deux corrects.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rectifications_orthographiques_du_fran%C3%A7ais_en_1990",
+    "https://fr.wiktionary.org/wiki/n%C3%A9nufar"
+   ],
+   "reponse_numerique": 1990
+  },
+  {
+   "id": "langue-028",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de lettres compte le mot « anticonstitutionnellement » ?",
+   "anecdote": "Avec ses 25 lettres, « anticonstitutionnellement » est traditionnellement cité comme le plus long mot des dictionnaires usuels du français.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Anticonstitutionnellement",
+    "https://fr.wiktionary.org/wiki/anticonstitutionnellement"
+   ],
+   "reponse_numerique": 25
+  },
+  {
+   "id": "langue-029",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "equipe",
+   "texte": "Citez l'un des sept noms en « -ou » qui prennent un « x » au pluriel.",
+   "anecdote": "Générations d'écoliers les ont retenus grâce à la ritournelle « Viens mon chou, mon bijou, mon joujou, sur mes genoux… ». Tous les autres noms en -ou, comme « clou » ou « trou », prennent un simple « s ».",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/bijou",
+    "https://fr.wiktionary.org/wiki/hibou"
+   ],
+   "reponses_acceptees": [
+    "bijou",
+    "bijoux",
+    "caillou",
+    "cailloux",
+    "chou",
+    "choux",
+    "genou",
+    "genoux",
+    "hibou",
+    "hiboux",
+    "joujou",
+    "joujoux",
+    "pou",
+    "poux"
+   ]
+  },
+  {
+   "id": "litterature-036",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Albert Camus a refusé le prix Nobel de littérature.",
+   "anecdote": "Camus a bel et bien accepté le Nobel en 1957, à seulement 44 ans. C'est Jean-Paul Sartre qui a refusé le prix en 1964, ne voulant pas être « institutionnalisé ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Albert_Camus",
+    "https://fr.wikipedia.org/wiki/Jean-Paul_Sartre"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "litterature-037",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le Petit Prince de Saint-Exupéry a d'abord été publié aux États-Unis, avant la France.",
+   "anecdote": "Le Petit Prince paraît à New York en 1943, chez Reynal & Hitchcock, alors que Saint-Exupéry y vit en exil. Les lecteurs français devront attendre l'édition Gallimard de 1946, publiée après la mort de l'auteur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Petit_Prince",
+    "https://fr.wikipedia.org/wiki/Antoine_de_Saint-Exup%C3%A9ry"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "litterature-038",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le tout premier prix Goncourt a-t-il été décerné ?",
+   "anecdote": "Le premier lauréat, John-Antoine Nau, est aujourd'hui presque oublié. Le montant du prix, jadis 5 000 francs-or, n'est plus que symbolique : le lauréat reçoit un chèque de 10 euros, que beaucoup encadrent sans l'encaisser.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Prix_Goncourt",
+    "https://fr.wikipedia.org/wiki/John-Antoine_Nau"
+   ],
+   "reponse_numerique": 1903
+  },
+  {
+   "id": "litterature-039",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Gustave Flaubert est-il jugé, puis acquitté, pour Madame Bovary ?",
+   "anecdote": "Poursuivi pour « outrage à la morale publique et religieuse », Flaubert est acquitté en février 1857. Quelques mois plus tard, la même année, Baudelaire est lui condamné pour Les Fleurs du mal.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Madame_Bovary",
+    "https://fr.wikipedia.org/wiki/Gustave_Flaubert"
+   ],
+   "reponse_numerique": 1857
+  },
+  {
+   "id": "litterature-040",
+   "categorie": "Littérature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "equipe",
+   "texte": "Citez l'un des trois mousquetaires du roman d'Alexandre Dumas (autre que d'Artagnan).",
+   "anecdote": "Contrairement à l'idée reçue, d'Artagnan n'est pas l'un des « trois mousquetaires » du titre : au début du roman, il n'est qu'un cadet gascon. Athos, Porthos et Aramis s'inspirent de mousquetaires réels du XVIIe siècle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Trois_Mousquetaires",
+    "https://fr.wikipedia.org/wiki/Alexandre_Dumas"
+   ],
+   "reponses_acceptees": [
+    "Athos",
+    "Porthos",
+    "Aramis"
+   ]
+  },
+  {
+   "id": "musique-023",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le saxophone appartient à la famille des cuivres.",
+   "anecdote": "Bien que fabriqué en laiton, le saxophone est classé parmi les bois, car son son est produit par une anche, comme la clarinette. Son inventeur, le Belge Adolphe Sax, l'a breveté à Paris en 1846.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Saxophone",
+    "https://fr.wikipedia.org/wiki/Adolphe_Sax"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "musique-024",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Mozart est l'auteur de la mélodie d'« Ah ! vous dirai-je, maman ».",
+   "anecdote": "Mozart n'a composé que des variations (K. 265) sur cet air français populaire antérieur, d'auteur anonyme. La même mélodie sert aussi à la comptine anglaise « Twinkle, Twinkle, Little Star ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ah_!_vous_dirai-je,_maman",
+    "https://fr.wikipedia.org/wiki/Wolfgang_Amadeus_Mozart"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "musique-025",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "À sa création en 1875, l'opéra Carmen de Bizet fut un triomphe immédiat.",
+   "anecdote": "Créée le 3 mars 1875 à l'Opéra-Comique, Carmen reçut un accueil réservé, le sujet ayant choqué une partie du public. Bizet mourut trois mois plus tard, sans connaître le triomphe mondial de son œuvre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Carmen_(op%C3%A9ra)",
+    "https://fr.wikipedia.org/wiki/Georges_Bizet"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "musique-026",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année la Symphonie n° 9 de Beethoven a-t-elle été créée à Vienne ?",
+   "anecdote": "Lors de la création, le 7 mai 1824, Beethoven, devenu sourd, ne pouvait entendre les applaudissements : la contralto Caroline Unger le tourna vers le public pour qu'il constate son triomphe.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Symphonie_no_9_de_Beethoven",
+    "https://fr.wikipedia.org/wiki/Ludwig_van_Beethoven"
+   ],
+   "reponse_numerique": 1824
+  },
+  {
+   "id": "musique-027",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez un compositeur membre du « groupe des Six ».",
+   "anecdote": "Le nom « groupe des Six » a été lancé en 1920 par le critique Henri Collet, par analogie avec le « groupe des Cinq » russe. Germaine Tailleferre en était la seule femme.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Groupe_des_Six",
+    "https://fr.wikipedia.org/wiki/Francis_Poulenc"
+   ],
+   "reponses_acceptees": [
+    "Georges Auric",
+    "Auric",
+    "Louis Durey",
+    "Durey",
+    "Arthur Honegger",
+    "Honegger",
+    "Darius Milhaud",
+    "Milhaud",
+    "Francis Poulenc",
+    "Poulenc",
+    "Germaine Tailleferre",
+    "Tailleferre"
+   ]
+  },
+  {
+   "id": "pop-culture-023",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Dans « L'Empire contre-attaque », Dark Vador prononce exactement la réplique : « Luke, je suis ton père. »",
+   "anecdote": "La réplique exacte est « Non, je suis ton père ». Cette citation déformée est l'un des exemples les plus célèbres de faux souvenir collectif, souvent appelé « effet Mandela ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/L%27Empire_contre-attaque",
+    "https://fr.wikipedia.org/wiki/Dark_Vador"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "pop-culture-024",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le corps de Walt Disney a été cryogénisé après sa mort en 1966.",
+   "anecdote": "C'est une légende urbaine tenace : Walt Disney a en réalité été incinéré, et ses cendres reposent au cimetière de Forest Lawn, en Californie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Walt_Disney",
+    "https://fr.wikipedia.org/wiki/Cryonie"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "pop-culture-025",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Mario est apparu pour la première fois dans le jeu Donkey Kong, avant d'avoir sa propre série.",
+   "anecdote": "Dans Donkey Kong (1981), le personnage s'appelait simplement « Jumpman ». Il aurait ensuite été baptisé Mario en référence à Mario Segale, propriétaire des locaux de Nintendo of America.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mario",
+    "https://fr.wikipedia.org/wiki/Donkey_Kong_(jeu_vid%C3%A9o,_1981)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "pop-culture-026",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le jeu vidéo Tetris a été créé au Japon.",
+   "anecdote": "Tetris a été conçu en 1984 en URSS par Alexeï Pajitnov, alors chercheur à l'Académie des sciences de Moscou. Son nom combine « tétromino » et « tennis », son sport favori.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tetris",
+    "https://fr.wikipedia.org/wiki/Alexe%C3%AF_Pajitnov"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "pop-culture-027",
+   "categorie": "Pop Culture",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année est sorti au cinéma le tout premier film Star Wars, « La Guerre des étoiles » ?",
+   "anecdote": "Sorti aux États-Unis en mai 1977, le film n'est arrivé en France qu'en octobre de la même année, sous le titre « La Guerre des étoiles ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Star_Wars,_%C3%A9pisode_IV_:_Un_nouvel_espoir",
+    "https://fr.wikipedia.org/wiki/Star_Wars"
+   ],
+   "reponse_numerique": 1977
+  },
+  {
+   "id": "pop-culture-028",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année est sorti aux États-Unis « Toy Story », premier long-métrage entièrement en images de synthèse ?",
+   "anecdote": "Produit par Pixar pour Disney, Toy Story est sorti aux États-Unis le 22 novembre 1995. Tom Hanks y prête sa voix au cow-boy Woody dans la version originale.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Toy_Story",
+    "https://fr.wikipedia.org/wiki/Pixar_Animation_Studios"
+   ],
+   "reponse_numerique": 1995
+  },
+  {
+   "id": "pop-culture-029",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez l'un des sept nains du dessin animé Disney « Blanche-Neige et les Sept Nains » (noms français).",
+   "anecdote": "Dans le film de 1937, Simplet est le seul des sept nains à ne jamais parler. Les frères Grimm, eux, n'avaient donné aucun nom aux nains : c'est Disney qui les a baptisés.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Blanche-Neige_et_les_Sept_Nains",
+    "https://fr.wikipedia.org/wiki/Sept_Nains"
+   ],
+   "reponses_acceptees": [
+    "Prof",
+    "Grincheux",
+    "Joyeux",
+    "Dormeur",
+    "Atchoum",
+    "Timide",
+    "Simplet"
+   ]
+  },
+  {
+   "id": "sciences-033",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le sang désoxygéné qui circule dans nos veines est réellement de couleur bleue.",
+   "anecdote": "Le sang veineux est rouge sombre : il n'apparaît bleuâtre qu'à travers la peau, à cause de la façon dont la lumière la traverse et se disperse.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sang",
+    "https://fr.wikipedia.org/wiki/H%C3%A9moglobine"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sciences-034",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Les caméléons changent de couleur avant tout pour se camoufler dans leur environnement.",
+   "anecdote": "Le changement de teinte sert surtout à communiquer (parade, intimidation) et à la thermorégulation ; le camouflage n'est qu'un rôle secondaire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chamaeleonidae",
+    "https://fr.wikipedia.org/wiki/Cam%C3%A9l%C3%A9on"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sciences-035",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Les vitraux médiévaux sont plus épais en bas car le verre s'écoule lentement comme un liquide.",
+   "anecdote": "Le verre est un solide amorphe : la surépaisseur vient du procédé de fabrication de l'époque, la partie la plus lourde étant placée en bas pour la stabilité.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Verre",
+    "https://fr.wikipedia.org/wiki/Transition_vitreuse"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sciences-036",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La foudre ne frappe jamais deux fois le même endroit.",
+   "anecdote": "Le sommet de l'Empire State Building est foudroyé une vingtaine de fois par an ; les points hauts sont au contraire des cibles privilégiées.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Foudre",
+    "https://fr.wikipedia.org/wiki/Paratonnerre"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sciences-037",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "L'eau parfaitement pure est un excellent conducteur d'électricité.",
+   "anecdote": "L'eau ultrapure conduit très mal le courant : ce sont les sels et ions dissous qui rendent l'eau du robinet conductrice.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Eau",
+    "https://fr.wikipedia.org/wiki/Conductivit%C3%A9_%C3%A9lectrique"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sciences-038",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Quelle est, en mètres par seconde, la vitesse de la lumière dans le vide ?",
+   "anecdote": "Cette valeur est exacte par définition : depuis 1983, le mètre est défini à partir de cette vitesse, désormais fixée sans incertitude.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vitesse_de_la_lumi%C3%A8re",
+    "https://fr.wikipedia.org/wiki/M%C3%A8tre"
+   ],
+   "reponse_numerique": 299792458
+  },
+  {
+   "id": "sciences-039",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "À combien de degrés Celsius correspond le zéro absolu (0 kelvin) ?",
+   "anecdote": "C'est la température la plus basse théoriquement possible, où l'agitation thermique des particules atteint son minimum ; elle est inatteignable en pratique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Z%C3%A9ro_absolu",
+    "https://fr.wikipedia.org/wiki/Kelvin"
+   ],
+   "reponse_numerique": -273.15
+  },
+  {
+   "id": "sciences-040",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de chromosomes possède une cellule humaine normale (hors cellules sexuelles) ?",
+   "anecdote": "Soit 23 paires ; les cellules reproductrices, ovules et spermatozoïdes, n'en comptent que 23.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chromosome",
+    "https://fr.wikipedia.org/wiki/Caryotype_humain"
+   ],
+   "reponse_numerique": 46
+  },
+  {
+   "id": "sciences-041",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année un être humain a-t-il marché pour la première fois sur la Lune ?",
+   "anecdote": "Le 21 juillet 1969, Neil Armstrong pose le pied sur la Lune lors de la mission Apollo 11, suivi de Buzz Aldrin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Apollo_11",
+    "https://fr.wikipedia.org/wiki/Neil_Armstrong"
+   ],
+   "reponse_numerique": 1969
+  },
+  {
+   "id": "sciences-042",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez une des quatre planètes telluriques (rocheuses) du Système solaire.",
+   "anecdote": "Les planètes telluriques, proches du Soleil, sont surtout rocheuses, contrairement aux géantes gazeuses Jupiter, Saturne, Uranus et Neptune.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Plan%C3%A8te_tellurique",
+    "https://fr.wikipedia.org/wiki/Syst%C3%A8me_solaire"
+   ],
+   "reponses_acceptees": [
+    "Mercure",
+    "Vénus",
+    "Terre",
+    "Mars"
+   ]
+  },
+  {
+   "id": "sport-022",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le maillot jaune du Tour de France a été porté dès la première édition de la course, en 1903.",
+   "anecdote": "Le maillot jaune n'apparaît qu'en 1919, porté pour la première fois par Eugène Christophe. Sa couleur rappelle celle des pages du journal organisateur, L'Auto.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Maillot_jaune",
+    "https://fr.wikipedia.org/wiki/Tour_de_France_1919",
+    "https://fr.wikipedia.org/wiki/Eug%C3%A8ne_Christophe"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sport-023",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "À Wimbledon, un match s'est déjà achevé sur le score de 70 jeux à 68 au cinquième set.",
+   "anecdote": "En 2010, John Isner bat Nicolas Mahut 70-68 au cinquième set, au terme du plus long match de l'histoire du tennis : 11 heures et 5 minutes disputées sur trois jours.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tournoi_de_Wimbledon_2010",
+    "https://fr.wikipedia.org/wiki/John_Isner",
+    "https://fr.wikipedia.org/wiki/Nicolas_Mahut"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "sport-024",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le marathon olympique se court sur 42,195 km depuis les premiers Jeux modernes d'Athènes, en 1896.",
+   "anecdote": "La distance de 42,195 km date des Jeux de Londres 1908 : le départ fut donné au château de Windsor et l'arrivée jugée devant la loge royale. Elle n'est devenue la norme officielle qu'en 1921.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marathon_(sport)",
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques_de_1908"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sport-025",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Chaque couleur des anneaux olympiques est officiellement attribuée à un continent précis.",
+   "anecdote": "Un manuel du CIO associait bien chaque couleur à un continent, mais cette attribution a été supprimée en 1951, faute de preuve que Coubertin l'ait voulue. Les cinq anneaux symbolisent l'union des continents, sans correspondance officielle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Symboles_olympiques",
+    "https://fr.wikipedia.org/wiki/Drapeau_olympique"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sport-026",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année s'est disputée la première Coupe du monde de football ?",
+   "anecdote": "Organisée en Uruguay avec seulement 13 équipes, dont 4 européennes, cette première édition voit le pays hôte battre l'Argentine 4-2 en finale à Montevideo.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Coupe_du_monde_de_football_de_1930",
+    "https://fr.wikipedia.org/wiki/Coupe_du_monde_de_football"
+   ],
+   "reponse_numerique": 1930
+  },
+  {
+   "id": "sport-027",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de fois Rafael Nadal a-t-il remporté Roland-Garros en simple messieurs ?",
+   "anecdote": "Record absolu de titres dans un même tournoi du Grand Chelem : à Roland-Garros, Nadal affiche 112 victoires pour seulement 4 défaites. Une statue le représente dans l'enceinte du stade.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rafael_Nadal",
+    "https://fr.wikipedia.org/wiki/Internationaux_de_France_de_tennis"
+   ],
+   "reponse_numerique": 14
+  },
+  {
+   "id": "sport-028",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En secondes, quel est le record du monde du 100 mètres établi par Usain Bolt en 2009 ?",
+   "anecdote": "Aux Mondiaux de Berlin 2009, Bolt améliore son propre record de 11 centièmes. Quatre jours plus tard, il pulvérise aussi celui du 200 m en 19 s 19.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Usain_Bolt",
+    "https://fr.wikipedia.org/wiki/Championnats_du_monde_d%27athl%C3%A9tisme_2009"
+   ],
+   "reponse_numerique": 9.58
+  },
+  {
+   "id": "sport-029",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "gambit_numerique",
+   "texte": "Combien de médailles olympiques la gymnaste soviétique Larissa Latynina a-t-elle remportées au total ?",
+   "anecdote": "Avec 18 médailles (9 d'or, 5 d'argent, 4 de bronze) glanées entre 1956 et 1964, Latynina a détenu le record absolu de médailles olympiques pendant 48 ans, jusqu'à Michael Phelps en 2012.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Larissa_Latynina",
+    "https://www.olympics.com/fr/athletes/larisa-latynina"
+   ],
+   "reponse_numerique": 18
   },
   {
    "id": "script-G1",
