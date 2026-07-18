@@ -382,6 +382,28 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 .bet-grid { flex-direction: row; flex-wrap: wrap; }
 .bet-grid .btn { flex: 1 1 16%; text-align: center; font-weight: bold; }
 
+/* Mini-jeux : anagramme & pendu (dérivés de la banque vérifiée). */
+.anagram-letters {
+  font-size: 1.8rem;
+  font-weight: bold;
+  letter-spacing: 0.5rem;
+  text-align: center;
+  color: var(--gold);
+  word-break: break-word;
+}
+.hangman-word {
+  font-size: 1.6rem;
+  font-weight: bold;
+  letter-spacing: 0.35rem;
+  text-align: center;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.hangman-alpha { flex-direction: row; flex-wrap: wrap; gap: 0.35rem; }
+.hangman-alpha .btn { flex: 1 1 12%; min-width: 2.1rem; text-align: center; font-weight: bold; }
+.letter-hit { background: color-mix(in srgb, #3ec27a 32%, var(--card)); opacity: 1; }
+.letter-miss { opacity: 0.35; text-decoration: line-through; }
+
 .hint-zone .hint { color: var(--gold); font-style: italic; }
 .help-note { color: var(--soft); font-size: 0.9rem; }
 .power-zone { display: flex; flex-direction: column; gap: 0.5rem; }

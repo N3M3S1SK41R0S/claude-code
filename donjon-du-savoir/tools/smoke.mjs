@@ -91,6 +91,10 @@ try {
     for (let step = 0; step < 25; step++) {
       if (await page.getByRole("button", { name: "🎲 Lancer le dé" }).isVisible().catch(() => false)) break;
 
+      // Mini-jeu Pendu : abandonner tout de suite (le bot ne devine pas de mots).
+      const abandon = page.getByRole("button", { name: /J'abandonne/ });
+      if (await abandon.isVisible().catch(() => false)) { await abandon.click(); continue; }
+
       // Bet rows (événement collectif, gambit): one vote per player group.
       const groups = page.locator(".bet-buttons");
       const groupCount = await groups.count();

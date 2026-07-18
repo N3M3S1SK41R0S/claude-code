@@ -12,6 +12,13 @@ import { characterById, clearPendingCase, computeBonusStars, currentPion, getSta
 import { bigButton, choiceButton, el, heraldSays, setPanel } from "./ui.js";
 import { portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
+import { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } from "./minigames.js";
+
+/** Seam de test déterministe (jamais posé en jeu réel) : force un mini-jeu
+ *  précis, ou une question bonus, pour couvrir ces panneaux en E2E. */
+function testFlag(name) {
+  return typeof globalThis !== "undefined" ? globalThis[name] : undefined;
+}
 
 let onVictory = null;
 
@@ -780,14 +787,120 @@ function doQuestion() {
   const pion = currentPion();
   const q = drawQuestion(pion, { formats: ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_confiance"] });
   if (!q) return endPanel("La banque de questions est épuisée. Le Donjon est impressionné.");
-  // Variety on classic QCM draws: some become a TTMC-style confidence bet,
-  // some a CASH/CARRÉ/DUO risk pick — the same bank plays many ways.
+  // Variety on classic QCM draws: some become a TTMC-style confidence bet, some
+  // a CASH/CARRÉ/DUO risk pick, some a word mini-game DERIVED from the correct
+  // answer (anagramme / pendu) — the same verified bank plays many ways.
   if (q.format === "qcm") {
+    const forced = testFlag("__DONJON_MINIGAME");
+    const eligible = miniGameAnswer(q); // réponse convenant à un anagramme/pendu
+    if (eligible && forced === "anagram") return anagramFlow(pion, q);
+    if (eligible && forced === "hangman") return hangmanFlow(pion, q);
     const r = Math.random();
-    if (r < 0.15) return confianceFlow(pion, q);
-    if (r < 0.35) return ccdPicker(pion, q);
+    if (r < 0.12) return confianceFlow(pion, q);
+    if (r < 0.28) return ccdPicker(pion, q);
+    // Mini-jeux désactivés en mode test déterministe (sauf forçage ci-dessus).
+    if (!testFlag("__DONJON_TEST") && eligible) {
+      if (r < 0.37) return anagramFlow(pion, q);
+      if (r < 0.45) return hangmanFlow(pion, q);
+    }
   }
   questionFlow(pion, q);
+}
+
+/** La bonne réponse d'un QCM convient-elle à un anagramme/pendu ? On veut un
+ *  terme ni trop court (trivial) ni trop long (fastidieux), en peu de mots. */
+function miniGameAnswer(q) {
+  const ans = (q.bonne_reponse ?? "").trim();
+  if (!ans) return null;
+  const letters = [...ans].filter((c) => /\p{L}/u.test(c)).length;
+  if (letters < 4 || letters > 18) return null;
+  if (ans.split(/\s+/).length > 3) return null;
+  return ans;
+}
+
+/** Anagramme (façon Motus/Time's Up) : les lettres de la réponse mélangées ;
+ *  on la retrouve à voix haute, la table valide. Récompense d'un QCM. */
+function anagramFlow(pion, q) {
+  const intro = speakerIntro(pion);
+  if (intro) heraldSays(intro);
+  heraldSays("Mini-jeu : l'Anagramme ! Ces lettres cachent la réponse — remettez-les dans l'ordre.");
+  const { scrambled } = makeAnagram(q.bonne_reponse);
+  const container = el("div", { class: "question-block" });
+  container.append(
+    questionHeader(q, pion),
+    el("p", { class: "question-texte", text: q.texte }),
+    el("p", { class: "help-note", text: "🔤 Anagramme : réarrangez ces lettres pour trouver la réponse, à voix haute." }),
+    el("p", { class: "anagram-letters", "aria-label": `Lettres mélangées : ${scrambled}`, text: scrambled }),
+    bigButton("Révéler la réponse", () => setPanel(
+      el("div", { class: "question-block" },
+        el("p", { class: "reveal-answer", html: `✅ Réponse : <strong>${q.bonne_reponse}</strong>` }),
+        el("div", { class: "choices choices-2" },
+          choiceButton("👍 Trouvé !", () => resolveAnswer(pion, q, true, ADVANCE.qcm)),
+          choiceButton("👎 Raté…", () => resolveAnswer(pion, q, false, ADVANCE.qcm)),
+        ),
+      ),
+    )),
+  );
+  setPanel(container);
+}
+
+/** Pendu (façon Motus) : on devine les lettres de la réponse, 6 erreurs max.
+ *  Mot trouvé = bonne réponse ; sinon on peut abandonner. Récompense d'un QCM. */
+function hangmanFlow(pion, q) {
+  const intro = speakerIntro(pion);
+  if (intro) heraldSays(intro);
+  heraldSays("Mini-jeu : le Pendu ! Devinez les lettres pour reconstituer la réponse.");
+  const answer = q.bonne_reponse;
+  const MAX_ERR = 6;
+  const guessed = new Set();
+  let errors = 0;
+
+  const rerender = () => {
+    const { display, revealed } = hangmanState(answer, [...guessed]);
+    if (revealed) {
+      return setPanel(
+        el("div", { class: "question-block" },
+          el("p", { class: "hangman-word", text: display }),
+          el("p", { class: "reveal-answer", html: `👏 Bravo ! La réponse était bien <strong>${answer}</strong>.` }),
+          bigButton("Continuer", () => resolveAnswer(pion, q, true, ADVANCE.qcm)),
+        ),
+      );
+    }
+    if (errors >= MAX_ERR) {
+      return setPanel(
+        el("div", { class: "question-block" },
+          el("p", { class: "hangman-word", text: display }),
+          el("p", { class: "reveal-answer", html: `❌ Plus d'essais… La réponse était : <strong>${answer}</strong>` }),
+          bigButton("Continuer", () => resolveAnswer(pion, q, false, ADVANCE.qcm)),
+        ),
+      );
+    }
+    const container = el("div", { class: "question-block" });
+    container.append(
+      questionHeader(q, pion),
+      el("p", { class: "question-texte", text: q.texte }),
+      el("p", { class: "hangman-word", "aria-label": `Mot à trouver : ${display}`, text: display }),
+      el("p", { class: "help-note", text: `Erreurs : ${errors} / ${MAX_ERR}` }),
+    );
+    const grid = el("div", { class: "choices hangman-alpha", role: "group", "aria-label": "Lettres à proposer" });
+    for (const letter of HANGMAN_ALPHABET) {
+      const used = guessed.has(letter);
+      const btn = choiceButton(letter, () => {
+        if (guessed.has(letter)) return;
+        guessed.add(letter);
+        if (!hangmanHas(answer, letter)) errors += 1;
+        rerender();
+      });
+      if (used) {
+        btn.disabled = true;
+        btn.classList.add(hangmanHas(answer, letter) ? "letter-hit" : "letter-miss");
+      }
+      grid.append(btn);
+    }
+    container.append(grid, bigButton("J'abandonne — révéler la réponse", () => { errors = MAX_ERR; rerender(); }));
+    setPanel(container);
+  };
+  rerender();
 }
 
 function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {}) {
@@ -1311,7 +1424,53 @@ function finishTurn() {
     save();
     prefix = `🔔 DERNIÈRE MANCHE ! Chacun reçoit +${LAST_ROUND_BONUS} 🪙 pour un ultime coup d'éclat. ${prefix}`;
   }
+
+  // Question bonus de la tablée (~1 tour sur 7, jamais au tout premier) : tout le
+  // monde joue, la première bonne réponse criée rafle l'or. Zéro chronomètre.
+  const forceBonus = testFlag("__DONJON_BONUS");
+  if (forceBonus || (!testFlag("__DONJON_TEST") && state.tour >= 2 && Math.random() < 0.15)) {
+    return teamBonusFlow(() => startTurn({ prefix }));
+  }
   startTurn({ prefix });
+}
+
+/** Question bonus posée à TOUTE la tablée entre deux tours (esprit Une Famille
+ *  en Or / Burger Quiz) : réponse à voix haute, la table désigne le gagnant. */
+function teamBonusFlow(onDone) {
+  const q = drawEvent(); // question accessible à tous (respecte la règle enfant)
+  if (!q) return onDone();
+  heraldSays("🔔 QUESTION BONUS ! Toute la tablée joue : la première bonne réponse criée rafle l'or.");
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "🔔 Question bonus de la tablée" }),
+      el("div", { class: "question-head" }, el("span", { class: "badge badge-cat", text: q.categorie })),
+      el("p", { class: "question-texte", text: q.texte }),
+      el("p", { class: "help-note", text: "🗣️ Tout le monde peut répondre à voix haute — aucun chronomètre, mais la première bonne réponse l'emporte." }),
+      bigButton("Révéler la réponse", () => revealTableBonus(q, onDone)),
+    ),
+  );
+}
+
+function revealTableBonus(q, onDone) {
+  const REWARD = 5;
+  const accepted = q.bonne_reponse ?? String(q.reponse_numerique ?? (q.reponses_acceptees ?? []).join(" · "));
+  const grid = el("div", { class: "choices" });
+  for (const p of getState().pions) {
+    grid.append(choiceButton(`${characterById(p.characterId).emoji} ${p.nom}`, () => {
+      const gained = addCoins(p, REWARD);
+      heraldSays(`+${gained} 🪙 pour ${p.nom} ! Le savoir paie toujours.`);
+      onDone();
+    }));
+  }
+  setPanel(
+    el("div", { class: "question-block" },
+      el("p", { class: "reveal-answer", html: `✅ Réponse : <strong>${accepted}</strong>` }),
+      anecdoteCardEl(q),
+      el("p", { class: "panel-text", text: `Qui a trouvé en premier ? Cette personne (ou son équipe) empoche +${REWARD} 🪙.` }),
+      grid,
+      bigButton("Personne n'a trouvé", onDone),
+    ),
+  );
 }
 
 function endStarGame() {

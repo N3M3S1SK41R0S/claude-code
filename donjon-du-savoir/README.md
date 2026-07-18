@@ -61,7 +61,14 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
    **Besasse Badass** (inventaire 3 → 6). Un **toast d'ouverture** loufoque
    désigne qui commence.
 4. **Après chaque question, l'anecdote s'affiche — toujours**, avec ses sources.
-5. Premier pion au Trésor : victoire (jamais d'élimination).
+5. **Mini-jeux de mots** : certaines questions QCM se muent en 🔤 **Anagramme**
+   (les lettres de la réponse mélangées, façon Motus/Time's Up) ou en 🪢 **Pendu**
+   (on devine les lettres, 6 erreurs max). Ils sont **dérivés de la banque déjà
+   vérifiée** — aucun contenu neuf, donc aucun risque factuel.
+6. **Question bonus de la tablée** : de temps en temps, entre deux tours, le
+   Héraut lance une question à **toute la table** — la première bonne réponse
+   criée rafle quelques pièces (toujours zéro chronomètre, la table est juge).
+7. Premier pion au Trésor : victoire (jamais d'élimination).
 
 ### Formats de question (aucun n'est chronométré)
 
@@ -143,6 +150,7 @@ node tools/smoke.mjs             # E2E Chromium : setup → dés → cases →
 node tools/smoke-shop.mjs        # E2E boutique + objets + toast d'ouverture
 node tools/smoke-etoiles.mjs     # E2E mode Étoiles : achat d'étoile au passage,
                                  # sceptre du larcin, 3 étoiles bonus de fin
+node tools/smoke-minigames.mjs   # E2E anagramme / pendu / question bonus tablée
 node tools/test-bonus.mjs        # unitaire : tirage des étoiles bonus de fin
 node tools/test-minigames.mjs    # unitaire : anagramme / pendu / plus proche
 node tools/make-icons.mjs        # régénère les icônes PWA (vectoriel → PNG)

@@ -52,6 +52,8 @@ try {
     await page.getByRole("button", { name: /Avancer de \d/ }).click({ timeout: 8000 });
     for (let step = 0; step < 25; step++) {
       if (await page.getByRole("button", { name: "🎲 Lancer le dé" }).isVisible().catch(() => false)) break;
+      const abandon = page.getByRole("button", { name: /J'abandonne/ });
+      if (await abandon.isVisible().catch(() => false)) { await abandon.click(); continue; }
       const groups = page.locator(".bet-buttons");
       let voted = false;
       for (let g = 0; g < (await groups.count()); g++) {

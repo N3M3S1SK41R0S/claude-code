@@ -75,6 +75,8 @@ try {
         break;
       }
       if (await page.getByRole("button", { name: "🎲 Lancer le dé" }).isVisible().catch(() => false)) break;
+      const abandon = page.getByRole("button", { name: /J'abandonne/ });
+      if (await abandon.isVisible().catch(() => false)) { await abandon.click(); continue; }
       const groups = page.locator(".bet-buttons");
       let voted = false;
       for (let g = 0; g < (await groups.count()); g++) { const grp = groups.nth(g); if ((await grp.locator(".bet-selected").count()) === 0) { await grp.locator("button").first().click(); voted = true; break; } }
