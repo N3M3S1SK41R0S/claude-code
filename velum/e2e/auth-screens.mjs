@@ -58,7 +58,7 @@ await screen('07b-carnet-montres', '/carnet', 'Omega Speedmaster Professional 35
 });
 // 08. Fiche d'un objet — analyse ZAPPA + valorisation IC + histoire & dernières ventes.
 await screen('08-fiche-vin', '/item/demo-wine', 'Bandol Domaine Tempier 2016', async () => {
-  await page.getByText(/3 source/).waitFor({ state: 'visible' });
+  await page.getByText(/56 \/ 100 · 3 source/).waitFor({ state: 'visible' });
 });
 // 19. Fiche pièce — grade, tirage, dernières ventes numismatiques (CGB, Numista…).
 await screen('19-fiche-piece', '/item/demo-coin', '5 Francs Semeuse');

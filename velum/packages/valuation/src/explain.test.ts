@@ -113,4 +113,30 @@ describe('explainFromResult (client, sans FX)', () => {
     expect(usd?.priceEUR).toBeUndefined(); // pas de FX côté client
     expect(eur?.priceEUR).toBe(90);
   });
+
+  it('recalcule explicitement un score historique selon le moteur courant', () => {
+    const observations = [
+      { ...obs(48, 'auction_realized'), source: { name: 'iDealwine', kind: 'auction_realized' as const } },
+      { ...obs(50, 'auction_realized'), source: { name: 'iDealwine', kind: 'auction_realized' as const } },
+      { ...obs(53, 'official_quote'), source: { name: 'Wine-Searcher', kind: 'official_quote' as const } },
+      { ...obs(56, 'listing'), source: { name: 'Cavissima', kind: 'listing' as const } },
+    ];
+    const explanation = explainFromResult({
+      central: 51,
+      ci80: [45, 58],
+      ci95: [42, 62],
+      reliability: 81,
+      observations,
+      nSources: 4,
+    });
+
+    expect(explanation.reliability).toBe(56);
+    expect(explanation.storedReliability).toBe(81);
+    expect(explanation.reliabilityRecomputed).toBe(true);
+    expect(explanation.nKept).toBe(4);
+    expect(explanation.nSources).toBe(3);
+    expect(explanation.notes.join(' ')).toMatch(/score enregistré : 81\/100/i);
+    expect(reliabilityFromExplanation(explanation)).toBe(56);
+  });
+
 });

@@ -15,6 +15,12 @@ export {
   type ValuateOptions,
 } from './engine.ts';
 
+export {
+  resolveReliabilityForResult,
+  type PersistedReliabilityInput,
+  type ReliabilityResolution,
+} from './resolve.ts';
+
 // Pari #1 — explicabilité « pourquoi cette fourchette ».
 export {
   explainValuation,

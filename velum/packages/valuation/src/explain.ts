@@ -22,6 +22,7 @@ import {
   valuate,
   type ValuateOptions,
 } from './engine.ts';
+import { resolveReliabilityForResult } from './resolve.ts';
 
 /** Décomposition d'une observation dans la décision du moteur. */
 export interface ObservationBreakdown {
@@ -47,6 +48,10 @@ export interface ValuationExplanation {
   ci80: [number, number];
   ci95: [number, number];
   reliability: number;
+  /** Score présent dans la ligne persistée avant éventuel recalcul. */
+  storedReliability: number;
+  /** true lorsque les observations permettent d’appliquer le moteur courant. */
+  reliabilityRecomputed: boolean;
   /** Largeur de l'IC 80 % relative à la valeur centrale (dispersion, 0..1+). */
   ci80WidthRatio: number;
   /** Nombre d'observations conservées après rejet MAD. */
@@ -143,8 +148,15 @@ export function explainValuation(
         ? `Fourchette modérée (± ${Math.round((ci80WidthRatio / 2) * 100)} %) : quelques divergences entre sources.`
         : `Fourchette large (± ${Math.round((ci80WidthRatio / 2) * 100)} %) : peu de données concordantes — prudence.`,
   );
+  if (resolution.differsFromStored) {
+    notes.push(
+      `Score recalculé selon le moteur courant à partir des sources conservées (score enregistré : ${resolution.stored}/100).`,
+    );
+  }
   notes.push(
-    `Fiabilité ${result.reliability}/100 = moitié couverture (${Math.round(countScore * 100)} %) + moitié resserrement (${Math.round(tightnessScore * 100)} %).`,
+    resolution.recomputed
+      ? `Fiabilité ${resolution.value}/100 = moitié couverture (${Math.round(countScore * 100)} %) + moitié resserrement (${Math.round(tightnessScore * 100)} %).`
+      : `Fiabilité enregistrée ${resolution.value}/100 — détail du calcul indisponible faute de sources conservées.`,
   );
 
   return {
@@ -152,6 +164,8 @@ export function explainValuation(
     ci80: result.ci80,
     ci95: result.ci95,
     reliability: result.reliability,
+    storedReliability: result.reliability,
+    reliabilityRecomputed: true,
     ci80WidthRatio,
     nKept,
     nSources,
@@ -167,7 +181,9 @@ export function explainValuation(
 
 /** Cohérence : le score de fiabilité recalculé depuis l'explication == moteur. */
 export function reliabilityFromExplanation(e: ValuationExplanation): number {
-  return reliabilityScore(e.nSources, e.ci80[0], e.ci80[1], e.central);
+  return e.reliabilityRecomputed
+    ? reliabilityScore(e.nSources, e.ci80[0], e.ci80[1], e.central)
+    : e.reliability;
 }
 
 /**
@@ -186,6 +202,12 @@ export function explainFromResult(result: {
   observations: PriceObservation[];
   nSources: number;
 }): ValuationExplanation {
+  const resolution = resolveReliabilityForResult({
+    central: result.central,
+    ci80: result.ci80,
+    reliability: result.reliability,
+    observations: result.observations,
+  });
   const halfLife = HALF_LIFE_DAYS;
   const breakdown: ObservationBreakdown[] = result.observations.map((o) => {
     const sw = o.sourceWeight ?? DEFAULT_SOURCE_WEIGHTS[o.source.kind];
@@ -201,7 +223,7 @@ export function explainFromResult(result: {
   });
 
   const nKept = result.observations.length;
-  const nSources = countDistinctSources(result.observations);
+  const nSources = resolution.nSources;
   const ci80WidthRatio = result.central
     ? Number(((result.ci80[1] - result.ci80[0]) / result.central).toFixed(3))
     : 1;
@@ -235,7 +257,9 @@ export function explainFromResult(result: {
     central: result.central,
     ci80: result.ci80,
     ci95: result.ci95,
-    reliability: result.reliability,
+    reliability: resolution.value,
+    storedReliability: resolution.stored,
+    reliabilityRecomputed: resolution.recomputed,
     ci80WidthRatio,
     nKept,
     nSources,

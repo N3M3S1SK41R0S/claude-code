@@ -10,7 +10,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { VText, velumColors, velumRadius, velumSpacing } from '@velum/ui';
 import type { ValuationRecord } from '@velum/core';
-import { countDistinctSources, explainFromResult } from '@velum/valuation';
+import { explainFromResult } from '@velum/valuation';
 
 export interface ValuationExplanationProps {
   valuation: ValuationRecord;
@@ -27,7 +27,7 @@ export function ValuationExplanation({ valuation, label }: ValuationExplanationP
     ci95: [valuation.ci95Low, valuation.ci95High],
     reliability: valuation.reliability,
     observations: valuation.sources,
-    nSources: countDistinctSources(valuation.sources),
+    nSources: 0,
   });
 
   return (
@@ -41,16 +41,16 @@ export function ValuationExplanation({ valuation, label }: ValuationExplanationP
         style={styles.toggle}
       >
         <VText variant="caption" tone="gold">
-          {open ? '▾' : '▸'}  {label}
+{open ? '▾' : '▸'}  {label}
         </VText>
       </Pressable>
       {open ? (
         <View style={styles.body}>
-          {explanation.notes.map((note, i) => (
-            <VText key={i} variant="caption" tone="dim" style={styles.note}>
-              •  {note}
-            </VText>
-          ))}
+{explanation.notes.map((note, i) => (
+  <VText key={i} variant="caption" tone="dim" style={styles.note}>
+    •  {note}
+  </VText>
+))}
         </View>
       ) : null}
     </View>
