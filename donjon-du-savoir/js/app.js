@@ -4,6 +4,7 @@ import { loadBank, bankSize } from "./data.js";
 import { BOARDS, boardById, generateBoard } from "./board.js";
 import { resumeGame, startGame } from "./game.js";
 import { CHARACTERS, characterById, clearSave, loadSave, newGame } from "./state.js";
+import { portraitEl } from "./portraits.js";
 import { setVoice, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
 import { el } from "./ui.js";
 
@@ -74,7 +75,7 @@ function profilToggle(obj, rerender) {
 function characterButton(obj, rerender) {
   const c = characterById(obj.characterId);
   return el("button", {
-    class: "btn btn-toggle",
+    class: "btn btn-toggle btn-character",
     type: "button",
     title: `${c.nom} — ${c.titre}`,
     "aria-label": `Personnage : ${c.nom} (toucher pour changer)`,
@@ -82,7 +83,7 @@ function characterButton(obj, rerender) {
       obj.characterId = cycleCharacter(obj.characterId);
       rerender();
     },
-  }, `${c.emoji} ${c.nom}`);
+  }, portraitEl(obj.characterId, 34), c.nom);
 }
 
 function nameInput(obj, placeholder) {
@@ -252,13 +253,16 @@ function showVictory(winner, rankingData) {
   zone.append(
     el("h2", { class: "victory-title", text: `🏆 ${winner.nom} remporte le Trésor du Savoir !` }),
     el("ol", { class: "victory-list" },
-      ...rankingData.map((p, i) => {
-        const c = characterById(p.characterId);
-        return el("li", { class: "victory-item" + (i === 0 ? " victory-item-first" : "") },
-          el("span", { text: `${i === 0 ? "👑" : i === 1 ? "🥈" : i === 2 ? "🥉" : "🎓"} ${c.emoji} ${p.nom}` }),
+      ...rankingData.map((p, i) =>
+        el("li", { class: "victory-item" + (i === 0 ? " victory-item-first" : "") },
+          el("span", { class: "victory-who" },
+            el("span", { "aria-hidden": "true", text: i === 0 ? "👑" : i === 1 ? "🥈" : i === 2 ? "🥉" : "🎓" }),
+            portraitEl(p.characterId, 40),
+            el("span", { text: p.nom }),
+          ),
           el("span", { class: "victory-meta", text: `case ${p.position} · 🪙${p.pieces} · ${p.bonnes}/${p.questions} bonnes réponses` }),
-        );
-      }),
+        ),
+      ),
     ),
     el("button", { class: "btn btn-big btn-gold", type: "button", onclick: () => { clearSave(); renderSetup(); show("setup"); } }, "⚔️ Revanche"),
     el("button", { class: "btn", type: "button", onclick: () => { clearSave(); renderHome(); show("home"); } }, "🏠 Accueil"),

@@ -10,6 +10,7 @@ import { herald } from "./herald.js";
 import { canRecharge, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { characterById, clearPendingCase, currentPion, getState, isLast, nextTurn, porteParole, ranking, save, setPendingCase } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, setPanel } from "./ui.js";
+import { portraitEl } from "./portraits.js";
 
 let onVictory = null;
 
@@ -70,11 +71,10 @@ function renderPlayersStrip() {
     strip.querySelector(".player-chip-actif")?.scrollIntoView({ inline: "nearest", block: "nearest" });
   });
   for (const p of ranking()) {
-    const c = characterById(p.characterId);
     const power = powerOf(p);
     strip.append(
       el("div", { class: "player-chip" + (p.id === currentPion().id ? " player-chip-actif" : "") },
-        el("span", { class: "player-emoji", "aria-hidden": "true", text: c.emoji }),
+        portraitEl(p.characterId, 34),
         el("div", { class: "player-info" },
           el("strong", { text: p.nom }),
           el("span", {
