@@ -55,20 +55,31 @@ grand-mogul/
 | P5 Polish | ✅ | framer-motion, prefers-reduced-motion, haptique, dark mode, a11y (26 constats de revue corrigés). |
 | P6 Ship | ⚠️ à faire | Config Vercel prête (`vercel.json`), **déploiement effectif non fait** (requiert le compte du propriétaire). |
 
-## 4. Banque de questions — ✅ 342 vérifiées, 13 thèmes, 5 formats
+## 4. Banque de questions — ✅ 396 vérifiées, 13 thèmes, 5 formats
 
-> **Mise à jour 3 (finale)** : après quatre vagues de forge, la banque
-> embarquée compte **342 questions vérifiées** — 237 qcm, 52 vrai_faux,
-> 35 gambit_numerique, 16 equipe, 2 cash_carre_duo — réparties sur les
-> 13 thèmes (min. 14/thème). Le fact-check adversarial (seuil 0,9, ≥2 sources)
-> a été appliqué à chaque question. Pour les prochains lots vers l'objectif
-> 500-1000 : relancer le workflow `mogul-bank-formats-v2` (VERSION RÉSILIENTE :
-> chaque thème est écrit sur disque dès sa vérification — c'est celle-là qu'il
-> faut réutiliser), listes anti-doublons à régénérer depuis la banque courante.
-> En cas de coupure budget, les questions vérifiées non écrites se récupèrent
-> via `scripts/recover-forge.mjs` sur le dossier de transcripts du workflow.
+> **Mise à jour 4 (finale)** : après cinq vagues de forge, la banque embarquée
+> compte **396 questions vérifiées** — 237 qcm, 83 vrai_faux, 51 gambit_numerique,
+> 23 equipe, 2 cash_carre_duo — réparties sur les 13 thèmes (21 à 38 par thème).
+> Le fact-check adversarial (seuil 0,9, ≥2 sources) a été appliqué à chaque
+> question ; 0 doublon, 0 problème d'intégrité.
+>
+> **Procédure pour les prochains lots (vers 500-1000)** — testée 5 fois :
+> 1. régénérer les listes anti-doublons depuis la banque courante (cf. les
+>    snippets `completion-input*.json` dans le scratchpad) ;
+> 2. lancer le workflow **résilient** (`scratchpad/wave5.js` ou son ancêtre
+>    `mogul-bank-formats-v2` : chaque thème est écrit sur disque dès sa
+>    vérification — c'est la seule version à réutiliser) ;
+> 3. si la limite de dépense coupe la phase d'écriture (arrivé à CHAQUE vague),
+>    récupérer les questions vérifiées via `scripts/recover-forge.mjs <dossier
+>    de transcripts du workflow> <dossier de sortie>` (les payloads sont dans les
+>    prompts des copistes — récupération 100 % locale, zéro appel modèle) ;
+> 4. `node scripts/merge-bank.mjs <dir1> <dir2> …` (idempotent, multi-dossiers) ;
+> 5. `npm run build && node scripts/smoke.mjs`, puis côté donjon
+>    `node tools/build-questions.mjs`, bump SW, `node tools/smoke.mjs`.
+>
 > Le jeu frère `donjon-du-savoir/` consomme cette banque via son
-> `tools/build-questions.mjs` (344 questions : 342 + S7/B4 corrigées).
+> `tools/build-questions.mjs` (398 questions : 396 + S7/B4 corrigées) et permet
+> en plus des **questions maison** ajoutées par les joueurs (localStorage).
 
 ### Historique de l'incident (résolu)
 

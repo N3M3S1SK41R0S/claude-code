@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 344,
+ "count": 398,
  "questions": [
   {
    "id": "arts-001",
@@ -5625,6 +5625,957 @@
     "Hinault",
     "Laurent Fignon",
     "Fignon"
+   ]
+  },
+  {
+   "id": "arts-029",
+   "categorie": "Arts",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La Joconde de Léonard de Vinci est peinte sur une toile.",
+   "anecdote": "La Joconde est en réalité peinte à l'huile sur un panneau de bois de peuplier d'environ 77 × 53 cm. Le panneau présente d'ailleurs une fine fissure, stabilisée depuis longtemps par les restaurateurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Joconde",
+    "https://fr.wikipedia.org/wiki/L%C3%A9onard_de_Vinci"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "arts-030",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Vincent van Gogh n'a vendu aucun tableau de son vivant.",
+   "anecdote": "Contrairement à la légende, Van Gogh a vendu au moins une toile de son vivant : La Vigne rouge, achetée 400 francs en 1890 par la peintre belge Anna Boch, quelques mois avant sa mort.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Vigne_rouge",
+    "https://fr.wikipedia.org/wiki/Vincent_van_Gogh"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "arts-031",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "À l'origine, la tour Eiffel ne devait rester debout qu'une vingtaine d'années.",
+   "anecdote": "Construite pour l'Exposition universelle de 1889, la tour bénéficiait d'une concession de vingt ans. Elle a été sauvée du démontage grâce à son utilité scientifique, notamment pour la radiotélégraphie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_Eiffel",
+    "https://fr.wikipedia.org/wiki/Gustave_Eiffel"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "arts-032",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le Penseur de Rodin représentait à l'origine le poète Dante.",
+   "anecdote": "Conçue pour couronner La Porte de l'Enfer, la figure fut d'abord intitulée « Le Poète » : elle évoquait Dante méditant sur sa Divine Comédie, avant de devenir une œuvre autonome agrandie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Penseur",
+    "https://fr.wikipedia.org/wiki/La_Porte_de_l%27Enfer"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "arts-033",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année La Joconde a-t-elle été volée au musée du Louvre ?",
+   "anecdote": "Le voleur, Vincenzo Peruggia, était un vitrier italien ayant travaillé au Louvre. Le tableau fut retrouvé à Florence en 1913, et le poète Guillaume Apollinaire fut même brièvement emprisonné, soupçonné à tort.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Joconde",
+    "https://fr.wikipedia.org/wiki/Vincenzo_Peruggia"
+   ],
+   "reponse_numerique": 1911
+  },
+  {
+   "id": "arts-034",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Pablo Picasso a-t-il peint Guernica ?",
+   "anecdote": "Guernica fut présentée dès 1937 au pavillon de la République espagnole de l'Exposition internationale de Paris. Picasso refusa que la toile rejoigne l'Espagne avant le retour de la démocratie : elle n'y arriva qu'en 1981.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guernica_(Picasso)",
+    "https://fr.wikipedia.org/wiki/Pablo_Picasso"
+   ],
+   "reponse_numerique": 1937
+  },
+  {
+   "id": "arts-035",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez l'un des trois ordres classiques de l'architecture grecque antique.",
+   "anecdote": "Aux trois ordres grecs — dorique, ionique et corinthien —, les Romains ajoutèrent plus tard les ordres toscan et composite. Le Parthénon d'Athènes est l'exemple le plus célèbre de l'ordre dorique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ordre_dorique",
+    "https://fr.wikipedia.org/wiki/Ordre_ionique",
+    "https://fr.wikipedia.org/wiki/Ordre_corinthien"
+   ],
+   "reponses_acceptees": [
+    "Dorique",
+    "Ordre dorique",
+    "Ionique",
+    "Ordre ionique",
+    "Corinthien",
+    "Ordre corinthien"
+   ]
+  },
+  {
+   "id": "cinema-030",
+   "categorie": "Cinéma",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Parasite de Bong Joon-ho a reçu la Palme d'or au Festival de Cannes en 2019.",
+   "anecdote": "C'était la toute première Palme d'or pour la Corée du Sud, attribuée à l'unanimité du jury présidé par Alejandro González Iñárritu. Le film a ensuite décroché l'Oscar du meilleur film, une première pour une œuvre en langue non anglaise.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Parasite_(film,_2019)",
+    "https://fr.wikipedia.org/wiki/Festival_de_Cannes_2019"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "cinema-031",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Alfred Hitchcock a remporté au moins une fois l'Oscar du meilleur réalisateur au cours de sa carrière.",
+   "anecdote": "Nommé cinq fois, le « maître du suspense » n'a jamais gagné l'Oscar du meilleur réalisateur. Son film Rebecca a pourtant remporté l'Oscar du meilleur film en 1941, la statuette de la réalisation allant cette année-là à John Ford.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Alfred_Hitchcock",
+    "https://fr.wikipedia.org/wiki/Oscar_du_meilleur_r%C3%A9alisateur"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "cinema-032",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le Fabuleux Destin d'Amélie Poulain a remporté l'Oscar du meilleur film étranger.",
+   "anecdote": "Malgré cinq nominations aux Oscars en 2002, le film de Jean-Pierre Jeunet est reparti bredouille : l'Oscar du meilleur film étranger est allé à No Man's Land du Bosnien Danis Tanović.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Fabuleux_Destin_d%27Am%C3%A9lie_Poulain",
+    "https://fr.wikipedia.org/wiki/Oscar_du_meilleur_film_international"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "cinema-033",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "equipe",
+   "texte": "Citez un long-métrage réalisé par Jacques Tati.",
+   "anecdote": "Tati n'a réalisé que six longs-métrages en 25 ans. Pour Playtime, il a fait construire un gigantesque décor surnommé « Tativille », dont le coût pharaonique l'a mené à la ruine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jacques_Tati",
+    "https://fr.wikipedia.org/wiki/Playtime"
+   ],
+   "reponses_acceptees": [
+    "Jour de fête",
+    "Les Vacances de monsieur Hulot",
+    "Les Vacances de M. Hulot",
+    "Mon oncle",
+    "Playtime",
+    "Play Time",
+    "Trafic",
+    "Parade"
+   ]
+  },
+  {
+   "id": "gastronomie-018",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le roquefort est un fromage fabriqué à partir de lait de vache.",
+   "anecdote": "Le roquefort est élaboré exclusivement avec des laits crus de brebis, et uniquement de la race Lacaune, selon son cahier des charges.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Roquefort_(fromage)",
+    "https://fr.wikipedia.org/wiki/Fromage"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "gastronomie-019",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Auguste Escoffier a créé la pêche Melba en l'honneur d'une cantatrice australienne.",
+   "anecdote": "Créé en 1893 au Savoy de Londres pour la soprano Nellie Melba, le dessert s'appelait d'abord « pêche au cygne » ; il ne fut rebaptisé « pêche Melba » qu'en 1899.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pêche_Melba",
+    "https://fr.wikipedia.org/wiki/Auguste_Escoffier",
+    "https://fr.wikipedia.org/wiki/Nellie_Melba"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "gastronomie-020",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le cahier des charges de l'AOP camembert de Normandie autorise le lait pasteurisé.",
+   "anecdote": "Le lait doit rester cru et ne peut être chauffé à plus de 40 °C. En mars 2020, la filière a voté à 97 % le maintien exclusif du lait cru pour l'appellation.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Camembert_de_Normandie",
+    "https://fr.wikipedia.org/wiki/Appellation_d'origine_protégée"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "gastronomie-021",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le moine Dom Pérignon est l'inventeur du champagne effervescent.",
+   "anecdote": "Dom Pérignon luttait au contraire contre les bulles, alors considérées comme un défaut du vin. La légende de l'invention a été forgée en 1821 par Dom Grossard pour promouvoir l'abbaye d'Hautvillers.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dom_Pérignon",
+    "https://fr.wikipedia.org/wiki/Champagne_(AOC)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "gastronomie-022",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le premier guide Michelin a-t-il été publié ?",
+   "anecdote": "Offert gratuitement aux acheteurs de pneus jusqu'en 1920, il devint payant quand André Michelin, indigné, découvrit des exemplaires servant à caler les pieds d'un établi.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guide_Michelin",
+    "https://fr.wikipedia.org/wiki/Michelin"
+   ],
+   "reponse_numerique": 1900
+  },
+  {
+   "id": "gastronomie-023",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le roquefort est-il devenu, par une loi, le premier fromage français protégé par une appellation d'origine ?",
+   "anecdote": "La loi du 26 juillet 1925 a protégé l'appellation « Roquefort », faisant de ce bleu de brebis le tout premier fromage français à bénéficier d'une appellation d'origine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Roquefort_(fromage)",
+    "https://fr.wikipedia.org/wiki/Appellation_d'origine_contrôlée"
+   ],
+   "reponse_numerique": 1925
+  },
+  {
+   "id": "gastronomie-024",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez un fromage normand bénéficiant d'une AOP.",
+   "anecdote": "La Normandie compte exactement quatre fromages AOP : camembert de Normandie, livarot, pont-l'évêque et neufchâtel. Ce dernier, souvent moulé en forme de cœur, est le plus ancien d'entre eux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Camembert_de_Normandie",
+    "https://fr.wikipedia.org/wiki/Neufchâtel_(fromage)"
+   ],
+   "reponses_acceptees": [
+    "Camembert de Normandie",
+    "Camembert",
+    "Livarot",
+    "Pont-l'Évêque",
+    "Pont l'Évêque",
+    "Pont-l'Eveque",
+    "Neufchâtel",
+    "Neufchatel"
+   ]
+  },
+  {
+   "id": "general-015",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Membre de l'Union européenne, le Danemark a pour monnaie officielle l'euro.",
+   "anecdote": "Le Danemark bénéficie d'une clause d'exemption (opt-out) sur l'euro et conserve sa couronne. Celle-ci reste toutefois arrimée à l'euro via le mécanisme de change européen MCE II.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Couronne_danoise",
+    "https://fr.wikipedia.org/wiki/Euro"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "general-016",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Dans le calendrier grégorien, une année divisible par 4 est toujours bissextile.",
+   "anecdote": "Les années séculaires ne sont bissextiles que si elles sont divisibles par 400 : 1900 n'était pas bissextile, mais 2000 l'était. Lors de la réforme de 1582, on passa directement du 4 au 15 octobre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ann%C3%A9e_bissextile",
+    "https://fr.wikipedia.org/wiki/Calendrier_gr%C3%A9gorien"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "general-017",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Depuis 2019, le kilogramme est défini à partir de la constante de Planck, et non plus par un objet matériel.",
+   "anecdote": "L'ancien étalon, le « grand K » en platine iridié conservé à Sèvres depuis 1889, avait dérivé d'environ 50 microgrammes par rapport à ses copies, ce qui a motivé la redéfinition.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kilogramme",
+    "https://fr.wikipedia.org/wiki/Syst%C3%A8me_international_d%27unit%C3%A9s"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "general-018",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le Conseil de l'Europe, dont le siège est à Strasbourg, est une institution de l'Union européenne.",
+   "anecdote": "Fondé en 1949, le Conseil de l'Europe est une organisation distincte de l'UE : il compte bien plus d'États membres, dont des pays non membres de l'Union comme la Suisse ou la Turquie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Conseil_de_l%27Europe",
+    "https://fr.wikipedia.org/wiki/Union_europ%C3%A9enne"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "general-019",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année les pièces et les billets en euros ont-ils été mis en circulation ?",
+   "anecdote": "L'euro existait déjà comme monnaie scripturale depuis le 1er janvier 1999 : pendant trois ans, on pouvait payer en euros par virement ou par chèque, mais pas en espèces.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Euro",
+    "https://fr.wikipedia.org/wiki/Pi%C3%A8ces_de_monnaie_en_euro"
+   ],
+   "reponse_numerique": 2002
+  },
+  {
+   "id": "insolite-018",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La Grande Muraille de Chine est le seul ouvrage humain visible à l'œil nu depuis la Lune.",
+   "anecdote": "C'est une idée reçue tenace : depuis la Lune, aucune construction humaine n'est discernable à l'œil nu, la Muraille étant bien trop étroite malgré sa longueur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Grande_Muraille",
+    "https://fr.wikipedia.org/wiki/Lune"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "insolite-019",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La mémoire du poisson rouge ne dépasse pas quelques secondes.",
+   "anecdote": "Des expériences ont montré que le poisson rouge retient des informations pendant des semaines, voire des mois, et sait associer un signal à une récompense.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Poisson_rouge",
+    "https://fr.wikipedia.org/wiki/Carassius_auratus"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "insolite-020",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "La girafe et l'être humain possèdent le même nombre de vertèbres cervicales.",
+   "anecdote": "Comme presque tous les mammifères, la girafe a sept vertèbres cervicales, chacune étant simplement très allongée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Girafe",
+    "https://fr.wikipedia.org/wiki/Vert%C3%A8bre_cervicale"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "insolite-021",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le sang de la pieuvre est bleu.",
+   "anecdote": "Son sang transporte l'oxygène grâce à l'hémocyanine, une protéine à base de cuivre qui lui donne une teinte bleutée, et non rouge comme l'hémoglobine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Octopoda",
+    "https://fr.wikipedia.org/wiki/H%C3%A9mocyanine"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "insolite-022",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Usain Bolt a-t-il établi le record du monde du 100 m en 9,58 s, toujours en vigueur ?",
+   "anecdote": "C'était lors des Championnats du monde de Berlin ; Bolt avait déjà abaissé la marque à 9,69 s aux Jeux de Pékin l'année précédente.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Usain_Bolt",
+    "https://fr.wikipedia.org/wiki/100_m%C3%A8tres_(athl%C3%A9tisme)"
+   ],
+   "reponse_numerique": 2009
+  },
+  {
+   "id": "langue-015",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "L'Académie française recommande la graphie « autant pour moi » plutôt que « au temps pour moi ».",
+   "anecdote": "L'Académie défend « au temps pour moi », issue du commandement militaire « Au temps ! » ordonnant de reprendre un mouvement. L'écrivain Claude Duneton contestait cette origine, y voyant un « canular étymologique ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Au_temps_pour_moi",
+    "https://fr.wiktionary.org/wiki/au_temps_pour_moi"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "langue-016",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "En Belgique comme en Suisse romande, « septante » désigne le nombre 70.",
+   "anecdote": "Loin d'être une innovation régionale, « septante » est un archaïsme hérité du latin : la forme est restée usuelle dans certaines régions de France jusqu'au début du XXe siècle, avant que « soixante-dix » ne s'impose.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Français_de_Belgique",
+    "https://fr.wikipedia.org/wiki/Français_de_Suisse"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "langue-017",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Sur le continent américain, le Canada est le seul État où le français est langue officielle.",
+   "anecdote": "Haïti a aussi le français comme langue officielle, aux côtés du créole haïtien. C'est d'ailleurs le premier État indépendant de population majoritairement noire, depuis 1804.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Haïti",
+    "https://fr.wikipedia.org/wiki/Langue_officielle"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "langue-018",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de fauteuils compte l'Académie française ?",
+   "anecdote": "Les Quarante sont surnommés les « Immortels », d'après la devise de l'Académie : « À l'immortalité ». On parle du « quarante et unième fauteuil » pour les grands écrivains jamais élus, comme Molière ou Balzac.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Académie_française",
+    "https://fr.wikipedia.org/wiki/Liste_des_membres_de_l'Académie_française"
+   ],
+   "reponse_numerique": 40
+  },
+  {
+   "id": "langue-019",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année François Ier signe-t-il l'ordonnance de Villers-Cotterêts, imposant le français dans les actes de justice ?",
+   "anecdote": "Ses articles 110 et 111, qui imposent le « langage maternel françois » à la place du latin, sont considérés comme le plus ancien texte législatif encore en vigueur en France.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ordonnance_de_Villers-Cotterêts",
+    "https://fr.wikipedia.org/wiki/Histoire_du_français"
+   ],
+   "reponse_numerique": 1539
+  },
+  {
+   "id": "langue-020",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "gambit_numerique",
+   "texte": "En quelle année paraît la première édition du Dictionnaire de l'Académie française ?",
+   "anecdote": "Commencé peu après la fondation de l'Académie en 1635, le dictionnaire fut si long à rédiger qu'il fut devancé par ceux de Richelet (1680) et de Furetière (1690), ce dernier ayant été exclu de l'Académie pour ce projet rival.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dictionnaire_de_l'Académie_française",
+    "https://fr.wikipedia.org/wiki/Académie_française"
+   ],
+   "reponse_numerique": 1694
+  },
+  {
+   "id": "langue-021",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez un pays d'Europe, autre que la France, dont le français est une langue officielle.",
+   "anecdote": "À Monaco, le français est l'unique langue officielle. En Belgique et en Suisse, il partage ce statut avec respectivement deux et trois autres langues nationales.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Langue_officielle",
+    "https://fr.wikipedia.org/wiki/Français"
+   ],
+   "reponses_acceptees": [
+    "Belgique",
+    "Suisse",
+    "Luxembourg",
+    "Monaco"
+   ]
+  },
+  {
+   "id": "litterature-032",
+   "categorie": "Littérature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Victor Hugo est l'auteur du roman « Le Comte de Monte-Cristo ».",
+   "anecdote": "« Le Comte de Monte-Cristo » est d'Alexandre Dumas, qui l'écrivit avec l'aide de son collaborateur Auguste Maquet. Le roman parut d'abord en feuilleton dans le Journal des débats entre 1844 et 1846.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Comte_de_Monte-Cristo",
+    "https://fr.wikipedia.org/wiki/Alexandre_Dumas"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "litterature-033",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Marcel Proust a reçu le prix Goncourt en 1919 pour « À l'ombre des jeunes filles en fleurs ».",
+   "anecdote": "Cette attribution fit scandale : Proust l'emporta face aux « Croix de bois » de Roland Dorgelès, ancien combattant, ce que la presse jugea injuste au lendemain de la Grande Guerre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%80_l%27ombre_des_jeunes_filles_en_fleurs",
+    "https://fr.wikipedia.org/wiki/Prix_Goncourt"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "litterature-034",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Arthur Rimbaud a écrit toute son œuvre poétique avant l'âge de 25 ans.",
+   "anecdote": "Rimbaud a cessé d'écrire de la poésie vers 21 ans. Il devint ensuite négociant à Aden puis au Harar, en Abyssinie, où il fit notamment le commerce d'armes et de café.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Arthur_Rimbaud",
+    "https://fr.wikipedia.org/wiki/Une_saison_en_enfer"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "litterature-035",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez un roman du cycle des Rougon-Macquart d'Émile Zola.",
+   "anecdote": "Zola prévoyait initialement une dizaine de romans pour cette « Histoire naturelle et sociale d'une famille sous le Second Empire » : le cycle en comptera finalement vingt, publiés de 1871 à 1893.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Rougon-Macquart",
+    "https://fr.wikipedia.org/wiki/%C3%89mile_Zola"
+   ],
+   "reponses_acceptees": [
+    "La Fortune des Rougon",
+    "La Curée",
+    "Le Ventre de Paris",
+    "La Conquête de Plassans",
+    "La Faute de l'abbé Mouret",
+    "Son Excellence Eugène Rougon",
+    "L'Assommoir",
+    "Une page d'amour",
+    "Nana",
+    "Pot-Bouille",
+    "Au Bonheur des Dames",
+    "La Joie de vivre",
+    "Germinal",
+    "L'Œuvre",
+    "La Terre",
+    "Le Rêve",
+    "La Bête humaine",
+    "L'Argent",
+    "La Débâcle",
+    "Le Docteur Pascal"
+   ]
+  },
+  {
+   "id": "musique-018",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le saxophone, roi du jazz américain, a été inventé par un facteur d'instruments belge.",
+   "anecdote": "Adolphe Sax, né à Dinant en Belgique, a breveté le saxophone à Paris en 1846, un demi-siècle avant la naissance du jazz. L'instrument fut d'abord adopté par les musiques militaires françaises.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Saxophone",
+    "https://fr.wikipedia.org/wiki/Adolphe_Sax"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "musique-019",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "À sa création en 1875, l'opéra Carmen de Georges Bizet fut un triomphe immédiat.",
+   "anecdote": "Créée le 3 mars 1875 à l'Opéra-Comique, Carmen reçut un accueil mitigé, jugée scandaleuse. Bizet mourut trois mois plus tard, sans jamais connaître le triomphe mondial de son œuvre, devenue l'un des opéras les plus joués au monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Carmen_(op%C3%A9ra)",
+    "https://fr.wikipedia.org/wiki/Georges_Bizet"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "musique-020",
+   "categorie": "Musique",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de touches compte le clavier d'un piano moderne standard ?",
+   "anecdote": "Les 88 touches se répartissent en 52 blanches et 36 noires. Certains pianos Bösendorfer, comme le modèle Impérial, vont au-delà avec jusqu'à 97 touches dans le grave.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Piano",
+    "https://fr.wikipedia.org/wiki/B%C3%B6sendorfer"
+   ],
+   "reponse_numerique": 88
+  },
+  {
+   "id": "musique-021",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le Boléro de Maurice Ravel a-t-il été créé à l'Opéra de Paris ?",
+   "anecdote": "Créé le 22 novembre 1928 à l'Opéra Garnier, le Boléro était à l'origine un ballet commandé par la danseuse Ida Rubinstein. Ravel le composa en quelques mois seulement, entre juillet et octobre 1928.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bol%C3%A9ro_(Ravel)",
+    "https://fr.wikipedia.org/wiki/Maurice_Ravel"
+   ],
+   "reponse_numerique": 1928
+  },
+  {
+   "id": "musique-022",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "equipe",
+   "texte": "Citez un compositeur membre du Groupe des Six, baptisé ainsi par le critique Henri Collet en 1920.",
+   "anecdote": "Henri Collet a lancé ce nom dans deux articles du journal Comœdia en janvier 1920, par analogie avec le Groupe des Cinq russe. Réunis autour d'Erik Satie et de Jean Cocteau, les Six se sont dispersés dès 1923.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Groupe_des_Six_(musique)",
+    "https://fr.wikipedia.org/wiki/Henri_Collet_(compositeur)"
+   ],
+   "reponses_acceptees": [
+    "Georges Auric",
+    "Auric",
+    "Louis Durey",
+    "Durey",
+    "Arthur Honegger",
+    "Honegger",
+    "Darius Milhaud",
+    "Milhaud",
+    "Francis Poulenc",
+    "Poulenc",
+    "Germaine Tailleferre",
+    "Tailleferre"
+   ]
+  },
+  {
+   "id": "pop-culture-019",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Dans L'Empire contre-attaque, Dark Vador prononce la réplique « Luke, je suis ton père ».",
+   "anecdote": "La réplique exacte est « Non, je suis ton père ». Cette citation déformée est l'un des exemples les plus célèbres de faux souvenir collectif, dit « effet Mandela ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/L%27Empire_contre-attaque",
+    "https://fr.wikipedia.org/wiki/Dark_Vador"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "pop-culture-020",
+   "categorie": "Pop Culture",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Pikachu porte le numéro 1 du Pokédex.",
+   "anecdote": "Le numéro 1 du Pokédex est Bulbizarre ; Pikachu ne porte que le numéro 25. C'est le succès du dessin animé qui en a fait la mascotte officielle de la licence.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pikachu",
+    "https://fr.wikipedia.org/wiki/Bulbizarre"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "pop-culture-021",
+   "categorie": "Pop Culture",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le premier film Star Wars est-il sorti au cinéma ?",
+   "anecdote": "Sorti le 25 mai 1977 aux États-Unis, le film s'intitulait alors simplement « La Guerre des étoiles » en France, sans mention d'épisode IV.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Star_Wars,_%C3%A9pisode_IV_:_Un_nouvel_espoir",
+    "https://fr.wikipedia.org/wiki/Star_Wars"
+   ],
+   "reponse_numerique": 1977
+  },
+  {
+   "id": "pop-culture-022",
+   "categorie": "Pop Culture",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "Combien d'Oscars le film Le Seigneur des anneaux : Le Retour du roi a-t-il remportés ?",
+   "anecdote": "Avec 11 statuettes sur 11 nominations en 2004, le film égale le record de Ben-Hur et Titanic, tout en réussissant un sans-faute inédit pour un tel total.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Seigneur_des_anneaux_:_Le_Retour_du_roi",
+    "https://fr.wikipedia.org/wiki/76e_c%C3%A9r%C3%A9monie_des_Oscars"
+   ],
+   "reponse_numerique": 11
+  },
+  {
+   "id": "sport-016",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le XV de France a déjà remporté la Coupe du monde de rugby à XV.",
+   "anecdote": "La France a disputé trois finales de Coupe du monde (1987, 1999 et 2011) et les a toutes perdues, dont deux contre la Nouvelle-Zélande. En 2011, elle ne s'est inclinée que d'un point (8-7) face aux All Blacks.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Équipe_de_France_de_rugby_à_XV",
+    "https://fr.wikipedia.org/wiki/Coupe_du_monde_de_rugby_à_XV"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sport-017",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Jesse Owens a remporté cinq médailles d'or aux Jeux olympiques de Berlin en 1936.",
+   "anecdote": "Jesse Owens a gagné quatre titres à Berlin : 100 m, 200 m, saut en longueur et relais 4 × 100 m. Il faudra attendre Carl Lewis, aux Jeux de Los Angeles en 1984, pour voir un athlète rééditer ce quadruplé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jesse_Owens",
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques_d'été_de_1936"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sport-018",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année s'est élancé le premier Tour de France ?",
+   "anecdote": "Le Tour est créé par le journal L'Auto pour concurrencer son rival Le Vélo et doper ses ventes. Maurice Garin remporte cette première édition, longue de six étapes seulement.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_de_France_1903",
+    "https://fr.wikipedia.org/wiki/Tour_de_France"
+   ],
+   "reponse_numerique": 1903
+  },
+  {
+   "id": "sport-019",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Yannick Noah a-t-il remporté le simple messieurs de Roland-Garros ?",
+   "anecdote": "Yannick Noah bat en finale le tenant du titre Mats Wilander en trois sets. Il reste à ce jour le dernier Français vainqueur du simple messieurs à Roland-Garros.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Yannick_Noah",
+    "https://fr.wikipedia.org/wiki/Internationaux_de_France_de_tennis"
+   ],
+   "reponse_numerique": 1983
+  },
+  {
+   "id": "sport-020",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de médailles d'or olympiques le nageur américain Michael Phelps a-t-il remportées au total ?",
+   "anecdote": "Avec 28 médailles au total, Michael Phelps est l'athlète le plus médaillé de l'histoire des Jeux olympiques. Ses huit titres décrochés à Pékin en 2008 constituent un record sur une seule édition.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Michael_Phelps",
+    "https://fr.wikipedia.org/wiki/Natation_aux_Jeux_olympiques"
+   ],
+   "reponse_numerique": 23
+  },
+  {
+   "id": "sport-021",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez un pays ayant remporté la Coupe du monde de rugby à XV masculine.",
+   "anecdote": "L'Afrique du Sud détient le record avec quatre titres (1995, 2007, 2019, 2023). L'Angleterre, sacrée en 2003, reste la seule nation de l'hémisphère nord à avoir soulevé le trophée William-Webb-Ellis.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Coupe_du_monde_de_rugby_à_XV",
+    "https://fr.wikipedia.org/wiki/Équipe_d'Afrique_du_Sud_de_rugby_à_XV"
+   ],
+   "reponses_acceptees": [
+    "Afrique du Sud",
+    "Nouvelle-Zélande",
+    "Australie",
+    "Angleterre"
    ]
   },
   {
