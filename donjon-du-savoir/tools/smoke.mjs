@@ -81,7 +81,7 @@ try {
   // Play a few turns: roll, advance, resolve whatever comes, continue.
   let sawQuestion = false;
   let sawAnecdote = false;
-  for (let turn = 0; turn < 8; turn++) {
+  for (let turn = 0; turn < 14; turn++) {
     const roll = page.getByRole("button", { name: "🎲 Lancer le dé" });
     await roll.waitFor({ timeout: 8000 });
     await roll.click();

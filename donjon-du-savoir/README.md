@@ -38,10 +38,21 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
    | 💰 Le Labyrinthe Doré | 56 | marathon à trésors, pièces et jokers abondants |
 
    Chaque partie re-mélange en plus les cases libres du plateau choisi.
-2. À son tour : **lancer le dé** (1d6), avancer, subir la case.
+   Puis choisissez le **mode** : 🏁 **Course** (le 1er au Trésor gagne) ou
+   ⭐ **Étoiles** façon Mario Party (plateau en boucle, nombre de manches fixé,
+   on achète des étoiles au marchand itinérant ; le plus d'étoiles gagne, l'or
+   départage). En mode Étoiles, **on passe DEVANT** la boutique et l'étoile —
+   pas besoin de s'arrêter pile dessus ; l'étoile change de place après chaque
+   achat, et les grands plateaux ont plusieurs boutiques.
+2. À son tour : **lancer le dé** (1d6), avancer, subir la case — et **utiliser
+   ses objets** (besace) quand on veut.
 3. Cases : ❓ Question · 🍀 Chance · 🎪 Événement collectif · 💀 Coup dur ·
-   🪙 Pièces · 🃏 Joker · 🎲 Gambit (×2) · 🕳️ Trou Noir (fin de parcours) ·
-   🏆 Trésor (arrivée).
+   🪙 Pièces · 🃏 Joker · 🎲 Gambit (×2) · 🕳️ Trou Noir · 🛒 Boutique ·
+   🦩 Savoir insolite · 🏆 Trésor / ⭐ Étoile.
+   **Objets & dés spéciaux** (boutique) : Dé Double/Triple/Choisi/Mirage/
+   Échange, Tuyau d'Or, Bouclier, Aimant à Or, malus Sabotage/Racket, et la
+   **Besasse Badass** (inventaire 3 → 6). Un **toast d'ouverture** loufoque
+   désigne qui commence.
 4. **Après chaque question, l'anecdote s'affiche — toujours**, avec ses sources.
 5. Premier pion au Trésor : victoire (jamais d'élimination).
 

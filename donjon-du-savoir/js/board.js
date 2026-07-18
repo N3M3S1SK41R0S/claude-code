@@ -134,7 +134,8 @@ export function generateBoard(def = boardById("grand-donjon")) {
       if (i !== -1) layout[i] = type;
     }
   };
-  seed("boutique", L >= 44 ? 2 : 1);
+  // Boutiques réparties (au passage) : plusieurs sur les grands plateaux.
+  seed("boutique", Math.max(2, Math.round(L / 16)));
   seed("insolite", L >= 40 ? 2 : 1);
   return layout;
 }
@@ -207,13 +208,34 @@ let builtSignature = null;
  * is built once per layout; the pion layer is updated in place so CSS
  * transitions make the tokens glide.
  */
-export function renderBoard(container, layout, pions, currentPionId, boardDef = boardById("grand-donjon")) {
+export function renderBoard(container, layout, pions, currentPionId, boardDef = boardById("grand-donjon"), starPos = null) {
   const signature = `${boardDef.id}:${layout.join(",")}`;
   if (builtSignature !== signature || !container.querySelector(".pion-layer")) {
     buildStatic(container, layout, boardDef);
     builtSignature = signature;
   }
+  updateStar(container, layout, starPos);
   updatePions(container, layout, pions, currentPionId);
+}
+
+/** Marqueur ⭐ du marchand d'étoile (mode Étoiles), repositionné à chaque achat. */
+function updateStar(container, layout, starPos) {
+  let marker = container.querySelector(".star-marker");
+  if (starPos == null) {
+    if (marker) marker.remove();
+    return;
+  }
+  const { coords, viewH } = geometry(layout.length);
+  const c = coords[Math.max(0, Math.min(layout.length - 1, starPos))];
+  if (!marker) {
+    marker = document.createElement("div");
+    marker.className = "star-marker";
+    marker.textContent = "⭐";
+    marker.setAttribute("aria-label", "L'Étoile est ici");
+    container.querySelector(".pion-layer")?.before(marker);
+  }
+  marker.style.left = `${(c.x / VIEW_W) * 100}%`;
+  marker.style.top = `${((c.y - 30) / viewH) * 100}%`;
 }
 
 function buildStatic(container, layout, def) {

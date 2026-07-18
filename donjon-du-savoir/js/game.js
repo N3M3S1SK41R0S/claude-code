@@ -8,7 +8,7 @@ import { drawEasier, drawEvent, drawGambit, drawHardest, drawQuestion } from "./
 import { boardById, renderBoard } from "./board.js";
 import { herald } from "./herald.js";
 import { canRecharge, powerOf, recharge, RECHARGE_COST } from "./powers.js";
-import { characterById, clearPendingCase, currentPion, getState, isLast, nextTurn, porteParole, ranking, save, setPendingCase } from "./state.js";
+import { characterById, clearPendingCase, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, setPanel } from "./ui.js";
 import { portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
@@ -60,6 +60,7 @@ function render() {
     state.pions.map(pionView),
     currentPion().id,
     boardById(state.boardId),
+    state.starPos,
   );
   renderPlayersStrip();
 }
@@ -71,10 +72,23 @@ function renderPlayersStrip() {
   window.requestAnimationFrame(() => {
     strip.querySelector(".player-chip-actif")?.scrollIntoView({ inline: "nearest", block: "nearest" });
   });
+  // Bandeau « manche X/N » en mode Étoiles.
+  if (isEtoiles()) {
+    strip.append(
+      el("div", { class: "player-chip round-chip" },
+        el("span", { class: "player-emoji", "aria-hidden": "true", text: "⏳" }),
+        el("div", { class: "player-info" },
+          el("strong", { text: `Manche ${Math.min(state.tour, state.rounds)}/${state.rounds}` }),
+          el("span", { class: "player-meta", text: "Le plus d'étoiles gagne" }),
+        ),
+      ),
+    );
+  }
   for (const p of ranking()) {
     const power = powerOf(p);
     const sac = inventoryCount(p) > 0 ? ` · 🎒${inventoryCount(p)}/${inventoryCap(p)}` : "";
     const bouclier = p.bouclier ? " · 🛡️" : "";
+    const etoiles = isEtoiles() ? `⭐${p.etoiles ?? 0} · ` : "";
     strip.append(
       el("div", { class: "player-chip" + (p.id === currentPion().id ? " player-chip-actif" : "") },
         portraitEl(p.characterId, 34),
@@ -82,7 +96,7 @@ function renderPlayersStrip() {
           el("strong", { text: p.nom }),
           el("span", {
             class: "player-meta",
-            text: `case ${p.position} · 🪙${p.pieces} · 🃏${p.jokers}${sac}${bouclier} · ${power ? (p.pouvoirUtilise ? "pouvoir épuisé" : power.nom) : ""}`,
+            text: `${etoiles}🪙${p.pieces} · 🃏${p.jokers}${sac}${bouclier} · ${power ? (p.pouvoirUtilise ? "pouvoir épuisé" : power.nom) : ""}`,
           }),
         ),
       ),
@@ -223,18 +237,19 @@ function applyItem(pion, id, target) {
       save();
       render();
       setPendingCase("resolu");
-      const type = getState().board[dest];
-      return endPanel(`🌫️ Le Dé Mirage vous dépose case ${dest}…`, () => { setPendingCase(type); heraldSays(herald.surCase(type)); resolveCase(type); });
+      return endPanel(`🌫️ Le Dé Mirage vous dépose case ${dest}…`, () => landAfterTeleport(pion, dest));
     }
     case "tuyau_or": {
-      // Course : grand bond vers le Trésor (mode Étoiles à venir : vers l'Étoile).
-      const dest = Math.min(boardLen() - 2, pion.position + Math.max(4, Math.floor((boardLen() - pion.position) * 0.6)));
+      // Mode Étoiles : droit devant le marchand d'étoile. Course : grand bond
+      // vers le Trésor.
+      const dest = isEtoiles()
+        ? getState().starPos
+        : Math.min(boardLen() - 2, pion.position + Math.max(4, Math.floor((boardLen() - pion.position) * 0.6)));
       pion.position = dest;
       save();
       render();
       setPendingCase("resolu");
-      const type = getState().board[dest];
-      return endPanel(`🌀 Le Tuyau d'Or vous propulse case ${dest} !`, () => { setPendingCase(type); heraldSays(herald.surCase(type)); resolveCase(type); });
+      return endPanel(`🌀 Le Tuyau d'Or vous propulse case ${dest} !`, () => landAfterTeleport(pion, dest));
     }
     case "de_echange":
       if (target) { [pion.position, target.position] = [target.position, pion.position]; render(); }
@@ -278,6 +293,15 @@ function applyMalusTo(target, effect) {
   effect();
   target.malusSubis = (target.malusSubis ?? 0) + 1;
   save();
+}
+
+/** Après une téléportation par objet : marchand d'étoile si on tombe dessus, sinon la case. */
+function landAfterTeleport(pion, dest) {
+  if (isEtoiles() && dest === getState().starPos) return doStar(pion);
+  const type = getState().board[dest];
+  setPendingCase(type);
+  heraldSays(herald.surCase(type));
+  resolveCase(type);
 }
 
 function showItemDie(value, label) {
@@ -330,25 +354,112 @@ function showDieResult(value, { rerollAvailable }) {
   );
 }
 
-/** Move without triggering the landing case (rewards/penalties). */
+/** Move without triggering the landing case (rewards/penalties).
+ *  Returns true if this ended the game (course mode only). */
 function shift(pion, delta) {
-  pion.position = Math.max(0, Math.min(boardLen() - 1, pion.position + delta));
+  const L = boardLen();
+  if (isEtoiles()) {
+    pion.position = ((pion.position + delta) % L + L) % L; // wrap, no win
+    save();
+    render();
+    return false;
+  }
+  pion.position = Math.max(0, Math.min(L - 1, pion.position + delta));
   save();
   render();
-  if (pion.position >= boardLen() - 1) return finishGame(pion);
+  if (pion.position >= L - 1) return finishGame(pion);
   return false;
 }
 
 function moveAndResolve(steps) {
   const pion = currentPion();
-  pion.position = Math.max(0, Math.min(boardLen() - 1, pion.position + steps));
+  const L = boardLen();
+  const before = pion.position;
+
+  // Position d'arrivée (avec boucle + prime de tour en mode Étoiles).
+  let after, laps = 0;
+  if (isEtoiles()) {
+    const raw = before + steps;
+    laps = Math.floor(raw / L);
+    after = ((raw % L) + L) % L;
+    pion.casesParcourues = (pion.casesParcourues ?? 0) + steps;
+  } else {
+    after = Math.max(0, Math.min(L - 1, before + steps));
+  }
+  pion.position = after;
+  if (isEtoiles() && laps > 0) addCoins(pion, LAP_BONUS * laps); // prime de tour
   save();
   render();
-  if (pion.position >= boardLen() - 1) return finishGame(pion);
-  const type = getState().board[pion.position];
-  setPendingCase(type);
-  heraldSays(herald.surCase(type));
-  resolveCase(type);
+  // Empêche l'exploit du rechargement en plein déplacement (position déjà
+  // sauvegardée ; un reload rendra la main sans relancer le dé).
+  setPendingCase("resolu");
+
+  // Course : atteindre le Trésor gagne.
+  if (!isEtoiles() && after >= L - 1) return finishGame(pion);
+
+  // Cases TRAVERSÉES depuis le départ (façon Mario Party) : on passe DEVANT la
+  // boutique et l'étoile, pas besoin de s'arrêter pile dessus.
+  const passed = [];
+  if (isEtoiles()) {
+    for (let k = 1; k <= steps; k++) passed.push((before + k) % L);
+  } else {
+    for (let p = before + 1; p <= after; p++) passed.push(p);
+  }
+  const board = getState().board;
+  const stops = [];
+  let starSeen = false;
+  for (const p of passed) {
+    if (isEtoiles() && p === getState().starPos && !starSeen) { stops.push("star"); starSeen = true; }
+    if (board[p] === "boutique") stops.push("shop");
+  }
+  const landingType = board[after];
+  const landingIsStop = (isEtoiles() && after === getState().starPos) || landingType === "boutique";
+
+  const resolveLanding = () => {
+    if (landingIsStop) return finishTurn(); // déjà proposé comme point de passage
+    setPendingCase(landingType);
+    heraldSays(laps > 0 ? `Un tour de plateau bouclé, +${LAP_BONUS} 🪙 ! ${herald.surCase(landingType)}` : herald.surCase(landingType));
+    resolveCase(landingType);
+  };
+  // Enchaîne les points de passage, puis résout la case d'arrivée.
+  const step = (i) => {
+    if (i >= stops.length) return resolveLanding();
+    if (stops[i] === "star") return doStar(pion, () => step(i + 1));
+    return doBoutique(pion, () => step(i + 1));
+  };
+  step(0);
+}
+
+/* ---------- étoile : l'acheter au marchand itinérant (au passage) ---------- */
+
+function doStar(pion, onDone = null) {
+  const done = onDone ?? (() => finishTurn());
+  setPendingCase("resolu");
+  const prix = starPrice(pion);
+  const abordable = pion.pieces >= prix;
+  heraldSays(abordable
+    ? "Vous passez devant le marchand d'étoile ! Une étoile vous tend les bras."
+    : "Le marchand d'étoile vous salue… mais votre bourse pleure. Revenez plus riche.");
+  const actions = [];
+  if (abordable) {
+    actions.push(bigButton(`⭐ Acheter l'étoile (${prix} 🪙)`, () => {
+      pion.pieces -= prix;
+      pion.etoiles = (pion.etoiles ?? 0) + 1;
+      moveStar(); // l'étoile file s'installer ailleurs, au hasard
+      save();
+      render();
+      heraldSays(`Une étoile pour ${pion.nom} ! Le marchand file s'installer ailleurs.`);
+      endPanel(`⭐ ${pion.nom} possède maintenant ${pion.etoiles} étoile${pion.etoiles > 1 ? "s" : ""} !`, done);
+    }));
+  }
+  actions.push(bigButton(abordable ? "Garder mon or" : "Continuer", done));
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "⭐ Le Marchand d'Étoile" }),
+      el("p", { class: "panel-text", text: `Prix pour vous : ${prix} 🪙 (il grimpe de 5 à chaque étoile déjà obtenue). Votre or : ${pion.pieces} 🪙.` }),
+      ...actions,
+    ),
+  );
 }
 
 /* ---------- case effects ---------- */
@@ -391,7 +502,8 @@ function resolveCase(type) {
 
 /* ---------- boutique : dépenser son or en objets ---------- */
 
-function doBoutique(pion) {
+function doBoutique(pion, onDone = null) {
+  const done = onDone ?? (() => finishTurn());
   setPendingCase("resolu");
   const render$ = () => {
     const rows = [];
@@ -432,7 +544,7 @@ function doBoutique(pion) {
       el("h2", { class: "panel-title", text: "🛒 La Boutique du Donjon" }),
       el("p", { class: "help-note", text: `Votre or : ${pion.pieces} 🪙 · besace ${inventoryCount(pion)}/${inventoryCap(pion)}` }),
       ...rows,
-      bigButton("Quitter la boutique", () => finishTurn()),
+      bigButton("Quitter la boutique", done),
     );
   };
   render$();
@@ -1136,9 +1248,42 @@ function finishTurn() {
   pion.aimantOr = false; // l'Aimant à Or ne dure qu'un tour
   pion.relanceBonus = false; // relance non utilisée : perdue en fin de tour
   const { skipped } = nextTurn();
-  // The nap is public: the table hears WHO loses their turn and why.
-  const prefix = skipped.length > 0 ? `💤 ${skipped.join(" et ")} passe${skipped.length > 1 ? "nt" : ""} son tour (sieste involontaire) ! ` : "";
+
+  // Mode Étoiles : fin après le nombre de manches fixé.
+  if (isEtoiles() && state.tour > state.rounds) {
+    return endStarGame();
+  }
+
+  let prefix = skipped.length > 0 ? `💤 ${skipped.join(" et ")} passe${skipped.length > 1 ? "nt" : ""} son tour (sieste involontaire) ! ` : "";
+
+  // Coup de pouce de la dernière manche (esprit 99 %) : tout le monde +15 or.
+  if (isEtoiles() && state.currentIndex === 0 && state.tour === state.rounds && !state.lastRoundBoost) {
+    state.lastRoundBoost = true;
+    for (const p of state.pions) p.pieces += LAST_ROUND_BONUS;
+    save();
+    prefix = `🔔 DERNIÈRE MANCHE ! Chacun reçoit +${LAST_ROUND_BONUS} 🪙 pour un ultime coup d'éclat. ${prefix}`;
+  }
   startTurn({ prefix });
+}
+
+function endStarGame() {
+  const state = getState();
+  state.finished = true;
+  clearPendingCase();
+  const classement = ranking();
+  state.ranking = classement.map((p) => ({
+    nom: p.nom,
+    characterId: p.characterId,
+    etoiles: p.etoiles ?? 0,
+    pieces: p.pieces,
+    position: p.position,
+    bonnes: p.stats.bonnes,
+    questions: p.stats.questions,
+  }));
+  save();
+  const winner = classement[0];
+  heraldSays(`Rideau ! ${winner.nom} règne sur le Donjon avec ${winner.etoiles ?? 0} étoile${(winner.etoiles ?? 0) > 1 ? "s" : ""} !`);
+  if (onVictory) onVictory(winner, state.ranking);
 }
 
 function finishGame(winner) {

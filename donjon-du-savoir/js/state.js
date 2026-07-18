@@ -31,10 +31,24 @@ export function getState() {
  * In team mode each pion carries its members; the team profile is "enfant"
  * if AT LEAST one member is a child (questions must suit everyone at the table).
  */
+export const STAR_BASE_PRICE = 20;
+export const STAR_STEP = 5;
+export const LAP_BONUS = 10;
+export const LAST_ROUND_BONUS = 15;
+
 export function newGame(config, boardLayout) {
+  const variant = config.variant === "etoiles" ? "etoiles" : "course";
+  // Star sits on a random inner case; landing there lets you buy it.
+  const starPos = variant === "etoiles"
+    ? 1 + Math.floor(Math.random() * Math.max(1, boardLayout.length - 2))
+    : null;
   state = {
     version: 1,
     mode: config.mode,
+    variant,
+    rounds: variant === "etoiles" ? (config.rounds ?? 10) : null,
+    starPos,
+    lastRoundBoost: false,
     boardId: config.boardId ?? "grand-donjon",
     board: boardLayout,
     pions: config.pions.map((p, i) => ({
@@ -45,12 +59,20 @@ export function newGame(config, boardLayout) {
       membres: p.membres ?? null,
       porteParoleIndex: 0,
       position: 0,
-      pieces: 8,
+      // Seam de test : or gonflé UNIQUEMENT si un flag global de test est posé
+      // (jamais en jeu réel), pour couvrir déterministiquement l'achat d'étoile.
+      pieces: (typeof globalThis !== "undefined" && globalThis.__DONJON_TEST) ? 200 : 8,
+      etoiles: 0,
       jokers: 0,
+      objets: [],
+      besasse: false,
       pouvoirUtilise: false,
       tourASauter: false,
       doublePieces: false,
       stats: { bonnes: 0, questions: 0 },
+      malusSubis: 0,
+      orGagne: 0,
+      casesParcourues: 0,
     })),
     currentIndex: 0,
     tour: 1,
@@ -64,6 +86,27 @@ export function newGame(config, boardLayout) {
   };
   save();
   return state;
+}
+
+export function isEtoiles() {
+  return state?.variant === "etoiles";
+}
+
+/** Prix de la prochaine étoile pour ce pion (escalade INDIVIDUELLE anti-runaway). */
+export function starPrice(pion) {
+  return STAR_BASE_PRICE + STAR_STEP * (pion.etoiles ?? 0);
+}
+
+/** Déplace le marchand d'étoile sur une nouvelle case interne, ≠ l'actuelle. */
+export function moveStar() {
+  const L = state.board.length;
+  let pos = state.starPos;
+  for (let tries = 0; tries < 20 && pos === state.starPos; tries++) {
+    pos = 1 + Math.floor(Math.random() * Math.max(1, L - 2));
+  }
+  state.starPos = pos;
+  save();
+  return pos;
 }
 
 export function setPendingCase(type) {
@@ -82,8 +125,12 @@ export function currentPion() {
   return state.pions[state.currentIndex];
 }
 
-/** Ranking by board position (descending), ties by coins. */
+/** Classement : en mode Étoiles, plus d'étoiles puis plus d'or ; en mode
+ *  Course, plus avancé sur le plateau puis plus d'or. */
 export function ranking() {
+  if (state.variant === "etoiles") {
+    return [...state.pions].sort((a, b) => (b.etoiles ?? 0) - (a.etoiles ?? 0) || b.pieces - a.pieces);
+  }
   return [...state.pions].sort((a, b) => b.position - a.position || b.pieces - a.pieces);
 }
 

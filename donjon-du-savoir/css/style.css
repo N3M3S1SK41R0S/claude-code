@@ -288,6 +288,18 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 
 .pion-layer { position: absolute; inset: 0; pointer-events: none; }
 
+.star-marker {
+  position: absolute;
+  translate: -50% -50%;
+  font-size: 1.5rem;
+  font-size: 5cqw;
+  filter: drop-shadow(0 0 6px rgba(224, 176, 74, 0.9));
+  animation: star-bob 1.8s ease-in-out infinite;
+  z-index: 4;
+  pointer-events: none;
+}
+@keyframes star-bob { 0%,100% { margin-top: 0 } 50% { margin-top: -0.6cqw } }
+
 .pion {
   position: absolute;
   translate: -50% -50%;
@@ -426,6 +438,7 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
   flex: 0 0 auto;
 }
 .player-chip-actif { border-color: var(--gold); box-shadow: 0 0 8px rgba(224, 176, 74, 0.35); }
+.round-chip { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--card)); }
 .player-emoji { font-size: 1.3rem; }
 
 .portrait { flex-shrink: 0; }

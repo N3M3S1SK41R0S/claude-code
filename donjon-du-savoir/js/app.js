@@ -192,6 +192,8 @@ function renderCustom() {
 
 let setupMode = "individuel";
 let selectedBoardId = "grand-donjon";
+let variant = "course";
+let rounds = 10;
 let players = [{ nom: "", profil: "adulte", characterId: "cageot" }, { nom: "", profil: "adulte", characterId: "etincelle" }];
 let teams = [
   { nom: "Les Dragons", characterId: "cageot", membres: [{ nom: "", profil: "adulte" }] },
@@ -345,6 +347,44 @@ function renderSetup() {
     ),
   );
 
+  // Variante de jeu : Course (arriver 1er) ou Étoiles (façon Mario Party).
+  zone.append(
+    el("h2", { class: "setup-subtitle", text: "Choisissez votre mode" }),
+    el("div", { class: "board-picker", role: "radiogroup", "aria-label": "Mode de jeu" },
+      el("button", {
+        class: "board-card" + (variant === "course" ? " board-card-on" : ""),
+        type: "button", role: "radio", "aria-checked": String(variant === "course"),
+        onclick: () => { variant = "course"; renderSetup(); },
+      },
+        el("span", { class: "board-card-emoji", "aria-hidden": "true", text: "🏁" }),
+        el("strong", { class: "board-card-nom", text: "Course" }),
+        el("span", { class: "board-card-desc", text: "Le premier au Trésor gagne. Rapide et direct." }),
+      ),
+      el("button", {
+        class: "board-card" + (variant === "etoiles" ? " board-card-on" : ""),
+        type: "button", role: "radio", "aria-checked": String(variant === "etoiles"),
+        onclick: () => { variant = "etoiles"; renderSetup(); },
+      },
+        el("span", { class: "board-card-emoji", "aria-hidden": "true", text: "⭐" }),
+        el("strong", { class: "board-card-nom", text: "Étoiles" }),
+        el("span", { class: "board-card-desc", text: "Façon Mario Party : achetez des étoiles au marchand, le plus d'étoiles gagne en fin de manches." }),
+      ),
+    ),
+  );
+  if (variant === "etoiles") {
+    zone.append(
+      el("div", { class: "mode-switch", role: "radiogroup", "aria-label": "Nombre de manches" },
+        ...[["Courte", 6], ["Normale", 10], ["Épique", 15]].map(([label, n]) =>
+          el("button", {
+            class: "btn btn-toggle" + (rounds === n ? " btn-toggle-on" : ""),
+            type: "button", role: "radio", "aria-checked": String(rounds === n),
+            onclick: () => { rounds = n; renderSetup(); },
+          }, `${label} · ${n} manches`),
+        ),
+      ),
+    );
+  }
+
   zone.append(
     el("p", { class: "help-note", text: "Les questions « enfant » conviennent à tout le monde ; le profil ne sert qu'à adapter la difficulté. En équipe, un porte-parole différent répond à chaque question." }),
     el("button", { class: "btn btn-big btn-gold", type: "button", onclick: launchGame }, "🏰 Entrer dans le Donjon"),
@@ -383,7 +423,7 @@ function launchGame() {
   }
   clearSave();
   const def = boardById(selectedBoardId);
-  newGame({ mode: setupMode, pions, boardId: def.id }, generateBoard(def));
+  newGame({ mode: setupMode, pions, boardId: def.id, variant, rounds }, generateBoard(def));
   show("game");
   startGame(showVictory);
 }
@@ -394,8 +434,11 @@ function showVictory(winner, rankingData) {
   show("victory");
   const zone = document.getElementById("victory-zone");
   zone.innerHTML = "";
+  const etoilesMode = rankingData.some((p) => p.etoiles !== undefined);
   zone.append(
-    el("h2", { class: "victory-title", text: `🏆 ${winner.nom} remporte le Trésor du Savoir !` }),
+    el("h2", { class: "victory-title", text: etoilesMode
+      ? `🏆 ${winner.nom} remporte le Donjon avec ${winner.etoiles ?? 0} ⭐ !`
+      : `🏆 ${winner.nom} remporte le Trésor du Savoir !` }),
     el("ol", { class: "victory-list" },
       ...rankingData.map((p, i) =>
         el("li", { class: "victory-item" + (i === 0 ? " victory-item-first" : "") },
@@ -404,7 +447,9 @@ function showVictory(winner, rankingData) {
             portraitEl(p.characterId, 40),
             el("span", { text: p.nom }),
           ),
-          el("span", { class: "victory-meta", text: `case ${p.position} · 🪙${p.pieces} · ${p.bonnes}/${p.questions} bonnes réponses` }),
+          el("span", { class: "victory-meta", text: etoilesMode
+            ? `⭐${p.etoiles ?? 0} · 🪙${p.pieces} · ${p.bonnes}/${p.questions} bonnes réponses`
+            : `case ${p.position} · 🪙${p.pieces} · ${p.bonnes}/${p.questions} bonnes réponses` }),
         ),
       ),
     ),
