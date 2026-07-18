@@ -11,6 +11,10 @@ export interface CollectionSummary {
  * Calcule le résumé global sans présenter un sous-total comme une valeur de
  * portefeuille complète. Une seule lecture de cote en échec masque donc le
  * total et la plus/moins-value jusqu’à la prochaine relance réussie.
+ *
+ * La plus/moins-value porte uniquement sur les objets qui possèdent à la fois
+ * une cote et un prix d’acquisition : un objet sans coût connu ne peut pas être
+ * compté comme un gain égal à toute sa valeur courante.
  */
 export function collectionSummary(
   items: readonly VelumItem[],
@@ -22,6 +26,7 @@ export function collectionSummary(
   }
 
   let totalValue = 0;
+  let comparableCurrentValue = 0;
   let acquiredValue = 0;
   let hasComparableAcquisition = false;
 
@@ -31,6 +36,7 @@ export function collectionSummary(
 
     totalValue += valuation.central;
     if (item.acquiredPrice !== null) {
+      comparableCurrentValue += valuation.central;
       acquiredValue += item.acquiredPrice;
       hasComparableAcquisition = true;
     }
@@ -38,6 +44,6 @@ export function collectionSummary(
 
   return {
     totalValue,
-    gainLoss: hasComparableAcquisition ? totalValue - acquiredValue : null,
+    gainLoss: hasComparableAcquisition ? comparableCurrentValue - acquiredValue : null,
   };
 }
