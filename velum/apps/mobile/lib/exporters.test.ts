@@ -126,6 +126,8 @@ describe('buildItemSheetHtml', () => {
     expect(html).toContain('Drouot');
     expect(html).toContain('export.disclaimer');
     expect(html).toContain('zappa_vini');
+    expect(html).toContain('43 / 100');
+    expect(html).not.toContain('78 / 100');
   });
 
   it('échappe le HTML injecté dans le titre', () => {
@@ -207,6 +209,8 @@ describe('buildInsuranceReportHtml', () => {
     expect(html).toContain('2026-07-10');
     expect(html).toContain('export.totalTitle');
     expect(html).toContain('Drouot (auction_realized)');
+    expect(html).toContain('43 / 100');
+    expect(html).not.toContain('78 / 100');
     expect(html).toContain('export.disclaimer');
   });
 

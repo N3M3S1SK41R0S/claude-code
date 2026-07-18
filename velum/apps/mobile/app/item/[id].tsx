@@ -31,6 +31,7 @@ import type {
   WatchAnalysisPayload,
   WineAnalysisPayload,
 } from '@velum/core';
+import { resolveReliabilityForResult } from '@velum/valuation';
 
 import { Screen } from '../../components/Screen';
 import { ValueChart } from '../../components/ValueChart';
@@ -239,6 +240,14 @@ export default function ItemSheet() {
   const payload = analysisPayload(item);
   const disclaimers = itemDisclaimers(item);
   const history: ValuationRecord[] = historyQuery.data ?? [];
+  const valuationReliability = valuation
+    ? resolveReliabilityForResult({
+        central: valuation.central,
+        ci80: [valuation.ci80Low, valuation.ci80High],
+        reliability: valuation.reliability,
+        observations: valuation.sources,
+      })
+    : null;
 
   return (
     <Screen>
@@ -253,7 +262,7 @@ export default function ItemSheet() {
 
       {/* Bloc VALORISATION */}
       <SheetSection title={t('item.valuationTitle')}>
-        {valuation ? (
+        {valuation && valuationReliability ? (
           <>
             <VText variant="title" tone="gold" tabularNums accessibilityLabel={formatEUR(valuation.central)}>
               {formatEUR(valuation.central)}
@@ -271,7 +280,7 @@ export default function ItemSheet() {
             <KV
               label={t('item.reliability')}
               tabular
-              value={`${Math.round(valuation.reliability)} / 100 · ${t('item.nSources', { count: valuation.sources.length })}`}
+              value={`${valuationReliability.value} / 100 · ${t('item.nSources', { count: valuationReliability.nSources })}`}
             />
             {valuation.sources.length > 0 ? (
               <ValuationExplanation valuation={valuation} label={t('item.whyThisRange')} />

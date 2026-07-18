@@ -262,13 +262,19 @@ describe('coinPlugin.buildPriceQuery', () => {
 
 // ── Valorisation bout-en-bout avec le moteur RÉEL ─────────────────────────
 
-function obs(price: number, currency: string, kind: PriceSource['kind'], ageDays: number): PriceObservation {
+function obs(
+  price: number,
+  currency: string,
+  kind: PriceSource['kind'],
+  ageDays: number,
+  sourceName: string,
+): PriceObservation {
   return {
     price,
     currency,
     ageDays,
     sourceWeight: kind === 'auction_realized' ? 1 : 0.7,
-    source: { name: 'fixture', kind },
+    source: { name: sourceName, kind },
   };
 }
 
@@ -286,15 +292,15 @@ describe('coinPlugin.valuate — bout-en-bout avec @velum/valuation', () => {
       name: 'eBay sold',
       kind: 'marketplace_sold',
       fetch: async () => [
-        obs(100, 'EUR', 'marketplace_sold', 10),
-        obs(110, 'EUR', 'marketplace_sold', 30),
-        obs(104, 'EUR', 'marketplace_sold', 5),
+        obs(100, 'EUR', 'marketplace_sold', 10, 'eBay sold'),
+        obs(110, 'EUR', 'marketplace_sold', 30, 'eBay sold'),
+        obs(104, 'EUR', 'marketplace_sold', 5, 'eBay sold'),
       ],
     };
     const sourceB: PriceSource = {
       name: 'Heritage',
       kind: 'auction_realized',
-      fetch: async () => [obs(120, 'USD', 'auction_realized', 60)],
+      fetch: async () => [obs(120, 'USD', 'auction_realized', 60, 'Heritage')],
     };
     const failing: PriceSource = {
       name: 'en panne',
@@ -309,8 +315,8 @@ describe('coinPlugin.valuate — bout-en-bout avec @velum/valuation', () => {
       deps([sourceA, sourceB, failing]),
     );
 
-    // 4 observations conservées (100, 110, 104 EUR + 120 USD → 108 EUR).
-    expect(result.nSources).toBe(4);
+    // 4 observations conservées, issues de 2 plateformes distinctes.
+    expect(result.nSources).toBe(2);
     expect(result.currency).toBe('EUR');
     expect(result.central).toBeGreaterThanOrEqual(100);
     expect(result.central).toBeLessThanOrEqual(110);

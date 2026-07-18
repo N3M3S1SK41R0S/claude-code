@@ -18,6 +18,7 @@ export interface ValuationExplanationProps {
   label: string;
 }
 
+/** Affiche à la demande la décomposition auditable d’une valorisation persistée. */
 export function ValuationExplanation({ valuation, label }: ValuationExplanationProps) {
   const [open, setOpen] = useState(false);
 
@@ -27,13 +28,12 @@ export function ValuationExplanation({ valuation, label }: ValuationExplanationP
     ci95: [valuation.ci95Low, valuation.ci95High],
     reliability: valuation.reliability,
     observations: valuation.sources,
-    nSources: valuation.sources.length,
   });
 
   return (
     <View style={styles.container}>
       <Pressable
-        onPress={() => setOpen((v) => !v)}
+        onPress={() => setOpen((value) => !value)}
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
         accessibilityLabel={label}
@@ -46,8 +46,8 @@ export function ValuationExplanation({ valuation, label }: ValuationExplanationP
       </Pressable>
       {open ? (
         <View style={styles.body}>
-          {explanation.notes.map((note, i) => (
-            <VText key={i} variant="caption" tone="dim" style={styles.note}>
+          {explanation.notes.map((note, index) => (
+            <VText key={index} variant="caption" tone="dim" style={styles.note}>
               •  {note}
             </VText>
           ))}

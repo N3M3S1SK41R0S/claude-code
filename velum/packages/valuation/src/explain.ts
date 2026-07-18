@@ -21,6 +21,7 @@ import {
   valuate,
   type ValuateOptions,
 } from './engine.ts';
+import { resolveReliabilityForResult } from './resolve.ts';
 
 /** Décomposition d'une observation dans la décision du moteur. */
 export interface ObservationBreakdown {
@@ -46,9 +47,16 @@ export interface ValuationExplanation {
   ci80: [number, number];
   ci95: [number, number];
   reliability: number;
+  /** Score présent dans la ligne persistée avant éventuel recalcul. */
+  storedReliability: number;
+  /** true lorsque les observations permettent d’appliquer le moteur courant. */
+  reliabilityRecomputed: boolean;
   /** Largeur de l'IC 80 % relative à la valeur centrale (dispersion, 0..1+). */
   ci80WidthRatio: number;
+  /** Nombre d'observations conservées après rejet MAD. */
   nKept: number;
+  /** Nombre de plateformes distinctes parmi les observations conservées. */
+  nSources: number;
   nRejected: number;
   breakdown: ObservationBreakdown[];
   /** Décomposition du score de fiabilité (chaque terme 0..1). */
@@ -103,18 +111,22 @@ export function explainValuation(
     };
   });
 
-  const nKept = result.nSources;
+  const nKept = result.observations.length;
+  const nSources = result.nSources;
   const nRejected = obs.length - nKept;
   const ci80WidthRatio = result.central
     ? Number(((result.ci80[1] - result.ci80[0]) / result.central).toFixed(3))
     : 1;
-  const countScore = Math.min(1, nKept / 8);
+  const countScore = Math.min(1, nSources / 8);
   const tightnessScore = Math.max(0, 1 - ci80WidthRatio);
 
   const notes: string[] = [];
   notes.push(
-    `Estimation fondée sur ${nKept} observation${nKept > 1 ? 's' : ''} conservée${nKept > 1 ? 's' : ''}` +
-      (nRejected > 0 ? ` (${nRejected} écartée${nRejected > 1 ? 's' : ''} comme aberrante${nRejected > 1 ? 's' : ''}, règle MAD k=${k}).` : '.'),
+    `Estimation fondée sur ${nKept} observation${nKept > 1 ? 's' : ''} conservée${nKept > 1 ? 's' : ''}, ` +
+      `issue${nKept > 1 ? 's' : ''} de ${nSources} source${nSources > 1 ? 's' : ''} distincte${nSources > 1 ? 's' : ''}` +
+      (nRejected > 0
+        ? ` (${nRejected} écartée${nRejected > 1 ? 's' : ''} comme aberrante${nRejected > 1 ? 's' : ''}, règle MAD k=${k}).`
+        : '.'),
   );
 
   // Répartition par type de source (les ventes réalisées pèsent le plus).
@@ -146,8 +158,11 @@ export function explainValuation(
     ci80: result.ci80,
     ci95: result.ci95,
     reliability: result.reliability,
+    storedReliability: result.reliability,
+    reliabilityRecomputed: true,
     ci80WidthRatio,
     nKept,
+    nSources,
     nRejected,
     breakdown,
     reliabilityFactors: {
@@ -158,15 +173,18 @@ export function explainValuation(
   };
 }
 
-/** Cohérence : le score de fiabilité recalculé depuis l'explication == moteur. */
+/** Cohérence : le score de fiabilité recomposé depuis l'explication == score affiché. */
 export function reliabilityFromExplanation(e: ValuationExplanation): number {
-  return reliabilityScore(e.nKept, e.ci80[0], e.ci80[1], e.central);
+  return e.reliabilityRecomputed
+    ? reliabilityScore(e.nSources, e.ci80[0], e.ci80[1], e.central)
+    : e.reliability;
 }
 
 /**
  * Explication SANS taux de change, à partir d'un `ValuationResult` déjà calculé
- * (celui persisté et affiché par l'app). Ne re-calcule PAS la valorisation et
- * n'a pas besoin des FX : les observations d'un résultat sont celles CONSERVÉES
+ * (celui persisté et affiché par l'app). Ne recalcule ni la centrale ni les
+ * intervalles, mais résout le score selon le moteur courant à partir des sources
+ * conservées. Aucun FX n'est requis : les observations sont celles CONSERVÉES
  * (post-rejet MAD côté serveur), donc `kept = true` pour toutes ; les points
  * écartés ne sont pas connus ici. Le prix normalisé n'est renseigné que pour
  * les observations déjà en EUR.
@@ -177,8 +195,13 @@ export function explainFromResult(result: {
   ci95: [number, number];
   reliability: number;
   observations: PriceObservation[];
-  nSources: number;
 }): ValuationExplanation {
+  const resolution = resolveReliabilityForResult({
+    central: result.central,
+    ci80: result.ci80,
+    reliability: result.reliability,
+    observations: result.observations,
+  });
   const halfLife = HALF_LIFE_DAYS;
   const breakdown: ObservationBreakdown[] = result.observations.map((o) => {
     const sw = o.sourceWeight ?? DEFAULT_SOURCE_WEIGHTS[o.source.kind];
@@ -193,20 +216,28 @@ export function explainFromResult(result: {
     };
   });
 
-  const nKept = result.nSources || result.observations.length;
+  const nKept = result.observations.length;
+  const nSources = resolution.nSources;
   const ci80WidthRatio = result.central
     ? Number(((result.ci80[1] - result.ci80[0]) / result.central).toFixed(3))
     : 1;
-  const countScore = Math.min(1, nKept / 8);
+  const countScore = Math.min(1, nSources / 8);
   const tightnessScore = Math.max(0, 1 - ci80WidthRatio);
 
   const notes: string[] = [];
-  notes.push(`Estimation fondée sur ${nKept} observation${nKept > 1 ? 's' : ''} conservée${nKept > 1 ? 's' : ''}.`);
+  notes.push(
+    `Estimation fondée sur ${nKept} observation${nKept > 1 ? 's' : ''} conservée${nKept > 1 ? 's' : ''}, ` +
+      `issue${nKept > 1 ? 's' : ''} de ${nSources} source${nSources > 1 ? 's' : ''} distincte${nSources > 1 ? 's' : ''}.`,
+  );
 
   const kinds = new Map<string, number>();
-  for (const b of breakdown) kinds.set(b.observation.source.kind, (kinds.get(b.observation.source.kind) ?? 0) + 1);
+  for (const b of breakdown) {
+    kinds.set(b.observation.source.kind, (kinds.get(b.observation.source.kind) ?? 0) + 1);
+  }
   if (kinds.size > 0) {
-    const parts = [...kinds.entries()].sort((a, b) => b[1] - a[1]).map(([kind, n]) => `${n} ${SOURCE_KIND_LABEL[kind] ?? kind}`);
+    const parts = [...kinds.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([kind, n]) => `${n} ${SOURCE_KIND_LABEL[kind] ?? kind}`);
     notes.push(`Mélange de sources : ${parts.join(', ')}.`);
   }
   notes.push(
@@ -216,20 +247,33 @@ export function explainFromResult(result: {
         ? `Fourchette modérée (± ${Math.round((ci80WidthRatio / 2) * 100)} %) : quelques divergences entre sources.`
         : `Fourchette large (± ${Math.round((ci80WidthRatio / 2) * 100)} %) : peu de données concordantes — prudence.`,
   );
+  if (resolution.differsFromStored) {
+    notes.push(
+      `Score recalculé selon le moteur courant à partir des sources conservées (score enregistré : ${resolution.stored}/100).`,
+    );
+  }
   notes.push(
-    `Fiabilité ${result.reliability}/100 = moitié couverture (${Math.round(countScore * 100)} %) + moitié resserrement (${Math.round(tightnessScore * 100)} %).`,
+    resolution.recomputed
+      ? `Fiabilité ${resolution.value}/100 = moitié couverture (${Math.round(countScore * 100)} %) + moitié resserrement (${Math.round(tightnessScore * 100)} %).`
+      : `Fiabilité enregistrée ${resolution.value}/100 — détail du calcul indisponible faute de sources conservées.`,
   );
 
   return {
     central: result.central,
     ci80: result.ci80,
     ci95: result.ci95,
-    reliability: result.reliability,
+    reliability: resolution.value,
+    storedReliability: resolution.stored,
+    reliabilityRecomputed: resolution.recomputed,
     ci80WidthRatio,
     nKept,
+    nSources,
     nRejected: 0,
     breakdown,
-    reliabilityFactors: { countScore: Number(countScore.toFixed(3)), tightnessScore: Number(tightnessScore.toFixed(3)) },
+    reliabilityFactors: {
+      countScore: Number(countScore.toFixed(3)),
+      tightnessScore: Number(tightnessScore.toFixed(3)),
+    },
     notes,
   };
 }

@@ -5,6 +5,7 @@
  */
 import type { AnalysisResult, ValuationRecord, VelumItem } from '@velum/core';
 import type { BlindTastingSession } from '@velum/domain-wine';
+import { resolveReliabilityForResult } from '@velum/valuation';
 import { itemNumber, itemString } from './itemAttributes';
 
 /** Fonction de traduction minimale (compatible TFunction i18next). */
@@ -38,6 +39,15 @@ function formatEUR(value: number): string {
   }).format(value);
 }
 
+function resolvedReliability(valuation: ValuationRecord): number {
+  return resolveReliabilityForResult({
+    central: valuation.central,
+    ci80: [valuation.ci80Low, valuation.ci80High],
+    reliability: valuation.reliability,
+    observations: valuation.sources,
+  }).value;
+}
+
 function baseStyles(): string {
   return `
     <style>
@@ -69,7 +79,7 @@ function renderValuationBlock(valuation: ValuationRecord, t: Translator): string
     <tr><th>${escapeHtml(t('export.central'))}</th><td>${escapeHtml(formatEUR(valuation.central))}</td></tr>
     <tr><th>${escapeHtml(t('export.ci80'))}</th><td>${escapeHtml(`${formatEUR(valuation.ci80Low)} – ${formatEUR(valuation.ci80High)}`)}</td></tr>
     <tr><th>${escapeHtml(t('export.ci95'))}</th><td>${escapeHtml(`${formatEUR(valuation.ci95Low)} – ${formatEUR(valuation.ci95High)}`)}</td></tr>
-    <tr><th>${escapeHtml(t('export.reliability'))}</th><td>${escapeHtml(`${Math.round(valuation.reliability)} / 100`)}</td></tr>
+    <tr><th>${escapeHtml(t('export.reliability'))}</th><td>${escapeHtml(`${resolvedReliability(valuation)} / 100`)}</td></tr>
   </table>
   <h2>${escapeHtml(t('export.sources'))}</h2>
   <table>
@@ -141,7 +151,7 @@ export function buildInsuranceReportHtml(
       const range = valuation
         ? `${formatEUR(valuation.ci80Low)} – ${formatEUR(valuation.ci80High)}`
         : '—';
-      const reliability = valuation ? `${Math.round(valuation.reliability)} / 100` : '—';
+      const reliability = valuation ? `${resolvedReliability(valuation)} / 100` : '—';
       return `<tr>
         <td>${escapeHtml(item.title ?? t('common.unknown'))}</td>
         <td>${escapeHtml(t(`domains.${item.domain}.name`))}</td>

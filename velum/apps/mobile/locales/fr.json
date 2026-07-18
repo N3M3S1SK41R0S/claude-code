@@ -213,7 +213,7 @@
     "ci80": "Fourchette probable (IC 80 %)",
     "ci95": "Fourchette large (IC 95 %)",
     "reliability": "Fiabilité",
-    "nSources": "{{count}} observation(s) retenue(s)",
+    "nSources": "{{count}} source(s) distincte(s)",
     "sourcesTitle": "Sources",
     "recentSalesTitle": "Dernières ventes",
     "recentSalesIntro": "Ventes comparables réellement observées, attribuées à leur source.",
