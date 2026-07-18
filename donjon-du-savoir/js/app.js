@@ -471,8 +471,13 @@ async function boot() {
   renderHome();
   show("home");
 
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js").catch(() => { /* offline dev */ });
+  // navigator.serviceWorker exists on the prototype but reads back undefined on
+  // insecure/file:// origins (and some sandboxes) — guard the value, not just
+  // the key, so registration never throws before its .catch.
+  if ("serviceWorker" in navigator && navigator.serviceWorker && typeof navigator.serviceWorker.register === "function") {
+    try {
+      navigator.serviceWorker.register("sw.js").catch(() => { /* offline dev */ });
+    } catch { /* SW unavailable in this context */ }
   }
 }
 

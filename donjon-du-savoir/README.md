@@ -120,10 +120,21 @@ collectifs), mais clairement marquées 🏠 « non vérifiée par le Donjon » e
 ## Tests
 
 ```bash
-node tools/smoke.mjs    # E2E Chromium headless : setup → dés → cases →
-                        # question → anecdote → sauvegarde/reprise → hors-ligne
-node tools/make-icons.mjs   # régénère les icônes PWA (vectoriel → PNG)
+node tools/smoke.mjs             # E2E Chromium : setup → dés → cases →
+                                 # question → anecdote → reprise → hors-ligne
+node tools/make-icons.mjs        # régénère les icônes PWA (vectoriel → PNG)
+node tools/build-standalone.mjs  # → dist/donjon-standalone.html (un seul fichier)
+node tools/smoke-standalone.mjs  # joue le fichier unique en headless (file://)
 ```
+
+## Version « un seul fichier » (jouer sans serveur)
+
+`node tools/build-standalone.mjs` assemble **tout le jeu dans un unique
+`dist/donjon-standalone.html`** : modules concaténés (shim CommonJS, chaque
+module garde son scope), CSS et banque de questions embarqués, aucun service
+worker ni requête réseau. On l'ouvre directement (double-clic, `file://`) ou on
+l'envoie tel quel — idéal pour tester vite sur un téléphone. Même source que la
+PWA, donc rien à maintenir en double.
 
 (`node_modules` est un lien vers `../grand-mogul/node_modules` pour
 `playwright-core` — outillage de dev uniquement, le jeu lui-même n'a
