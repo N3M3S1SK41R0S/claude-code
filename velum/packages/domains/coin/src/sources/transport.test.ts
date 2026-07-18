@@ -8,8 +8,9 @@ describe('ageDaysFromIso', () => {
     expect(ageDaysFromIso('2026-07-09T12:00:00.000Z', NOW)).toBe(1);
   });
 
-  it('tolère une dérive fournisseur inférieure à 24 heures', () => {
+  it('tolère une dérive fournisseur jusqu’à 24 heures', () => {
     expect(ageDaysFromIso('2026-07-11T11:59:59.000Z', NOW)).toBe(0);
+    expect(ageDaysFromIso('2026-07-11T12:00:00.000Z', NOW)).toBe(0);
   });
 
   it('rejette une date située à plus de 24 heures dans le futur', () => {
