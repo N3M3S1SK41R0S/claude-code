@@ -55,7 +55,7 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
    ses objets** (besace) quand on veut.
 3. Cases : ❓ Question · 🍀 Chance · 🎪 Événement collectif · 💀 Coup dur ·
    🪙 Pièces · 🃏 Joker · 🎲 Gambit (×2) · 🕳️ Trou Noir · 🛒 Boutique ·
-   🦩 Savoir insolite · 🏆 Trésor / ⭐ Étoile.
+   🦩 Savoir insolite · 🎭 Défi d'expression · 🏆 Trésor / ⭐ Étoile.
    **Objets & dés spéciaux** (boutique) : Dé Double/Triple/Choisi/Mirage/
    Échange, Tuyau d'Or, Bouclier, Aimant à Or, malus Sabotage/Racket, et la
    **Besasse Badass** (inventaire 3 → 6). Un **toast d'ouverture** loufoque
@@ -68,7 +68,12 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
 6. **Question bonus de la tablée** : de temps en temps, entre deux tours, le
    Héraut lance une question à **toute la table** — la première bonne réponse
    criée rafle quelques pièces (toujours zéro chronomètre, la table est juge).
-7. Premier pion au Trésor : victoire (jamais d'élimination).
+7. **Défis d'expression** (case 🎭) : le pion actif devient meneur et fait
+   deviner à la tablée un défi 🚫 **Tabou** (sans dire les mots interdits),
+   🔑 **Password** (indices d'un seul mot) ou 🤫 **Mime** (en silence). Contenu
+   **vérifié, 100 % original et tout public** (`data/wordgames.json`) — aucun
+   nom de marque, aucun personnage sous licence.
+8. Premier pion au Trésor : victoire (jamais d'élimination).
 
 ### Formats de question (aucun n'est chronométré)
 
@@ -128,6 +133,14 @@ fact-check adversarial) puis relancer le script — ou ajouter des entrées à l
 main dans `data/questions.json` en respectant le schéma du cahier (§7), avec
 2 sources minimum par question.
 
+**Défis d'expression** : `data/wordgames.json` — un lot vérifié, **100 %
+original et tout public** de défis 🚫 Tabou (mot + 5 mots interdits), 🔑 Password
+et 🤫 Mime, répartis en niveaux enfant/ado/adulte (le niveau enfant convient à
+toute la tablée). Aucun nom de marque, aucun personnage sous licence ; le mot
+interdit du Tabou n'apparaît jamais dans le mot-cible (contrôlé par
+`tools/test-wordgames.mjs`). Même registre de fraîcheur inter-parties que les
+questions. Format volontairement simple pour être étendu à la main.
+
 **Fraîcheur inter-parties** : un registre local (localStorage) mémorise les
 questions déjà vues — une question ne revient que lorsque toutes les autres
 ont été vues autant de fois. Avec le choix du donjon, le re-mélange des cases
@@ -150,9 +163,10 @@ node tools/smoke.mjs             # E2E Chromium : setup → dés → cases →
 node tools/smoke-shop.mjs        # E2E boutique + objets + toast d'ouverture
 node tools/smoke-etoiles.mjs     # E2E mode Étoiles : achat d'étoile au passage,
                                  # sceptre du larcin, 3 étoiles bonus de fin
-node tools/smoke-minigames.mjs   # E2E anagramme / pendu / question bonus tablée
+node tools/smoke-minigames.mjs   # E2E anagramme / pendu / bonus tablée / défi 🎭
 node tools/test-bonus.mjs        # unitaire : tirage des étoiles bonus de fin
 node tools/test-minigames.mjs    # unitaire : anagramme / pendu / plus proche
+node tools/test-wordgames.mjs    # unitaire : contenu vérifié Tabou/Password/Mime
 node tools/make-icons.mjs        # régénère les icônes PWA (vectoriel → PNG)
 node tools/build-standalone.mjs  # → dist/donjon-standalone.html (un seul fichier)
 node tools/smoke-standalone.mjs  # joue le fichier unique en headless (file://)

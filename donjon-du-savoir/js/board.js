@@ -15,6 +15,7 @@ export const CASE_TYPES = {
   arrivee: { label: "Trésor", emoji: "🏆", couleur: "#e0b04a" },
   boutique: { label: "Boutique", emoji: "🛒", couleur: "#c25ea0" },
   insolite: { label: "Savoir insolite", emoji: "🦩", couleur: "#e0568f" },
+  expression: { label: "Défi d'expression", emoji: "🎭", couleur: "#c2683e" },
 };
 
 /**
@@ -137,6 +138,8 @@ export function generateBoard(def = boardById("grand-donjon")) {
   // Boutiques réparties (au passage) : plusieurs sur les grands plateaux.
   seed("boutique", Math.max(2, Math.round(L / 16)));
   seed("insolite", L >= 40 ? 2 : 1);
+  // Défis d'expression (Tabou / Password / Mime) : la tablée joue ensemble.
+  seed("expression", L >= 40 ? 2 : 1);
   return layout;
 }
 

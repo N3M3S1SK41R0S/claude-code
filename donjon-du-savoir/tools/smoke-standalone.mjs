@@ -42,7 +42,7 @@ try {
   check("board rendered", (await page.locator(".case").count()) >= 28);
 
   let sawQuestion = false, sawAnecdote = false;
-  for (let turn = 0; turn < 10; turn++) {
+  for (let turn = 0; turn < 16; turn++) {
     const roll = page.getByRole("button", { name: "🎲 Lancer le dé" });
     if (!(await roll.isVisible().catch(() => false))) {
       if (await page.locator("#screen-victory:not([hidden])").count()) break;
@@ -77,6 +77,7 @@ try {
       await page.waitForTimeout(120);
     }
     if (await page.locator("#screen-victory:not([hidden])").count()) break;
+    if (sawQuestion && sawAnecdote) break; // seen what we need — stop before the race can end
   }
   check("question flow exercised", sawQuestion);
   check("anecdote displayed", sawAnecdote);

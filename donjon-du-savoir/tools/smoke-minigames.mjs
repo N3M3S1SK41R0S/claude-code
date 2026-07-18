@@ -25,6 +25,15 @@ const check = (n, ok) => { console.log(`${ok ? "✓" : "✗"} ${n}`); if (!ok) f
 // Advance the game by one micro-step (roll, vote, answer, continue) — used to
 // churn turns until a forced panel appears. Skips the target's own buttons.
 async function microStep(page) {
+  // If a game ended (course reached the Trésor), start a fresh one so the search
+  // for a forced panel never dead-ends on a finished board. Window seams persist
+  // (no reload), so the next game still forces the same mini-game.
+  if (await page.locator("#screen-victory:not([hidden])").count()) {
+    await page.getByRole("button", { name: "⚔️ Revanche" }).click().catch(() => {});
+    await page.getByRole("button", { name: "🏰 Entrer dans le Donjon" }).click().catch(() => {});
+    await page.getByRole("button", { name: "🎲 Au hasard !" }).click().catch(() => {});
+    return;
+  }
   const roll = page.getByRole("button", { name: "🎲 Lancer le dé" });
   if (await roll.isVisible().catch(() => false)) {
     await roll.click();
@@ -67,7 +76,7 @@ try {
   {
     const { page, errs } = await newGame({ __DONJON_TEST: true, __DONJON_MINIGAME: "anagram" });
     let seen = false;
-    for (let i = 0; i < 160 && !seen; i++) {
+    for (let i = 0; i < 280 && !seen; i++) {
       if ((await page.locator(".anagram-letters").count()) > 0) { seen = true; break; }
       await microStep(page);
     }
@@ -87,7 +96,7 @@ try {
   {
     const { page, errs } = await newGame({ __DONJON_TEST: true, __DONJON_MINIGAME: "hangman" });
     let seen = false;
-    for (let i = 0; i < 160 && !seen; i++) {
+    for (let i = 0; i < 280 && !seen; i++) {
       if ((await page.locator(".hangman-word").count()) > 0) { seen = true; break; }
       await microStep(page);
     }
@@ -120,6 +129,28 @@ try {
       check("bonus hands back to a turn", await page.getByRole("button", { name: "🎲 Lancer le dé" }).isVisible().catch(() => false));
     }
     check("bonus: no page errors", errs.length === 0);
+    await page.close();
+  }
+
+  // ---- Défi d'expression (Tabou / Password / Mime) ----
+  {
+    const { page, errs } = await newGame({ __DONJON_TEST: true, __DONJON_EXPRESSION: true });
+    let seen = false;
+    for (let i = 0; i < 220 && !seen; i++) {
+      if (await page.getByRole("button", { name: /Révéler le défi/ }).isVisible().catch(() => false)) { seen = true; break; }
+      await microStep(page);
+    }
+    check("expression (défi) panel reached", seen);
+    if (seen) {
+      await page.getByRole("button", { name: /Révéler le défi/ }).click();
+      check("expression reveals the challenge word", (await page.locator(".question-texte").count()) > 0);
+      await page.getByRole("button", { name: /je fais deviner/ }).click();
+      check("expression asks who guessed", (await page.getByText(/Qui a trouvé/).count()) > 0);
+      await page.locator(".choices .btn-choice").first().click(); // a guesser found it
+      await page.getByRole("button", { name: "Continuer" }).click();
+      check("expression hands back to a turn", await page.getByRole("button", { name: "🎲 Lancer le dé" }).isVisible().catch(() => false));
+    }
+    check("expression: no page errors", errs.length === 0);
     await page.close();
   }
 } catch (err) {

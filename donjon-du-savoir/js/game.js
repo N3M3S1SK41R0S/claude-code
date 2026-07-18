@@ -13,6 +13,7 @@ import { bigButton, choiceButton, el, heraldSays, setPanel } from "./ui.js";
 import { portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
 import { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } from "./minigames.js";
+import { drawDefi } from "./wordgames.js";
 
 /** Seam de test déterministe (jamais posé en jeu réel) : force un mini-jeu
  *  précis, ou une question bonus, pour couvrir ces panneaux en E2E. */
@@ -524,6 +525,8 @@ function resolveCase(type) {
       return doBoutique(pion);
     case "insolite":
       return doInsolite(pion);
+    case "expression":
+      return doExpression(pion);
     default:
       setPendingCase("resolu");
       return endPanel("Case tranquille. Le Donjon vous laisse souffler.");
@@ -605,6 +608,123 @@ function doInsolite(pion) {
       bigButton("Continuer", () => finishTurn()),
     ),
   );
+}
+
+/* ---------- défi d'expression : Tabou / Password / Mime, à la tablée ---------- */
+
+const EXPRESSION_KIND = {
+  tabou: {
+    titre: "🚫 Tabou",
+    passerelle: "Faites deviner ce mot… SANS prononcer les mots interdits !",
+    consigne: (d) => `Faites deviner « ${d.mot} » sans jamais dire : ${(d.interdits ?? []).join(", ")}.`,
+    cible: (d) => d.mot,
+  },
+  password: {
+    titre: "🔑 Password",
+    passerelle: "Un seul mot d'indice à la fois — jamais le mot lui-même, ni un mot de la même famille.",
+    consigne: (d) => `Faites deviner « ${d.mot} » en lançant des indices d'UN SEUL mot, chacun son tour.`,
+    cible: (d) => d.mot,
+  },
+  mime: {
+    titre: "🤫 Mime",
+    passerelle: "En silence, tout est dans le geste : mimez, ne dites pas un mot !",
+    consigne: (d) => `Mimez « ${d.expression} » — sans parler, sans bruitage.`,
+    cible: (d) => d.expression,
+  },
+};
+
+/**
+ * Case 🎭 : le pion actif est le MENEUR, la tablée devine (Tabou/Password/Mime).
+ * Aucun chronomètre — la table déclare qui a trouvé. Réussite : le meneur avance
+ * (+2 cases, +3 🪙) et celui qui a deviné empoche +3 🪙. Solo : petit entraînement.
+ */
+function doExpression(pion) {
+  setPendingCase("resolu");
+  const hasChild = getState().pions.some((p) => p.profil === "enfant");
+  const d = drawDefi({ hasChild });
+  if (!d) { addCoins(pion, 2); return endPanel("🎭 La malle aux défis est vide pour l'instant. +2 🪙 pour la peine."); }
+  const kind = EXPRESSION_KIND[d.type] ?? EXPRESSION_KIND.mime;
+  const meneur = speakerName(pion);
+  const others = getState().pions.filter((p) => p.id !== pion.id);
+  heraldSays(`🎭 Défi d'expression : ${kind.titre.replace(/^\S+\s/, "")} ! À ${meneur} de faire deviner.`);
+
+  // Solo : personne à qui faire deviner — un tour d'entraînement récompensé.
+  if (others.length === 0) {
+    const gain = addCoins(pion, 2);
+    return setPanel(
+      el("div", { class: "question-block" },
+        el("h2", { class: "panel-title", text: `🎭 ${kind.titre}` }),
+        el("p", { class: "question-texte", text: kind.cible(d) }),
+        el("p", { class: "help-note", text: `Entraînez-vous à le faire deviner. +${gain} 🪙 pour l'artiste !` }),
+        bigButton("Continuer", () => finishTurn()),
+      ),
+    );
+  }
+
+  // 1) Écran passé au meneur seul (les autres ne regardent pas).
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: `🎭 ${kind.titre}` }),
+      el("p", { class: "panel-text", text: `${meneur} prend l'appareil et le garde face à soi. Les autres, on ne triche pas 🙈` }),
+      el("p", { class: "help-note", text: kind.passerelle }),
+      bigButton("🙈 Révéler le défi (au meneur seul)", () => revealExpression(pion, d, kind, others)),
+    ),
+  );
+}
+
+function revealExpression(pion, d, kind, others) {
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: `🎭 ${kind.titre}` }),
+      el("p", { class: "question-texte", text: kind.cible(d) }),
+      d.type === "tabou"
+        ? el("p", { class: "help-note", text: `Interdits : ${(d.interdits ?? []).join(" · ")}` })
+        : el("p", { class: "help-note", text: kind.consigne(d) }),
+      el("p", { class: "badge badge-cat", text: d.theme }),
+      bigButton("Continuer : je fais deviner à la tablée", () => resolveExpression(pion, d, kind, others)),
+    ),
+  );
+}
+
+function resolveExpression(pion, d, kind, others) {
+  const REWARD_MENEUR_CASES = 2;
+  const REWARD_MENEUR_OR = 3;
+  const REWARD_DEVINEUR = 3;
+  const onFound = (guesser) => {
+    setPendingCase("resolu");
+    const gOr = addCoins(pion, REWARD_MENEUR_OR);
+    const gDev = addCoins(guesser, REWARD_DEVINEUR);
+    heraldSays(`Trouvé par ${guesser.nom} ! ${pion.nom} +${gOr} 🪙 et +${REWARD_MENEUR_CASES} cases, ${guesser.nom} +${gDev} 🪙.`);
+    setPanel(
+      el("div", { class: "question-block" },
+        el("p", { class: "verdict", html: `🎉 <strong>${guesser.nom}</strong> a deviné « ${kind.cible(d)} » !` }),
+        el("p", { class: "panel-text", text: `Communication réussie : tout le monde y gagne.` }),
+        bigButton("Continuer", () => { if (shift(pion, REWARD_MENEUR_CASES)) return; finishTurn(); }),
+      ),
+    );
+  };
+  const onMiss = () => {
+    setPendingCase("resolu");
+    const g = addCoins(pion, 1);
+    heraldSays("Pas trouvé cette fois — mais l'important, c'est de participer !");
+    endPanel(`🎭 La réponse était « ${kind.cible(d)} ». +${g} 🪙 au meneur pour l'effort.`);
+  };
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: `🎭 ${kind.titre}` }),
+      el("p", { class: "panel-text", text: "Qui a trouvé ? (aucun chronomètre — la table est juge)" }),
+      el("div", { class: "choices" },
+        ...others.map((o) => choiceButton(`${characterById(o.characterId).emoji} ${o.nom}`, () => onFound(o))),
+      ),
+      bigButton("Personne n'a trouvé", onMiss),
+    ),
+  );
+}
+
+/** Nom à afficher pour le meneur (porte-parole tournant en équipe). */
+function speakerName(pion) {
+  const membre = porteParole(pion);
+  return membre ? `${membre.nom} (équipe ${pion.nom})` : pion.nom;
 }
 
 function addCoins(pion, n) {
@@ -784,6 +904,7 @@ function speakerIntro(pion) {
 }
 
 function doQuestion() {
+  if (testFlag("__DONJON_EXPRESSION")) return doExpression(currentPion());
   const pion = currentPion();
   const q = drawQuestion(pion, { formats: ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_confiance"] });
   if (!q) return endPanel("La banque de questions est épuisée. Le Donjon est impressionné.");

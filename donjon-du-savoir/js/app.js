@@ -1,6 +1,7 @@
 // Screens and wiring: home → setup → game → victory. Pass-and-play, 1-20
 // players (individual) or teams sharing a pion with rotating spokesperson.
 import { loadBank, bankSize, refreshCustom } from "./data.js";
+import { loadWordgames } from "./wordgames.js";
 import { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } from "./custom.js";
 import { BOARDS, boardById, generateBoard } from "./board.js";
 import { resumeGame, startGame } from "./game.js";
@@ -526,6 +527,9 @@ async function boot() {
   } catch {
     // renderHome() shows the warning and disables new games (bankSize() === 0).
   }
+  // Contenu des défis d'expression (case 🎭) : chargement résilient, la case
+  // retombe proprement sur une petite récompense si le fichier manque.
+  await loadWordgames().catch(() => {});
   renderHome();
   show("home");
 

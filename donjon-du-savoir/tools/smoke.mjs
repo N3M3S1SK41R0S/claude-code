@@ -135,10 +135,12 @@ try {
   check("question flow exercised", sawQuestion);
   check("anecdote displayed", sawAnecdote);
 
-  // Save + resume path.
+  // Save + resume path. Boot is async (loads the bank + word-games before
+  // rendering the home menu), so wait for the button rather than sampling once.
   await page.reload({ waitUntil: "load" });
   const resume = page.getByRole("button", { name: "▶️ Reprendre la partie en cours" });
-  check("save offers resume", await resume.isVisible().catch(() => false));
+  const resumeShown = await resume.waitFor({ state: "visible", timeout: 8000 }).then(() => true).catch(() => false);
+  check("save offers resume", resumeShown);
 
   // Offline: the service worker must serve the shell.
   await page.waitForTimeout(800);

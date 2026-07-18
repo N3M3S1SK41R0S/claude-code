@@ -16,7 +16,7 @@ const R = (p) => readFileSync(join(root, p), "utf8");
 // the entry last. We register every module, then require("./app.js").
 const MODULES = [
   "tts", "herald", "powers", "portraits", "custom", "items", "minigames",
-  "state", "board", "data", "ui", "game", "app",
+  "wordgames", "state", "board", "data", "ui", "game", "app",
 ];
 
 function collectExports(src) {
@@ -60,16 +60,21 @@ function transform(name, src) {
 
 const bundleParts = MODULES.map((name) => transform(name, R(`js/${name}.js`)));
 const bank = JSON.parse(R("data/questions.json"));
+const wordgames = JSON.parse(R("data/wordgames.json"));
 
 const runtime = `
 (function () {
   "use strict";
   const __QUESTIONS = ${JSON.stringify(bank)};
-  // Intercept the bank fetch; everything else stays real (there is nothing else).
+  const __WORDGAMES = ${JSON.stringify(wordgames)};
+  // Intercept the data fetches; everything else stays real (there is nothing else).
   const __realFetch = typeof window.fetch === "function" ? window.fetch.bind(window) : null;
   window.fetch = function (url, ...rest) {
     if (String(url).indexOf("questions.json") !== -1) {
       return Promise.resolve({ ok: true, json: () => Promise.resolve(__QUESTIONS) });
+    }
+    if (String(url).indexOf("wordgames.json") !== -1) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve(__WORDGAMES) });
     }
     return __realFetch ? __realFetch(url, ...rest) : Promise.reject(new Error("offline"));
   };
