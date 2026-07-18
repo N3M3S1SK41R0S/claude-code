@@ -20,17 +20,23 @@ export interface ReliabilityResolution {
   stored: number;
   /** Nombre de plateformes distinctes réellement identifiables. */
   nSources: number;
-  /** true lorsque les données conservées permettent un recalcul exact. */
+  /** true si les données permettent un recalcul déterministe selon les valeurs persistées. */
   recomputed: boolean;
   /** true lorsque le moteur courant corrige le score stocké. */
   differsFromStored: boolean;
 }
 
+/** Borne et arrondit défensivement un score persistant dans l’intervalle 0..100. */
 function boundedScore(value: number): number {
   if (!Number.isFinite(value)) return 0;
   return Math.min(100, Math.max(0, Math.round(value)));
 }
 
+/**
+ * Recompose la fiabilité depuis la centrale, l’IC 80 % et les observations
+ * conservées. Quand ces preuves sont absentes ou invalides, conserve le score
+ * stocké plutôt que d’inventer une décomposition.
+ */
 export function resolveReliabilityForResult(
   input: PersistedReliabilityInput,
 ): ReliabilityResolution {
