@@ -31,6 +31,7 @@ import type {
   WatchAnalysisPayload,
   WineAnalysisPayload,
 } from '@velum/core';
+import { countDistinctSources } from '@velum/valuation';
 
 import { Screen } from '../../components/Screen';
 import { ValueChart } from '../../components/ValueChart';
@@ -271,7 +272,7 @@ export default function ItemSheet() {
             <KV
               label={t('item.reliability')}
               tabular
-              value={`${Math.round(valuation.reliability)} / 100 · ${t('item.nSources', { count: valuation.sources.length })}`}
+              value={`${Math.round(valuation.reliability)} / 100 · ${t('item.nSources', { count: countDistinctSources(valuation.sources) })}`}
             />
             {valuation.sources.length > 0 ? (
               <ValuationExplanation valuation={valuation} label={t('item.whyThisRange')} />
