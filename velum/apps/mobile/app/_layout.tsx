@@ -11,6 +11,7 @@ import { Platform } from 'react-native';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useTranslation } from 'react-i18next';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { SeniorModeProvider, velumColors } from '@velum/ui';
 
@@ -23,14 +24,17 @@ import { getVelumClient } from '../lib/client';
 import { clearPersistedCache, persistOptions, queryClient } from '../lib/queryClient';
 import { useSettingsStore } from '../stores/settingsStore';
 
-/** Pose `document.title` selon la route (web uniquement) — WCAG 2.4.2. */
+/** Pose `document.title` selon la route et la langue (web uniquement) — WCAG 2.4.2. */
 function WebDocumentTitle() {
   const pathname = usePathname();
+  const { i18n } = useTranslation();
+  const language = i18n.resolvedLanguage ?? i18n.language;
+
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
-      document.title = documentTitleFor(pathname);
+      document.title = documentTitleFor(pathname, language);
     }
-  }, [pathname]);
+  }, [language, pathname]);
   return null;
 }
 

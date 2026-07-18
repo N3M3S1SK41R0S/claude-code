@@ -97,6 +97,13 @@ for (const screen of SCREENS) {
   }
 }
 
+// Le profil est le dernier écran authentifié de la matrice : la langue doit
+// changer le contenu ET le titre sans navigation supplémentaire.
+await authedPage.getByRole('button', { name: 'EN', exact: true }).click();
+await authedPage.waitForSelector('text=Language', { timeout: 20000 });
+await authedPage.waitForFunction(() => document.title === 'Profile — VELUM');
+console.log('✓ profile-en — contenu et document.title basculent sans navigation');
+
 await browser.close();
 close();
 
