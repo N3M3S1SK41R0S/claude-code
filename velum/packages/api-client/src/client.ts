@@ -7,6 +7,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { createAuthApi, type AuthApi } from './auth';
 import { createCalibrationRepo, type CalibrationRepo } from './calibration';
 import { createEdgeApi, type EdgeApi } from './edge';
+import { deleteItemWithMedia } from './item-deletion';
 import { createItemMediaRepo, type ItemMediaRepo } from './item-media';
 import { MutationQueue } from './queue';
 import {
@@ -77,12 +78,17 @@ export function createVelumClient(opts: VelumClientOptions): VelumClient {
       detectSessionInUrl: false,
     },
   });
+  const baseItems = createItemsRepo(supabase);
 
   return {
     supabase,
     auth: createAuthApi(supabase),
     edge: createEdgeApi(supabase),
-    items: createItemsRepo(supabase),
+    items: {
+      ...baseItems,
+      // Le client officiel purge toujours Storage avant la cascade SQL.
+      remove: (id) => deleteItemWithMedia(supabase, id),
+    },
     itemMedia: createItemMediaRepo(supabase),
     calibration: createCalibrationRepo(supabase),
     valuations: createValuationsRepo(supabase),
