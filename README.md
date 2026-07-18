@@ -18,6 +18,12 @@ Claude Code is an agentic coding tool that lives in your terminal, understands y
 npm install -g @anthropic-ai/claude-code
 ```
 
+On Windows, you can also use the install script:
+
+```cmd
+curl -fsSL https://raw.githubusercontent.com/anthropics/claude-code/main/install.cmd -o install.cmd && install.cmd && del install.cmd
+```
+
 2. Navigate to your project directory and run `claude`.
 
 ## Reporting Bugs
