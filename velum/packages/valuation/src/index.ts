@@ -5,6 +5,7 @@ export {
   median,
   recencyWeight,
   effectiveWeight,
+  countDistinctSources,
   reliabilityScore,
   toEUR,
   mulberry32,
