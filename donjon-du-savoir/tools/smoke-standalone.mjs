@@ -38,6 +38,7 @@ try {
   // Full mini-game across a few turns, resolving whatever comes.
   await page.getByRole("button", { name: "⚔️ Nouvelle partie" }).click();
   await page.getByRole("button", { name: "🏰 Entrer dans le Donjon" }).click();
+  await page.getByRole("button", { name: "🎲 Au hasard !" }).click({ timeout: 8000 });
   check("board rendered", (await page.locator(".case").count()) >= 28);
 
   let sawQuestion = false, sawAnecdote = false;
@@ -64,7 +65,7 @@ try {
         continue;
       }
       if ((await page.locator(".anecdote-card").count()) > 0) sawAnecdote = true;
-      const next = page.getByRole("button", { name: /Continuer|Révéler|Valider|Subir/ }).first();
+      const next = page.getByRole("button", { name: /Continuer|Révéler|Valider|Subir|Quitter/ }).first();
       if ((await next.isVisible().catch(() => false)) && (await next.isEnabled().catch(() => false))) {
         if ((await next.textContent()) === "Valider mon nombre") await page.locator(".num-input").fill("100");
         await next.click();

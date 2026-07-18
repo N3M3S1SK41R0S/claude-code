@@ -1043,6 +1043,169 @@ function removeCustom(id) {
 
 ;Object.assign(module.exports, {loadCustom, isValidCustom, addCustom, removeCustom, CUSTOM_CATEGORIES});
 };
+__modules["./items.js"] = function(module, exports, require) {
+// Objets, dés spéciaux et inventaire (v2). Catalogue de données pur : les
+// EFFETS sont appliqués par game.js, ici on décrit quoi existe, combien ça
+// coûte, sur qui ça se joue, et les règles d'inventaire. Prix ajustables.
+//
+// Garde-fou familial : tout malus est PARABLE (bouclier) et RÉCUPÉRABLE ; aucun
+// effet n'élimine ni ne bloque durablement un joueur.
+
+const INV_BASE = 3;
+const INV_BESASSE = 6;
+const BESASSE_COST = 40;
+
+// Prix calés sur le panel de design (revenu ~14 or/tour ; l'objet le plus fort
+// reste sous le prix d'une étoile de base à 20, sauf le tuyau d'or, quasi-étoile).
+// cible : "soi" (sur son tour), "autre" (choisir une victime), "aucune" (dé).
+const ITEMS = {
+  // ---- dés spéciaux ----
+  de_double: { id: "de_double", nom: "Dé Double", emoji: "🎲🎲", type: "de", cible: "aucune", cout: 8, desc: "Lance 2 dés, avance de leur somme." },
+  de_choisi: { id: "de_choisi", nom: "Dé Choisi", emoji: "🎯", type: "de", cible: "aucune", cout: 12, desc: "Choisis la valeur 1 à 6 : vise ta case." },
+  de_triple: { id: "de_triple", nom: "Dé Triple", emoji: "🎲🎲🎲", type: "de", cible: "aucune", cout: 14, desc: "Lance 3 dés, avance de leur somme." },
+  de_teleport: { id: "de_teleport", nom: "Dé Mirage", emoji: "🌫️", type: "de", cible: "aucune", cout: 10, desc: "Téléporte sur une case au hasard." },
+  de_echange: { id: "de_echange", nom: "Dé d'Échange", emoji: "🔄", type: "de", cible: "autre", cout: 12, desc: "Échange ta place avec un adversaire au choix." },
+  tuyau_or: { id: "tuyau_or", nom: "Tuyau d'Or", emoji: "🌀", type: "de", cible: "aucune", cout: 18, desc: "Bond en avant vers l'Étoile / le Trésor." },
+
+  // ---- jokers (sur soi) ----
+  bouclier: { id: "bouclier", nom: "Bouclier", emoji: "🛡️", type: "joker", cible: "soi", cout: 10, desc: "Pare le prochain malus ou vol subi." },
+  aimant_or: { id: "aimant_or", nom: "Aimant à Or", emoji: "🧲", type: "joker", cible: "soi", cout: 9, desc: "Double l'or gagné pendant ce tour." },
+  relance: { id: "relance", nom: "Fiole de Relance", emoji: "🔁", type: "joker", cible: "soi", cout: 6, desc: "Relance le dé une fois." },
+
+  // ---- malus (sur autrui, parables — jamais cruels) ----
+  sabotage: { id: "sabotage", nom: "Sabotage", emoji: "💣", type: "malus", cible: "autre", cout: 6, desc: "Recule un adversaire de 3 cases." },
+  racket: { id: "racket", nom: "Racket", emoji: "🪙", type: "malus", cible: "autre", cout: 6, desc: "Vole 5 or à un adversaire." },
+  sceptre_larcin: { id: "sceptre_larcin", nom: "Sceptre du Larcin", emoji: "👑", type: "malus", cible: "autre", cout: 35, desc: "Vole une étoile à un adversaire (mode Étoiles, très cher)." },
+};
+
+/** Objets proposés en boutique (ordre d'affichage). */
+const SHOP_ORDER = [
+  "de_double", "de_choisi", "de_triple", "de_teleport", "de_echange", "tuyau_or",
+  "bouclier", "aimant_or", "relance",
+  "sabotage", "racket",
+];
+
+function itemById(id) {
+  return ITEMS[id] ?? null;
+}
+
+function inventoryCap(pion) {
+  return pion.besasse ? INV_BESASSE : INV_BASE;
+}
+
+function inventoryCount(pion) {
+  return (pion.objets ?? []).reduce((n, o) => n + o.qte, 0);
+}
+
+function hasRoom(pion) {
+  return inventoryCount(pion) < inventoryCap(pion);
+}
+
+/** Add one unit of an item to a pion's bag; returns false if full/unknown. */
+function addItem(pion, id) {
+  if (!ITEMS[id] || !hasRoom(pion)) return false;
+  pion.objets = pion.objets ?? [];
+  const slot = pion.objets.find((o) => o.id === id);
+  if (slot) slot.qte += 1;
+  else pion.objets.push({ id, qte: 1 });
+  return true;
+}
+
+/** Remove one unit; returns false if the pion doesn't have it. */
+function consumeItem(pion, id) {
+  const slot = (pion.objets ?? []).find((o) => o.id === id);
+  if (!slot || slot.qte <= 0) return false;
+  slot.qte -= 1;
+  if (slot.qte <= 0) pion.objets = pion.objets.filter((o) => o.id !== id);
+  return true;
+}
+
+function ownedItems(pion) {
+  return (pion.objets ?? []).map((o) => ({ ...ITEMS[o.id], qte: o.qte })).filter((o) => o.id);
+}
+
+;Object.assign(module.exports, {itemById, inventoryCap, inventoryCount, hasRoom, addItem, consumeItem, ownedItems, INV_BASE, INV_BESASSE, BESASSE_COST, ITEMS, SHOP_ORDER});
+};
+__modules["./minigames.js"] = function(module, exports, require) {
+// Mini-jeux DÉRIVÉS de la banque déjà vérifiée — aucun contenu neuf, donc aucun
+// risque factuel. On transforme la bonne réponse d'une question existante en
+// anagramme, en pendu, ou en « le plus proche » (numérique). Fonctions pures et
+// testables ; l'UI et les récompenses sont dans game.js.
+
+/** Deterministic-free shuffle (rng injectable pour les tests). */
+function shuffle(arr, rng = Math.random) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * Anagramme : mélange les lettres de chaque mot de la réponse (les espaces et la
+ * ponctuation restent en place, comme repères). Garantit un rendu différent de
+ * l'original quand le mot a assez de lettres distinctes.
+ */
+function makeAnagram(answer, rng = Math.random) {
+  const scrambleWord = (word) => {
+    const letters = [...word];
+    if (letters.filter((c) => /\p{L}/u.test(c)).length < 2) return word;
+    for (let tries = 0; tries < 8; tries++) {
+      const out = shuffle(letters, rng).join("");
+      if (out.toLowerCase() !== word.toLowerCase()) return out;
+    }
+    return letters.reverse().join("");
+  };
+  const scrambled = answer.replace(/\p{L}+/gu, (w) => scrambleWord(w));
+  return { scrambled: scrambled.toUpperCase(), answer };
+}
+
+/** Compte les lettres à deviner (hors espaces/ponctuation). */
+function hangmanLetters(answer) {
+  return [...answer].filter((c) => /\p{L}/u.test(c)).length;
+}
+
+const stripDia = (c) => c.normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+/**
+ * Pendu : masque de la réponse selon les lettres devinées. La comparaison
+ * ignore accents et casse (deviner « e » révèle « é »). Renvoie le masque
+ * affichable et si tout est révélé.
+ */
+function hangmanState(answer, guessed) {
+  const set = new Set([...guessed].map((g) => stripDia(g.toLowerCase())));
+  let revealed = true;
+  const display = [...answer]
+    .map((ch) => {
+      if (!/\p{L}/u.test(ch)) return ch; // espaces, apostrophes, tirets visibles
+      const base = stripDia(ch.toLowerCase());
+      if (set.has(base)) return ch;
+      revealed = false;
+      return "_";
+    })
+    .join("");
+  return { display, revealed };
+}
+
+/** Lettres proposables (A-Z, sans doublon d'accent). */
+const HANGMAN_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+/** Une lettre est-elle dans la réponse (accents ignorés) ? */
+function hangmanHas(answer, letter) {
+  const base = stripDia(letter.toLowerCase());
+  return [...answer].some((ch) => /\p{L}/u.test(ch) && stripDia(ch.toLowerCase()) === base);
+}
+
+/** « Le plus proche » : classe des propositions numériques vs la vérité. */
+function closestRanking(answer, guesses) {
+  return guesses
+    .map((g) => ({ ...g, ecart: Math.abs(Number(g.valeur) - Number(answer)) }))
+    .sort((a, b) => a.ecart - b.ecart);
+}
+
+;Object.assign(module.exports, {makeAnagram, hangmanLetters, hangmanState, hangmanHas, closestRanking, HANGMAN_ALPHABET});
+};
 __modules["./state.js"] = function(module, exports, require) {
 // Game state: pions (players or teams), board, economy, persistence.
 // A "pion" is the unit that moves: one per player in individual mode,
@@ -1091,7 +1254,7 @@ function newGame(config, boardLayout) {
       membres: p.membres ?? null,
       porteParoleIndex: 0,
       position: 0,
-      pieces: 0,
+      pieces: 8,
       jokers: 0,
       pouvoirUtilise: false,
       tourASauter: false,
@@ -1232,6 +1395,8 @@ const CASE_TYPES = {
   gambit: { label: "Gambit", emoji: "🎲", couleur: "#3eb8c2" },
   trounoir: { label: "Trou Noir", emoji: "🕳️", couleur: "#181026" },
   arrivee: { label: "Trésor", emoji: "🏆", couleur: "#e0b04a" },
+  boutique: { label: "Boutique", emoji: "🛒", couleur: "#c25ea0" },
+  insolite: { label: "Savoir insolite", emoji: "🦩", couleur: "#e0568f" },
 };
 
 /**
@@ -1342,6 +1507,17 @@ function generateBoard(def = boardById("grand-donjon")) {
       if (swap !== -1) [layout[idx], layout[swap]] = [layout[swap], layout[idx]];
     }
   }
+
+  // v2 : semer une Boutique et une case Savoir insolite (plus une 2e boutique
+  // sur les grands plateaux) en recyclant quelques cases Question.
+  const seed = (type, count) => {
+    for (let k = 0; k < count; k++) {
+      const i = layout.findIndex((t, idx) => idx > 3 && idx < L - 2 && t === "question");
+      if (i !== -1) layout[i] = type;
+    }
+  };
+  seed("boutique", L >= 44 ? 2 : 1);
+  seed("insolite", L >= 40 ? 2 : 1);
   return layout;
 }
 
@@ -1758,14 +1934,15 @@ const { canRecharge, powerOf, recharge, RECHARGE_COST } = require("./powers.js")
 const { characterById, clearPendingCase, currentPion, getState, isLast, nextTurn, porteParole, ranking, save, setPendingCase } = require("./state.js");
 const { bigButton, choiceButton, el, heraldSays, setPanel } = require("./ui.js");
 const { portraitEl } = require("./portraits.js");
+const { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } = require("./items.js");
 
 let onVictory = null;
 
 function startGame(victoryCallback) {
   onVictory = victoryCallback;
   render();
-  heraldSays(herald.ouverture());
-  window.setTimeout(() => startTurn(), 50);
+  // Rituel d'ouverture : le Héraut désigne qui commence (toast loufoque).
+  openingToast();
 }
 
 function resumeGame(victoryCallback) {
@@ -1819,6 +1996,8 @@ function renderPlayersStrip() {
   });
   for (const p of ranking()) {
     const power = powerOf(p);
+    const sac = inventoryCount(p) > 0 ? ` · 🎒${inventoryCount(p)}/${inventoryCap(p)}` : "";
+    const bouclier = p.bouclier ? " · 🛡️" : "";
     strip.append(
       el("div", { class: "player-chip" + (p.id === currentPion().id ? " player-chip-actif" : "") },
         portraitEl(p.characterId, 34),
@@ -1826,12 +2005,46 @@ function renderPlayersStrip() {
           el("strong", { text: p.nom }),
           el("span", {
             class: "player-meta",
-            text: `case ${p.position} · 🪙${p.pieces} · 🃏${p.jokers} · ${power ? (p.pouvoirUtilise ? "pouvoir épuisé" : power.nom) : ""}`,
+            text: `case ${p.position} · 🪙${p.pieces} · 🃏${p.jokers}${sac}${bouclier} · ${power ? (p.pouvoirUtilise ? "pouvoir épuisé" : power.nom) : ""}`,
           }),
         ),
       ),
     );
   }
+}
+
+/* ---------- rituel d'ouverture (toast) ---------- */
+
+const TOASTS = [
+  "commence : celui qui a mangé le plus récemment.",
+  "ouvre le bal : celui dont l'anniversaire est le plus proche d'aujourd'hui.",
+  "débute : le plus petit de la table. Oui, on se lève pour comparer.",
+  "s'élance : celui qui a les mains les plus froides. Touchez-vous, c'est réglementaire.",
+  "commence : le dernier à avoir ri. Ça ne compte pas, ce rire-là.",
+  "ouvre la marche : celui qui vit le plus loin du Donjon. À vol de dragon.",
+  "démarre : celui qui porte le plus de boutons (vêtements, pas d'ascenseur).",
+];
+
+function openingToast() {
+  const state = getState();
+  const toast = TOASTS[Math.floor(Math.random() * TOASTS.length)];
+  heraldSays(`Oyez ! Que ${toast}`);
+  const start = (idx) => {
+    state.currentIndex = idx;
+    save();
+    render();
+    startTurn();
+  };
+  const buttons = state.pions.map((p, i) =>
+    choiceButton(`${characterById(p.characterId).emoji} C'est ${p.nom} !`, () => start(i)),
+  );
+  setPanel(
+    el("h2", { class: "panel-title", text: "🥂 Le toast du Héraut" }),
+    el("p", { class: "panel-text", text: `« Que ${toast} »` }),
+    el("p", { class: "help-note", text: "La table désigne l'élu·e — ou laissez le sort trancher." }),
+    ...buttons,
+    bigButton("🎲 Au hasard !", () => start(Math.floor(Math.random() * state.pions.length))),
+  );
 }
 
 /* ---------- turn start ---------- */
@@ -1844,6 +2057,11 @@ function startTurn({ silent = false, prefix = "" } = {}) {
   if (!silent) heraldSays(`${prefix}${herald.debutTour(pion.nom)}`);
 
   const actions = [bigButton("🎲 Lancer le dé", () => rollDie())];
+
+  // Besace : objets utilisables quand on veut (dés spéciaux, jokers, malus).
+  if (inventoryCount(pion) > 0) {
+    actions.push(choiceButton(`🎒 Ma besace (${inventoryCount(pion)}/${inventoryCap(pion)})`, () => openBag(pion)));
+  }
 
   // Pre-roll powers ("tour"-timed) + recharge.
   const power = powerOf(pion);
@@ -1865,6 +2083,131 @@ function startTurn({ silent = false, prefix = "" } = {}) {
   setPanel(
     el("h2", { class: "panel-title", text: `Tour de ${pion.nom}` }),
     ...actions,
+  );
+}
+
+/* ---------- besace : usage d'objets ---------- */
+
+function openBag(pion) {
+  const items = ownedItems(pion);
+  setPanel(
+    el("h2", { class: "panel-title", text: "🎒 Votre besace" }),
+    el("p", { class: "help-note", text: "Utilisez un objet, ou refermez pour lancer le dé." }),
+    ...items.map((it) =>
+      choiceButton(`${it.emoji} ${it.nom}${it.qte > 1 ? ` ×${it.qte}` : ""} — ${it.desc}`, () => useItem(pion, it.id)),
+    ),
+    bigButton("↩︎ Refermer", () => startTurn({ silent: true })),
+  );
+}
+
+function useItem(pion, id) {
+  const item = ITEMS[id];
+  if (!item) return startTurn({ silent: true });
+  const others = getState().pions.filter((p) => p.id !== pion.id);
+
+  // Malus/échange visant autrui : choisir la cible d'abord.
+  if (item.cible === "autre") {
+    if (others.length === 0) return openBag(pion);
+    return setPanel(
+      el("h2", { class: "panel-title", text: `${item.emoji} ${item.nom} — sur qui ?` }),
+      ...others.map((t) => choiceButton(`${characterById(t.characterId).emoji} ${t.nom}`, () => applyItem(pion, id, t))),
+      bigButton("↩︎ Annuler", () => openBag(pion)),
+    );
+  }
+  applyItem(pion, id, null);
+}
+
+function rollN(n) {
+  let s = 0;
+  for (let i = 0; i < n; i++) s += 1 + Math.floor(Math.random() * 6);
+  return s;
+}
+
+function applyItem(pion, id, target) {
+  const item = ITEMS[id];
+  consumeItem(pion, id);
+  save();
+  heraldSays(`${item.emoji} ${item.nom} !`);
+  switch (id) {
+    case "de_double":
+      return showItemDie(rollN(2), "Dé Double");
+    case "de_triple":
+      return showItemDie(rollN(3), "Dé Triple");
+    case "de_choisi":
+      return setPanel(
+        el("h2", { class: "panel-title", text: "🎯 Dé Choisi — quelle valeur ?" }),
+        el("div", { class: "choices bet-grid" },
+          ...[1, 2, 3, 4, 5, 6].map((v) => choiceButton(String(v), () => moveAndResolve(v))),
+        ),
+      );
+    case "de_teleport": {
+      const dest = 1 + Math.floor(Math.random() * (boardLen() - 2));
+      pion.position = dest;
+      save();
+      render();
+      setPendingCase("resolu");
+      const type = getState().board[dest];
+      return endPanel(`🌫️ Le Dé Mirage vous dépose case ${dest}…`, () => { setPendingCase(type); heraldSays(herald.surCase(type)); resolveCase(type); });
+    }
+    case "tuyau_or": {
+      // Course : grand bond vers le Trésor (mode Étoiles à venir : vers l'Étoile).
+      const dest = Math.min(boardLen() - 2, pion.position + Math.max(4, Math.floor((boardLen() - pion.position) * 0.6)));
+      pion.position = dest;
+      save();
+      render();
+      setPendingCase("resolu");
+      const type = getState().board[dest];
+      return endPanel(`🌀 Le Tuyau d'Or vous propulse case ${dest} !`, () => { setPendingCase(type); heraldSays(herald.surCase(type)); resolveCase(type); });
+    }
+    case "de_echange":
+      if (target) { [pion.position, target.position] = [target.position, pion.position]; render(); }
+      return endPanel(`🔄 Places échangées avec ${target ? target.nom : "personne"} !`);
+    case "bouclier":
+      pion.bouclier = true;
+      save();
+      renderPlayersStrip();
+      return openBag(pion);
+    case "aimant_or":
+      pion.aimantOr = true;
+      save();
+      return openBag(pion);
+    case "relance":
+      pion.relanceBonus = true;
+      save();
+      return rollDie();
+    case "sabotage":
+      if (target) { applyMalusTo(target, () => { target.position = Math.max(0, target.position - 3); render(); }); }
+      return endPanel(`💣 ${target ? target.nom : "La cible"} recule de 3 cases !`);
+    case "racket":
+      if (target) { applyMalusTo(target, () => { const stolen = Math.min(5, target.pieces); target.pieces -= stolen; pion.pieces += stolen; renderPlayersStrip(); }); }
+      return endPanel(`🪙 Racket sur ${target ? target.nom : "la cible"} !`);
+    case "sceptre_larcin":
+      if (target) { applyMalusTo(target, () => { if ((target.etoiles ?? 0) > 0) { target.etoiles -= 1; pion.etoiles = (pion.etoiles ?? 0) + 1; renderPlayersStrip(); } }); }
+      return endPanel(`👑 Le Sceptre du Larcin frappe ${target ? target.nom : "la cible"} !`);
+    default:
+      return openBag(pion);
+  }
+}
+
+/** Un malus subi est paré par un bouclier (garde-fou anti-grief). */
+function applyMalusTo(target, effect) {
+  if (target.bouclier) {
+    target.bouclier = false;
+    save();
+    renderPlayersStrip();
+    heraldSays(`🛡️ Le bouclier de ${target.nom} encaisse le coup !`);
+    return;
+  }
+  effect();
+  target.malusSubis = (target.malusSubis ?? 0) + 1;
+  save();
+}
+
+function showItemDie(value, label) {
+  setPanel(
+    el("h2", { class: "panel-title", text: `${label} : ${value}` }),
+    el("div", { class: "die", "aria-label": `Total : ${value}` }, String(value)),
+    bigButton(`Avancer de ${value}`, () => moveAndResolve(value)),
   );
 }
 
@@ -1891,6 +2234,16 @@ function showDieResult(value, { rerollAvailable }) {
         heraldSays(herald.pouvoir());
         const v2 = 1 + Math.floor(Math.random() * 6);
         showDieResult(v2, { rerollAvailable: false });
+      }),
+    );
+  }
+  // Fiole de Relance (objet) : une relance, sans toucher au pouvoir.
+  if (rerollAvailable && pion.relanceBonus) {
+    actions.push(
+      choiceButton("🔁 Fiole de Relance — relancer le dé", () => {
+        pion.relanceBonus = false;
+        save();
+        showDieResult(1 + Math.floor(Math.random() * 6), { rerollAvailable: false });
       }),
     );
   }
@@ -1936,7 +2289,7 @@ function resolveCase(type) {
       return doMalus(pion);
     case "pieces": {
       setPendingCase("resolu");
-      const gain = 3 + Math.floor(Math.random() * 3);
+      const gain = 6 + Math.floor(Math.random() * 5);
       addCoins(pion, gain);
       return endPanel(`Vous ramassez ${gain} pièces d'or ! 🪙`);
     }
@@ -1949,15 +2302,97 @@ function resolveCase(type) {
       return doGambit(pion);
     case "trounoir":
       return doTrouNoir(pion);
+    case "boutique":
+      return doBoutique(pion);
+    case "insolite":
+      return doInsolite(pion);
     default:
       setPendingCase("resolu");
       return endPanel("Case tranquille. Le Donjon vous laisse souffler.");
   }
 }
 
+/* ---------- boutique : dépenser son or en objets ---------- */
+
+function doBoutique(pion) {
+  setPendingCase("resolu");
+  const render$ = () => {
+    const rows = [];
+    for (const id of SHOP_ORDER) {
+      const it = ITEMS[id];
+      const abordable = pion.pieces >= it.cout && hasRoom(pion);
+      const btn = choiceButton(
+        `${it.emoji} ${it.nom} — ${it.cout} 🪙 · ${it.desc}`,
+        () => {
+          if (pion.pieces < it.cout || !hasRoom(pion)) return;
+          pion.pieces -= it.cout;
+          addItem(pion, id);
+          save();
+          heraldSays(`Vendu ! ${it.nom} rejoint la besace.`);
+          render$();
+        },
+      );
+      if (!abordable) btn.disabled = true;
+      rows.push(btn);
+    }
+    // Besasse Badass : capacité 3 → 6.
+    if (!pion.besasse) {
+      const b = choiceButton(
+        `🧳 Besasse Badass — ${BESASSE_COST} 🪙 · porte jusqu'à ${INV_BESASSE} objets`,
+        () => {
+          if (pion.pieces < BESASSE_COST) return;
+          pion.pieces -= BESASSE_COST;
+          pion.besasse = true;
+          save();
+          heraldSays("La Besasse Badass ! Vos poches deviennent légendaires.");
+          render$();
+        },
+      );
+      if (pion.pieces < BESASSE_COST) b.disabled = true;
+      rows.push(b);
+    }
+    setPanel(
+      el("h2", { class: "panel-title", text: "🛒 La Boutique du Donjon" }),
+      el("p", { class: "help-note", text: `Votre or : ${pion.pieces} 🪙 · besace ${inventoryCount(pion)}/${inventoryCap(pion)}` }),
+      ...rows,
+      bigButton("Quitter la boutique", () => finishTurn()),
+    );
+  };
+  render$();
+}
+
+/* ---------- savoir insolite : pure culture, +2 or garantis ---------- */
+
+function doInsolite(pion) {
+  setPendingCase("resolu");
+  const q = drawQuestion(pion, { formats: ["qcm", "vrai_faux", "gambit_numerique"] });
+  const gain = addCoins(pion, 2);
+  heraldSays("Savoir insolite ! Nul risque, juste une pépite à ranger dans un coin du crâne.");
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "🦩 Savoir insolite" }),
+      q ? el("div", { class: "anecdote-card" },
+        el("p", { class: "anecdote-title", text: "📜 Le saviez-vous ?" }),
+        el("p", { class: "anecdote-texte", text: q.anecdote }),
+        (q.sources ?? []).length ? el("div", { class: "sources" }, ...(q.sources ?? []).slice(0, 2).map((s) => {
+          let label = "source"; try { label = new URL(s).hostname.replace(/^www\./, ""); } catch { /* */ }
+          return el("a", { class: "source-link", href: s, target: "_blank", rel: "noopener noreferrer", text: label });
+        })) : null,
+      ) : el("p", { class: "panel-text", text: "Le Donjon a épuisé ses pépites… pour l'instant." }),
+      el("p", { class: "verdict", html: `+${gain} 🪙 pour votre curiosité.` }),
+      bigButton("Continuer", () => finishTurn()),
+    ),
+  );
+}
+
 function addCoins(pion, n) {
-  const gain = pion.doublePieces ? n * 2 : n;
+  let gain = n;
+  if (pion.doublePieces) gain *= 2; // Bonus Comptable (pouvoir Gobelin)
+  if (pion.aimantOr) gain *= 2; // Aimant à Or (objet)
+  // Filet anti-dernier (esprit 99 %) : le dernier gagne +50 % sur ses gains.
+  if (isLast(pion) && n > 0) gain = Math.round(gain * 1.5);
   pion.pieces += gain;
+  pion.orGagne = (pion.orGagne ?? 0) + Math.max(0, gain);
   save();
   renderPlayersStrip();
   return gain;
@@ -2335,7 +2770,7 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   if (correct) {
     pion.stats.bonnes += 1;
     moveDelta = advance;
-    coinGain = addCoins(pion, 1);
+    coinGain = addCoins(pion, 3);
   } else {
     moveDelta = penalty;
   }
@@ -2608,10 +3043,10 @@ function showAnecdoteEvent(q, lines) {
 
 /* ---------- turn end & victory ---------- */
 
-function endPanel(message) {
+function endPanel(message, onContinue = null) {
   setPanel(
     el("p", { class: "panel-text panel-event", text: message }),
-    bigButton("Continuer", () => finishTurn()),
+    bigButton("Continuer", onContinue ?? (() => finishTurn())),
   );
 }
 
@@ -2621,6 +3056,8 @@ function finishTurn() {
   clearPendingCase(); // the turn is truly over — next reload starts fresh
   const pion = currentPion();
   pion.doublePieces = false;
+  pion.aimantOr = false; // l'Aimant à Or ne dure qu'un tour
+  pion.relanceBonus = false; // relance non utilisée : perdue en fin de tour
   const { skipped } = nextTurn();
   // The nap is public: the table hears WHO loses their turn and why.
   const prefix = skipped.length > 0 ? `💤 ${skipped.join(" et ")} passe${skipped.length > 1 ? "nt" : ""} son tour (sieste involontaire) ! ` : "";

@@ -13,6 +13,8 @@ export const CASE_TYPES = {
   gambit: { label: "Gambit", emoji: "🎲", couleur: "#3eb8c2" },
   trounoir: { label: "Trou Noir", emoji: "🕳️", couleur: "#181026" },
   arrivee: { label: "Trésor", emoji: "🏆", couleur: "#e0b04a" },
+  boutique: { label: "Boutique", emoji: "🛒", couleur: "#c25ea0" },
+  insolite: { label: "Savoir insolite", emoji: "🦩", couleur: "#e0568f" },
 };
 
 /**
@@ -123,6 +125,17 @@ export function generateBoard(def = boardById("grand-donjon")) {
       if (swap !== -1) [layout[idx], layout[swap]] = [layout[swap], layout[idx]];
     }
   }
+
+  // v2 : semer une Boutique et une case Savoir insolite (plus une 2e boutique
+  // sur les grands plateaux) en recyclant quelques cases Question.
+  const seed = (type, count) => {
+    for (let k = 0; k < count; k++) {
+      const i = layout.findIndex((t, idx) => idx > 3 && idx < L - 2 && t === "question");
+      if (i !== -1) layout[i] = type;
+    }
+  };
+  seed("boutique", L >= 44 ? 2 : 1);
+  seed("insolite", L >= 40 ? 2 : 1);
   return layout;
 }
 

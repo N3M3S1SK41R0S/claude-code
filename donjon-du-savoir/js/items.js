@@ -9,33 +9,34 @@ export const INV_BASE = 3;
 export const INV_BESASSE = 6;
 export const BESASSE_COST = 40;
 
+// Prix calés sur le panel de design (revenu ~14 or/tour ; l'objet le plus fort
+// reste sous le prix d'une étoile de base à 20, sauf le tuyau d'or, quasi-étoile).
 // cible : "soi" (sur son tour), "autre" (choisir une victime), "aucune" (dé).
 export const ITEMS = {
   // ---- dés spéciaux ----
   de_double: { id: "de_double", nom: "Dé Double", emoji: "🎲🎲", type: "de", cible: "aucune", cout: 8, desc: "Lance 2 dés, avance de leur somme." },
+  de_choisi: { id: "de_choisi", nom: "Dé Choisi", emoji: "🎯", type: "de", cible: "aucune", cout: 12, desc: "Choisis la valeur 1 à 6 : vise ta case." },
   de_triple: { id: "de_triple", nom: "Dé Triple", emoji: "🎲🎲🎲", type: "de", cible: "aucune", cout: 14, desc: "Lance 3 dés, avance de leur somme." },
-  de_choisi: { id: "de_choisi", nom: "Dé Choisi", emoji: "🎯", type: "de", cible: "aucune", cout: 16, desc: "Choisis la valeur 1 à 6 : vise ta case." },
   de_teleport: { id: "de_teleport", nom: "Dé Mirage", emoji: "🌫️", type: "de", cible: "aucune", cout: 10, desc: "Téléporte sur une case au hasard." },
-  de_echange: { id: "de_echange", nom: "Dé d'Échange", emoji: "🔄", type: "de", cible: "autre", cout: 18, desc: "Échange ta place avec un adversaire au choix." },
-  tuyau_or: { id: "tuyau_or", nom: "Tuyau d'Or", emoji: "🌀", type: "de", cible: "aucune", cout: 22, desc: "Téléporte juste devant l'Étoile." },
+  de_echange: { id: "de_echange", nom: "Dé d'Échange", emoji: "🔄", type: "de", cible: "autre", cout: 12, desc: "Échange ta place avec un adversaire au choix." },
+  tuyau_or: { id: "tuyau_or", nom: "Tuyau d'Or", emoji: "🌀", type: "de", cible: "aucune", cout: 18, desc: "Bond en avant vers l'Étoile / le Trésor." },
 
   // ---- jokers (sur soi) ----
   bouclier: { id: "bouclier", nom: "Bouclier", emoji: "🛡️", type: "joker", cible: "soi", cout: 10, desc: "Pare le prochain malus ou vol subi." },
   aimant_or: { id: "aimant_or", nom: "Aimant à Or", emoji: "🧲", type: "joker", cible: "soi", cout: 9, desc: "Double l'or gagné pendant ce tour." },
   relance: { id: "relance", nom: "Fiole de Relance", emoji: "🔁", type: "joker", cible: "soi", cout: 6, desc: "Relance le dé une fois." },
-  seconde_chance: { id: "seconde_chance", nom: "Seconde Chance", emoji: "💫", type: "joker", cible: "soi", cout: 8, desc: "Annule une mauvaise réponse, rejoue le coup." },
 
-  // ---- malus (sur autrui, parables) ----
-  sabotage: { id: "sabotage", nom: "Sabotage", emoji: "💣", type: "malus", cible: "autre", cout: 9, desc: "Recule un adversaire de 3 cases." },
-  racket: { id: "racket", nom: "Racket", emoji: "🪙", type: "malus", cible: "autre", cout: 8, desc: "Vole 5 or à un adversaire." },
-  sceptre_larcin: { id: "sceptre_larcin", nom: "Sceptre du Larcin", emoji: "👑", type: "malus", cible: "autre", cout: 30, desc: "Vole une étoile à un adversaire (cher !)." },
+  // ---- malus (sur autrui, parables — jamais cruels) ----
+  sabotage: { id: "sabotage", nom: "Sabotage", emoji: "💣", type: "malus", cible: "autre", cout: 6, desc: "Recule un adversaire de 3 cases." },
+  racket: { id: "racket", nom: "Racket", emoji: "🪙", type: "malus", cible: "autre", cout: 6, desc: "Vole 5 or à un adversaire." },
+  sceptre_larcin: { id: "sceptre_larcin", nom: "Sceptre du Larcin", emoji: "👑", type: "malus", cible: "autre", cout: 35, desc: "Vole une étoile à un adversaire (mode Étoiles, très cher)." },
 };
 
 /** Objets proposés en boutique (ordre d'affichage). */
 export const SHOP_ORDER = [
-  "de_double", "de_triple", "de_choisi", "de_teleport", "de_echange", "tuyau_or",
-  "bouclier", "aimant_or", "relance", "seconde_chance",
-  "sabotage", "racket", "sceptre_larcin",
+  "de_double", "de_choisi", "de_triple", "de_teleport", "de_echange", "tuyau_or",
+  "bouclier", "aimant_or", "relance",
+  "sabotage", "racket",
 ];
 
 export function itemById(id) {

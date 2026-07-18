@@ -45,7 +45,7 @@ export function newGame(config, boardLayout) {
       membres: p.membres ?? null,
       porteParoleIndex: 0,
       position: 0,
-      pieces: 0,
+      pieces: 8,
       jokers: 0,
       pouvoirUtilise: false,
       tourASauter: false,

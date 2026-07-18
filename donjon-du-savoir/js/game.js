@@ -11,14 +11,15 @@ import { canRecharge, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { characterById, clearPendingCase, currentPion, getState, isLast, nextTurn, porteParole, ranking, save, setPendingCase } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, setPanel } from "./ui.js";
 import { portraitEl } from "./portraits.js";
+import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
 
 let onVictory = null;
 
 export function startGame(victoryCallback) {
   onVictory = victoryCallback;
   render();
-  heraldSays(herald.ouverture());
-  window.setTimeout(() => startTurn(), 50);
+  // Rituel d'ouverture : le Héraut désigne qui commence (toast loufoque).
+  openingToast();
 }
 
 export function resumeGame(victoryCallback) {
@@ -72,6 +73,8 @@ function renderPlayersStrip() {
   });
   for (const p of ranking()) {
     const power = powerOf(p);
+    const sac = inventoryCount(p) > 0 ? ` · 🎒${inventoryCount(p)}/${inventoryCap(p)}` : "";
+    const bouclier = p.bouclier ? " · 🛡️" : "";
     strip.append(
       el("div", { class: "player-chip" + (p.id === currentPion().id ? " player-chip-actif" : "") },
         portraitEl(p.characterId, 34),
@@ -79,12 +82,46 @@ function renderPlayersStrip() {
           el("strong", { text: p.nom }),
           el("span", {
             class: "player-meta",
-            text: `case ${p.position} · 🪙${p.pieces} · 🃏${p.jokers} · ${power ? (p.pouvoirUtilise ? "pouvoir épuisé" : power.nom) : ""}`,
+            text: `case ${p.position} · 🪙${p.pieces} · 🃏${p.jokers}${sac}${bouclier} · ${power ? (p.pouvoirUtilise ? "pouvoir épuisé" : power.nom) : ""}`,
           }),
         ),
       ),
     );
   }
+}
+
+/* ---------- rituel d'ouverture (toast) ---------- */
+
+const TOASTS = [
+  "commence : celui qui a mangé le plus récemment.",
+  "ouvre le bal : celui dont l'anniversaire est le plus proche d'aujourd'hui.",
+  "débute : le plus petit de la table. Oui, on se lève pour comparer.",
+  "s'élance : celui qui a les mains les plus froides. Touchez-vous, c'est réglementaire.",
+  "commence : le dernier à avoir ri. Ça ne compte pas, ce rire-là.",
+  "ouvre la marche : celui qui vit le plus loin du Donjon. À vol de dragon.",
+  "démarre : celui qui porte le plus de boutons (vêtements, pas d'ascenseur).",
+];
+
+function openingToast() {
+  const state = getState();
+  const toast = TOASTS[Math.floor(Math.random() * TOASTS.length)];
+  heraldSays(`Oyez ! Que ${toast}`);
+  const start = (idx) => {
+    state.currentIndex = idx;
+    save();
+    render();
+    startTurn();
+  };
+  const buttons = state.pions.map((p, i) =>
+    choiceButton(`${characterById(p.characterId).emoji} C'est ${p.nom} !`, () => start(i)),
+  );
+  setPanel(
+    el("h2", { class: "panel-title", text: "🥂 Le toast du Héraut" }),
+    el("p", { class: "panel-text", text: `« Que ${toast} »` }),
+    el("p", { class: "help-note", text: "La table désigne l'élu·e — ou laissez le sort trancher." }),
+    ...buttons,
+    bigButton("🎲 Au hasard !", () => start(Math.floor(Math.random() * state.pions.length))),
+  );
 }
 
 /* ---------- turn start ---------- */
@@ -97,6 +134,11 @@ function startTurn({ silent = false, prefix = "" } = {}) {
   if (!silent) heraldSays(`${prefix}${herald.debutTour(pion.nom)}`);
 
   const actions = [bigButton("🎲 Lancer le dé", () => rollDie())];
+
+  // Besace : objets utilisables quand on veut (dés spéciaux, jokers, malus).
+  if (inventoryCount(pion) > 0) {
+    actions.push(choiceButton(`🎒 Ma besace (${inventoryCount(pion)}/${inventoryCap(pion)})`, () => openBag(pion)));
+  }
 
   // Pre-roll powers ("tour"-timed) + recharge.
   const power = powerOf(pion);
@@ -118,6 +160,131 @@ function startTurn({ silent = false, prefix = "" } = {}) {
   setPanel(
     el("h2", { class: "panel-title", text: `Tour de ${pion.nom}` }),
     ...actions,
+  );
+}
+
+/* ---------- besace : usage d'objets ---------- */
+
+function openBag(pion) {
+  const items = ownedItems(pion);
+  setPanel(
+    el("h2", { class: "panel-title", text: "🎒 Votre besace" }),
+    el("p", { class: "help-note", text: "Utilisez un objet, ou refermez pour lancer le dé." }),
+    ...items.map((it) =>
+      choiceButton(`${it.emoji} ${it.nom}${it.qte > 1 ? ` ×${it.qte}` : ""} — ${it.desc}`, () => useItem(pion, it.id)),
+    ),
+    bigButton("↩︎ Refermer", () => startTurn({ silent: true })),
+  );
+}
+
+function useItem(pion, id) {
+  const item = ITEMS[id];
+  if (!item) return startTurn({ silent: true });
+  const others = getState().pions.filter((p) => p.id !== pion.id);
+
+  // Malus/échange visant autrui : choisir la cible d'abord.
+  if (item.cible === "autre") {
+    if (others.length === 0) return openBag(pion);
+    return setPanel(
+      el("h2", { class: "panel-title", text: `${item.emoji} ${item.nom} — sur qui ?` }),
+      ...others.map((t) => choiceButton(`${characterById(t.characterId).emoji} ${t.nom}`, () => applyItem(pion, id, t))),
+      bigButton("↩︎ Annuler", () => openBag(pion)),
+    );
+  }
+  applyItem(pion, id, null);
+}
+
+function rollN(n) {
+  let s = 0;
+  for (let i = 0; i < n; i++) s += 1 + Math.floor(Math.random() * 6);
+  return s;
+}
+
+function applyItem(pion, id, target) {
+  const item = ITEMS[id];
+  consumeItem(pion, id);
+  save();
+  heraldSays(`${item.emoji} ${item.nom} !`);
+  switch (id) {
+    case "de_double":
+      return showItemDie(rollN(2), "Dé Double");
+    case "de_triple":
+      return showItemDie(rollN(3), "Dé Triple");
+    case "de_choisi":
+      return setPanel(
+        el("h2", { class: "panel-title", text: "🎯 Dé Choisi — quelle valeur ?" }),
+        el("div", { class: "choices bet-grid" },
+          ...[1, 2, 3, 4, 5, 6].map((v) => choiceButton(String(v), () => moveAndResolve(v))),
+        ),
+      );
+    case "de_teleport": {
+      const dest = 1 + Math.floor(Math.random() * (boardLen() - 2));
+      pion.position = dest;
+      save();
+      render();
+      setPendingCase("resolu");
+      const type = getState().board[dest];
+      return endPanel(`🌫️ Le Dé Mirage vous dépose case ${dest}…`, () => { setPendingCase(type); heraldSays(herald.surCase(type)); resolveCase(type); });
+    }
+    case "tuyau_or": {
+      // Course : grand bond vers le Trésor (mode Étoiles à venir : vers l'Étoile).
+      const dest = Math.min(boardLen() - 2, pion.position + Math.max(4, Math.floor((boardLen() - pion.position) * 0.6)));
+      pion.position = dest;
+      save();
+      render();
+      setPendingCase("resolu");
+      const type = getState().board[dest];
+      return endPanel(`🌀 Le Tuyau d'Or vous propulse case ${dest} !`, () => { setPendingCase(type); heraldSays(herald.surCase(type)); resolveCase(type); });
+    }
+    case "de_echange":
+      if (target) { [pion.position, target.position] = [target.position, pion.position]; render(); }
+      return endPanel(`🔄 Places échangées avec ${target ? target.nom : "personne"} !`);
+    case "bouclier":
+      pion.bouclier = true;
+      save();
+      renderPlayersStrip();
+      return openBag(pion);
+    case "aimant_or":
+      pion.aimantOr = true;
+      save();
+      return openBag(pion);
+    case "relance":
+      pion.relanceBonus = true;
+      save();
+      return rollDie();
+    case "sabotage":
+      if (target) { applyMalusTo(target, () => { target.position = Math.max(0, target.position - 3); render(); }); }
+      return endPanel(`💣 ${target ? target.nom : "La cible"} recule de 3 cases !`);
+    case "racket":
+      if (target) { applyMalusTo(target, () => { const stolen = Math.min(5, target.pieces); target.pieces -= stolen; pion.pieces += stolen; renderPlayersStrip(); }); }
+      return endPanel(`🪙 Racket sur ${target ? target.nom : "la cible"} !`);
+    case "sceptre_larcin":
+      if (target) { applyMalusTo(target, () => { if ((target.etoiles ?? 0) > 0) { target.etoiles -= 1; pion.etoiles = (pion.etoiles ?? 0) + 1; renderPlayersStrip(); } }); }
+      return endPanel(`👑 Le Sceptre du Larcin frappe ${target ? target.nom : "la cible"} !`);
+    default:
+      return openBag(pion);
+  }
+}
+
+/** Un malus subi est paré par un bouclier (garde-fou anti-grief). */
+function applyMalusTo(target, effect) {
+  if (target.bouclier) {
+    target.bouclier = false;
+    save();
+    renderPlayersStrip();
+    heraldSays(`🛡️ Le bouclier de ${target.nom} encaisse le coup !`);
+    return;
+  }
+  effect();
+  target.malusSubis = (target.malusSubis ?? 0) + 1;
+  save();
+}
+
+function showItemDie(value, label) {
+  setPanel(
+    el("h2", { class: "panel-title", text: `${label} : ${value}` }),
+    el("div", { class: "die", "aria-label": `Total : ${value}` }, String(value)),
+    bigButton(`Avancer de ${value}`, () => moveAndResolve(value)),
   );
 }
 
@@ -144,6 +311,16 @@ function showDieResult(value, { rerollAvailable }) {
         heraldSays(herald.pouvoir());
         const v2 = 1 + Math.floor(Math.random() * 6);
         showDieResult(v2, { rerollAvailable: false });
+      }),
+    );
+  }
+  // Fiole de Relance (objet) : une relance, sans toucher au pouvoir.
+  if (rerollAvailable && pion.relanceBonus) {
+    actions.push(
+      choiceButton("🔁 Fiole de Relance — relancer le dé", () => {
+        pion.relanceBonus = false;
+        save();
+        showDieResult(1 + Math.floor(Math.random() * 6), { rerollAvailable: false });
       }),
     );
   }
@@ -189,7 +366,7 @@ function resolveCase(type) {
       return doMalus(pion);
     case "pieces": {
       setPendingCase("resolu");
-      const gain = 3 + Math.floor(Math.random() * 3);
+      const gain = 6 + Math.floor(Math.random() * 5);
       addCoins(pion, gain);
       return endPanel(`Vous ramassez ${gain} pièces d'or ! 🪙`);
     }
@@ -202,15 +379,97 @@ function resolveCase(type) {
       return doGambit(pion);
     case "trounoir":
       return doTrouNoir(pion);
+    case "boutique":
+      return doBoutique(pion);
+    case "insolite":
+      return doInsolite(pion);
     default:
       setPendingCase("resolu");
       return endPanel("Case tranquille. Le Donjon vous laisse souffler.");
   }
 }
 
+/* ---------- boutique : dépenser son or en objets ---------- */
+
+function doBoutique(pion) {
+  setPendingCase("resolu");
+  const render$ = () => {
+    const rows = [];
+    for (const id of SHOP_ORDER) {
+      const it = ITEMS[id];
+      const abordable = pion.pieces >= it.cout && hasRoom(pion);
+      const btn = choiceButton(
+        `${it.emoji} ${it.nom} — ${it.cout} 🪙 · ${it.desc}`,
+        () => {
+          if (pion.pieces < it.cout || !hasRoom(pion)) return;
+          pion.pieces -= it.cout;
+          addItem(pion, id);
+          save();
+          heraldSays(`Vendu ! ${it.nom} rejoint la besace.`);
+          render$();
+        },
+      );
+      if (!abordable) btn.disabled = true;
+      rows.push(btn);
+    }
+    // Besasse Badass : capacité 3 → 6.
+    if (!pion.besasse) {
+      const b = choiceButton(
+        `🧳 Besasse Badass — ${BESASSE_COST} 🪙 · porte jusqu'à ${INV_BESASSE} objets`,
+        () => {
+          if (pion.pieces < BESASSE_COST) return;
+          pion.pieces -= BESASSE_COST;
+          pion.besasse = true;
+          save();
+          heraldSays("La Besasse Badass ! Vos poches deviennent légendaires.");
+          render$();
+        },
+      );
+      if (pion.pieces < BESASSE_COST) b.disabled = true;
+      rows.push(b);
+    }
+    setPanel(
+      el("h2", { class: "panel-title", text: "🛒 La Boutique du Donjon" }),
+      el("p", { class: "help-note", text: `Votre or : ${pion.pieces} 🪙 · besace ${inventoryCount(pion)}/${inventoryCap(pion)}` }),
+      ...rows,
+      bigButton("Quitter la boutique", () => finishTurn()),
+    );
+  };
+  render$();
+}
+
+/* ---------- savoir insolite : pure culture, +2 or garantis ---------- */
+
+function doInsolite(pion) {
+  setPendingCase("resolu");
+  const q = drawQuestion(pion, { formats: ["qcm", "vrai_faux", "gambit_numerique"] });
+  const gain = addCoins(pion, 2);
+  heraldSays("Savoir insolite ! Nul risque, juste une pépite à ranger dans un coin du crâne.");
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "🦩 Savoir insolite" }),
+      q ? el("div", { class: "anecdote-card" },
+        el("p", { class: "anecdote-title", text: "📜 Le saviez-vous ?" }),
+        el("p", { class: "anecdote-texte", text: q.anecdote }),
+        (q.sources ?? []).length ? el("div", { class: "sources" }, ...(q.sources ?? []).slice(0, 2).map((s) => {
+          let label = "source"; try { label = new URL(s).hostname.replace(/^www\./, ""); } catch { /* */ }
+          return el("a", { class: "source-link", href: s, target: "_blank", rel: "noopener noreferrer", text: label });
+        })) : null,
+      ) : el("p", { class: "panel-text", text: "Le Donjon a épuisé ses pépites… pour l'instant." }),
+      el("p", { class: "verdict", html: `+${gain} 🪙 pour votre curiosité.` }),
+      bigButton("Continuer", () => finishTurn()),
+    ),
+  );
+}
+
 function addCoins(pion, n) {
-  const gain = pion.doublePieces ? n * 2 : n;
+  let gain = n;
+  if (pion.doublePieces) gain *= 2; // Bonus Comptable (pouvoir Gobelin)
+  if (pion.aimantOr) gain *= 2; // Aimant à Or (objet)
+  // Filet anti-dernier (esprit 99 %) : le dernier gagne +50 % sur ses gains.
+  if (isLast(pion) && n > 0) gain = Math.round(gain * 1.5);
   pion.pieces += gain;
+  pion.orGagne = (pion.orGagne ?? 0) + Math.max(0, gain);
   save();
   renderPlayersStrip();
   return gain;
@@ -588,7 +847,7 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   if (correct) {
     pion.stats.bonnes += 1;
     moveDelta = advance;
-    coinGain = addCoins(pion, 1);
+    coinGain = addCoins(pion, 3);
   } else {
     moveDelta = penalty;
   }
@@ -861,10 +1120,10 @@ function showAnecdoteEvent(q, lines) {
 
 /* ---------- turn end & victory ---------- */
 
-function endPanel(message) {
+function endPanel(message, onContinue = null) {
   setPanel(
     el("p", { class: "panel-text panel-event", text: message }),
-    bigButton("Continuer", () => finishTurn()),
+    bigButton("Continuer", onContinue ?? (() => finishTurn())),
   );
 }
 
@@ -874,6 +1133,8 @@ function finishTurn() {
   clearPendingCase(); // the turn is truly over — next reload starts fresh
   const pion = currentPion();
   pion.doublePieces = false;
+  pion.aimantOr = false; // l'Aimant à Or ne dure qu'un tour
+  pion.relanceBonus = false; // relance non utilisée : perdue en fin de tour
   const { skipped } = nextTurn();
   // The nap is public: the table hears WHO loses their turn and why.
   const prefix = skipped.length > 0 ? `💤 ${skipped.join(" et ")} passe${skipped.length > 1 ? "nt" : ""} son tour (sieste involontaire) ! ` : "";
