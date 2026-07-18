@@ -1,0 +1,401 @@
+name: Compatibilité ponctuelle des scores historiques
+
+on:
+  push:
+    branches:
+      - agent/velum-distinct-source-reliability
+    paths:
+      - .github/workflows/agent-resolve-legacy-reliability.yml
+
+permissions:
+  contents: write
+
+jobs:
+  resolve-legacy-reliability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/velum-distinct-source-reliability
+          fetch-depth: 0
+
+      - name: Propager le moteur courant aux valorisations persistées
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: Path, old: str, new: str) -> None:
+              text = path.read_text(encoding='utf-8')
+              if old not in text:
+                  raise SystemExit(f'{path}: motif absent: {old!r}')
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          Path('velum/packages/valuation/src/resolve.ts').write_text(r'''/**
+           * Résout le score de fiabilité d’une valorisation persistée selon le
+           * moteur courant. Les anciennes lignes peuvent contenir un score calculé
+           * avant que `nSources` désigne les plateformes distinctes.
+           */
+          import type { PriceObservation } from '@velum/core';
+          import { countDistinctSources, reliabilityScore } from './engine.ts';
+
+          export interface PersistedReliabilityInput {
+            central: number;
+            ci80: [number, number];
+            reliability: number;
+            observations: PriceObservation[];
+          }
+
+          export interface ReliabilityResolution {
+            /** Score à afficher selon le moteur courant, ou score stocké en repli. */
+            value: number;
+            /** Score présent dans la ligne persistée, conservé pour l’audit. */
+            stored: number;
+            /** Nombre de plateformes distinctes réellement identifiables. */
+            nSources: number;
+            /** true lorsque les données conservées permettent un recalcul exact. */
+            recomputed: boolean;
+            /** true lorsque le moteur courant corrige le score stocké. */
+            differsFromStored: boolean;
+          }
+
+          function boundedScore(value: number): number {
+            if (!Number.isFinite(value)) return 0;
+            return Math.min(100, Math.max(0, Math.round(value)));
+          }
+
+          export function resolveReliabilityForResult(
+            input: PersistedReliabilityInput,
+          ): ReliabilityResolution {
+            const stored = boundedScore(input.reliability);
+            const nSources = countDistinctSources(input.observations);
+            const [lo, hi] = input.ci80;
+            const canRecompute =
+              input.observations.length > 0 &&
+              nSources > 0 &&
+              Number.isFinite(input.central) &&
+              input.central > 0 &&
+              Number.isFinite(lo) &&
+              Number.isFinite(hi) &&
+              hi >= lo;
+
+            if (!canRecompute) {
+              return {
+                value: stored,
+                stored,
+                nSources,
+                recomputed: false,
+                differsFromStored: false,
+              };
+            }
+
+            const value = reliabilityScore(nSources, lo, hi, input.central);
+            return {
+              value,
+              stored,
+              nSources,
+              recomputed: true,
+              differsFromStored: value !== stored,
+            };
+          }
+          '''.replace('\n          ', '\n').lstrip(), encoding='utf-8')
+
+          Path('velum/packages/valuation/src/resolve.test.ts').write_text(r'''import { describe, expect, it } from 'vitest';
+          import type { PriceObservation } from '@velum/core';
+          import { resolveReliabilityForResult } from './resolve.ts';
+
+          function observation(sourceName: string, price: number): PriceObservation {
+            return {
+              price,
+              currency: 'EUR',
+              ageDays: 10,
+              sourceWeight: 1,
+              source: { name: sourceName, kind: 'auction_realized' },
+            };
+          }
+
+          const observations = [
+            observation('iDealwine', 48),
+            observation('iDealwine', 50),
+            observation('Wine-Searcher', 53),
+            observation('Cavissima', 56),
+          ];
+
+          describe('resolveReliabilityForResult', () => {
+            it('recalcule un score historique avec les plateformes distinctes', () => {
+              const result = resolveReliabilityForResult({
+                central: 51,
+                ci80: [45, 58],
+                reliability: 81,
+                observations,
+              });
+
+              expect(result).toEqual({
+                value: 56,
+                stored: 81,
+                nSources: 3,
+                recomputed: true,
+                differsFromStored: true,
+              });
+            });
+
+            it('ne signale aucune divergence pour un score déjà courant', () => {
+              const result = resolveReliabilityForResult({
+                central: 51,
+                ci80: [45, 58],
+                reliability: 56,
+                observations,
+              });
+              expect(result.differsFromStored).toBe(false);
+              expect(result.value).toBe(56);
+            });
+
+            it('préserve le score stocké quand aucune source ne permet le recalcul', () => {
+              expect(
+                resolveReliabilityForResult({
+                  central: 51,
+                  ci80: [45, 58],
+                  reliability: 81,
+                  observations: [],
+                }),
+              ).toEqual({
+                value: 81,
+                stored: 81,
+                nSources: 0,
+                recomputed: false,
+                differsFromStored: false,
+              });
+            });
+          });
+          '''.replace('\n          ', '\n').lstrip(), encoding='utf-8')
+
+          index_path = Path('velum/packages/valuation/src/index.ts')
+          index_text = index_path.read_text(encoding='utf-8')
+          marker = "} from './engine.ts';\n\n"
+          addition = "} from './engine.ts';\n\nexport {\n  resolveReliabilityForResult,\n  type PersistedReliabilityInput,\n  type ReliabilityResolution,\n} from './resolve.ts';\n\n"
+          if marker not in index_text:
+              raise SystemExit('index.ts: marqueur engine absent')
+          index_path.write_text(index_text.replace(marker, addition, 1), encoding='utf-8')
+
+          explain = Path('velum/packages/valuation/src/explain.ts')
+          replace_once(
+              explain,
+              "} from './engine.ts';\n",
+              "} from './engine.ts';\nimport { resolveReliabilityForResult } from './resolve.ts';\n",
+          )
+          replace_once(
+              explain,
+              "  reliability: number;\n  /** Largeur de l'IC 80 % relative à la valeur centrale (dispersion, 0..1+). */",
+              "  reliability: number;\n  /** Score présent dans la ligne persistée avant éventuel recalcul. */\n  storedReliability: number;\n  /** true lorsque les observations permettent d’appliquer le moteur courant. */\n  reliabilityRecomputed: boolean;\n  /** Largeur de l'IC 80 % relative à la valeur centrale (dispersion, 0..1+). */",
+          )
+          replace_once(
+              explain,
+              "    reliability: result.reliability,\n    ci80WidthRatio,",
+              "    reliability: result.reliability,\n    storedReliability: result.reliability,\n    reliabilityRecomputed: true,\n    ci80WidthRatio,",
+          )
+          replace_once(
+              explain,
+              "export function reliabilityFromExplanation(e: ValuationExplanation): number {\n  return reliabilityScore(e.nSources, e.ci80[0], e.ci80[1], e.central);\n}",
+              "export function reliabilityFromExplanation(e: ValuationExplanation): number {\n  return e.reliabilityRecomputed\n    ? reliabilityScore(e.nSources, e.ci80[0], e.ci80[1], e.central)\n    : e.reliability;\n}",
+          )
+          replace_once(
+              explain,
+              "): ValuationExplanation {\n  const halfLife = HALF_LIFE_DAYS;",
+              "): ValuationExplanation {\n  const resolution = resolveReliabilityForResult({\n    central: result.central,\n    ci80: result.ci80,\n    reliability: result.reliability,\n    observations: result.observations,\n  });\n  const halfLife = HALF_LIFE_DAYS;",
+          )
+          replace_once(
+              explain,
+              "  const nSources = countDistinctSources(result.observations);",
+              "  const nSources = resolution.nSources;",
+          )
+          replace_once(
+              explain,
+              "  notes.push(\n    `Fiabilité ${result.reliability}/100 = moitié couverture (${Math.round(countScore * 100)} %) + moitié resserrement (${Math.round(tightnessScore * 100)} %).`,\n  );",
+              "  if (resolution.differsFromStored) {\n    notes.push(\n      `Score recalculé selon le moteur courant à partir des sources conservées (score enregistré : ${resolution.stored}/100).`,\n    );\n  }\n  notes.push(\n    resolution.recomputed\n      ? `Fiabilité ${resolution.value}/100 = moitié couverture (${Math.round(countScore * 100)} %) + moitié resserrement (${Math.round(tightnessScore * 100)} %).`\n      : `Fiabilité enregistrée ${resolution.value}/100 — détail du calcul indisponible faute de sources conservées.`,\n  );",
+          )
+          replace_once(
+              explain,
+              "    reliability: result.reliability,\n    ci80WidthRatio,\n    nKept,\n    nSources,\n    nRejected: 0,",
+              "    reliability: resolution.value,\n    storedReliability: resolution.stored,\n    reliabilityRecomputed: resolution.recomputed,\n    ci80WidthRatio,\n    nKept,\n    nSources,\n    nRejected: 0,",
+          )
+
+          explain_test = Path('velum/packages/valuation/src/explain.test.ts')
+          text = explain_test.read_text(encoding='utf-8')
+          insert = r'''
+
+            it('recalcule explicitement un score historique selon le moteur courant', () => {
+              const observations = [
+                { ...obs(48, 'auction_realized'), source: { name: 'iDealwine', kind: 'auction_realized' as const } },
+                { ...obs(50, 'auction_realized'), source: { name: 'iDealwine', kind: 'auction_realized' as const } },
+                { ...obs(53, 'official_quote'), source: { name: 'Wine-Searcher', kind: 'official_quote' as const } },
+                { ...obs(56, 'listing'), source: { name: 'Cavissima', kind: 'listing' as const } },
+              ];
+              const explanation = explainFromResult({
+                central: 51,
+                ci80: [45, 58],
+                ci95: [42, 62],
+                reliability: 81,
+                observations,
+                nSources: 4,
+              });
+
+              expect(explanation.reliability).toBe(56);
+              expect(explanation.storedReliability).toBe(81);
+              expect(explanation.reliabilityRecomputed).toBe(true);
+              expect(explanation.nKept).toBe(4);
+              expect(explanation.nSources).toBe(3);
+              expect(explanation.notes.join(' ')).toMatch(/score enregistré : 81\/100/i);
+              expect(reliabilityFromExplanation(explanation)).toBe(56);
+            });
+          '''
+          head, tail = text.rsplit('\n});', 1)
+          explain_test.write_text(head + insert + '\n});' + tail, encoding='utf-8')
+
+          Path('velum/apps/mobile/components/ValuationExplanation.tsx').write_text(r'''/**
+           * « Pourquoi cette fourchette ? » — Pari #1 (confiance auditable).
+           *
+           * Panneau dépliable qui rend VISIBLE la rigueur du moteur §7 sur une
+           * valorisation déjà calculée : sources retenues, mélange de sources,
+           * dispersion, décomposition du score de fiabilité. Calcul PUR côté client
+           * via `explainFromResult` (aucun taux de change requis).
+           */
+          import { useState } from 'react';
+          import { Pressable, StyleSheet, View } from 'react-native';
+          import { VText, velumColors, velumRadius, velumSpacing } from '@velum/ui';
+          import type { ValuationRecord } from '@velum/core';
+          import { explainFromResult } from '@velum/valuation';
+
+          export interface ValuationExplanationProps {
+            valuation: ValuationRecord;
+            /** Libellé du bouton (i18n). */
+            label: string;
+          }
+
+          export function ValuationExplanation({ valuation, label }: ValuationExplanationProps) {
+            const [open, setOpen] = useState(false);
+
+            const explanation = explainFromResult({
+              central: valuation.central,
+              ci80: [valuation.ci80Low, valuation.ci80High],
+              ci95: [valuation.ci95Low, valuation.ci95High],
+              reliability: valuation.reliability,
+              observations: valuation.sources,
+              nSources: 0,
+            });
+
+            return (
+              <View style={styles.container}>
+                <Pressable
+                  onPress={() => setOpen((v) => !v)}
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: open }}
+                  accessibilityLabel={label}
+                  hitSlop={8}
+                  style={styles.toggle}
+                >
+                  <VText variant="caption" tone="gold">
+                    {open ? '▾' : '▸'}  {label}
+                  </VText>
+                </Pressable>
+                {open ? (
+                  <View style={styles.body}>
+                    {explanation.notes.map((note, i) => (
+                      <VText key={i} variant="caption" tone="dim" style={styles.note}>
+                        •  {note}
+                      </VText>
+                    ))}
+                  </View>
+                ) : null}
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            container: { gap: velumSpacing.xs },
+            toggle: { paddingVertical: velumSpacing.xs },
+            body: {
+              gap: velumSpacing.xs,
+              padding: velumSpacing.md,
+              borderRadius: velumRadius.field,
+              backgroundColor: velumColors.ink.soft,
+              borderWidth: 1,
+              borderColor: velumColors.ink.border,
+            },
+            note: { lineHeight: 18 },
+          });
+          '''.replace('\n          ', '\n').lstrip(), encoding='utf-8')
+
+          item = Path('velum/apps/mobile/app/item/[id].tsx')
+          replace_once(
+              item,
+              "import { countDistinctSources } from '@velum/valuation';",
+              "import { resolveReliabilityForResult } from '@velum/valuation';",
+          )
+          replace_once(
+              item,
+              "  const history: ValuationRecord[] = historyQuery.data ?? [];\n\n  return (",
+              "  const history: ValuationRecord[] = historyQuery.data ?? [];\n  const valuationReliability = valuation\n    ? resolveReliabilityForResult({\n        central: valuation.central,\n        ci80: [valuation.ci80Low, valuation.ci80High],\n        reliability: valuation.reliability,\n        observations: valuation.sources,\n      })\n    : null;\n\n  return (",
+          )
+          replace_once(item, "        {valuation ? (", "        {valuation && valuationReliability ? (")
+          replace_once(
+              item,
+              "              value={`${Math.round(valuation.reliability)} / 100 · ${t('item.nSources', { count: countDistinctSources(valuation.sources) })}`}",
+              "              value={`${valuationReliability.value} / 100 · ${t('item.nSources', { count: valuationReliability.nSources })}`}",
+          )
+
+          exporters = Path('velum/apps/mobile/lib/exporters.ts')
+          replace_once(
+              exporters,
+              "import type { BlindTastingSession } from '@velum/domain-wine';",
+              "import type { BlindTastingSession } from '@velum/domain-wine';\nimport { resolveReliabilityForResult } from '@velum/valuation';",
+          )
+          replace_once(
+              exporters,
+              "function baseStyles(): string {",
+              "function resolvedReliability(valuation: ValuationRecord): number {\n  return resolveReliabilityForResult({\n    central: valuation.central,\n    ci80: [valuation.ci80Low, valuation.ci80High],\n    reliability: valuation.reliability,\n    observations: valuation.sources,\n  }).value;\n}\n\nfunction baseStyles(): string {",
+          )
+          replace_once(
+              exporters,
+              "${Math.round(valuation.reliability)} / 100",
+              "${resolvedReliability(valuation)} / 100",
+          )
+          replace_once(
+              exporters,
+              "const reliability = valuation ? `${Math.round(valuation.reliability)} / 100` : '—';",
+              "const reliability = valuation ? `${resolvedReliability(valuation)} / 100` : '—';",
+          )
+
+          exporters_test = Path('velum/apps/mobile/lib/exporters.test.ts')
+          replace_once(
+              exporters_test,
+              "    expect(html).toContain('export.disclaimer');\n    expect(html).toContain('zappa_vini');",
+              "    expect(html).toContain('export.disclaimer');\n    expect(html).toContain('zappa_vini');\n    expect(html).toContain('43 / 100');\n    expect(html).not.toContain('78 / 100');",
+          )
+          replace_once(
+              exporters_test,
+              "    expect(html).toContain('Drouot (auction_realized)');\n    expect(html).toContain('export.disclaimer');",
+              "    expect(html).toContain('Drouot (auction_realized)');\n    expect(html).toContain('43 / 100');\n    expect(html).not.toContain('78 / 100');\n    expect(html).toContain('export.disclaimer');",
+          )
+
+          auth = Path('velum/e2e/auth-screens.mjs')
+          replace_once(auth, "page.getByText(/3 source/)", "page.getByText(/56 \\/ 100 · 3 source/)")
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/agent-resolve-legacy-reliability.yml
+          git add \
+            velum/packages/valuation/src/resolve.ts \
+            velum/packages/valuation/src/resolve.test.ts \
+            velum/packages/valuation/src/index.ts \
+            velum/packages/valuation/src/explain.ts \
+            velum/packages/valuation/src/explain.test.ts \
+            'velum/apps/mobile/app/item/[id].tsx' \
+            velum/apps/mobile/components/ValuationExplanation.tsx \
+            velum/apps/mobile/lib/exporters.ts \
+            velum/apps/mobile/lib/exporters.test.ts \
+            velum/e2e/auth-screens.mjs
+          git diff --cached --check
+          git commit -m "fix(velum/valuation): résoudre les scores historiques"
+          git push origin HEAD:agent/velum-distinct-source-reliability
