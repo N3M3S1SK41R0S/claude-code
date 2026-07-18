@@ -55,7 +55,7 @@ export async function handler(req: Request): Promise<Response> {
   const body = bodyResult.value;
 
   if (!isVelumDomain(body['domain'])) {
-    return error('INVALID_INPUT', 'Domaine inconnu (attendu : wine, coin, art ou stamp)', 400);
+    return error('INVALID_INPUT', 'Domaine inconnu (attendu : wine, coin, art, stamp ou watch)', 400);
   }
 
   const inputResult = validateCaptureInput(body['input']);

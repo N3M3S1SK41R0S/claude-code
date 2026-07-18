@@ -24,7 +24,7 @@ export function validateValuationRequest(value: unknown): ValidationResult<Valua
 
   const domain = body['domain'];
   if (!isVelumDomain(domain)) {
-    return invalid('Domaine inconnu (attendu : wine, coin, art ou stamp)');
+    return invalid('Domaine inconnu (attendu : wine, coin, art, stamp ou watch)');
   }
 
   const candidateResult = validateCandidate(body['candidate'], domain);
