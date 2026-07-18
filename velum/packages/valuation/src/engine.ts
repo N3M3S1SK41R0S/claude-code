@@ -83,9 +83,9 @@ export function effectiveWeight(o: PriceObservation, halfLifeDays = HALF_LIFE_DA
 }
 
 /**
- * Compte les plateformes réellement distinctes après normalisation légère du
- * nom. Plusieurs ventes ou annonces provenant du même adaptateur ne créent
- * qu'une seule source indépendante pour le score de fiabilité.
+ * Compte les plateformes réellement distinctes d'après le nom stable exposé
+ * par chaque adaptateur. Plusieurs ventes ou annonces du même adaptateur ne
+ * créent qu'une seule source indépendante pour le score de fiabilité.
  */
 export function countDistinctSources(obs: PriceObservation[]): number {
   const names = new Set<string>();
