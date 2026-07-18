@@ -1,0 +1,90 @@
+name: Correction ponctuelle de la suppression objet
+
+on:
+  push:
+    branches:
+      - agent/velum-safe-item-deletion
+    paths:
+      - .github/workflows/agent-fix-safe-item-delete-ui.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-item-screen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/velum-safe-item-deletion
+          fetch-depth: 0
+
+      - name: Retirer le faux succès hors-ligne
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('velum/apps/mobile/app/item/[id].tsx')
+          text = path.read_text(encoding='utf-8')
+          old = '''  const confirmDelete = () => {
+    Alert.alert(t('item.deleteTitle'), t('item.deleteMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () => {
+          void (async () => {
+            try {
+              await client.items.remove(itemId);
+            } catch {
+              await client.queue.enqueue({
+                id: `mut-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+                table: 'items',
+                type: 'delete',
+                payload: { id: itemId },
+                queuedAt: new Date().toISOString(),
+              });
+            }
+            showToast(t('item.deleted'), 'success');
+            void queryClient.invalidateQueries({ queryKey: ['items'] });
+            router.back();
+          })();
+        },
+      },
+    ]);
+  };'''
+          new = '''  const confirmDelete = () => {
+    Alert.alert(t('item.deleteTitle'), t('item.deleteMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () => {
+          void (async () => {
+            try {
+              await client.items.remove(itemId);
+              showToast(t('item.deleted'), 'success');
+              void queryClient.invalidateQueries({ queryKey: ['items'] });
+              router.back();
+            } catch (error) {
+              showToast(errorMessage(error, t), 'danger');
+            }
+          })();
+        },
+      },
+    ]);
+  };'''
+          if old not in text:
+              raise SystemExit('bloc confirmDelete attendu absent')
+          path.write_text(text.replace(old, new, 1), encoding='utf-8')
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/agent-fix-safe-item-delete-ui.yml
+          git add 'velum/apps/mobile/app/item/[id].tsx'
+          git diff --cached --check
+          git commit -m "fix(velum/delete): ne confirmer qu’après purge complète"
+          git push origin HEAD:agent/velum-safe-item-deletion
