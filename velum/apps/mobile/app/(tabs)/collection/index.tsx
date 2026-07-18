@@ -11,27 +11,26 @@ import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
   ConfidenceBadge,
+  VButton,
+  VCard,
   VEmptyState,
+  VListRow,
   VSpinner,
   VText,
   VTextInput,
   velumSpacing,
 } from '@velum/ui';
-import { VListRow, VCard } from '@velum/ui';
-import type { ValuationRecord, VelumDomain, VelumItem } from '@velum/core';
+import type { VelumDomain, VelumItem } from '@velum/core';
 
 import { Screen } from '../../../components/Screen';
+import { loadCarnetData, type CarnetData } from '../../../lib/carnetData';
 import { getVelumClient } from '../../../lib/client';
-import { formatEUR } from '../../../lib/i18n';
-import { getActiveDomains } from '../../../lib/features';
+import { collectionSummary } from '../../../lib/collectionSummary';
 import { drinkNowForItems } from '../../../lib/drinkNow';
+import { errorMessage } from '../../../lib/errors';
+import { getActiveDomains } from '../../../lib/features';
+import { formatEUR } from '../../../lib/i18n';
 import { showToast } from '../../../stores/toastStore';
-import { VButton } from '@velum/ui';
-
-interface CollectionData {
-  items: VelumItem[];
-  latestByItem: Record<string, ValuationRecord | null>;
-}
 
 export default function Collection() {
   const { t } = useTranslation();
@@ -55,26 +54,22 @@ export default function Collection() {
     })();
   }, [client, t]);
 
-  const query = useQuery<CollectionData>({
+  const query = useQuery<CarnetData>({
     queryKey: ['items', 'collection'],
-    queryFn: async () => {
-      const items = await client.items.list();
-      const latestByItem: Record<string, ValuationRecord | null> = {};
-      await Promise.all(
-        items.map(async (item) => {
-          try {
-            latestByItem[item.id] = await client.valuations.latest(item.id);
-          } catch {
-            latestByItem[item.id] = null;
-          }
-        }),
-      );
-      return { items, latestByItem };
-    },
+    queryFn: () =>
+      loadCarnetData({
+        listItems: () => client.items.list(),
+        latestValuation: (itemId) => client.valuations.latest(itemId),
+      }),
   });
 
   const items = query.data?.items ?? [];
   const latestByItem = query.data?.latestByItem ?? {};
+  const failedValuationItemIds = query.data?.failedValuationItemIds ?? [];
+  const failedValuationIds = useMemo(
+    () => new Set(failedValuationItemIds),
+    [failedValuationItemIds],
+  );
 
   const filtered = useMemo(() => {
     const needle = search.trim().toLowerCase();
@@ -86,20 +81,10 @@ export default function Collection() {
     );
   }, [items, search]);
 
-  const { totalValue, gainLoss } = useMemo(() => {
-    let total = 0;
-    let acquired = 0;
-    let hasAcquired = false;
-    for (const item of items) {
-      const latest = latestByItem[item.id];
-      if (latest) total += latest.central;
-      if (item.acquiredPrice !== null && latestByItem[item.id]) {
-        acquired += item.acquiredPrice;
-        hasAcquired = true;
-      }
-    }
-    return { totalValue: total, gainLoss: hasAcquired ? total - acquired : null };
-  }, [items, latestByItem]);
+  const { totalValue, gainLoss } = useMemo(
+    () => collectionSummary(items, latestByItem, failedValuationItemIds),
+    [failedValuationItemIds, items, latestByItem],
+  );
 
   // Intelligence de cave — sens 2 : vins à leur apogée (calcul local).
   const hasWine = useMemo(() => items.some((i) => i.domain === 'wine'), [items]);
@@ -127,6 +112,20 @@ export default function Collection() {
     );
   }
 
+  if (query.isError) {
+    return (
+      <Screen scroll={false}>
+        <View style={styles.center}>
+          <VEmptyState
+            title={t('collection.title')}
+            message={errorMessage(query.error, t)}
+            action={{ label: t('common.retry'), onPress: () => void query.refetch() }}
+          />
+        </View>
+      </Screen>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <Screen scroll={false}>
@@ -141,6 +140,8 @@ export default function Collection() {
     );
   }
 
+  const valuationsUnavailable = failedValuationItemIds.length > 0;
+
   return (
     <Screen>
       <VText variant="title">{t('collection.title')}</VText>
@@ -149,10 +150,28 @@ export default function Collection() {
         <VText variant="caption" tone="dim">
           {t('collection.totalValue')}
         </VText>
-        <VText variant="title" tone="gold" tabularNums>
-          {formatEUR(totalValue)}
+        <VText
+          variant="title"
+          tone="gold"
+          tabularNums
+          accessibilityLabel={
+            totalValue === null ? t('errors.SOURCE_UNAVAILABLE') : formatEUR(totalValue)
+          }
+        >
+          {totalValue === null ? '—' : formatEUR(totalValue)}
         </VText>
-        {gainLoss !== null ? (
+        {valuationsUnavailable ? (
+          <View style={styles.valuationWarning}>
+            <VText variant="caption" tone="danger">
+              {t('errors.SOURCE_UNAVAILABLE')}
+            </VText>
+            <VButton
+              label={t('common.retry')}
+              variant="ghost"
+              onPress={() => void query.refetch()}
+            />
+          </View>
+        ) : gainLoss !== null ? (
           <VText variant="body" tone={gainLoss >= 0 ? 'default' : 'danger'} tabularNums>
             {`${t('collection.gainLoss')} : ${gainLoss >= 0 ? '+' : ''}${formatEUR(gainLoss)}`}
           </VText>
@@ -201,17 +220,22 @@ export default function Collection() {
           <VText variant="heading" tone="gold">
             {t('cellar.drinkNowTitle', { count: drinkNow.length })}
           </VText>
-          {drinkNow.map((s) => (
+          {drinkNow.map((signal) => (
             <VListRow
-              key={s.itemId}
-              title={s.label}
+              key={signal.itemId}
+              title={signal.label}
               subtitle={
-                t('cellar.drinkNowWindow', { from: s.windowFrom, to: s.windowTo }) +
-                (s.suggestedDishes.length > 0
-                  ? ` · ${t('cellar.drinkNowDishes', { dishes: s.suggestedDishes.join(', ') })}`
+                t('cellar.drinkNowWindow', {
+                  from: signal.windowFrom,
+                  to: signal.windowTo,
+                }) +
+                (signal.suggestedDishes.length > 0
+                  ? ` · ${t('cellar.drinkNowDishes', {
+                      dishes: signal.suggestedDishes.join(', '),
+                    })}`
                   : '')
               }
-              onPress={() => router.push(`/item/${s.itemId}`)}
+              onPress={() => router.push(`/item/${signal.itemId}`)}
             />
           ))}
         </VCard>
@@ -233,11 +257,18 @@ export default function Collection() {
             </VText>
             {domainItems.map((item) => {
               const latest = latestByItem[item.id];
+              const valuationFailed = failedValuationIds.has(item.id);
               return (
                 <VListRow
                   key={item.id}
                   title={item.title ?? t('common.unknown')}
-                  subtitle={latest ? formatEUR(latest.central) : t('item.noValuation')}
+                  subtitle={
+                    valuationFailed
+                      ? t('errors.SOURCE_UNAVAILABLE')
+                      : latest
+                        ? formatEUR(latest.central)
+                        : t('item.noValuation')
+                  }
                   right={item.confidence !== null ? <ConfidenceBadge value={item.confidence} /> : undefined}
                   onPress={() => router.push(`/item/${item.id}`)}
                 />
@@ -253,6 +284,7 @@ export default function Collection() {
 const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center' },
   summary: { marginVertical: velumSpacing.md },
+  valuationWarning: { gap: velumSpacing.xs },
   bookActions: { gap: velumSpacing.sm, marginBottom: velumSpacing.md },
   drinkNow: { marginVertical: velumSpacing.md, gap: velumSpacing.xs },
   group: { marginTop: velumSpacing.lg, gap: velumSpacing.xs },
