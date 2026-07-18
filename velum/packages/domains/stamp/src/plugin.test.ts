@@ -37,7 +37,7 @@ function candidate(
   return { id: 's1', domain: 'stamp', label, confidence: 0.8, attributes };
 }
 
-// ── Fixtures de reconnaissance ───────────────────────────────────────────
+// ── Fixtures de reconnaissance ────────────────────────────────────────────
 
 /** Réponse AVEC fences markdown, désordonnée, avec confiance hors bornes. */
 const RECOGNITION_FENCED = [
@@ -201,7 +201,7 @@ const ANALYSIS_FENCED = [
       caveat: 'à faire confirmer', // caveat non conforme → le plugin impose le sien
     },
     rarity: { level: 'courante', note: 'Émission très courante, sauf nuances rares' },
-    varieties: ['Nuance vert-bleu cotéd séparément', 'Papier GC (Grande Consommation)'],
+    varieties: ['Nuance vert-bleu cotée séparément', 'Papier GC (Grande Consommation)'],
     neighborIssues: [
       { catalogNumber: 'YT 129', note: 'Type I/II de la 10c, valeur très différente' },
     ],
@@ -299,7 +299,7 @@ describe('stampPlugin.buildPriceQuery', () => {
   });
 });
 
-// ── Valorisation bout-en-bout avec le moteur RÉEL ────────────────────────
+// ── Valorisation bout-en-bout avec le moteur RÉEL ─────────────────────────
 
 function obs(
   price: number,
