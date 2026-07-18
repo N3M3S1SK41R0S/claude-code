@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 475,
+ "count": 494,
  "questions": [
   {
    "id": "arts-001",
@@ -7922,6 +7922,334 @@
     "https://www.olympics.com/fr/athletes/larisa-latynina"
    ],
    "reponse_numerique": 18
+  },
+  {
+   "id": "cinema-037",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Alfred Hitchcock a remporté l'Oscar du meilleur réalisateur au cours de sa carrière.",
+   "anecdote": "Nommé cinq fois sans jamais l'emporter, Hitchcock dut se contenter du prix honorifique Irving G. Thalberg en 1968, qu'il accepta avec un discours d'une brièveté restée célèbre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Alfred_Hitchcock",
+    "https://fr.wikipedia.org/wiki/Oscar_du_meilleur_r%C3%A9alisateur"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "cinema-038",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Dès le premier Festival de Cannes, en 1946, la récompense suprême s'appelait la Palme d'or.",
+   "anecdote": "La Palme d'or n'a été créée qu'en 1955 ; auparavant, le festival décernait un Grand Prix. Elle fut même abandonnée entre 1964 et 1974 avant de revenir définitivement en 1975.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Palme_d%27or",
+    "https://fr.wikipedia.org/wiki/Festival_de_Cannes"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "cinema-039",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien d'Oscars le film Ben-Hur de William Wyler (1959) a-t-il remportés ?",
+   "anecdote": "Ce record de onze statuettes n'a jamais été battu : seuls Titanic (1998) et Le Seigneur des anneaux : Le Retour du roi (2004) l'ont égalé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ben-Hur_(film,_1959)",
+    "https://fr.wikipedia.org/wiki/Oscars_du_cin%C3%A9ma"
+   ],
+   "reponse_numerique": 11
+  },
+  {
+   "id": "gastronomie-030",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le camembert de Normandie AOP doit obligatoirement être fabriqué au lait cru.",
+   "anecdote": "Le cahier des charges de l'AOP impose le lait cru et le moulage à la louche. La grande majorité des camemberts vendus en France, pasteurisés, n'ont donc pas droit à l'appellation.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Camembert_de_Normandie",
+    "https://fr.wikipedia.org/wiki/Camembert"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "gastronomie-031",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le tout premier guide Michelin a-t-il été publié ?",
+   "anecdote": "Créé par André et Édouard Michelin pour encourager l'automobile, le guide était distribué gratuitement à ses débuts : il n'est devenu payant qu'en 1920.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guide_Michelin",
+    "https://fr.wikipedia.org/wiki/Michelin"
+   ],
+   "reponse_numerique": 1900
+  },
+  {
+   "id": "general-026",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "L'année 1900 a été une année bissextile.",
+   "anecdote": "Dans le calendrier grégorien, les années séculaires ne sont bissextiles que si elles sont divisibles par 400. L'an 2000 fut ainsi la première année séculaire bissextile depuis 1600.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ann%C3%A9e_bissextile",
+    "https://fr.wikipedia.org/wiki/Calendrier_gr%C3%A9gorien"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "general-027",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le franc suisse est la monnaie officielle du Liechtenstein.",
+   "anecdote": "Le Liechtenstein utilise le franc suisse depuis 1924 et forme une union douanière avec la Suisse depuis 1923, tout en restant une principauté souveraine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Franc_suisse",
+    "https://fr.wikipedia.org/wiki/Liechtenstein"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "general-028",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le kilogramme est encore défini aujourd'hui par un cylindre en platine iridié conservé près de Paris.",
+   "anecdote": "Depuis le 20 mai 2019, le kilogramme est défini à partir de la constante de Planck. Le prototype international, surnommé « le grand K », s'était écarté d'environ 50 microgrammes de ses copies officielles en un siècle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kilogramme",
+    "https://fr.wikipedia.org/wiki/Syst%C3%A8me_international_d%27unit%C3%A9s"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "general-029",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année les pièces et billets en euro sont-ils entrés en circulation ?",
+   "anecdote": "L'euro existait déjà comme monnaie scripturale depuis le 1er janvier 1999 : pendant trois ans, il n'a servi qu'aux paiements électroniques et aux marchés financiers.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Euro",
+    "https://fr.wikipedia.org/wiki/Pi%C3%A8ces_de_monnaie_en_euro"
+   ],
+   "reponse_numerique": 2002
+  },
+  {
+   "id": "langue-030",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Selon l'Académie française, l'expression s'écrit « au temps pour moi » et non « autant pour moi ».",
+   "anecdote": "Chez les militaires, « Au temps ! » ordonnait de reprendre un mouvement d'exercice au temps précédent. Georges Courteline employait déjà ce commandement en 1888 dans « Le Train de 8 h 47 ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Au_temps_pour_moi",
+    "https://fr.wiktionary.org/wiki/au_temps_pour_moi"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "langue-031",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Les rectifications orthographiques de 1990 suppriment l'accent circonflexe sur toutes les voyelles.",
+   "anecdote": "Le circonflexe ne disparaît que sur i et u (« cout », « paraitre »), et encore pas toujours : « dû », « mûr », « sûr » et les terminaisons du passé simple le conservent. Sur a, e et o, il reste intact.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rectifications_orthographiques_du_fran%C3%A7ais_en_1990",
+    "https://fr.wikipedia.org/wiki/Accent_circonflexe"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "langue-032",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le français est la langue officielle de la République du Sénégal.",
+   "anecdote": "Léopold Sédar Senghor, premier président du Sénégal et poète, fut aussi le premier Africain élu à l'Académie française, en 1983.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/S%C3%A9n%C3%A9gal",
+    "https://fr.wikipedia.org/wiki/L%C3%A9opold_S%C3%A9dar_Senghor"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "langue-033",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année l'ordonnance de Villers-Cotterêts impose-t-elle le français dans les actes de justice ?",
+   "anecdote": "Signée par François Ier, elle passe pour le plus ancien texte législatif encore partiellement en vigueur en France. Le château de Villers-Cotterêts abrite depuis 2023 la Cité internationale de la langue française.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ordonnance_de_Villers-Cotter%C3%AAts",
+    "https://fr.wikipedia.org/wiki/Fran%C3%A7ois_Ier_(roi_de_France)"
+   ],
+   "reponse_numerique": 1539
+  },
+  {
+   "id": "langue-034",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "equipe",
+   "texte": "Citez un nom commun français masculin au singulier mais féminin au pluriel.",
+   "anecdote": "On parle du « grand orgue » de Notre-Dame, mais des « grandes orgues » : amour, délice et orgue sont les trois seuls noms du français qui changent ainsi de genre au pluriel.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/amour",
+    "https://fr.wiktionary.org/wiki/d%C3%A9lice",
+    "https://fr.wiktionary.org/wiki/orgue"
+   ],
+   "reponses_acceptees": [
+    "amour",
+    "amours",
+    "délice",
+    "délices",
+    "orgue",
+    "orgues"
+   ]
+  },
+  {
+   "id": "musique-028",
+   "categorie": "Musique",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Jacques Brel était de nationalité française.",
+   "anecdote": "Jacques Brel était belge, né à Schaerbeek en 1929. Il est enterré à Hiva Oa, aux îles Marquises, à quelques mètres de la tombe du peintre Paul Gauguin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jacques_Brel",
+    "https://fr.wikipedia.org/wiki/Hiva_Oa"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "musique-029",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le saxophone a été inventé par un facteur d'instruments belge.",
+   "anecdote": "Adolphe Sax, né à Dinant en Belgique, a breveté le saxophone à Paris en 1846. Hector Berlioz fut l'un des premiers grands défenseurs de l'instrument.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Saxophone",
+    "https://fr.wikipedia.org/wiki/Adolphe_Sax"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "musique-030",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Mozart a achevé lui-même son célèbre Requiem.",
+   "anecdote": "Mort en décembre 1791, Mozart a laissé le Requiem inachevé ; il fut complété par son élève Franz Xaver Süssmayr. L'œuvre avait été commandée anonymement par le comte Walsegg, qui comptait se l'attribuer.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Requiem_de_Mozart",
+    "https://fr.wikipedia.org/wiki/Franz_Xaver_S%C3%BCssmayr"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "musique-031",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année l'opéra Carmen de Georges Bizet a-t-il été créé à Paris ?",
+   "anecdote": "Créée le 3 mars 1875 à l'Opéra-Comique, Carmen fut d'abord fraîchement accueillie. Bizet mourut trois mois plus tard, sans connaître le triomphe mondial de son œuvre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Carmen_(op%C3%A9ra)",
+    "https://fr.wikipedia.org/wiki/Georges_Bizet"
+   ],
+   "reponse_numerique": 1875
+  },
+  {
+   "id": "musique-032",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez l'un des quatre instruments à cordes frottées de l'orchestre symphonique.",
+   "anecdote": "Contrairement au violon, à l'alto et au violoncelle, accordés en quintes, la contrebasse est accordée en quartes, héritage de la famille des violes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Orchestre_symphonique",
+    "https://fr.wikipedia.org/wiki/Contrebasse",
+    "https://fr.wikipedia.org/wiki/Violoncelle"
+   ],
+   "reponses_acceptees": [
+    "violon",
+    "alto",
+    "violoncelle",
+    "contrebasse"
+   ]
   },
   {
    "id": "script-G1",
