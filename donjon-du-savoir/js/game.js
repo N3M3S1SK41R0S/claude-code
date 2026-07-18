@@ -430,8 +430,16 @@ function questionHeader(q, pion = null) {
   );
 }
 
-/** Anecdote block with its source links — served after EVERY question. */
+/** Anecdote block with its source links — served after EVERY question.
+ *  Home-made questions show a 🏠 tag instead of sources. */
 function anecdoteCardEl(q) {
+  if (q.maison) {
+    return el("div", { class: "anecdote-card" },
+      el("p", { class: "anecdote-title", text: "📜 L'anecdote du Héraut" }),
+      el("p", { class: "anecdote-texte", text: q.anecdote }),
+      el("p", { class: "help-note", text: "🏠 Question maison — non vérifiée par le Donjon, la table est seule juge !" }),
+    );
+  }
   const sources = (q.sources ?? []).slice(0, 3).map((src) => {
     let label = "source";
     try {

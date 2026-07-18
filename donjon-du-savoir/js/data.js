@@ -6,6 +6,7 @@
 // question. Every fallback recycles within the same age subset instead of
 // escalating the difficulty.
 import { getState, isLast, isLeader, markAsked } from "./state.js";
+import { loadCustom } from "./custom.js";
 
 let bank = [];
 
@@ -49,7 +50,13 @@ export async function loadBank() {
   bank = (data.questions ?? []).filter(
     (q) => q && q.id && q.texte && q.anecdote && q.format && q.niveau_age,
   );
+  refreshCustom();
   return bank.length;
+}
+
+/** Mix the device's home-made questions into the bank (tagged 🏠). */
+export function refreshCustom() {
+  bank = bank.filter((q) => !q.maison).concat(loadCustom());
 }
 
 export function bankSize() {

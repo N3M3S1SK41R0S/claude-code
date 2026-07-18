@@ -128,6 +128,12 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
   padding: 0.6rem 0.8rem;
 }
 .rules-power { color: var(--soft); font-size: 0.88rem; line-height: 1.4; }
+
+.custom-item { background: var(--stone); border: 1px solid var(--line); border-radius: 12px; padding: 0.5rem 0.7rem; }
+.custom-item-body { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 0.15rem; }
+#custom-zone { display: flex; flex-direction: column; gap: 0.8rem; max-width: 44rem; margin: 0 auto; width: 100%; }
+#custom-zone select.name-input { appearance: auto; }
+#custom-back { max-width: 44rem; margin: 0 auto; width: 100%; }
 #rules-back { max-width: 44rem; margin: 0 auto; width: 100%; }
 
 /* ---------- setup ---------- */

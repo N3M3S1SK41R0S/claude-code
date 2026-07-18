@@ -1,6 +1,7 @@
 // Screens and wiring: home → setup → game → victory. Pass-and-play, 1-20
 // players (individual) or teams sharing a pion with rotating spokesperson.
-import { loadBank, bankSize } from "./data.js";
+import { loadBank, bankSize, refreshCustom } from "./data.js";
+import { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } from "./custom.js";
 import { BOARDS, boardById, generateBoard } from "./board.js";
 import { resumeGame, startGame } from "./game.js";
 import { CHARACTERS, characterById, clearSave, loadSave, newGame } from "./state.js";
@@ -11,7 +12,7 @@ import { el } from "./ui.js";
 
 const MAX_PLAYERS = 20;
 
-const screens = ["home", "rules", "setup", "game", "victory"];
+const screens = ["home", "rules", "custom", "setup", "game", "victory"];
 function show(name) {
   for (const s of screens) {
     document.getElementById(`screen-${s}`).hidden = s !== name;
@@ -41,6 +42,7 @@ function renderHome() {
   if (!bankOk) newBtn.disabled = true;
   zone.append(newBtn);
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderRules(); show("rules"); } }, "📖 Les règles"));
+  zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderCustom(); show("custom"); } }, "✍️ Vos questions maison"));
   document.getElementById("bank-info").textContent = bankOk
     ? `${bankSize()} questions vérifiées et sourcées · 13 catégories · zéro chronomètre`
     : "⚠️ Impossible de charger les questions (data/questions.json). Rechargez la page une fois en ligne.";
@@ -63,6 +65,126 @@ function renderRules() {
         ),
       ),
     );
+  }
+}
+
+/* ---------- questions maison ---------- */
+
+let customDraft = { format: "qcm", niveau_age: "adulte", categorie: "Notre famille" };
+
+function renderCustom() {
+  const zone = document.getElementById("custom-zone");
+  zone.innerHTML = "";
+  const d = customDraft;
+
+  const texte = el("input", { class: "name-input", placeholder: "La question…", maxlength: "180", "aria-label": "Texte de la question", value: d.texte ?? "" , oninput: (e) => { d.texte = e.target.value; } });
+
+  const catSel = el("select", { class: "name-input", "aria-label": "Catégorie", onchange: (e) => { d.categorie = e.target.value; } },
+    ...CUSTOM_CATEGORIES.map((c) => {
+      const o = el("option", { value: c, text: c });
+      if (c === d.categorie) o.selected = true;
+      return o;
+    }));
+
+  const levelRow = el("div", { class: "mode-switch", role: "radiogroup", "aria-label": "Niveau" },
+    ...["enfant", "ado", "adulte"].map((lvl) =>
+      el("button", {
+        class: "btn btn-toggle" + (d.niveau_age === lvl ? " btn-toggle-on" : ""),
+        type: "button", role: "radio", "aria-checked": String(d.niveau_age === lvl),
+        onclick: () => { d.niveau_age = lvl; renderCustom(); },
+      }, lvl === "enfant" ? "👶 enfant" : lvl === "ado" ? "🧢 ado" : "🎩 adulte")));
+
+  const formatRow = el("div", { class: "mode-switch", role: "radiogroup", "aria-label": "Format" },
+    ...[["qcm", "❓ QCM (4 choix)"], ["vrai_faux", "⚖️ Vrai / Faux"]].map(([f, label]) =>
+      el("button", {
+        class: "btn btn-toggle" + (d.format === f ? " btn-toggle-on" : ""),
+        type: "button", role: "radio", "aria-checked": String(d.format === f),
+        onclick: () => { d.format = f; d.bonneIndex = 0; renderCustom(); },
+      }, label)));
+
+  const choixInputs = [];
+  const choicesZone = el("div", { class: "setup-list" });
+  const n = d.format === "qcm" ? 4 : 2;
+  if (!Array.isArray(d.choix) || d.choix.length !== n) d.choix = d.format === "vrai_faux" ? ["Vrai", "Faux"] : ["", "", "", ""];
+  if (typeof d.bonneIndex !== "number" || d.bonneIndex >= n) d.bonneIndex = 0;
+  for (let i = 0; i < n; i++) {
+    const input = el("input", {
+      class: "name-input", maxlength: "80",
+      placeholder: `Choix ${i + 1}`,
+      "aria-label": `Choix ${i + 1}`,
+      value: d.choix[i] ?? "",
+      oninput: (e) => { d.choix[i] = e.target.value; },
+    });
+    if (d.format === "vrai_faux") input.readOnly = true;
+    choixInputs.push(input);
+    choicesZone.append(
+      el("div", { class: "setup-row" },
+        el("button", {
+          class: "btn btn-toggle" + (d.bonneIndex === i ? " btn-toggle-on" : ""),
+          type: "button",
+          "aria-label": `Marquer le choix ${i + 1} comme bonne réponse`,
+          onclick: () => { d.bonneIndex = i; renderCustom(); },
+        }, d.bonneIndex === i ? "✅" : "⬜"),
+        input,
+      ),
+    );
+  }
+
+  const anecdote = el("input", { class: "name-input", placeholder: "Anecdote après la réponse (facultatif)", maxlength: "220", "aria-label": "Anecdote", value: d.anecdote ?? "", oninput: (e) => { d.anecdote = e.target.value; } });
+  const auteur = el("input", { class: "name-input", placeholder: "Signée par… (facultatif)", maxlength: "24", "aria-label": "Auteur", value: d.auteur ?? "", oninput: (e) => { d.auteur = e.target.value; } });
+  const feedback = el("p", { class: "help-note", text: "" });
+
+  zone.append(
+    el("div", { class: "team-block" },
+      texte,
+      el("div", { class: "setup-row" }, catSel, levelRow),
+      formatRow,
+      choicesZone,
+      anecdote,
+      auteur,
+      el("button", {
+        class: "btn btn-big btn-gold", type: "button",
+        onclick: () => {
+          const entry = addCustom({
+            texte: d.texte ?? "",
+            format: d.format,
+            niveau_age: d.niveau_age,
+            categorie: d.categorie,
+            choix: d.choix,
+            bonne_reponse: d.choix[d.bonneIndex] ?? "",
+            anecdote: d.anecdote,
+            auteur: d.auteur,
+          });
+          if (!entry) {
+            feedback.textContent = "⚠️ Il manque la question, un choix, ou la bonne réponse.";
+            return;
+          }
+          refreshCustom();
+          customDraft = { format: d.format, niveau_age: d.niveau_age, categorie: d.categorie };
+          renderCustom();
+        },
+      }, "＋ Ajouter à la banque"),
+      feedback,
+    ),
+  );
+
+  const list = loadCustom();
+  if (list.length > 0) {
+    zone.append(el("h2", { class: "setup-subtitle", text: `${list.length} question${list.length > 1 ? "s" : ""} maison sur cet appareil` }));
+    for (const q of [...list].reverse()) {
+      zone.append(
+        el("div", { class: "setup-row custom-item" },
+          el("div", { class: "custom-item-body" },
+            el("strong", { text: q.texte }),
+            el("span", { class: "player-meta", text: `🏠 ${q.categorie} · ${q.niveau_age} · ${q.format === "qcm" ? "QCM" : "Vrai/Faux"} · réponse : ${q.bonne_reponse}${q.auteur ? ` · par ${q.auteur}` : ""}` }),
+          ),
+          el("button", {
+            class: "btn btn-x", type: "button", "aria-label": "Supprimer cette question",
+            onclick: () => { removeCustom(q.id); refreshCustom(); renderCustom(); },
+          }, "✕"),
+        ),
+      );
+    }
   }
 }
 
@@ -313,6 +435,11 @@ function wireHeader() {
   refresh();
 
   document.getElementById("rules-back").addEventListener("click", () => {
+    renderHome();
+    show("home");
+  });
+
+  document.getElementById("custom-back").addEventListener("click", () => {
     renderHome();
     show("home");
   });
