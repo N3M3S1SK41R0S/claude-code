@@ -213,7 +213,7 @@
     "ci80": "Likely range (80% CI)",
     "ci95": "Wide range (95% CI)",
     "reliability": "Reliability",
-    "nSources": "{{count}} observation(s) retained",
+    "nSources": "{{count}} distinct source(s)",
     "sourcesTitle": "Sources",
     "recentSalesTitle": "Recent sales",
     "recentSalesIntro": "Comparable sales actually observed, attributed to their source.",
