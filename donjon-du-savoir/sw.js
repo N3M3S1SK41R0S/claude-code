@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v23";
+const VERSION = "donjon-v24";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [

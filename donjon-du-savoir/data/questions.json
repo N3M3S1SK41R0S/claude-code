@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 620,
+ "count": 647,
  "questions": [
   {
    "id": "arts-001",
@@ -11602,6 +11602,546 @@
     "48"
    ],
    "bonne_reponse": "24"
+  },
+  {
+   "id": "gastronomie-043",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Selon la loi, un vin effervescent ne peut être appelé « champagne » que s'il est produit dans une région bien précise. Laquelle ?",
+   "anecdote": "Protégée par une appellation d'origine contrôlée reconnue par le décret du 29 juin 1936, la dénomination « Champagne » impose que le vin soit récolté et élaboré dans une aire délimitée du nord-est de la France (Marne, Aube, Aisne...). Un effervescent produit ailleurs ne peut légalement porter ce nom.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Champagne_(AOC)",
+    "https://www.champagne.fr/en/about-champagne/a-great-blended-wine/champagne-designation"
+   ],
+   "choix": [
+    "La région de Champagne, dans le nord-est de la France",
+    "La région de Bourgogne",
+    "La région du Bordelais",
+    "La vallée de la Loire"
+   ],
+   "bonne_reponse": "La région de Champagne, dans le nord-est de la France"
+  },
+  {
+   "id": "gastronomie-044",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "La véritable « mozzarella di bufala campana » (AOP) est traditionnellement fabriquée à partir du lait de quel animal ?",
+   "anecdote": "Protégée par une AOP depuis 1996, cette mozzarella produite en Campanie (Italie) est élaborée exclusivement avec du lait de bufflonne, ce qui lui donne des arômes plus riches que la mozzarella au lait de vache, appelée « fior di latte ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mozzarella_di_Bufala_Campana",
+    "https://www.saveurs-magazine.fr/conseils/mozzarella-di-bufala-campana/"
+   ],
+   "choix": [
+    "La bufflonne (femelle du buffle d'eau)",
+    "La vache",
+    "La chèvre",
+    "La brebis"
+   ],
+   "bonne_reponse": "La bufflonne (femelle du buffle d'eau)"
+  },
+  {
+   "id": "gastronomie-045",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "La vanille, l'une des épices les plus chères au monde, est le fruit d'une plante appartenant à quelle famille botanique ?",
+   "anecdote": "La vanille provient du fruit d'une orchidée grimpante, principalement l'espèce Vanilla planifolia. Hors de son aire d'origine mésoaméricaine, chaque fleur doit être pollinisée à la main, ce qui explique en partie son prix élevé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vanille",
+    "https://www.gerbeaud.com/jardin/fiches/vanille-orchidee,1269.html"
+   ],
+   "choix": [
+    "Les orchidées (Orchidaceae)",
+    "Les solanacées",
+    "Les légumineuses",
+    "Les liliacées"
+   ],
+   "bonne_reponse": "Les orchidées (Orchidaceae)"
+  },
+  {
+   "id": "gastronomie-046",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Le roquefort doit ses veines bleu-vert et sa saveur caractéristique à un champignon microscopique. Lequel ?",
+   "anecdote": "Fabriqué au lait cru de brebis et affiné dans les caves naturelles du plateau du Combalou, à Roquefort-sur-Soulzon (Aveyron), le roquefort tire son persillage du Penicillium roqueforti, traditionnellement cultivé sur du pain de seigle placé dans les caves.",
+   "sources": [
+    "https://agriculture.gouv.fr/le-roquefort-aop-le-fromage-emblematique-de-laveyron",
+    "https://www.leguidedufromage.com/roquefort-io319.html"
+   ],
+   "choix": [
+    "Penicillium roqueforti",
+    "Aspergillus niger",
+    "Saccharomyces cerevisiae",
+    "Botrytis cinerea"
+   ],
+   "bonne_reponse": "Penicillium roqueforti"
+  },
+  {
+   "id": "gastronomie-047",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Le célèbre Guide Michelin, référence de la gastronomie, a été lancé en 1900 par une entreprise dont le métier d'origine était la fabrication de... quoi ?",
+   "anecdote": "Publié pour l'Exposition universelle de 1900 et d'abord offert gratuitement aux automobilistes, le Guide Michelin fut créé par les frères André et Édouard Michelin, fabricants de pneus, afin d'encourager les voyages en voiture, et donc l'usure des pneumatiques.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guide_Michelin",
+    "https://www.parisbalade.fr/histoire-de-michelin-pneus-guides"
+   ],
+   "choix": [
+    "Pneumatiques",
+    "Automobiles",
+    "Ustensiles de cuisine",
+    "Vaisselle de porcelaine"
+   ],
+   "bonne_reponse": "Pneumatiques"
+  },
+  {
+   "id": "gastronomie-048",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Le brunissement d'une viande grillée ou d'une croûte de pain, source de nombreux arômes, porte le nom du chimiste français qui l'a décrit en 1912. De quelle réaction s'agit-il ?",
+   "anecdote": "Décrite en 1912 par le chimiste et médecin français Louis-Camille Maillard, cette réaction se produit à haute température entre les acides aminés et les sucres réducteurs, créant couleurs brunes et composés aromatiques. Elle est distincte de la caramélisation, qui ne concerne que les sucres.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/R%C3%A9action_de_Maillard",
+    "https://en.wikipedia.org/wiki/Maillard_reaction"
+   ],
+   "choix": [
+    "La réaction de Maillard",
+    "La réaction de Fenton",
+    "La fermentation de Pasteur",
+    "La caramélisation de Chevreul"
+   ],
+   "bonne_reponse": "La réaction de Maillard"
+  },
+  {
+   "id": "gastronomie-049",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Avant de devenir la sauce tomate sucrée que l'on connaît, le « ketchup » désignait à l'origine, en Asie, une sauce fermentée à base de quoi ?",
+   "anecdote": "Le mot vient du hokkien (Chine, région du Fujian) « kê-tsiap », une saumure de poisson fermenté, passée ensuite par le malais « kecap ». Rapportée en Europe au XVIIe siècle, la recette n'a reçu de la tomate qu'au début du XIXe siècle (première recette publiée vers 1812).",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ketchup",
+    "https://www.smithsonianmag.com/smart-news/ketchup-fishy-origins-180963511/"
+   ],
+   "choix": [
+    "De poisson",
+    "De prune",
+    "De piment",
+    "De cacahuète"
+   ],
+   "bonne_reponse": "De poisson"
+  },
+  {
+   "id": "langue-043",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Le mot « poubelle » vient du nom d'un homme. Qui était-il ?",
+   "anecdote": "En 1884, le préfet de la Seine Eugène Poubelle obligea les propriétaires parisiens à fournir des récipients couverts pour les ordures ménagères ; la presse baptisa ces boîtes de son nom, et le mot est resté.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Poubelle",
+    "https://www.projet-voltaire.fr/ressources/mot-poubelle-de-eugene-poubelle/"
+   ],
+   "choix": [
+    "Un chimiste ayant inventé le plastique des sacs à ordures",
+    "Un célèbre chiffonnier parisien du XIXe siècle",
+    "Eugène Poubelle, préfet de la Seine, qui imposa les boîtes à ordures en 1884",
+    "Un ministre de la Santé de la IIIe République"
+   ],
+   "bonne_reponse": "Eugène Poubelle, préfet de la Seine, qui imposa les boîtes à ordures en 1884"
+  },
+  {
+   "id": "langue-044",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans des mots comme « forêt », « hôpital » ou « fête », l'accent circonflexe rappelle le plus souvent la disparition de quelle lettre ?",
+   "anecdote": "Le circonflexe marque souvent un ancien « s » qui ne se prononçait plus : on le retrouve intact dans les mots de la même famille, comme forêt/forestier, hôpital/hospitalier ou fête/festin.",
+   "sources": [
+    "https://www.academie-francaise.fr/lecole-mais-la-foret-e-ou-e-pour-noter-un-ancien-s",
+    "https://www.francaisavecpierre.com/laccent-circonflexe-en-francais/"
+   ],
+   "choix": [
+    "un e",
+    "un s",
+    "un h",
+    "un t"
+   ],
+   "bonne_reponse": "un s"
+  },
+  {
+   "id": "langue-045",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "L'expression « revenons à nos moutons » (reprenons le sujet principal) provient à l'origine :",
+   "anecdote": "Dans cette farce anonyme du XVe siècle, un juge embrouillé par deux affaires mêlées (du drap volé et des moutons tués) répète « revenons à nos moutons » pour recentrer les débats.",
+   "sources": [
+    "https://www.larousse.fr/encyclopedie/oeuvre/La_Farce_de_Ma%C3%AEtre_Pathelin/181521",
+    "https://fr.wiktionary.org/wiki/revenons_%C3%A0_nos_moutons"
+   ],
+   "choix": [
+    "d'une fable de Jean de La Fontaine",
+    "d'une comédie de Molière",
+    "d'un passage de la Bible",
+    "d'une farce du Moyen Âge, La Farce de Maître Pathelin"
+   ],
+   "bonne_reponse": "d'une farce du Moyen Âge, La Farce de Maître Pathelin"
+  },
+  {
+   "id": "langue-046",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien de lettres compte « anticonstitutionnellement », souvent cité comme l'un des plus longs mots du français courant ?",
+   "anecdote": "Avec ses 25 lettres, il signifie « d'une manière contraire à la constitution ». Des mots techniques plus longs existent (comme « intergouvernementalisations », 27 lettres), mais il reste le champion populaire.",
+   "sources": [
+    "https://en.wiktionary.org/wiki/anticonstitutionnellement",
+    "https://www.intercountry.com/blog/mots-les-plus-longs-de-la-langue-francaise"
+   ],
+   "choix": [
+    "19",
+    "22",
+    "25",
+    "30"
+   ],
+   "bonne_reponse": "25"
+  },
+  {
+   "id": "langue-047",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Le mot « salaire » est étymologiquement lié à quel élément ?",
+   "anecdote": "« Salaire » vient du latin salarium, lié à sal (le sel) : à l'origine la ration ou la somme allouée aux soldats romains en rapport avec le sel, denrée alors précieuse ; le mot a ensuite désigné toute rémunération du travail.",
+   "sources": [
+    "https://www.academie-francaise.fr/le-sel-le-salaire-et-le-vestiaire",
+    "https://www.herodote.net/salaire_solde-mot-326.php"
+   ],
+   "choix": [
+    "le sel",
+    "l'or",
+    "le blé",
+    "la solde d'un général"
+   ],
+   "bonne_reponse": "le sel"
+  },
+  {
+   "id": "langue-048",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel trio de mots est traditionnellement masculin au singulier mais devient féminin au pluriel ?",
+   "anecdote": "« Un amour fou » mais « de folles amours » : amour, délice et orgue sont masculins au singulier et passent volontiers au féminin au pluriel, une curiosité confirmée par l'Académie française et les grammairiens.",
+   "sources": [
+    "https://www.dictionnaire-academie.fr/article/QDL009",
+    "https://www.projet-voltaire.fr/ressources/regle-accord-amours-delices-orgues-noms-masculin-singulier-feminin-pluriel/"
+   ],
+   "choix": [
+    "espace, foudre, mémoire",
+    "amour, délice et orgue",
+    "gens, œuvre, période",
+    "automne, effluve, pétale"
+   ],
+   "bonne_reponse": "amour, délice et orgue"
+  },
+  {
+   "id": "langue-049",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Laquelle de ces phrases est un « pangramme », c'est-à-dire contient toutes les lettres de l'alphabet ?",
+   "anecdote": "Popularisée dès 1924 (manuel d'Albert Navarre) comme exercice de dactylographie, cette phrase emploie les 26 lettres de l'alphabet et sert encore aujourd'hui à tester polices de caractères et claviers.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Lumi%C3%A8re_sur/Portez_ce_vieux_whisky_au_juge_blond_qui_fume",
+    "https://en.wikipedia.org/wiki/Portez_ce_vieux_whisky_au_juge_blond_qui_fume"
+   ],
+   "choix": [
+    "Un petit chat noir dort près de la cheminée",
+    "Le renard rusé traverse la forêt endormie",
+    "La cigale ayant chanté tout l'été se retrouva fort dépourvue",
+    "Portez ce vieux whisky au juge blond qui fume"
+   ],
+   "bonne_reponse": "Portez ce vieux whisky au juge blond qui fume"
+  },
+  {
+   "id": "musique-047",
+   "categorie": "Musique",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien de cordes possède un violon classique moderne ?",
+   "anecdote": "Les quatre cordes du violon — sol, ré, la et mi — sont accordées par intervalles de quinte juste, un accordage resté inchangé depuis des siècles.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Violon",
+    "https://www.violon.com/notes-violon/"
+   ],
+   "choix": [
+    "Six",
+    "Huit",
+    "Trois",
+    "Quatre"
+   ],
+   "bonne_reponse": "Quatre"
+  },
+  {
+   "id": "musique-048",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel compositeur baroque est l'auteur des célèbres concertos pour violon « Les Quatre Saisons » ?",
+   "anecdote": "Publiés en 1725 à Amsterdam au sein de l'opus 8 « Il cimento dell'armonia e dell'inventione », ces quatre concertos pour violon sont accompagnés chacun d'un sonnet décrivant la saison correspondante.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Quatre_Saisons",
+    "https://philharmoniedeparis.fr/fr/magazine/series/les-cles-du-classique/les-cles-du-classique-51-les-quatre-saisons-de-vivaldi"
+   ],
+   "choix": [
+    "Jean-Sébastien Bach",
+    "Georg Friedrich Haendel",
+    "Antonio Vivaldi",
+    "Arcangelo Corelli"
+   ],
+   "bonne_reponse": "Antonio Vivaldi"
+  },
+  {
+   "id": "musique-049",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En musique, l'indication de tempo italienne « allegro » désigne un mouvement… ?",
+   "anecdote": "Littéralement « allègre » ou « gai » en italien, allegro indique un tempo rapide, situé entre l'andante (modéré) et le presto (très rapide).",
+   "sources": [
+    "https://www.musicca.com/fr/termes-musicaux",
+    "https://www.apprendrelesolfege.com/le-tempo"
+   ],
+   "choix": [
+    "Très lent et solennel",
+    "Vif et rapide",
+    "Progressivement ralenti",
+    "Joué en sourdine"
+   ],
+   "bonne_reponse": "Vif et rapide"
+  },
+  {
+   "id": "musique-050",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "À quelle famille d'instruments le saxophone appartient-il, malgré sa fabrication en métal ?",
+   "anecdote": "Inventé par le Belge Adolphe Sax et breveté le 21 mars 1846, le saxophone est classé parmi les bois car son son naît de la vibration d'une anche simple, comme la clarinette.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Saxophone",
+    "https://shs.cairn.info/ma-dose-quotidienne-d-histoire-des-arts--9782200635237-page-118?lang=fr"
+   ],
+   "choix": [
+    "Les cuivres",
+    "Les percussions",
+    "Les bois",
+    "Les cordes"
+   ],
+   "bonne_reponse": "Les bois"
+  },
+  {
+   "id": "musique-051",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Combien de symphonies numérotées Ludwig van Beethoven a-t-il achevées au cours de sa vie ?",
+   "anecdote": "Sa Neuvième et dernière symphonie (1824), composée alors qu'il était devenu sourd, fut la première à intégrer un chœur chantant l'« Ode à la joie » de Schiller.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Symphony_No._9_(Beethoven)",
+    "https://www.bso.org/works/beethoven-the-nine-symphonies"
+   ],
+   "choix": [
+    "Neuf",
+    "Quatre",
+    "Quarante et une",
+    "Sept"
+   ],
+   "bonne_reponse": "Neuf"
+  },
+  {
+   "id": "musique-052",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Combien de cordes compte une harpe de concert (harpe à pédales) moderne ?",
+   "anecdote": "La harpe de concert possède aussi 7 pédales, une par note de la gamme, permettant à chaque corde de produire trois hauteurs (bémol, bécarre, dièse).",
+   "sources": [
+    "https://www.universalis.fr/encyclopedie/harpe/",
+    "https://www.ecoledemusique-bienne.ch/instrument/harpe/"
+   ],
+   "choix": [
+    "36 cordes",
+    "47 cordes",
+    "60 cordes",
+    "24 cordes"
+   ],
+   "bonne_reponse": "47 cordes"
+  },
+  {
+   "id": "musique-053",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "De quel texte le moine Guido d'Arezzo a-t-il tiré, au XIe siècle, les syllabes ut-ré-mi-fa-sol-la servant à nommer les notes ?",
+   "anecdote": "Les syllabes proviennent du début de chaque hémistiche de l'hymne « Ut queant laxis » dédiée à saint Jean-Baptiste ; « ut » fut plus tard remplacé par « do » et le « si » ajouté au XVIe siècle.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ut_queant_laxis",
+    "https://www.britannica.com/topic/Ut-queant-laxis"
+   ],
+   "choix": [
+    "Un hymne à saint Jean-Baptiste",
+    "Un psaume de David",
+    "Un chant de Noël médiéval",
+    "Une prière à sainte Cécile"
+   ],
+   "bonne_reponse": "Un hymne à saint Jean-Baptiste"
+  },
+  {
+   "id": "general-041",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel gaz est de loin le plus abondant dans l'air que nous respirons ?",
+   "anecdote": "L'air sec est composé à environ 78 % de diazote et seulement 21 % de dioxygène ; le dioxyde de carbone n'en représente qu'environ 0,04 %.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Atmosph%C3%A8re_terrestre",
+    "https://en.wikipedia.org/wiki/Atmosphere_of_Earth"
+   ],
+   "choix": [
+    "Le dioxygène",
+    "Le dioxyde de carbone",
+    "Le diazote (azote)",
+    "L'argon"
+   ],
+   "bonne_reponse": "Le diazote (azote)"
+  },
+  {
+   "id": "general-042",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle est la planète la plus chaude du système solaire ?",
+   "anecdote": "Bien que Mercure soit plus proche du Soleil, c'est Vénus qui détient le record avec environ 462 °C en surface, à cause d'un effet de serre extrême dû à son atmosphère composée à plus de 96 % de CO2.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/V%C3%A9nus_(plan%C3%A8te)",
+    "https://www.meteosuisse.admin.ch/portrait/meteosuisse-blog/fr/2024/05/climatologie-venus.html"
+   ],
+   "choix": [
+    "Mercure",
+    "Vénus",
+    "Mars",
+    "Jupiter"
+   ],
+   "bonne_reponse": "Vénus"
+  },
+  {
+   "id": "general-043",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Dans quel pays se trouve le Salto Ángel, la plus haute chute d'eau ininterrompue du monde ?",
+   "anecdote": "Haute d'environ 979 mètres, cette chute tombe de l'Auyán-tepui dans le parc national de Canaima ; elle doit son nom à l'aviateur Jimmy Angel qui la survola pour la première fois en 1933.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Angel_Falls",
+    "https://www.britannica.com/place/Angel-Falls"
+   ],
+   "choix": [
+    "Le Brésil",
+    "Le Venezuela",
+    "La Colombie",
+    "Le Pérou"
+   ],
+   "bonne_reponse": "Le Venezuela"
+  },
+  {
+   "id": "general-044",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel est le plus grand désert du monde par sa superficie ?",
+   "anecdote": "Un désert se définit par son aridité et non par sa chaleur : avec des précipitations minimes sur près de 14 millions de km², l'Antarctique est le plus vaste désert de la planète, loin devant le Sahara.",
+   "sources": [
+    "https://www.futura-sciences.com/planete/questions-reponses/desert-plus-grand-desert-monde-6898/",
+    "https://atlasocio.com/classements/geographie/deserts/classement-deserts-par-superficie.php"
+   ],
+   "choix": [
+    "Le Sahara",
+    "Le désert de Gobi",
+    "L'Antarctique",
+    "Le désert d'Arabie"
+   ],
+   "bonne_reponse": "L'Antarctique"
+  },
+  {
+   "id": "general-045",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Selon l'UNESCO et le Guinness des records, dans quelle ville se trouve la plus ancienne université au monde encore en activité ?",
+   "anecdote": "L'université Al Quaraouiyine, fondée vers 859 par Fatima el-Fihriya, précède de plus de deux siècles l'université de Bologne (1088), souvent citée comme la plus ancienne d'Europe.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/University_of_al-Qarawiyyin",
+    "https://www.foxnews.com/world/oldest-university-world"
+   ],
+   "choix": [
+    "Bologne (Italie)",
+    "Le Caire (Égypte)",
+    "Fès (Maroc)",
+    "Oxford (Royaume-Uni)"
+   ],
+   "bonne_reponse": "Fès (Maroc)"
+  },
+  {
+   "id": "general-046",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel pays couvre le plus grand nombre de fuseaux horaires au monde ?",
+   "anecdote": "Grâce à ses territoires d'outre-mer répartis sur tous les océans, la France s'étend sur 12 fuseaux horaires (de UTC−10 en Polynésie à UTC+12 à Wallis-et-Futuna), devançant la Russie et les États-Unis qui en comptent 11 chacun.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Heure_en_France",
+    "https://wikiland.org/fr/List_of_time_zones_by_country"
+   ],
+   "choix": [
+    "La Russie",
+    "Les États-Unis",
+    "La France",
+    "Le Royaume-Uni"
+   ],
+   "bonne_reponse": "La France"
   },
   {
    "id": "script-S7",
