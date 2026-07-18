@@ -69,16 +69,20 @@ export interface SourceAdapterOptions {
 }
 
 const DAY_MS = 86_400_000;
+/** Tolérance aux fuseaux et petites dérives d’horloge des fournisseurs. */
+const MAX_FUTURE_SKEW_MS = DAY_MS;
 
 /**
- * Convertit une date ISO en ancienneté en jours entiers (≥ 0) via l'horloge
- * injectée. Retourne null si la date est absente ou illisible.
+ * Convertit une date ISO en ancienneté en jours entiers via l'horloge injectée.
+ * Retourne null si la date est absente, illisible ou à plus de 24 h dans le futur.
  */
 export function ageDaysFromIso(iso: unknown, now: () => Date): number | null {
   if (typeof iso !== 'string' || iso.trim() === '') return null;
   const timestamp = Date.parse(iso);
   if (Number.isNaN(timestamp)) return null;
-  return Math.max(0, Math.floor((now().getTime() - timestamp) / DAY_MS));
+  const diffMs = now().getTime() - timestamp;
+  if (diffMs < -MAX_FUTURE_SKEW_MS) return null;
+  return Math.max(0, Math.floor(diffMs / DAY_MS));
 }
 
 /** Prix exploitable : nombre fini strictement positif (accepte "12.50" en chaîne). */
