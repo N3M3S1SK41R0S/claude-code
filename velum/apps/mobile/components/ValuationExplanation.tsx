@@ -10,7 +10,7 @@ import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { VText, velumColors, velumRadius, velumSpacing } from '@velum/ui';
 import type { ValuationRecord } from '@velum/core';
-import { explainFromResult } from '@velum/valuation';
+import { countDistinctSources, explainFromResult } from '@velum/valuation';
 
 export interface ValuationExplanationProps {
   valuation: ValuationRecord;
@@ -27,7 +27,7 @@ export function ValuationExplanation({ valuation, label }: ValuationExplanationP
     ci95: [valuation.ci95Low, valuation.ci95High],
     reliability: valuation.reliability,
     observations: valuation.sources,
-    nSources: valuation.sources.length,
+    nSources: countDistinctSources(valuation.sources),
   });
 
   return (
