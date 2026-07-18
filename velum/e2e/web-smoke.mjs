@@ -18,6 +18,7 @@ import { extname, join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 
 const DIST = resolve(process.argv[2] ?? 'apps/mobile/dist');
+const VERCEL_CONFIG = resolve('vercel.json');
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript',
@@ -35,6 +36,39 @@ function fail(message) {
   console.error(`✗ ${message}`);
   process.exit(1);
 }
+
+async function verifyVercelDynamicRoutes() {
+  if (!existsSync(VERCEL_CONFIG)) {
+    fail(`Configuration Vercel introuvable : ${VERCEL_CONFIG}`);
+  }
+
+  let config;
+  try {
+    config = JSON.parse(await readFile(VERCEL_CONFIG, 'utf8'));
+  } catch (error) {
+    fail(`Configuration Vercel invalide : ${error instanceof Error ? error.message : String(error)}`);
+  }
+
+  const rewrites = new Map(
+    (Array.isArray(config?.rewrites) ? config.rewrites : [])
+      .filter((entry) => entry && typeof entry.source === 'string' && typeof entry.destination === 'string')
+      .map((entry) => [entry.source, entry.destination]),
+  );
+  const required = new Map([
+    ['/item/:id', '/item/[id]'],
+    ['/capture/:domain', '/capture/[domain]'],
+    ['/arbiter/:id', '/arbiter/[id]'],
+  ]);
+
+  for (const [source, destination] of required) {
+    if (rewrites.get(source) !== destination) {
+      fail(`Réécriture Vercel absente ou invalide : ${source} → ${destination}`);
+    }
+  }
+  console.log('✓ Les routes dynamiques Vercel couvrent capture, fiche et arbitre');
+}
+
+await verifyVercelDynamicRoutes();
 
 if (!existsSync(join(DIST, 'index.html'))) {
   fail(`Bundle web introuvable : ${DIST} — lancer d'abord pnpm --filter velum-mobile build:web`);
