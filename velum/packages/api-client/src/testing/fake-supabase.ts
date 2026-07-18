@@ -3,7 +3,7 @@
  * Couvre le sous-ensemble utilisé par @velum/api-client :
  *   from().select().eq().order().limit().single()/.maybeSingle(),
  *   insert/update/upsert/delete (+ .select().single() chaîné),
- *   functions.invoke, auth.getSession/signOut.
+ *   storage.from().remove(), functions.invoke, auth.getSession/signOut.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -22,8 +22,14 @@ interface FakeInvokeResponse {
 export class FakeSupabase {
   /** Données en mémoire, par table, en snake_case comme PostgREST. */
   tables: Record<string, Row[]> = {};
-  /** true → toutes les opérations PostgREST échouent (panne réseau simulée). */
+  /** true → toutes les opérations PostgREST/Storage échouent (panne réseau simulée). */
   offline = false;
+  /** Objets Storage présents, par bucket. */
+  storageObjects: Record<string, Set<string>> = {};
+  /** Journal des suppressions Storage demandées. */
+  storageRemovals: { bucket: string; paths: string[] }[] = [];
+  /** Erreur Storage ciblée, indépendante de PostgREST. */
+  storageError: { message: string } | null = null;
   /** Journal des invocations d'Edge Functions. */
   invocations: { fn: string; body: unknown }[] = [];
   /** Réponses simulées par nom de fonction Edge. */
@@ -39,6 +45,29 @@ export class FakeSupabase {
   from(table: string): FakeQueryBuilder {
     return new FakeQueryBuilder(this, table);
   }
+
+  storage = {
+    from: (bucket: string) => ({
+      remove: async (
+        paths: string[],
+      ): Promise<{ data: { name: string }[] | null; error: { message: string } | null }> => {
+        const requested = [...paths];
+        this.storageRemovals.push({ bucket, paths: requested });
+        if (this.offline) {
+          return { data: null, error: { message: 'réseau indisponible (simulé)' } };
+        }
+        if (this.storageError !== null) return { data: null, error: this.storageError };
+
+        const objects = this.storageObjects[bucket] ?? new Set<string>();
+        this.storageObjects[bucket] = objects;
+        const removed: { name: string }[] = [];
+        for (const path of requested) {
+          if (objects.delete(path)) removed.push({ name: path });
+        }
+        return { data: removed, error: null };
+      },
+    }),
+  };
 
   functions = {
     invoke: async (
