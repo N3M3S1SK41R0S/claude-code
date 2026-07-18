@@ -22,9 +22,11 @@ import {
 
 import { Screen } from '../../../components/Screen';
 import { useSession } from '../../../lib/auth';
+import { loadCarnetData } from '../../../lib/carnetData';
 import { getVelumClient } from '../../../lib/client';
 import { errorMessage } from '../../../lib/errors';
 import { buildCollectionCsv, buildInsuranceReportHtml } from '../../../lib/exporters';
+import { insuranceReportEntries } from '../../../lib/insuranceReportData';
 import type { SupportedLocale } from '../../../lib/i18n';
 import { useSettingsStore } from '../../../stores/settingsStore';
 import { showToast } from '../../../stores/toastStore';
@@ -72,13 +74,11 @@ export default function Profile() {
 
   const exportInsuranceReport = async () => {
     try {
-      const items = await client.items.list();
-      const entries = await Promise.all(
-        items.map(async (item) => ({
-          item,
-          valuation: await client.valuations.latest(item.id).catch(() => null),
-        })),
-      );
+      const data = await loadCarnetData({
+        listItems: () => client.items.list(),
+        latestValuation: (itemId) => client.valuations.latest(itemId),
+      });
+      const entries = insuranceReportEntries(data);
       const html = buildInsuranceReportHtml(
         entries,
         (key, options) => t(key, options ?? {}) as string,
