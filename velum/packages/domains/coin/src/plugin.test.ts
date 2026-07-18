@@ -162,7 +162,7 @@ describe('coinPlugin.recognize — fichier', () => {
   });
 });
 
-// ── Analyse ────────────────────────────────────────────────────────────
+// ── Analyse ───────────────────────────────────────────────────────────────
 
 const ANALYSIS_FENCED = [
   'Voici la fiche :',
@@ -234,7 +234,7 @@ describe('coinPlugin.analyze', () => {
   });
 });
 
-// ── buildPriceQuery ─────────────────────────────────────────────────────
+// ── buildPriceQuery ───────────────────────────────────────────────────────
 
 describe('coinPlugin.buildPriceQuery', () => {
   it('compose le libellé canonique et normalise le grade en condition', () => {
@@ -260,7 +260,7 @@ describe('coinPlugin.buildPriceQuery', () => {
   });
 });
 
-// ── Valorisation bout-en-bout avec le moteur RÉEL ───────────────────────
+// ── Valorisation bout-en-bout avec le moteur RÉEL ─────────────────────────
 
 function obs(
   price: number,
