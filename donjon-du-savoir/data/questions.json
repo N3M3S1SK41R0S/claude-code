@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 494,
+ "count": 620,
  "questions": [
   {
    "id": "arts-001",
@@ -8250,6 +8250,2362 @@
     "violoncelle",
     "contrebasse"
    ]
+  },
+  {
+   "id": "musique-033",
+   "categorie": "Musique",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel compositeur est l'auteur de l'opéra « La Flûte enchantée » ?",
+   "anecdote": "Créée à Vienne le 30 septembre 1791, « La Flûte enchantée » a été présentée au public à peine plus de deux mois avant la mort de Mozart, survenue le 5 décembre de la même année.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Flûte_enchantée",
+    "https://fr.wikipedia.org/wiki/Wolfgang_Amadeus_Mozart"
+   ],
+   "choix": [
+    "Wolfgang Amadeus Mozart",
+    "Ludwig van Beethoven",
+    "Joseph Haydn",
+    "Franz Schubert"
+   ],
+   "bonne_reponse": "Wolfgang Amadeus Mozart"
+  },
+  {
+   "id": "musique-034",
+   "categorie": "Musique",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le saxophone a été inventé par le facteur d'instruments belge Adolphe Sax.",
+   "anecdote": "Adolphe Sax a fait breveter le saxophone à Paris en 1846. Il a également donné son nom à une autre famille d'instruments qu'il a créée : les saxhorns.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Saxophone",
+    "https://fr.wikipedia.org/wiki/Adolphe_Sax"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "arts-039",
+   "categorie": "Arts",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qui a peint « La Joconde », conservée au musée du Louvre ?",
+   "anecdote": "Le tableau fut volé au Louvre en 1911 par l'Italien Vincenzo Peruggia, qui le cacha deux ans avant d'être arrêté à Florence.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Joconde",
+    "https://fr.wikipedia.org/wiki/L%C3%A9onard_de_Vinci"
+   ],
+   "choix": [
+    "Léonard de Vinci",
+    "Michel-Ange",
+    "Raphaël",
+    "Sandro Botticelli"
+   ],
+   "bonne_reponse": "Léonard de Vinci"
+  },
+  {
+   "id": "arts-040",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le tableau « Impression, soleil levant », qui a donné son nom à l'impressionnisme, est de Claude Monet.",
+   "anecdote": "Peinte en 1872 au port du Havre, l'œuvre inspira au critique Louis Leroy le terme moqueur d'« impressionnistes » en 1874.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Impression,_soleil_levant",
+    "https://fr.wikipedia.org/wiki/Claude_Monet"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "arts-041",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel sculpteur est l'auteur du « Penseur » ?",
+   "anecdote": "« Le Penseur » était initialement conçu comme un élément de la monumentale « Porte de l'Enfer », commande restée inachevée du vivant de Rodin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Penseur",
+    "https://fr.wikipedia.org/wiki/Auguste_Rodin"
+   ],
+   "choix": [
+    "Auguste Rodin",
+    "Camille Claudel",
+    "Antoine Bourdelle",
+    "Aristide Maillol"
+   ],
+   "bonne_reponse": "Auguste Rodin"
+  },
+  {
+   "id": "arts-042",
+   "categorie": "Arts",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel architecte a conçu la Sagrada Família, à Barcelone ?",
+   "anecdote": "Gaudí mourut renversé par un tramway en 1926 ; la basilique, commencée en 1882, était encore inachevée près d'un siècle et demi plus tard.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sagrada_Fam%C3%ADlia",
+    "https://fr.wikipedia.org/wiki/Antoni_Gaud%C3%AD"
+   ],
+   "choix": [
+    "Antoni Gaudí",
+    "Lluís Domènech i Montaner",
+    "Josep Puig i Cadafalch",
+    "Ricardo Bofill"
+   ],
+   "bonne_reponse": "Antoni Gaudí"
+  },
+  {
+   "id": "arts-043",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année la pyramide du Louvre, conçue par Ieoh Ming Pei, a-t-elle été inaugurée ?",
+   "anecdote": "La structure de verre et d'acier culmine à plus de 21 mètres et sert d'entrée principale au musée depuis son ouverture.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pyramide_du_Louvre",
+    "https://fr.wikipedia.org/wiki/Ieoh_Ming_Pei"
+   ],
+   "reponse_numerique": 1989
+  },
+  {
+   "id": "arts-044",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Nommez les deux peintres considérés comme les fondateurs du cubisme.",
+   "anecdote": "Le terme « cubisme » naît d'une remarque du critique Louis Vauxcelles évoquant des « petits cubes » à propos de paysages de Braque exposés en 1908.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cubisme",
+    "https://fr.wikipedia.org/wiki/Pablo_Picasso"
+   ],
+   "reponses_acceptees": [
+    "Pablo Picasso",
+    "Picasso",
+    "Georges Braque",
+    "Braque"
+   ]
+  },
+  {
+   "id": "arts-045",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année est mort le peintre Vincent van Gogh ?",
+   "anecdote": "Van Gogh ne vendit officiellement qu'une seule toile de son vivant, « La Vigne rouge », aujourd'hui conservée à Moscou.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vincent_van_Gogh",
+    "https://fr.wikipedia.org/wiki/La_Vigne_rouge"
+   ],
+   "reponse_numerique": 1890
+  },
+  {
+   "id": "arts-046",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel peintre espagnol a réalisé « Les Ménines » (Las Meninas) ?",
+   "anecdote": "Peinte vers 1656, la toile est conservée au musée du Prado, à Madrid, et l'artiste s'y est représenté lui-même en train de peindre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_M%C3%A9nines",
+    "https://fr.wikipedia.org/wiki/Diego_V%C3%A9lasquez"
+   ],
+   "choix": [
+    "Diego Vélasquez",
+    "Francisco de Goya",
+    "Bartolomé Esteban Murillo",
+    "Le Greco"
+   ],
+   "bonne_reponse": "Diego Vélasquez"
+  },
+  {
+   "id": "arts-047",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel mouvement artistique le peintre Kazimir Malevitch a-t-il fondé ?",
+   "anecdote": "Son « Carré noir sur fond blanc » (1915) est l'un des manifestes de ce mouvement abstrait réduisant la peinture à des formes géométriques pures.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Supr%C3%A9matisme",
+    "https://fr.wikipedia.org/wiki/Kazimir_Malevitch"
+   ],
+   "choix": [
+    "Le suprématisme",
+    "Le constructivisme",
+    "Le futurisme",
+    "Le rayonnisme"
+   ],
+   "bonne_reponse": "Le suprématisme"
+  },
+  {
+   "id": "arts-048",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel architecte a dessiné la fontaine de Trevi, à Rome ?",
+   "anecdote": "Commencée d'après les plans de Salvi en 1732, la fontaine ne fut achevée qu'en 1762, après la mort de l'architecte, par Giuseppe Pannini.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fontaine_de_Trevi",
+    "https://fr.wikipedia.org/wiki/Nicola_Salvi"
+   ],
+   "choix": [
+    "Nicola Salvi",
+    "Le Bernin",
+    "Francesco Borromini",
+    "Carlo Maderno"
+   ],
+   "bonne_reponse": "Nicola Salvi"
+  },
+  {
+   "id": "cinema-040",
+   "categorie": "Cinéma",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qui a réalisé « Le Fabuleux Destin d'Amélie Poulain » (2001) ?",
+   "anecdote": "Le film, tourné en grande partie à Montmartre, a été nommé cinq fois aux Oscars sans en remporter aucun.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Fabuleux_Destin_d%27Am%C3%A9lie_Poulain",
+    "https://fr.wikipedia.org/wiki/Jean-Pierre_Jeunet"
+   ],
+   "choix": [
+    "Jean-Pierre Jeunet",
+    "Luc Besson",
+    "Cédric Klapisch",
+    "Jacques Audiard"
+   ],
+   "bonne_reponse": "Jean-Pierre Jeunet"
+  },
+  {
+   "id": "cinema-041",
+   "categorie": "Cinéma",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le film « Titanic » de James Cameron est sorti en 1997.",
+   "anecdote": "« Titanic » a égalé le record de onze Oscars détenu par « Ben-Hur », égalé ensuite par « Le Retour du roi ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Titanic_(film,_1997)",
+    "https://fr.wikipedia.org/wiki/James_Cameron"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "cinema-042",
+   "categorie": "Cinéma",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La Palme d'or est la récompense suprême du Festival de Cannes.",
+   "anecdote": "Le nom « Palme d'or » apparaît en 1955 ; auparavant, la plus haute distinction s'appelait le Grand Prix du Festival.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Palme_d%27or",
+    "https://fr.wikipedia.org/wiki/Festival_de_Cannes"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "cinema-043",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Georges Méliès réalise-t-il « Le Voyage dans la Lune » ?",
+   "anecdote": "Ce film pionnier de la science-fiction dure environ un quart d'heure et compte une trentaine de tableaux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Voyage_dans_la_Lune",
+    "https://fr.wikipedia.org/wiki/Georges_M%C3%A9li%C3%A8s"
+   ],
+   "reponse_numerique": 1902
+  },
+  {
+   "id": "cinema-044",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel film français, muet et en noir et blanc, a remporté l'Oscar du meilleur film ?",
+   "anecdote": "Réalisé par Michel Hazanavicius, « The Artist » a valu à Jean Dujardin l'Oscar du meilleur acteur en 2012.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/The_Artist_(film)",
+    "https://fr.wikipedia.org/wiki/Michel_Hazanavicius"
+   ],
+   "choix": [
+    "The Artist",
+    "Intouchables",
+    "De rouille et d'os",
+    "Un prophète"
+   ],
+   "bonne_reponse": "The Artist"
+  },
+  {
+   "id": "cinema-045",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle actrice a remporté l'Oscar de la meilleure actrice pour « La Môme » ?",
+   "anecdote": "En incarnant Édith Piaf, Marion Cotillard devint en 2008 la première interprète oscarisée pour un rôle joué en français.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marion_Cotillard",
+    "https://fr.wikipedia.org/wiki/La_M%C3%B4me"
+   ],
+   "choix": [
+    "Marion Cotillard",
+    "Juliette Binoche",
+    "Isabelle Huppert",
+    "Catherine Deneuve"
+   ],
+   "bonne_reponse": "Marion Cotillard"
+  },
+  {
+   "id": "cinema-046",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez les cinq cinéastes du « groupe des Cahiers du cinéma », noyau de la Nouvelle Vague.",
+   "anecdote": "Tous critiques aux « Cahiers du cinéma » avant de passer à la réalisation, ils défendaient la « politique des auteurs ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Nouvelle_Vague_(cin%C3%A9ma)",
+    "https://fr.wikipedia.org/wiki/Cahiers_du_cin%C3%A9ma"
+   ],
+   "reponses_acceptees": [
+    "François Truffaut",
+    "Truffaut",
+    "Jean-Luc Godard",
+    "Godard",
+    "Claude Chabrol",
+    "Chabrol",
+    "Éric Rohmer",
+    "Rohmer",
+    "Jacques Rivette",
+    "Rivette"
+   ]
+  },
+  {
+   "id": "cinema-047",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel réalisateur a remporté deux Palmes d'or, en 2017 puis en 2022 ?",
+   "anecdote": "Le Suédois Östlund a été primé pour « The Square » puis « Sans filtre », rejoignant le club des doubles lauréats.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ruben_%C3%96stlund",
+    "https://fr.wikipedia.org/wiki/Sans_filtre_(film)"
+   ],
+   "choix": [
+    "Ruben Östlund",
+    "Michael Haneke",
+    "Ken Loach",
+    "Bong Joon-ho"
+   ],
+   "bonne_reponse": "Ruben Östlund"
+  },
+  {
+   "id": "gastronomie-032",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Le cassoulet, plat mijoté à base de haricots blancs, est originaire de quelle région française ?",
+   "anecdote": "Trois villes se disputent sa paternité : Castelnaudary, Carcassonne et Toulouse, surnommées le père, le fils et le Saint-Esprit du cassoulet.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cassoulet",
+    "https://fr.wikipedia.org/wiki/Castelnaudary"
+   ],
+   "choix": [
+    "Le Languedoc",
+    "La Bretagne",
+    "L'Alsace",
+    "La Normandie"
+   ],
+   "bonne_reponse": "Le Languedoc"
+  },
+  {
+   "id": "gastronomie-033",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "La bouillabaisse, soupe de poissons emblématique, est traditionnellement associée à quelle ville ?",
+   "anecdote": "À l'origine, la bouillabaisse était le plat des pêcheurs marseillais, préparé avec les poissons de roche invendus au marché.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bouillabaisse",
+    "https://fr.wikipedia.org/wiki/Cuisine_marseillaise"
+   ],
+   "choix": [
+    "Bordeaux",
+    "Marseille",
+    "Lille",
+    "Strasbourg"
+   ],
+   "bonne_reponse": "Marseille"
+  },
+  {
+   "id": "gastronomie-034",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Le roquefort, célèbre fromage AOP persillé, est fabriqué à partir de quel lait ?",
+   "anecdote": "Le roquefort est affiné dans les caves naturelles de Roquefort-sur-Soulzon, parcourues par des failles nommées fleurines qui régulent l'humidité.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Roquefort_(fromage)",
+    "https://fr.wikipedia.org/wiki/Roquefort-sur-Soulzon"
+   ],
+   "choix": [
+    "Lait de vache",
+    "Lait de chèvre",
+    "Lait de brebis",
+    "Lait de bufflonne"
+   ],
+   "bonne_reponse": "Lait de brebis"
+  },
+  {
+   "id": "gastronomie-035",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le bœuf bourguignon est traditionnellement mijoté dans du vin rouge.",
+   "anecdote": "Ce plat de viande braisée était à l'origine une manière d'attendrir des morceaux de bœuf peu nobles par une longue cuisson au vin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/B%C5%93uf_bourguignon",
+    "https://fr.wikipedia.org/wiki/Cuisine_bourguignonne"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "gastronomie-036",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "La tarte Tatin est une tarte renversée et caramélisée à base de quel fruit ?",
+   "anecdote": "Selon la légende, elle serait née d'une erreur des sœurs Tatin, qui tenaient un hôtel à Lamotte-Beuvron, en Sologne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tarte_Tatin",
+    "https://fr.wikipedia.org/wiki/Lamotte-Beuvron"
+   ],
+   "choix": [
+    "La poire",
+    "La pomme",
+    "La pêche",
+    "La prune"
+   ],
+   "bonne_reponse": "La pomme"
+  },
+  {
+   "id": "gastronomie-037",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Le comté, fromage AOP à pâte pressée cuite, est produit dans quel massif montagneux ?",
+   "anecdote": "Le comté est fabriqué dans des ateliers appelés fruitières, où les producteurs mettent en commun leur lait depuis le Moyen Âge.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Comt%C3%A9_(fromage)",
+    "https://fr.wikipedia.org/wiki/Fruiti%C3%A8re"
+   ],
+   "choix": [
+    "Les Alpes",
+    "Le massif du Jura",
+    "Les Vosges",
+    "Le Massif central"
+   ],
+   "bonne_reponse": "Le massif du Jura"
+  },
+  {
+   "id": "gastronomie-038",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel chef surnommé « le roi des cuisiniers » a collaboré avec l'hôtelier César Ritz ?",
+   "anecdote": "Escoffier et Ritz révolutionnèrent l'hôtellerie de luxe, notamment au Savoy de Londres puis au Ritz de Paris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Auguste_Escoffier",
+    "https://fr.wikipedia.org/wiki/C%C3%A9sar_Ritz"
+   ],
+   "choix": [
+    "Marie-Antoine Carême",
+    "Auguste Escoffier",
+    "Paul Bocuse",
+    "François Vatel"
+   ],
+   "bonne_reponse": "Auguste Escoffier"
+  },
+  {
+   "id": "gastronomie-039",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année est né le cuisinier Auguste Escoffier, à Villeneuve-Loubet ?",
+   "anecdote": "Fils de forgeron, Escoffier codifia la cuisine française dans son célèbre « Guide culinaire », publié en 1903.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Auguste_Escoffier",
+    "https://fr.wikipedia.org/wiki/Villeneuve-Loubet"
+   ],
+   "reponse_numerique": 1846
+  },
+  {
+   "id": "gastronomie-040",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez deux des trois villes traditionnellement associées à l'origine du cassoulet.",
+   "anecdote": "Une formule célèbre les hiérarchise : Castelnaudary le père, Carcassonne le fils et Toulouse le Saint-Esprit.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cassoulet",
+    "https://fr.wikipedia.org/wiki/Castelnaudary"
+   ],
+   "reponses_acceptees": [
+    "Castelnaudary",
+    "Carcassonne",
+    "Toulouse"
+   ]
+  },
+  {
+   "id": "gastronomie-041",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel chef surnommé « le roi des chefs et le chef des rois » fut le maître de la pâtisserie du XIXe siècle ?",
+   "anecdote": "Carême est réputé pour ses spectaculaires pièces montées architecturales et a cuisiné pour Talleyrand et pour des têtes couronnées d'Europe.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marie-Antoine_Car%C3%AAme",
+    "https://fr.wikipedia.org/wiki/Pi%C3%A8ce_mont%C3%A9e"
+   ],
+   "choix": [
+    "Marie-Antoine Carême",
+    "Fernand Point",
+    "Auguste Escoffier",
+    "Prosper Montagné"
+   ],
+   "bonne_reponse": "Marie-Antoine Carême"
+  },
+  {
+   "id": "gastronomie-042",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "vrai_faux",
+   "texte": "François Vatel, maître d'hôtel du prince de Condé, se serait donné la mort à Chantilly en 1671.",
+   "anecdote": "Selon une lettre de Madame de Sévigné, Vatel se serait suicidé de désespoir, croyant que la marée de poisson n'arriverait pas à temps pour un banquet donné en l'honneur de Louis XIV.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fran%C3%A7ois_Vatel",
+    "https://fr.wikipedia.org/wiki/Ch%C3%A2teau_de_Chantilly"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "general-030",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année les pièces et billets en euros sont-ils entrés en circulation ?",
+   "anecdote": "L'euro existait déjà comme monnaie scripturale depuis le 1er janvier 1999, trois ans avant l'arrivée des pièces et billets.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Euro",
+    "https://fr.wikipedia.org/wiki/Zone_euro"
+   ],
+   "choix": [
+    "1999",
+    "2000",
+    "2002",
+    "2004"
+   ],
+   "bonne_reponse": "2002"
+  },
+  {
+   "id": "general-031",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le calendrier grégorien a été instauré en 1582 par le pape Grégoire XIII.",
+   "anecdote": "Pour rattraper le décalage accumulé, on passa directement du jeudi 4 octobre au vendredi 15 octobre 1582.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Calendrier_gr%C3%A9gorien",
+    "https://fr.wikipedia.org/wiki/Gr%C3%A9goire_XIII"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "general-032",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Le « won » est la monnaie officielle de quel pays ?",
+   "anecdote": "Le won, le yen et le yuan partagent une origine étymologique commune, un caractère chinois signifiant « rond ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Won_sud-cor%C3%A9en",
+    "https://fr.wikipedia.org/wiki/Cor%C3%A9e_du_Sud"
+   ],
+   "choix": [
+    "La Thaïlande",
+    "La Corée du Sud",
+    "Le Vietnam",
+    "La Malaisie"
+   ],
+   "bonne_reponse": "La Corée du Sud"
+  },
+  {
+   "id": "general-033",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de langues officielles compte l'Union européenne ?",
+   "anecdote": "L'irlandais n'est devenu langue officielle à part entière qu'en 2007, avec une dérogation levée seulement en 2022.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Langues_officielles_de_l%27Union_europ%C3%A9enne",
+    "https://fr.wikipedia.org/wiki/Union_europ%C3%A9enne"
+   ],
+   "reponse_numerique": 24
+  },
+  {
+   "id": "general-034",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle est l'unité de base du courant électrique dans le Système international ?",
+   "anecdote": "L'ampère et le kelvin sont les deux seules unités de base du Système international à porter le nom d'un scientifique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Amp%C3%A8re",
+    "https://fr.wikipedia.org/wiki/Syst%C3%A8me_international_d%27unit%C3%A9s"
+   ],
+   "choix": [
+    "Le volt",
+    "L'ampère",
+    "Le watt",
+    "L'ohm"
+   ],
+   "bonne_reponse": "L'ampère"
+  },
+  {
+   "id": "general-035",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année l'Organisation des Nations unies a-t-elle été fondée ?",
+   "anecdote": "La Charte fut signée à San Francisco le 26 juin 1945 et entra en vigueur le 24 octobre suivant.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Organisation_des_Nations_unies",
+    "https://fr.wikipedia.org/wiki/Charte_des_Nations_unies"
+   ],
+   "reponse_numerique": 1945
+  },
+  {
+   "id": "general-036",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez les six langues officielles de l'Organisation des Nations unies.",
+   "anecdote": "L'arabe n'a été ajouté comme langue officielle qu'en 1973, bien après les cinq autres.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Langues_officielles_des_Nations_unies",
+    "https://fr.wikipedia.org/wiki/Organisation_des_Nations_unies"
+   ],
+   "reponses_acceptees": [
+    "anglais",
+    "arabe",
+    "chinois",
+    "espagnol",
+    "français",
+    "russe"
+   ]
+  },
+  {
+   "id": "general-037",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle langue compte le plus de locuteurs natifs dans le monde ?",
+   "anecdote": "Le mandarin compte à lui seul près d'un milliard de locuteurs natifs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mandarin_(langue)",
+    "https://fr.wikipedia.org/wiki/Liste_de_langues_par_nombre_total_de_locuteurs"
+   ],
+   "choix": [
+    "L'anglais",
+    "L'espagnol",
+    "Le mandarin",
+    "L'hindi"
+   ],
+   "bonne_reponse": "Le mandarin"
+  },
+  {
+   "id": "general-038",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "En quelle année Jules César a-t-il instauré le calendrier julien ?",
+   "anecdote": "Pour lancer sa réforme, César dut allonger l'année 46 av. J.-C. à 445 jours, surnommée « l'année de la confusion ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Calendrier_julien",
+    "https://fr.wikipedia.org/wiki/Jules_C%C3%A9sar"
+   ],
+   "choix": [
+    "45 av. J.-C.",
+    "45 apr. J.-C.",
+    "100 av. J.-C.",
+    "10 av. J.-C."
+   ],
+   "bonne_reponse": "45 av. J.-C."
+  },
+  {
+   "id": "general-039",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez les trois États membres du Benelux.",
+   "anecdote": "Le nom « Benelux » est formé des premières lettres des trois pays ; leur union douanière fut signée dès 1944.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Benelux",
+    "https://fr.wikipedia.org/wiki/Union_douani%C3%A8re_du_Benelux"
+   ],
+   "reponses_acceptees": [
+    "Belgique",
+    "Pays-Bas",
+    "Luxembourg"
+   ]
+  },
+  {
+   "id": "general-040",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le calendrier hébraïque est un calendrier luni-solaire.",
+   "anecdote": "Pour rester aligné sur les saisons, il ajoute un treizième mois entier sept fois tous les dix-neuf ans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Calendrier_h%C3%A9bra%C3%AFque",
+    "https://fr.wikipedia.org/wiki/Calendrier_luni-solaire"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "geographie-036",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel est le plus haut sommet du monde ?",
+   "anecdote": "Le mont Everest porte le nom de George Everest, géographe britannique qui ne l'a jamais gravi et prononçait son propre nom « Eve-rest ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Everest",
+    "https://fr.wikipedia.org/wiki/Liste_des_plus_hauts_sommets_de_la_Terre"
+   ],
+   "choix": [
+    "K2",
+    "Mont Blanc",
+    "Everest",
+    "Kilimandjaro"
+   ],
+   "bonne_reponse": "Everest"
+  },
+  {
+   "id": "geographie-037",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La Loire est le plus long fleuve de France.",
+   "anecdote": "Avec environ 1 006 km, la Loire devance nettement la Seine (777 km) et le Rhône (dont une partie du cours se trouve en Suisse).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Loire",
+    "https://fr.wikipedia.org/wiki/Liste_des_cours_d%27eau_de_France"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "geographie-038",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est le plus long fleuve d'Europe ?",
+   "anecdote": "Longue d'environ 3 530 km, la Volga coule entièrement en Russie et se jette dans la mer Caspienne, bien en dessous du niveau des océans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Volga",
+    "https://fr.wikipedia.org/wiki/Liste_des_plus_longs_fleuves_d%27Europe"
+   ],
+   "choix": [
+    "Danube",
+    "Rhin",
+    "Volga",
+    "Dniepr"
+   ],
+   "bonne_reponse": "Volga"
+  },
+  {
+   "id": "geographie-039",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle est la capitale du Brésil ?",
+   "anecdote": "Brasília fut construite ex nihilo et inaugurée en 1960 ; son plan en forme d'avion est classé au patrimoine mondial de l'UNESCO.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Brasilia",
+    "https://fr.wikipedia.org/wiki/Br%C3%A9sil"
+   ],
+   "choix": [
+    "Rio de Janeiro",
+    "São Paulo",
+    "Brasília",
+    "Salvador"
+   ],
+   "bonne_reponse": "Brasília"
+  },
+  {
+   "id": "geographie-040",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le Vatican est le plus petit État du monde.",
+   "anecdote": "Avec seulement 0,44 km², la Cité du Vatican tiendrait aisément à l'intérieur du parc new-yorkais de Central Park.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vatican",
+    "https://fr.wikipedia.org/wiki/Liste_des_pays_par_superficie"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "geographie-041",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Quelle est l'altitude officielle du sommet de l'Everest, en mètres ?",
+   "anecdote": "La Chine et le Népal ont annoncé conjointement en 2020 une altitude révisée de 8 848,86 m, mettant fin à des décennies de désaccord.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Everest",
+    "https://fr.wikipedia.org/wiki/Toit_du_monde"
+   ],
+   "reponse_numerique": 8848.86
+  },
+  {
+   "id": "geographie-042",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel plan d'eau borde le point le plus bas des terres émergées ?",
+   "anecdote": "Le rivage de la mer Morte se situe à plus de 400 m sous le niveau des océans, et il s'enfonce d'environ un mètre chaque année.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mer_Morte",
+    "https://fr.wikipedia.org/wiki/Liste_de_points_extr%C3%AAmes_du_monde"
+   ],
+   "choix": [
+    "Mer Caspienne",
+    "Mer Morte",
+    "Lac Assal",
+    "Vallée de la Mort"
+   ],
+   "bonne_reponse": "Mer Morte"
+  },
+  {
+   "id": "geographie-043",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de pays partagent une frontière terrestre avec l'Allemagne ?",
+   "anecdote": "L'Allemagne est, avec la Russie, l'un des pays européens ayant le plus de voisins : Danemark, Pays-Bas, Belgique, Luxembourg, France, Suisse, Autriche, Tchéquie et Pologne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Allemagne",
+    "https://fr.wikipedia.org/wiki/Fronti%C3%A8res_de_l%27Allemagne"
+   ],
+   "reponse_numerique": 9
+  },
+  {
+   "id": "geographie-044",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "equipe",
+   "texte": "Citez les 8 pays frontaliers de la France métropolitaine.",
+   "anecdote": "Deux micro-États, Monaco et Andorre, figurent parmi ces voisins ; on oublie souvent que la France borde aussi le Brésil et le Suriname via la Guyane.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fronti%C3%A8res_de_la_France",
+    "https://fr.wikipedia.org/wiki/France"
+   ],
+   "reponses_acceptees": [
+    "Belgique",
+    "Luxembourg",
+    "Allemagne",
+    "Suisse",
+    "Italie",
+    "Monaco",
+    "Espagne",
+    "Andorre"
+   ]
+  },
+  {
+   "id": "geographie-045",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel pays possède le plus long littoral du monde ?",
+   "anecdote": "Le littoral canadien dépasse 200 000 km, en grande partie grâce à ses innombrables îles arctiques.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Canada",
+    "https://fr.wikipedia.org/wiki/Liste_des_pays_par_longueur_de_c%C3%B4tes"
+   ],
+   "choix": [
+    "Russie",
+    "Canada",
+    "Indonésie",
+    "Australie"
+   ],
+   "bonne_reponse": "Canada"
+  },
+  {
+   "id": "histoire-038",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "En quelle année a lieu la prise de la Bastille ?",
+   "anecdote": "Le jour de sa prise, la forteresse ne détenait que sept prisonniers. Symbole de l'arbitraire royal, elle fut démolie dans les mois qui suivirent.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Prise_de_la_Bastille",
+    "https://fr.wikipedia.org/wiki/R%C3%A9volution_fran%C3%A7aise"
+   ],
+   "choix": [
+    "1789",
+    "1792",
+    "1799",
+    "1804"
+   ],
+   "bonne_reponse": "1789"
+  },
+  {
+   "id": "histoire-039",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel roi de France est surnommé le Roi-Soleil ?",
+   "anecdote": "Son règne de 72 ans, de 1643 à 1715, est le plus long de l'histoire de France.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Louis_XIV",
+    "https://fr.wikipedia.org/wiki/Ch%C3%A2teau_de_Versailles"
+   ],
+   "choix": [
+    "Louis XIII",
+    "Louis XIV",
+    "Louis XV",
+    "Henri IV"
+   ],
+   "bonne_reponse": "Louis XIV"
+  },
+  {
+   "id": "histoire-040",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année débute la Première Guerre mondiale ?",
+   "anecdote": "Le conflit est déclenché après l'assassinat de l'archiduc François-Ferdinand d'Autriche à Sarajevo, le 28 juin 1914.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Premi%C3%A8re_Guerre_mondiale",
+    "https://fr.wikipedia.org/wiki/Attentat_de_Sarajevo"
+   ],
+   "reponse_numerique": 1914
+  },
+  {
+   "id": "histoire-041",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Napoléon Bonaparte est sacré empereur des Français en 1804.",
+   "anecdote": "Lors de la cérémonie du 2 décembre 1804 à Notre-Dame, Napoléon se couronna lui-même, prenant la couronne des mains du pape Pie VII.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sacre_de_Napol%C3%A9on_Ier",
+    "https://fr.wikipedia.org/wiki/Napol%C3%A9on_Ier"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "histoire-042",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle bataille, en 1815, marque la chute définitive de Napoléon Ier ?",
+   "anecdote": "Vaincu le 18 juin 1815, Napoléon abdiqua une seconde fois quelques jours plus tard, le 22 juin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bataille_de_Waterloo",
+    "https://fr.wikipedia.org/wiki/Cent-Jours"
+   ],
+   "choix": [
+    "Austerlitz",
+    "Iéna",
+    "Waterloo",
+    "Wagram"
+   ],
+   "bonne_reponse": "Waterloo"
+  },
+  {
+   "id": "histoire-043",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Christophe Colomb atteint-il pour la première fois l'Amérique ?",
+   "anecdote": "Persuadé d'avoir atteint les Indes par l'ouest, il donna aux habitants le nom d'« Indiens ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Christophe_Colomb",
+    "https://fr.wikipedia.org/wiki/D%C3%A9couverte_de_l%27Am%C3%A9rique"
+   ],
+   "reponse_numerique": 1492
+  },
+  {
+   "id": "histoire-044",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui fut le premier président de la Cinquième République française ?",
+   "anecdote": "Fondateur de la Ve République en 1958, il démissionna en 1969 après avoir perdu un référendum.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Charles_de_Gaulle",
+    "https://fr.wikipedia.org/wiki/Cinqui%C3%A8me_R%C3%A9publique_(France)"
+   ],
+   "choix": [
+    "Vincent Auriol",
+    "Charles de Gaulle",
+    "Georges Pompidou",
+    "René Coty"
+   ],
+   "bonne_reponse": "Charles de Gaulle"
+  },
+  {
+   "id": "histoire-045",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Jeanne d'Arc est-elle brûlée sur le bûcher à Rouen ?",
+   "anecdote": "Condamnée en 1431, elle fut réhabilitée par un procès en 1456, puis canonisée par l'Église en 1920.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeanne_d%27Arc",
+    "https://fr.wikipedia.org/wiki/Proc%C3%A8s_de_Jeanne_d%27Arc"
+   ],
+   "reponse_numerique": 1431
+  },
+  {
+   "id": "histoire-046",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "L'édit de Nantes, garantissant des droits aux protestants, fut promulgué par Henri IV en 1598.",
+   "anecdote": "Cet édit de tolérance fut révoqué par Louis XIV en 1685, par l'édit de Fontainebleau.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89dit_de_Nantes",
+    "https://fr.wikipedia.org/wiki/Henri_IV_(roi_de_France)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "histoire-047",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Quels sont les deux royaumes qui s'affrontent durant la guerre de Cent Ans ?",
+   "anecdote": "Malgré son nom, le conflit dura en réalité 116 ans, de 1337 à 1453.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guerre_de_Cent_Ans",
+    "https://fr.wikipedia.org/wiki/Royaume_de_France"
+   ],
+   "reponses_acceptees": [
+    "royaume de France",
+    "France",
+    "royaume d'Angleterre",
+    "Angleterre"
+   ]
+  },
+  {
+   "id": "histoire-048",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel traité de 843 partage l'empire carolingien entre les petits-fils de Charlemagne ?",
+   "anecdote": "Le partage se fit entre les trois fils de Louis le Pieux : Lothaire, Louis le Germanique et Charles le Chauve.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Trait%C3%A9_de_Verdun",
+    "https://fr.wikipedia.org/wiki/Empire_carolingien"
+   ],
+   "choix": [
+    "Traité de Verdun",
+    "Traité de Meaux",
+    "Traité de Meersen",
+    "Traité de Ribemont"
+   ],
+   "bonne_reponse": "Traité de Verdun"
+  },
+  {
+   "id": "insolite-028",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le Népal est le seul pays au monde dont le drapeau national n'est pas rectangulaire.",
+   "anecdote": "Le drapeau népalais est formé de deux fanions triangulaires superposés, portant une lune et un soleil. Sa géométrie est même définie par une construction mathématique dans la Constitution.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_du_N%C3%A9pal",
+    "https://fr.wikipedia.org/wiki/Drapeau"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "insolite-029",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle est la forme caractéristique des excréments du wombat ?",
+   "anecdote": "Ce marsupial australien est le seul animal connu à produire des crottes cubiques, façonnées par l'élasticité inégale de son intestin. La forme les empêche de rouler quand il marque son territoire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Wombat",
+    "https://fr.wikipedia.org/wiki/Vombatidae"
+   ],
+   "choix": [
+    "Sphérique",
+    "Cubique",
+    "En spirale",
+    "Étoilée"
+   ],
+   "bonne_reponse": "Cubique"
+  },
+  {
+   "id": "insolite-030",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Quels sont les deux seuls États dont le drapeau national est de forme carrée ?",
+   "anecdote": "Tous les autres drapeaux nationaux sont rectangulaires. Le pavillon civil suisse est toutefois rectangulaire ; seul le drapeau officiel de la Confédération est carré.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_de_la_Suisse",
+    "https://fr.wikipedia.org/wiki/Drapeau_de_la_Cit%C3%A9_du_Vatican"
+   ],
+   "reponses_acceptees": [
+    "Suisse",
+    "Vatican",
+    "Cité du Vatican",
+    "État de la Cité du Vatican",
+    "La Suisse",
+    "Le Vatican"
+   ]
+  },
+  {
+   "id": "insolite-031",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Les requins sont apparus sur Terre bien avant les premiers arbres.",
+   "anecdote": "Les premières lignées de requins remontent à environ 450 millions d'années, alors que les premiers arbres datent d'environ 385 millions d'années. Les requins précèdent aussi les dinosaures.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Requin",
+    "https://fr.wikipedia.org/wiki/Arbre"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "insolite-032",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel objet figure sur le drapeau national du Mozambique ?",
+   "anecdote": "Le Mozambique est le seul pays dont le drapeau arbore un fusil d'assaut moderne : un AK-47 croisé avec une houe, sur un livre ouvert. Il symbolise défense, travail et éducation.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_du_Mozambique",
+    "https://fr.wikipedia.org/wiki/AK-47"
+   ],
+   "choix": [
+    "Une kalachnikov",
+    "Un trident",
+    "Une machette seule",
+    "Un marteau"
+   ],
+   "bonne_reponse": "Une kalachnikov"
+  },
+  {
+   "id": "insolite-033",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Sous l'effet de la chaleur estivale, la tour Eiffel peut gagner une quinzaine de centimètres en hauteur.",
+   "anecdote": "C'est la dilatation thermique du fer : par forte chaleur, la structure s'allonge de plusieurs centimètres et son sommet s'incline légèrement du côté opposé au soleil.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_Eiffel",
+    "https://fr.wikipedia.org/wiki/Dilatation_thermique"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "insolite-034",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "equipe",
+   "texte": "Quels sont les deux seuls pays d'Amérique du Sud sans aucun accès à la mer ?",
+   "anecdote": "La Bolivie a perdu sa façade pacifique lors de la guerre du Pacifique (1879-1884). Le Paraguay, lui, n'a jamais eu de littoral et dépend de ses fleuves.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pays_enclav%C3%A9",
+    "https://fr.wikipedia.org/wiki/Bolivie"
+   ],
+   "reponses_acceptees": [
+    "Bolivie",
+    "Paraguay",
+    "La Bolivie",
+    "Le Paraguay"
+   ]
+  },
+  {
+   "id": "insolite-035",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de vertèbres cervicales possède une girafe dans son long cou ?",
+   "anecdote": "Comme presque tous les mammifères, y compris l'homme, la girafe n'a que sept vertèbres cervicales. Chacune peut cependant atteindre près de 40 centimètres de long.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Girafe",
+    "https://fr.wikipedia.org/wiki/Vert%C3%A8bre_cervicale"
+   ],
+   "reponse_numerique": 7
+  },
+  {
+   "id": "langue-035",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel mot latin, lié au sel, dérive le mot « salaire » ?",
+   "anecdote": "Le salarium romain désignait la ration ou l'allocation de sel liée aux soldats, denrée alors précieuse car elle servait à conserver les aliments.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Salaire",
+    "https://fr.wiktionary.org/wiki/salaire"
+   ],
+   "choix": [
+    "Salarium",
+    "Solidus",
+    "Denarius",
+    "Sudarium"
+   ],
+   "bonne_reponse": "Salarium"
+  },
+  {
+   "id": "langue-036",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment dit-on couramment 80 dans le canton de Vaud ?",
+   "anecdote": "« Septante » et « nonante » sont communs à toute la Suisse romande, mais « huitante » ne s'emploie qu'à Vaud, en Valais et à Fribourg ; Genève dit « quatre-vingts ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Huitante",
+    "https://fr.wikipedia.org/wiki/Fran%C3%A7ais_de_Suisse"
+   ],
+   "choix": [
+    "Huitante",
+    "Octante",
+    "Quatre-vingts",
+    "Huitxante"
+   ],
+   "bonne_reponse": "Huitante"
+  },
+  {
+   "id": "langue-037",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "« Aujourd'hui » est un pléonasme : « hui » signifiait déjà « ce jour » en ancien français.",
+   "anecdote": "« Hui » vient du latin hodie ; « au jour d'hui » signifie donc « au jour de ce jour ». Cicéron employait déjà la tournure « hodierno die ».",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/aujourd%E2%80%99hui",
+    "https://fr.wiktionary.org/wiki/hui"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "langue-038",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Pourquoi « poids » s'écrit-il avec un « d », alors qu'il vient du latin pensum ?",
+   "anecdote": "Le « d », étranger à l'étymologie, fut ajouté à la Renaissance par fausse analogie avec pondus ; il permet aussi de distinguer « poids » de « pois », le légume.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/poids",
+    "https://www.dictionnaire-academie.fr/article/A9P3072"
+   ],
+   "choix": [
+    "Par rapprochement erroné avec le latin pondus",
+    "Pour imiter le latin pes",
+    "À cause de la réforme de 1990",
+    "Pour marquer le pluriel"
+   ],
+   "bonne_reponse": "Par rapprochement erroné avec le latin pondus"
+  },
+  {
+   "id": "langue-039",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle graphie les rectifications orthographiques de 1990 recommandent-elles pour « nénuphar » ?",
+   "anecdote": "Le mot vient de l'arabo-persan et s'écrivait « nénufar » jusqu'en 1935, quand l'Académie y ajouta un « ph » grec injustifié, d'où la « guerre du nénufar » de 1991.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/N%C3%A9nuphar",
+    "https://fr.wiktionary.org/wiki/n%C3%A9nufar"
+   ],
+   "choix": [
+    "Nénufar",
+    "Nénuphare",
+    "Nénufard",
+    "Nénnuphar"
+   ],
+   "bonne_reponse": "Nénufar"
+  },
+  {
+   "id": "langue-040",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez les trois cantons de Suisse romande où l'on dit « huitante » pour 80.",
+   "anecdote": "Genève, Neuchâtel et le Jura disent « quatre-vingts » comme en France ; en Belgique aussi on dit « quatre-vingts », mais « septante » et « nonante ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Huitante",
+    "https://fr.wikipedia.org/wiki/Fran%C3%A7ais_de_Suisse"
+   ],
+   "reponses_acceptees": [
+    "Vaud",
+    "Valais",
+    "Fribourg"
+   ]
+  },
+  {
+   "id": "langue-041",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Selon la règle traditionnelle, « après que » doit être suivi de l'indicatif, et non du subjonctif.",
+   "anecdote": "« Après que » introduit un fait réel, d'où l'indicatif ; la confusion vient de « avant que », qui, lui, exige bien le subjonctif.",
+   "sources": [
+    "https://vitrinelinguistique.oqlf.gouv.qc.ca/21132/la-grammaire/le-verbe/modes/concordance-des-temps/mode-verbal-avec-apres-que-et-avant-que",
+    "https://www.noslangues-ourlanguages.gc.ca/chroniques-de-langue/apres-que-et-le-subjonctif"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "langue-042",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de lettres compte l'alphabet français de base, sans les lettres accentuées ?",
+   "anecdote": "Jusqu'au XIXe siècle, l'esperluette « & » était souvent récitée comme une 27e « lettre » à la fin de l'alphabet des écoliers.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Alphabet_fran%C3%A7ais",
+    "https://fr.wikipedia.org/wiki/Esperluette"
+   ],
+   "reponse_numerique": 26
+  },
+  {
+   "id": "litterature-041",
+   "categorie": "Littérature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qui est l'auteur du roman « Les Misérables » (1862) ?",
+   "anecdote": "Publié en 1862, « Les Misérables » fut rédigé en partie durant l'exil de Hugo à Guernesey.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Misérables",
+    "https://fr.wikipedia.org/wiki/Victor_Hugo"
+   ],
+   "choix": [
+    "Victor Hugo",
+    "Émile Zola",
+    "Honoré de Balzac",
+    "Alexandre Dumas"
+   ],
+   "bonne_reponse": "Victor Hugo"
+  },
+  {
+   "id": "litterature-042",
+   "categorie": "Littérature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel écrivain a créé le personnage de d'Artagnan ?",
+   "anecdote": "Dumas s'est inspiré d'un personnage réel, Charles de Batz de Castelmore, comte d'Artagnan, mousquetaire du XVIIe siècle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Trois_Mousquetaires",
+    "https://fr.wikipedia.org/wiki/Alexandre_Dumas"
+   ],
+   "choix": [
+    "Alexandre Dumas",
+    "Jules Verne",
+    "Stendhal",
+    "Théophile Gautier"
+   ],
+   "bonne_reponse": "Alexandre Dumas"
+  },
+  {
+   "id": "litterature-043",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "« Madame Bovary » est un roman de Gustave Flaubert.",
+   "anecdote": "Publié en 1857, le roman valut à Flaubert un procès pour « outrage à la morale », dont il fut acquitté.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Madame_Bovary",
+    "https://fr.wikipedia.org/wiki/Gustave_Flaubert"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "litterature-044",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel roman d'Albert Camus s'ouvre sur « Aujourd'hui, maman est morte » ?",
+   "anecdote": "Cette phrase inaugurale de « L'Étranger » (1942) est l'une des plus célèbres de la littérature française.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/L'Étranger",
+    "https://fr.wikipedia.org/wiki/Albert_Camus"
+   ],
+   "choix": [
+    "L'Étranger",
+    "La Peste",
+    "La Chute",
+    "Le Premier Homme"
+   ],
+   "bonne_reponse": "L'Étranger"
+  },
+  {
+   "id": "litterature-045",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a écrit le cycle romanesque « À la recherche du temps perdu » ?",
+   "anecdote": "Le deuxième tome, « À l'ombre des jeunes filles en fleurs », valut à Proust le prix Goncourt en 1919.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/À_la_recherche_du_temps_perdu",
+    "https://fr.wikipedia.org/wiki/Marcel_Proust"
+   ],
+   "choix": [
+    "Marcel Proust",
+    "André Gide",
+    "Paul Valéry",
+    "Jean Giono"
+   ],
+   "bonne_reponse": "Marcel Proust"
+  },
+  {
+   "id": "litterature-046",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Nommez les quatre héros des « Trois Mousquetaires » d'Alexandre Dumas.",
+   "anecdote": "Malgré le titre, ils sont quatre : d'Artagnan rejoint le trio d'Athos, Porthos et Aramis au fil du récit.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Trois_Mousquetaires",
+    "https://fr.wikipedia.org/wiki/Alexandre_Dumas"
+   ],
+   "reponses_acceptees": [
+    "Athos",
+    "Porthos",
+    "Aramis",
+    "d'Artagnan"
+   ]
+  },
+  {
+   "id": "litterature-047",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel dramaturge a écrit la pièce « Cyrano de Bergerac » (1897) ?",
+   "anecdote": "La pièce s'inspire librement de Savinien de Cyrano de Bergerac, écrivain et duelliste réel du XVIIe siècle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cyrano_de_Bergerac_(Rostand)",
+    "https://fr.wikipedia.org/wiki/Edmond_Rostand"
+   ],
+   "choix": [
+    "Edmond Rostand",
+    "Alfred de Musset",
+    "Georges Feydeau",
+    "Victorien Sardou"
+   ],
+   "bonne_reponse": "Edmond Rostand"
+  },
+  {
+   "id": "litterature-048",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui a écrit le roman « Cent ans de solitude » ?",
+   "anecdote": "Paru en 1967, ce roman est une œuvre majeure du réalisme magique ; son auteur reçut le Nobel en 1982.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cent_Ans_de_solitude",
+    "https://fr.wikipedia.org/wiki/Gabriel_García_Márquez"
+   ],
+   "choix": [
+    "Gabriel García Márquez",
+    "Jorge Luis Borges",
+    "Mario Vargas Llosa",
+    "Pablo Neruda"
+   ],
+   "bonne_reponse": "Gabriel García Márquez"
+  },
+  {
+   "id": "litterature-049",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel écrivain espagnol est l'auteur de « Don Quichotte » ?",
+   "anecdote": "Publié en deux parties (1605 et 1615), il est souvent considéré comme le premier roman moderne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Don_Quichotte",
+    "https://fr.wikipedia.org/wiki/Miguel_de_Cervantès"
+   ],
+   "choix": [
+    "Miguel de Cervantès",
+    "Lope de Vega",
+    "Federico García Lorca",
+    "Calderón de la Barca"
+   ],
+   "bonne_reponse": "Miguel de Cervantès"
+  },
+  {
+   "id": "litterature-050",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Marguerite Yourcenar fut la première femme élue à l'Académie française.",
+   "anecdote": "Élue le 6 mars 1980, elle entra à l'Académie 346 ans après sa fondation par Richelieu.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marguerite_Yourcenar",
+    "https://fr.wikipedia.org/wiki/Académie_française"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "litterature-051",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le tout premier prix Goncourt fut-il décerné ?",
+   "anecdote": "Le premier Goncourt fut remis le 21 décembre 1903, quelques années après la mort d'Edmond de Goncourt.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Prix_Goncourt",
+    "https://fr.wikipedia.org/wiki/John-Antoine_Nau"
+   ],
+   "reponse_numerique": 1903
+  },
+  {
+   "id": "litterature-052",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel écrivain reçut le premier prix Goncourt, en 1903, pour « Force ennemie » ?",
+   "anecdote": "Né à San Francisco, ancien navigateur, Nau vivait à Saint-Tropez et ne vint même pas chercher son prix à Paris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/John-Antoine_Nau",
+    "https://fr.wikipedia.org/wiki/Prix_Goncourt"
+   ],
+   "choix": [
+    "John-Antoine Nau",
+    "Léon Frapié",
+    "Claude Farrère",
+    "Émile Moselly"
+   ],
+   "bonne_reponse": "John-Antoine Nau"
+  },
+  {
+   "id": "musique-035",
+   "categorie": "Musique",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qui a composé le « Boléro », créé à l'Opéra de Paris en 1928 ?",
+   "anecdote": "Créé le 22 novembre 1928 pour la danseuse Ida Rubinstein, le « Boléro » repose sur un unique thème répété ; Ravel le présentait lui-même comme une simple étude d'orchestration.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Boléro_(Ravel)",
+    "https://fr.wikipedia.org/wiki/Maurice_Ravel"
+   ],
+   "choix": [
+    "Claude Debussy",
+    "Maurice Ravel",
+    "Erik Satie",
+    "Camille Saint-Saëns"
+   ],
+   "bonne_reponse": "Maurice Ravel"
+  },
+  {
+   "id": "musique-036",
+   "categorie": "Musique",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel compositeur français est l'auteur de l'opéra « Carmen » ?",
+   "anecdote": "Bizet mourut le 3 juin 1875, environ trois mois après la création de « Carmen », sans avoir connu le triomphe mondial de son œuvre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Carmen_(opéra)",
+    "https://fr.wikipedia.org/wiki/Georges_Bizet"
+   ],
+   "choix": [
+    "Giuseppe Verdi",
+    "Georges Bizet",
+    "Charles Gounod",
+    "Jules Massenet"
+   ],
+   "bonne_reponse": "Georges Bizet"
+  },
+  {
+   "id": "musique-037",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Wolfgang Amadeus Mozart est-il mort ?",
+   "anecdote": "Mozart mourut à Vienne à seulement 35 ans, laissant son « Requiem » inachevé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Wolfgang_Amadeus_Mozart",
+    "https://fr.wikipedia.org/wiki/Requiem_(Mozart)"
+   ],
+   "reponse_numerique": 1791
+  },
+  {
+   "id": "musique-038",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a composé le cycle de concertos « Les Quatre Saisons » ?",
+   "anecdote": "Vivaldi, prêtre catholique, était surnommé « il Prete Rosso », le prêtre roux, en raison de la couleur de ses cheveux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Quatre_Saisons",
+    "https://fr.wikipedia.org/wiki/Antonio_Vivaldi"
+   ],
+   "choix": [
+    "Jean-Sébastien Bach",
+    "Antonio Vivaldi",
+    "Georg Friedrich Haendel",
+    "Arcangelo Corelli"
+   ],
+   "bonne_reponse": "Antonio Vivaldi"
+  },
+  {
+   "id": "musique-039",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez les trois chanteurs qui formaient le trio « Les Trois Ténors ».",
+   "anecdote": "Leur premier concert commun eut lieu à Rome le 7 juillet 1990, la veille de la finale de la Coupe du monde de football.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Trois_Ténors",
+    "https://fr.wikipedia.org/wiki/Luciano_Pavarotti"
+   ],
+   "reponses_acceptees": [
+    "Pavarotti",
+    "Luciano Pavarotti",
+    "Domingo",
+    "Plácido Domingo",
+    "Placido Domingo",
+    "Carreras",
+    "José Carreras",
+    "Jose Carreras"
+   ]
+  },
+  {
+   "id": "musique-040",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a écrit et composé la chanson « La Mer », grand classique de la chanson française ?",
+   "anecdote": "Surnommé « le Fou chantant », Charles Trenet aurait esquissé « La Mer » lors d'un voyage en train dans le sud de la France.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Mer_(chanson)",
+    "https://fr.wikipedia.org/wiki/Charles_Trenet"
+   ],
+   "choix": [
+    "Charles Aznavour",
+    "Charles Trenet",
+    "Yves Montand",
+    "Léo Ferré"
+   ],
+   "bonne_reponse": "Charles Trenet"
+  },
+  {
+   "id": "musique-041",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "À qui attribue-t-on l'invention du piano, vers 1700 ?",
+   "anecdote": "Facteur de clavecins italien, Cristofori conçut un « gravicembalo col piano e forte », capable de nuancer le son selon la force de frappe.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Piano",
+    "https://fr.wikipedia.org/wiki/Bartolomeo_Cristofori"
+   ],
+   "choix": [
+    "Antonio Stradivari",
+    "Bartolomeo Cristofori",
+    "Adolphe Sax",
+    "Théobald Boehm"
+   ],
+   "bonne_reponse": "Bartolomeo Cristofori"
+  },
+  {
+   "id": "musique-042",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel compositeur a signé l'opéra « Pelléas et Mélisande », créé en 1902 ?",
+   "anecdote": "« Pelléas et Mélisande » est le seul opéra achevé de Debussy ; il fut créé à l'Opéra-Comique de Paris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pelléas_et_Mélisande_(Debussy)",
+    "https://fr.wikipedia.org/wiki/Claude_Debussy"
+   ],
+   "choix": [
+    "Gabriel Fauré",
+    "Claude Debussy",
+    "Maurice Ravel",
+    "Vincent d'Indy"
+   ],
+   "bonne_reponse": "Claude Debussy"
+  },
+  {
+   "id": "musique-043",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "« La Marseillaise » a été composée par Rouget de Lisle en 1792.",
+   "anecdote": "Écrite à Strasbourg en 1792, elle fut d'abord un chant de guerre avant de devenir l'hymne national français.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Marseillaise",
+    "https://fr.wikipedia.org/wiki/Claude_Joseph_Rouget_de_Lisle"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "musique-044",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui a composé les célèbres « Gymnopédies » pour piano ?",
+   "anecdote": "Satie composa les « Gymnopédies » en 1888 ; Debussy orchestra plus tard deux d'entre elles.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Gymnopédies",
+    "https://fr.wikipedia.org/wiki/Erik_Satie"
+   ],
+   "choix": [
+    "Erik Satie",
+    "Claude Debussy",
+    "Gabriel Fauré",
+    "Francis Poulenc"
+   ],
+   "bonne_reponse": "Erik Satie"
+  },
+  {
+   "id": "musique-045",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans quelle ville est né le chanteur et poète Georges Brassens ?",
+   "anecdote": "Né à Sète en 1921, Brassens y est enterré, dans le cimetière Le Py qu'il évoquait dans ses chansons.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Georges_Brassens",
+    "https://fr.wikipedia.org/wiki/Sète"
+   ],
+   "choix": [
+    "Sète",
+    "Marseille",
+    "Toulon",
+    "Narbonne"
+   ],
+   "bonne_reponse": "Sète"
+  },
+  {
+   "id": "musique-046",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "gambit_numerique",
+   "texte": "Combien de cordes possède une harpe de concert (harpe à pédales) moderne ?",
+   "anecdote": "La harpe de concert compte 47 cordes et 7 pédales, chaque pédale permettant d'altérer la hauteur d'une note sur toute l'étendue de l'instrument.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Harpe",
+    "https://fr.wikipedia.org/wiki/Harpe_à_pédales"
+   ],
+   "reponse_numerique": 47
+  },
+  {
+   "id": "pop-culture-030",
+   "categorie": "Pop Culture",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel studio a produit « Toy Story » (1995), premier long-métrage de cinéma entièrement en images de synthèse ?",
+   "anecdote": "Premier long-métrage entièrement réalisé en images de synthèse, « Toy Story » a scellé la collaboration entre Pixar et Disney.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Toy_Story",
+    "https://fr.wikipedia.org/wiki/Pixar"
+   ],
+   "choix": [
+    "Pixar",
+    "DreamWorks",
+    "Illumination",
+    "Blue Sky"
+   ],
+   "bonne_reponse": "Pixar"
+  },
+  {
+   "id": "pop-culture-031",
+   "categorie": "Pop Culture",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle société le hérisson bleu Sonic est-il la mascotte ?",
+   "anecdote": "Créé en 1991, Sonic devait concurrencer Mario et démontrer la puissance de la console Mega Drive grâce à sa vitesse.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sonic_(personnage)",
+    "https://fr.wikipedia.org/wiki/Sega"
+   ],
+   "choix": [
+    "Sega",
+    "Nintendo",
+    "Sony",
+    "Atari"
+   ],
+   "bonne_reponse": "Sega"
+  },
+  {
+   "id": "pop-culture-032",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "James Cameron a réalisé aussi bien « Titanic » (1997) qu'« Avatar » (2009).",
+   "anecdote": "Avant qu'« Avatar » ne le détrône, « Titanic » détenait le record de recettes mondiales : les deux appartenaient donc au même réalisateur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/James_Cameron",
+    "https://fr.wikipedia.org/wiki/Avatar_(film,_2009)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "pop-culture-033",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le premier film « Star Wars » (Un nouvel espoir) est-il sorti aux États-Unis ?",
+   "anecdote": "Sorti sous le simple titre « Star Wars », le film ne reçut le sous-titre « Un nouvel espoir » que lors de ressorties ultérieures.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Star_Wars,_%C3%A9pisode_IV_:_Un_nouvel_espoir",
+    "https://fr.wikipedia.org/wiki/George_Lucas"
+   ],
+   "reponse_numerique": 1977
+  },
+  {
+   "id": "pop-culture-034",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est le premier long-métrage d'animation des studios Disney, sorti en 1937 ?",
+   "anecdote": "Surnommé « la folie de Disney » pendant sa production, le film reçut un Oscar d'honneur accompagné de sept statuettes miniatures.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Blanche-Neige_et_les_Sept_Nains_(film,_1937)",
+    "https://fr.wikipedia.org/wiki/Walt_Disney_Animation_Studios"
+   ],
+   "choix": [
+    "Blanche-Neige et les Sept Nains",
+    "Pinocchio",
+    "Bambi",
+    "Fantasia"
+   ],
+   "bonne_reponse": "Blanche-Neige et les Sept Nains"
+  },
+  {
+   "id": "pop-culture-035",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Dans quel jeu vidéo le personnage de Mario fait-il sa première apparition, en 1981 ?",
+   "anecdote": "Mario s'appelait à l'origine « Jumpman » et était présenté comme charpentier avant de devenir le célèbre plombier.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Donkey_Kong_(jeu_vid%C3%A9o)",
+    "https://fr.wikipedia.org/wiki/Mario"
+   ],
+   "choix": [
+    "Donkey Kong",
+    "Super Mario Bros.",
+    "Mario Bros.",
+    "Pac-Man"
+   ],
+   "bonne_reponse": "Donkey Kong"
+  },
+  {
+   "id": "pop-culture-036",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le jeu vidéo « Pac-Man » est-il sorti au Japon ?",
+   "anecdote": "Selon son créateur Toru Iwatani, la silhouette de Pac-Man s'inspirerait d'une pizza à laquelle il manque une part.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pac-Man",
+    "https://fr.wikipedia.org/wiki/Namco"
+   ],
+   "reponse_numerique": 1980
+  },
+  {
+   "id": "pop-culture-037",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez les trois films de la trilogie « Le Seigneur des anneaux » réalisée par Peter Jackson.",
+   "anecdote": "Tournée simultanément en Nouvelle-Zélande, la trilogie a culminé avec « Le Retour du roi », lauréat de onze Oscars en 2004.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Seigneur_des_anneaux_(trilogie_de_Peter_Jackson)",
+    "https://fr.wikipedia.org/wiki/Peter_Jackson"
+   ],
+   "reponses_acceptees": [
+    "La Communauté de l'anneau",
+    "Le Seigneur des anneaux : La Communauté de l'anneau",
+    "Les Deux Tours",
+    "Le Seigneur des anneaux : Les Deux Tours",
+    "Le Retour du roi",
+    "Le Seigneur des anneaux : Le Retour du roi"
+   ]
+  },
+  {
+   "id": "pop-culture-038",
+   "categorie": "Pop Culture",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Qui est le créateur de la franchise « Pokémon », lancée en 1996 ?",
+   "anecdote": "Satoshi Tajiri s'est inspiré de sa passion d'enfance pour la collecte d'insectes afin d'imaginer l'univers de Pokémon.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pok%C3%A9mon",
+    "https://fr.wikipedia.org/wiki/Satoshi_Tajiri"
+   ],
+   "choix": [
+    "Satoshi Tajiri",
+    "Shigeru Miyamoto",
+    "Hideo Kojima",
+    "Yuji Naka"
+   ],
+   "bonne_reponse": "Satoshi Tajiri"
+  },
+  {
+   "id": "pop-culture-039",
+   "categorie": "Pop Culture",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Qui a conçu le jeu vidéo « Tetris » en 1984 ?",
+   "anecdote": "Conçu en URSS par Alexeï Pajitnov, le jeu tire son nom du grec « tetra » (quatre), ses pièces étant formées de quatre carrés.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tetris",
+    "https://fr.wikipedia.org/wiki/Alex%C3%AF_Pajitnov"
+   ],
+   "choix": [
+    "Alexeï Pajitnov",
+    "Markus Persson",
+    "Gunpei Yokoi",
+    "Will Wright"
+   ],
+   "bonne_reponse": "Alexeï Pajitnov"
+  },
+  {
+   "id": "sport-030",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année ont eu lieu les premiers Jeux olympiques de l'ère moderne, à Athènes ?",
+   "anecdote": "Ravivés par le baron Pierre de Coubertin, ces Jeux d'Athènes réunirent 14 nations et une poignée de disciplines seulement.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques_d%27%C3%A9t%C3%A9_de_1896",
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques"
+   ],
+   "choix": [
+    "1888",
+    "1896",
+    "1900",
+    "1924"
+   ],
+   "bonne_reponse": "1896"
+  },
+  {
+   "id": "sport-031",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le Tour de France cycliste a été créé en 1903.",
+   "anecdote": "Le journal « L'Auto » lança l'épreuve en 1903 pour doper ses ventes ; Maurice Garin en fut le premier vainqueur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_de_France_1903",
+    "https://fr.wikipedia.org/wiki/Tour_de_France"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "sport-032",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de Coupes du monde de football l'équipe de France masculine a-t-elle remportées ?",
+   "anecdote": "Les Bleus ont triomphé en 1998 à domicile puis en 2018 en Russie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89quipe_de_France_de_football",
+    "https://fr.wikipedia.org/wiki/Coupe_du_monde_de_football"
+   ],
+   "reponse_numerique": 2
+  },
+  {
+   "id": "sport-033",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel joueur détient le record de titres du Grand Chelem en simple messieurs (24) ?",
+   "anecdote": "Djokovic a décroché son 24e titre à l'US Open 2023, devançant Federer (20) et Nadal (22).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Novak_Djokovic",
+    "https://fr.wikipedia.org/wiki/Records_du_tennis"
+   ],
+   "choix": [
+    "Roger Federer",
+    "Rafael Nadal",
+    "Novak Djokovic",
+    "Pete Sampras"
+   ],
+   "bonne_reponse": "Novak Djokovic"
+  },
+  {
+   "id": "sport-034",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Nommez les six nations participant au Tournoi des Six Nations de rugby à XV.",
+   "anecdote": "L'Italie a rejoint le tournoi en 2000, le faisant passer du « Tournoi des Cinq Nations » aux Six Nations.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tournoi_des_Six_Nations",
+    "https://fr.wikipedia.org/wiki/Tournoi_des_Cinq_Nations"
+   ],
+   "reponses_acceptees": [
+    "France",
+    "Angleterre",
+    "Écosse",
+    "Ecosse",
+    "Pays de Galles",
+    "Galles",
+    "Irlande",
+    "Italie"
+   ]
+  },
+  {
+   "id": "sport-035",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans quelle ville se sont déroulés les Jeux olympiques d'été reportés à 2021 ?",
+   "anecdote": "Reportés d'un an pour cause de pandémie, les Jeux de Tokyo se sont tenus en 2021 mais ont gardé le nom « Tokyo 2020 ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques_d%27%C3%A9t%C3%A9_de_2020",
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques"
+   ],
+   "choix": [
+    "Pékin",
+    "Tokyo",
+    "Paris",
+    "Rio de Janeiro"
+   ],
+   "bonne_reponse": "Tokyo"
+  },
+  {
+   "id": "sport-036",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Zinédine Zidane a marqué deux buts de la tête en finale de la Coupe du monde 1998.",
+   "anecdote": "Ses deux têtes en première mi-temps ont lancé la victoire 3-0 des Bleus face au Brésil au Stade de France.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Zin%C3%A9dine_Zidane",
+    "https://fr.wikipedia.org/wiki/Finale_de_la_Coupe_du_monde_de_football_1998"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "sport-037",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de joueurs composent une équipe de rugby à XV sur le terrain ?",
+   "anecdote": "Huit avants et sept arrières forment le quinze de départ, contre treize joueurs au rugby à XIII.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rugby_%C3%A0_XV",
+    "https://fr.wikipedia.org/wiki/Rugby"
+   ],
+   "reponse_numerique": 15
+  },
+  {
+   "id": "sport-038",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel cycliste, quintuple vainqueur du Tour de France, était surnommé « le Cannibale » ?",
+   "anecdote": "Le Belge Eddy Merckx doit ce surnom à sa soif de victoires ; il remporta le Tour cinq fois entre 1969 et 1974.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Eddy_Merckx",
+    "https://fr.wikipedia.org/wiki/Tour_de_France"
+   ],
+   "choix": [
+    "Bernard Hinault",
+    "Eddy Merckx",
+    "Fausto Coppi",
+    "Jacques Anquetil"
+   ],
+   "bonne_reponse": "Eddy Merckx"
+  },
+  {
+   "id": "sport-039",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays a organisé et remporté la toute première Coupe du monde de football, en 1930 ?",
+   "anecdote": "L'Uruguay battit l'Argentine 4-2 en finale à Montevideo ; le tournoi n'accueillit que treize équipes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Coupe_du_monde_de_football_1930",
+    "https://fr.wikipedia.org/wiki/Coupe_du_monde_de_football"
+   ],
+   "choix": [
+    "Brésil",
+    "Argentine",
+    "Uruguay",
+    "Italie"
+   ],
+   "bonne_reponse": "Uruguay"
+  },
+  {
+   "id": "sport-040",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Usain Bolt détient le record du monde du 100 mètres en 9 s 58.",
+   "anecdote": "Le Jamaïcain a établi ce chrono aux Championnats du monde de Berlin en 2009, une marque toujours invaincue.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Usain_Bolt",
+    "https://fr.wikipedia.org/wiki/Records_du_monde_d%27athl%C3%A9tisme"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "sport-041",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Nommez les quatre tournois du Grand Chelem de tennis.",
+   "anecdote": "Ces quatre tournois majeurs se disputent sur trois surfaces : dur, terre battue à Roland-Garros et gazon à Wimbledon.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Grand_Chelem_(tennis)",
+    "https://fr.wikipedia.org/wiki/Tennis"
+   ],
+   "reponses_acceptees": [
+    "Open d'Australie",
+    "Australie",
+    "Roland-Garros",
+    "Roland Garros",
+    "Internationaux de France",
+    "Wimbledon",
+    "US Open",
+    "Open des États-Unis"
+   ]
+  },
+  {
+   "id": "sport-042",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "Combien de médailles d'or olympiques le nageur Michael Phelps a-t-il remportées au total ?",
+   "anecdote": "Avec 23 titres et 28 médailles au total, Phelps est l'athlète le plus médaillé de l'histoire des Jeux olympiques.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Michael_Phelps",
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques"
+   ],
+   "reponse_numerique": 23
   },
   {
    "id": "script-G1",

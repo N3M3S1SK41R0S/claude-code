@@ -55,11 +55,11 @@ grand-mogul/
 | P5 Polish | ✅ | framer-motion, prefers-reduced-motion, haptique, dark mode, a11y (26 constats de revue corrigés). |
 | P6 Ship | ⚠️ à faire | Config Vercel prête (`vercel.json`), **déploiement effectif non fait** (requiert le compte du propriétaire). |
 
-## 4. Banque de questions — ✅ 396 vérifiées, 13 thèmes, 5 formats
+## 4. Banque de questions — ✅ 618 vérifiées, 13 thèmes, 5 formats
 
 > **Mise à jour 4 (finale)** : après cinq vagues de forge, la banque embarquée
-> compte **396 questions vérifiées** — 237 qcm, 83 vrai_faux, 51 gambit_numerique,
-> 23 equipe, 2 cash_carre_duo — réparties sur les 13 thèmes (21 à 38 par thème).
+> compte **618 questions vérifiées** — 303 qcm, 161 vrai_faux, 102 gambit_numerique,
+> 50 equipe, 2 cash_carre_duo — réparties sur les 13 thèmes (42 à 53 par thème).
 > Le fact-check adversarial (seuil 0,9, ≥2 sources) a été appliqué à chaque
 > question ; 0 doublon, 0 problème d'intégrité.
 >
