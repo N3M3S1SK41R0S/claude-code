@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { MUTATION_QUEUE_STORAGE_KEY, MutationQueue, type QueuedMutation } from './queue';
 import { createMemoryStorage, type StorageAdapter } from './storage';
+import { ITEM_MEDIA_BUCKET } from './item-deletion';
 import { asSupabase, FakeSupabase } from './testing/fake-supabase';
 
 function mutation(overrides: Partial<QueuedMutation>): QueuedMutation {
@@ -130,13 +131,34 @@ describe('MutationQueue', () => {
     expect(await queue.size()).toBe(2);
   });
 
-  it('delete retire la ligne côté serveur', async () => {
+  it('une ancienne suppression en file purge Storage avant la ligne serveur', async () => {
     fake.tables['items'] = [{ id: 'i1', title: 'à supprimer', updated_at: '2026-07-01T00:00:00Z' }];
+    fake.tables['item_media'] = [
+      { id: 'm1', item_id: 'i1', storage_path: 'usr-1/items/i1/front.jpg' },
+    ];
+    fake.storageObjects[ITEM_MEDIA_BUCKET] = new Set(['usr-1/items/i1/front.jpg']);
     await queue.enqueue(mutation({ id: 'm1', type: 'delete', payload: { id: 'i1' } }));
 
     const report = await queue.replay();
     expect(report).toEqual({ applied: 1, skipped: 0, failed: 0 });
+    expect(fake.storageRemovals[0]).toEqual({
+      bucket: ITEM_MEDIA_BUCKET,
+      paths: ['usr-1/items/i1/front.jpg'],
+    });
     expect(fake.row('items', 'i1')).toBeUndefined();
+  });
+
+  it('une purge Storage en échec conserve la suppression en file et l’objet serveur', async () => {
+    fake.tables['items'] = [{ id: 'i1', title: 'à conserver', updated_at: '2026-07-01T00:00:00Z' }];
+    fake.tables['item_media'] = [
+      { id: 'm1', item_id: 'i1', storage_path: 'usr-1/items/i1/front.jpg' },
+    ];
+    fake.storageError = { message: 'bucket indisponible' };
+    await queue.enqueue(mutation({ id: 'm1', type: 'delete', payload: { id: 'i1' } }));
+
+    expect(await queue.replay()).toEqual({ applied: 0, skipped: 0, failed: 1 });
+    expect(await queue.size()).toBe(1);
+    expect(fake.row('items', 'i1')).toBeDefined();
   });
 
   it('update sur un objet supprimé côté serveur → skipped (delete gagne)', async () => {
