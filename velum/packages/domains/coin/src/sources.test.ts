@@ -44,7 +44,7 @@ describe('ageDaysFromIso', () => {
     expect(ageDaysFromIso('2026-07-10T00:00:00Z', NOW)).toBe(0);
     expect(ageDaysFromIso('2026-06-30T00:00:00Z', NOW)).toBe(10);
     expect(ageDaysFromIso('2026-06-15T10:30:00.000Z', NOW)).toBe(24);
-    expect(ageDaysFromIso('2027-01-01T00:00:00Z', NOW)).toBe(0); // futur → borné à 0
+    expect(ageDaysFromIso('2027-01-01T00:00:00Z', NOW)).toBeNull(); // futur lointain → rejeté
   });
 
   it('retourne null pour une date absente ou illisible', () => {
