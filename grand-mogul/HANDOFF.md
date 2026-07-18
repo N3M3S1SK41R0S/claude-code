@@ -55,21 +55,20 @@ grand-mogul/
 | P5 Polish | ✅ | framer-motion, prefers-reduced-motion, haptique, dark mode, a11y (26 constats de revue corrigés). |
 | P6 Ship | ⚠️ à faire | Config Vercel prête (`vercel.json`), **déploiement effectif non fait** (requiert le compte du propriétaire). |
 
-## 4. Banque de questions — ✅ 289 vérifiées, 13 thèmes, 5 formats
+## 4. Banque de questions — ✅ 342 vérifiées, 13 thèmes, 5 formats
 
-> **Mise à jour 2** : après trois vagues de forge, la banque embarquée compte
-> **289 questions vérifiées** (237 qcm, 26 vrai_faux, 16 gambit_numerique,
-> 8 equipe, 2 cash_carre_duo). La vague 3 (formats rares) a été COUPÉE par la
-> limite de dépense mensuelle après 5 thèmes sur 13 : les questions
-> vrai_faux/gambit/equipe manquent encore pour cinema, musique, gastronomie,
-> sport, langue, pop-culture, insolite et general — relancer le workflow
-> `mogul-bank-formats` (script sauvegardé, listes anti-doublons dans
-> scratchpad/completion-input2.json à régénérer depuis la banque) quand le
-> budget le permet. Les questions vérifiées mais non écrites se récupèrent
-> TOUJOURS via `scripts/recover-forge.mjs` sur le dossier de transcripts du
-> workflow (payloads embarqués dans les prompts des copistes).
+> **Mise à jour 3 (finale)** : après quatre vagues de forge, la banque
+> embarquée compte **342 questions vérifiées** — 237 qcm, 52 vrai_faux,
+> 35 gambit_numerique, 16 equipe, 2 cash_carre_duo — réparties sur les
+> 13 thèmes (min. 14/thème). Le fact-check adversarial (seuil 0,9, ≥2 sources)
+> a été appliqué à chaque question. Pour les prochains lots vers l'objectif
+> 500-1000 : relancer le workflow `mogul-bank-formats-v2` (VERSION RÉSILIENTE :
+> chaque thème est écrit sur disque dès sa vérification — c'est celle-là qu'il
+> faut réutiliser), listes anti-doublons à régénérer depuis la banque courante.
+> En cas de coupure budget, les questions vérifiées non écrites se récupèrent
+> via `scripts/recover-forge.mjs` sur le dossier de transcripts du workflow.
 > Le jeu frère `donjon-du-savoir/` consomme cette banque via son
-> `tools/build-questions.mjs` (291 questions : 289 + S7/B4 corrigées).
+> `tools/build-questions.mjs` (344 questions : 342 + S7/B4 corrigées).
 
 ### Historique de l'incident (résolu)
 

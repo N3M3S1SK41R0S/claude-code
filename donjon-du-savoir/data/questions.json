@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 291,
+ "count": 344,
  "questions": [
   {
    "id": "arts-001",
@@ -4709,6 +4709,922 @@
     "Xénon",
     "Radon",
     "Oganesson"
+   ]
+  },
+  {
+   "id": "cinema-024",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Alfred Hitchcock a remporté au moins une fois l'Oscar du meilleur réalisateur.",
+   "anecdote": "Nommé cinq fois, Hitchcock n'a jamais remporté l'Oscar du meilleur réalisateur. L'Académie lui a seulement décerné en 1968 le prix honorifique Irving G. Thalberg, qu'il a accepté avec un discours resté célèbre pour sa brièveté.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Alfred_Hitchcock",
+    "https://fr.wikipedia.org/wiki/Oscar_du_meilleur_r%C3%A9alisateur"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "cinema-025",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Avec 11 Oscars, « Titanic » de James Cameron détient seul le record de statuettes remportées par un film.",
+   "anecdote": "Titanic partage ce record de 11 Oscars avec « Ben-Hur » (1959) et « Le Seigneur des anneaux : Le Retour du roi » (2003). Ce dernier a même réussi un sans-faute : 11 victoires pour 11 nominations.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Titanic_(film,_1997)",
+    "https://fr.wikipedia.org/wiki/Le_Seigneur_des_anneaux_:_Le_Retour_du_roi_(film)",
+    "https://fr.wikipedia.org/wiki/Ben-Hur_(film,_1959)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "cinema-026",
+   "categorie": "Cinéma",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "« Le Voyage dans la Lune » de Georges Méliès est le tout premier film de l'histoire du cinéma.",
+   "anecdote": "Sorti en 1902, « Le Voyage dans la Lune » est postérieur de sept ans aux premières vues des frères Lumière (1895). Présent à leur première projection publique, Méliès aurait proposé en vain de racheter leur invention.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Voyage_dans_la_Lune",
+    "https://fr.wikipedia.org/wiki/Georges_M%C3%A9li%C3%A8s",
+    "https://fr.wikipedia.org/wiki/Auguste_et_Louis_Lumi%C3%A8re"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "cinema-027",
+   "categorie": "Cinéma",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année a eu lieu, à Paris, la première projection publique payante du Cinématographe des frères Lumière ?",
+   "anecdote": "La séance historique du 28 décembre 1895, au Salon indien du Grand Café, boulevard des Capucines, n'attira qu'une trentaine de spectateurs payants le premier jour, avant que le succès ne devienne fulgurant.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cin%C3%A9matographe",
+    "https://fr.wikipedia.org/wiki/Salon_indien_du_Grand_Caf%C3%A9",
+    "https://fr.wikipedia.org/wiki/Auguste_et_Louis_Lumi%C3%A8re"
+   ],
+   "reponse_numerique": 1895
+  },
+  {
+   "id": "cinema-028",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année s'est tenue la toute première édition du Festival de Cannes ?",
+   "anecdote": "Prévue pour septembre 1939, la première édition fut annulée par la guerre. Le festival vit finalement le jour du 20 septembre au 5 octobre 1946 et, dans un esprit de réconciliation, le Grand Prix fut partagé entre onze films.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Festival_de_Cannes_1946",
+    "https://fr.wikipedia.org/wiki/Festival_de_Cannes"
+   ],
+   "reponse_numerique": 1946
+  },
+  {
+   "id": "cinema-029",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez un film de la trilogie « Trois couleurs » de Krzysztof Kieślowski.",
+   "anecdote": "Chaque film incarne une valeur de la devise française — liberté, égalité, fraternité. « Bleu » a remporté le Lion d'or à Venise en 1993, et Kieślowski a annoncé sa retraite après « Rouge », deux ans avant sa mort en 1996.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Trois_couleurs_(trilogie)",
+    "https://fr.wikipedia.org/wiki/Krzysztof_Kie%C5%9Blowski"
+   ],
+   "reponses_acceptees": [
+    "Trois couleurs : Bleu",
+    "Bleu",
+    "Trois couleurs : Blanc",
+    "Blanc",
+    "Trois couleurs : Rouge",
+    "Rouge"
+   ]
+  },
+  {
+   "id": "gastronomie-011",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La recette traditionnelle de la quiche lorraine contient du fromage râpé.",
+   "anecdote": "La garniture traditionnelle, appelée « migaine », ne comporte que des œufs, de la crème et des lardons. Le fromage est un ajout tardif, popularisé hors de Lorraine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Quiche_lorraine",
+    "https://fr.wikipedia.org/wiki/Cuisine_lorraine"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "gastronomie-012",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "L'appellation « camembert » est, à elle seule, protégée par une AOP.",
+   "anecdote": "Seule l'appellation « camembert de Normandie », au lait cru et moulé à la louche, est protégée par une AOP. Le mot « camembert » seul est tombé dans le domaine public et peut être utilisé partout dans le monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Camembert_de_Normandie",
+    "https://fr.wikipedia.org/wiki/Camembert"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "gastronomie-013",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "En 1925, le roquefort fut le premier fromage français à obtenir une appellation d'origine.",
+   "anecdote": "La loi du 26 juillet 1925 protégea le roquefort avant même la plupart des vins. Dès 1411, Charles VI avait accordé aux habitants de Roquefort le monopole de l'affinage dans les caves du village.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Roquefort_(fromage)",
+    "https://fr.wikipedia.org/wiki/Appellation_d%27origine"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "gastronomie-014",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année la première édition du guide Michelin a-t-elle été publiée ?",
+   "anecdote": "Créé par André et Édouard Michelin pour l'Exposition universelle de 1900, le guide était alors offert gratuitement aux automobilistes : la France ne comptait que quelques milliers de voitures.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guide_Michelin",
+    "https://fr.wikipedia.org/wiki/Michelin"
+   ],
+   "reponse_numerique": 1900
+  },
+  {
+   "id": "gastronomie-015",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le « repas gastronomique des Français » a-t-il été inscrit au patrimoine immatériel de l'UNESCO ?",
+   "anecdote": "Inscrit le 16 novembre 2010, le repas gastronomique des Français fut l'une des premières traditions culinaires au monde reconnues par l'UNESCO, en tant que pratique sociale et non comme simple cuisine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Repas_gastronomique_des_Fran%C3%A7ais",
+    "https://fr.wikipedia.org/wiki/Gastronomie_fran%C3%A7aise"
+   ],
+   "reponse_numerique": 2010
+  },
+  {
+   "id": "gastronomie-016",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Paul Bocuse a-t-il obtenu sa troisième étoile au guide Michelin ?",
+   "anecdote": "Obtenue en 1965, cette troisième étoile fut conservée sans interruption pendant plus de cinquante ans, un record de longévité. Le restaurant de Collonges-au-Mont-d'Or ne la perdit qu'en 2020, après la mort du chef.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Paul_Bocuse",
+    "https://fr.wikipedia.org/wiki/Guide_Michelin"
+   ],
+   "reponse_numerique": 1965
+  },
+  {
+   "id": "gastronomie-017",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez un fromage de Normandie bénéficiant d'une AOP.",
+   "anecdote": "La Normandie compte exactement quatre fromages AOP : camembert de Normandie, livarot, pont-l'évêque et neufchâtel. Ce dernier, en forme de cœur, serait le plus ancien des fromages normands.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Camembert_de_Normandie",
+    "https://fr.wikipedia.org/wiki/Livarot_(fromage)",
+    "https://fr.wikipedia.org/wiki/Pont-l%27%C3%A9v%C3%AAque_(fromage)",
+    "https://fr.wikipedia.org/wiki/Neufch%C3%A2tel_(fromage)"
+   ],
+   "reponses_acceptees": [
+    "Camembert de Normandie",
+    "Camembert",
+    "Livarot",
+    "Pont-l'Évêque",
+    "Pont-l'Eveque",
+    "Neufchâtel",
+    "Neufchatel"
+   ]
+  },
+  {
+   "id": "general-009",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "L'espagnol est la langue officielle du Brésil.",
+   "anecdote": "La langue officielle du Brésil est le portugais : avec plus de 200 millions de locuteurs, le pays compte à lui seul l'immense majorité des lusophones du monde, loin devant le Portugal.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Brésil",
+    "https://fr.wikipedia.org/wiki/Portugais"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "general-010",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le kilogramme est toujours défini par un cylindre de platine iridié conservé près de Paris.",
+   "anecdote": "Depuis le 20 mai 2019, le kilogramme est défini à partir de la constante de Planck. Le « grand K », prototype conservé à Sèvres depuis 1889, avait mystérieusement perdu quelques microgrammes par rapport à ses copies.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kilogramme",
+    "https://fr.wikipedia.org/wiki/Prototype_international_du_kilogramme"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "general-011",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "L'euro est la monnaie officielle du Monténégro, un pays qui n'est pourtant pas membre de l'Union européenne.",
+   "anecdote": "Le Monténégro utilise l'euro de manière unilatérale depuis 2002, sans accord formel avec la Banque centrale européenne : il ne frappe donc aucune pièce et n'imprime aucun billet lui-même.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Monténégro",
+    "https://fr.wikipedia.org/wiki/Euro"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "general-012",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le pape Grégoire XIII a-t-il instauré le calendrier grégorien ?",
+   "anecdote": "Pour rattraper le retard accumulé par le calendrier julien, dix jours furent supprimés : en octobre 1582, le lendemain du jeudi 4 octobre fut directement le vendredi 15 octobre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Calendrier_grégorien",
+    "https://fr.wikipedia.org/wiki/Grégoire_XIII"
+   ],
+   "reponse_numerique": 1582
+  },
+  {
+   "id": "general-013",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien d'unités de base compte le Système international d'unités ?",
+   "anecdote": "Les sept unités de base sont le mètre, le kilogramme, la seconde, l'ampère, le kelvin, la mole et la candela. La mole est la petite dernière : elle n'a rejoint le club qu'en 1971.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Système_international_d'unités",
+    "https://fr.wikipedia.org/wiki/Unités_de_base_du_Système_international"
+   ],
+   "reponse_numerique": 7
+  },
+  {
+   "id": "general-014",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez l'une des six langues officielles de l'Organisation des Nations unies.",
+   "anecdote": "L'arabe est la dernière langue à avoir obtenu ce statut, en 1973. L'allemand, pourtant très parlé en Europe, n'a jamais figuré parmi les langues officielles de l'ONU.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Organisation_des_Nations_unies",
+    "https://www.un.org/fr/our-work/official-languages"
+   ],
+   "reponses_acceptees": [
+    "anglais",
+    "français",
+    "espagnol",
+    "russe",
+    "chinois",
+    "mandarin",
+    "arabe"
+   ]
+  },
+  {
+   "id": "insolite-011",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les poissons rouges ont une mémoire limitée à trois secondes.",
+   "anecdote": "Des expériences ont montré que le poisson rouge peut mémoriser des informations pendant plusieurs mois : il peut même apprendre à associer un son à l'heure du repas.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Poisson_rouge",
+    "https://en.wikipedia.org/wiki/Goldfish"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "insolite-012",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La Grande Muraille de Chine est visible à l'œil nu depuis la Lune.",
+   "anecdote": "Depuis la Lune, à environ 380 000 km, aucun ouvrage humain n'est discernable à l'œil nu. Même en orbite basse, les astronautes peinent à distinguer la Muraille, trop étroite et de couleur proche du terrain.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Grande_Muraille",
+    "https://en.wikipedia.org/wiki/Great_Wall_of_China"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "insolite-013",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le drapeau national du Népal est le seul au monde à ne pas être quadrilatère.",
+   "anecdote": "Le drapeau du Népal est formé de deux fanions triangulaires superposés. Sa construction géométrique exacte est décrite dans la Constitution népalaise.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_du_N%C3%A9pal",
+    "https://en.wikipedia.org/wiki/Flag_of_Nepal"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "insolite-014",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Sous sa fourrure, la peau de l'ours polaire est noire.",
+   "anecdote": "Les poils de l'ours blanc sont en réalité translucides et creux ; c'est la diffusion de la lumière qui les fait paraître blancs, tandis que la peau noire favorise l'absorption de la chaleur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ours_blanc",
+    "https://en.wikipedia.org/wiki/Polar_bear"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "insolite-015",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de cœurs possède une pieuvre ?",
+   "anecdote": "Deux cœurs branchiaux envoient le sang vers les branchies, et un cœur systémique l'envoie vers le reste du corps. Son sang, riche en hémocyanine, est de couleur bleue.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pieuvre",
+    "https://en.wikipedia.org/wiki/Octopus"
+   ],
+   "reponse_numerique": 3
+  },
+  {
+   "id": "insolite-016",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année a eu lieu la guerre anglo-zanzibarienne, la plus courte de l'histoire ?",
+   "anecdote": "Le 27 août 1896, le conflit entre le Royaume-Uni et le sultanat de Zanzibar s'est achevé en moins de 40 minutes, ce qui en fait la guerre la plus courte jamais enregistrée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guerre_anglo-zanzibarienne",
+    "https://en.wikipedia.org/wiki/Anglo-Zanzibar_War"
+   ],
+   "reponse_numerique": 1896
+  },
+  {
+   "id": "insolite-017",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez un État dont le drapeau national n'est pas un rectangle oblong (carré ou fanions).",
+   "anecdote": "Seuls trois États du monde ont un drapeau non oblong : le Népal avec ses deux fanions, et la Suisse et le Vatican avec leurs drapeaux carrés.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_du_N%C3%A9pal",
+    "https://fr.wikipedia.org/wiki/Drapeau_de_la_Suisse",
+    "https://fr.wikipedia.org/wiki/Drapeau_du_Vatican"
+   ],
+   "reponses_acceptees": [
+    "Népal",
+    "Suisse",
+    "Vatican"
+   ]
+  },
+  {
+   "id": "langue-009",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le verbe « pallier » se construit avec la préposition « à » : on doit dire « pallier à un problème ».",
+   "anecdote": "« Pallier » vient du latin palliare, « couvrir d'un pallium », un manteau : on pallie un manque comme on le recouvre, d'où sa construction transitive directe (« pallier un problème »).",
+   "sources": [
+    "https://www.academie-francaise.fr/pallier",
+    "https://fr.wiktionary.org/wiki/pallier"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "langue-010",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Pour l'Académie française, la graphie correcte de l'expression est « autant pour moi », et non « au temps pour moi ».",
+   "anecdote": "« Au temps ! » est à l'origine un commandement militaire ordonnant de reprendre un mouvement au premier temps. L'Académie juge que « rien ne justifie » la graphie « autant pour moi », pourtant très répandue.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Au_temps_pour_moi",
+    "https://fr.wiktionary.org/wiki/au_temps_pour_moi"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "langue-011",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "En usage soigné, « amour », « délice » et « orgue » sont masculins au singulier mais féminins au pluriel.",
+   "anecdote": "Ce trio est la bizarrerie de genre la plus célèbre du français : on écrit « un grand amour » mais, en langue littéraire, « de folles amours ». Pour « orgue », le féminin pluriel s'emploie surtout pour un seul instrument (« les grandes orgues »).",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/amour",
+    "https://fr.wiktionary.org/wiki/délice",
+    "https://fr.wiktionary.org/wiki/orgue"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "langue-012",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le cardinal de Richelieu a-t-il fondé l'Académie française ?",
+   "anecdote": "Fondée en 1635, l'Académie a mis cinquante-neuf ans à achever la première édition de son Dictionnaire, parue seulement en 1694.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Académie_française",
+    "https://fr.wikipedia.org/wiki/Dictionnaire_de_l%27Académie_française"
+   ],
+   "reponse_numerique": 1635
+  },
+  {
+   "id": "langue-013",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année l'Agence de coopération culturelle et technique, ancêtre de l'OIF, a-t-elle été créée à Niamey ?",
+   "anecdote": "L'ACCT a été créée le 20 mars 1970 à Niamey, au Niger : c'est cette date qui a fixé la Journée internationale de la Francophonie, célébrée chaque 20 mars.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Organisation_internationale_de_la_francophonie",
+    "https://fr.wikipedia.org/wiki/Journée_internationale_de_la_Francophonie"
+   ],
+   "reponse_numerique": 1970
+  },
+  {
+   "id": "langue-014",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez un État européen membre de l'ONU dont le français est une langue officielle.",
+   "anecdote": "À Monaco, le français est l'unique langue officielle, alors qu'en Belgique, en Suisse et au Luxembourg il partage ce statut avec d'autres langues nationales.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Langue_officielle",
+    "https://fr.wikipedia.org/wiki/Français"
+   ],
+   "reponses_acceptees": [
+    "France",
+    "Belgique",
+    "Suisse",
+    "Luxembourg",
+    "Monaco"
+   ]
+  },
+  {
+   "id": "musique-012",
+   "categorie": "Musique",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La Marseillaise a été composée à Marseille.",
+   "anecdote": "Rouget de Lisle l'a écrite à Strasbourg en 1792 sous le titre « Chant de guerre pour l'armée du Rhin ». Elle doit son nom aux fédérés marseillais qui la chantèrent en entrant dans Paris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Marseillaise",
+    "https://fr.wikipedia.org/wiki/Claude_Joseph_Rouget_de_Lisle"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "musique-013",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Mozart a achevé lui-même l'intégralité de son Requiem avant de mourir.",
+   "anecdote": "Mort en décembre 1791, Mozart laissa le Requiem inachevé. C'est son élève Franz Xaver Süssmayr qui le compléta, à la demande de Constance Mozart, pour honorer la commande anonyme du comte Walsegg.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Requiem_de_Mozart",
+    "https://fr.wikipedia.org/wiki/Franz_Xaver_S%C3%BCssmayr"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "musique-014",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le Boléro de Maurice Ravel a été composé à l'origine pour un ballet.",
+   "anecdote": "Commandé par la danseuse Ida Rubinstein, le Boléro fut créé comme ballet le 22 novembre 1928 à l'Opéra Garnier. Ravel, en tournée au Portugal et en Espagne, n'assista même pas à la première.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bol%C3%A9ro_(Ravel)",
+    "https://fr.wikipedia.org/wiki/Ida_Rubinstein"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "musique-015",
+   "categorie": "Musique",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de touches compte le clavier d'un piano de concert standard ?",
+   "anecdote": "Les 88 touches se répartissent en 52 blanches et 36 noires. Certains pianos Bösendorfer, comme le modèle Impérial, vont au-delà avec des touches graves supplémentaires.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Piano",
+    "https://fr.wikipedia.org/wiki/Piano_%C3%A0_queue"
+   ],
+   "reponse_numerique": 88
+  },
+  {
+   "id": "musique-016",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année l'opéra Carmen de Georges Bizet a-t-il été créé à l'Opéra-Comique de Paris ?",
+   "anecdote": "Créée le 3 mars 1875, Carmen fut d'abord un échec. Bizet mourut trois mois plus tard, sans jamais connaître le triomphe mondial de son œuvre, devenue l'un des opéras les plus joués au monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Carmen_(op%C3%A9ra)",
+    "https://fr.wikipedia.org/wiki/Georges_Bizet"
+   ],
+   "reponse_numerique": 1875
+  },
+  {
+   "id": "musique-017",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "equipe",
+   "texte": "Citez un compositeur membre du Groupe des Six, cercle emblématique de la musique française des années 1920.",
+   "anecdote": "Le nom « les Six » fut lancé en 1920 par le critique Henri Collet dans le journal Comœdia, en référence au « Groupe des Cinq » russe. Germaine Tailleferre en était la seule femme.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Groupe_des_Six_(musique)",
+    "https://fr.wikipedia.org/wiki/Germaine_Tailleferre"
+   ],
+   "reponses_acceptees": [
+    "Georges Auric",
+    "Auric",
+    "Louis Durey",
+    "Durey",
+    "Arthur Honegger",
+    "Honegger",
+    "Darius Milhaud",
+    "Milhaud",
+    "Francis Poulenc",
+    "Poulenc",
+    "Germaine Tailleferre",
+    "Tailleferre"
+   ]
+  },
+  {
+   "id": "pop-culture-011",
+   "categorie": "Pop Culture",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les Schtroumpfs ont été créés par Hergé, le père de Tintin.",
+   "anecdote": "Les Schtroumpfs sont l'œuvre du Belge Peyo, qui les a fait apparaître en 1958 dans une aventure de Johan et Pirlouit, « La Flûte à six trous », avant de leur consacrer leur propre série.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Schtroumpfs",
+    "https://fr.wikipedia.org/wiki/Peyo"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "pop-culture-012",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Dans L'Empire contre-attaque, Dark Vador prononce mot pour mot la réplique « Luke, je suis ton père ».",
+   "anecdote": "La réplique exacte est « Non, je suis ton père ». Cette fausse citation, ancrée dans la mémoire collective, est un exemple classique de ce qu'on appelle l'« effet Mandela ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/L%27Empire_contre-attaque",
+    "https://fr.wikipedia.org/wiki/Dark_Vador"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "pop-culture-013",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le personnage de Mario est apparu pour la première fois dans le jeu Super Mario Bros.",
+   "anecdote": "Mario apparaît dès 1981 dans le jeu d'arcade Donkey Kong, sous le nom de « Jumpman ». Il y est d'ailleurs charpentier, et non plombier.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mario",
+    "https://fr.wikipedia.org/wiki/Donkey_Kong_(jeu_vid%C3%A9o,_1981)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "pop-culture-014",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le film Titanic de James Cameron a remporté 11 oscars.",
+   "anecdote": "Avec 11 statuettes en 1998, Titanic égale le record de Ben-Hur (1959), rejoint ensuite par Le Seigneur des anneaux : Le Retour du roi en 2004.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Titanic_(film,_1997)",
+    "https://fr.wikipedia.org/wiki/70e_c%C3%A9r%C3%A9monie_des_Oscars"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "pop-culture-015",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année est sorti Toy Story, premier long métrage entièrement réalisé en images de synthèse ?",
+   "anecdote": "Le personnage de Buzz l'Éclair doit son nom à l'astronaute Buzz Aldrin, deuxième homme à avoir marché sur la Lune.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Toy_Story",
+    "https://fr.wikipedia.org/wiki/Pixar_Animation_Studios"
+   ],
+   "reponse_numerique": 1995
+  },
+  {
+   "id": "pop-culture-016",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de Pokémon compte la première génération, celle des jeux Pokémon Rouge et Bleu ?",
+   "anecdote": "Le 151e Pokémon, Mew, a été glissé discrètement dans la mémoire restante de la cartouche et n'était initialement obtenable que lors d'événements officiels.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pok%C3%A9mon_Rouge_et_Bleu",
+    "https://fr.wikipedia.org/wiki/Mew"
+   ],
+   "reponse_numerique": 151
+  },
+  {
+   "id": "pop-culture-017",
+   "categorie": "Pop Culture",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année est sorti Steamboat Willie, considéré comme les débuts officiels de Mickey Mouse ?",
+   "anecdote": "Ce court métrage, l'un des premiers dessins animés au son synchronisé, est entré dans le domaine public américain le 1er janvier 2024, 95 ans après sa sortie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Steamboat_Willie",
+    "https://fr.wikipedia.org/wiki/Mickey_Mouse"
+   ],
+   "reponse_numerique": 1928
+  },
+  {
+   "id": "pop-culture-018",
+   "categorie": "Pop Culture",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "equipe",
+   "texte": "Citez l'un des sept nains du dessin animé Blanche-Neige et les Sept Nains de Disney.",
+   "anecdote": "Dans le conte des frères Grimm, les nains n'ont aucun nom : ce sont les studios Disney qui les ont baptisés pour le film de 1937, après avoir envisagé une cinquantaine de prénoms.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Blanche-Neige_et_les_Sept_Nains",
+    "https://fr.wikipedia.org/wiki/Blanche-Neige"
+   ],
+   "reponses_acceptees": [
+    "Prof",
+    "Grincheux",
+    "Joyeux",
+    "Dormeur",
+    "Timide",
+    "Atchoum",
+    "Simplet"
+   ]
+  },
+  {
+   "id": "sport-009",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Michel Platini a remporté la Coupe du monde de football avec l'équipe de France.",
+   "anecdote": "Platini n'a jamais gagné la Coupe du monde : son plus grand titre en Bleu reste l'Euro 1984, où il a inscrit 9 buts en 5 matchs, record toujours inégalé sur une seule édition du championnat d'Europe.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Michel_Platini",
+    "https://fr.wikipedia.org/wiki/Championnat_d%27Europe_de_football_1984"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sport-010",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le maillot jaune du Tour de France existe depuis la première édition de l'épreuve, en 1903.",
+   "anecdote": "Le maillot jaune n'apparaît qu'en 1919, seize ans après le premier Tour. Sa couleur reprend celle du papier du journal L'Auto, organisateur de la course, et Eugène Christophe fut le premier à le porter.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Maillot_jaune",
+    "https://fr.wikipedia.org/wiki/Tour_de_France_1919"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "sport-011",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le rugby à XV a déjà été sport olympique.",
+   "anecdote": "Le rugby à XV a figuré aux Jeux de 1900, 1908, 1920 et 1924. Derniers champions olympiques à XV en 1924 : les États-Unis, qui sont donc toujours tenants du titre dans cette discipline.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rugby_%C3%A0_XV_aux_Jeux_olympiques",
+    "https://fr.wikipedia.org/wiki/Rugby_%C3%A0_sept_aux_Jeux_olympiques"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "sport-012",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année se sont déroulés les premiers Jeux olympiques de l'ère moderne ?",
+   "anecdote": "Organisés à Athènes à l'initiative de Pierre de Coubertin, ces premiers Jeux modernes ne comptaient aucune femme parmi les concurrents, et le marathon fut remporté par le Grec Spyridon Louis.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques_d%27%C3%A9t%C3%A9_de_1896",
+    "https://fr.wikipedia.org/wiki/Pierre_de_Coubertin"
+   ],
+   "reponse_numerique": 1896
+  },
+  {
+   "id": "sport-013",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de médailles d'or olympiques le nageur Michael Phelps a-t-il remportées au total dans sa carrière ?",
+   "anecdote": "Avec 23 titres et 28 médailles au total, Phelps est l'athlète le plus médaillé de l'histoire des Jeux. À Pékin en 2008, il a décroché 8 médailles d'or en une seule édition, un record absolu.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Michael_Phelps",
+    "https://fr.wikipedia.org/wiki/Natation_aux_Jeux_olympiques"
+   ],
+   "reponse_numerique": 23
+  },
+  {
+   "id": "sport-014",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de fois Eddy Merckx a-t-il remporté le Tour de France ?",
+   "anecdote": "Surnommé « le Cannibale », Merckx a gagné cinq Tours entre 1969 et 1974. En 1969, pour sa première participation, il rafle en plus du général les classements par points et de la montagne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Eddy_Merckx",
+    "https://fr.wikipedia.org/wiki/Tour_de_France"
+   ],
+   "reponse_numerique": 5
+  },
+  {
+   "id": "sport-015",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez un cycliste français ayant remporté le Tour de France depuis 1970.",
+   "anecdote": "Seuls trois Français ont gagné le Tour depuis 1970 : Thévenet, Hinault et Fignon. Le dernier succès tricolore remonte à Hinault en 1985, et Fignon a perdu le Tour 1989 pour 8 secondes, le plus petit écart de l'histoire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bernard_Hinault",
+    "https://fr.wikipedia.org/wiki/Laurent_Fignon",
+    "https://fr.wikipedia.org/wiki/Bernard_Th%C3%A9venet"
+   ],
+   "reponses_acceptees": [
+    "Bernard Thévenet",
+    "Thévenet",
+    "Thevenet",
+    "Bernard Hinault",
+    "Hinault",
+    "Laurent Fignon",
+    "Fignon"
    ]
   },
   {
