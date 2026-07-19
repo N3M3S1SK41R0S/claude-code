@@ -29,11 +29,15 @@
   <main>
     <!-- Accueil -->
     <section id="screen-home" class="screen screen-centre">
-      <p class="home-emoji" aria-hidden="true">🏰</p>
+      <div class="home-hero">
+        <img class="home-hero-img" alt="Le Donjon du Savoir" src="assets/hero-accueil.webp"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <p class="home-emoji" aria-hidden="true" style="display:none">🏰</p>
+      </div>
       <h1 class="home-title">LE DONJON DU SAVOIR</h1>
       <p class="home-tagline">Se cultiver en jouant — 1 à 20 aventuriers, aucune montre au mur.</p>
       <div class="herald-bubble herald-home">
-        <span class="herald-avatar" aria-hidden="true">📯</span>
+        <span class="herald-avatar" aria-hidden="true">📯<img class="herald-art" alt="" src="assets/heraut-medaillon.png" onerror="this.remove()"></span>
         <p class="herald-text">« Oyez ! Ici, chaque question offre son anecdote, et nul chronomètre ne viendra jamais vous presser. Parole de Héraut. »</p>
       </div>
       <div id="home-actions" class="home-actions"></div>

@@ -108,10 +108,11 @@ function inlineAssets(text) {
   const dir = join(root, "assets");
   let out = text;
   let count = 0;
-  for (const file of readdirSync(dir).filter((f) => f.endsWith(".png"))) {
+  for (const file of readdirSync(dir).filter((f) => /\.(png|webp)$/.test(f))) {
     const ref = `assets/${file}`;
     if (!out.includes(ref)) continue;
-    const dataUri = `data:image/png;base64,${readFileSync(join(dir, file)).toString("base64")}`;
+    const mime = file.endsWith(".webp") ? "image/webp" : "image/png";
+    const dataUri = `data:${mime};base64,${readFileSync(join(dir, file)).toString("base64")}`;
     out = out.split(ref).join(dataUri);
     count += 1;
   }

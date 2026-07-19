@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v26";
+const VERSION = "donjon-v27";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -48,6 +48,26 @@ const SHELL = [
   "./assets/case-insolite.png",
   "./assets/case-expression.png",
   "./assets/case-tresor.png",
+  "./assets/heraut.png",
+  "./assets/heraut-medaillon.png",
+  "./assets/decor-chateau.png",
+  "./assets/decor-arbre.png",
+  "./assets/decor-bougie.png",
+  "./assets/decor-champignon.png",
+  "./assets/decor-chauvesouris.png",
+  "./assets/decor-toile.png",
+  "./assets/decor-cristal.png",
+  "./assets/decor-statue.png",
+  "./assets/decor-volcan.png",
+  "./assets/decor-os.png",
+  "./assets/decor-etoile.png",
+  "./assets/decor-flamme.png",
+  "./assets/hero-accueil.webp",
+  "./assets/fond-donjon.webp",
+  "./assets/fond-crypte.webp",
+  "./assets/fond-tour.webp",
+  "./assets/fond-catacombes.webp",
+  "./assets/fond-labyrinthe.webp",
 ];
 
 self.addEventListener("install", (event) => {

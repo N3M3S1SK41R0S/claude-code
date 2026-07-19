@@ -90,6 +90,16 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 /* ---------- home ---------- */
 
 .home-emoji { font-size: 4rem; }
+.home-hero { width: 100%; display: flex; justify-content: center; }
+.home-hero-img {
+  width: min(30rem, 100%);
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  display: block;
+}
 .home-title { color: var(--gold); font-size: 2.1rem; letter-spacing: 0.04em; }
 .home-tagline { color: var(--soft); font-style: italic; }
 .home-actions { display: flex; flex-direction: column; gap: 0.8rem; width: min(26rem, 100%); margin-top: 0.5rem; }
@@ -108,7 +118,17 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
   max-width: 38rem;
 }
 .herald-home { margin-top: 0.6rem; }
-.herald-avatar { font-size: 1.6rem; }
+.herald-avatar {
+  font-size: 1.6rem;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  flex-shrink: 0;
+}
+.herald-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .herald-text { font-style: italic; line-height: 1.35; }
 .herald-zone { display: flex; justify-content: center; min-height: 3.2rem; }
 
@@ -207,29 +227,41 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 
 .board-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 
-/* Per-dungeon moods */
+/* Per-dungeon moods : fond peint (webp) posé sur un léger voile pour la
+   lisibilité ; les dégradés restent en repli si l'image n'est pas chargée
+   (ex. version un seul fichier allégée). */
+.board-theme-donjon {
+  background:
+    linear-gradient(rgba(20, 14, 40, 0.24), rgba(20, 14, 40, 0.4)),
+    url(assets/fond-donjon.webp) center/cover no-repeat,
+    linear-gradient(160deg, #241a45 0%, #1a1230 55%, #150e28 100%);
+}
 .board-theme-crypte {
   background:
+    linear-gradient(rgba(16, 26, 22, 0.22), rgba(16, 26, 22, 0.4)),
+    url(assets/fond-crypte.webp) center/cover no-repeat,
     radial-gradient(circle at 12% 88%, rgba(88, 162, 79, 0.3) 0%, transparent 38%),
-    radial-gradient(circle at 88% 12%, rgba(224, 176, 74, 0.18) 0%, transparent 30%),
     linear-gradient(160deg, #1c2b1e 0%, #14201a 60%, #101a16 100%);
 }
 .board-theme-tour {
   background:
+    linear-gradient(rgba(25, 13, 28, 0.24), rgba(25, 13, 28, 0.42)),
+    url(assets/fond-tour.webp) center/cover no-repeat,
     radial-gradient(circle at 85% 8%, rgba(224, 90, 60, 0.28) 0%, transparent 34%),
-    radial-gradient(circle at 10% 90%, rgba(88, 162, 79, 0.16) 0%, transparent 30%),
     linear-gradient(160deg, #33192b 0%, #241224 55%, #190d1c 100%);
 }
 .board-theme-catacombes {
   background:
+    linear-gradient(rgba(11, 20, 30, 0.24), rgba(11, 20, 30, 0.42)),
+    url(assets/fond-catacombes.webp) center/cover no-repeat,
     radial-gradient(circle at 90% 12%, rgba(62, 184, 194, 0.25) 0%, transparent 32%),
-    radial-gradient(circle at 8% 88%, rgba(142, 92, 194, 0.2) 0%, transparent 32%),
     linear-gradient(160deg, #10262c 0%, #0e1c26 55%, #0b141e 100%);
 }
 .board-theme-labyrinthe {
   background:
+    linear-gradient(rgba(23, 18, 12, 0.22), rgba(23, 18, 12, 0.4)),
+    url(assets/fond-labyrinthe.webp) center/cover no-repeat,
     radial-gradient(circle at 90% 10%, rgba(224, 176, 74, 0.35) 0%, transparent 36%),
-    radial-gradient(circle at 12% 90%, rgba(194, 169, 62, 0.2) 0%, transparent 30%),
     linear-gradient(160deg, #2c2414 0%, #211a10 55%, #17120c 100%);
 }
 
@@ -238,10 +270,12 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
   translate: -50% -50%;
   font-size: 1.2rem;
   font-size: 3cqw;
-  opacity: 0.55;
+  opacity: 0.7;
   filter: saturate(0.85);
   pointer-events: none;
 }
+/* Décor peint posé sur l'emoji (repli si l'image manque). */
+.decor-art { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 1.7em; height: 1.7em; object-fit: contain; }
 
 .case {
   position: absolute;

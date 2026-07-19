@@ -28,13 +28,26 @@ export function setPanel(...children) {
   p.scrollTop = 0;
 }
 
+/** Avatar du Héraut : médaillon peint posé sur l'emoji 📯 (repli si absent). */
+export function heraldAvatar() {
+  const span = el("span", { class: "herald-avatar", "aria-hidden": "true", text: "📯" });
+  const img = document.createElement("img");
+  img.className = "herald-art";
+  img.alt = "";
+  img.decoding = "async";
+  img.src = "assets/heraut-medaillon.png";
+  img.onerror = () => img.remove();
+  span.appendChild(img);
+  return span;
+}
+
 export function heraldSays(text, { speak = true } = {}) {
   const zone = document.getElementById("herald-zone");
   if (zone) {
     zone.innerHTML = "";
     zone.append(
       el("div", { class: "herald-bubble", role: "status", "aria-live": "polite" },
-        el("span", { class: "herald-avatar", "aria-hidden": "true", text: "📯" }),
+        heraldAvatar(),
         el("p", { class: "herald-text", text }),
       ),
     );

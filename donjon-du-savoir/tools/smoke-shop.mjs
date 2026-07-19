@@ -17,9 +17,10 @@ const server = createServer(async (req, res) => {
     if (path.endsWith("/")) path += "index.html";
     const file = normalize(join(root, path));
     if (!file.startsWith(root)) throw new Error("forbidden");
+    const body = await readFile(file); // lire AVANT d'écrire l'en-tête (sinon un 404 double l'en-tête)
     res.writeHead(200, { "Content-Type": MIME[extname(file)] ?? "application/octet-stream" });
-    res.end(await readFile(file));
-  } catch { res.writeHead(404); res.end(); }
+    res.end(body);
+  } catch { if (!res.headersSent) res.writeHead(404); res.end(); }
 });
 await new Promise((r) => server.listen(PORT, r));
 

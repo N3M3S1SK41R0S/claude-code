@@ -195,14 +195,15 @@ function roadPath(coords) {
   return d;
 }
 
-/** Dungeon scenery (relative positions 0-1, scaled to each board). */
+/** Dungeon scenery (relative positions 0-1, scaled to each board). `art` : décor
+ *  peint posé par-dessus l'emoji (repli si l'image manque). */
 const DECOR = [
-  { e: "🏰", u: 0.03, v: 0.94, s: 44 }, { e: "🌲", u: 0.19, v: 0.97, s: 26 },
-  { e: "🕯️", u: 0.975, v: 0.91, s: 24 }, { e: "🍄", u: 0.955, v: 0.75, s: 22 },
-  { e: "🦇", u: 0.06, v: 0.55, s: 22 }, { e: "🕸️", u: 0.025, v: 0.72, s: 26 },
-  { e: "💎", u: 0.965, v: 0.53, s: 22 }, { e: "🗿", u: 0.03, v: 0.31, s: 30 },
-  { e: "🌋", u: 0.85, v: 0.09, s: 30 }, { e: "🦴", u: 0.5, v: 0.965, s: 20 },
-  { e: "⭐", u: 0.968, v: 0.14, s: 26 }, { e: "🔥", u: 0.12, v: 0.09, s: 22 },
+  { e: "🏰", u: 0.03, v: 0.94, s: 44, art: "assets/decor-chateau.png" }, { e: "🌲", u: 0.19, v: 0.97, s: 26, art: "assets/decor-arbre.png" },
+  { e: "🕯️", u: 0.975, v: 0.91, s: 24, art: "assets/decor-bougie.png" }, { e: "🍄", u: 0.955, v: 0.75, s: 22, art: "assets/decor-champignon.png" },
+  { e: "🦇", u: 0.06, v: 0.55, s: 22, art: "assets/decor-chauvesouris.png" }, { e: "🕸️", u: 0.025, v: 0.72, s: 26, art: "assets/decor-toile.png" },
+  { e: "💎", u: 0.965, v: 0.53, s: 22, art: "assets/decor-cristal.png" }, { e: "🗿", u: 0.03, v: 0.31, s: 30, art: "assets/decor-statue.png" },
+  { e: "🌋", u: 0.85, v: 0.09, s: 30, art: "assets/decor-volcan.png" }, { e: "🦴", u: 0.5, v: 0.965, s: 20, art: "assets/decor-os.png" },
+  { e: "⭐", u: 0.968, v: 0.14, s: 26, art: "assets/decor-etoile.png" }, { e: "🔥", u: 0.12, v: 0.09, s: 22, art: "assets/decor-flamme.png" },
 ];
 
 /* ---------- rendering ---------- */
@@ -270,6 +271,15 @@ function buildStatic(container, layout, def) {
     span.style.top = `${dec.v * 100}%`;
     span.style.fontSize = `${dec.s / 10}cqw`;
     span.setAttribute("aria-hidden", "true");
+    if (dec.art) {
+      const img = document.createElement("img");
+      img.className = "decor-art";
+      img.alt = "";
+      img.decoding = "async";
+      img.src = dec.art;
+      img.onerror = () => img.remove(); // repli : l'emoji de décor reste
+      span.appendChild(img);
+    }
     container.appendChild(span);
   }
 
