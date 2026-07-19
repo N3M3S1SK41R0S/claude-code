@@ -125,7 +125,7 @@ système demande de réduire les animations).
 
 ## La banque de questions
 
-`data/questions.json` — **709 questions vérifiées** (chaque fait contrôlé
+`data/questions.json` — **824 questions vérifiées** (chaque fait contrôlé
 contre ≥ 2 sources indépendantes, citées sous chaque anecdote), 13 catégories,
 3 tranches d'âge, 6 formats. Elle est générée depuis la banque fact-checkée du
 projet frère `../grand-mogul` :
@@ -207,7 +207,7 @@ manque ; gros fonds et bannière en WebP allégé).
 
 **Pas encore fait** (conforme au §12) : voix professionnelle et architecture
 multi-écrans façon Jackbox (un téléphone par joueur), assurance anti-malus
-payante (v2). Banque : 709 questions vérifiées sur 6 formats et 13 catégories —
+payante (v2). Banque : 824 questions vérifiées sur 6 formats et 13 catégories —
 le pipeline de génération + fact-check peut produire les lots suivants vers
 l'objectif 500-1000 du cahier.
 

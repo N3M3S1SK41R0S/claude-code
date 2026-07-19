@@ -1,6 +1,6 @@
 {
- "version": 1784419545499,
- "count": 707,
+ "version": 1784445901415,
+ "count": 822,
  "questions": [
   {
    "id": "arts-001",
@@ -13380,6 +13380,2315 @@
     "Antoine Bourdelle",
     "Aristide Maillol",
     "Auguste Rodin"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "histoire-057",
+   "theme": "histoire",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "À l'issue du siège de quelle place forte gauloise Vercingétorix se rendit-il à Jules César en 52 av. J.-C. ?",
+   "anecdote": "Assiégé et affamé dans l'oppidum d'Alésia, Vercingétorix capitula vers le 27 septembre 52 av. J.-C., mettant fin à la guerre des Gaules. À Gergovie, quelques mois plus tôt, il avait pourtant infligé un revers à César.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Si%C3%A8ge_d'Al%C3%A9sia",
+    "https://www.herodote.net/almanach-ID-3200.php"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Gergovie",
+    "Bibracte",
+    "Alésia",
+    "Uxellodunum"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "histoire-058",
+   "theme": "histoire",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel pape couronna Charlemagne empereur d'Occident, le jour de Noël de l'an 800, dans la basilique Saint-Pierre de Rome ?",
+   "anecdote": "Léon III, que Charlemagne avait rétabli sur son trône après une agression, lui posa lui-même la couronne impériale sur la tête. Urbain II, lui, appellera à la première croisade près de trois siècles plus tard.",
+   "sources": [
+    "https://www.herodote.net/25_decembre_800-evenement-8001225.php",
+    "https://fr.wikipedia.org/wiki/L%C3%A9on_III_(pape)"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Grégoire VII",
+    "Léon III",
+    "Urbain II",
+    "Étienne II"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "histoire-059",
+   "theme": "histoire",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le traité de Verdun (843), qui partagea l'Empire carolingien en trois royaumes, fut conclu entre les trois fils survivants de quel souverain ?",
+   "anecdote": "Lothaire, Louis le Germanique et Charles le Chauve étaient les petits-fils de Charlemagne, mais bien les fils de Louis le Pieux. Ce partage esquisse les futures France et Allemagne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Trait%C3%A9_de_Verdun",
+    "https://www.universalis.fr/encyclopedie/traite-de-verdun/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Charlemagne",
+    "Charles le Chauve",
+    "Clovis",
+    "Louis le Pieux"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "histoire-060",
+   "theme": "histoire",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "En quelle année Jean-François Champollion annonça-t-il le déchiffrement des hiéroglyphes dans sa célèbre « Lettre à M. Dacier » ?",
+   "anecdote": "Le 27 septembre 1822, Champollion présenta ses résultats devant l'Académie des inscriptions et belles-lettres. La pierre de Rosette, découverte en 1799, avait fourni la clé bilingue de son travail.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Lettre_%C3%A0_M._Dacier",
+    "https://www.herodote.net/27_septembre_1822-evenement-18220927.php"
+   ],
+   "format": "qcm",
+   "choices": [
+    "1822",
+    "1799",
+    "1815",
+    "1830"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "histoire-061",
+   "theme": "histoire",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quelle cité lacustre, capitale de l'Empire aztèque, tomba aux mains d'Hernán Cortés en 1521 ?",
+   "anecdote": "Après environ 75 jours de siège, Tenochtitlan, bâtie sur le lac Texcoco, capitula le 13 août 1521, et Mexico fut ensuite édifiée sur ses ruines. Cuzco était, elle, la capitale de l'Empire inca.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Si%C3%A8ge_de_Tenochtitlan",
+    "https://www.worldhistory.org/article/2028/the-fall-of-tenochtitlan/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Cuzco",
+    "Teotihuacan",
+    "Tenochtitlan",
+    "Chichén Itzá"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "histoire-062",
+   "theme": "histoire",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Par quel édit signé en 1685 Louis XIV révoqua-t-il l'édit de Nantes, interdisant le culte protestant en France ?",
+   "anecdote": "L'édit de Fontainebleau, signé le 18 octobre 1685, provoqua l'exil de quelque 200 000 à 300 000 huguenots vers l'Angleterre, les Provinces-Unies ou le Brandebourg.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/R%C3%A9vocation_de_l'%C3%A9dit_de_Nantes",
+    "https://www.herodote.net/18_octobre_1685-evenement-16851018.php"
+   ],
+   "format": "qcm",
+   "choices": [
+    "L'édit de Villers-Cotterêts",
+    "L'édit de Fontainebleau",
+    "L'édit d'Amboise",
+    "L'édit de Saint-Germain"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "histoire-063",
+   "theme": "histoire",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Lors de quelle bataille de 216 av. J.-C. Hannibal encercla-t-il et anéantit-il une armée romaine bien plus nombreuse ?",
+   "anecdote": "Par sa manœuvre de double enveloppement à Cannes, dans les Pouilles, Hannibal infligea à Rome des dizaines de milliers de morts le 2 août 216 av. J.-C. À Zama, en 202 av. J.-C., il sera à son tour vaincu par Scipion.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bataille_de_Cannes",
+    "https://odysseum.eduscol.education.fr/bataille-de-cannes-victoire-dhannibal-sur-les-romains"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La bataille de Zama",
+    "La bataille de Trasimène",
+    "La bataille de la Trébie",
+    "La bataille de Cannes"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "histoire-064",
+   "theme": "histoire",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel fut le nom du dernier empereur byzantin, tué lors de la prise de Constantinople par les Ottomans en 1453 ?",
+   "anecdote": "Constantin XI périt les armes à la main le 29 mai 1453 et son corps ne fut jamais identifié. La ville tomba aux mains de Mehmed II, dit « le Conquérant ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Constantin_XI_Pal%C3%A9ologue",
+    "https://data.bnf.fr/fr/ark:/12148/cb12307911s"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Constantin XI Paléologue",
+    "Justinien II",
+    "Basile II",
+    "Michel VIII Paléologue"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "histoire-065",
+   "theme": "histoire",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel événement survenu à Prague en 1618 est considéré comme l'élément déclencheur de la guerre de Trente Ans ?",
+   "anecdote": "Le 23 mai 1618, des nobles protestants de Bohême jetèrent par les fenêtres du château deux gouverneurs impériaux et leur secrétaire ; amortie par un tas de fumier, leur chute ne fut pas mortelle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/D%C3%A9fenestration_de_Prague_(1618)",
+    "https://www.larousse.fr/encyclopedie/divers/D%C3%A9fenestration_de_Prague/111293"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La bataille de la Montagne Blanche",
+    "Le sac de Magdebourg",
+    "La défenestration de Prague",
+    "La paix d'Augsbourg"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "histoire-066",
+   "theme": "histoire",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Après la mort de Magellan aux Philippines, quel navigateur ramena en 1522 le navire Victoria en Espagne, achevant le premier tour du monde ?",
+   "anecdote": "Elcano ramena en septembre 1522 la Victoria, seul navire rescapé des cinq partis de Séville en 1519. Magellan avait été tué à Mactan le 27 avril 1521, avant la fin du périple.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Circumnavigation_Magellan-Elcano",
+    "https://www.herodote.net/Grandes_Decouvertes-evenement-15220906.php"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Vasco de Gama",
+    "Juan Sebastián Elcano",
+    "Bartolomeu Dias",
+    "Améric Vespucci"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "geographie-052",
+   "theme": "geographie",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel fleuve traverse ou longe le plus grand nombre de pays au monde, soit dix au total ?",
+   "anecdote": "Le Danube arrose dix pays, de l'Allemagne à l'Ukraine, et longe quatre capitales : Vienne, Bratislava, Budapest et Belgrade.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Danube",
+    "https://www.britannica.com/place/Danube-River"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Nil",
+    "Le Rhin",
+    "Le Danube",
+    "L'Amazone"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "geographie-053",
+   "theme": "geographie",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Quel pays est entièrement entouré par le territoire d'un seul autre État, l'Afrique du Sud ?",
+   "anecdote": "Le Lesotho est l'un des trois seuls États au monde entièrement enclavés dans un autre pays, avec le Vatican et Saint-Marin ; c'est aussi le seul dont tout le territoire dépasse 1 000 m d'altitude.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Geography_of_Lesotho",
+    "https://www.iflscience.com/just-one-country-on-earth-sits-entirely-above-an-altitude-of-1000-meters-76960"
+   ],
+   "format": "qcm",
+   "choices": [
+    "L'Eswatini (Swaziland)",
+    "Le Lesotho",
+    "Le Botswana",
+    "Le Zimbabwe"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "geographie-054",
+   "theme": "geographie",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "En raison du renflement équatorial de la Terre, quel sommet est le point le plus éloigné du centre de la planète, davantage que l'Everest ?",
+   "anecdote": "Situé tout près de l'équateur, le sommet du Chimborazo se trouve environ 2,1 km plus loin du centre de la Terre que celui de l'Everest, bien qu'il soit moins haut au-dessus du niveau de la mer.",
+   "sources": [
+    "https://oceanservice.noaa.gov/facts/highestpoint.html",
+    "https://en.wikipedia.org/wiki/Summits_farthest_from_the_Earth's_center"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Chimborazo (Équateur)",
+    "Le Kilimandjaro (Tanzanie)",
+    "L'Aconcagua (Argentine)",
+    "Le Denali (Alaska)"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "geographie-055",
+   "theme": "geographie",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel pays abrite le plus grand nombre de pyramides antiques au monde, environ deux fois plus que l'Égypte ?",
+   "anecdote": "Bâties par le royaume de Koush, les pyramides nubiennes du Soudan (notamment à Méroé) sont environ 200 à 255, contre un peu plus d'une centaine en Égypte.",
+   "sources": [
+    "https://www.nationalgeographic.com/history/article/sudan-archaeology-pyramdis-kush-nubia",
+    "https://www.history.co.uk/articles/sudan-so-many-pyramids"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Mexique",
+    "L'Égypte",
+    "Le Soudan",
+    "Le Pérou"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "geographie-056",
+   "theme": "geographie",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quelle mer est la seule au monde à ne posséder aucune côte terrestre, ses limites étant définies uniquement par des courants océaniques ?",
+   "anecdote": "Dans l'Atlantique Nord, la mer des Sargasses est encadrée par quatre courants formant le gyre nord-atlantique, dont le Gulf Stream à l'ouest ; elle doit son nom aux algues sargasses qui y flottent.",
+   "sources": [
+    "https://oceanservice.noaa.gov/facts/sargassosea.html",
+    "https://en.wikipedia.org/wiki/Sargasso_Sea"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La mer des Sargasses",
+    "La mer de Corail",
+    "La mer de Weddell",
+    "La mer des Caraïbes"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "geographie-057",
+   "theme": "geographie",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quel lac salé constitue le point le plus bas du continent africain, à environ 155 mètres sous le niveau de la mer ?",
+   "anecdote": "Situé dans la dépression de l'Afar, le lac Assal est aussi l'un des plans d'eau les plus salés du monde, avec une salinité environ dix fois supérieure à celle de la mer.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Lake_Assal_(Djibouti)",
+    "https://www.britannica.com/place/Lake-Assal"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le lac Natron (Tanzanie)",
+    "Le lac Assal (Djibouti)",
+    "Le lac Turkana (Kenya)",
+    "Le lac Rétba (Sénégal)"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "geographie-058",
+   "theme": "geographie",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Lors de son adoption en 1994, quel drapeau national était le seul au monde à comporter six couleurs dans son motif principal, sans sceau ni emblème ?",
+   "anecdote": "Le drapeau sud-africain réunit le noir, le vert, l'or (jaune), le rouge, le blanc et le bleu ; il fut hissé pour la première fois le 27 avril 1994, jour des premières élections multiraciales.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Flag_of_South_Africa",
+    "https://www.britannica.com/topic/flag-of-South-Africa"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le drapeau de l'Afrique du Sud",
+    "Le drapeau du Brésil",
+    "Le drapeau des Seychelles",
+    "Le drapeau de l'Éthiopie"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "geographie-059",
+   "theme": "geographie",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quelle île est la seule au monde à être partagée entre trois pays : l'Indonésie, la Malaisie et Brunei ?",
+   "anecdote": "Troisième plus grande île du monde, Bornéo est indonésienne à environ 73 %, malaisienne (Sabah et Sarawak) pour un quart, tandis que le petit sultanat de Brunei en occupe à peine 1 %.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Borneo",
+    "https://geology.com/world/borneo.shtml"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Bornéo",
+    "La Nouvelle-Guinée",
+    "Sumatra",
+    "Hispaniola"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "geographie-060",
+   "theme": "geographie",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quelle ville est le siège de gouvernement le plus haut du monde, perchée à environ 3 640 mètres d'altitude ?",
+   "anecdote": "La Paz abrite l'exécutif et le parlement boliviens depuis 1898, mais Sucre reste la capitale constitutionnelle du pays et le siège de la Cour suprême.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/La_Paz",
+    "https://www.britannica.com/place/La-Paz-Bolivia"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Quito (Équateur)",
+    "Bogota (Colombie)",
+    "La Paz (Bolivie)",
+    "Katmandou (Népal)"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "litterature-061",
+   "theme": "litterature",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Pour publier 'Jane Eyre' en 1847, Charlotte Brontë emprunta un pseudonyme masculin. Lequel ?",
+   "anecdote": "Les trois sœurs signèrent leur recueil de 1846 sous les noms de Currer, Ellis et Acton Bell : Charlotte était Currer, Emily Ellis et Anne Acton.",
+   "sources": [
+    "https://www.britannica.com/biography/Charlotte-Bronte",
+    "https://fr.wikipedia.org/wiki/Charlotte_Bront%C3%AB"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Acton Bell",
+    "Ellis Bell",
+    "Currer Bell",
+    "George Eliot"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "litterature-062",
+   "theme": "litterature",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Décerné pour la toute première fois en 1903, le prix Goncourt récompensa quel écrivain pour son roman 'Force ennemie' ?",
+   "anecdote": "Le premier prix Goncourt fut remis en 1903 à John-Antoine Nau pour 'Force ennemie' ; Proust, lui, ne l'obtiendra qu'en 1919 pour 'À l'ombre des jeunes filles en fleurs'.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Prix_Goncourt",
+    "https://fr.wikipedia.org/wiki/Prix_Goncourt"
+   ],
+   "format": "qcm",
+   "choices": [
+    "John-Antoine Nau",
+    "Léon Frapié",
+    "Claude Farrère",
+    "Marcel Proust"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "litterature-063",
+   "theme": "litterature",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Qui reçut le tout premier prix Nobel de littérature, décerné en 1901 ?",
+   "anecdote": "Le poète français Sully Prudhomme, de son vrai nom René François Armand Prudhomme, fut le premier lauréat du Nobel de littérature en 1901.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Sully_Prudhomme",
+    "https://fr.wikipedia.org/wiki/Sully_Prudhomme"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Rudyard Kipling",
+    "Frédéric Mistral",
+    "Anatole France",
+    "Sully Prudhomme"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "litterature-064",
+   "theme": "litterature",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le sonnet qui s'ouvre sur le vers 'A noir, E blanc, I rouge, U vert, O bleu, voyelles' est l'œuvre de quel poète ?",
+   "anecdote": "Écrit en 1871 et publié en 1883 dans la revue Lutèce, ce sonnet de Rimbaud associe chaque voyelle à une couleur et reste l'un des poèmes les plus commentés de la langue française.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Voyelles",
+    "https://fr.wikipedia.org/wiki/Voyelles_(sonnet)"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Paul Verlaine",
+    "Arthur Rimbaud",
+    "Stéphane Mallarmé",
+    "Charles Baudelaire"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "litterature-065",
+   "theme": "litterature",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Publié en 1924, le texte fondateur qui définit le surréalisme comme un 'automatisme psychique pur' est signé de quel écrivain ?",
+   "anecdote": "André Breton publia son 'Manifeste du surréalisme' le 15 octobre 1924 ; le mot lui-même avait été forgé quelques années plus tôt par Guillaume Apollinaire.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Surrealist_Manifesto",
+    "https://fr.wikipedia.org/wiki/Manifeste_du_surr%C3%A9alisme"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Guillaume Apollinaire",
+    "Tristan Tzara",
+    "André Breton",
+    "Louis Aragon"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "litterature-066",
+   "theme": "litterature",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le conte philosophique de Voltaire paru en 1759, 'Candide', porte un sous-titre resté célèbre. Lequel ?",
+   "anecdote": "'Candide ou l'Optimisme' tourne en dérision l'optimisme leibnizien, résumé par la formule 'tout est pour le mieux dans le meilleur des mondes possibles'.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Candide",
+    "https://fr.wikipedia.org/wiki/Candide"
+   ],
+   "format": "qcm",
+   "choices": [
+    "ou l'Optimisme",
+    "ou l'Éducation",
+    "ou le Fatalisme",
+    "ou le Nouveau Monde"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "litterature-067",
+   "theme": "litterature",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "François Rabelais fit d'abord paraître 'Pantagruel' sous un pseudonyme qui était l'anagramme de son nom. Lequel ?",
+   "anecdote": "Dès 1532, Rabelais publia 'Pantagruel' sous le nom d'Alcofribas Nasier, anagramme des lettres de François Rabelais.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Fran%C3%A7ois_Rabelais",
+    "https://fr.wikipedia.org/wiki/Fran%C3%A7ois_Rabelais"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Bonaventure Des Périers",
+    "Clément Marot",
+    "Étienne Dolet",
+    "Alcofribas Nasier"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "litterature-068",
+   "theme": "litterature",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Par quel volume s'ouvre le cycle 'À la recherche du temps perdu' de Marcel Proust, dont le premier tome parut en 1913 ?",
+   "anecdote": "Refusé par plusieurs éditeurs, 'Du côté de chez Swann' parut à compte d'auteur chez Grasset en 1913 ; c'est le premier des sept tomes de la Recherche.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/In_Search_of_Lost_Time",
+    "https://fr.wikipedia.org/wiki/%C3%80_la_recherche_du_temps_perdu"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Temps retrouvé",
+    "Du côté de chez Swann",
+    "À l'ombre des jeunes filles en fleurs",
+    "La Prisonnière"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "litterature-069",
+   "theme": "litterature",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "La pièce 'Cyrano de Bergerac' d'Edmond Rostand, créée en 1897, s'achève sur un dernier mot lancé par le héros mourant. Lequel ?",
+   "anecdote": "Créée le 28 décembre 1897 au Théâtre de la Porte Saint-Martin, la pièce voit le rideau tomber sur 'mon panache', mot devenu synonyme d'une bravoure élégante et fière.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Cyrano_de_Bergerac_(play)",
+    "https://fr.wikipedia.org/wiki/Cyrano_de_Bergerac_(Rostand)"
+   ],
+   "format": "qcm",
+   "choices": [
+    "panache",
+    "honneur",
+    "courage",
+    "amour"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "sciences-047",
+   "theme": "sciences",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel élément chimique a été détecté pour la première fois dans le Soleil, en 1868, avant même d'être découvert sur Terre ?",
+   "anecdote": "En 1868, une raie jaune inconnue observée dans le spectre solaire lors d'une éclipse trahit un élément nouveau, baptisé hélium d'après Hêlios (le Soleil en grec). Il ne fut isolé sur Terre qu'en 1895. L'hélium reste le seul élément découvert dans l'espace avant de l'être sur Terre.",
+   "sources": [
+    "https://www.smithsonianmag.com/history/how-scientists-discovered-helium-first-alien-element-1868-180970057/",
+    "https://en.wikipedia.org/wiki/Helium",
+    "https://www.chem.purdue.edu/history/helium.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le néon",
+    "L'argon",
+    "L'hélium",
+    "L'hydrogène"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "sciences-048",
+   "theme": "sciences",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "À température ambiante, un seul élément non-métallique existe à l'état liquide. Lequel ?",
+   "anecdote": "Seuls deux éléments sont liquides à température ambiante : le mercure, qui est un métal, et le brome, l'unique non-métal liquide, reconnaissable à sa couleur rouge-brun et à ses vapeurs très volatiles.",
+   "sources": [
+    "https://sciencenotes.org/liquid-elements-on-the-periodic-table/",
+    "https://en.wikipedia.org/wiki/Bromine"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le mercure",
+    "Le brome",
+    "Le chlore",
+    "Le soufre"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "sciences-049",
+   "theme": "sciences",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Combien de cœurs battent dans le corps d'une pieuvre (poulpe) ?",
+   "anecdote": "La pieuvre possède trois cœurs : deux poussent le sang vers les branchies, le troisième l'envoie dans le reste du corps. Son sang est bleu car il transporte l'oxygène grâce à une protéine à base de cuivre, l'hémocyanine.",
+   "sources": [
+    "https://www.smithsonianmag.com/science-nature/ten-wild-facts-about-octopuses-they-have-three-hearts-big-brains-and-blue-blood-7625828/",
+    "https://www.nhm.ac.uk/discover/octopuses-keep-surprising-us-here-are-eight-examples-how.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Un",
+    "Deux",
+    "Trois",
+    "Cinq"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "sciences-050",
+   "theme": "sciences",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "La température d'un éclair atteint environ 30 000 °C. Comparée à celle de la surface visible du Soleil (environ 5 500 °C), c'est à peu près…",
+   "anecdote": "Un éclair porte l'air à près de 30 000 °C en quelques millionièmes de seconde, soit environ cinq fois la température de la surface du Soleil. C'est la dilatation brutale de cet air surchauffé qui produit le tonnerre.",
+   "sources": [
+    "https://www.weather.gov/safety/lightning-temperature",
+    "https://www.sciencefocus.com/planet-earth/why-lightning-is-so-powerful",
+    "https://www.britannica.com/science/How-Hot-Can-Lightning-Get"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La moitié",
+    "La même",
+    "Deux fois plus élevée",
+    "Cinq fois plus élevée"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "sciences-051",
+   "theme": "sciences",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quelle est la seule planète du Système solaire dont la densité moyenne est inférieure à celle de l'eau (elle « flotterait ») ?",
+   "anecdote": "Avec une densité moyenne d'environ 0,69 g/cm³, Saturne est la seule planète moins dense que l'eau. Composée surtout d'hydrogène et d'hélium, elle flotterait, en théorie, dans un océan assez vaste.",
+   "sources": [
+    "https://www.skyatnightmagazine.com/space-science/saturn-could-float-on-water",
+    "https://coolcosmos.ipac.caltech.edu/ask/113-Can-Saturn-really-float-on-water-"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Jupiter",
+    "Saturne",
+    "Neptune",
+    "Uranus"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "sciences-052",
+   "theme": "sciences",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "L'invention du four à micro-ondes découle d'une observation fortuite en 1945 : un ingénieur travaillant sur un radar remarqua que…",
+   "anecdote": "En passant près d'un magnétron de radar, Percy Spencer constata qu'une barre chocolatée avait fondu dans sa poche. Il testa ensuite du maïs, qui éclata, puis un œuf : le premier four commercial (le Radarange) suivit en 1947.",
+   "sources": [
+    "https://www.history.com/articles/microwave-oven-invention",
+    "https://lemelson.mit.edu/resources/percy-spencer",
+    "https://newenglandhistoricalsociety.com/percy-spencer-melts-chocolate-bar-invents-microwave-oven/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "une barre chocolatée avait fondu dans sa poche",
+    "sa montre s'était arrêtée",
+    "une ampoule s'était allumée seule",
+    "l'eau d'un verre s'était mise à bouillir"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "sciences-053",
+   "theme": "sciences",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Contrairement à la plupart des tissus du corps, la cornée de l'œil ne contient aucun vaisseau sanguin. Comment obtient-elle principalement son oxygène ?",
+   "anecdote": "La cornée est avasculaire, ce qui lui permet de rester parfaitement transparente ; elle capte l'oxygène de l'air ambiant dissous dans le film de larmes. Garder l'œil fermé longtemps ou porter des lentilles peu perméables peut réduire cet apport.",
+   "sources": [
+    "https://www.nature.com/articles/s41433-023-02557-1",
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC10686381/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Par des artères profondes",
+    "Directement de l'air ambiant, via le film de larmes",
+    "Par le nerf optique",
+    "Par la moelle osseuse"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "sciences-054",
+   "theme": "sciences",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Selon l'agence océanographique américaine (NOAA), d'où provient la plus grande partie de l'oxygène produit sur Terre ?",
+   "anecdote": "Au moins la moitié de l'oxygène terrestre provient de l'océan, surtout du phytoplancton photosynthétique. Une seule bactérie microscopique, Prochlorococcus, en produirait à elle seule jusqu'à 20 %.",
+   "sources": [
+    "https://oceanservice.noaa.gov/facts/ocean-oxygen.html",
+    "https://en.wikipedia.org/wiki/Prochlorococcus",
+    "https://www.whoi.edu/ocean-learning-hub/ocean-facts/does-the-ocean-produce-oxygen/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Des forêts tropicales",
+    "Du phytoplancton des océans",
+    "Des prairies",
+    "Des tourbières"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "sciences-055",
+   "theme": "sciences",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Sur la grande ligne du temps de l'évolution, lequel de ces éléments est apparu en tout premier ?",
+   "anecdote": "Les requins peuplent les océans depuis environ 450 millions d'années. Ils précèdent ainsi les premiers arbres, apparus il y a environ 385 millions d'années, et bien sûr les dinosaures.",
+   "sources": [
+    "https://www.nhm.ac.uk/discover/shark-evolution-a-450-million-year-timeline.html",
+    "https://www.discoverwildlife.com/prehistoric-life/are-sharks-older-than-trees"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Les premiers arbres",
+    "Les requins",
+    "Les dinosaures",
+    "Les fleurs"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "arts-057",
+   "theme": "arts",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "En peinture, que désigne le terme « clair-obscur » (de l'italien chiaroscuro) ?",
+   "anecdote": "Développé par des maîtres comme Léonard de Vinci puis Le Caravage, le clair-obscur atteint sa forme la plus extrême dans le « ténébrisme », où l'ombre engloutit presque toute la scène.",
+   "sources": [
+    "https://www.larousse.fr/encyclopedie/peinture/clair-obscur/151610",
+    "https://fr.wikipedia.org/wiki/Clair-obscur"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Peindre une scène uniquement en camaïeu de gris",
+    "Étaler la matière en couches très épaisses au couteau",
+    "Moduler les passages entre lumière et ombre pour suggérer le relief",
+    "Appliquer une feuille d'or en fond de tableau"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "arts-058",
+   "theme": "arts",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le « David » de Michel-Ange (1501-1504) fut taillé dans un bloc de marbre de Carrare particulier. Qu'avait-il de remarquable avant que le sculpteur ne s'en empare ?",
+   "anecdote": "Surnommé « il Gigante », le bloc avait été ébauché vers 1464-1466 par Agostino di Duccio, qui l'abandonna, puis délaissé par Antonio Rossellino ; il resta à l'abandon plusieurs décennies avant que Michel-Ange, âgé de 26 ans, n'en tire son chef-d'œuvre.",
+   "sources": [
+    "https://www.britannica.com/story/how-a-rejected-block-of-marble-became-the-worlds-most-famous-statue",
+    "https://en.wikipedia.org/wiki/David_(Michelangelo)"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Il avait été ébauché puis laissé à l'abandon des décennies par d'autres sculpteurs",
+    "Il provenait d'un temple grec démonté pierre par pierre",
+    "C'était un marbre noir rarissime des carrières de Sienne",
+    "Il avait été assemblé à partir de trois blocs distincts"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "arts-059",
+   "theme": "arts",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "L'école du Bauhaus, creuset du design moderne, fut fondée en 1919 par l'architecte Walter Gropius. Dans quelle ville allemande ouvrit-elle d'abord ses portes ?",
+   "anecdote": "Née à Weimar en 1919 de la fusion de deux écoles, l'institution de Gropius déménagea à Dessau en 1925 — où s'élève son bâtiment emblématique — avant sa fermeture sous la pression nazie en 1933.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Bauhaus",
+    "https://fr.wikipedia.org/wiki/B%C3%A2timent_du_Bauhaus"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Berlin",
+    "Weimar",
+    "Dessau",
+    "Munich"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "arts-060",
+   "theme": "arts",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "En 1926, l'architecte du modernisme catalan Antoni Gaudí meurt à Barcelone. Dans quelles circonstances ?",
+   "anecdote": "Heurté par un tramway le 7 juin 1926, Gaudí, à l'allure négligée et sans papiers, fut d'abord pris pour un mendiant ; il mourut trois jours plus tard et repose dans la crypte de la Sagrada Família.",
+   "sources": [
+    "https://www.lalibre.be/culture/arts/2026/01/08/il-y-a-cent-ans-touche-par-un-tram-gaudi-entrait-dans-leternite-PALBOANMOVD4FI6WXZYAWR4CCU/",
+    "https://fr.wikipedia.org/wiki/Antoni_Gaud%C3%AD"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Il fut renversé par un tramway",
+    "Il chuta d'un échafaudage de la Sagrada Família",
+    "Il périt dans l'incendie de son atelier",
+    "Il succomba à une longue maladie dans sa villa"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "arts-061",
+   "theme": "arts",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "À la Renaissance, le mot « gothique » servait d'insulte pour désigner l'art médiéval. Quel peintre et biographe italien contribua à répandre cet usage péjoratif dans ses « Vies des meilleurs peintres » (1550) ?",
+   "anecdote": "Pour les Italiens de la Renaissance, ce style passait pour une barbarie attribuée aux Goths, réputés avoir ruiné Rome — alors que l'art gothique n'a en réalité rien à voir avec eux. Le terme ne perdit sa connotation négative qu'au XIXe siècle.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Gothic_architecture",
+    "https://en.wikipedia.org/wiki/Giorgio_Vasari"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Léonard de Vinci",
+    "Sandro Botticelli",
+    "Giorgio Vasari",
+    "Le Caravage"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "arts-062",
+   "theme": "arts",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "La « Jeune Fille à la perle » de Johannes Vermeer n'est pas tenue pour un véritable portrait, mais pour une « tronie ». Qu'est-ce qu'une tronie ?",
+   "anecdote": "Genre prisé au Siècle d'or hollandais, la tronie met en avant l'expression ou un costume exotique — ici un turban oriental — plutôt que l'identité du modèle, sans chercher à figurer une personne précise.",
+   "sources": [
+    "https://www.mauritshuis.nl/en/our-collection/artworks/670-girl-with-a-pearl-earring",
+    "https://en.wikipedia.org/wiki/Girl_with_a_Pearl_Earring"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Une étude de tête représentant un type ou un caractère, sans viser une personne identifiable",
+    "Un autoportrait dissimulé du peintre",
+    "Un portrait officiel commandé par une riche famille",
+    "Une peinture réalisée entièrement de mémoire, sans aucun modèle"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "arts-063",
+   "theme": "arts",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "En 1960, Yves Klein dépose auprès de l'INPI le secret de son fameux bleu outremer, l'« International Klein Blue ». Que protège-t-il exactement, la couleur elle-même n'étant pas appropriable en droit français ?",
+   "anecdote": "Consigné sous enveloppe Soleau à l'INPI le 19 mai 1960 (et non par un brevet), ce n'est pas la teinte mais l'association du pigment outremer à un liant synthétique, qui empêche le pigment de perdre son éclat mat, que Klein enregistre ; l'IKB deviendra sa signature.",
+   "sources": [
+    "https://www.centrepompidou.fr/fr/pompidou-plus/magazine/article/lhistoire-secrete-de-linternational-klein-blue-ikb-dyves-klein",
+    "https://en.wikipedia.org/wiki/International_Klein_Blue"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le procédé et le liant qui préservent l'éclat du pigment",
+    "Le nom « Klein » déposé comme marque commerciale",
+    "La formule d'un pigment chimique nouvellement inventé",
+    "Le format carré de ses toiles monochromes"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "arts-064",
+   "theme": "arts",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "En 1934, un panneau du célèbre retable de « L'Agneau mystique » des frères Van Eyck fut volé dans la cathédrale Saint-Bavon de Gand et n'a jamais été retrouvé. Lequel ?",
+   "anecdote": "Dérobé dans la nuit du 10 au 11 avril 1934, le panneau des « Juges intègres » demeure introuvable — sans doute détruit — et fut remplacé en 1945 par une copie de Jef Van der Veken ; l'énigme du vol alimente encore les enquêtes.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/The_Just_Judges",
+    "https://visit.gent.be/en/disappearance-just-judges-panel"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Les Juges intègres",
+    "Adam et Ève",
+    "L'Agneau à l'autel",
+    "La Vierge en majesté"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-056",
+   "theme": "cinema",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Dans la classification popularisée par le critique Ricciotto Canudo au début du XXe siècle, quel domaine est désigné comme le « septième art » ?",
+   "anecdote": "Dans son « Manifeste des sept arts » (1923), Canudo place le cinéma à la suite de six arts déjà reconnus : architecture, sculpture, peinture, musique, poésie et danse.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ricciotto_Canudo",
+    "https://shs.cairn.info/xxe-xxie-siecles--9782705687588-page-129?lang=fr"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le cinéma",
+    "La photographie",
+    "La bande dessinée",
+    "La télévision"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-057",
+   "theme": "cinema",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Avant de devenir un pionnier des effets spéciaux au cinéma, Georges Méliès exerçait quel métier du spectacle ?",
+   "anecdote": "En 1888, Méliès prend la direction du théâtre Robert-Houdin à Paris pour y donner des spectacles de magie ; c'est en filmant qu'il met au point le « truc par arrêt de caméra », l'un des tout premiers effets spéciaux.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Georges_M%C3%A9li%C3%A8s",
+    "https://en.wikipedia.org/wiki/Th%C3%A9%C3%A2tre_Robert-Houdin"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Illusionniste",
+    "Photographe de presse",
+    "Chef d'orchestre",
+    "Peintre de décors d'opéra"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-058",
+   "theme": "cinema",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Le 28 décembre 1895, les frères Lumière donnent la première projection publique et payante du Cinématographe. Dans quel établissement parisien ?",
+   "anecdote": "Une trentaine de spectateurs seulement (environ 33) assistèrent à cette séance d'une dizaine de courtes vues, au prix d'un franc ; quelques semaines plus tard, le Salon indien accueillait jusqu'à 2 500 personnes par jour.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Salon_Indien_du_Grand_Caf%C3%A9",
+    "https://www.herodote.net/28_decembre_1895-evenement-18951228.php"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Salon indien du Grand Café, boulevard des Capucines",
+    "La salle Pleyel",
+    "Le Théâtre du Châtelet",
+    "Le Moulin Rouge"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-059",
+   "theme": "cinema",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quel festival de cinéma, dont la première édition se tint en 1932, est le plus ancien du monde ?",
+   "anecdote": "La Mostra devance largement Cannes (1946) et Berlin (1951) ; sa récompense suprême, le Lion d'or, ne fut instituée qu'en 1949.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mostra_de_Venise",
+    "https://en.wikipedia.org/wiki/Golden_Lion"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La Mostra de Venise",
+    "Le Festival de Cannes",
+    "La Berlinale de Berlin",
+    "Le Festival de Locarno"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-060",
+   "theme": "cinema",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Sorti en 1920, quel film aux décors peints à la main, murs penchés et ombres tranchantes est considéré comme le manifeste de l'expressionnisme allemand ?",
+   "anecdote": "Réalisé par Robert Wiene, il doit son atmosphère cauchemardesque à des décors entièrement peints sur toile ; le mot « caligarisme » a été forgé pour désigner ce style.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Cabinet_du_docteur_Caligari",
+    "https://www.dvdclassik.com/critique/le-cabinet-du-docteur-caligari-wiene"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Cabinet du docteur Caligari",
+    "Nosferatu le vampire",
+    "Metropolis",
+    "M le maudit"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-061",
+   "theme": "cinema",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel film de 1945, tourné dans une Rome à peine libérée avec des bouts de pellicule récupérés et beaucoup d'acteurs non professionnels, passe pour l'acte de naissance du néoréalisme italien ?",
+   "anecdote": "Réalisé par Roberto Rossellini avec des moyens de fortune, il ouvre la voie aux œuvres néoréalistes ultérieures de De Sica (« Le Voleur de bicyclette ») ou Visconti.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rome,_ville_ouverte",
+    "https://en.wikipedia.org/wiki/Rome,_Open_City"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Rome, ville ouverte",
+    "Le Voleur de bicyclette",
+    "La Dolce Vita",
+    "Senso"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-062",
+   "theme": "cinema",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "La Palme d'or apparaît à Cannes en 1955. Comment se nommait, auparavant, la récompense suprême du festival ?",
+   "anecdote": "La toute première Palme d'or, en 1955, récompensa le film américain « Marty » de Delbert Mann ; le Lion d'or et l'Ours d'or sont eux décernés à Venise et à Berlin.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/1955_Cannes_Film_Festival",
+    "https://en.wikipedia.org/wiki/Marty_(film)"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Grand Prix du Festival international du film",
+    "Le Lion d'or",
+    "L'Ours d'or",
+    "Le César d'or"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-063",
+   "theme": "cinema",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Une expérience de montage des années 1920 alterne le plan neutre et identique d'un acteur avec une assiette de soupe, un cercueil, puis une femme allongée — le public y lisant tour à tour faim, chagrin et désir. Comment nomme-t-on ce phénomène ?",
+   "anecdote": "Menée vers 1921 par le cinéaste soviétique Lev Koulechov à partir de plans de l'acteur Ivan Mosjoukine, elle montre que l'émotion perçue naît du montage et non du jeu de l'acteur.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Kuleshov_effect",
+    "https://moviola.com/visual-glossary/kuleshov-effect/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "L'effet Koulechov",
+    "L'effet Vertigo",
+    "Le raccord dans l'axe",
+    "La règle des 180 degrés"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-064",
+   "theme": "cinema",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Sorti en 1935, quel long métrage est le premier tourné intégralement en Technicolor trichrome (procédé à trois bandes) ?",
+   "anecdote": "Achevé par Rouben Mamoulian, il exploite sur toute sa durée le procédé Technicolor à trois bandes ; « Le Magicien d'Oz » et « Autant en emporte le vent » ne sortiront qu'en 1939.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Becky_Sharp_(film)",
+    "https://raymonddefelitta.org/becky-sharp-and-3-strip-technicolor/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Becky Sharp",
+    "Le Magicien d'Oz",
+    "Autant en emporte le vent",
+    "Une étoile est née"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "musique-054",
+   "theme": "musique",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Que signifie l'indication « a cappella » pour un groupe de chanteurs ?",
+   "anecdote": "L'expression italienne signifie « à la manière de la chapelle » : toutes les parties (mélodie, harmonie, rythme) sont assurées uniquement par les voix, sans instruments.",
+   "sources": [
+    "https://www.larousse.fr/dictionnaires/francais/a_cappella/362",
+    "https://en.wikipedia.org/wiki/A_cappella"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Chanter le plus fort possible",
+    "Chanter en canon",
+    "Chanter sans aucun accompagnement instrumental",
+    "Chanter à l'unisson"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "musique-055",
+   "theme": "musique",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Sur un alto (instrument à cordes frottées), quelle est la note de la corde la plus grave ?",
+   "anecdote": "L'alto est accordé une quinte plus bas que le violon : ses cordes sont Do, Sol, Ré, La, la plus grave étant le Do (le violon, lui, commence au Sol).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Alto_(instrument_%C3%A0_cordes)",
+    "https://www.apprendrelesolfege.com/le-violon-alto"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Sol",
+    "Do",
+    "Ré",
+    "La"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "musique-056",
+   "theme": "musique",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "De quelle nationalité était Adolphe Sax, l'inventeur du saxophone ?",
+   "anecdote": "Né à Dinant en 1814, le Belge Adolphe Sax déposa le brevet du saxophone le 21 mars 1846 ; il conçut aussi les saxhorns et améliora la clarinette basse.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Adolphe_Sax",
+    "https://www.rtbf.be/article/21-mars-1846-le-belge-adolphe-sax-depose-le-brevet-de-son-invention-10724271"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Français",
+    "Allemand",
+    "Autrichien",
+    "Belge"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "musique-057",
+   "theme": "musique",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Dans le nom des notes, quelle syllabe a été remplacée par « Do », jugée plus chantante ?",
+   "anecdote": "Au XIe siècle, Guido d'Arezzo tira le nom des notes des débuts de vers de l'hymne « Ut queant laxis » dédié à saint Jean-Baptiste ; le « Ut », terminé par une consonne et difficile à chanter, fut plus tard remplacé par « Do ».",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ut_queant_laxis",
+    "https://www.britannica.com/topic/Ut-queant-laxis"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Ut",
+    "Si",
+    "La",
+    "Ré"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "musique-058",
+   "theme": "musique",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel compositeur baroque vénitien était surnommé « il Prete Rosso » (le Prêtre roux) ?",
+   "anecdote": "Ordonné prêtre en 1703 et doté d'une chevelure rousse, Vivaldi enseigna le violon à l'Ospedale della Pietà de Venise, où il dirigeait des concerts réputés.",
+   "sources": [
+    "https://www.larousse.fr/encyclopedie/personnage/Antonio_Vivaldi/149173",
+    "https://venicexplorer.com/fr/venice-uncovered/people/antonio-vivaldi/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Claudio Monteverdi",
+    "Arcangelo Corelli",
+    "Antonio Vivaldi",
+    "Tomaso Albinoni"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "musique-059",
+   "theme": "musique",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Dans le Boléro de Maurice Ravel, quel instrument martèle le même motif rythmique du début à la fin de l'œuvre ?",
+   "anecdote": "La cellule rythmique de la caisse claire est répétée en ostinato environ 169 fois ; seuls l'orchestration et un immense crescendo font évoluer la pièce.",
+   "sources": [
+    "https://pad.philharmoniedeparis.fr/0824129-bolero-de-maurice-ravel.aspx",
+    "https://www.rtbf.be/article/le-bolero-de-ravel-comment-ce-motif-rythmique-si-singulier-s-est-il-retrouve-chez-gilbert-becaud-et-sakamoto-11182785"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le triangle",
+    "La caisse claire",
+    "Les timbales",
+    "Le xylophone"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "musique-060",
+   "theme": "musique",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quelle caractéristique définit le chant grégorien ?",
+   "anecdote": "Monodie liturgique latine au rythme libre fondé sur le texte, il est attribué symboliquement au pape Grégoire Ier et fut d'abord noté à l'aide de neumes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chant_gr%C3%A9gorien",
+    "https://cours.piano-academie.com/mag/histoire-culture-piano/chant-gregorien"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Quatre voix harmonisées",
+    "Un accompagnement d'orgue obligatoire",
+    "Un rythme strict à quatre temps",
+    "Une seule ligne mélodique (monodie), a cappella"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "musique-061",
+   "theme": "musique",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quelle note, fixée à 440 Hz, sert de hauteur de référence internationale pour accorder les instruments (norme ISO 16) ?",
+   "anecdote": "Le « La » à 440 Hz fut recommandé en 1939 puis normalisé par l'ISO en 1955 ; auparavant, la hauteur du diapason variait fortement selon les villes et les époques.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_440",
+    "https://cpu.dascritch.net/post/2020/04/30/Standard-:-le-LA%E2%82%83-%C3%A0-440-Hz"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le La",
+    "Le Do",
+    "Le Sol",
+    "Le Mi"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "musique-062",
+   "theme": "musique",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Dans chaque livre du « Clavier bien tempéré » de J.-S. Bach, les préludes et fugues parcourent...",
+   "anecdote": "Chaque livre aligne 24 couples prélude-fugue (12 majeures et 12 mineures), soit 48 pièces au total, démontrant qu'un accord « tempéré » permet de jouer dans tous les tons.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Clavier_bien_temp%C3%A9r%C3%A9",
+    "https://en.wikipedia.org/wiki/The_Well-Tempered_Clavier"
+   ],
+   "format": "qcm",
+   "choices": [
+    "les 12 tonalités majeures seulement",
+    "les 7 modes anciens",
+    "les 24 tonalités majeures et mineures",
+    "les 6 tonalités à dièses"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "musique-063",
+   "theme": "musique",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Malgré son nom trompeur, le cor anglais est en réalité...",
+   "anecdote": "Ni « cor » ni « anglais », c'est le hautbois alto en fa (une quinte plus grave que le hautbois), à anche double ; son nom viendrait d'une déformation d'« anglé » (courbé) ou de l'allemand « engellisch ».",
+   "sources": [
+    "https://www.universalis.fr/encyclopedie/cor-anglais/",
+    "https://en.wikipedia.org/wiki/Cor_anglais"
+   ],
+   "format": "qcm",
+   "choices": [
+    "une petite trompette",
+    "un hautbois alto en fa",
+    "une clarinette basse",
+    "un cor d'harmonie raccourci"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "gastronomie-050",
+   "theme": "gastronomie",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Le pesto alla genovese, sauce emblématique de la ville de Gênes, tire sa couleur verte et son parfum surtout de quelle herbe ?",
+   "anecdote": "Le pesto génois traditionnel se pile au mortier de marbre : basilic, pignons, ail, huile d'olive et fromages (Parmesan et Pecorino). Le basilic « Genovese » bénéficie même d'une AOP.",
+   "sources": [
+    "https://www.recipesfromitaly.com/original-pesto-genovese-recipe/",
+    "https://www.theclevercarrot.com/2022/05/classic-italian-basil-pesto-pesto-alla-genovese/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le persil plat",
+    "L'estragon",
+    "Le basilic",
+    "La coriandre"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "gastronomie-051",
+   "theme": "gastronomie",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Le safran, l'une des épices les plus chères au monde, s'obtient en séchant quelle partie de la fleur du Crocus sativus ?",
+   "anecdote": "Chaque fleur ne porte que trois stigmates rouges, cueillis à la main. Il faut environ 150 000 fleurs pour obtenir un seul kilo de safran sec.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Saffron",
+    "https://www.mccormickscienceinstitute.com/resources/culinary-spices/herbs-spices/saffron"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Les étamines",
+    "Les stigmates",
+    "Les pétales",
+    "Les racines"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "gastronomie-052",
+   "theme": "gastronomie",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le goût umami a été identifié en 1908 par le chimiste japonais Kikunae Ikeda, qui isola le glutamate à partir de quel ingrédient ?",
+   "anecdote": "Intrigué par la saveur d'un bouillon dashi, Ikeda extrait le glutamate du kombu et baptise ce cinquième goût « umami » (savoureux). Il dépose un brevet la même année, en avril 1908.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Umami",
+    "https://www.umamiinfo.com/ikedakikunae/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le thé vert",
+    "La bonite séchée",
+    "L'algue kombu",
+    "Le riz fermenté"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "gastronomie-053",
+   "theme": "gastronomie",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Les beignets japonais « tempura » descendraient d'une technique de friture introduite au Japon au XVIe siècle par des...",
+   "anecdote": "Les Portugais faisaient frire des légumes en beignets (les « peixinhos da horta ») les jours de jeûne. Le mot tempura viendrait du latin tempora, désignant justement ces périodes (Quatre-Temps).",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Tempura",
+    "https://guide.michelin.com/hk/en/article/features/tempura_en"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Missionnaires et marchands portugais",
+    "Moines bouddhistes venus de Chine",
+    "Marchands néerlandais",
+    "Explorateurs espagnols"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "gastronomie-054",
+   "theme": "gastronomie",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le poivre de Sichuan, qui n'est en réalité apparenté ni au piment ni au poivre noir, est surtout réputé pour provoquer en bouche...",
+   "anecdote": "Ce n'est pas une épice piquante : la molécule hydroxy-alpha-sanshool agit sur les récepteurs du toucher et crée un picotement électrique. La plante, du genre Zanthoxylum, est une cousine des agrumes.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Sichuan_pepper",
+    "https://www.britannica.com/topic/Sichuan-pepper"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Une brûlure intense et durable",
+    "Une sensation de fraîcheur mentholée",
+    "Une amertume prolongée",
+    "Un fourmillement et un léger engourdissement"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "gastronomie-055",
+   "theme": "gastronomie",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "La cuisson sous vide moderne a été mise au point en 1974 par le chef Georges Pralus, d'abord pour mieux cuire quel produit en réduisant fortement les pertes ?",
+   "anecdote": "Chez les frères Troisgros à Roanne, cuire le foie gras sous vide fit tomber les pertes à la cuisson d'environ 40-50 % à seulement 5 %, tout en préservant sa texture.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Sous_vide",
+    "https://www.aventureculinaire.fr/linvention-de-la-cuisson-sous-vide-chez-troisgros-en-1974-une-revolution-culinaire/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le homard",
+    "Le magret de canard",
+    "Le foie gras",
+    "La truffe"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "gastronomie-056",
+   "theme": "gastronomie",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le geste de pollinisation manuelle qui permet, encore aujourd'hui, de produire la vanille fut découvert en 1841 par un jeune esclave, Edmond Albius, sur quelle île ?",
+   "anecdote": "Âgé de 12 ans, Edmond Albius invente sur l'île Bourbon (La Réunion) le geste qui féconde la fleur privée de son insecte pollinisateur d'origine. La méthode fera plus tard la fortune vanillière de Madagascar.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Edmond_Albius",
+    "https://www.europeana.eu/en/stories/edmond-albius"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Madagascar",
+    "Tahiti",
+    "Zanzibar",
+    "La Réunion"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "gastronomie-057",
+   "theme": "gastronomie",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "La praline (amande enrobée de sucre caramélisé) tire son nom d'un personnage du XVIIe siècle. Lequel ?",
+   "anecdote": "La friandise doit son nom à César de Choiseul, comte du Plessis-Praslin ; sa création est attribuée à son cuisinier Clément Lassagne. Le mot « prasline » apparaît vers 1662.",
+   "sources": [
+    "https://citeduchocolat.com/en/praline-everything-you-need-know-about-sweet-treat-made-nuts",
+    "https://64parishes.org/entry/pralines"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Un maréchal et diplomate français, le comte du Plessis-Praslin",
+    "Une petite ville de Belgique",
+    "Un mot aztèque désignant l'amande",
+    "Un pâtissier florentin de la Renaissance"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "sport-051",
+   "theme": "sport",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Le biathlon, sport olympique d'hiver, associe le tir à la carabine à quelle autre discipline ?",
+   "anecdote": "Le biathlète enchaîne des boucles de ski de fond et des séances de tir sur cinq cibles ; chaque cible manquée coûte un tour de pénalité (150 m) ou une minute selon l'épreuve.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Biathlon",
+    "https://www.olympics.com/en/milano-cortina-2026/sports/biathlon"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le saut à ski",
+    "Le ski de fond",
+    "Le patinage de vitesse",
+    "La luge"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "sport-052",
+   "theme": "sport",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Le stade parisien de Roland-Garros, temple du tennis sur terre battue, porte le nom d'un homme qui s'est illustré dans quel domaine ?",
+   "anecdote": "Roland Garros fut un pionnier de l'aviation, premier à réussir la traversée sans escale de la Méditerranée en avion en 1913 ; le stade fut baptisé en son honneur en 1928, dix ans après sa mort au combat.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Roland_Garros_(aviator)",
+    "https://www.npr.org/2026/05/26/nx-s1-5834922/roland-garros-french-open-namesake"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le tennis",
+    "La politique",
+    "L'aviation",
+    "La médecine"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "sport-053",
+   "theme": "sport",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quel éducateur japonais a fondé le judo en créant l'école Kodokan en 1882 ?",
+   "anecdote": "Jigoro Kano fonda le Kodokan dans un temple de Tokyo en 1882 ; il devint plus tard le premier membre asiatique du Comité international olympique.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Kan%C5%8D_Jigor%C5%8D",
+    "https://www.ijf.org/history/hall-of-fame/96"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Jigoro Kano",
+    "Morihei Ueshiba",
+    "Gichin Funakoshi",
+    "Kenji Tomiki"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "sport-054",
+   "theme": "sport",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Pourquoi le maillot du leader du classement général du Tour de France est-il de couleur jaune ?",
+   "anecdote": "Introduit en 1919, le maillot jaune reprenait la teinte du papier sur lequel était imprimé L'Auto, le journal qui organisait la course ; Eugène Christophe fut le premier à l'endosser.",
+   "sources": [
+    "https://www.francetelevisions.fr/et-vous/avantages-fidelite/communaute-fans-de-sport/tour-de-france-lhistoire-des-maillots-30171",
+    "https://www.total-velo.com/maillot-jaune-tour-de-france-histoire/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Pour rappeler le soleil du mois de juillet",
+    "Parce que le premier vainqueur du Tour portait déjà cette couleur",
+    "Pour imiter le maillot de l'équipe de France",
+    "C'était la couleur du papier du journal organisateur, L'Auto"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "sport-055",
+   "theme": "sport",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel pays a remporté la toute première Coupe du monde de football, en 1930, qu'il organisait à domicile ?",
+   "anecdote": "En finale à Montevideo, l'Uruguay battit l'Argentine 4-2 ; les deux équipes ne s'accordant pas sur le ballon, un compromis fut trouvé : l'Argentine fournit le sien pour la première mi-temps, l'Uruguay pour la seconde.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/1930_FIFA_World_Cup_final",
+    "https://en.wikipedia.org/wiki/1930_FIFA_World_Cup"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Brésil",
+    "L'Argentine",
+    "L'Uruguay",
+    "L'Italie"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "sport-056",
+   "theme": "sport",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le trophée remis aux vainqueurs de la Coupe du monde de rugby à XV porte le nom de Webb Ellis. Qui était-il ?",
+   "anecdote": "La légende, discutée par les historiens, veut que William Webb Ellis, écolier de la ville de Rugby, ait saisi le ballon à la main pour courir avec en 1823 ; le trophée choisi pour l'édition inaugurale de 1987 fut baptisé en son honneur.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Webb_Ellis_Cup",
+    "https://www.world.rugby/halloffame/inductees/704759"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le premier président de la fédération internationale",
+    "L'élève à qui l'on attribue l'invention du rugby",
+    "Le fabricant du premier ballon ovale",
+    "Le capitaine de la première équipe championne du monde"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "sport-057",
+   "theme": "sport",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Parmi ces sports, lequel a réellement figuré au programme des Jeux olympiques d'été, de 1900 à 1920, avant d'en être retiré ?",
+   "anecdote": "Le tir à la corde fut disputé à cinq éditions des Jeux, de Paris 1900 à Anvers 1920 ; en 1908 à Londres, le podium fut occupé par trois équipes britanniques.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Tug_of_war_at_the_Summer_Olympics",
+    "https://www.olympics.com/en/news/antwerp-1920-tug-of-war-and-a-72-year-old-medallist"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le squash",
+    "Le billard",
+    "Le bowling",
+    "Le tir à la corde"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "sport-058",
+   "theme": "sport",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le pentathlon moderne réunit escrime, natation, équitation, tir et course à pied. Laquelle des activités suivantes n'en fait donc PAS partie ?",
+   "anecdote": "Imaginé par Pierre de Coubertin et inscrit aux Jeux dès 1912, le pentathlon moderne a longtemps combiné le tir et la course dans une épreuve unique appelée le 'laser-run'.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Modern_pentathlon",
+    "https://www.olympics.com/en/sports/modern-pentathlon/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "L'aviron",
+    "L'escrime",
+    "L'équitation",
+    "La natation"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "sport-059",
+   "theme": "sport",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "La distance officielle du marathon, 42,195 km, découle de l'aménagement particulier du parcours de quels Jeux olympiques ?",
+   "anecdote": "À Londres en 1908, le tracé fut allongé du château de Windsor jusqu'au stade pour s'achever devant la loge royale ; cette distance fut officialisée par la fédération internationale en 1921.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Athletics_at_the_1908_Summer_Olympics_%E2%80%93_Men's_marathon",
+    "https://www.britannica.com/sports/Why-Is-a-Marathon-26-2-Miles"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Athènes 1896",
+    "Londres 1908",
+    "Paris 1900",
+    "Stockholm 1912"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "sport-060",
+   "theme": "sport",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Disputée pour la première fois en 1851 autour de l'île de Wight, quelle compétition est considérée comme le plus ancien trophée sportif international encore en jeu ?",
+   "anecdote": "Le trophée, une aiguière en argent surnommée 'Auld Mug', fut remporté en 1851 par la goélette America ; il donna ensuite son nom à la compétition, considérée comme le plus ancien trophée international encore disputé.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/America's_Cup",
+    "https://www.sfomuseum.org/exhibitions/americas-cup-sailing-international-sports-greatest-trophy-1851-1937"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La Coupe de l'America (voile)",
+    "Le tournoi de Wimbledon (tennis)",
+    "Le Derby d'Epsom (hippisme)",
+    "La Coupe Davis (tennis)"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "langue-050",
+   "theme": "langue",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "L'expression « tirer les marrons du feu » a été popularisée par une fable mettant en scène un singe et un chat. Qui en est l'auteur ?",
+   "anecdote": "Dans « Le Singe et le Chat » de La Fontaine (Livre IX), le singe Bertrand fait retirer les marrons brûlants du feu par la patte du chat Raton, puis les croque seul : le chat prend le risque sans en tirer le moindre profit.",
+   "sources": [
+    "https://www.lafontaine.net/les-fables/les-fables-du-livre-ix/le-singe-et-le-chat/",
+    "https://dictionnaire.lerobert.com/dis-moi-robert/raconte-moi-robert/droles-expressions/tirer-les-marrons-du-feu.html",
+    "https://fr.wiktionary.org/wiki/tirer_les_marrons_du_feu"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Ésope",
+    "Charles Perrault",
+    "Jean de La Fontaine",
+    "Jean-Pierre Claris de Florian"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "langue-051",
+   "theme": "langue",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le mot « aujourd'hui » contient l'ancien mot « hui » (issu du latin hodie). Que signifiait déjà « hui » à lui seul ?",
+   "anecdote": "« Hui » voulait dire « en ce jour ». « Aujourd'hui » signifie donc littéralement « au jour de ce jour », déjà un pléonasme ; dire « au jour d'aujourd'hui » en rajoute encore une couche.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/aujourd%E2%80%99hui",
+    "https://www.grevisse.fr/histoire-des-mots/aujourd-hui-entre-hui-et-au-jour-d-aujourd-hui",
+    "https://www.dictionnaire-academie.fr/article/A9A3151"
+   ],
+   "format": "qcm",
+   "choices": [
+    "le matin",
+    "l'heure qui vient",
+    "demain",
+    "ce jour même"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "langue-052",
+   "theme": "langue",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le mot « vasistas » (petite ouverture vitrée dans une porte ou une fenêtre) est un emprunt oral à quelle langue ?",
+   "anecdote": "Il vient de la question allemande « Was ist das ? » (« Qu'est-ce que c'est ? »), lancée au guichet avant d'ouvrir sa porte à un visiteur. Le mot entre dans le Dictionnaire de l'Académie française à sa 5e édition, en 1798.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vasistas",
+    "https://www.dictionnaire-academie.fr/article/A9V0226",
+    "https://dictionnaire.orthodidacte.com/article/etymologie-vasistas"
+   ],
+   "format": "qcm",
+   "choices": [
+    "le néerlandais",
+    "l'italien",
+    "l'anglais",
+    "l'allemand"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "langue-053",
+   "theme": "langue",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Le mot « denim », qui désigne la toile des jeans, tire son nom d'une ville française. Laquelle ?",
+   "anecdote": "« Denim » est une contraction de « (serge) de Nîmes ». Le mot « jean », lui, renvoie à Gênes (Genoa), port italien d'où partait une autre toile robuste.",
+   "sources": [
+    "https://nimes-tourisme.com/en/denim/",
+    "https://en.wikipedia.org/wiki/Denim"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Nîmes",
+    "Nancy",
+    "Nantes",
+    "Narbonne"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "langue-054",
+   "theme": "langue",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le mot « hasard » nous vient, via l'espagnol « azar », d'un mot arabe (az-zahr) qui désignait à l'origine…",
+   "anecdote": "« Az-zahr » désignait le dé, puis un mauvais coup aux dés. Le sens a glissé vers « risque, danger » au XVe siècle, avant celui d'« événement fortuit » qui domine aujourd'hui.",
+   "sources": [
+    "https://www.larousse.fr/encyclopedie/divers/hasard/57506",
+    "https://dictionnaire.orthodidacte.com/article/etymologie-hasard",
+    "https://fr.wiktionary.org/wiki/hasard"
+   ],
+   "format": "qcm",
+   "choices": [
+    "un dé à jouer",
+    "un mirage",
+    "le destin écrit",
+    "un vent de sable"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "langue-055",
+   "theme": "langue",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Avant de désigner un meuble, puis une pièce, puis une administration, le mot « bureau » désignait tout autre chose. Quoi ?",
+   "anecdote": "« Bureau » dérive de « bure », grosse étoffe de laine qui recouvrait la table de travail. Par métonymies successives, on est passé de la nappe à la table, puis à la pièce, puis au « bureau des douanes ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bure_(%C3%A9toffe)",
+    "https://fr.wikipedia.org/wiki/Bureau_(meuble)"
+   ],
+   "format": "qcm",
+   "choices": [
+    "une plume à écrire",
+    "un registre de comptes",
+    "un tabouret bas",
+    "une étoffe de laine grossière"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "langue-056",
+   "theme": "langue",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Le mot « cédille » (le petit crochet sous le « ç ») vient de l'espagnol « cedilla ». Que signifie littéralement ce mot ?",
+   "anecdote": "« Cedilla » veut dire « petit z » : diminutif de « ceda/zeda », l'ancien nom de la lettre z. À l'origine on écrivait « franczois » ou « leczon », avant de glisser ce z réduit sous le c.",
+   "sources": [
+    "https://en.wiktionary.org/wiki/cedilla",
+    "https://www.etymonline.com/word/cedilla",
+    "https://fr.wiktionary.org/wiki/c%C3%A9dille"
+   ],
+   "format": "qcm",
+   "choices": [
+    "petit c",
+    "petit crochet",
+    "petit z",
+    "petite queue"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "pop-culture-048",
+   "theme": "pop-culture",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "La fête d'Halloween, avec ses déguisements et ses feux, plonge ses racines dans une ancienne fête celtique marquant la fin de l'été et le début de l'hiver. Comment s'appelait cette fête ?",
+   "anecdote": "Samhain (« fin de l'été » en vieil irlandais) était célébrée dans la nuit du 31 octobre au 1er novembre ; on la croyait propice au passage des esprits, d'où masques et déguisements. Elle a fusionné plus tard avec la Toussaint chrétienne.",
+   "sources": [
+    "https://www.britannica.com/topic/Samhain",
+    "https://en.wikipedia.org/wiki/Samhain"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Beltane",
+    "Imbolc",
+    "Lughnasadh",
+    "Samhain"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "pop-culture-049",
+   "theme": "pop-culture",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "L'ours en peluche doit son surnom anglais à un président américain qui, lors d'une chasse en 1902, refusa d'abattre un ours capturé, jugeant le geste déloyal. Lequel ?",
+   "anecdote": "L'épisode, survenu près de Smedes dans le Mississippi, fut croqué par le caricaturiste Clifford Berryman ; le commerçant new-yorkais Morris Michtom fabriqua alors des oursons baptisés « Teddy's bear », du surnom du président.",
+   "sources": [
+    "https://www.nps.gov/thrb/learn/historyculture/storyofteddybear.htm",
+    "https://www.smithsonianmag.com/smart-news/discover-how-president-theodore-roosevelt-inspired-the-worlds-first-teddy-bear-which-went-on-sale-on-this-day-in-1903-180986052/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Woodrow Wilson",
+    "Abraham Lincoln",
+    "Theodore Roosevelt",
+    "Franklin D. Roosevelt"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "pop-culture-050",
+   "theme": "pop-culture",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le papier bulle, ce plastique à bulles d'air si satisfaisant à faire éclater, fut inventé en 1957. À quel usage ses créateurs le destinaient-ils au tout départ ?",
+   "anecdote": "Alfred Fielding et Marc Chavannes soudèrent deux rideaux de douche pour créer un papier peint texturé, qui fit un flop ; l'idée de s'en servir comme emballage protecteur ne vint qu'ensuite, notamment pour protéger des ordinateurs IBM fragiles.",
+   "sources": [
+    "https://www.smithsonianmag.com/innovation/accidental-invention-bubble-wrap-180971325/",
+    "https://www.core77.com/posts/79543/Did-You-Know-Bubble-Wrap-was-Invented-in-1957-as-3D-Wallpaper-That-Failed-to-Sell"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Un emballage alimentaire",
+    "Un papier peint décoratif",
+    "Un pansement médical",
+    "Un matériau isolant pour fusées"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "pop-culture-051",
+   "theme": "pop-culture",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "En 1982, un informaticien propose sur un forum universitaire d'utiliser la suite de caractères :-) pour signaler qu'un message est une plaisanterie. Que venait-il d'inventer ?",
+   "anecdote": "Le 19 septembre 1982, Scott Fahlman poste ce « smiley » sur un tableau d'affichage électronique de l'université Carnegie Mellon en précisant « à lire de côté ». Le symbole se répand ensuite largement sur les réseaux.",
+   "sources": [
+    "https://www.cmu.edu/125/stories/emoticon.html",
+    "https://en.wikipedia.org/wiki/Scott_Fahlman"
+   ],
+   "format": "qcm",
+   "choices": [
+    "L'émoticône",
+    "Le mot-dièse (hashtag)",
+    "Le courrier indésirable (spam)",
+    "Le correcteur orthographique"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "pop-culture-052",
+   "theme": "pop-culture",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "« OK », l'une des expressions les plus universelles au monde, serait née d'une mode journalistique de 1839 aux États-Unis consistant à abréger des fautes d'orthographe volontaires. De quelle formule est-elle l'abréviation ?",
+   "anecdote": "Publiée le 23 mars 1839 dans le Boston Morning Post, cette abréviation fantaisiste fut renforcée l'année suivante par le surnom « Old Kinderhook » du président Martin Van Buren. Le linguiste Allen Walker Read en a établi l'origine dans les années 1960.",
+   "sources": [
+    "https://www.history.com/this-day-in-history/march-23/ok-enters-national-vernacular",
+    "https://www.merriam-webster.com/wordplay/the-hilarious-history-of-ok-okay"
+   ],
+   "format": "qcm",
+   "choices": [
+    "« Zero killed »",
+    "« Objection knuckled »",
+    "« Oll korrect » (all correct)",
+    "« Order konfirmed »"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "pop-culture-053",
+   "theme": "pop-culture",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "La coutume de porter l'alliance à l'annulaire vient d'une croyance ancienne selon laquelle une veine reliait directement ce doigt au cœur. Quel nom latin donnait-on à cette veine imaginaire ?",
+   "anecdote": "« Vena amoris » signifie « veine de l'amour » ; cette croyance, transmise de l'Antiquité jusqu'au XVIIe siècle, est anatomiquement fausse : aucun vaisseau ne relie spécifiquement ce doigt au cœur.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Vena_amoris",
+    "https://facetsoffire.com/vena-amoris-the-legend-behind-the-hidden-heart/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Vena amoris",
+    "Vena cava",
+    "Vena sacra",
+    "Vena fidei"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "pop-culture-054",
+   "theme": "pop-culture",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Les six couleurs du drapeau olympique (les cinq anneaux plus le fond blanc) ont été choisies au début des années 1910 selon un critère bien précis. Lequel ?",
+   "anecdote": "Pierre de Coubertin dessina ce drapeau en 1913 ; contrairement à une idée reçue, aucune couleur n'est attribuée à un continent précis : l'ensemble devait contenir les teintes de tous les pavillons nationaux d'alors.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Olympic_symbols",
+    "https://www.olympics.com/ioc/news/in-1913-pierre-de-coubertin-designed-one-of-the-world-s-most-famous-symbols"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Représenter les cinq continents par une couleur chacun",
+    "Imiter les couleurs de la Grèce antique",
+    "Reproduire les couleurs de tous les drapeaux nationaux de l'époque",
+    "Symboliser les cinq disciplines des premiers Jeux"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "insolite-040",
+   "theme": "insolite",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel conflit est considéré comme la guerre la plus courte de l'histoire, avec une durée d'environ 38 minutes ?",
+   "anecdote": "Le 27 août 1896, le bombardement du palais du sultan de Zanzibar par la Royal Navy a duré entre 38 et 45 minutes selon les sources, forçant la reddition du sultan Khalid ibn Bargach.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Anglo-Zanzibar_War",
+    "https://www.historic-uk.com/HistoryUK/HistoryofBritain/The-Shortest-War-in-History/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La guerre anglo-zanzibarienne (1896)",
+    "La guerre des Six Jours (1967)",
+    "La guerre du Football (1969)",
+    "La guerre russo-géorgienne (2008)"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "insolite-041",
+   "theme": "insolite",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Sous l'effet de la chaleur estivale, que fait réellement la tour Eiffel ?",
+   "anecdote": "La dilatation thermique du fer fait varier sa hauteur d'environ 15 cm entre l'hiver et l'été ; chauffée d'un côté, la tour peut même s'incliner légèrement à l'opposé du soleil.",
+   "sources": [
+    "https://www.toureiffel.paris/en/news/history-and-culture/why-does-eiffel-tower-change-size",
+    "https://theconversation.com/the-eiffel-tower-gets-bigger-every-summer-heres-why-261904"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Elle rétrécit de plusieurs centimètres",
+    "Elle reste identique au millimètre près",
+    "Elle grandit de plusieurs centimètres",
+    "Elle vire au rouge sous l'action des UV"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "insolite-042",
+   "theme": "insolite",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Quelle particularité physiologique caractérise la pieuvre ?",
+   "anecdote": "Deux cœurs branchiaux poussent le sang vers les branchies et un cœur systémique irrigue le corps ; le sang doit sa teinte bleue à l'hémocyanine, une protéine à base de cuivre.",
+   "sources": [
+    "https://www.smithsonianmag.com/science-nature/ten-wild-facts-about-octopuses-they-have-three-hearts-big-brains-and-blue-blood-7625828/",
+    "https://www.nhm.ac.uk/discover/octopuses-keep-surprising-us-here-are-eight-examples-how.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Un seul cœur et un sang rouge, comme l'humain",
+    "Deux cœurs et un sang vert",
+    "Quatre cœurs et un sang incolore",
+    "Trois cœurs et un sang bleu"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "insolite-043",
+   "theme": "insolite",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Sur quelle planète du système solaire une rotation sur elle-même (jour sidéral) dure-t-elle plus longtemps qu'une orbite complète autour du Soleil (année) ?",
+   "anecdote": "Vénus met environ 243 jours terrestres pour tourner sur elle-même (jour sidéral) mais seulement 225 pour orbiter le Soleil ; elle tourne en plus à l'envers, dans le sens rétrograde.",
+   "sources": [
+    "https://www.aeronomie.be/en/encyclopedia/venus-backwards-rotation-and-orbital-period",
+    "https://www.asc-csa.gc.ca/eng/astronomy/solar-system/venus.asp"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Vénus",
+    "Mercure",
+    "Mars",
+    "Neptune"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "insolite-044",
+   "theme": "insolite",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le wombat, marsupial australien, est le seul animal connu à produire des excréments d'une forme très inhabituelle. Laquelle ?",
+   "anecdote": "La partie finale de son intestin, aux parois d'élasticité inégale, moule des crottes cubiques ; ne roulant pas, elles aideraient l'animal à marquer son territoire sur les rochers.",
+   "sources": [
+    "https://www.science.org/content/article/wombats-make-cube-shaped-poop-thanks-unique-intestines",
+    "https://www.smithsonianmag.com/smart-news/scientists-have-solved-mystery-how-wombats-poop-cubes-180976898/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "En forme d'étoile",
+    "En spirale parfaite",
+    "Parfaitement sphériques et lisses",
+    "En forme de cube"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "insolite-045",
+   "theme": "insolite",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "En termes de chronologie, de quel événement l'époque de Cléopâtre est-elle la plus proche ?",
+   "anecdote": "La grande pyramide fut achevée vers 2560 av. J.-C. et Cléopâtre mourut en 30 av. J.-C. : près de 2 500 ans les séparent, contre environ 2 000 ans jusqu'à l'alunissage de 1969.",
+   "sources": [
+    "https://www.worldatlas.com/articles/so-cleopatra-lived-closer-in-time-to-the-first-lunar-landing-than-the-great-pyramids.html",
+    "https://commonplacefacts.com/2019/11/15/cleopatra-moon-landing-pyramid/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Du premier alunissage humain (1969)",
+    "De la construction de la grande pyramide de Gizeh",
+    "De l'invention de l'écriture cunéiforme",
+    "Elle est exactement à mi-chemin des deux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "insolite-046",
+   "theme": "insolite",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quel sommet, et non l'Everest, est le point de la surface terrestre le plus éloigné du centre de la Terre ?",
+   "anecdote": "À cause du renflement équatorial de la Terre, le sommet du Chimborazo, tout proche de l'équateur, se trouve à environ 6 384 km du centre du globe, soit près de 2,1 km de plus que l'Everest.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Chimborazo",
+    "https://oceanservice.noaa.gov/facts/highestpoint.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Kilimandjaro (Tanzanie)",
+    "Le Chimborazo (Équateur)",
+    "L'Aconcagua (Argentine)",
+    "Le Denali (Alaska)"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "insolite-047",
+   "theme": "insolite",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel pays s'étend sur le plus grand nombre de fuseaux horaires au monde ?",
+   "anecdote": "Grâce à ses territoires d'outre-mer, la France couvre 12 fuseaux horaires (de UTC−10 à Tahiti à UTC+12 à Wallis-et-Futuna), soit 13 en comptant sa revendication en Terre Adélie ; la Russie et les États-Unis en comptent 11.",
+   "sources": [
+    "https://www.guinnessworldrecords.com/world-records/584626-country-with-the-most-time-zones",
+    "https://en.wikipedia.org/wiki/Time_in_France"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La Russie",
+    "Les États-Unis",
+    "La France",
+    "L'Australie"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "insolite-048",
+   "theme": "insolite",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quel animal, pourtant purement imaginaire, est l'animal national officiel de l'Écosse ?",
+   "anecdote": "La licorne figure sur les armoiries royales écossaises depuis le XIIe siècle ; symbole de pureté et d'indomptabilité, elle y est traditionnellement représentée enchaînée.",
+   "sources": [
+    "https://www.nts.org.uk/stories/the-unicorn-scotlands-national-animal",
+    "https://www.historic-uk.com/HistoryUK/HistoryofScotland/The-Unicorn-Scotlands-National-Animal/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le dragon",
+    "La licorne",
+    "Le griffon",
+    "Le phénix"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "general-047",
+   "theme": "general",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel conflit détient le record de la guerre la plus courte de l'histoire, avec une durée estimée entre 38 et 45 minutes ?",
+   "anecdote": "Le 27 août 1896, la Royal Navy bombarda le palais du sultan de Zanzibar ; le sultan Khalid s'enfuit et les hostilités cessèrent en moins de trois quarts d'heure.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Anglo-Zanzibar_War",
+    "https://www.britannica.com/event/Anglo-Zanzibar-War"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La guerre des Six Jours (1967)",
+    "La guerre des Malouines (1982)",
+    "La guerre anglo-zanzibaraise (1896)",
+    "La guerre du Football (1969)"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "general-048",
+   "theme": "general",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Sur quelle planète du Système solaire une rotation sur elle-même (jour sidéral) dure-t-elle plus longtemps qu'une révolution complète autour du Soleil (année) ?",
+   "anecdote": "Vénus met environ 243 jours terrestres à tourner sur elle-même, mais seulement 225 pour boucler son orbite : son jour sidéral est donc plus long que son année.",
+   "sources": [
+    "https://science.nasa.gov/venus/venus-facts/",
+    "https://www.britannica.com/place/Venus-planet"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Mercure",
+    "Mars",
+    "Neptune",
+    "Vénus"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "general-049",
+   "theme": "general",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quelle mer a la particularité de n'être bordée par aucune terre, ses limites étant définies par des courants océaniques ?",
+   "anecdote": "Dans l'Atlantique Nord, la mer des Sargasses est encerclée par quatre courants (dont le Gulf Stream) au lieu de côtes ; elle doit son nom aux algues sargasses qui y flottent.",
+   "sources": [
+    "https://oceanservice.noaa.gov/facts/sargassosea.html",
+    "https://en.wikipedia.org/wiki/Sargasso_Sea"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La mer de Corail",
+    "La mer des Sargasses",
+    "La mer de Weddell",
+    "La mer de Ross"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "general-050",
+   "theme": "general",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "En 1893, la Cour suprême des États-Unis a tranché une célèbre affaire douanière (Nix v. Hedden) en décidant que, sur le plan légal, la tomate devait être classée comme…",
+   "anecdote": "La Cour jugea que, pour l'application des tarifs douaniers, la tomate relevait de l'usage courant (un légume servi au repas) et non de la définition botanique du fruit.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Nix_v._Hedden",
+    "https://www.law.cornell.edu/supremecourt/text/149/304"
+   ],
+   "format": "qcm",
+   "choices": [
+    "un fruit",
+    "un légume",
+    "une baie",
+    "une épice"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "general-051",
+   "theme": "general",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel métal possède un point de fusion si bas (environ 30 °C) qu'il peut fondre dans le creux d'une main ?",
+   "anecdote": "Le gallium fond à 29,76 °C : posé sur la paume, il se liquéfie sous l'effet de la chaleur corporelle, tout en restant solide à température ambiante.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Gallium",
+    "https://periodic-table.rsc.org/element/31/gallium"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le plomb",
+    "L'étain",
+    "Le gallium",
+    "Le zinc"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "general-052",
+   "theme": "general",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Où se trouve le plus court vol commercial régulier du monde, dont le trajet dure à peine environ 90 secondes ?",
+   "anecdote": "Exploité par la compagnie Loganair entre Westray et Papa Westray, ce vol couvre 2,7 km ; le record de traversée établi par un pilote est de 53 secondes.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Westray_to_Papa_Westray_flight",
+    "https://simpleflying.com/worlds-shortest-flight-cost/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Entre deux atolls des Maldives",
+    "Entre deux îles grecques des Cyclades",
+    "Entre deux îles japonaises d'Okinawa",
+    "Entre deux îles des Orcades, en Écosse"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "general-053",
+   "theme": "general",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "La grande pyramide de Gizeh fut érigée vers 2600 av. J.-C. Cléopâtre (morte en 30 av. J.-C.) en était déjà séparée par près de 2 500 ans ; de quel événement bien plus récent n'est-elle éloignée, elle, que d'environ 2 000 ans ?",
+   "anecdote": "Déjà antique du temps de Cléopâtre, la pyramide fut bâtie environ 2 500 ans avant elle, tandis que l'alunissage de 1969 n'en est distant que d'à peu près 2 000 ans.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Cleopatra",
+    "https://en.wikipedia.org/wiki/Great_Pyramid_of_Giza"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La fondation de Rome (vers 753 av. J.-C.)",
+    "Le couronnement de Charlemagne (800)",
+    "Le premier alunissage (1969)",
+    "L'invention de l'imprimerie par Gutenberg (vers 1450)"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "general-054",
+   "theme": "general",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quel est, en superficie totale, le plus grand désert du monde ?",
+   "anecdote": "Un désert se définit par la faiblesse des précipitations, pas par la chaleur : l'Antarctique, quasi sans pluie, couvre environ 14 millions de km² (le Sahara n'est que le plus grand désert chaud).",
+   "sources": [
+    "https://education.nationalgeographic.org/resource/deserts/",
+    "https://www.worldatlas.com/deserts/polar-deserts.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "L'Antarctique",
+    "Le Sahara",
+    "Le désert de Gobi",
+    "Le désert d'Arabie"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "general-055",
+   "theme": "general",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quelle particularité anatomique surprenante caractérise le poulpe (pieuvre) ?",
+   "anecdote": "Deux cœurs branchiaux propulsent le sang vers les branchies et un cœur systémique l'envoie dans le corps ; ce sang est bleu, car riche en hémocyanine à base de cuivre.",
+   "sources": [
+    "https://www.smithsonianmag.com/science-nature/ten-wild-facts-about-octopuses-they-have-three-hearts-big-brains-and-blue-blood-7625828/",
+    "https://en.wikipedia.org/wiki/Octopus"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Il possède trois cœurs",
+    "Il n'a aucun cerveau",
+    "Son sang est naturellement vert",
+    "Il ne possède qu'un seul œil"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "general-056",
+   "theme": "general",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "De quelle couleur est réellement la « boîte noire » (l'enregistreur de vol) d'un avion ?",
+   "anecdote": "Malgré son surnom, l'enregistreur est peint en orange international afin d'être facilement repéré parmi les débris après un accident.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Flight_recorder",
+    "https://simpleflying.com/what-color-is-the-black-box-on-an-airplane/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Noire",
+    "Rouge",
+    "Jaune",
+    "Orange vif"
    ],
    "answerIndex": 3
   }
