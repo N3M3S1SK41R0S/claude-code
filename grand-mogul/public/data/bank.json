@@ -1,6 +1,6 @@
 {
- "version": 1784417511075,
- "count": 645,
+ "version": 1784419545499,
+ "count": 707,
  "questions": [
   {
    "id": "arts-001",
@@ -12142,6 +12142,1246 @@
     "Le Royaume-Uni"
    ],
    "answerIndex": 2
+  },
+  {
+   "id": "histoire-049",
+   "theme": "histoire",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "En quelle année le mur de Berlin est-il tombé, ouvrant la voie à la réunification de l'Allemagne ?",
+   "anecdote": "Dans la soirée du 9 novembre 1989, débordés par la foule, les gardes-frontières est-allemands ouvrent les points de passage ; la réunification allemande suivra le 3 octobre 1990, soit 339 jours plus tard.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chute_du_mur_de_Berlin",
+    "https://www.herodote.net/9_novembre_1989-evenement-19891109.php"
+   ],
+   "format": "qcm",
+   "choices": [
+    "1985",
+    "1989",
+    "1991",
+    "1993"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "histoire-050",
+   "theme": "histoire",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Qui fut le premier empereur romain, fondateur du régime du principat ?",
+   "anecdote": "Fils adoptif de Jules César, Octave reçoit du Sénat le titre d'« Augustus » le 16 janvier 27 av. J.-C. ; son grand-oncle César, lui, ne fut jamais empereur mais dictateur.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Augustus",
+    "https://www.herodote.net/16_janvier_27_av_J_C-evenement--270116.php"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Jules César",
+    "Auguste",
+    "Néron",
+    "Constantin"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "histoire-051",
+   "theme": "histoire",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quelle civilisation a bâti la cité de Machu Picchu, perchée dans les Andes péruviennes ?",
+   "anecdote": "Machu Picchu fut édifiée au XVe siècle, probablement pour l'empereur inca Pachacutec, à plus de 2 400 mètres d'altitude.",
+   "sources": [
+    "https://passerelles.essentiels.bnf.fr/fr/article/999182e3-8e07-4690-b26d-4fbf8084048e-histoire-machu-picchu-1",
+    "https://en.wikipedia.org/wiki/Machu_Picchu"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Les Mayas",
+    "Les Aztèques",
+    "Les Incas",
+    "Les Olmèques"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "histoire-052",
+   "theme": "histoire",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel sultan ottoman s'empare de Constantinople en 1453, mettant fin à l'Empire byzantin ?",
+   "anecdote": "Grâce à une artillerie capable d'abattre les murailles, le jeune sultan Mehmed II prend la ville le 29 mai 1453 ; sa victoire lui vaut le surnom de « Fatih », le Conquérant.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chute_de_Constantinople",
+    "https://www.universalis.fr/encyclopedie/prise-de-constantinople-1453/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Soliman le Magnifique",
+    "Mehmed II",
+    "Sélim Ier",
+    "Bayezid Ier"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "histoire-053",
+   "theme": "histoire",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel roi de France signe l'édit de Nantes en 1598 pour mettre fin aux guerres de Religion ?",
+   "anecdote": "L'édit accorde aux protestants la liberté de conscience et des « places de sûreté » ; il sera révoqué par Louis XIV en 1685.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89dit_de_Nantes",
+    "https://www.herodote.net/18_octobre_1685-evenement-16851018.php"
+   ],
+   "format": "qcm",
+   "choices": [
+    "François Ier",
+    "Louis XIII",
+    "Henri IV",
+    "Louis XIV"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "histoire-054",
+   "theme": "histoire",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le traité de Verdun de 843 partage l'empire de Charlemagne entre combien de ses petits-fils ?",
+   "anecdote": "Lothaire, Louis le Germanique et Charles le Chauve se répartissent l'empire ; ce partage est l'un des actes fondateurs de la future France et de la future Allemagne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Trait%C3%A9_de_Verdun",
+    "https://ehne.fr/fr/eduscol/traite-de-verdun-843-le"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Deux",
+    "Trois",
+    "Quatre",
+    "Cinq"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "histoire-055",
+   "theme": "histoire",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Grâce à quelle pierre gravée Jean-François Champollion parvient-il à déchiffrer les hiéroglyphes égyptiens en 1822 ?",
+   "anecdote": "La pierre de Rosette portait un même décret en trois écritures (hiéroglyphique, démotique et grec), ce qui permit à Champollion d'en percer le code en 1822.",
+   "sources": [
+    "https://essentiels.bnf.fr/fr/article/c2b8437c-4dbb-4446-9e35-143137c85d61-pierre-rosette-cle-pour-dechiffrer-hieroglyphes",
+    "https://www.retronews.fr/sciences/long-format/2018/09/19/1822-champollion-dechiffre-la-pierre-de-rosette"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La pierre de Rosette",
+    "La pierre de Palerme",
+    "L'obélisque de Louxor",
+    "La stèle de Mérenptah"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "histoire-056",
+   "theme": "histoire",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quelle bataille navale de 1571 voit la Sainte-Ligue chrétienne infliger une lourde défaite à la flotte ottomane ?",
+   "anecdote": "Commandée par don Juan d'Autriche, la flotte de la Sainte-Ligue détruit la majeure partie des galères ottomanes dans le golfe de Patras, près de Naupacte (Lépante), le 7 octobre 1571.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bataille_de_L%C3%A9pante",
+    "https://www.larousse.fr/encyclopedie/divers/bataille_de_L%C3%A9pante/129537"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La bataille de Lépante",
+    "La bataille d'Actium",
+    "La bataille de Salamine",
+    "La bataille de Trafalgar"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "geographie-046",
+   "theme": "geographie",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Quelle ville est la capitale de l'Australie ?",
+   "anecdote": "Canberra fut choisie en 1908 comme capitale de compromis entre les deux grandes villes rivales, Sydney et Melbourne ; sa construction débuta en 1913 et le Parlement fédéral y fut transféré depuis Melbourne en 1927.",
+   "sources": [
+    "https://www.britannica.com/place/Canberra",
+    "https://en.wikipedia.org/wiki/Canberra"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Sydney",
+    "Melbourne",
+    "Perth",
+    "Canberra"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "geographie-047",
+   "theme": "geographie",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "En 2023, quel pays est devenu le plus peuplé du monde en dépassant la Chine ?",
+   "anecdote": "D'après l'ONU, l'Inde a dépassé la Chine au cours de l'année 2023 avec environ 1,43 milliard d'habitants, la population chinoise ayant atteint son pic en 2022 avant de commencer à reculer.",
+   "sources": [
+    "https://www.un.org/en/desa/india-overtake-china-world-most-populous-country-april-2023-united-nations-projects",
+    "https://www.pewresearch.org/short-reads/2023/02/09/key-facts-as-india-surpasses-china-as-the-worlds-most-populous-country/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Nigeria",
+    "L'Inde",
+    "L'Indonésie",
+    "Les États-Unis"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "geographie-048",
+   "theme": "geographie",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quel est le point culminant du continent africain ?",
+   "anecdote": "Culminant à 5 895 mètres en Tanzanie, le Kilimandjaro est un volcan endormi ; c'est aussi la plus haute montagne isolée du monde, et son parc national est classé au patrimoine mondial de l'UNESCO depuis 1987.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mount_Kilimanjaro",
+    "https://whc.unesco.org/en/list/403/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Kilimandjaro",
+    "Le mont Kenya",
+    "Le Ras Dashen",
+    "Le mont Stanley"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "geographie-049",
+   "theme": "geographie",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel est le point le plus bas de toutes les terres émergées du globe ?",
+   "anecdote": "Le rivage de la mer Morte, entre la Jordanie et Israël, se situe à plus de 430 mètres sous le niveau de la mer, et il continue de baisser d'environ un mètre par an.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Dead_Sea",
+    "https://geology.com/below-sea-level/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La vallée de la Mort",
+    "La dépression de Qattara",
+    "Le rivage de la mer Morte",
+    "La mer Caspienne"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "geographie-050",
+   "theme": "geographie",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel pays possède le seul drapeau national du monde qui ne soit pas rectangulaire ?",
+   "anecdote": "Le drapeau du Népal est formé de deux fanions triangulaires superposés ; sa forme définitive, aux proportions fixées mathématiquement, fut adoptée le 16 décembre 1962. Même le drapeau suisse, carré, reste un quadrilatère.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Flag_of_Nepal",
+    "https://www.cnn.com/travel/nepal-flag-shape-explainer-history-intl-hnk"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Bhoutan",
+    "Le Népal",
+    "Le Sri Lanka",
+    "La Suisse"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "geographie-051",
+   "theme": "geographie",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel est le plus vaste pays du monde sans aucun accès à l'océan (pays enclavé) ?",
+   "anecdote": "Avec plus de 2,7 millions de km², le Kazakhstan est le plus grand État enclavé de la planète ; il ne borde que des mers fermées comme la Caspienne, sans accès à l'océan.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Kazakhstan",
+    "https://www.guinnessworldrecords.com/world-records/largest-landlocked-country"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La Mongolie",
+    "Le Tchad",
+    "Le Kazakhstan",
+    "La Bolivie"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "litterature-053",
+   "theme": "litterature",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Quel écrivain français est l'auteur du roman « Les Misérables », publié en 1862 ?",
+   "anecdote": "Paru en 1862, ce roman-fleuve suit l'ancien forçat Jean Valjean et connut un succès populaire immédiat, vite traduit en plusieurs langues.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Les_Mis%C3%A9rables",
+    "https://www.larousse.fr/encyclopedie/oeuvre/les_Mis%C3%A9rables/133386"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Émile Zola",
+    "Victor Hugo",
+    "Alexandre Dumas",
+    "Honoré de Balzac"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "litterature-054",
+   "theme": "litterature",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "En poésie française classique, combien de syllabes compte un alexandrin ?",
+   "anecdote": "L'alexandrin est un vers de douze syllabes, découpé par une césure en deux hémistiches de six ; il fut le grand vers de Racine, Corneille et Molière.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Alexandrin",
+    "https://www.etudes-litteraires.com/poesie/alexandrin"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Huit",
+    "Dix",
+    "Douze",
+    "Quatorze"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "litterature-055",
+   "theme": "litterature",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Sous quel nom de naissance le dramaturge connu comme Molière est-il né ?",
+   "anecdote": "Jean-Baptiste Poquelin adopte le pseudonyme « Molière » vers 1644, peu après avoir fondé sa troupe, l'Illustre-Théâtre, en 1643.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Moli%C3%A8re",
+    "https://www.larousse.fr/encyclopedie/personnage/Jean-Baptiste_Poquelin_dit_Moli%C3%A8re/133609"
+   ],
+   "format": "qcm",
+   "choices": [
+    "François-Marie Arouet",
+    "Jean-Baptiste Poquelin",
+    "Jean Racine",
+    "Pierre Corneille"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "litterature-056",
+   "theme": "litterature",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Qui a écrit la fable « Le Corbeau et le Renard », publiée en 1668 ?",
+   "anecdote": "C'est la deuxième fable du Livre I de Jean de La Fontaine (1668) ; il s'inspire de traditions anciennes remontant à Ésope et à Phèdre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Corbeau_et_le_Renard",
+    "https://essentiels.bnf.fr/fr/extrait/b67355aa-48c1-48ca-b117-58fcc857adb6-corbeau-et-renard-par-fontaine"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Charles Perrault",
+    "Jean de La Bruyère",
+    "Jean de La Fontaine",
+    "Nicolas Boileau"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "litterature-057",
+   "theme": "litterature",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel roman s'ouvre sur la célèbre phrase « Longtemps, je me suis couché de bonne heure » ?",
+   "anecdote": "Cette phrase ouvre « Du côté de chez Swann » (1913), premier tome de « À la recherche du temps perdu » de Marcel Proust.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Longtemps,_je_me_suis_couch%C3%A9_de_bonne_heure",
+    "https://france3-regions.franceinfo.fr/normandie/calvados/caen/longtemps-je-me-suis-couche-de-bonne-heure-la-celebre-premiere-phrase-de-marcel-proust-a-failli-ne-pas-exister-3298191.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Rouge et le Noir",
+    "L'Éducation sentimentale",
+    "Le Grand Meaulnes",
+    "Du côté de chez Swann"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "litterature-058",
+   "theme": "litterature",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Sous quel nom de naissance l'écrivaine George Sand est-elle née en 1804 ?",
+   "anecdote": "Née en 1804 Amantine Aurore Lucile Dupin, elle adopte le pseudonyme masculin « George Sand » au début des années 1830 pour signer ses œuvres.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/George_Sand",
+    "https://www.britannica.com/biography/George-Sand"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Delphine Gay",
+    "Amantine Aurore Lucile Dupin",
+    "Germaine Necker",
+    "Marie de Rabutin-Chantal"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "litterature-059",
+   "theme": "litterature",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Qui a rédigé le « Manifeste du surréalisme », publié en 1924 ?",
+   "anecdote": "André Breton publie ce texte fondateur le 15 octobre 1924, faisant du surréalisme un mouvement littéraire à part entière.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Manifeste_du_surr%C3%A9alisme",
+    "https://www.culture.gouv.fr/actualites/le-manifeste-du-surrealisme-a-100-ans-un-texte-qui-n-a-pas-pris-une-ride"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Guillaume Apollinaire",
+    "Paul Éluard",
+    "André Breton",
+    "Louis Aragon"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "litterature-060",
+   "theme": "litterature",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Qui est l'auteur de « Défense et illustration de la langue française » (1549), considéré comme le manifeste de la Pléiade ?",
+   "anecdote": "Publié en 1549, ce texte de Joachim Du Bellay défend le français comme langue littéraire digne du latin et du grec ; Ronsard était l'autre grande figure de la Pléiade.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/La_D%C3%A9fense_et_illustration_de_la_langue_fran%C3%A7aise",
+    "https://www.larousse.fr/encyclopedie/oeuvre/D%C3%A9fense_et_illustration_de_la_langue_fran%C3%A7aise/111298"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Pierre de Ronsard",
+    "Clément Marot",
+    "François Rabelais",
+    "Joachim Du Bellay"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "sciences-043",
+   "theme": "sciences",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Lors de la photosynthèse, quel gaz les plantes vertes absorbent-elles dans l'air ?",
+   "anecdote": "Grâce à la lumière et à la chlorophylle, les plantes absorbent le dioxyde de carbone et rejettent du dioxygène. La photosynthèse est à l'origine de la quasi-totalité de l'oxygène présent dans notre atmosphère.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Photosynth%C3%A8se",
+    "https://www.maxicours.com/se/cours/mise-en-evidence-des-echanges-respiratoires-chez-les-etres-vivants/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le dioxygène",
+    "Le dioxyde de carbone",
+    "L'azote",
+    "L'hydrogène"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "sciences-044",
+   "theme": "sciences",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel bactériologiste a découvert la pénicilline en 1928 ?",
+   "anecdote": "En 1928, Alexander Fleming remarqua qu'une moisissure (du genre Penicillium) contaminant l'une de ses cultures tuait les bactéries autour d'elle. Il reçut le prix Nobel de médecine en 1945, partagé avec Howard Florey et Ernst Chain.",
+   "sources": [
+    "https://www.nobelprize.org/prizes/medicine/1945/summary/",
+    "https://www.britannica.com/biography/Alexander-Fleming"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Louis Pasteur",
+    "Alexander Fleming",
+    "Robert Koch",
+    "Edward Jenner"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "sciences-045",
+   "theme": "sciences",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quel est le seul métal liquide à température ambiante ?",
+   "anecdote": "Le mercure est le seul métal liquide dans les conditions ordinaires de température et de pression : il ne se solidifie que vers -39 °C. Le gallium, lui, fond vers 30 °C, presque dans le creux de la main, mais reste solide à température ambiante.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mercury_(element)",
+    "https://www.britannica.com/science/mercury-chemical-element"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le plomb",
+    "Le mercure",
+    "L'étain",
+    "Le gallium"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "sciences-046",
+   "theme": "sciences",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quel physicien a énoncé, en 1927, le principe d'incertitude en mécanique quantique ?",
+   "anecdote": "Énoncé en 1927 par l'Allemand Werner Heisenberg, ce principe affirme qu'on ne peut pas connaître à la fois, et avec une précision parfaite, la position et la vitesse (quantité de mouvement) d'une particule.",
+   "sources": [
+    "https://www.aps.org/apsnews/2008/02/1927-heisenberg-uncertainty-principle",
+    "https://www.britannica.com/science/uncertainty-principle"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Albert Einstein",
+    "Niels Bohr",
+    "Werner Heisenberg",
+    "Erwin Schrödinger"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "arts-049",
+   "theme": "arts",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Qui a peint le célèbre tableau « La Nuit étoilée » (1889), au ciel tourbillonnant ?",
+   "anecdote": "Van Gogh peignit cette toile en juin 1889 depuis sa chambre de l'asile de Saint-Paul-de-Mausole, à Saint-Rémy-de-Provence. Elle est conservée au MoMA de New York depuis 1941 (legs Lillie P. Bliss).",
+   "sources": [
+    "https://www.moma.org/collection/works/79802",
+    "https://en.wikipedia.org/wiki/The_Starry_Night"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Claude Monet",
+    "Édouard Manet",
+    "Vincent van Gogh",
+    "Paul Cézanne"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "arts-050",
+   "theme": "arts",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Le mouvement impressionniste doit son nom au titre d'un tableau de quel peintre ?",
+   "anecdote": "Le titre de « Impression, soleil levant » (1872) de Monet, exposé en 1874, fut raillé par le critique Louis Leroy dans Le Charivari ; sa moquerie finit par baptiser tout le mouvement.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Impression,_soleil_levant",
+    "https://en.wikipedia.org/wiki/Impression,_Sunrise"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Auguste Renoir",
+    "Claude Monet",
+    "Edgar Degas",
+    "Camille Pissarro"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "arts-051",
+   "theme": "arts",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Qui est l'architecte de la pyramide de verre du Louvre, inaugurée en 1989 ?",
+   "anecdote": "Commandée sous la présidence de François Mitterrand, la pyramide de l'architecte américain d'origine chinoise Ieoh Ming Pei fut inaugurée le 29 mars 1989, malgré une vive polémique.",
+   "sources": [
+    "https://www.louvre.fr/en/explore/the-palace/a-pyramid-for-a-symbol",
+    "https://www.britannica.com/topic/Louvre-Pyramid"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Ieoh Ming Pei",
+    "Jean Nouvel",
+    "Le Corbusier",
+    "Norman Foster"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "arts-052",
+   "theme": "arts",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le tableau « Guernica » de Pablo Picasso dénonce un bombardement survenu pendant quelle guerre ?",
+   "anecdote": "La ville basque de Guernica fut bombardée le 26 avril 1937 par la légion Condor allemande ; Picasso peignit sa toile monumentale entre mai et juin 1937 pour l'Exposition internationale de Paris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bombardement_de_Guernica",
+    "https://histoire-image.org/etudes/guerre-civile-espagnole"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La Première Guerre mondiale",
+    "Les guerres napoléoniennes",
+    "La guerre civile espagnole",
+    "La Seconde Guerre mondiale"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "arts-053",
+   "theme": "arts",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Comment nomme-t-on la technique de peinture murale consistant à appliquer les pigments sur un enduit de chaux encore frais ?",
+   "anecdote": "Du mot italien « a fresco » (« dans le frais »), la fresque oblige l'artiste à travailler vite : en séchant, l'enduit de chaux fixe définitivement, par carbonatation, les pigments qui ont pénétré le mortier humide.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fresque",
+    "https://www.larousse.fr/encyclopedie/peinture/fresque/152234"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La détrempe",
+    "La fresque",
+    "Le sgraffite",
+    "La gouache"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "arts-054",
+   "theme": "arts",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "En 1905, quel critique d'art lança l'expression « Donatello parmi les fauves » qui donna son nom au fauvisme ?",
+   "anecdote": "Devant les couleurs éclatantes de Matisse et de ses proches au Salon d'Automne de 1905, Vauxcelles compara des bustes classiques voisins à « Donatello parmi les fauves » dans le journal Gil Blas (17 octobre 1905).",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Louis_Vauxcelles",
+    "https://www.historytoday.com/archive/fauves-salon-d%E2%80%99automne"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Louis Vauxcelles",
+    "Guillaume Apollinaire",
+    "Émile Zola",
+    "Charles Baudelaire"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "arts-055",
+   "theme": "arts",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Le « sfumato », qui estompe les contours pour un rendu vaporeux, « à la façon de la fumée », est particulièrement associé à quel maître ?",
+   "anecdote": "Léonard de Vinci perfectionna le sfumato en superposant de très fines couches de glacis translucides, comme dans la Joconde, pour fondre sans rupture les transitions entre ombre et lumière.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Sfumato",
+    "https://www.britannica.com/art/sfumato"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Michel-Ange",
+    "Raphaël",
+    "Sandro Botticelli",
+    "Léonard de Vinci"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "cinema-048",
+   "theme": "cinema",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Quel appareil des frères Lumière, présenté au public en 1895, est souvent considéré comme l'acte de naissance du cinéma?",
+   "anecdote": "La première projection publique payante du Cinématographe eut lieu le 28 décembre 1895 au Salon indien du Grand Café, boulevard des Capucines à Paris, devant une trentaine de spectateurs seulement.",
+   "sources": [
+    "https://www.herodote.net/28_decembre_1895-evenement-18951228.php",
+    "https://www.retronews.fr/echo-de-presse/2018/04/23/premiere-projection-du-cinematographe-par-les-freres-lumiere-en-1895"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Cinématographe",
+    "Le Kinétoscope",
+    "Le Praxinoscope",
+    "Le Phénakistiscope"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-049",
+   "theme": "cinema",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quel film de 1927 est généralement considéré comme le premier long métrage 'parlant', avec dialogues et chant synchronisés?",
+   "anecdote": "Produit par Warner Bros. avec le procédé sonore Vitaphone, le film ne comporte que quelques passages de dialogue synchronisé, mais son succès précipita la fin de l'ère du cinéma muet.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/The_Jazz_Singer",
+    "https://www.britannica.com/topic/The-Jazz-Singer-film-1927"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Chanteur de jazz (The Jazz Singer)",
+    "Metropolis",
+    "Naissance d'une nation",
+    "Les Lumières de la ville"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-050",
+   "theme": "cinema",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Qui a réalisé Le Voyage dans la Lune (1902), œuvre pionnière des trucages et des effets spéciaux au cinéma?",
+   "anecdote": "Ancien illusionniste, Méliès popularisa l'arrêt de caméra, les surimpressions et les fondus; son film s'inspire librement de Jules Verne et de H. G. Wells.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Voyage_dans_la_Lune",
+    "https://www.cinematheque.fr/film/52565.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Georges Méliès",
+    "Louis Feuillade",
+    "Charles Pathé",
+    "Émile Reynaud"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-051",
+   "theme": "cinema",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Comment s'appelle la récompense suprême décernée au meilleur film du Festival de Cannes?",
+   "anecdote": "Créée en 1955 en remplacement du Grand Prix, la première Palme d'or fut attribuée au film 'Marty' de l'Américain Delbert Mann; l'Ours d'or, le Lion d'or et le Léopard d'or récompensent respectivement Berlin, Venise et Locarno.",
+   "sources": [
+    "https://www.festival-cannes.com/en/2020/palme-d-or-the-1950s/",
+    "https://en.wikipedia.org/wiki/1955_Cannes_Film_Festival"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La Palme d'or",
+    "L'Ours d'or",
+    "Le Lion d'or",
+    "Le Léopard d'or"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-052",
+   "theme": "cinema",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Comment nomme-t-on le mouvement du cinéma français né à la fin des années 1950, porté par de jeunes critiques issus des Cahiers du cinéma?",
+   "anecdote": "François Truffaut, Jean-Luc Godard, Claude Chabrol et Éric Rohmer, d'abord critiques, défendaient la 'politique des auteurs' et le tournage en décors réels.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Nouvelle_Vague",
+    "https://www.britannica.com/topic/Cahiers-du-Cinema"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La Nouvelle Vague",
+    "Le Réalisme poétique",
+    "L'Expressionnisme",
+    "Le Néoréalisme"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-053",
+   "theme": "cinema",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel cinéaste est souvent surnommé le 'père du documentaire' pour Nanouk l'Esquimau (Nanook of the North, 1922)?",
+   "anecdote": "Nanouk l'Esquimau fut le premier long métrage documentaire à connaître un succès commercial, même si Flaherty y mit en scène et reconstitua plusieurs séquences de la vie inuit.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Nanook_of_the_North",
+    "https://www.britannica.com/topic/Nanook-of-the-North"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Robert Flaherty",
+    "Dziga Vertov",
+    "John Grierson",
+    "Jean Rouch"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-054",
+   "theme": "cinema",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quel cinéaste soviétique, théoricien du montage, a réalisé Le Cuirassé Potemkine (1925) et sa célèbre scène de l'escalier d'Odessa?",
+   "anecdote": "La séquence du landau dévalant les marches d'Odessa est l'une des plus imitées de l'histoire du cinéma, bien que ce massacre soit une reconstitution dramatique et non un fait historique exact.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Cuirass%C3%A9_Potemkine",
+    "https://www.cinematheque.fr/film/40279.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Sergueï Eisenstein",
+    "Dziga Vertov",
+    "Vsevolod Poudovkine",
+    "Lev Koulechov"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "cinema-055",
+   "theme": "cinema",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quelle est la cadence standard de défilement, en images par seconde, adoptée avec l'arrivée du cinéma sonore?",
+   "anecdote": "Les films muets étaient projetés à des vitesses variables (souvent 16 à 24 i/s); avec le son optical enregistré sur la pellicule, l'industrie fixa vers 1927 la cadence à 24 images par seconde pour garantir une restitution sonore correcte.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Frame_rate",
+    "https://www.britannica.com/technology/motion-picture-technology/Introduction-of-sound"
+   ],
+   "format": "qcm",
+   "choices": [
+    "24",
+    "16",
+    "30",
+    "60"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "sport-043",
+   "theme": "sport",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Au football (soccer), combien de joueurs par équipe sont présents simultanément sur le terrain, gardien compris ?",
+   "anecdote": "Chaque équipe aligne onze joueurs, dont un seul gardien de but, le seul autorisé à jouer le ballon avec les mains à l'intérieur de sa surface de réparation.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Football",
+    "https://en.wikipedia.org/wiki/Association_football"
+   ],
+   "format": "qcm",
+   "choices": [
+    "9",
+    "10",
+    "11",
+    "12"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "sport-044",
+   "theme": "sport",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quelle est la distance officielle d'un marathon ?",
+   "anecdote": "Issue du parcours des Jeux olympiques de Londres en 1908, la distance de 42,195 km fut fixée comme norme officielle par la fédération internationale d'athlétisme (IAAF) en 1921.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Marathon",
+    "https://worldathletics.org/disciplines/road-running/marathon"
+   ],
+   "format": "qcm",
+   "choices": [
+    "40 km",
+    "42,195 km",
+    "44,195 km",
+    "42,915 km"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "sport-045",
+   "theme": "sport",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Sur quelle surface se dispute le tournoi de tennis de Wimbledon ?",
+   "anecdote": "Wimbledon est le seul tournoi du Grand Chelem encore disputé sur gazon ; ses courts sont semés à 100 % de ray-grass anglais (perennial ryegrass) depuis 2001.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/The_Championships,_Wimbledon",
+    "https://scientificinquirer.com/2023/07/03/sports-at-wimbledon-the-tennis-players-are-great-and-all-that-but-perennial-ryegrass-is-the-real-star-among-stars/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Terre battue",
+    "Gazon",
+    "Dur (résine)",
+    "Moquette"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "sport-046",
+   "theme": "sport",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Combien de joueurs composent une équipe sur le terrain au rugby à XV ?",
+   "anecdote": "Une équipe de rugby à XV compte huit avants et sept arrières ; à ne pas confondre avec le rugby à XIII, un sport distinct qui se joue à treize.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rugby_%C3%A0_XV",
+    "https://en.wikipedia.org/wiki/Rugby_union"
+   ],
+   "format": "qcm",
+   "choices": [
+    "11",
+    "13",
+    "14",
+    "15"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "sport-047",
+   "theme": "sport",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "À quelle hauteur le bord supérieur de l'anneau d'un panier de basket-ball est-il fixé en compétition officielle senior ?",
+   "anecdote": "Cette hauteur de 3,05 m correspond à 10 pieds anglais et remonte au gymnase où James Naismith inventa le basket-ball en 1891 ; elle est identique en NBA et à la FIBA.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Basketball",
+    "https://www.networldsports.com/buyers-guides/basketball-hoop-height-guide"
+   ],
+   "format": "qcm",
+   "choices": [
+    "2,60 m",
+    "2,95 m",
+    "3,05 m",
+    "3,20 m"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "sport-048",
+   "theme": "sport",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Dans quelle ville se sont déroulés les premiers Jeux olympiques de l'ère moderne, en 1896 ?",
+   "anecdote": "Relancés à l'initiative du baron Pierre de Coubertin, ces premiers Jeux modernes réunirent en avril 1896 les athlètes de quatorze nations dans la capitale grecque.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques_de_1896",
+    "https://www.larousse.fr/encyclopedie/divers/JO_dAth%C3%A8nes_1896_I_er_jeux_Olympiques_d%C3%A9t%C3%A9/185461"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Athènes",
+    "Paris",
+    "Londres",
+    "Olympie"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "sport-049",
+   "theme": "sport",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel temps constitue le record du monde du 100 mètres masculin, établi à Berlin en 2009 ?",
+   "anecdote": "En finale des Championnats du monde de Berlin, le 16 août 2009, Usain Bolt porta le record à 9,58 s, retranchant 0,11 s à sa propre marque de 9,69 s des JO de Pékin 2008.",
+   "sources": [
+    "https://worldathletics.org/news/news/bolt-again-958-world-record-in-berlin-updat",
+    "https://en.wikipedia.org/wiki/2009_World_Championships_in_Athletics_%E2%80%93_Men's_100_metres"
+   ],
+   "format": "qcm",
+   "choices": [
+    "9,69 s",
+    "9,72 s",
+    "9,58 s",
+    "9,63 s"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "sport-050",
+   "theme": "sport",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quelle ville française a accueilli les tout premiers Jeux olympiques d'hiver, en 1924 ?",
+   "anecdote": "D'abord organisée comme une « Semaine internationale des sports d'hiver », l'épreuve de Chamonix-Mont-Blanc fut reconnue rétroactivement comme les premiers Jeux d'hiver par le CIO en 1926.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/1924_Winter_Olympics",
+    "https://www.olympics.com/en/olympic-games/chamonix-1924"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Grenoble",
+    "Albertville",
+    "Megève",
+    "Chamonix"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "pop-culture-040",
+   "theme": "pop-culture",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Le jeu d'échecs descend du « chaturanga », un jeu de plateau apparu vers le VIe siècle. Dans quel pays est-il né ?",
+   "anecdote": "En sanskrit, « chaturanga » signifie « quatre membres » et renvoie aux quatre corps de l'armée indienne : éléphants, chars, cavalerie et infanterie. Le jeu gagna ensuite la Perse, où il devint le shatranj.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Chaturanga",
+    "https://en.wikipedia.org/wiki/History_of_chess"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La Chine",
+    "La Perse",
+    "L'Inde",
+    "L'Égypte ancienne"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "pop-culture-041",
+   "theme": "pop-culture",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "En quelle année le journaliste Arthur Wynne publia-t-il, dans le New York World, ce qui est considéré comme la première grille de mots croisés moderne ?",
+   "anecdote": "Parue le 21 décembre 1913, la grille avait la forme d'un losange et s'appelait « Word-Cross ». Quelques semaines plus tard, une coquille typographique inversa les mots en « Cross-Word », nom resté en usage depuis.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Arthur_Wynne",
+    "https://www.crosswordtournament.com/more/wynne.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "1888",
+    "1901",
+    "1913",
+    "1927"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "pop-culture-042",
+   "theme": "pop-culture",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Au début du XXe siècle, dans quelle ville de Provence est née la pétanque ?",
+   "anecdote": "Vers 1907, le joueur Jules Hugues, dit « Le Noir », perclus de rhumatismes, se mit à jouer les pieds joints et fixés au sol. Le premier concours eut lieu à La Ciotat en 1910 ; le nom vient du provençal « pèd tanca » (pieds plantés).",
+   "sources": [
+    "https://fresques.ina.fr/sudorama/fiche-media/00000000127/la-ciotat-le-centenaire-de-la-petanque.html",
+    "https://www.rhone-alpes-petanque.fr/33-article/16-la-naissance-de-la-petanque-a-la-ciotat"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Marseille",
+    "La Ciotat",
+    "Aix-en-Provence",
+    "Toulon"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "pop-culture-043",
+   "theme": "pop-culture",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "La toute première grande roue fut érigée en 1893 pour une exposition universelle. Dans quelle ville tournait-elle ?",
+   "anecdote": "L'ingénieur George Washington Gale Ferris la conçut pour l'Exposition universelle de Chicago, afin de rivaliser avec la tour Eiffel de 1889. Haute d'environ 80 mètres, elle ouvrit au public le 21 juin 1893.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ferris_Wheel_(1893)",
+    "https://www.guinnessworldrecords.com/world-records/first-ferris-wheel"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Paris",
+    "Londres",
+    "Chicago",
+    "Vienne"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "pop-culture-044",
+   "theme": "pop-culture",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le saut à l'élastique s'inspire d'un rituel ancestral où des hommes plongent d'une tour en bois, des lianes nouées aux chevilles. Dans quel archipel du Pacifique ce saut (le naghol) se pratique-t-il ?",
+   "anecdote": "Sur l'île de Pentecôte, au Vanuatu, le naghol accompagne le cycle de la récolte des ignames : la longueur des lianes est calculée pour que la tête du sauteur effleure le sol. Il est reconnu comme l'ancêtre du saut à l'élastique.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Land_diving",
+    "https://www.vanuatu.travel/en/things-to-do/events/event/1-naghol-land-diving"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Les Fidji",
+    "Le Vanuatu",
+    "Les Samoa",
+    "Les Tonga"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "pop-culture-045",
+   "theme": "pop-culture",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Bien qu'il porte un nom japonais, le sudoku a en réalité été conçu et publié pour la première fois en 1979, sous le nom « Number Place », dans quel pays ?",
+   "anecdote": "Le casse-tête est attribué à l'Américain Howard Garns (Dell Magazines, mai 1979). Il ne prit le nom de « sudoku » qu'en 1984, quand l'éditeur japonais Nikoli le popularisa ; le mot abrège une expression signifiant « les chiffres doivent rester uniques ».",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Sudoku",
+    "https://crownhillhf.org/howard-s-garns-inventor-of-sudoku/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Japon",
+    "Les États-Unis",
+    "La France",
+    "Le Royaume-Uni"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "pop-culture-046",
+   "theme": "pop-culture",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Que représentent les cinq anneaux entrelacés du symbole olympique, imaginé par Pierre de Coubertin en 1913 ?",
+   "anecdote": "Coubertin présenta ce symbole en 1913 pour évoquer « les cinq parties du monde désormais acquises à l'olympisme ». Les six couleurs, fond blanc compris, permettaient de reproduire les drapeaux de toutes les nations. Le drapeau fit ses débuts aux Jeux d'Anvers en 1920.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Olympic_symbols",
+    "https://www.olympics.com/ioc/olympic-rings"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Les cinq disciplines des premiers Jeux",
+    "L'union des cinq continents",
+    "Les cinq villes hôtes historiques",
+    "Les cinq cercles d'entraînement des athlètes"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "pop-culture-047",
+   "theme": "pop-culture",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Contrairement à une idée reçue, le mot « emoji » n'a aucun lien avec l'anglais « emotion ». De quels mots japonais est-il formé ?",
+   "anecdote": "Créés en 1999 par le Japonais Shigetaka Kurita pour l'opérateur NTT DoCoMo, les 176 premiers emojis combinent « e » (絵, image) et « moji » (文字, caractère). La ressemblance avec « emotion » est une pure coïncidence.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Shigetaka_Kurita",
+    "https://www.moma.org/collection/works/196070"
+   ],
+   "format": "qcm",
+   "choices": [
+    "« e » (image) et « moji » (caractère)",
+    "« emo » (émotion) et « ji » (signe)",
+    "« e » (petit) et « moji » (dessin)",
+    "« emo » (visage) et « ji » (mot)"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "insolite-036",
+   "theme": "insolite",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Que peut-il arriver à la tour Eiffel lors des fortes chaleurs de l'été ?",
+   "anecdote": "La chaleur dilate le fer : selon les estimations de la Société d'exploitation de la tour Eiffel, la structure peut mesurer 12 à 15 cm de plus lors des jours les plus chauds de l'été que lors des jours d'hiver les plus froids.",
+   "sources": [
+    "https://www.toureiffel.paris/en/news/history-and-culture/why-does-eiffel-tower-change-size",
+    "https://theconversation.com/the-eiffel-tower-gets-bigger-every-summer-heres-why-261904"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Elle grandit de plusieurs centimètres",
+    "Elle rétrécit de plusieurs centimètres",
+    "Elle change de couleur",
+    "Elle penche nettement vers le sud"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "insolite-037",
+   "theme": "insolite",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le wombat, marsupial australien, est le seul animal connu à produire des excréments d'une forme très particulière. Laquelle ?",
+   "anecdote": "Les crottes de wombat sont cubiques, une forme qui se crée dans la dernière portion de son intestin aux parois de rigidité inégale. Cette recherche a valu à ses auteurs un prix Ig Nobel de physique en 2019.",
+   "sources": [
+    "https://biosciences.gatech.edu/news/studying-wombats-cubic-poop",
+    "https://en.wikipedia.org/wiki/Wombat_feces"
+   ],
+   "format": "qcm",
+   "choices": [
+    "En forme de spirale",
+    "En forme de cube",
+    "En forme d'étoile",
+    "En forme de sphère parfaite"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "insolite-038",
+   "theme": "insolite",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Combien de temps a duré la guerre anglo-zanzibaraise de 1896, considérée comme la plus courte de l'histoire ?",
+   "anecdote": "Le 27 août 1896, le bombardement britannique du palais du sultan de Zanzibar dura entre 38 et 45 minutes selon les sources : c'est la plus courte guerre jamais enregistrée.",
+   "sources": [
+    "https://www.britannica.com/event/Anglo-Zanzibar-War",
+    "https://en.wikipedia.org/wiki/Anglo-Zanzibar_War"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Environ 40 minutes",
+    "Environ 4 heures",
+    "Environ 2 jours",
+    "Environ une semaine"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "insolite-039",
+   "theme": "insolite",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "La reine Cléopâtre (morte en 30 av. J.-C.) a vécu plus près dans le temps de quel événement ?",
+   "anecdote": "La grande pyramide de Khéops fut achevée vers 2560 av. J.-C., soit près de 2 500 ans avant Cléopâtre, alors que le premier alunissage (1969) n'a eu lieu qu'environ 2 000 ans après elle : elle est donc temporellement plus proche de nous que des bâtisseurs de la pyramide.",
+   "sources": [
+    "https://www.worldatlas.com/articles/so-cleopatra-lived-closer-in-time-to-the-first-lunar-landing-than-the-great-pyramids.html",
+    "https://www.britannica.com/place/Great-Pyramid-of-Giza"
+   ],
+   "format": "qcm",
+   "choices": [
+    "De la construction de la grande pyramide de Khéops",
+    "Du premier pas de l'homme sur la Lune (1969)",
+    "Les deux à égale distance",
+    "De l'apparition des premiers dinosaures"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "arts-056",
+   "theme": "arts",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "« Le Penseur », sculpture d’un homme nu assis et plongé dans ses pensées, est l’œuvre de quel artiste ?",
+   "anecdote": "Conçue vers 1880, la figure faisait d’abord partie de « La Porte de l’Enfer » de Rodin, commande inspirée de la Divine Comédie de Dante, avant de devenir une œuvre autonome mondialement reproduite.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Penseur",
+    "https://fr.wikipedia.org/wiki/La_Porte_de_l%27Enfer"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Camille Claudel",
+    "Antoine Bourdelle",
+    "Aristide Maillol",
+    "Auguste Rodin"
+   ],
+   "answerIndex": 3
   }
  ]
 }

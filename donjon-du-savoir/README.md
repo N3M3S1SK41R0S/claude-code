@@ -125,7 +125,7 @@ système demande de réduire les animations).
 
 ## La banque de questions
 
-`data/questions.json` — **647 questions vérifiées** (chaque fait contrôlé
+`data/questions.json` — **709 questions vérifiées** (chaque fait contrôlé
 contre ≥ 2 sources indépendantes, citées sous chaque anecdote), 13 catégories,
 3 tranches d'âge, 6 formats. Elle est générée depuis la banque fact-checkée du
 projet frère `../grand-mogul` :
