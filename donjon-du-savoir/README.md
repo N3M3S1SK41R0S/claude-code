@@ -191,6 +191,15 @@ PWA, donc rien à maintenir en double.
 `playwright-core` — outillage de dev uniquement, le jeu lui-même n'a
 **aucune dépendance**.)
 
+### Icône de bureau (Windows / macOS / Linux)
+
+`node tools/make-launcher.mjs` génère `dist/launcher-kit/` : une icône stylisée
+aux formats **.ico** (Windows), **.icns** (macOS) et **.png** (Linux, produits
+depuis `icons/icon-512.png` via Chromium), le jeu en un seul fichier renommé, un
+**lanceur par système** (raccourci Bureau) et un `LISEZ-MOI`. Le kit se
+décompresse n'importe où et lance le jeu **hors-ligne** d'un double-clic. (Sortie
+de build ignorée par git — régénérable.)
+
 ## Conformité au cahier des charges (§12)
 
 **Livré** : plateau interactif 42 cases (9 types, fréquences du §4), 6

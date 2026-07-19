@@ -1,2 +1,6 @@
 # Dev-only: playwright-core resolved via a link to ../grand-mogul/node_modules
 node_modules
+
+# Build output of tools/make-launcher.mjs (regenerable ; contient le gros HTML)
+dist/launcher-kit/
+dist/*.zip
