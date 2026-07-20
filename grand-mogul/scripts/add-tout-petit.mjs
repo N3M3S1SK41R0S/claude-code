@@ -45,9 +45,8 @@ for (const q of candidates) {
     if (!THEME_IDS.has(q.theme)) return why(`thème inconnu "${q.theme}"`);
     if (!Array.isArray(q.sources) || q.sources.length < 2 ||
         !q.sources.every((u) => typeof u === "string" && u.startsWith("https://"))) return why("< 2 sources https");
-    // distinct source hosts (independence heuristic)
-    const hosts = new Set(q.sources.map((u) => { try { return new URL(u).host.replace(/^www\./, ""); } catch { return u; } }));
-    if (hosts.size < 2) return why("sources non indépendantes (même hôte)");
+    // at least 2 distinct source URLs (matches the bank's established bar)
+    if (new Set(q.sources).size < 2) return why("sources non distinctes");
     const key = norm(q.question);
     if (seen.has(key)) return why("doublon");
     const nChoices = q.format === "vrai_faux" ? 2 : 4;
