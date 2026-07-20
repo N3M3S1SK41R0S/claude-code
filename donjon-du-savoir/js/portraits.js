@@ -144,6 +144,9 @@ const PORTRAIT_ART = {
   nebulia: "assets/portrait-nebulia.png",
   boumbastien: "assets/portrait-boumbastien.png",
   duchesse: "assets/portrait-duchesse.png",
+  flaque: "assets/portrait-flaque.png",
+  pelote: "assets/portrait-pelote.png",
+  hibou: "assets/portrait-hibou.png",
 };
 
 /** DOM element for a character medallion (decorative; name is given elsewhere). */
