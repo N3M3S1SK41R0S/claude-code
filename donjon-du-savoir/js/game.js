@@ -905,6 +905,26 @@ function useTurnPower(pion) {
       heraldSays(herald.pouvoir());
       if (shift(pion, 2)) return;
       return startTurn({ silent: true });
+    case "flaque:adulte": {
+      // Abordage : on pille le plus riche des adversaires (jusqu'à 3 🪙).
+      const rich = others.filter((p) => p.pieces > 0).sort((a, b) => b.pieces - a.pieces)[0];
+      if (rich) {
+        const loot = Math.min(3, rich.pieces);
+        rich.pieces -= loot;
+        addCoins(pion, loot);
+        render();
+        heraldSays(`🏴‍☠️ Abordage ! ${pion.nom} déleste ${rich.nom} de ${loot} 🪙.`);
+      } else {
+        addCoins(pion, 2); // personne à piller : un maigre butin de consolation
+        render();
+      }
+      return done();
+    }
+    case "pelote:adulte":
+      // Maille Solide : un bouclier tricoté, comme l'objet Bouclier.
+      pion.bouclier = true;
+      render();
+      return done();
     default:
       return startTurn({ silent: true });
   }
@@ -1159,8 +1179,9 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCag
   const zone = el("div", { class: "power-zone" });
 
   const key = `${pion.characterId}:${pion.profil}`;
-  if (blockCageot && (key === "cageot:adulte" || key === "cageot:enfant")) {
-    // The Trou Noir keeps its stakes: no CASH shortcut, no easier question.
+  if (blockCageot && (key === "cageot:adulte" || key === "cageot:enfant" || key === "hibou:adulte")) {
+    // The Trou Noir keeps its stakes: no CASH shortcut, no easier question,
+    // no 50/50.
   } else if (key === "cageot:adulte" && (q.format === "qcm" || (q.format === "cash_carre_duo" && cashMode === "carre"))) {
     zone.append(choiceButton(`${c.emoji} ${power.nom} — répondre CASH (+${ADVANCE.cash} cases)`, () => {
       pion.pouvoirUtilise = true;
@@ -1191,6 +1212,30 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCag
     }));
   } else if (key === "duchesse:enfant") {
     zone.append(choiceButton(`${c.emoji} ${power.nom} — un indice !`, () => {
+      pion.pouvoirUtilise = true;
+      save();
+      heraldSays(herald.pouvoir());
+      const answer = q.bonne_reponse ?? String(q.reponse_numerique ?? "");
+      const first = answer.trim().charAt(0).toUpperCase();
+      hintZone.append(el("p", { class: "hint", text: `💡 La réponse commence par « ${first} ».` }));
+      zone.remove();
+    }));
+  } else if (key === "hibou:adulte" && q.format === "qcm" && container.querySelector(".choices .btn-choice")) {
+    zone.append(choiceButton(`${c.emoji} ${power.nom} — retirer 2 mauvaises réponses`, () => {
+      pion.pouvoirUtilise = true;
+      save();
+      heraldSays(herald.pouvoir());
+      const wrong = [...container.querySelectorAll(".choices .btn-choice")]
+        .filter((b) => !b.disabled && b.textContent.trim() !== String(q.bonne_reponse).trim());
+      for (const b of wrong.sort(() => Math.random() - 0.5).slice(0, 2)) {
+        b.classList.add("choice-struck");
+        b.disabled = true;
+        b.setAttribute("aria-label", `${b.textContent} (éliminée par le Professeur Hibou)`);
+      }
+      zone.remove();
+    }));
+  } else if (key === "hibou:enfant") {
+    zone.append(choiceButton(`${c.emoji} ${power.nom} — un petit indice`, () => {
       pion.pouvoirUtilise = true;
       save();
       heraldSays(herald.pouvoir());

@@ -118,6 +118,9 @@ déplacent le pion sans re-déclencher (un tour se termine toujours).
 | 🌌 | Nébulia | Échange Cosmique (échange sa position) | Bulle Protectrice (annule un Coup dur) |
 | 💥 | Boumbastien | Relance ! (relance le dé) | Turbo Case (+2 cases) |
 | 👑 | La Duchesse Anecdote | Indice Royal (anecdote avant de répondre) | Indice Malin (indice sur la réponse) |
+| 🏴‍☠️ | Capitaine Flaque | Abordage (pille 3 🪙 au plus riche) | Vent en Poupe (relance le dé) |
+| 🧶 | Mémé Pelote | Maille Solide (se tricote un bouclier) | Doudou Réconfort (annule un Coup dur) |
+| 🦉 | Professeur Hibou | Cinquante-Cinquante (retire 2 mauvaises réponses) | Petit Curieux (révèle la 1re lettre) |
 
 ### Le narrateur
 
@@ -134,7 +137,7 @@ système demande de réduire les animations).
 
 ## La banque de questions
 
-`data/questions.json` — **880 questions vérifiées** (chaque fait contrôlé
+`data/questions.json` — **948 questions vérifiées** (chaque fait contrôlé
 contre ≥ 2 sources indépendantes, citées sous chaque anecdote), 13 catégories,
 6 formats, réparties en niveaux `tout_petit` / `enfant` / `ado` / `adulte`
 (difficulté 1-5). Elle est générée depuis la banque fact-checkée du projet
@@ -221,7 +224,7 @@ banque vérifiée avec anecdotes systématiques et sources, narrateur-mascotte
 original + synthèse vocale, 1-20 joueurs pass-and-play, équipes avec
 porte-parole tournant, difficulté adaptative (bonus : par score fin 1-5, pas
 seulement par tranche d'âge), sauvegarde/reprise automatique, PWA hors-ligne,
-**habillage illustré original complet** (portraits des 6 compagnons, mascotte
+**habillage illustré original complet** (portraits des 9 compagnons, mascotte
 Héraut, 12 jetons de case, 12 décors, bannière d'accueil, 5 fonds de donjon et
 icônes de l'app dans `assets/` — chaque image est posée par-dessus le médaillon
 SVG / l'emoji / le dégradé d'origine, qui reste en **repli** si une image

@@ -76,6 +76,42 @@ export const POWERS = {
       quand: "question",
     },
   },
+  flaque: {
+    adulte: {
+      nom: "Abordage",
+      desc: "Pille jusqu'à 3 pièces au joueur le plus riche.",
+      quand: "tour",
+    },
+    enfant: {
+      nom: "Vent en Poupe",
+      desc: "Relance le dé une fois.",
+      quand: "de",
+    },
+  },
+  pelote: {
+    adulte: {
+      nom: "Maille Solide",
+      desc: "Se tricote un bouclier qui parera le prochain coup dur ou larcin.",
+      quand: "tour",
+    },
+    enfant: {
+      nom: "Doudou Réconfort",
+      desc: "Annule un Coup dur.",
+      quand: "malus",
+    },
+  },
+  hibou: {
+    adulte: {
+      nom: "Cinquante-Cinquante",
+      desc: "Retire 2 mauvaises réponses d'un QCM.",
+      quand: "question",
+    },
+    enfant: {
+      nom: "Petit Curieux",
+      desc: "Révèle la première lettre de la réponse.",
+      quand: "question",
+    },
+  },
 };
 
 export function powerOf(pion) {

@@ -1,4 +1,4 @@
-// Original hand-drawn SVG medallions for the six companions — flat cartoon
+// Original hand-drawn SVG medallions for the nine companions — flat cartoon
 // style, no external assets (fills the §12 "illustrations" gap until real
 // artwork lands; the §6 prompts remain available for a generator pass).
 
@@ -93,6 +93,44 @@ export const PORTRAITS = {
     <circle cx="59" cy="53" r="2.6" fill="#221a10"/>
     <path d="M 64 58 l 8 12" stroke="#a87c1f" stroke-width="2.6" stroke-linecap="round"/>
     <path d="M 43 65 Q 50 69 57 65" fill="none" stroke="#221a10" stroke-width="2.2" stroke-linecap="round"/>
+  `),
+  // Corsaire des flaques : bandana rouge, cache-œil, grand sourire, éclaboussure.
+  flaque: medallion("#2f9e8f", `
+    <circle cx="50" cy="55" r="18" fill="${FACE}"/>
+    <path d="M 31 47 Q 50 29 69 47 Z" fill="#c0392b" stroke="#8e2b20" stroke-width="2"/>
+    <path d="M 31 47 h 38" stroke="#8e2b20" stroke-width="2.4"/>
+    <path d="M 67 44 l 11 -3 -4 9 Z" fill="#c0392b" stroke="#8e2b20" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="59" cy="55" r="3.2" fill="#221a10"/>
+    <rect x="35" y="50" width="12" height="10" rx="2" fill="#221a10"/>
+    <path d="M 31 52 l 6 -3 M 47 52 l 6 -2" stroke="#221a10" stroke-width="1.6" stroke-linecap="round"/>
+    <path d="M 43 66 Q 50 72 58 65" fill="none" stroke="#221a10" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="M 24 80 q 6 -6 12 0 q 6 6 12 0" fill="none" stroke="#8fe3d6" stroke-width="3" stroke-linecap="round"/>
+  `),
+  // Mamie tricoteuse : chignon gris, lunettes rondes, pelote de laine.
+  pelote: medallion("#d47ba6", `
+    <path d="M 30 52 Q 26 30 50 28 Q 74 30 70 52 Z" fill="#d8d8de" stroke="#b7b7c2" stroke-width="2"/>
+    <circle cx="50" cy="30" r="8" fill="#d8d8de" stroke="#b7b7c2" stroke-width="2"/>
+    <circle cx="50" cy="57" r="17" fill="${FACE}"/>
+    <circle cx="42" cy="55" r="6" fill="#fff" stroke="#6a5a4a" stroke-width="2.2"/>
+    <circle cx="58" cy="55" r="6" fill="#fff" stroke="#6a5a4a" stroke-width="2.2"/>
+    <path d="M 48 55 h 4" stroke="#6a5a4a" stroke-width="2.2"/>
+    <circle cx="42" cy="55" r="2" fill="#221a10"/>
+    <circle cx="58" cy="55" r="2" fill="#221a10"/>
+    <path d="M 44 67 Q 50 71 56 67" fill="none" stroke="#221a10" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="72" cy="76" r="9" fill="#e07ba0" stroke="#b85c80" stroke-width="1.6"/>
+    <path d="M 65 74 q 7 -4 14 2 M 64 78 q 8 -1 15 3 M 66 71 q 6 4 12 10" fill="none" stroke="#b85c80" stroke-width="1.3"/>
+  `),
+  // Hibou bibliothécaire : grosses lunettes rondes, aigrettes, petit livre.
+  hibou: medallion("#7a6ad0", `
+    <path d="M 26 40 l 8 -14 6 12 Z" fill="#8a6a4a"/>
+    <path d="M 74 40 l -8 -14 -6 12 Z" fill="#8a6a4a"/>
+    <path d="M 28 56 Q 28 30 50 30 Q 72 30 72 56 Q 72 82 50 82 Q 28 82 28 56 Z" fill="#a07a52" stroke="#7a5a38" stroke-width="2"/>
+    <path d="M 34 62 Q 50 72 66 62 Q 66 78 50 80 Q 34 78 34 62 Z" fill="#c9a978"/>
+    <circle cx="41" cy="52" r="9" fill="#f4ecd8" stroke="#221a10" stroke-width="2.4"/>
+    <circle cx="59" cy="52" r="9" fill="#f4ecd8" stroke="#221a10" stroke-width="2.4"/>
+    <circle cx="41" cy="52" r="3.4" fill="#221a10"/>
+    <circle cx="59" cy="52" r="3.4" fill="#221a10"/>
+    <path d="M 46 60 l 4 6 4 -6 Z" fill="#e0a83a" stroke="#a87c1f" stroke-width="1.4" stroke-linejoin="round"/>
   `),
 };
 

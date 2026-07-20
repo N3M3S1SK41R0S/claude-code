@@ -11,6 +11,9 @@ export const CHARACTERS = [
   { id: "nebulia", nom: "Nébulia", emoji: "🌌", couleur: "#3e6ec2", titre: "Sorcière cosmique" },
   { id: "boumbastien", nom: "Boumbastien", emoji: "💥", couleur: "#c2b23e", titre: "Inventeur farfelu" },
   { id: "duchesse", nom: "La Duchesse Anecdote", emoji: "👑", couleur: "#c23e6b", titre: "Érudite excentrique" },
+  { id: "flaque", nom: "Capitaine Flaque", emoji: "🏴‍☠️", couleur: "#2f9e8f", titre: "Corsaire des mares et des flaques" },
+  { id: "pelote", nom: "Mémé Pelote", emoji: "🧶", couleur: "#d47ba6", titre: "Mamie qui tricote des sortilèges" },
+  { id: "hibou", nom: "Professeur Hibou", emoji: "🦉", couleur: "#7a6ad0", titre: "Hibou bibliothécaire un peu myope" },
 ];
 
 export function characterById(id) {

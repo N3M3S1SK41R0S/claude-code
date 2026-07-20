@@ -1,6 +1,6 @@
 {
  "version": 1784445901415,
- "count": 878,
+ "count": 946,
  "questions": [
   {
    "id": "arts-001",
@@ -16785,6 +16785,1286 @@
     "Faux"
    ],
    "answerIndex": 0
+  },
+  {
+   "id": "tp-057",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Dans quoi dort-on la nuit ?",
+   "anecdote": "Bravo, le soir on se glisse dans son lit tout doux pour bien dormir !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/lit",
+    "https://fr.wikipedia.org/wiki/Lit_(meuble)"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le lit",
+    "La table",
+    "La chaise",
+    "Le placard"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-058",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Avec quoi mange-t-on la soupe ?",
+   "anecdote": "Oui, avec la cuillère on attrape la bonne soupe chaude sans se salir !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/cuill%C3%A8re",
+    "https://fr.wikipedia.org/wiki/Cuill%C3%A8re"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le crayon",
+    "La cuillère",
+    "Le peigne",
+    "La chaussure"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "tp-059",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "À quoi sert le parapluie ?",
+   "anecdote": "Bien joué, quand il pleut le parapluie nous garde bien au sec !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/parapluie",
+    "https://fr.wikipedia.org/wiki/Parapluie"
+   ],
+   "format": "qcm",
+   "choices": [
+    "À se protéger de la pluie",
+    "À dormir",
+    "À manger",
+    "À rouler"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-060",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Avec quoi se lave-t-on les dents ?",
+   "anecdote": "Super, matin et soir la brosse à dents rend les dents toutes propres !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/brosse_%C3%A0_dents",
+    "https://fr.wikipedia.org/wiki/Brosse_%C3%A0_dents"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le ballon",
+    "Le chapeau",
+    "La brosse à dents",
+    "La cuillère"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "tp-061",
+   "theme": "sciences",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Sur quoi roule le train ?",
+   "anecdote": "Bravo, le train file sur ses rails avec un joli tchou-tchou !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Train",
+    "https://fr.wiktionary.org/wiki/train"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Des rails",
+    "L'eau",
+    "Le ciel",
+    "Le sable"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-062",
+   "theme": "sciences",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Sur quoi flotte le bateau ?",
+   "anecdote": "Oui, le bateau flotte sur l'eau et nous emmène en balade !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/bateau",
+    "https://fr.wikipedia.org/wiki/Bateau"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Sur la route",
+    "Sur l'eau",
+    "Dans le ciel",
+    "Sur les rails"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "tp-063",
+   "theme": "sciences",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Où vole l'avion ?",
+   "anecdote": "Bien vu, l'avion s'envole tout là-haut dans le ciel au milieu des nuages !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/avion",
+    "https://fr.wikipedia.org/wiki/Avion"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Dans le ciel",
+    "Dans l'eau",
+    "Sur la route",
+    "Sous la terre"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-064",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "À quoi sert une clé ?",
+   "anecdote": "Super, avec la clé on ouvre la porte de la maison !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/cl%C3%A9",
+    "https://fr.wikipedia.org/wiki/Cl%C3%A9"
+   ],
+   "format": "qcm",
+   "choices": [
+    "À manger",
+    "À dormir",
+    "À voler",
+    "À ouvrir une porte"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "tp-065",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "À quoi sert le savon ?",
+   "anecdote": "Bravo, avec le savon et un peu d'eau les mains deviennent toutes propres !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/savon",
+    "https://fr.wikipedia.org/wiki/Savon"
+   ],
+   "format": "qcm",
+   "choices": [
+    "À se laver",
+    "À manger",
+    "À dormir",
+    "À rouler"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-066",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Où met-on les chaussures ?",
+   "anecdote": "Oui, on enfile les chaussures aux pieds avant d'aller jouer dehors !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/chaussure",
+    "https://fr.wikipedia.org/wiki/Chaussure"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Aux pieds",
+    "Sur la tête",
+    "Sur le nez",
+    "Dans la bouche"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-067",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Où met-on le chapeau ?",
+   "anecdote": "Bien joué, on pose le chapeau sur la tête pour se protéger du soleil !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/chapeau",
+    "https://fr.wikipedia.org/wiki/Chapeau"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Aux pieds",
+    "Sur la tête",
+    "Sur les mains",
+    "Sur le dos"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "tp-068",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Où met-on les gants ?",
+   "anecdote": "Bravo, quand il fait froid on met les gants aux mains pour les garder au chaud !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/gant",
+    "https://fr.wikipedia.org/wiki/Gant"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Aux mains",
+    "Aux pieds",
+    "Sur la tête",
+    "Sur le nez"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-069",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Dans quoi boit-on de l'eau ?",
+   "anecdote": "Oui, on boit un bon verre d'eau bien fraîche quand on a soif !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/verre",
+    "https://fr.wikipedia.org/wiki/Verre_(r%C3%A9cipient)"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Dans un chapeau",
+    "Dans une chaussure",
+    "Dans un verre",
+    "Dans une assiette"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "tp-070",
+   "theme": "sciences",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "La grenouille saute pour se déplacer.",
+   "anecdote": "La grenouille plie ses grandes pattes de derrière et hop, elle fait de grands sauts !",
+   "sources": [
+    "https://fr.vikidia.org/wiki/Grenouille",
+    "https://fr.vikidia.org/wiki/Grenouille_verte_(Europe)"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-071",
+   "theme": "sciences",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Qu'est-ce que le papillon a pour voler ?",
+   "anecdote": "Le papillon ouvre ses jolies ailes colorées pour voleter de fleur en fleur.",
+   "sources": [
+    "https://fr.vikidia.org/wiki/Papillon",
+    "https://fr.wikipedia.org/wiki/Papillon"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Des ailes",
+    "Des roues",
+    "Des nageoires",
+    "Des bras"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-072",
+   "theme": "sciences",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Comment marche la tortue ?",
+   "anecdote": "La tortue avance tout doucement en portant sa carapace sur le dos.",
+   "sources": [
+    "https://fr.vikidia.org/wiki/Tortue",
+    "https://fr.wikipedia.org/wiki/Carapace_de_tortue"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Très lentement",
+    "Très vite",
+    "En volant",
+    "En sautant"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-073",
+   "theme": "insolite",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Où l'escargot porte-t-il sa coquille ?",
+   "anecdote": "L'escargot emmène sa petite coquille partout : c'est sa maison sur le dos !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Escargot",
+    "https://www.larousse.fr/encyclopedie/animations/Escargot_anatomie/1100152"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Sur son dos",
+    "Dans sa poche",
+    "Sur sa tête",
+    "Sous ses pieds"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-074",
+   "theme": "sciences",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "De quelle couleur est souvent la coccinelle ?",
+   "anecdote": "La coccinelle rouge à points noirs est une gentille petite bête du jardin.",
+   "sources": [
+    "https://fr.vikidia.org/wiki/Coccinelle_%C3%A0_sept_points",
+    "https://fr.wikipedia.org/wiki/Coccinelle_(insecte)"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Rouge avec des points noirs",
+    "Toute bleue",
+    "Toute verte",
+    "Toute blanche"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-075",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Quel astre se lève le matin et nous éclaire le jour ?",
+   "anecdote": "Le matin, le soleil se lève et vient nous éclairer pour bien voir la journée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Lever_de_soleil",
+    "https://fr.vikidia.org/wiki/Division_de_la_journ%C3%A9e"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le soleil",
+    "La lune",
+    "Une bougie",
+    "Une étoile la nuit"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-076",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "La nuit, quand il fait tout noir, que fait-on ?",
+   "anecdote": "Quand la nuit arrive et qu'il fait tout noir, on se met au lit pour bien dormir.",
+   "sources": [
+    "https://fr.vikidia.org/wiki/Division_de_la_journ%C3%A9e",
+    "https://fr.vikidia.org/wiki/Sommeil"
+   ],
+   "format": "qcm",
+   "choices": [
+    "On va dormir",
+    "On va à la piscine",
+    "On joue dehors au soleil",
+    "On mange une glace dehors"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-077",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Que dit-on quand on reçoit un cadeau ?",
+   "anecdote": "Quand on reçoit un cadeau, on dit « merci » et ça fait plaisir à tout le monde.",
+   "sources": [
+    "https://fr.vikidia.org/wiki/Politesse",
+    "https://fr.wiktionary.org/wiki/merci"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Merci",
+    "Au revoir",
+    "Bonne nuit",
+    "Aïe"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-078",
+   "theme": "general",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Que dit-on quand on arrive et qu'on rencontre quelqu'un ?",
+   "anecdote": "Quand on arrive et qu'on voit quelqu'un, on dit « bonjour » avec un grand sourire.",
+   "sources": [
+    "https://fr.vikidia.org/wiki/Bonjour",
+    "https://fr.wiktionary.org/wiki/bonjour"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Bonjour",
+    "Au revoir",
+    "Bonne nuit",
+    "Merci"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-079",
+   "theme": "sciences",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Avec quoi sent-on les odeurs ?",
+   "anecdote": "C'est avec le nez qu'on sent la bonne odeur d'un gâteau ou d'une fleur.",
+   "sources": [
+    "https://fr.vikidia.org/wiki/Nez",
+    "https://fr.wikipedia.org/wiki/Olfaction"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le nez",
+    "Les pieds",
+    "Les cheveux",
+    "Les coudes"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-080",
+   "theme": "sciences",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Avec quoi entend-on les sons ?",
+   "anecdote": "Ce sont les oreilles qui nous permettent d'entendre la musique et les chansons.",
+   "sources": [
+    "https://fr.vikidia.org/wiki/Oreille",
+    "https://fr.wikipedia.org/wiki/Oreille_humaine"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Les oreilles",
+    "Les genoux",
+    "Le ventre",
+    "Les doigts"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-081",
+   "theme": "sciences",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Avec la bouche, on peut manger et aussi...",
+   "anecdote": "Avec la bouche on mange de bonnes choses et on parle avec les copains.",
+   "sources": [
+    "https://fr.vikidia.org/wiki/Bouche",
+    "https://fr.wiktionary.org/wiki/bouche"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Parler",
+    "Voler",
+    "Nager",
+    "Courir"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "tp-082",
+   "theme": "insolite",
+   "age": "tout_petit",
+   "difficulty": 1,
+   "question": "Comment est l'arc-en-ciel dans le ciel ?",
+   "anecdote": "L'arc-en-ciel dessine dans le ciel un joli pont avec plein de couleurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Arc-en-ciel",
+    "https://www.larousse.fr/encyclopedie/divers/arc-en-ciel/17644"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Il a plein de couleurs",
+    "Il est tout noir",
+    "Il est tout blanc",
+    "Il n'a pas de couleur"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0001",
+   "theme": "histoire",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "En quelle année eut lieu la bataille de Hastings, qui permit à Guillaume le Conquérant de s'emparer de l'Angleterre ?",
+   "anecdote": "Le 14 octobre 1066, Guillaume, duc de Normandie, y battit le roi anglo-saxon Harold II ; il fut couronné roi d'Angleterre le jour de Noël suivant.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bataille_de_Hastings",
+    "https://www.britannica.com/event/Battle-of-Hastings"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 1066
+  },
+  {
+   "id": "ext-0002",
+   "theme": "histoire",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "En quelle année les Ottomans de Mehmed II prirent-ils Constantinople, mettant fin à l'Empire byzantin ?",
+   "anecdote": "Le siège s'acheva le 29 mai 1453 ; beaucoup d'historiens y voient une date symbolique de la fin du Moyen Âge.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chute_de_Constantinople",
+    "https://www.britannica.com/event/Fall-of-Constantinople-1453"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 1453
+  },
+  {
+   "id": "ext-0003",
+   "theme": "histoire",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "En quelle année Charlemagne fut-il couronné empereur d'Occident par le pape Léon III à Rome ?",
+   "anecdote": "Le couronnement eut lieu le jour de Noël 800. 768 marque le début de son règne franc et 814 l'année de sa mort.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Charlemagne",
+    "https://www.britannica.com/biography/Charlemagne"
+   ],
+   "format": "qcm",
+   "choices": [
+    "768",
+    "800",
+    "814",
+    "843"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0004",
+   "theme": "histoire",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "En quelle année le traité de Verdun partagea-t-il l'empire carolingien entre les trois petits-fils de Charlemagne ?",
+   "anecdote": "En 843, Charles le Chauve, Louis le Germanique et Lothaire Ier se partagèrent l'empire, esquissant les contours des futures France et Allemagne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Trait%C3%A9_de_Verdun",
+    "https://www.britannica.com/event/Treaty-of-Verdun"
+   ],
+   "format": "qcm",
+   "choices": [
+    "771",
+    "843",
+    "987",
+    "1214"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0005",
+   "theme": "histoire",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Malgré son nom, la guerre de Cent Ans dura en réalité plus de cent ans.",
+   "anecdote": "Elle opposa la France et l'Angleterre, de façon intermittente, de 1337 à 1453, soit 116 ans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guerre_de_Cent_Ans",
+    "https://www.britannica.com/event/Hundred-Years-War"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0006",
+   "theme": "histoire",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel empereur romain fit ériger, vers 122 après J.-C., un mur fortifié en travers du nord de la Grande-Bretagne ?",
+   "anecdote": "Long d'environ 117 km, le mur d'Hadrien marquait la limite nord-ouest de l'Empire romain et est aujourd'hui classé au patrimoine mondial de l'UNESCO.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mur_d%27Hadrien",
+    "https://www.britannica.com/topic/Hadrians-Wall"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Trajan",
+    "Hadrien",
+    "Auguste",
+    "Constantin"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0007",
+   "theme": "geographie",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le détroit de Gibraltar est le seul passage maritime naturel reliant l'océan Atlantique à la mer Méditerranée.",
+   "anecdote": "Large d'à peine 14 km en son point le plus étroit, il sépare l'Espagne du Maroc, et donc l'Europe de l'Afrique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/D%C3%A9troit_de_Gibraltar",
+    "https://www.britannica.com/place/Strait-of-Gibraltar"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0008",
+   "theme": "geographie",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Combien de pays le Danube traverse-t-il ou longe-t-il sur son cours, un record pour un fleuve ?",
+   "anecdote": "De l'Allemagne à l'Ukraine, le Danube arrose dix pays (Allemagne, Autriche, Slovaquie, Hongrie, Croatie, Serbie, Roumanie, Bulgarie, Moldavie, Ukraine).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Danube",
+    "https://www.britannica.com/place/Danube-River"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 10
+  },
+  {
+   "id": "ext-0009",
+   "theme": "sciences",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quelle est la vitesse de la lumière dans le vide, en mètres par seconde (valeur exacte du Système international) ?",
+   "anecdote": "Depuis 1983, cette valeur est fixée par convention : le mètre est défini comme la distance parcourue par la lumière en 1/299 792 458 de seconde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vitesse_de_la_lumi%C3%A8re",
+    "https://www.britannica.com/science/speed-of-light"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 299792458
+  },
+  {
+   "id": "ext-0010",
+   "theme": "sciences",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quel est le numéro atomique de l'or (symbole Au) ?",
+   "anecdote": "L'or possède 79 protons. 47 est le numéro de l'argent, 82 celui du plomb et 26 celui du fer.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Or",
+    "https://www.britannica.com/science/gold-chemical-element"
+   ],
+   "format": "qcm",
+   "choices": [
+    "47",
+    "79",
+    "82",
+    "26"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0011",
+   "theme": "sciences",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "À combien de degrés Celsius correspond le zéro absolu (0 kelvin) ? Donnez la valeur exacte.",
+   "anecdote": "C'est la température la plus basse possible, où l'agitation thermique des particules atteint son minimum ; elle est inatteignable en pratique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Z%C3%A9ro_absolu",
+    "https://www.britannica.com/science/absolute-zero"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": -273.15
+  },
+  {
+   "id": "ext-0012",
+   "theme": "sciences",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel gaz est, de loin, le plus abondant dans l'air sec de l'atmosphère terrestre ?",
+   "anecdote": "Le diazote (N2) représente environ 78 % du volume de l'air, devant le dioxygène (~21 %) et l'argon (~0,9 %).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Atmosph%C3%A8re_terrestre",
+    "https://www.britannica.com/science/atmosphere"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le dioxygène",
+    "Le dioxyde de carbone",
+    "Le diazote",
+    "L'argon"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0013",
+   "theme": "arts",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "En quelle année Pablo Picasso peignit-il Guernica, en réaction au bombardement de la ville basque du même nom ?",
+   "anecdote": "Picasso réalisa cette immense toile en un mois (mai-juin 1937) pour le pavillon espagnol de l'Exposition universelle de Paris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guernica_(Picasso)",
+    "https://en.wikipedia.org/wiki/Guernica_(Picasso)"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 1937
+  },
+  {
+   "id": "ext-0014",
+   "theme": "arts",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "La célèbre sculpture Le Penseur d'Auguste Rodin fut d'abord conçue pour orner quelle œuvre monumentale ?",
+   "anecdote": "Placé au tympan de La Porte de l'Enfer, Le Penseur aurait initialement figuré Dante méditant sur les damnés de la Divine Comédie.",
+   "sources": [
+    "https://www.musee-rodin.fr/ressources/focus-sur-oeuvre/penseur",
+    "https://fr.wikipedia.org/wiki/La_Porte_de_l%27Enfer"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Les Bourgeois de Calais",
+    "La Porte de l'Enfer",
+    "Le Monument à Balzac",
+    "La Cathédrale"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0015",
+   "theme": "arts",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Van Gogh a peint La Nuit étoilée (1889) alors qu'il était interné à l'asile de Saint-Paul-de-Mausole, à Saint-Rémy-de-Provence.",
+   "anecdote": "Inspiré de la vue depuis sa chambre, le tableau est conservé au Museum of Modern Art (MoMA) de New York depuis 1941.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Nuit_%C3%A9toil%C3%A9e_(1889)",
+    "https://www.moma.org/collection/works/79802"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0016",
+   "theme": "arts",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel tableau d'Édouard Manet, refusé par le Salon officiel de 1863, fit scandale au Salon des Refusés la même année ?",
+   "anecdote": "Exposé sous le titre Le Bain, il choqua par une femme nue entourée d'hommes habillés ; Olympia, elle, ne fut montrée qu'en 1865.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Le_D%C3%A9jeuner_sur_l'herbe",
+    "https://www.britannica.com/topic/Le-Dejeuner-sur-l-Herbe"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Olympia",
+    "Un bar aux Folies-Bergère",
+    "Le Déjeuner sur l'herbe",
+    "Le Fifre"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0017",
+   "theme": "litterature",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "À qui fut décerné le tout premier prix Goncourt, en 1903, pour le roman Force ennemie ?",
+   "anecdote": "Ancien navigateur devenu poète à Saint-Tropez, John-Antoine Nau l'emporta au second tour par 6 voix contre 3.",
+   "sources": [
+    "https://www.academiegoncourt.com/1903-une-double-naissance",
+    "https://www.herodote.net/21_decembre_1903-evenement-19031221.php"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Léon Frapié",
+    "John-Antoine Nau",
+    "Claude Farrère",
+    "Émile Moselly"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0018",
+   "theme": "litterature",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "En 1857, quel recueil fut condamné pour « outrage à la morale publique », son auteur devant en retirer six poèmes ?",
+   "anecdote": "Baudelaire et ses éditeurs furent condamnés à une amende ; la justice n'annula cette condamnation qu'en 1949.",
+   "sources": [
+    "https://www.justice.gouv.fr/actualites/actualite/fleurs-du-mal-ou-loutrage-morale-publique",
+    "https://essentiels.bnf.fr/fr/article/e0e681e1-09a5-41e5-9800-beb77e313582-fleurs-mal"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Les Contemplations",
+    "Poèmes saturniens",
+    "Alcools",
+    "Les Fleurs du mal"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "ext-0019",
+   "theme": "litterature",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel est le titre du premier volume d'À la recherche du temps perdu, publié par Marcel Proust en 1913 ?",
+   "anecdote": "Refusé par plusieurs éditeurs, le volume parut à compte d'auteur chez Grasset ; le deuxième tome obtiendra le Goncourt en 1919.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Du_c%C3%B4t%C3%A9_de_chez_Swann",
+    "https://www.gallimard.fr/actualites-entretiens/du-cote-de-chez-swann-de-marcel-proust"
+   ],
+   "format": "qcm",
+   "choices": [
+    "À l'ombre des jeunes filles en fleurs",
+    "Du côté de chez Swann",
+    "Le Temps retrouvé",
+    "La Prisonnière"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0020",
+   "theme": "musique",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le Boléro de Maurice Ravel, créé en 1928, fut composé à la demande de quelle danseuse ?",
+   "anecdote": "Commande d'un « ballet de caractère espagnol », le Boléro repose sur un unique thème répété en un long crescendo orchestral.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bol%C3%A9ro_(Ravel)",
+    "https://www.britannica.com/topic/Bolero-by-Ravel"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Anna Pavlova",
+    "Isadora Duncan",
+    "Ida Rubinstein",
+    "Loïe Fuller"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0021",
+   "theme": "musique",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "En quelle année furent publiées, à Amsterdam, Les Quatre Saisons d'Antonio Vivaldi ?",
+   "anecdote": "Elles forment les quatre premiers des douze concertos pour violon du recueil Il cimento dell'armonia e dell'inventione (opus 8).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Quatre_Saisons",
+    "https://philharmoniedeparis.fr/fr/magazine/series/les-cles-du-classique/les-cles-du-classique-51-les-quatre-saisons-de-vivaldi"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 1725
+  },
+  {
+   "id": "ext-0022",
+   "theme": "musique",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le finale de la 9e Symphonie de Beethoven met en musique l'« Ode à la joie » de quel poète allemand ?",
+   "anecdote": "Créée à Vienne le 7 mai 1824, cette symphonie fut la première à intégrer des voix (chœur et solistes) dans son mouvement final.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Symphonie_no_9_de_Beethoven",
+    "https://passerelles.essentiels.bnf.fr/fr/chronologie/article/e1a94fe6-1f43-494f-a8f8-49880379ed8c-neuvieme-symphonie-beethoven"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Johann Wolfgang von Goethe",
+    "Heinrich Heine",
+    "Friedrich Schiller",
+    "Friedrich Hölderlin"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0023",
+   "theme": "musique",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "En 1913, la création de quel ballet d'Igor Stravinsky provoqua un célèbre scandale au Théâtre des Champs-Élysées ?",
+   "anecdote": "Chorégraphié par Nijinski, l'ouvrage déclencha huées et bagarres ; repris l'année suivante, il fut au contraire triomphalement acclamé.",
+   "sources": [
+    "https://www.universalis.fr/encyclopedie/le-sacre-du-printemps/",
+    "https://shs.cairn.info/ma-dose-quotidienne-d-histoire-des-arts--9782200635237-page-196?lang=fr"
+   ],
+   "format": "qcm",
+   "choices": [
+    "L'Oiseau de feu",
+    "Petrouchka",
+    "Le Sacre du printemps",
+    "Pulcinella"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0024",
+   "theme": "cinema",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "En quelle année les frères Lumière donnèrent-ils leur première projection publique payante, au Grand Café à Paris ?",
+   "anecdote": "La séance eut lieu le 28 décembre 1895 au Salon indien du Grand Café, boulevard des Capucines, devant trente-trois spectateurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Auguste_et_Louis_Lumi%C3%A8re",
+    "https://www.herodote.net/28_decembre_1895-evenement-18951228.php"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 1895
+  },
+  {
+   "id": "ext-0025",
+   "theme": "cinema",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le Voyage dans la Lune (1902), souvent cité comme le premier film de science-fiction, est l'œuvre de quel pionnier français ?",
+   "anecdote": "Ancien magicien, Méliès y multiplia les trucages ; l'image de l'obus planté dans l'œil de la Lune est restée célèbre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Voyage_dans_la_Lune",
+    "https://www.cinematheque.fr/film/52565.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Louis Feuillade",
+    "Georges Méliès",
+    "Émile Cohl",
+    "Léon Gaumont"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0026",
+   "theme": "cinema",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Sorti en 1927, quel film est considéré comme le premier long-métrage « parlant » ?",
+   "anecdote": "Produit par la Warner grâce au procédé Vitaphone, il ne comportait en réalité que quelques scènes chantées et parlées mêlées à des séquences muettes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Chanteur_de_jazz",
+    "https://www.herodote.net/6_octobre_1927-evenement-19271006.php"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Metropolis",
+    "Le Chanteur de jazz",
+    "Les Lumières de la ville",
+    "Naissance d'une nation"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0027",
+   "theme": "cinema",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Orson Welles a réalisé, coécrit et interprété le rôle-titre de Citizen Kane (1941).",
+   "anecdote": "Âgé d'environ 25 ans, Welles signait là son premier long-métrage, salué depuis comme l'un des plus influents de l'histoire du cinéma.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Citizen_Kane",
+    "https://www.universalis.fr/encyclopedie/citizen-kane/"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0028",
+   "theme": "sport",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le mot « tennis » vient d'un terme français que le serveur criait au jeu de paume avant de lancer la balle. Lequel ?",
+   "anecdote": "Passé en moyen anglais sous la forme « tenetz » au XIVe siècle, le mot est revenu en français au XIXe siècle sous sa graphie anglaise « tennis ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Histoire_du_tennis",
+    "https://www.larousse.fr/encyclopedie/divers/tennis/96528"
+   ],
+   "format": "qcm",
+   "choices": [
+    "« Prenez ! »",
+    "« Tenez ! »",
+    "« Jouez ! »",
+    "« Gardez ! »"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0029",
+   "theme": "sport",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "La distance de 42,195 km fut courue pour la première fois lors du marathon de quels Jeux olympiques ?",
+   "anecdote": "Le départ fut donné au château de Windsor et l'arrivée jugée devant la loge royale du stade de White City ; cette distance devint la norme officielle en 1921.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marathon_(sport)",
+    "https://en.wikipedia.org/wiki/Athletics_at_the_1908_Summer_Olympics_%E2%80%93_Men%27s_marathon"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Athènes 1896",
+    "Paris 1900",
+    "Londres 1908",
+    "Anvers 1920"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0030",
+   "theme": "sport",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Vrai ou faux ? Une médaille d'or olympique est en réalité majoritairement composée d'argent.",
+   "anecdote": "Le règlement du CIO impose une médaille d'or en argent à au moins 92,5 %, recouverte d'au minimum 6 grammes d'or pur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/M%C3%A9daille_olympique",
+    "https://ims.evidentscientific.com/fr/insights/are-olympic-gold-medals-actually-made-of-gold"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0031",
+   "theme": "sport",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "En quelle année se sont tenus, à Athènes, les premiers Jeux olympiques de l'ère moderne ?",
+   "anecdote": "Impulsés par Pierre de Coubertin, qui fonde le CIO en 1894, ces Jeux réunirent 241 athlètes dans le stade panathénaïque.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques_de_1896",
+    "https://www.larousse.fr/encyclopedie/divers/JO_dAth%C3%A8nes_1896_I_er_jeux_Olympiques_d%C3%A9t%C3%A9/185461"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 1896
+  },
+  {
+   "id": "ext-0032",
+   "theme": "gastronomie",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Dans quelle commune de Sologne les sœurs Tatin tenaient-elles l'hôtel où naquit la célèbre tarte renversée ?",
+   "anecdote": "Stéphanie et Caroline Tatin tenaient leur hôtel face à la gare ; la tarte fut popularisée après leur mort par le restaurant parisien Maxim's.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tarte_Tatin",
+    "https://www.valdeloire-france.com/tarte-tatin/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Vierzon",
+    "Romorantin-Lanthenay",
+    "Lamotte-Beuvron",
+    "Aubigny-sur-Nère"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0033",
+   "theme": "gastronomie",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "La sauce béchamel doit son nom à Louis de Béchameil. Quelle fonction occupait-il ?",
+   "anecdote": "Ce marquis financier n'a probablement pas inventé la sauce : on en trouve déjà une version dans « Le Cuisinier françois » de La Varenne (1651).",
+   "sources": [
+    "https://www.projet-voltaire.fr/origines/mot-bechamel-de-louis-de-bechameil/",
+    "https://fr.wikipedia.org/wiki/B%C3%A9chamel"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Pâtissier de la reine Marie-Antoinette",
+    "Maître d'hôtel à la cour de Louis XIV",
+    "Chef des cuisines de Napoléon",
+    "Cuisinier du pape Léon X"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0034",
+   "theme": "gastronomie",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le croissant descend d'une pâtisserie en forme de croissant, le « kipferl », originaire de quelle ville ?",
+   "anecdote": "C'est de là que vient le mot « viennoiserie » ; le kipferl fut introduit à Paris en 1839 par l'Autrichien August Zang.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Croissant_(viennoiserie)",
+    "https://all.accor.com/a/fr/limitless/thematics/food-drink/origine-du-croissant.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Budapest",
+    "Prague",
+    "Varsovie",
+    "Vienne"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "ext-0035",
+   "theme": "langue",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Combien de lettres compte le mot « anticonstitutionnellement », traditionnellement cité comme le plus long mot courant du français ?",
+   "anecdote": "Des formes plus longues existent (comme « intergouvernementalisations »), mais elles sont rares ou considérées comme des néologismes.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/anticonstitutionnellement",
+    "https://en.wiktionary.org/wiki/anticonstitutionnellement"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 25
+  },
+  {
+   "id": "ext-0036",
+   "theme": "langue",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Outre « ails », le mot « ail » possède un second pluriel, ancien et irrégulier. Lequel ?",
+   "anecdote": "« Aulx » (prononcé « o ») est un vestige de l'ancien français ; l'Académie et Larousse le jugent aujourd'hui vieilli, au profit de « ails ».",
+   "sources": [
+    "https://www.larousse.fr/dictionnaires/francais/aulx/6469",
+    "https://www.dictionnaire-academie.fr/article/A9A0999"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Aux",
+    "Ailz",
+    "Aulx",
+    "Eaulx"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0037",
+   "theme": "langue",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "De quel produit, jadis précieux, le mot « salaire » tire-t-il son étymologie latine ?",
+   "anecdote": "Du latin « salarium », la solde permettant d'acheter le sel versée aux soldats romains ; le mot dérive de « sal », le sel.",
+   "sources": [
+    "https://www.academie-francaise.fr/le-sel-le-salaire-et-le-vestiaire",
+    "https://www.orthodidacte.com/ressources/dictionnaire/etymologie/salaire-etymologie/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "L'or",
+    "Le sel",
+    "Le blé",
+    "Le poivre"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0038",
+   "theme": "langue",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Vrai ou faux ? Les rectifications orthographiques de 1990 autorisent à écrire « nénuphar » sous la forme « nénufar », avec un f.",
+   "anecdote": "Le mot vient du persan/arabe, sans rapport avec le grec ; le « ph » y avait été introduit par erreur, d'où le retour recommandé au « f ».",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/n%C3%A9nufar",
+    "https://www.francebleu.fr/infos/education/reforme-orthographique-ognon-et-plus-oignon-1454576730"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0039",
+   "theme": "general",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quelle ville, siège du gouvernement de son pays, est la capitale la plus haute du monde (environ 3 600 m d'altitude) ?",
+   "anecdote": "La Paz est le siège du gouvernement bolivien depuis 1898, même si Sucre demeure la capitale constitutionnelle du pays.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Paz",
+    "https://www.guinnessworldrecords.com/world-records/65059-highest-capital"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Quito",
+    "Bogota",
+    "Katmandou",
+    "La Paz"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "ext-0040",
+   "theme": "insolite",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Grâce à ses territoires d'outre-mer, quel pays possède le plus grand nombre de fuseaux horaires au monde ?",
+   "anecdote": "La France en couvre douze (treize avec sa revendication en Antarctique), devant la Russie et les États-Unis qui en comptent onze.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Liste_des_fuseaux_horaires_par_pays",
+    "https://www.montres-de-luxe.com/La-France-puissance-mondiale-des-fuseaux-horaires-_a21095.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La Russie",
+    "Les États-Unis",
+    "La France",
+    "La Chine"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0041",
+   "theme": "pop-culture",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le pseudonyme « Hergé », créateur de Tintin, reprend phonétiquement ses initiales inversées (R.G.). Quel est son vrai nom ?",
+   "anecdote": "Georges Remi inversa ses initiales en « R.G. », soit « Hergé » ; ce nom paraît pour la première fois en 1924.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Herg%C3%A9",
+    "https://www.universalis.fr/encyclopedie/herge/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Georges Remi",
+    "René Goscinny",
+    "Raymond Godefroy",
+    "Gaston Ragon"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0042",
+   "theme": "insolite",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Un piano moderne standard compte 88 touches. Combien sont noires ?",
+   "anecdote": "Les 88 touches se répartissent en 52 blanches et 36 noires ; ce standard fut fixé par Steinway à la fin du XIXe siècle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Piano",
+    "https://en.wikipedia.org/wiki/Piano"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 36
   }
  ]
 }
