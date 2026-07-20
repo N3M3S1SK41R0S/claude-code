@@ -39,7 +39,8 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
 
    Chaque partie re-mélange en plus les cases libres du plateau choisi.
    Puis choisissez le **mode** : 🏁 **Course** (le 1er au Trésor gagne) ou
-   ⭐ **Étoiles** façon Mario Party (plateau en boucle, nombre de manches fixé,
+   ⭐ **Étoiles** façon Mario Party (plateau en boucle, nombre de manches réglable
+   de **5 à 200**,
    on achète des étoiles au marchand itinérant ; le plus d'étoiles gagne, l'or
    départage). En mode Étoiles, **on passe DEVANT** la boutique et l'étoile —
    pas besoin de s'arrêter pile dessus ; l'étoile change de place après chaque

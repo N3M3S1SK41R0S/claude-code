@@ -33,11 +33,11 @@ try {
   await page.locator("#bank-info").textContent({ timeout: 8000 });
   await page.getByRole("button", { name: "⚔️ Nouvelle partie" }).click();
 
-  // Pick star mode + short game (rounds buttons are role=radio).
+  // Pick star mode + a short game via the rounds input (5-200).
   await page.locator(".board-card", { hasText: "Étoiles" }).click();
-  const courte = page.getByText("Courte · 6 manches");
-  check("rounds selector appears", await courte.isVisible());
-  await courte.click();
+  const roundsInput = page.locator(".rounds-input");
+  check("rounds selector appears", await roundsInput.isVisible());
+  await roundsInput.fill("6");
   await page.getByRole("button", { name: "🏰 Entrer dans le Donjon" }).click();
   await page.getByRole("button", { name: "🎲 Au hasard !" }).click();
 

@@ -158,7 +158,23 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 
 /* ---------- setup ---------- */
 
-.mode-switch { display: flex; gap: 0.6rem; justify-content: center; }
+.mode-switch { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+/* Choix du nombre de manches (mode Étoiles) : saisie libre 5-200 + raccourcis. */
+.rounds-picker { display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
+.rounds-label { display: flex; flex-direction: column; gap: 0.35rem; align-items: center; font-size: 0.95rem; color: var(--soft); }
+.rounds-input {
+  width: 7rem;
+  text-align: center;
+  font: inherit;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 0.5rem 0.6rem;
+  min-height: 48px;
+}
 .setup-list { display: flex; flex-direction: column; gap: 0.6rem; }
 .setup-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 .setup-row-membre { margin-left: 1.4rem; }
@@ -442,6 +458,16 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 
 .hint-zone .hint { color: var(--gold); font-style: italic; }
 .help-note { color: var(--soft); font-size: 0.9rem; }
+/* Règle claire en tête de chaque question (comment répondre + récompense). */
+.regle-banner {
+  background: color-mix(in srgb, var(--gold) 13%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--gold) 42%, transparent);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--ink);
+}
 .power-zone { display: flex; flex-direction: column; gap: 0.5rem; }
 
 .verdict { font-size: 1.1rem; line-height: 1.4; }

@@ -46,7 +46,8 @@ export function newGame(config, boardLayout) {
     version: 1,
     mode: config.mode,
     variant,
-    rounds: variant === "etoiles" ? (config.rounds ?? 10) : null,
+    // Manches : de 5 à 200 (bornées ici quelle que soit l'entrée).
+    rounds: variant === "etoiles" ? Math.max(5, Math.min(200, Math.round(config.rounds ?? 10))) : null,
     starPos,
     lastRoundBoost: false,
     boardId: config.boardId ?? "grand-donjon",

@@ -374,15 +374,28 @@ function renderSetup() {
     ),
   );
   if (variant === "etoiles") {
+    const roundsInput = el("input", {
+      class: "rounds-input", type: "number", min: "5", max: "200", step: "1",
+      value: String(rounds), inputmode: "numeric",
+      "aria-label": "Nombre de manches (de 5 à 200)",
+      oninput: (e) => {
+        const v = parseInt(e.target.value, 10);
+        if (Number.isFinite(v)) rounds = Math.max(5, Math.min(200, v));
+      },
+    });
     zone.append(
-      el("div", { class: "mode-switch", role: "radiogroup", "aria-label": "Nombre de manches" },
-        ...[["Courte", 6], ["Normale", 10], ["Épique", 15]].map(([label, n]) =>
-          el("button", {
-            class: "btn btn-toggle" + (rounds === n ? " btn-toggle-on" : ""),
-            type: "button", role: "radio", "aria-checked": String(rounds === n),
-            onclick: () => { rounds = n; renderSetup(); },
-          }, `${label} · ${n} manches`),
+      el("div", { class: "rounds-picker" },
+        el("label", { class: "rounds-label", text: "Nombre de manches (de 5 à 200)" }, roundsInput),
+        el("div", { class: "mode-switch", role: "group", "aria-label": "Raccourcis de manches" },
+          ...[5, 10, 20, 50, 100, 200].map((n) =>
+            el("button", {
+              class: "btn btn-toggle btn-small" + (rounds === n ? " btn-toggle-on" : ""),
+              type: "button",
+              onclick: () => { rounds = n; renderSetup(); },
+            }, String(n)),
+          ),
         ),
+        el("p", { class: "help-note", text: "Sur les petits plateaux, chaque manche passe vite : montez le nombre pour une partie plus longue." }),
       ),
     );
   }

@@ -903,6 +903,29 @@ function useTurnPower(pion) {
 
 const ADVANCE = { qcm: 2, vrai_faux: 1, equipe: 2, duo: 1, carre: 2, cash: 4 };
 
+// Règle affichée clairement en tête de CHAQUE type de question : comment on
+// répond, et ce qu'on gagne. (Format → texte explicite.)
+const REGLES = {
+  qcm: "QCM — 4 propositions, une seule est correcte. Touchez la bonne : +2 cases et +1 🪙.",
+  vrai_faux: "Vrai ou Faux — une seule des deux réponses est juste. Bonne réponse : +1 case et +1 🪙.",
+  cash: "CASH — pas de choix affichés : annoncez la réponse À VOIX HAUTE, puis révélez. Réussi : +4 cases.",
+  carre: "CARRÉ — 4 propositions à l'écran. Bonne réponse : +2 cases.",
+  duo: "DUO — il ne reste que 2 propositions. Bonne réponse : +1 case.",
+  equipe: "Réponse ouverte — répondez À VOIX HAUTE, la table valide (système d'honneur). Réussi : +2 cases.",
+  confiance: "Pari de confiance — misez de 1 à 10 AVANT de voir la question. Réussi : avancez de la moitié de la mise ; une mise de 6+ ratée fait reculer d'1 case.",
+  gambit: "Gambit — annoncez le nombre le plus proche de la vraie réponse. Exact : +4 cases ; proche : +2 ou +1. Les autres parieront trop haut / trop bas / juste (bon pari : +2 🪙).",
+  anagram: "Anagramme — retrouvez la réponse en réarrangeant les lettres, à voix haute. Trouvé : +2 cases.",
+  hangman: "Pendu — devinez les lettres une à une (6 erreurs maximum). Mot reconstitué : +2 cases.",
+};
+
+/** Bandeau « règle » clair en tête d'une question. Renvoie toujours un nœud
+ *  (nœud texte vide si le format est inconnu) : plusieurs appelants l'ajoutent
+ *  via un Element.append() brut, où un null s'afficherait en « null ». */
+function regleBanner(kind) {
+  const t = REGLES[kind];
+  return t ? el("p", { class: "regle-banner", text: `📏 ${t}` }) : document.createTextNode("");
+}
+
 function speakerIntro(pion) {
   const membre = porteParole(pion);
   return membre ? `C'est ${membre.nom} qui répond pour l'équipe ${pion.nom} !` : null;
@@ -954,8 +977,9 @@ function anagramFlow(pion, q) {
   const container = el("div", { class: "question-block" });
   container.append(
     questionHeader(q, pion),
+    regleBanner("anagram"),
     el("p", { class: "question-texte", text: q.texte }),
-    el("p", { class: "help-note", text: "🔤 Anagramme : réarrangez ces lettres pour trouver la réponse, à voix haute." }),
+    el("p", { class: "help-note", text: "🔤 Réarrangez ces lettres pour trouver la réponse, à voix haute." }),
     el("p", { class: "anagram-letters", "aria-label": `Lettres mélangées : ${scrambled}`, text: scrambled }),
     bigButton("Révéler la réponse", () => setPanel(
       el("div", { class: "question-block" },
@@ -1004,6 +1028,7 @@ function hangmanFlow(pion, q) {
     const container = el("div", { class: "question-block" });
     container.append(
       questionHeader(q, pion),
+      regleBanner("hangman"),
       el("p", { class: "question-texte", text: q.texte }),
       el("p", { class: "hangman-word", "aria-label": `Mot à trouver : ${display}`, text: display }),
       el("p", { class: "help-note", text: `Erreurs : ${errors} / ${MAX_ERR}` }),
@@ -1037,7 +1062,7 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
   if (intro) heraldSays(intro);
   if (q.format === "equipe") return openAnswerFlow(pion, q, { advance: ADVANCE.equipe, accepted: q.reponses_acceptees ?? [] });
   if (q.format === "gambit_numerique") return openAnswerFlow(pion, q, { advance: 2, accepted: [String(q.reponse_numerique)] });
-  if (cashMode === "cash") return openAnswerFlow(pion, q, { advance: ADVANCE.cash, accepted: [q.bonne_reponse] });
+  if (cashMode === "cash") return openAnswerFlow(pion, q, { advance: ADVANCE.cash, accepted: [q.bonne_reponse], kind: "cash" });
 
   // Choice-based rendering (qcm, vrai_faux, carré, duo).
   let choices = q.choix ?? [];
@@ -1055,7 +1080,7 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
   }
 
   const container = el("div", { class: "question-block" });
-  container.append(questionHeader(q), el("p", { class: "question-texte", text: q.texte }));
+  container.append(questionHeader(q), regleBanner(cashMode ?? q.format), el("p", { class: "question-texte", text: q.texte }));
   const hintZone = el("div", { class: "hint-zone" });
   container.append(hintZone);
 
@@ -1130,7 +1155,7 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCag
       pion.pouvoirUtilise = true;
       save();
       heraldSays(herald.pouvoir());
-      openAnswerFlow(pion, q, { advance: ADVANCE.cash, accepted: [q.bonne_reponse] });
+      openAnswerFlow(pion, q, { advance: ADVANCE.cash, accepted: [q.bonne_reponse], kind: "cash" });
     }));
   } else if (key === "cageot:enfant") {
     zone.append(choiceButton(`${c.emoji} ${power.nom} — question plus facile`, () => {
@@ -1171,11 +1196,12 @@ function ccdPicker(pion, q) {
   setPanel(
     el("div", { class: "question-block" },
       questionHeader(q),
-      el("p", { class: "panel-text", text: "Choisissez votre niveau de risque avant de voir la question :" }),
+      el("p", { class: "regle-banner", text: "📏 CASH / CARRÉ / DUO — choisissez votre risque AVANT de voir la question : plus vous avez de choix, moins ça rapporte. Vous ne verrez la question qu'après." }),
+      el("p", { class: "panel-text", text: "Choisissez votre niveau de risque :" }),
       el("div", { class: "choices choices-3" },
-        choiceButton(`💰 CASH — réponse libre (+${ADVANCE.cash} cases)`, () => questionFlow(pion, q, { cashMode: "cash" })),
-        choiceButton(`🟦 CARRÉ — 4 choix (+${ADVANCE.carre} cases)`, () => questionFlow(pion, q, { cashMode: "carre" })),
-        choiceButton(`🟨 DUO — 2 choix (+${ADVANCE.duo} case)`, () => questionFlow(pion, q, { cashMode: "duo" })),
+        choiceButton(`💰 CASH — aucune proposition, réponse à voix haute (+${ADVANCE.cash} cases)`, () => questionFlow(pion, q, { cashMode: "cash" })),
+        choiceButton(`🟦 CARRÉ — 4 propositions (+${ADVANCE.carre} cases)`, () => questionFlow(pion, q, { cashMode: "carre" })),
+        choiceButton(`🟨 DUO — 2 propositions (+${ADVANCE.duo} case)`, () => questionFlow(pion, q, { cashMode: "duo" })),
       ),
     ),
   );
@@ -1185,10 +1211,10 @@ function ccdPicker(pion, q) {
  * Open answer, honor system (perfect for a shared-table game): the player
  * answers OUT LOUD, then the table validates against the revealed answer.
  */
-function openAnswerFlow(pion, q, { advance, accepted, onResolve = null }) {
+function openAnswerFlow(pion, q, { advance, accepted, onResolve = null, kind = "equipe" }) {
   const resolve = onResolve ?? ((correct) => resolveAnswer(pion, q, correct, advance));
   const container = el("div", { class: "question-block" });
-  container.append(questionHeader(q), el("p", { class: "question-texte", text: q.texte }));
+  container.append(questionHeader(q), regleBanner(kind), el("p", { class: "question-texte", text: q.texte }));
   const hintZone = el("div", { class: "hint-zone" });
   container.append(hintZone);
   container.append(el("p", { class: "help-note", text: "🗣️ Répondez à voix haute, puis révélez la réponse. La table est juge !" }));
@@ -1222,6 +1248,7 @@ function confianceFlow(pion, q) {
       openAnswerFlow(pion, q, {
         advance,
         accepted: [q.bonne_reponse],
+        kind: "confiance",
         onResolve: (correct) => resolveAnswer(pion, q, correct, advance, { penalty }),
       });
     }));
@@ -1230,7 +1257,8 @@ function confianceFlow(pion, q) {
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: "🎯 Pari de confiance" }),
       questionHeader(q, pion),
-      el("p", { class: "panel-text", text: `Thème : ${q.categorie}. Évaluez votre confiance de 1 à 10 avant de voir la question. Bonne réponse : avancez de la moitié de votre mise. Mise de 6 ou plus ratée : reculez d'une case.` }),
+      regleBanner("confiance"),
+      el("p", { class: "panel-text", text: `Thème : ${q.categorie}. Misez votre confiance de 1 à 10 ci-dessous, AVANT de voir la question.` }),
       bets,
     ),
   );
@@ -1363,6 +1391,7 @@ function doGambit(pion) {
   const form = el("form", { class: "question-block" },
     el("h2", { class: "panel-title", text: "🎲 GAMBIT" }),
     questionHeader(q, pion),
+    regleBanner("gambit"),
     el("p", { class: "question-texte", text: q.texte }),
     el("p", { class: "help-note", text: `${pion.nom} annonce un nombre — puis les autres parieront si la vraie réponse est plus haute, plus basse, ou si c'est juste.` }),
     input,
@@ -1430,8 +1459,11 @@ function gambitReveal(pion, q, guess, bets) {
   const truth = guess === answer ? "juste" : answer > guess ? "haut" : "bas";
   const betLines = bets.map(({ pion: p, bet }) => {
     const won = bet === truth;
-    if (won) p.pieces += 2;
-    return el("p", { class: "bet-result", text: `${won ? "✅" : "❌"} ${p.nom} a parié « ${bet === "haut" ? "trop haut" : bet === "bas" ? "trop bas" : "juste"} »${won ? " : +2 🪙" : ""}` });
+    // Passe par addCoins : suit l'or gagné (étoile bonus « Magnat »), applique
+    // le filet anti-dernier et rafraîchit le bandeau — comme tout autre gain.
+    const g = won ? addCoins(p, 2) : 0;
+    const label = bet === "haut" ? "trop haut" : bet === "bas" ? "trop bas" : "juste";
+    return el("p", { class: "bet-result", text: `${won ? "✅" : "❌"} ${p.nom} a parié « ${label} »${won ? ` : +${g} 🪙` : ""}` });
   });
   pion.stats.questions += 1;
   if (advance > 0) pion.stats.bonnes += 1;

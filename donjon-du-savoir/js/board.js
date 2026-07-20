@@ -138,8 +138,9 @@ export function generateBoard(def = boardById("grand-donjon")) {
       if (i !== -1) layout[i] = type;
     }
   };
-  // Boutiques réparties (au passage) : plusieurs sur les grands plateaux.
-  seed("boutique", Math.max(2, Math.round(L / 16)));
+  // Boutiques réparties (au passage) : peu nombreuses — 1 sur la plupart des
+  // plateaux, 2 sur les grands, pour ne pas saturer le parcours.
+  seed("boutique", Math.max(1, Math.round(L / 30)));
   seed("insolite", L >= 40 ? 2 : 1);
   // Défis d'expression (Tabou / Password / Mime) : la tablée joue ensemble.
   seed("expression", L >= 40 ? 2 : 1);
