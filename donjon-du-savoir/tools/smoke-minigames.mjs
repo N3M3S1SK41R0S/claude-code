@@ -124,8 +124,9 @@ try {
     if (seen) {
       await page.getByRole("button", { name: "Révéler la réponse" }).click();
       check("bonus reveals an answer", (await page.locator(".reveal-answer").count()) > 0);
-      // Award to the first player, then the next turn must resume.
+      // Mark a winner (no race — multi-select), then validate; the next turn resumes.
       await page.locator(".choices .btn-choice").first().click();
+      await page.getByRole("button", { name: "Valider les gagnants" }).click();
       check("bonus hands back to a turn", await page.getByRole("button", { name: "🎲 Lancer le dé" }).isVisible().catch(() => false));
     }
     check("bonus: no page errors", errs.length === 0);

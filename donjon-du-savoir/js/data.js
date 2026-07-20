@@ -5,7 +5,7 @@
 // HARD RULE (cahier §5): a child profile NEVER receives an above-age
 // question. Every fallback recycles within the same age subset instead of
 // escalating the difficulty.
-import { bracketById, getState, isLast, isLeader, markAsked, youngestBracket } from "./state.js";
+import { bracketById, getState, markAsked, youngestBracket } from "./state.js";
 import { loadCustom } from "./custom.js";
 
 let bank = [];
@@ -63,7 +63,7 @@ export function bankSize() {
   return bank.length;
 }
 
-/** Fenêtre de difficulté (1-5) de la tranche d'âge d'un pion. */
+/** Tranche d'âge (paliers de contenu autorisés) d'un pion. */
 function rangeFor(pion) {
   return bracketById(pion?.bracket ?? "9-11");
 }
@@ -72,65 +72,68 @@ function rangeFor(pion) {
 const CHOICE_FORMATS = ["qcm", "vrai_faux"];
 
 const diffOf = (q) => q.difficulte ?? 3;
-const inWindow = (q, b) => diffOf(q) >= b.difMin && diffOf(q) <= b.difMax;
+/** RÈGLE FERME : une question n'est jouable que si son palier d'âge est
+ *  autorisé par la tranche (adulte ne va JAMAIS aux tranches non-adultes). */
+const inTiers = (q, b) => b.tiers.includes(q.niveau_age);
 
-function subset(b, formats, { ignoreAsked = false, petitOnly = false } = {}) {
+function subset(b, formats, { ignoreAsked = false } = {}) {
   const asked = ignoreAsked ? null : new Set(getState().askedIds);
-  let candidates = bank.filter((q) => (!asked || !asked.has(q.id)));
-  candidates = petitOnly
-    ? candidates.filter((q) => q.niveau_age === "tout_petit")
-    : candidates.filter((q) => q.niveau_age !== "tout_petit" && inWindow(q, b));
+  let candidates = bank.filter((q) => (!asked || !asked.has(q.id)) && inTiers(q, b));
   if (formats) candidates = candidates.filter((q) => formats.includes(q.format));
   return candidates;
 }
 
 /**
  * Questions jouables pour une tranche : contenu frais d'abord, puis recyclage
- * dans la MÊME fenêtre. La tranche 2-5 privilégie le contenu « tout-petit » s'il
- * existe. Dernier recours seulement (fenêtre vide dans la banque) : on élargit
- * d'un cran pour ne jamais bloquer le jeu — jamais au-delà.
+ * dans les MÊMES paliers d'âge. On n'élargit JAMAIS au-dessus de l'âge : une
+ * tranche sans contenu pour un format renvoie une liste vide (l'appelant gère).
  */
 function drawableFrom(b, formats) {
-  if (b.petit) {
-    const petit = subset(b, formats, { petitOnly: true });
-    if (petit.length > 0) return petit;
-    const petitRecycle = subset(b, formats, { petitOnly: true, ignoreAsked: true });
-    if (petitRecycle.length > 0) return petitRecycle;
-  }
   const fresh = subset(b, formats);
   if (fresh.length > 0) return fresh;
-  const recycled = subset(b, formats, { ignoreAsked: true });
-  if (recycled.length > 0) return recycled;
-  const wide = { difMin: Math.max(1, b.difMin - 1), difMax: Math.min(5, b.difMax + 1) };
-  return subset(wide, formats, { ignoreAsked: true });
+  return subset(b, formats, { ignoreAsked: true });
+}
+
+/** Choisit un candidat en privilégiant les moins vus (fraîcheur inter-parties)
+ *  — SANS le consommer (le tirage de choix de thème n'en garde qu'un seul). */
+function select(candidates) {
+  const fresh = preferUnseen(candidates);
+  return fresh[Math.floor(Math.random() * fresh.length)] ?? null;
+}
+
+/** Marque une question comme posée (partie) ET vue (registre inter-parties). */
+export function commitQuestion(q) {
+  if (!q) return;
+  bumpSeen(q.id);
+  markAsked(q.id);
 }
 
 function pick(candidates) {
-  const fresh = preferUnseen(candidates);
-  const q = fresh[Math.floor(Math.random() * fresh.length)] ?? null;
-  if (q) {
-    bumpSeen(q.id);
-    markAsked(q.id);
-  }
+  const q = select(candidates);
+  commitQuestion(q);
   return q;
 }
 
 /**
- * Adaptive draw (§5): the leader draws from the hardest third of their
- * allowed pool, the last-placed pion from the easier half, everyone else
- * uniformly. Slices always fall back to the full allowed pool.
+ * Tirage adaptatif : dans les paliers d'âge autorisés (et EUX SEULS), on vise
+ * la difficulté courante du joueur (`niveau` : facile au début, plus dur s'il
+ * gagne). Petite fenêtre autour de la cible pour la variété, sinon tout le
+ * pool. `commit:false` sélectionne sans consommer (choix de thème) ; `exclude`
+ * écarte des ids déjà proposés. Le registre de fraîcheur limite les redites.
  */
-export function drawQuestion(pion, { formats = null } = {}) {
-  const candidates = drawableFrom(rangeFor(pion), formats);
-  if (candidates.length === 0) return null;
-  const sorted = [...candidates].sort((a, b) => diffOf(a) - diffOf(b));
-  let slice = sorted;
-  if (isLeader(pion)) slice = sorted.slice(Math.floor(sorted.length * 0.66));
-  else if (isLast(pion)) slice = sorted.slice(0, Math.ceil(sorted.length / 2));
-  return pick(slice.length > 0 ? slice : sorted);
+export function drawQuestion(pion, { formats = null, commit = true, exclude = null } = {}) {
+  let pool = drawableFrom(rangeFor(pion), formats);
+  if (exclude) pool = pool.filter((q) => !exclude.has(q.id));
+  if (pool.length === 0) return null;
+  const target = pion?.niveau ?? 2;
+  let near = pool.filter((q) => Math.abs(diffOf(q) - target) <= 1);
+  if (near.length === 0) near = pool;
+  const q = select(near);
+  if (commit) commitQuestion(q);
+  return q;
 }
 
-/** Trou Noir: the hardest CHOICE question within the pion's age window. */
+/** Trou Noir: the hardest CHOICE question within the pion's allowed tiers. */
 export function drawHardest(pion) {
   const candidates = drawableFrom(rangeFor(pion), CHOICE_FORMATS);
   if (candidates.length === 0) return null;
@@ -160,10 +163,22 @@ export function drawEvent() {
   return null;
 }
 
-/** Gambit: numeric question within the pion's age window — or null. */
+/** Gambit: numeric question within the pion's allowed tiers — or null. */
 export function drawGambit(pion) {
   const candidates = drawableFrom(rangeFor(pion), ["gambit_numerique"]);
   return candidates.length > 0 ? pick(candidates) : null;
+}
+
+/**
+ * Savoir insolite (case 🦩) : une VRAIE question, de préférence de la catégorie
+ * « Insolite », dans les paliers d'âge autorisés. Sélectionne SANS consommer
+ * (l'appelant la pose et la commit). Renvoie null si rien n'est jouable.
+ */
+export function drawInsolite(pion) {
+  const pool = drawableFrom(rangeFor(pion), ["qcm", "vrai_faux", "gambit_numerique"]);
+  if (pool.length === 0) return null;
+  const inso = pool.filter((q) => q.categorie === "Insolite");
+  return select(inso.length > 0 ? inso : pool);
 }
 
 /** Easier replacement (Bouclier Facile) — may return null; the caller must

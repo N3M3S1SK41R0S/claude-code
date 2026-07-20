@@ -23,20 +23,24 @@ export function characterById(id) {
 }
 
 /**
- * Tranches d'âge des joueurs (du plus jeune au plus âgé). Chaque tranche ouvre
- * une FENÊTRE de difficulté de questions (difMin..difMax, sur l'échelle 1-5) ;
- * la 1re privilégie le contenu « tout-petit » (`petit`). Les pouvoirs des
- * personnages restent en deux familles : « enfant » pour les 3 plus jeunes
- * tranches, « adulte » pour les 3 plus âgées.
+ * Tranches d'âge des joueurs (du plus jeune au plus âgé). Chaque tranche
+ * autorise un ENSEMBLE STRICT de paliers de contenu (`tiers`, sur le champ
+ * `niveau_age` des questions : tout_petit / enfant / ado / adulte). RÈGLE
+ * FERME (cahier §5) : une question d'un palier non listé n'est JAMAIS posée à
+ * cette tranche — en particulier, les questions « adulte » ne peuvent aller
+ * qu'aux 16-18 et 18+. À l'intérieur des paliers autorisés, la difficulté
+ * s'adapte au joueur (voir `niveau` du pion : facile au début, plus dur s'il
+ * gagne). Les pouvoirs restent en deux familles : « enfant » pour les 3 plus
+ * jeunes tranches, « adulte » pour les 4 plus âgées.
  */
 export const AGE_BRACKETS = [
-  { id: "2-5", label: "2–5 ans", emoji: "🍼", difMin: 1, difMax: 1, petit: true },
-  { id: "5-8", label: "5–8 ans", emoji: "🧸", difMin: 1, difMax: 2 },
-  { id: "9-11", label: "9–11 ans", emoji: "🧒", difMin: 1, difMax: 3 },
-  { id: "12-14", label: "12–14 ans", emoji: "🧑", difMin: 2, difMax: 4 },
-  { id: "14-16", label: "14–16 ans", emoji: "🎓", difMin: 3, difMax: 5 },
-  { id: "16-18", label: "16–18 ans", emoji: "🧑‍🎓", difMin: 4, difMax: 5 },
-  { id: "18+", label: "18 ans et +", emoji: "🧙", difMin: 3, difMax: 5 },
+  { id: "2-5", label: "2–5 ans", emoji: "🍼", tiers: ["tout_petit"], petit: true },
+  { id: "5-8", label: "5–8 ans", emoji: "🧸", tiers: ["tout_petit", "enfant"] },
+  { id: "9-11", label: "9–11 ans", emoji: "🧒", tiers: ["enfant", "ado"] },
+  { id: "12-14", label: "12–14 ans", emoji: "🧑", tiers: ["ado"] },
+  { id: "14-16", label: "14–16 ans", emoji: "🎓", tiers: ["ado"] },
+  { id: "16-18", label: "16–18 ans", emoji: "🧑‍🎓", tiers: ["ado", "adulte"] },
+  { id: "18+", label: "18 ans et +", emoji: "🧙", tiers: ["adulte"] },
 ];
 
 export function bracketById(id) {
@@ -122,6 +126,9 @@ export function newGame(config, boardLayout) {
       tourASauter: false,
       objetUtilise: false,
       doublePieces: false,
+      // Difficulté adaptative : on démarre FACILE, on durcit quand le joueur
+      // enchaîne les bonnes réponses (voir bumpNiveau). Sur l'échelle 1-5.
+      niveau: 1.5,
       stats: { bonnes: 0, questions: 0 },
       malusSubis: 0,
       orGagne: 0,
@@ -288,6 +295,17 @@ export function markAsked(id) {
   save();
 }
 
+/**
+ * Difficulté adaptative : monte quand le joueur répond juste, redescend sinon.
+ * On démarre facile et on durcit surtout si le joueur gagne tout le temps —
+ * toujours DANS les paliers autorisés par sa tranche d'âge (le tirage borne).
+ */
+export function bumpNiveau(pion, correct) {
+  if (!pion) return;
+  const n = pion.niveau ?? 1.5;
+  pion.niveau = Math.max(1, Math.min(5, correct ? n + 0.45 : n - 0.6));
+}
+
 export function resetAskedIfNeeded(totalBankSize) {
   if (state.askedIds.length >= totalBankSize) state.askedIds = [];
 }
@@ -313,6 +331,7 @@ export function loadSave() {
       if (!p.bracket) p.bracket = p.profil === "enfant" ? "5-8" : "18+";
       if (!p.profil) p.profil = bracketProfil(p.bracket);
       if (p.objetUtilise === undefined) p.objetUtilise = false;
+      if (typeof p.niveau !== "number") p.niveau = 1.5;
     }
     state = parsed;
     return state;

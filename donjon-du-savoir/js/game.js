@@ -4,11 +4,11 @@
 //    pion without re-triggering, so a turn always terminates;
 //  - nothing is ever timed (non-negotiable rule of the cahier des charges);
 //  - anecdote after EVERY question, no exception.
-import { drawEasier, drawEvent, drawGambit, drawHardest, drawQuestion } from "./data.js";
+import { commitQuestion, drawEasier, drawEvent, drawGambit, drawHardest, drawInsolite, drawQuestion } from "./data.js";
 import { boardById, renderBoard } from "./board.js";
 import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
-import { CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
+import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, setPanel } from "./ui.js";
 import { portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
@@ -681,25 +681,16 @@ function doBoutique(pion, onDone = null) {
 /* ---------- savoir insolite : pure culture, +2 or garantis ---------- */
 
 function doInsolite(pion) {
-  setPendingCase("resolu");
-  const q = drawQuestion(pion, { formats: ["qcm", "vrai_faux", "gambit_numerique"] });
-  const gain = addCoins(pion, 2);
-  heraldSays("Savoir insolite ! Nul risque, juste une pépite à ranger dans un coin du crâne.");
-  setPanel(
-    el("div", { class: "question-block" },
-      el("h2", { class: "panel-title", text: "🦩 Savoir insolite" }),
-      q ? el("div", { class: "anecdote-card" },
-        el("p", { class: "anecdote-title", text: "📜 Le saviez-vous ?" }),
-        el("p", { class: "anecdote-texte", text: q.anecdote }),
-        (q.sources ?? []).length ? el("div", { class: "sources" }, ...(q.sources ?? []).slice(0, 2).map((s) => {
-          let label = "source"; try { label = new URL(s).hostname.replace(/^www\./, ""); } catch { /* */ }
-          return el("a", { class: "source-link", href: s, target: "_blank", rel: "noopener noreferrer", text: label });
-        })) : null,
-      ) : el("p", { class: "panel-text", text: "Le Donjon a épuisé ses pépites… pour l'instant." }),
-      el("p", { class: "verdict", html: `+${gain} 🪙 pour votre curiosité.` }),
-      bigButton("Continuer", () => finishTurn()),
-    ),
-  );
+  // Case 🦩 : une VRAIE question, un brin farfelue (catégorie « Insolite » de
+  // préférence), posée et récompensée comme une question normale.
+  const q = drawInsolite(pion);
+  if (!q) {
+    setPendingCase("resolu");
+    const gain = addCoins(pion, 2);
+    return endPanel(`🦩 Le Donjon a épuisé ses pépites insolites… +${gain} 🪙 pour la curiosité.`);
+  }
+  heraldSays("🦩 Savoir insolite : une vraie question, un brin farfelue !");
+  themeRevealGate(pion, q);
 }
 
 /* ---------- défi d'expression : Tabou / Password / Mime, à la tablée ---------- */
@@ -1045,7 +1036,7 @@ const REGLES = {
   duo: "DUO — il ne reste que 2 propositions. Bonne réponse : +1 case.",
   equipe: "Réponse ouverte — répondez À VOIX HAUTE, la table valide (système d'honneur). Réussi : +2 cases.",
   confiance: "Pari de confiance — misez de 1 à 10 AVANT de voir la question. Réussi : avancez de la moitié de la mise ; une mise de 6+ ratée fait reculer d'1 case.",
-  gambit: "Gambit — annoncez le nombre le plus proche de la vraie réponse. Exact : +4 cases ; proche : +2 ou +1. Les autres parieront trop haut / trop bas / juste (bon pari : +2 🪙).",
+  gambit: "Gambit — annoncez le nombre le plus proche de la vraie réponse. Exact : +4 cases ; proche : +2 ou +1. Les autres parient Plus / Égal / Moins (la vraie réponse par rapport à votre nombre — bon pari : +2 🪙).",
   anagram: "Anagramme — retrouvez la réponse en réarrangeant les lettres, à voix haute. Trouvé : +2 cases.",
   hangman: "Pendu — devinez les lettres une à une (6 erreurs maximum). Mot reconstitué : +2 cases.",
 };
@@ -1063,27 +1054,32 @@ function speakerIntro(pion) {
   return membre ? `C'est ${membre.nom} qui répond pour l'équipe ${pion.nom} !` : null;
 }
 
+const QUESTION_FORMATS = ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_confiance"];
+
 function doQuestion() {
   if (testFlag("__DONJON_EXPRESSION")) return doExpression(currentPion());
   const pion = currentPion();
-  const q = drawQuestion(pion, { formats: ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_confiance"] });
+  // On SÉLECTIONNE sans consommer : seule la question réellement posée sera
+  // marquée « vue » (sinon le choix de thème brûlerait 2 questions par tour et
+  // les redites reviendraient vite).
+  const q = drawQuestion(pion, { formats: QUESTION_FORMATS, commit: false });
   if (!q) return endPanel("La banque de questions est épuisée. Le Donjon est impressionné.");
-  // Le thème est TOUJOURS annoncé avant de poser la question ; parfois on
-  // laisse le joueur choisir entre DEUX thèmes (déterministe en test).
-  const offerChoice = !testFlag("__DONJON_TEST") && Math.random() < 0.4;
-  if (offerChoice) {
+  // On laisse SOUVENT le choix entre deux thèmes (≈ 2 tours sur 3).
+  if (!testFlag("__DONJON_TEST") && Math.random() < 0.7) {
     const q2 = drawDistinctTheme(pion, q);
     if (q2) return themeChoiceGate(pion, q, q2);
   }
   themeRevealGate(pion, q);
 }
 
-/** Tire une seconde question d'un thème DIFFÉRENT (quelques essais) — ou null. */
+/** Sélectionne (sans consommer) une seconde question d'un thème DIFFÉRENT. */
 function drawDistinctTheme(pion, q) {
-  for (let i = 0; i < 4; i++) {
-    const alt = drawQuestion(pion, { formats: ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_confiance"] });
+  const seen = new Set([q.id]);
+  for (let i = 0; i < 5; i++) {
+    const alt = drawQuestion(pion, { formats: QUESTION_FORMATS, commit: false, exclude: seen });
     if (!alt) return null;
     if (alt.categorie !== q.categorie) return alt;
+    seen.add(alt.id);
   }
   return null;
 }
@@ -1135,6 +1131,7 @@ function themeChoiceGate(pion, qA, qB) {
  * deviennent un pari de confiance, un CASH/CARRÉ/DUO, ou un mini-jeu de mots.
  */
 function posePicked(pion, q) {
+  commitQuestion(q); // la question RÉELLEMENT posée est marquée vue/posée ici
   if (q.format === "qcm") {
     const forced = testFlag("__DONJON_MINIGAME");
     const eligible = miniGameAnswer(q); // réponse convenant à un anagramme/pendu
@@ -1496,6 +1493,8 @@ function confianceFlow(pion, q) {
 function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   setPendingCase("resolu");
   pion.stats.questions += 1;
+  // Difficulté adaptative : plus dur si le joueur gagne, plus doux sinon.
+  bumpNiveau(pion, correct);
   let moveDelta = 0;
   let coinGain = 0;
   if (correct) {
@@ -1620,7 +1619,7 @@ function doGambit(pion) {
     questionHeader(q, pion),
     regleBanner("gambit"),
     el("p", { class: "question-texte", text: q.texte }),
-    el("p", { class: "help-note", text: `${pion.nom} annonce un nombre — puis les autres parieront si la vraie réponse est plus haute, plus basse, ou si c'est juste.` }),
+    el("p", { class: "help-note", text: `${pion.nom} annonce un nombre — puis les autres parient : la vraie réponse est-elle Plus, Égale, ou Moins que ce nombre ?` }),
     input,
     el("button", { class: "btn btn-big", type: "submit" }, "Valider mon nombre"),
   );
@@ -1646,7 +1645,7 @@ function gambitBets(pion, q, guess, others) {
   const rows = others.map((p) => {
     const row = el("div", { class: "bet-row" }, el("strong", { class: "bet-name", text: p.nom }));
     const group = el("div", { class: "bet-buttons", role: "group", "aria-label": `Pari de ${p.nom}` });
-    for (const [key, label] of [["bas", "⬇️ Trop bas"], ["juste", "🎯 Juste"], ["haut", "⬆️ Trop haut"], ["absent", "🚫"]]) {
+    for (const [key, label] of [["haut", "⬆️ Plus"], ["juste", "🎯 Égal"], ["bas", "⬇️ Moins"], ["absent", "🚫"]]) {
       const btn = choiceButton(label, () => {
         bets.set(p.id, key);
         group.querySelectorAll("button").forEach((b) => b.classList.remove("bet-selected"));
@@ -1665,8 +1664,8 @@ function gambitBets(pion, q, guess, others) {
   setPanel(
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: "🎲 Les paris sont ouverts !" }),
-      el("p", { class: "panel-text", html: `${pion.nom} annonce : <strong>${guess}</strong>. La vraie réponse est-elle plus haute, plus basse, ou est-ce juste ?` }),
-      el("p", { class: "help-note", text: "Chaque aventurier place son pari (🚫 pour un joueur absent), puis on révèle." }),
+      el("p", { class: "panel-text", html: `${pion.nom} annonce : <strong>${guess}</strong>. La vraie réponse est-elle <strong>Plus</strong>, <strong>Égale</strong>, ou <strong>Moins</strong> que ce nombre ?` }),
+      el("p", { class: "help-note", text: "⬆️ Plus = la vraie réponse est plus grande · 🎯 Égal = pile ce nombre · ⬇️ Moins = plus petite. (🚫 pour un joueur absent.)" }),
       ...rows,
       validateBtn,
     ),
@@ -1689,11 +1688,12 @@ function gambitReveal(pion, q, guess, bets) {
     // Passe par addCoins : suit l'or gagné (étoile bonus « Magnat »), applique
     // le filet anti-dernier et rafraîchit le bandeau — comme tout autre gain.
     const g = won ? addCoins(p, 2) : 0;
-    const label = bet === "haut" ? "trop haut" : bet === "bas" ? "trop bas" : "juste";
+    const label = bet === "haut" ? "plus" : bet === "bas" ? "moins" : "égal";
     return el("p", { class: "bet-result", text: `${won ? "✅" : "❌"} ${p.nom} a parié « ${label} »${won ? ` : +${g} 🪙` : ""}` });
   });
   pion.stats.questions += 1;
   if (advance > 0) pion.stats.bonnes += 1;
+  bumpNiveau(pion, advance > 0);
   save();
   heraldSays(advance > 0 ? herald.bonne() : herald.mauvaise());
   setPanel(
@@ -1812,8 +1812,9 @@ function finishTurn() {
     prefix = `🔔 DERNIÈRE MANCHE ! Chacun reçoit +${LAST_ROUND_BONUS} 🪙 pour un ultime coup d'éclat. ${prefix}`;
   }
 
-  // Question bonus de la tablée (~1 tour sur 7, jamais au tout premier) : tout le
-  // monde joue, la première bonne réponse criée rafle l'or. Zéro chronomètre.
+  // Question bonus de la tablée (~1 tour sur 7, jamais au tout premier) : tout
+  // le monde réfléchit SANS course — chacun qui a trouvé empoche l'or. Zéro
+  // chronomètre, aucune notion de rapidité (règle du cahier).
   const forceBonus = testFlag("__DONJON_BONUS");
   if (forceBonus || (!testFlag("__DONJON_TEST") && state.tour >= 2 && Math.random() < 0.15)) {
     return teamBonusFlow(() => startTurn({ prefix }));
@@ -1821,40 +1822,48 @@ function finishTurn() {
   startTurn({ prefix });
 }
 
-/** Question bonus posée à TOUTE la tablée entre deux tours (esprit Une Famille
- *  en Or / Burger Quiz) : réponse à voix haute, la table désigne le gagnant. */
+/** Question bonus posée à TOUTE la tablée entre deux tours : réponse à voix
+ *  haute, SANS course — la table désigne TOUS ceux qui avaient bon. */
 function teamBonusFlow(onDone) {
-  const q = drawEvent(); // question accessible à tous (respecte la règle enfant)
+  const q = drawEvent(); // question accessible à tous (respecte l'âge le plus jeune)
   if (!q) return onDone();
-  heraldSays("🔔 QUESTION BONUS ! Toute la tablée joue : la première bonne réponse criée rafle l'or.");
+  heraldSays("🔔 QUESTION BONUS ! Toute la tablée réfléchit — pas de course, chacun a le temps de trouver.");
   setPanel(
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: "🔔 Question bonus de la tablée" }),
       el("div", { class: "question-head" }, el("span", { class: "badge badge-cat", text: q.categorie })),
       el("p", { class: "question-texte", text: q.texte }),
-      el("p", { class: "help-note", text: "🗣️ Tout le monde peut répondre à voix haute — aucun chronomètre, mais la première bonne réponse l'emporte." }),
+      el("p", { class: "help-note", text: "🗣️ Chacun réfléchit tranquillement, puis on révèle. Tous ceux qui avaient bon sont récompensés — aucune course, aucun chronomètre." }),
       bigButton("Révéler la réponse", () => revealTableBonus(q, onDone)),
     ),
   );
 }
 
 function revealTableBonus(q, onDone) {
-  const REWARD = 5;
+  const REWARD = 3;
   const accepted = q.bonne_reponse ?? String(q.reponse_numerique ?? (q.reponses_acceptees ?? []).join(" · "));
+  const found = new Set();
   const grid = el("div", { class: "choices" });
   for (const p of getState().pions) {
-    grid.append(choiceButton(`${characterById(p.characterId).emoji} ${p.nom}`, () => {
-      const gained = addCoins(p, REWARD);
-      heraldSays(`+${gained} 🪙 pour ${p.nom} ! Le savoir paie toujours.`);
-      onDone();
-    }));
+    const btn = choiceButton(`${characterById(p.characterId).emoji} ${p.nom}`, () => {
+      if (found.has(p.id)) { found.delete(p.id); btn.classList.remove("bet-selected"); }
+      else { found.add(p.id); btn.classList.add("bet-selected"); }
+    });
+    grid.append(btn);
   }
+  const done = () => {
+    let any = false;
+    for (const p of getState().pions) if (found.has(p.id)) { addCoins(p, REWARD); any = true; }
+    if (any) heraldSays(`+${REWARD} 🪙 pour chaque bonne réponse ! Le savoir paie, sans se presser.`);
+    onDone();
+  };
   setPanel(
     el("div", { class: "question-block" },
       el("p", { class: "reveal-answer", html: `✅ Réponse : <strong>${accepted}</strong>` }),
       anecdoteCardEl(q),
-      el("p", { class: "panel-text", text: `Qui a trouvé en premier ? Cette personne (ou son équipe) empoche +${REWARD} 🪙.` }),
+      el("p", { class: "panel-text", text: `Qui avait la bonne réponse ? Touchez chaque personne (ou équipe) qui a trouvé : chacune empoche +${REWARD} 🪙. La table est juge, aucune course.` }),
       grid,
+      bigButton("Valider les gagnants", done),
       bigButton("Personne n'a trouvé", onDone),
     ),
   );
