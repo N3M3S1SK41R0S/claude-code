@@ -238,7 +238,12 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 
 .board-map {
   position: relative;
-  min-width: 620px;
+  /* Le plateau tient TOUJOURS dans la largeur de l'écran (pas de défilement
+     horizontal) ; les cases sont dimensionnées en cqw et s'adaptent. */
+  width: 100%;
+  max-width: 760px;
+  min-width: 0;
+  margin-inline: auto;
   aspect-ratio: 10 / 7;
   container-type: size;
   background:
@@ -436,7 +441,52 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 .badge-cat { color: var(--gold); border-color: var(--gold); }
 .badge-joueur { color: var(--ink); border-color: var(--ink); font-weight: bold; }
+.badge-theme, .badge-type { font-weight: 700; }
 .question-texte { font-size: 1.2rem; line-height: 1.4; font-weight: bold; }
+
+/* ---- thème annoncé avant la question + choix de thème ---- */
+.theme-gate { display: flex; flex-direction: column; gap: 0.7rem; }
+.theme-banner {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.7rem 1rem; border-radius: 14px; font-weight: 700; font-size: 1.15rem;
+}
+.theme-banner-emoji { font-size: 1.6rem; line-height: 1; }
+.theme-choice {
+  display: flex; align-items: center; gap: 0.6rem; text-align: left;
+  font-weight: 600;
+}
+.theme-choice .theme-banner-emoji { font-size: 1.5rem; }
+.theme-choice-type { color: var(--soft); font-size: 0.85rem; font-weight: 400; }
+
+/* ---- aide-mémoire (overlay consultable à tout moment) ---- */
+.ref-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(10, 7, 20, 0.72);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 1rem; overflow-y: auto;
+}
+.ref-card {
+  background: var(--stone);
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  padding: 1.1rem 1.2rem 1.6rem;
+  max-width: 640px; width: 100%;
+  margin: auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+.ref-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.ref-title { color: var(--gold); font-size: 1.3rem; margin: 0; }
+.ref-section {
+  color: var(--gold); font-size: 1rem; margin: 1.1rem 0 0.5rem;
+  border-bottom: 1px solid var(--line); padding-bottom: 0.25rem;
+}
+.ref-list { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; line-height: 1.35; }
+.ref-legend { display: flex; flex-direction: column; gap: 0.4rem; }
+.ref-legend-themes { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.4rem; }
+.ref-chip { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.ref-swatch { font-weight: 700; white-space: nowrap; }
+.ref-note { color: var(--soft); font-size: 0.85rem; }
+.ref-line { line-height: 1.4; margin: 0.15rem 0; }
 
 .choices { display: flex; flex-direction: column; gap: 0.5rem; }
 .choices-2, .choices-3 { flex-direction: row; flex-wrap: wrap; }
@@ -620,6 +670,7 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
     <div class="topbar-actions">
       <button id="sfx-toggle" class="btn btn-small" type="button" aria-pressed="false">🔕 Sons</button>
       <button id="voice-toggle" class="btn btn-small" type="button" aria-pressed="false">🔇 Héraut muet</button>
+      <button id="help-btn" class="btn btn-small" type="button" aria-label="Aide-mémoire (règles, pouvoirs, objets)">📖 Aide</button>
       <button id="quit-btn" class="btn btn-small" type="button" aria-label="Retour à l'accueil">🏠</button>
     </div>
   </header>
@@ -1098,7 +1149,7 @@ function recharge(pion) {
 ;Object.assign(module.exports, {powerOf, canRecharge, recharge, RECHARGE_COST, POWERS});
 };
 __modules["./portraits.js"] = function(module, exports, require) {
-// Original hand-drawn SVG medallions for the six companions — flat cartoon
+// Original hand-drawn SVG medallions for the nine companions — flat cartoon
 // style, no external assets (fills the §12 "illustrations" gap until real
 // artwork lands; the §6 prompts remain available for a generator pass).
 
@@ -1572,6 +1623,67 @@ function drawDefi({ hasChild = false, type = null } = {}) {
 }
 
 ;Object.assign(module.exports, {loadWordgames, wordgamesSize, drawDefi});
+};
+__modules["./themes.js"] = function(module, exports, require) {
+// Colour + icon system for question THEMES (categories) and TYPES (formats).
+// Used to colour-code badges, the theme-reveal panel, and the on-board legend
+// so a shared table reads the plateau at a glance. Colours are chosen to stay
+// legible on the dark parchment, with dark text laid over the filled chip.
+
+const THEME_META = {
+  "Histoire": { emoji: "🏛️", color: "#d0a13a" },
+  "Géographie": { emoji: "🌍", color: "#4aa96c" },
+  "Sciences & Nature": { emoji: "🔬", color: "#3f93d8" },
+  "Sport": { emoji: "⚽", color: "#e0673f" },
+  "Pop Culture": { emoji: "💥", color: "#d05fa8" },
+  "Insolite": { emoji: "🦩", color: "#9b7ed6" },
+  "Général": { emoji: "🎲", color: "#8794a8" },
+  "Littérature": { emoji: "📚", color: "#b98a5a" },
+  "Arts": { emoji: "🎨", color: "#e07ba0" },
+  "Cinéma": { emoji: "🎬", color: "#6470d8" },
+  "Musique": { emoji: "🎵", color: "#3fb3a3" },
+  "Gastronomie": { emoji: "🍽️", color: "#d9a441" },
+  "Langue française": { emoji: "🔤", color: "#cc5f6a" },
+};
+
+const THEME_DEFAULT = { emoji: "🏠", color: "#9a86c9" };
+
+function themeMeta(categorie) {
+  return THEME_META[categorie] ?? THEME_DEFAULT;
+}
+
+// Ordered for the legend (matches the 13 verified categories).
+const THEME_ORDER = Object.keys(THEME_META);
+
+// Question TYPES (the underlying format). The displayed question may morph
+// into a mini-game, but the type badge reflects how you'll answer.
+const TYPE_META = {
+  qcm: { emoji: "🔵", label: "QCM", color: "#3f93d8", regle: "4 propositions, une seule bonne." },
+  vrai_faux: { emoji: "⚖️", label: "Vrai ou Faux", color: "#4aa96c", regle: "Deux choix : Vrai ou Faux." },
+  gambit_numerique: { emoji: "🔢", label: "Nombre mystère", color: "#d0a13a", regle: "Répondez par un nombre, à voix haute." },
+  equipe: { emoji: "👥", label: "En équipe", color: "#d05fa8", regle: "Toute la tablée cherche, à voix haute." },
+  cash_carre_duo: { emoji: "🎯", label: "Cash / Carré / Duo", color: "#e0673f", regle: "Choisissez votre risque avant de voir la question." },
+};
+
+const TYPE_DEFAULT = { emoji: "❓", label: "Question", color: "#8794a8", regle: "" };
+
+function typeMeta(format) {
+  return TYPE_META[format] ?? TYPE_DEFAULT;
+}
+
+const TYPE_ORDER = Object.keys(TYPE_META);
+
+/** Inline style for a filled chip in a theme/type colour (dark text over it). */
+function chipStyle(color) {
+  return `background:${color};color:#1a1230;border:1px solid rgba(0,0,0,0.18)`;
+}
+
+/** Inline style for a soft outlined chip (tinted, coloured left border). */
+function softStyle(color) {
+  return `background:${color}22;color:var(--ink);border:1px solid ${color};border-left-width:4px`;
+}
+
+;Object.assign(module.exports, {themeMeta, typeMeta, chipStyle, softStyle, THEME_META, THEME_ORDER, TYPE_META, TYPE_ORDER});
 };
 __modules["./state.js"] = function(module, exports, require) {
 // Game state: pions (players or teams), board, economy, persistence.
@@ -2542,13 +2654,14 @@ __modules["./game.js"] = function(module, exports, require) {
 const { drawEasier, drawEvent, drawGambit, drawHardest, drawQuestion } = require("./data.js");
 const { boardById, renderBoard } = require("./board.js");
 const { herald } = require("./herald.js");
-const { canRecharge, powerOf, recharge, RECHARGE_COST } = require("./powers.js");
-const { characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } = require("./state.js");
+const { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } = require("./powers.js");
+const { CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } = require("./state.js");
 const { bigButton, choiceButton, el, heraldSays, setPanel } = require("./ui.js");
 const { portraitEl } = require("./portraits.js");
 const { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } = require("./items.js");
 const { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } = require("./minigames.js");
 const { drawDefi } = require("./wordgames.js");
+const { chipStyle, softStyle, THEME_META, THEME_ORDER, themeMeta, TYPE_META, TYPE_ORDER, typeMeta } = require("./themes.js");
 const { sfx } = require("./sfx.js");
 
 /** Seam de test déterministe (jamais posé en jeu réel) : force un mini-jeu
@@ -2583,6 +2696,82 @@ function resumeGame(victoryCallback) {
     return;
   }
   startTurn({ silent: true });
+}
+
+/* ---------- aide-mémoire (consultable à tout moment) ---------- */
+
+function refSection(title) {
+  return el("h3", { class: "ref-section", text: title });
+}
+
+function legendChip(color, label, note = "") {
+  return el("div", { class: "ref-chip" },
+    el("span", { class: "ref-swatch badge", style: chipStyle(color), text: label }),
+    note ? el("span", { class: "ref-note", text: note }) : null,
+  );
+}
+
+/** Panneau superposé : règles, types & thèmes colorés, pouvoirs, objets.
+ *  Ouvrable à tout moment depuis le plateau (bouton 📖 de la barre du haut). */
+function openReference() {
+  document.querySelector(".ref-overlay")?.remove();
+  const pions = getState()?.pions ?? [];
+  const overlay = el("div", { class: "ref-overlay", role: "dialog", "aria-modal": "true", "aria-label": "Aide-mémoire du Donjon" });
+  const close = () => overlay.remove();
+  const card = el("div", { class: "ref-card" });
+
+  card.append(
+    el("div", { class: "ref-head" },
+      el("h2", { class: "ref-title", text: "📖 Aide-mémoire" }),
+      el("button", { class: "btn btn-small", type: "button", "aria-label": "Fermer l'aide-mémoire", onclick: close }, "✕"),
+    ),
+    refSection("Comment on joue"),
+    el("ul", { class: "ref-list" },
+      el("li", { text: "🎲 À son tour : lancez le dé, avancez, subissez la case." }),
+      el("li", { text: "🎒 Un seul objet par tour — la besace se grise une fois l'objet utilisé." }),
+      el("li", { text: "🎯 Le thème est annoncé avant chaque question ; parfois, choisissez entre deux thèmes." }),
+      el("li", { text: "📜 Une anecdote sourcée suit CHAQUE question. Jamais de chronomètre." }),
+      el("li", { text: "🏁 Course : premier au Trésor. ⭐ Étoiles : le plus d'étoiles après les manches choisies." }),
+    ),
+    refSection("Types de questions"),
+  );
+  const tl = el("div", { class: "ref-legend" });
+  for (const f of TYPE_ORDER) { const ty = TYPE_META[f]; tl.append(legendChip(ty.color, `${ty.emoji} ${ty.label}`, ty.regle)); }
+  card.append(tl, refSection("Thèmes"));
+  const thl = el("div", { class: "ref-legend ref-legend-themes" });
+  for (const name of THEME_ORDER) { const t = THEME_META[name]; thl.append(legendChip(t.color, `${t.emoji} ${name}`)); }
+  card.append(thl, refSection("Pouvoirs des joueurs"));
+  if (pions.length) {
+    for (const p of pions) {
+      const pw = powerOf(p);
+      const c = characterById(p.characterId);
+      card.append(el("p", { class: "ref-line" },
+        el("strong", { text: `${c.emoji} ${p.nom} — ${c.nom}` }),
+        el("span", { text: pw ? ` : ${pw.nom} — ${pw.desc}${p.pouvoirUtilise ? " (épuisé)" : ""}` : "" }),
+      ));
+    }
+  } else {
+    for (const c of CHARACTERS) {
+      const set = POWERS[c.id];
+      card.append(el("p", { class: "ref-line" },
+        el("strong", { text: `${c.emoji} ${c.nom}` }),
+        el("span", { text: ` : 🎩 ${set.adulte.nom} · 👶 ${set.enfant.nom}` }),
+      ));
+    }
+  }
+  card.append(refSection("Objets de la boutique"));
+  for (const id of SHOP_ORDER) {
+    const it = ITEMS[id];
+    if (!it) continue;
+    card.append(el("p", { class: "ref-line" },
+      el("strong", { text: `${it.emoji} ${it.nom}` }),
+      el("span", { text: ` (${it.cout} 🪙) : ${it.desc}` }),
+    ));
+  }
+  overlay.append(card);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+  document.addEventListener("keydown", function esc(e) { if (e.key === "Escape") { close(); document.removeEventListener("keydown", esc); } });
+  document.body.append(overlay);
 }
 
 /* ---------- rendering ---------- */
@@ -3502,9 +3691,73 @@ function doQuestion() {
   const pion = currentPion();
   const q = drawQuestion(pion, { formats: ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_confiance"] });
   if (!q) return endPanel("La banque de questions est épuisée. Le Donjon est impressionné.");
-  // Variety on classic QCM draws: some become a TTMC-style confidence bet, some
-  // a CASH/CARRÉ/DUO risk pick, some a word mini-game DERIVED from the correct
-  // answer (anagramme / pendu) — the same verified bank plays many ways.
+  // Le thème est TOUJOURS annoncé avant de poser la question ; parfois on
+  // laisse le joueur choisir entre DEUX thèmes (déterministe en test).
+  const offerChoice = !testFlag("__DONJON_TEST") && Math.random() < 0.4;
+  if (offerChoice) {
+    const q2 = drawDistinctTheme(pion, q);
+    if (q2) return themeChoiceGate(pion, q, q2);
+  }
+  themeRevealGate(pion, q);
+}
+
+/** Tire une seconde question d'un thème DIFFÉRENT (quelques essais) — ou null. */
+function drawDistinctTheme(pion, q) {
+  for (let i = 0; i < 4; i++) {
+    const alt = drawQuestion(pion, { formats: ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_confiance"] });
+    if (!alt) return null;
+    if (alt.categorie !== q.categorie) return alt;
+  }
+  return null;
+}
+
+/** Petit bandeau coloré du thème d'une question (icône + nom + couleur). */
+function themeBanner(q) {
+  const t = themeMeta(q.categorie);
+  return el("div", { class: "theme-banner", style: softStyle(t.color) },
+    el("span", { class: "theme-banner-emoji", text: t.emoji }),
+    el("span", { class: "theme-banner-nom", text: q.categorie }),
+  );
+}
+
+/** Annonce le thème AVANT de dévoiler la question. */
+function themeRevealGate(pion, q) {
+  const t = themeMeta(q.categorie);
+  const ty = typeMeta(q.format);
+  setPanel(
+    el("div", { class: "question-block theme-gate" },
+      el("p", { class: "panel-text", text: `À ${speakerName(pion)} de jouer. Voici le thème :` }),
+      themeBanner(q),
+      el("p", { class: "help-note", text: `${ty.emoji} ${ty.label} — ${ty.regle}` }),
+      bigButton("Découvrir la question", () => posePicked(pion, q)),
+    ),
+  );
+}
+
+/** Laisse le joueur choisir entre deux thèmes avant de voir la question. */
+function themeChoiceGate(pion, qA, qB) {
+  const btn = (q) => {
+    const t = themeMeta(q.categorie);
+    const ty = typeMeta(q.format);
+    return el("button", { class: "btn btn-choice theme-choice", type: "button",
+      style: softStyle(t.color), onclick: () => posePicked(pion, q) },
+      el("span", { class: "theme-banner-emoji", text: t.emoji }),
+      el("span", {}, el("strong", { text: q.categorie }), el("span", { class: "theme-choice-type", text: ` · ${ty.emoji} ${ty.label}` })),
+    );
+  };
+  setPanel(
+    el("div", { class: "question-block theme-gate" },
+      el("p", { class: "panel-text", text: `À ${speakerName(pion)} de choisir son thème :` }),
+      el("div", { class: "choices choices-2" }, btn(qA), btn(qB)),
+    ),
+  );
+}
+
+/**
+ * Poser la question choisie avec la même variété qu'avant : certains QCM
+ * deviennent un pari de confiance, un CASH/CARRÉ/DUO, ou un mini-jeu de mots.
+ */
+function posePicked(pion, q) {
   if (q.format === "qcm") {
     const forced = testFlag("__DONJON_MINIGAME");
     const eligible = miniGameAnswer(q); // réponse convenant à un anagramme/pendu
@@ -3671,10 +3924,16 @@ function questionHeader(q, pion = null) {
   // The answering pion is always named — essential at a 20-player table.
   const who = pion ?? currentPion();
   const c = characterById(who.characterId);
+  const t = themeMeta(q.categorie);
+  const ty = typeMeta(q.format);
+  const ageLabel = q.niveau_age === "tout_petit" ? "🍼 tout-petit"
+    : q.niveau_age === "enfant" ? "👶 enfant"
+    : q.niveau_age === "ado" ? "🧢 ado" : "🎩 adulte";
   return el("div", { class: "question-head" },
     el("span", { class: "badge badge-joueur", text: `${c.emoji} ${who.nom}` }),
-    el("span", { class: "badge badge-cat", text: q.categorie }),
-    el("span", { class: "badge", text: q.niveau_age === "enfant" ? "👶 enfant" : q.niveau_age === "ado" ? "🧢 ado" : "🎩 adulte" }),
+    el("span", { class: "badge badge-theme", style: chipStyle(t.color), text: `${t.emoji} ${q.categorie}` }),
+    el("span", { class: "badge badge-type", style: chipStyle(ty.color), text: `${ty.emoji} ${ty.label}` }),
+    el("span", { class: "badge", text: ageLabel }),
     el("span", { class: "badge", text: "★".repeat(q.difficulte ?? 3) }),
   );
 }
@@ -4275,7 +4534,7 @@ function finishGame(winner) {
   return true;
 }
 
-;Object.assign(module.exports, {startGame, resumeGame});
+;Object.assign(module.exports, {startGame, resumeGame, openReference});
 };
 __modules["./app.js"] = function(module, exports, require) {
 // Screens and wiring: home → setup → game → victory. Pass-and-play, 1-20
@@ -4284,7 +4543,7 @@ const { loadBank, bankSize, refreshCustom } = require("./data.js");
 const { loadWordgames } = require("./wordgames.js");
 const { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } = require("./custom.js");
 const { BOARDS, boardById, generateBoard } = require("./board.js");
-const { resumeGame, startGame } = require("./game.js");
+const { openReference, resumeGame, startGame } = require("./game.js");
 const { AGE_BRACKETS, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, loadSave, newGame, youngestBracket } = require("./state.js");
 const { portraitEl } = require("./portraits.js");
 const { POWERS } = require("./powers.js");
@@ -4845,6 +5104,8 @@ function wireHeader() {
     renderHome();
     show("home");
   });
+
+  document.getElementById("help-btn").addEventListener("click", () => openReference());
 
   document.getElementById("quit-btn").addEventListener("click", () => {
     const gameVisible = !document.getElementById("screen-game").hidden;

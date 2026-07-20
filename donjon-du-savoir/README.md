@@ -66,15 +66,21 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
    Échange, Tuyau d'Or, Bouclier, Aimant à Or, malus Sabotage/Racket, et la
    **Besasse Badass** (inventaire 3 → 6). Un **toast d'ouverture** loufoque
    désigne qui commence.
-4. **Après chaque question, l'anecdote s'affiche — toujours**, avec ses sources.
-5. **Mini-jeux de mots** : certaines questions QCM se muent en 🔤 **Anagramme**
+4. **Le thème est annoncé avant chaque question** (bandeau coloré) ; parfois
+   on **choisit entre deux thèmes**. Thèmes et types de questions sont
+   **codés par couleur** (badges) pour s'y retrouver d'un coup d'œil. Un
+   **aide-mémoire 📖** (barre du haut) s'ouvre à tout moment : règles, légende
+   des thèmes et des types, **pouvoirs de chaque joueur** et **objets**. Le
+   **plateau tient en entier à l'écran** (aucun défilement horizontal).
+5. **Après chaque question, l'anecdote s'affiche — toujours**, avec ses sources.
+6. **Mini-jeux de mots** : certaines questions QCM se muent en 🔤 **Anagramme**
    (les lettres de la réponse mélangées, façon Motus/Time's Up) ou en 🪢 **Pendu**
    (on devine les lettres, 6 erreurs max). Ils sont **dérivés de la banque déjà
    vérifiée** — aucun contenu neuf, donc aucun risque factuel.
-6. **Question bonus de la tablée** : de temps en temps, entre deux tours, le
+7. **Question bonus de la tablée** : de temps en temps, entre deux tours, le
    Héraut lance une question à **toute la table** — la première bonne réponse
    criée rafle quelques pièces (toujours zéro chronomètre, la table est juge).
-7. **Défis d'expression** (case 🎭) : le pion actif devient meneur et fait
+8. **Défis d'expression** (case 🎭) : le pion actif devient meneur et fait
    deviner à la tablée un défi 🚫 **Tabou** (sans dire les mots interdits),
    🔑 **Password** (indices d'un seul mot) ou 🤫 **Mime** (en silence). Contenu
    **vérifié, 100 % original et tout public** (`data/wordgames.json`) — aucun

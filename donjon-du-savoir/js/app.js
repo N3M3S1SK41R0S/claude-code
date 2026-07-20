@@ -4,7 +4,7 @@ import { loadBank, bankSize, refreshCustom } from "./data.js";
 import { loadWordgames } from "./wordgames.js";
 import { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } from "./custom.js";
 import { BOARDS, boardById, generateBoard } from "./board.js";
-import { resumeGame, startGame } from "./game.js";
+import { openReference, resumeGame, startGame } from "./game.js";
 import { AGE_BRACKETS, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, loadSave, newGame, youngestBracket } from "./state.js";
 import { portraitEl } from "./portraits.js";
 import { POWERS } from "./powers.js";
@@ -565,6 +565,8 @@ function wireHeader() {
     renderHome();
     show("home");
   });
+
+  document.getElementById("help-btn").addEventListener("click", () => openReference());
 
   document.getElementById("quit-btn").addEventListener("click", () => {
     const gameVisible = !document.getElementById("screen-game").hidden;

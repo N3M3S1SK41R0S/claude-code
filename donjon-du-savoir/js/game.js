@@ -7,13 +7,14 @@
 import { drawEasier, drawEvent, drawGambit, drawHardest, drawQuestion } from "./data.js";
 import { boardById, renderBoard } from "./board.js";
 import { herald } from "./herald.js";
-import { canRecharge, powerOf, recharge, RECHARGE_COST } from "./powers.js";
-import { characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
+import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
+import { CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, setPanel } from "./ui.js";
 import { portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
 import { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } from "./minigames.js";
 import { drawDefi } from "./wordgames.js";
+import { chipStyle, softStyle, THEME_META, THEME_ORDER, themeMeta, TYPE_META, TYPE_ORDER, typeMeta } from "./themes.js";
 import { sfx } from "./sfx.js";
 
 /** Seam de test déterministe (jamais posé en jeu réel) : force un mini-jeu
@@ -48,6 +49,82 @@ export function resumeGame(victoryCallback) {
     return;
   }
   startTurn({ silent: true });
+}
+
+/* ---------- aide-mémoire (consultable à tout moment) ---------- */
+
+function refSection(title) {
+  return el("h3", { class: "ref-section", text: title });
+}
+
+function legendChip(color, label, note = "") {
+  return el("div", { class: "ref-chip" },
+    el("span", { class: "ref-swatch badge", style: chipStyle(color), text: label }),
+    note ? el("span", { class: "ref-note", text: note }) : null,
+  );
+}
+
+/** Panneau superposé : règles, types & thèmes colorés, pouvoirs, objets.
+ *  Ouvrable à tout moment depuis le plateau (bouton 📖 de la barre du haut). */
+export function openReference() {
+  document.querySelector(".ref-overlay")?.remove();
+  const pions = getState()?.pions ?? [];
+  const overlay = el("div", { class: "ref-overlay", role: "dialog", "aria-modal": "true", "aria-label": "Aide-mémoire du Donjon" });
+  const close = () => overlay.remove();
+  const card = el("div", { class: "ref-card" });
+
+  card.append(
+    el("div", { class: "ref-head" },
+      el("h2", { class: "ref-title", text: "📖 Aide-mémoire" }),
+      el("button", { class: "btn btn-small", type: "button", "aria-label": "Fermer l'aide-mémoire", onclick: close }, "✕"),
+    ),
+    refSection("Comment on joue"),
+    el("ul", { class: "ref-list" },
+      el("li", { text: "🎲 À son tour : lancez le dé, avancez, subissez la case." }),
+      el("li", { text: "🎒 Un seul objet par tour — la besace se grise une fois l'objet utilisé." }),
+      el("li", { text: "🎯 Le thème est annoncé avant chaque question ; parfois, choisissez entre deux thèmes." }),
+      el("li", { text: "📜 Une anecdote sourcée suit CHAQUE question. Jamais de chronomètre." }),
+      el("li", { text: "🏁 Course : premier au Trésor. ⭐ Étoiles : le plus d'étoiles après les manches choisies." }),
+    ),
+    refSection("Types de questions"),
+  );
+  const tl = el("div", { class: "ref-legend" });
+  for (const f of TYPE_ORDER) { const ty = TYPE_META[f]; tl.append(legendChip(ty.color, `${ty.emoji} ${ty.label}`, ty.regle)); }
+  card.append(tl, refSection("Thèmes"));
+  const thl = el("div", { class: "ref-legend ref-legend-themes" });
+  for (const name of THEME_ORDER) { const t = THEME_META[name]; thl.append(legendChip(t.color, `${t.emoji} ${name}`)); }
+  card.append(thl, refSection("Pouvoirs des joueurs"));
+  if (pions.length) {
+    for (const p of pions) {
+      const pw = powerOf(p);
+      const c = characterById(p.characterId);
+      card.append(el("p", { class: "ref-line" },
+        el("strong", { text: `${c.emoji} ${p.nom} — ${c.nom}` }),
+        el("span", { text: pw ? ` : ${pw.nom} — ${pw.desc}${p.pouvoirUtilise ? " (épuisé)" : ""}` : "" }),
+      ));
+    }
+  } else {
+    for (const c of CHARACTERS) {
+      const set = POWERS[c.id];
+      card.append(el("p", { class: "ref-line" },
+        el("strong", { text: `${c.emoji} ${c.nom}` }),
+        el("span", { text: ` : 🎩 ${set.adulte.nom} · 👶 ${set.enfant.nom}` }),
+      ));
+    }
+  }
+  card.append(refSection("Objets de la boutique"));
+  for (const id of SHOP_ORDER) {
+    const it = ITEMS[id];
+    if (!it) continue;
+    card.append(el("p", { class: "ref-line" },
+      el("strong", { text: `${it.emoji} ${it.nom}` }),
+      el("span", { text: ` (${it.cout} 🪙) : ${it.desc}` }),
+    ));
+  }
+  overlay.append(card);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+  document.addEventListener("keydown", function esc(e) { if (e.key === "Escape") { close(); document.removeEventListener("keydown", esc); } });
+  document.body.append(overlay);
 }
 
 /* ---------- rendering ---------- */
@@ -967,9 +1044,73 @@ function doQuestion() {
   const pion = currentPion();
   const q = drawQuestion(pion, { formats: ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_confiance"] });
   if (!q) return endPanel("La banque de questions est épuisée. Le Donjon est impressionné.");
-  // Variety on classic QCM draws: some become a TTMC-style confidence bet, some
-  // a CASH/CARRÉ/DUO risk pick, some a word mini-game DERIVED from the correct
-  // answer (anagramme / pendu) — the same verified bank plays many ways.
+  // Le thème est TOUJOURS annoncé avant de poser la question ; parfois on
+  // laisse le joueur choisir entre DEUX thèmes (déterministe en test).
+  const offerChoice = !testFlag("__DONJON_TEST") && Math.random() < 0.4;
+  if (offerChoice) {
+    const q2 = drawDistinctTheme(pion, q);
+    if (q2) return themeChoiceGate(pion, q, q2);
+  }
+  themeRevealGate(pion, q);
+}
+
+/** Tire une seconde question d'un thème DIFFÉRENT (quelques essais) — ou null. */
+function drawDistinctTheme(pion, q) {
+  for (let i = 0; i < 4; i++) {
+    const alt = drawQuestion(pion, { formats: ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_confiance"] });
+    if (!alt) return null;
+    if (alt.categorie !== q.categorie) return alt;
+  }
+  return null;
+}
+
+/** Petit bandeau coloré du thème d'une question (icône + nom + couleur). */
+function themeBanner(q) {
+  const t = themeMeta(q.categorie);
+  return el("div", { class: "theme-banner", style: softStyle(t.color) },
+    el("span", { class: "theme-banner-emoji", text: t.emoji }),
+    el("span", { class: "theme-banner-nom", text: q.categorie }),
+  );
+}
+
+/** Annonce le thème AVANT de dévoiler la question. */
+function themeRevealGate(pion, q) {
+  const t = themeMeta(q.categorie);
+  const ty = typeMeta(q.format);
+  setPanel(
+    el("div", { class: "question-block theme-gate" },
+      el("p", { class: "panel-text", text: `À ${speakerName(pion)} de jouer. Voici le thème :` }),
+      themeBanner(q),
+      el("p", { class: "help-note", text: `${ty.emoji} ${ty.label} — ${ty.regle}` }),
+      bigButton("Découvrir la question", () => posePicked(pion, q)),
+    ),
+  );
+}
+
+/** Laisse le joueur choisir entre deux thèmes avant de voir la question. */
+function themeChoiceGate(pion, qA, qB) {
+  const btn = (q) => {
+    const t = themeMeta(q.categorie);
+    const ty = typeMeta(q.format);
+    return el("button", { class: "btn btn-choice theme-choice", type: "button",
+      style: softStyle(t.color), onclick: () => posePicked(pion, q) },
+      el("span", { class: "theme-banner-emoji", text: t.emoji }),
+      el("span", {}, el("strong", { text: q.categorie }), el("span", { class: "theme-choice-type", text: ` · ${ty.emoji} ${ty.label}` })),
+    );
+  };
+  setPanel(
+    el("div", { class: "question-block theme-gate" },
+      el("p", { class: "panel-text", text: `À ${speakerName(pion)} de choisir son thème :` }),
+      el("div", { class: "choices choices-2" }, btn(qA), btn(qB)),
+    ),
+  );
+}
+
+/**
+ * Poser la question choisie avec la même variété qu'avant : certains QCM
+ * deviennent un pari de confiance, un CASH/CARRÉ/DUO, ou un mini-jeu de mots.
+ */
+function posePicked(pion, q) {
   if (q.format === "qcm") {
     const forced = testFlag("__DONJON_MINIGAME");
     const eligible = miniGameAnswer(q); // réponse convenant à un anagramme/pendu
@@ -1136,10 +1277,16 @@ function questionHeader(q, pion = null) {
   // The answering pion is always named — essential at a 20-player table.
   const who = pion ?? currentPion();
   const c = characterById(who.characterId);
+  const t = themeMeta(q.categorie);
+  const ty = typeMeta(q.format);
+  const ageLabel = q.niveau_age === "tout_petit" ? "🍼 tout-petit"
+    : q.niveau_age === "enfant" ? "👶 enfant"
+    : q.niveau_age === "ado" ? "🧢 ado" : "🎩 adulte";
   return el("div", { class: "question-head" },
     el("span", { class: "badge badge-joueur", text: `${c.emoji} ${who.nom}` }),
-    el("span", { class: "badge badge-cat", text: q.categorie }),
-    el("span", { class: "badge", text: q.niveau_age === "enfant" ? "👶 enfant" : q.niveau_age === "ado" ? "🧢 ado" : "🎩 adulte" }),
+    el("span", { class: "badge badge-theme", style: chipStyle(t.color), text: `${t.emoji} ${q.categorie}` }),
+    el("span", { class: "badge badge-type", style: chipStyle(ty.color), text: `${ty.emoji} ${ty.label}` }),
+    el("span", { class: "badge", text: ageLabel }),
     el("span", { class: "badge", text: "★".repeat(q.difficulte ?? 3) }),
   );
 }

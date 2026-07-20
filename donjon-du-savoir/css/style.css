@@ -228,7 +228,12 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 
 .board-map {
   position: relative;
-  min-width: 620px;
+  /* Le plateau tient TOUJOURS dans la largeur de l'écran (pas de défilement
+     horizontal) ; les cases sont dimensionnées en cqw et s'adaptent. */
+  width: 100%;
+  max-width: 760px;
+  min-width: 0;
+  margin-inline: auto;
   aspect-ratio: 10 / 7;
   container-type: size;
   background:
@@ -426,7 +431,52 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 .badge-cat { color: var(--gold); border-color: var(--gold); }
 .badge-joueur { color: var(--ink); border-color: var(--ink); font-weight: bold; }
+.badge-theme, .badge-type { font-weight: 700; }
 .question-texte { font-size: 1.2rem; line-height: 1.4; font-weight: bold; }
+
+/* ---- thème annoncé avant la question + choix de thème ---- */
+.theme-gate { display: flex; flex-direction: column; gap: 0.7rem; }
+.theme-banner {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.7rem 1rem; border-radius: 14px; font-weight: 700; font-size: 1.15rem;
+}
+.theme-banner-emoji { font-size: 1.6rem; line-height: 1; }
+.theme-choice {
+  display: flex; align-items: center; gap: 0.6rem; text-align: left;
+  font-weight: 600;
+}
+.theme-choice .theme-banner-emoji { font-size: 1.5rem; }
+.theme-choice-type { color: var(--soft); font-size: 0.85rem; font-weight: 400; }
+
+/* ---- aide-mémoire (overlay consultable à tout moment) ---- */
+.ref-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(10, 7, 20, 0.72);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 1rem; overflow-y: auto;
+}
+.ref-card {
+  background: var(--stone);
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  padding: 1.1rem 1.2rem 1.6rem;
+  max-width: 640px; width: 100%;
+  margin: auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+.ref-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.ref-title { color: var(--gold); font-size: 1.3rem; margin: 0; }
+.ref-section {
+  color: var(--gold); font-size: 1rem; margin: 1.1rem 0 0.5rem;
+  border-bottom: 1px solid var(--line); padding-bottom: 0.25rem;
+}
+.ref-list { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; line-height: 1.35; }
+.ref-legend { display: flex; flex-direction: column; gap: 0.4rem; }
+.ref-legend-themes { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.4rem; }
+.ref-chip { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.ref-swatch { font-weight: 700; white-space: nowrap; }
+.ref-note { color: var(--soft); font-size: 0.85rem; }
+.ref-line { line-height: 1.4; margin: 0.15rem 0; }
 
 .choices { display: flex; flex-direction: column; gap: 0.5rem; }
 .choices-2, .choices-3 { flex-direction: row; flex-wrap: wrap; }

@@ -16,7 +16,7 @@ const R = (p) => readFileSync(join(root, p), "utf8");
 // the entry last. We register every module, then require("./app.js").
 const MODULES = [
   "tts", "sfx", "herald", "powers", "portraits", "custom", "items", "minigames",
-  "wordgames", "state", "board", "data", "ui", "game", "app",
+  "wordgames", "themes", "state", "board", "data", "ui", "game", "app",
 ];
 
 function collectExports(src) {

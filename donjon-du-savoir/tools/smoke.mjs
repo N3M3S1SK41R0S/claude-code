@@ -114,7 +114,7 @@ try {
         continue;
       }
       if ((await page.locator(".anecdote-card").count()) > 0) sawAnecdote = true;
-      const next = page.getByRole("button", { name: /Continuer|Révéler|Valider|Subir|Quitter/ }).first();
+      const next = page.getByRole("button", { name: /Découvrir|Continuer|Révéler|Valider|Subir|Quitter/ }).first();
       if ((await next.isVisible().catch(() => false)) && (await next.isEnabled().catch(() => false))) {
         if ((await next.textContent()) === "Valider mon nombre") {
           await page.locator(".num-input").fill("42");
