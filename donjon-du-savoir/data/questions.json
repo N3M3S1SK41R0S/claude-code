@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 1033,
+ "count": 1076,
  "questions": [
   {
    "id": "arts-001",
@@ -19681,6 +19681,838 @@
     "Morris"
    ],
    "bonne_reponse": "Peyo"
+  },
+  {
+   "id": "ext-0080",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "En quelle année eut lieu le massacre de la Saint-Barthélemy, qui débuta à Paris dans la nuit du 23 au 24 août ?",
+   "anecdote": "Ordonné sous le règne de Charles IX, ce massacre d'huguenots se propagea ensuite à une vingtaine de villes de France.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Massacre_de_la_Saint-Barth%C3%A9lemy",
+    "https://www.herodote.net/24_aout_1572-evenement-15720824.php"
+   ],
+   "choix": [
+    "1560",
+    "1572",
+    "1588",
+    "1598"
+   ],
+   "bonne_reponse": "1572"
+  },
+  {
+   "id": "ext-0081",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel élément chimique porte le symbole W, dérivé de son nom allemand « Wolfram » ?",
+   "anecdote": "Le tungstène (numéro atomique 74) possède le plus haut point de fusion de tous les métaux, à 3 422 °C.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tungst%C3%A8ne",
+    "https://new.societechimiquedefrance.fr/produits/tungstene/"
+   ],
+   "choix": [
+    "Le vanadium",
+    "Le tungstène",
+    "Le titane",
+    "Le tantale"
+   ],
+   "bonne_reponse": "Le tungstène"
+  },
+  {
+   "id": "ext-0082",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "En quelle année James Watson et Francis Crick publient-ils la structure en double hélice de l'ADN dans la revue Nature ?",
+   "anecdote": "Leur article d'une seule page, paru le 25 avril 1953, s'appuyait notamment sur les clichés de diffraction des rayons X de Rosalind Franklin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Double_h%C3%A9lice",
+    "https://www.herodote.net/25_avril_1953-evenement-19530425.php"
+   ],
+   "choix": [
+    "1928",
+    "1944",
+    "1953",
+    "1962"
+   ],
+   "bonne_reponse": "1953"
+  },
+  {
+   "id": "ext-0083",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Au water-polo, combien de joueurs de chaque équipe évoluent simultanément dans l'eau, gardien compris ?",
+   "anecdote": "Chaque équipe aligne un gardien et six joueurs de champ ; le gardien porte traditionnellement le bonnet rouge numéro 1.",
+   "sources": [
+    "https://www.guide-piscine.fr/water-polo/les-regles-du-water-polo-3583_A",
+    "https://asvo-waterpolo.fr/index.php/le-water-polo/les-regles-du-water-polo/"
+   ],
+   "choix": [
+    "5",
+    "6",
+    "7",
+    "11"
+   ],
+   "bonne_reponse": "7"
+  },
+  {
+   "id": "ext-0084",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays a remporté la toute première Coupe du monde de football, en 1930 ?",
+   "anecdote": "Organisatrice du tournoi, l'Uruguay battit l'Argentine 4-2 en finale au stade Centenario de Montevideo.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Coupe_du_monde_de_football_1930",
+    "https://www.herodote.net/30_juillet_1930-evenement-19300730.php"
+   ],
+   "choix": [
+    "Le Brésil",
+    "L'Argentine",
+    "L'Italie",
+    "L'Uruguay"
+   ],
+   "bonne_reponse": "L'Uruguay"
+  },
+  {
+   "id": "ext-0085",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Combien de cartes compte un jeu de tarot de Marseille complet ?",
+   "anecdote": "Il réunit 22 arcanes majeurs (du Mat, numéroté 0, au Monde, numéroté 21) et 56 arcanes mineurs.",
+   "sources": [
+    "https://www.7tarot.fr/carte/",
+    "https://www.clesdutarot.com/signification-carte-tarot/"
+   ],
+   "choix": [
+    "52",
+    "54",
+    "72",
+    "78"
+   ],
+   "bonne_reponse": "78"
+  },
+  {
+   "id": "ext-0086",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le peintre Georges Braque est, aux côtés de Pablo Picasso, l'un des deux fondateurs du cubisme.",
+   "anecdote": "Le nom du mouvement vient d'une remarque du critique Louis Vauxcelles sur des « petits cubes » devant une toile de Braque peinte à l'Estaque.",
+   "sources": [
+    "https://www.museumtv.art/artnews/articles/comment-braque-et-picasso-ont-ils-invente-le-cubisme/",
+    "https://www.franceinfo.fr/culture/arts-expos/art-l-invention-du-cubisme-par-picasso-et-braque_2998561.html"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0087",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quelle symphonie de Ludwig van Beethoven est surnommée « Pastorale » ?",
+   "anecdote": "Cette Symphonie no 6, opus 68, créée en 1808, évoque la vie rustique ; Beethoven la voulait « plus expression du sentiment que peinture ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Symphonie_no_6_de_Beethoven",
+    "https://www.musicologie.org/19/rusquet_beethoven_opus_68.html"
+   ],
+   "choix": [
+    "La 3e",
+    "La 5e",
+    "La 6e",
+    "La 9e"
+   ],
+   "bonne_reponse": "La 6e"
+  },
+  {
+   "id": "ext-0088",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "vrai_faux",
+   "texte": "La sauce béarnaise a été inventée dans la région du Béarn, dont elle tire son nom.",
+   "anecdote": "Elle fut créée près de Paris, au Pavillon Henri IV de Saint-Germain-en-Laye ; son nom rend hommage à Henri IV, natif du Béarn.",
+   "sources": [
+    "https://www.europe1.fr/societe/non-la-sauce-bearnaise-ne-vient-pas-du-bearn-4024646",
+    "https://fr.wikipedia.org/wiki/Pavillon_Henri_IV"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0089",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "De quelle langue provient le mot « algèbre », emprunté au titre d'un traité (al-jabr) ?",
+   "anecdote": "Le terme vient de « al-jabr » (réduction, restauration) ; le mot « algorithme » dérive du nom du même savant, al-Khwârizmî.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Al-Khw%C3%A2rizm%C3%AE",
+    "https://www.math93.com/index.php/histoire-des-maths/etymologie"
+   ],
+   "choix": [
+    "Le grec",
+    "Le latin",
+    "L'arabe",
+    "Le persan"
+   ],
+   "bonne_reponse": "L'arabe"
+  },
+  {
+   "id": "ext-0090",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Depuis 2011, quel est le plus vaste pays d'Afrique par sa superficie ?",
+   "anecdote": "Avec environ 2,38 millions de km² (dont 84 % de Sahara), l'Algérie a ravi ce titre au Soudan après la partition de ce dernier en 2011.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/G%C3%A9ographie_de_l%27Alg%C3%A9rie",
+    "https://atlasocio.com/classements/geographie/superficie/classement-etats-par-superficie-afrique.php"
+   ],
+   "choix": [
+    "La République démocratique du Congo",
+    "Le Soudan",
+    "L'Algérie",
+    "La Libye"
+   ],
+   "bonne_reponse": "L'Algérie"
+  },
+  {
+   "id": "ext-0091",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année est mort le roi Louis XIV, dit le Roi-Soleil ?",
+   "anecdote": "Mort le 1er septembre 1715 à Versailles après 72 ans de règne, le plus long de l'histoire de France.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mort_de_Louis_XIV",
+    "https://www.chateauversailles.fr/l-histoire/grandes-dates/chronologie/1715-la-mort-de-louis-xiv"
+   ],
+   "reponse_numerique": 1715
+  },
+  {
+   "id": "ext-0092",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien la France compte-t-elle de départements au total (métropole et outre-mer) ?",
+   "anecdote": "96 départements métropolitains et 5 d'outre-mer ; Mayotte, devenue département en 2011, est le 101e.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Liste_des_d%C3%A9partements_fran%C3%A7ais",
+    "https://www.collectivites-locales.gouv.fr/bis-ndeg-182-les-structures-territoriales-au-1er-janvier-2024"
+   ],
+   "reponse_numerique": 101
+  },
+  {
+   "id": "ext-0093",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien d'éléments chimiques le tableau périodique compte-t-il officiellement aujourd'hui ?",
+   "anecdote": "Le dernier, l'oganesson (numéro 118), a été officiellement nommé en 2016 en l'honneur du physicien Iouri Oganessian.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Oganesson",
+    "https://www.futura-sciences.com/sciences/questions-reponses/chimie-tableau-periodique-elements-il-fini-11432/"
+   ],
+   "reponse_numerique": 118
+  },
+  {
+   "id": "ext-0094",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "De combien de vers un sonnet est-il composé ?",
+   "anecdote": "Répartis en deux quatrains et deux tercets ; cette forme née en Italie a été introduite en France au XVIe siècle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sonnet",
+    "https://en.wikipedia.org/wiki/Sonnet"
+   ],
+   "reponse_numerique": 14
+  },
+  {
+   "id": "ext-0095",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de joueurs une équipe de handball aligne-t-elle simultanément sur le terrain ?",
+   "anecdote": "Un gardien de but et six joueurs de champ ; l'effectif peut compter jusqu'à douze joueurs au total.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Handball",
+    "https://en.wikipedia.org/wiki/Handball"
+   ],
+   "reponse_numerique": 7
+  },
+  {
+   "id": "ext-0096",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez un pays frontalier de la France métropolitaine.",
+   "anecdote": "La France métropolitaine a huit voisins terrestres ; la plus courte frontière, environ 4 km, est partagée avec Monaco.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fronti%C3%A8res_de_la_France",
+    "https://formation-civique.interieur.gouv.fr/fiches-par-thematiques/histoire-geographie-et-culture/atlas-de-la-france/les-frontieres-de-la-france/"
+   ],
+   "reponses_acceptees": [
+    "Belgique",
+    "Luxembourg",
+    "Allemagne",
+    "Suisse",
+    "Italie",
+    "Monaco",
+    "Espagne",
+    "Andorre"
+   ]
+  },
+  {
+   "id": "ext-0097",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez une des huit planètes du système solaire.",
+   "anecdote": "Pluton, longtemps considérée comme la neuvième planète, a été reclassée en planète naine en 2006.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Syst%C3%A8me_solaire",
+    "https://www.mnhn.fr/fr/combien-y-a-t-il-de-planetes-dans-le-systeme-solaire"
+   ],
+   "reponses_acceptees": [
+    "Mercure",
+    "Vénus",
+    "Terre",
+    "Mars",
+    "Jupiter",
+    "Saturne",
+    "Uranus",
+    "Neptune"
+   ]
+  },
+  {
+   "id": "ext-0098",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez un des cinq océans de la Terre.",
+   "anecdote": "L'océan Austral, qui entoure l'Antarctique, n'est reconnu comme cinquième océan par National Geographic que depuis 2021.",
+   "sources": [
+    "https://www.mnhn.fr/fr/y-a-t-il-vraiment-5-oceans-sur-terre",
+    "https://ici.radio-canada.ca/nouvelle/1803962/cartographie-ocean-austral-ajout-national-geographic"
+   ],
+   "reponses_acceptees": [
+    "Pacifique",
+    "Atlantique",
+    "Indien",
+    "Arctique",
+    "Austral",
+    "Antarctique"
+   ]
+  },
+  {
+   "id": "ext-0099",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez l'un des quatre héros mousquetaires du roman d'Alexandre Dumas « Les Trois Mousquetaires ».",
+   "anecdote": "Malgré le titre, ils sont quatre : le jeune Gascon d'Artagnan rejoint le trio Athos, Porthos et Aramis.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Trois_Mousquetaires",
+    "https://en.wikipedia.org/wiki/The_Three_Musketeers"
+   ],
+   "reponses_acceptees": [
+    "Athos",
+    "Porthos",
+    "Aramis",
+    "d'Artagnan"
+   ]
+  },
+  {
+   "id": "ext-0100",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "equipe",
+   "texte": "Citez une des dix épreuves du décathlon en athlétisme.",
+   "anecdote": "Reine des épreuves combinées, elle se dispute sur deux jours : cinq épreuves le premier jour, cinq le second.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/D%C3%A9cathlon",
+    "https://worldathletics.org/disciplines/combined-events/decathlon"
+   ],
+   "reponses_acceptees": [
+    "100 mètres",
+    "saut en longueur",
+    "lancer du poids",
+    "saut en hauteur",
+    "400 mètres",
+    "110 mètres haies",
+    "lancer du disque",
+    "saut à la perche",
+    "lancer du javelot",
+    "1500 mètres"
+   ]
+  },
+  {
+   "id": "ext-0101",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Citez un des cinq membres permanents du Conseil de sécurité de l'ONU.",
+   "anecdote": "Ces cinq États, principaux vainqueurs de la Seconde Guerre mondiale, disposent seuls du droit de veto.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Conseil_de_s%C3%A9curit%C3%A9_des_Nations_unies",
+    "https://www.vie-publique.fr/fiches/38167-comment-fonctionne-le-conseil-de-securite-de-lonu"
+   ],
+   "reponses_acceptees": [
+    "États-Unis",
+    "Russie",
+    "Chine",
+    "France",
+    "Royaume-Uni"
+   ]
+  },
+  {
+   "id": "ext-0102",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Citez une des sept notes de la gamme en solfège.",
+   "anecdote": "Leurs noms proviennent d'un hymne latin imaginé au XIe siècle par le moine Guido d'Arezzo ; « Do » a remplacé « Ut ».",
+   "sources": [
+    "https://happynote.com/musique/apprendre-le-solfege/nom-notes-musique-do-re-mi-fa-sol-la-si/",
+    "https://www.europe1.fr/culture/quelle-est-lorigine-de-la-gamme-musicale-do-re-mi-fa-sol-la-si-4010655"
+   ],
+   "reponses_acceptees": [
+    "Do",
+    "Ré",
+    "Mi",
+    "Fa",
+    "Sol",
+    "La",
+    "Si",
+    "Ut"
+   ]
+  },
+  {
+   "id": "ext-0103",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Combien de dents de lait a un enfant quand elles sont toutes sorties ?",
+   "anecdote": "Un enfant a 20 dents de lait, alors qu'un adulte peut en avoir jusqu'à 32.",
+   "sources": [
+    "https://www.ameli.fr/assure/sante/themes/poussee-dentaire/comprendre-poussee-dents-de-lait",
+    "https://naitreetgrandir.com/fr/etape/0_12_mois/soins/naitre-grandir-bebe-dent-de-lait-soulager-pousse-dentaire/"
+   ],
+   "choix": [
+    "10",
+    "16",
+    "20",
+    "32"
+   ],
+   "bonne_reponse": "20"
+  },
+  {
+   "id": "ext-0104",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel organe pompe le sang dans tout le corps ?",
+   "anecdote": "Le cœur est un muscle qui se contracte sans arrêt pour envoyer le sang dans tout le corps.",
+   "sources": [
+    "https://www.fedecardio.org/je-m-informe/le-fonctionnement-du-coeur/",
+    "https://www.larousse.fr/encyclopedie/divers/circulation_sanguine/34108"
+   ],
+   "choix": [
+    "Le cerveau",
+    "Les poumons",
+    "Le cœur",
+    "L'estomac"
+   ],
+   "bonne_reponse": "Le cœur"
+  },
+  {
+   "id": "ext-0105",
+   "categorie": "Arts",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qui a peint le célèbre tableau de la Joconde ?",
+   "anecdote": "La Joconde a été peinte par Léonard de Vinci au début du XVIe siècle ; elle est exposée au Louvre à Paris.",
+   "sources": [
+    "https://fr.vikidia.org/wiki/La_Joconde",
+    "https://fr.wikipedia.org/wiki/La_Joconde"
+   ],
+   "choix": [
+    "Pablo Picasso",
+    "Léonard de Vinci",
+    "Vincent van Gogh",
+    "Claude Monet"
+   ],
+   "bonne_reponse": "Léonard de Vinci"
+  },
+  {
+   "id": "ext-0106",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Selon la tradition, combien de couleurs compte un arc-en-ciel ?",
+   "anecdote": "On compte traditionnellement 7 couleurs ; c'est le savant Isaac Newton qui a fixé ce nombre.",
+   "sources": [
+    "https://blogs.futura-sciences.com/feldmann/2014/12/17/les-couleurs-de-larc-en-ciel/",
+    "https://www.ribambel.com/activites-en-interieur/pourquoi-l-arc-en-ciel-a-t-il-7-couleurs"
+   ],
+   "choix": [
+    "5",
+    "6",
+    "7",
+    "9"
+   ],
+   "bonne_reponse": "7"
+  },
+  {
+   "id": "ext-0107",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel animal, qui n'est pas un singe, a des empreintes digitales presque identiques à celles de l'humain ?",
+   "anecdote": "Les empreintes digitales du koala ressemblent tellement aux nôtres qu'elles sont difficiles à distinguer, même au microscope.",
+   "sources": [
+    "https://sciencepost.fr/koalas-empreintes-digitales-presque-identiques-humains/",
+    "https://www.rtbf.be/article/la-minute-insolite-les-empreintes-digitales-des-koalas-sont-presque-indiscernables-de-celles-des-humains-11585514"
+   ],
+   "choix": [
+    "Le koala",
+    "Le kangourou",
+    "Le crocodile",
+    "Le manchot"
+   ],
+   "bonne_reponse": "Le koala"
+  },
+  {
+   "id": "ext-0108",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quelle couleur est la langue de la girafe ?",
+   "anecdote": "La langue de la girafe est bleu-noir grâce à la mélanine, qui la protège du soleil pendant qu'elle mange.",
+   "sources": [
+    "https://dailygeekshow.com/girafe-langue-bleue/",
+    "https://fr.news.yahoo.com/pourquoi-girafes-langue-bleue-110000501.html"
+   ],
+   "choix": [
+    "Rose",
+    "Blanche",
+    "Bleu-noir",
+    "Verte"
+   ],
+   "bonne_reponse": "Bleu-noir"
+  },
+  {
+   "id": "ext-0109",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Combien de temps un tardigrade tout séché peut-il survivre sans eau ?",
+   "anecdote": "En se déshydratant, le minuscule tardigrade entre en cryptobiose et peut survivre des années avant de revenir à la vie.",
+   "sources": [
+    "https://sciencepost.fr/combien-de-temps-peuvent-vivent-les-tardigrades-ces-creatures-quasi-invincibles/",
+    "https://theconversation.com/gabin-je-veux-tout-savoir-sur-les-tardigrades-et-leurs-super-pouvoirs-123302"
+   ],
+   "choix": [
+    "Quelques minutes",
+    "Quelques heures",
+    "Quelques jours",
+    "Plusieurs années"
+   ],
+   "bonne_reponse": "Plusieurs années"
+  },
+  {
+   "id": "ext-0110",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Vrai ou faux : l'éléphant est incapable de sauter.",
+   "anecdote": "À cause de son poids énorme, l'éléphant ne peut jamais avoir ses quatre pattes en l'air en même temps : il ne saute pas.",
+   "sources": [
+    "https://www.cnews.fr/animaux/2014-06-24/pourquoi-les-elephants-ne-peuvent-ils-pas-sauter-682957",
+    "https://www.futura-sciences.com/planete/questions-reponses/animaux-elephants-sont-ils-parmi-rares-mammiferes-terrestres-incapables-sauter-24927/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0111",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Combien d'os y a-t-il dans le squelette d'un requin ?",
+   "anecdote": "Le squelette du requin n'a aucun os : il est fait de cartilage, une matière souple et légère.",
+   "sources": [
+    "https://www.futura-sciences.com/planete/breves/requin-requins-ont-peut-etre-perdu-leurs-os-3159/",
+    "https://www.planeteanimal.com/combien-d-os-les-requins-ont-ils-dans-leur-corps-4782.html"
+   ],
+   "choix": [
+    "Aucun",
+    "12",
+    "100",
+    "206"
+   ],
+   "bonne_reponse": "Aucun"
+  },
+  {
+   "id": "ext-0112",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Vrai ou faux : le miel peut se conserver très longtemps sans se périmer.",
+   "anecdote": "Grâce à sa richesse en sucre et à son peu d'eau, le miel bien fermé peut se garder des années sans s'abîmer.",
+   "sources": [
+    "https://www.futura-sciences.com/sante/questions-reponses/nutrition-miel-perime-t-il-13051/",
+    "https://fr.wikipedia.org/wiki/Miel"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0113",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est le plus grand animal du monde ?",
+   "anecdote": "La baleine bleue peut dépasser 30 mètres de long : c'est le plus grand animal connu, plus grand que tout dinosaure.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Baleine_bleue",
+    "https://www.mnhn.fr/fr/rorqual-bleu"
+   ],
+   "choix": [
+    "L'éléphant",
+    "La girafe",
+    "La baleine bleue",
+    "Le requin blanc"
+   ],
+   "bonne_reponse": "La baleine bleue"
+  },
+  {
+   "id": "ext-0114",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Combien de temps la lumière du Soleil met-elle pour arriver jusqu'à la Terre ?",
+   "anecdote": "La lumière du Soleil met environ 8 minutes pour parcourir les 150 millions de kilomètres qui nous séparent de lui.",
+   "sources": [
+    "https://www.futura-sciences.com/sciences/questions-reponses/astronomie-faut-il-lumiere-soleil-atteindre-terre-5177/",
+    "https://fr.wikipedia.org/wiki/Lumi%C3%A8re_solaire"
+   ],
+   "choix": [
+    "8 secondes",
+    "8 minutes",
+    "8 heures",
+    "8 jours"
+   ],
+   "bonne_reponse": "8 minutes"
+  },
+  {
+   "id": "ext-0115",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui a peint le plafond de la chapelle Sixtine, au Vatican ?",
+   "anecdote": "Michel-Ange réalisa cette immense fresque entre 1508 et 1512.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chapelle_Sixtine",
+    "https://www.britannica.com/biography/Michelangelo"
+   ],
+   "choix": [
+    "Raphaël",
+    "Léonard de Vinci",
+    "Michel-Ange",
+    "Sandro Botticelli"
+   ],
+   "bonne_reponse": "Michel-Ange"
+  },
+  {
+   "id": "ext-0116",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Combien de cordes possède une guitare classique standard ?",
+   "anecdote": "Ses six cordes s'accordent habituellement mi-la-ré-sol-si-mi.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guitare_classique",
+    "https://www.britannica.com/art/guitar"
+   ],
+   "choix": [
+    "4",
+    "5",
+    "6",
+    "7"
+   ],
+   "bonne_reponse": "6"
+  },
+  {
+   "id": "ext-0117",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est l'ingrédient principal du guacamole ?",
+   "anecdote": "D'origine mexicaine, son nom vient du nahuatl « ahuacamolli », littéralement « sauce d'avocat ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guacamole",
+    "https://www.larousse.fr/dictionnaires/francais/guacamole/38312"
+   ],
+   "choix": [
+    "La tomate",
+    "L'avocat",
+    "Le concombre",
+    "Le poivron"
+   ],
+   "bonne_reponse": "L'avocat"
+  },
+  {
+   "id": "ext-0118",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est le pluriel du mot « cheval » ?",
+   "anecdote": "« Cheval » fait partie des noms en -al dont le pluriel se termine en -aux.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/cheval",
+    "https://www.larousse.fr/dictionnaires/francais/cheval/15129"
+   ],
+   "choix": [
+    "Chevals",
+    "Chevaux",
+    "Chevaus",
+    "Cheveaux"
+   ],
+   "bonne_reponse": "Chevaux"
+  },
+  {
+   "id": "ext-0119",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année un être humain a-t-il marché sur la Lune pour la première fois ?",
+   "anecdote": "Neil Armstrong fut le premier à poser le pied sur la Lune, lors de la mission Apollo 11.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Apollo_11",
+    "https://www.britannica.com/event/Apollo-11"
+   ],
+   "choix": [
+    "1969",
+    "1959",
+    "1975",
+    "1961"
+   ],
+   "bonne_reponse": "1969"
+  },
+  {
+   "id": "ext-0120",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Tous les combien d'années ont lieu les Jeux olympiques d'été ?",
+   "anecdote": "La période de quatre ans entre deux éditions s'appelle une « olympiade ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques",
+    "https://www.britannica.com/sports/Olympic-Games"
+   ],
+   "choix": [
+    "Tous les 2 ans",
+    "Tous les 3 ans",
+    "Tous les 4 ans",
+    "Tous les 5 ans"
+   ],
+   "bonne_reponse": "Tous les 4 ans"
+  },
+  {
+   "id": "ext-0121",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Une année-lumière est une unité de distance, et non de durée.",
+   "anecdote": "C'est la distance parcourue par la lumière en un an, soit environ 9 461 milliards de kilomètres.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ann%C3%A9e-lumi%C3%A8re",
+    "https://www.britannica.com/science/light-year"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0122",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "La chauve-souris est le seul mammifère capable de voler par ses propres moyens (vol battu).",
+   "anecdote": "D'autres mammifères, comme les écureuils volants, ne font que planer.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chiroptera",
+    "https://www.britannica.com/animal/bat-mammal"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
   },
   {
    "id": "script-S7",

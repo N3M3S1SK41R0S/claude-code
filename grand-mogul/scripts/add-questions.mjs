@@ -60,6 +60,9 @@ for (const file of files) {
         if (!Number.isInteger(q.answerIndex) || q.answerIndex < 0 || q.answerIndex >= nc) return why("answerIndex invalide");
       } else if (q.format === "gambit_numerique") {
         if (!Number.isFinite(q.numericAnswer)) return why("numericAnswer invalide");
+      } else if (q.format === "equipe") {
+        if (!Array.isArray(q.acceptedAnswers) || q.acceptedAnswers.length < 3 ||
+            !q.acceptedAnswers.every((a) => typeof a === "string" && a.trim().length > 0)) return why("acceptedAnswers invalide (>=3)");
       } else {
         return why(`format "${q.format}" non pris en charge`);
       }
@@ -79,6 +82,7 @@ for (const file of files) {
       format: q.format,
     };
     if (q.format === "gambit_numerique") entry.numericAnswer = q.numericAnswer;
+    else if (q.format === "equipe") entry.acceptedAnswers = q.acceptedAnswers.map((a) => a.trim());
     else { entry.choices = q.choices.map((c) => c.trim()); entry.answerIndex = q.answerIndex; }
     kept.push(entry);
   }
