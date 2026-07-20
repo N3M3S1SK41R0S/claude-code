@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 948,
+ "count": 996,
  "questions": [
   {
    "id": "arts-001",
@@ -18065,6 +18065,960 @@
     "https://en.wikipedia.org/wiki/Piano"
    ],
    "reponse_numerique": 36
+  },
+  {
+   "id": "tp-083",
+   "categorie": "Histoire",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Autrefois, qu'est-ce que le chevalier mettait sur son corps pour se protéger pendant le combat ?",
+   "anecdote": "Le chevalier tenait aussi un bouclier devant lui pour arrêter les coups.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Armure_(%C3%A9quipement)",
+    "https://fr.wikipedia.org/wiki/Bouclier"
+   ],
+   "choix": [
+    "Une armure",
+    "Un pyjama",
+    "Un maillot de bain",
+    "Une serviette"
+   ],
+   "bonne_reponse": "Une armure"
+  },
+  {
+   "id": "tp-084",
+   "categorie": "Histoire",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qu'est-ce que le roi ou la reine porte sur la tête ?",
+   "anecdote": "La couronne, souvent brillante, montre que c'est bien le roi ou la reine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Couronne_(attribut)",
+    "https://fr.wiktionary.org/wiki/couronne"
+   ],
+   "choix": [
+    "Une couronne",
+    "Une casquette",
+    "Un bonnet de nuit",
+    "Un chapeau de paille"
+   ],
+   "bonne_reponse": "Une couronne"
+  },
+  {
+   "id": "tp-085",
+   "categorie": "Histoire",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au temps des chevaliers, où habitait le roi ?",
+   "anecdote": "Le château fort avait de gros murs et de hautes tours pour bien se protéger.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ch%C3%A2teau_fort",
+    "https://fr.wiktionary.org/wiki/ch%C3%A2teau_fort"
+   ],
+   "choix": [
+    "Dans un grand château",
+    "Dans une tente",
+    "Dans une caravane",
+    "Dans un bateau"
+   ],
+   "bonne_reponse": "Dans un grand château"
+  },
+  {
+   "id": "tp-086",
+   "categorie": "Histoire",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les dinosaures ont disparu il y a très très longtemps : on n'en voit plus de vivants aujourd'hui.",
+   "anecdote": "On connaît les dinosaures grâce à leurs os retrouvés dans la terre, les fossiles.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dinosaure",
+    "https://fr.wikipedia.org/wiki/Extinction_Cr%C3%A9tac%C3%A9-Pal%C3%A9og%C3%A8ne"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-087",
+   "categorie": "Histoire",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Il y a très longtemps, les hommes de la préhistoire dessinaient des animaux... où ?",
+   "anecdote": "On peut encore voir ces jolis dessins d'animaux sur les parois de certaines grottes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pr%C3%A9histoire",
+    "https://fr.wikipedia.org/wiki/Art_pari%C3%A9tal"
+   ],
+   "choix": [
+    "Sur les murs des grottes",
+    "Sur un téléphone",
+    "Sur la télé",
+    "Dans un cahier"
+   ],
+   "bonne_reponse": "Sur les murs des grottes"
+  },
+  {
+   "id": "tp-088",
+   "categorie": "Histoire",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Les grandes pyramides et les momies des pharaons viennent d'un pays très chaud : lequel ?",
+   "anecdote": "En Égypte, il y a très longtemps, on construisait d'immenses pyramides en pierre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pyramides_d%27%C3%89gypte",
+    "https://fr.wikipedia.org/wiki/Momie"
+   ],
+   "choix": [
+    "L'Égypte",
+    "Le Canada",
+    "La Belgique",
+    "La Norvège"
+   ],
+   "bonne_reponse": "L'Égypte"
+  },
+  {
+   "id": "tp-089",
+   "categorie": "Cinéma",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au cinéma, on regarde le film sur quoi ?",
+   "anecdote": "Au cinéma, l'écran est géant et la salle devient toute noire pour bien voir le film.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Salle_de_cin%C3%A9ma",
+    "https://fr.wikipedia.org/wiki/Cin%C3%A9ma"
+   ],
+   "choix": [
+    "Un très grand écran",
+    "Une petite montre",
+    "Une assiette",
+    "Un livre"
+   ],
+   "bonne_reponse": "Un très grand écran"
+  },
+  {
+   "id": "tp-090",
+   "categorie": "Cinéma",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Un dessin animé, qu'est-ce que c'est ?",
+   "anecdote": "On met plein de dessins les uns après les autres, très vite, et on dirait qu'ils bougent.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dessin_anim%C3%A9",
+    "https://fr.wiktionary.org/wiki/dessin_anim%C3%A9"
+   ],
+   "choix": [
+    "Des dessins qui bougent",
+    "Une soupe chaude",
+    "Une paire de chaussures",
+    "Un gros ballon"
+   ],
+   "bonne_reponse": "Des dessins qui bougent"
+  },
+  {
+   "id": "tp-091",
+   "categorie": "Cinéma",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qu'est-ce qu'on mange souvent au cinéma ?",
+   "anecdote": "Le popcorn, c'est du maïs qui gonfle et fait « pop » quand il devient tout chaud.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pop-corn",
+    "https://fr.wikipedia.org/wiki/Salle_de_cin%C3%A9ma"
+   ],
+   "choix": [
+    "Du popcorn",
+    "De la neige",
+    "Des cailloux",
+    "Du savon"
+   ],
+   "bonne_reponse": "Du popcorn"
+  },
+  {
+   "id": "tp-092",
+   "categorie": "Cinéma",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Pour regarder un film à la maison, qu'est-ce qu'on allume ?",
+   "anecdote": "À la maison, on allume la télévision pour regarder des films et des dessins animés.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/T%C3%A9l%C3%A9vision",
+    "https://fr.wiktionary.org/wiki/t%C3%A9l%C3%A9vision"
+   ],
+   "choix": [
+    "La télévision",
+    "Le four",
+    "Le frigo",
+    "La machine à laver"
+   ],
+   "bonne_reponse": "La télévision"
+  },
+  {
+   "id": "tp-093",
+   "categorie": "Cinéma",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quel appareil filme-t-on un film ?",
+   "anecdote": "La caméra enregistre les images qui bougent pour fabriquer le film.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cam%C3%A9ra",
+    "https://fr.wiktionary.org/wiki/cam%C3%A9ra"
+   ],
+   "choix": [
+    "Une caméra",
+    "Une cuillère",
+    "Un parapluie",
+    "Un oreiller"
+   ],
+   "bonne_reponse": "Une caméra"
+  },
+  {
+   "id": "tp-094",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment la chauve-souris dort-elle ?",
+   "anecdote": "La chauve-souris s'accroche par les pattes et dort la tête en bas, bien suspendue.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chiroptera",
+    "https://www.futura-sciences.com/planete/questions-reponses/nature-chauves-souris-dorment-elles-tete-bas-1366/"
+   ],
+   "choix": [
+    "La tête en bas",
+    "Dans un petit lit",
+    "Debout sur une chaise",
+    "Sur le dos dans l'eau"
+   ],
+   "bonne_reponse": "La tête en bas"
+  },
+  {
+   "id": "tp-095",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel animal peut changer la couleur de sa peau ?",
+   "anecdote": "Le caméléon peut changer de couleur, et il a une très longue langue pour attraper les insectes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cam%C3%A9l%C3%A9on",
+    "https://fr.wiktionary.org/wiki/cam%C3%A9l%C3%A9on"
+   ],
+   "choix": [
+    "Le caméléon",
+    "Le lapin",
+    "Le poisson rouge",
+    "La vache"
+   ],
+   "bonne_reponse": "Le caméléon"
+  },
+  {
+   "id": "tp-096",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Où le bébé kangourou se cache-t-il contre sa maman ?",
+   "anecdote": "La maman kangourou a une poche sur le ventre où son petit se blottit bien au chaud.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kangourou",
+    "https://fr.wikipedia.org/wiki/Marsupial"
+   ],
+   "choix": [
+    "Dans une poche sur son ventre",
+    "Dans un sac à dos",
+    "Dans une valise",
+    "Dans une boîte"
+   ],
+   "bonne_reponse": "Dans une poche sur son ventre"
+  },
+  {
+   "id": "tp-097",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "L'autruche est un oiseau, mais elle ne sait pas voler ; par contre elle court très vite.",
+   "anecdote": "L'autruche ne vole pas, mais elle court très vite sur ses grandes pattes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Autruche_d%27Afrique",
+    "https://fr.wiktionary.org/wiki/autruche"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-098",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien de bras a la pieuvre ?",
+   "anecdote": "La pieuvre vit dans la mer et a huit bras couverts de petites ventouses.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Poulpe",
+    "https://fr.wikipedia.org/wiki/Octopoda"
+   ],
+   "choix": [
+    "Huit",
+    "Deux",
+    "Un",
+    "Zéro"
+   ],
+   "bonne_reponse": "Huit"
+  },
+  {
+   "id": "tp-099",
+   "categorie": "Littérature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans quel objet lit-on une histoire ?",
+   "anecdote": "Un livre nous emmène dans plein d'histoires, il suffit de l'ouvrir !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Livre",
+    "https://fr.wiktionary.org/wiki/livre"
+   ],
+   "choix": [
+    "Un livre",
+    "Une casserole",
+    "Un ballon",
+    "Une chaussure"
+   ],
+   "bonne_reponse": "Un livre"
+  },
+  {
+   "id": "tp-100",
+   "categorie": "Littérature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Beaucoup de contes commencent par ces mots :",
+   "anecdote": "« Il était une fois »… et hop, l'histoire commence, blottis tout près !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Il_%C3%A9tait_une_fois_(expression)",
+    "https://fr.wiktionary.org/wiki/il_%C3%A9tait_une_fois"
+   ],
+   "choix": [
+    "Bonjour bonsoir",
+    "Il était une fois",
+    "À table",
+    "Au revoir"
+   ],
+   "bonne_reponse": "Il était une fois"
+  },
+  {
+   "id": "tp-101",
+   "categorie": "Littérature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Où va-t-on pour emprunter des livres ?",
+   "anecdote": "À la bibliothèque, on peut choisir et emprunter plein de livres à rapporter à la maison.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Biblioth%C3%A8que",
+    "https://fr.wiktionary.org/wiki/biblioth%C3%A8que"
+   ],
+   "choix": [
+    "La piscine",
+    "La boulangerie",
+    "La bibliothèque",
+    "Le garage"
+   ],
+   "bonne_reponse": "La bibliothèque"
+  },
+  {
+   "id": "tp-102",
+   "categorie": "Littérature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un livre est fait de pages.",
+   "anecdote": "Un livre est fait de pages qu'on tourne tout doucement, une par une.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Livre",
+    "https://fr.wiktionary.org/wiki/page"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-103",
+   "categorie": "Littérature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Une histoire courte avec une fée ou un ogre s'appelle...",
+   "anecdote": "Les contes, avec leurs fées et leurs ogres, sont parfaits pour l'histoire du soir.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Conte",
+    "https://fr.wiktionary.org/wiki/conte"
+   ],
+   "choix": [
+    "Une soupe",
+    "Un camion",
+    "Un chapeau",
+    "Un conte"
+   ],
+   "bonne_reponse": "Un conte"
+  },
+  {
+   "id": "tp-104",
+   "categorie": "Pop Culture",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Où regarde-t-on souvent des dessins animés ?",
+   "anecdote": "Bien installé sur le canapé, on adore regarder un dessin animé à la télé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dessin_anim%C3%A9",
+    "https://fr.wiktionary.org/wiki/dessin_anim%C3%A9"
+   ],
+   "choix": [
+    "Dans le frigo",
+    "À la télévision",
+    "Dans la baignoire",
+    "Sous le lit"
+   ],
+   "bonne_reponse": "À la télévision"
+  },
+  {
+   "id": "tp-105",
+   "categorie": "Pop Culture",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi prend-on une photo ?",
+   "anecdote": "Avec un appareil photo, on garde pour toujours les jolis moments en image.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Appareil_photographique",
+    "https://fr.wiktionary.org/wiki/appareil_photo"
+   ],
+   "choix": [
+    "Un appareil photo",
+    "Une fourchette",
+    "Un balai",
+    "Une brosse à dents"
+   ],
+   "bonne_reponse": "Un appareil photo"
+  },
+  {
+   "id": "tp-106",
+   "categorie": "Pop Culture",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Un jeu sur console ou ordinateur s'appelle un...",
+   "anecdote": "Un jeu vidéo se joue sur un écran, avec une manette bien tenue dans les mains.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeu_vid%C3%A9o",
+    "https://fr.wiktionary.org/wiki/jeu_vid%C3%A9o"
+   ],
+   "choix": [
+    "Gâteau",
+    "Parapluie",
+    "Jeu vidéo",
+    "Oreiller"
+   ],
+   "bonne_reponse": "Jeu vidéo"
+  },
+  {
+   "id": "tp-107",
+   "categorie": "Pop Culture",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qui apporte des cadeaux à Noël ?",
+   "anecdote": "Le Père Noël passe dans la nuit du 24 au 25 décembre pour déposer les cadeaux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/P%C3%A8re_No%C3%ABl",
+    "https://fr.wiktionary.org/wiki/p%C3%A8re_No%C3%ABl"
+   ],
+   "choix": [
+    "Un poisson",
+    "Le Père Noël",
+    "Une chaise",
+    "Un caillou"
+   ],
+   "bonne_reponse": "Le Père Noël"
+  },
+  {
+   "id": "tp-108",
+   "categorie": "Pop Culture",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Une histoire racontée avec des images à lire s'appelle une...",
+   "anecdote": "Dans une bande dessinée, on suit l'histoire dessin après dessin, comme un film sur papier.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bande_dessin%C3%A9e",
+    "https://fr.wiktionary.org/wiki/bande_dessin%C3%A9e"
+   ],
+   "choix": [
+    "Casserole",
+    "Bicyclette",
+    "Chaussette",
+    "Bande dessinée"
+   ],
+   "bonne_reponse": "Bande dessinée"
+  },
+  {
+   "id": "tp-109",
+   "categorie": "Arts",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi dessine-t-on ?",
+   "anecdote": "Avec un crayon, on peut dessiner tout ce qu'on imagine sur une feuille.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Crayon",
+    "https://fr.wiktionary.org/wiki/crayon"
+   ],
+   "choix": [
+    "Un crayon",
+    "Une cuillère",
+    "Une éponge",
+    "Un oreiller"
+   ],
+   "bonne_reponse": "Un crayon"
+  },
+  {
+   "id": "tp-110",
+   "categorie": "Arts",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi peint-on ?",
+   "anecdote": "Le pinceau plein de couleurs glisse sur la feuille pour faire de belles peintures.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pinceau",
+    "https://fr.wiktionary.org/wiki/pinceau"
+   ],
+   "choix": [
+    "Un marteau",
+    "Une clé",
+    "Un pinceau",
+    "Une chaussette"
+   ],
+   "bonne_reponse": "Un pinceau"
+  },
+  {
+   "id": "tp-111",
+   "categorie": "Arts",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Remplir un dessin avec des couleurs, ça s'appelle...",
+   "anecdote": "Colorier, c'est remplir un joli dessin avec toutes les couleurs qu'on aime.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/colorier",
+    "https://fr.wikipedia.org/wiki/Coloriage"
+   ],
+   "choix": [
+    "Dormir",
+    "Colorier",
+    "Manger",
+    "Courir"
+   ],
+   "bonne_reponse": "Colorier"
+  },
+  {
+   "id": "tp-112",
+   "categorie": "Arts",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi efface-t-on un trait de crayon ?",
+   "anecdote": "Un petit coup de gomme et hop, le trait de crayon disparaît !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Gomme_%C3%A0_effacer",
+    "https://fr.wiktionary.org/wiki/gomme"
+   ],
+   "choix": [
+    "Une gomme",
+    "Une banane",
+    "Une casquette",
+    "Une chaussure"
+   ],
+   "bonne_reponse": "Une gomme"
+  },
+  {
+   "id": "tp-113",
+   "categorie": "Arts",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec de la pâte à modeler, on peut faire des...",
+   "anecdote": "Avec la pâte à modeler toute molle, on façonne des boules, des serpents et plein de formes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/P%C3%A2te_%C3%A0_modeler",
+    "https://fr.wiktionary.org/wiki/p%C3%A2te_%C3%A0_modeler"
+   ],
+   "choix": [
+    "Bruits",
+    "Odeurs",
+    "Chansons",
+    "Formes"
+   ],
+   "bonne_reponse": "Formes"
+  },
+  {
+   "id": "tp-114",
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "À la plage, avec quoi peut-on faire un beau château ?",
+   "anecdote": "Le sable de la plage est fait de plein de petits grains, parfaits pour construire des châteaux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Plage",
+    "https://fr.wiktionary.org/wiki/plage"
+   ],
+   "choix": [
+    "La neige",
+    "Le sable",
+    "Le chocolat",
+    "Les nuages"
+   ],
+   "bonne_reponse": "Le sable"
+  },
+  {
+   "id": "tp-115",
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans le désert, qu'est-ce qu'il y a partout par terre ?",
+   "anecdote": "Dans le désert, le vent pousse le sable et forme de grandes collines appelées dunes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/D%C3%A9sert",
+    "https://fr.wikipedia.org/wiki/Sable"
+   ],
+   "choix": [
+    "De la neige",
+    "De l'herbe",
+    "Du sable",
+    "Des flaques d'eau"
+   ],
+   "bonne_reponse": "Du sable"
+  },
+  {
+   "id": "tp-116",
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "En hiver, à la montagne, qu'est-ce qui tombe et rend tout blanc ?",
+   "anecdote": "La neige est faite de petits flocons tout blancs et légers qui tombent du ciel.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Neige",
+    "https://fr.wiktionary.org/wiki/neige"
+   ],
+   "choix": [
+    "La neige",
+    "Le sable",
+    "Les feuilles",
+    "Les cailloux"
+   ],
+   "bonne_reponse": "La neige"
+  },
+  {
+   "id": "tp-117",
+   "categorie": "Sport",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au basket, où faut-il envoyer le ballon ?",
+   "anecdote": "Au basket, on marque un point en faisant passer le ballon dans le panier, tout en haut !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Basket-ball",
+    "https://fr.wiktionary.org/wiki/basket-ball"
+   ],
+   "choix": [
+    "Dans le but",
+    "Dans le panier",
+    "Dans l'eau",
+    "Dans le sac"
+   ],
+   "bonne_reponse": "Dans le panier"
+  },
+  {
+   "id": "tp-118",
+   "categorie": "Sport",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au tennis, avec quoi tape-t-on la balle ?",
+   "anecdote": "La raquette sert à frapper la balle pour l'envoyer de l'autre côté du filet.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tennis",
+    "https://fr.wiktionary.org/wiki/tennis"
+   ],
+   "choix": [
+    "Un bâton",
+    "Une cuillère",
+    "Une raquette",
+    "Un balai"
+   ],
+   "bonne_reponse": "Une raquette"
+  },
+  {
+   "id": "tp-119",
+   "categorie": "Sport",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Pour glisser sur la neige, qu'est-ce qu'on met aux pieds ?",
+   "anecdote": "Les skis sont deux longues planches attachées aux pieds pour glisser sur la neige.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ski",
+    "https://fr.wiktionary.org/wiki/ski"
+   ],
+   "choix": [
+    "Des bottes de pluie",
+    "Des chaussons",
+    "Des palmes",
+    "Des skis"
+   ],
+   "bonne_reponse": "Des skis"
+  },
+  {
+   "id": "tp-120",
+   "categorie": "Sport",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Le roller, c'est une chaussure avec quoi en dessous ?",
+   "anecdote": "Avec les roues sous les pieds, le roller permet de rouler et de glisser sur le sol.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Patin_%C3%A0_roulettes",
+    "https://fr.wiktionary.org/wiki/roller"
+   ],
+   "choix": [
+    "Des roues",
+    "Des plumes",
+    "Des bougies",
+    "Des fleurs"
+   ],
+   "bonne_reponse": "Des roues"
+  },
+  {
+   "id": "tp-121",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi chante-t-on une chanson ?",
+   "anecdote": "Quand on chante, on fait de la musique rien qu'avec sa voix !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chant",
+    "https://fr.wiktionary.org/wiki/chanter"
+   ],
+   "choix": [
+    "Avec les pieds",
+    "Avec la voix",
+    "Avec le nez",
+    "Avec les cheveux"
+   ],
+   "bonne_reponse": "Avec la voix"
+  },
+  {
+   "id": "tp-122",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quand on entend une musique joyeuse, qu'est-ce qu'on peut faire ?",
+   "anecdote": "Danser, c'est bouger tout son corps en rythme, souvent sur de la musique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Danse",
+    "https://fr.wiktionary.org/wiki/danser"
+   ],
+   "choix": [
+    "Dormir",
+    "Éternuer",
+    "Danser",
+    "Nager"
+   ],
+   "bonne_reponse": "Danser"
+  },
+  {
+   "id": "tp-123",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on un grand groupe de musiciens qui jouent ensemble ?",
+   "anecdote": "Dans un orchestre, beaucoup de musiciens jouent ensemble pour faire une belle musique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Orchestre",
+    "https://fr.wiktionary.org/wiki/orchestre"
+   ],
+   "choix": [
+    "Un orchestre",
+    "Une équipe",
+    "Un troupeau",
+    "Une classe"
+   ],
+   "bonne_reponse": "Un orchestre"
+  },
+  {
+   "id": "tp-124",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est la carotte ?",
+   "anecdote": "La carotte que l'on mange est presque toujours orange, et les lapins l'adorent !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Carotte",
+    "https://fr.wiktionary.org/wiki/carotte"
+   ],
+   "choix": [
+    "Bleue",
+    "Orange",
+    "Violette",
+    "Noire"
+   ],
+   "bonne_reponse": "Orange"
+  },
+  {
+   "id": "tp-125",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est une tomate bien mûre ?",
+   "anecdote": "La tomate est d'abord verte, puis elle devient toute rouge quand elle est mûre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tomate",
+    "https://fr.wiktionary.org/wiki/tomate"
+   ],
+   "choix": [
+    "Bleue",
+    "Noire",
+    "Grise",
+    "Rouge"
+   ],
+   "bonne_reponse": "Rouge"
+  },
+  {
+   "id": "tp-126",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi fabrique-t-on le fromage ?",
+   "anecdote": "Le fromage est fabriqué à partir de lait, comme celui de la vache, de la chèvre ou de la brebis.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fromage",
+    "https://fr.wiktionary.org/wiki/fromage"
+   ],
+   "choix": [
+    "Avec du sable",
+    "Avec du lait",
+    "Avec de l'eau",
+    "Avec des cailloux"
+   ],
+   "bonne_reponse": "Avec du lait"
+  },
+  {
+   "id": "tp-127",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qu'est-ce qui entoure et protège l'œuf ?",
+   "anecdote": "La coquille est la petite carapace dure qui entoure l'œuf ; il faut la casser pour l'ouvrir.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C5%92uf_(aliment)",
+    "https://fr.wiktionary.org/wiki/%C5%93uf"
+   ],
+   "choix": [
+    "Un chapeau",
+    "Une couverture",
+    "Une coquille",
+    "Un sac"
+   ],
+   "bonne_reponse": "Une coquille"
+  },
+  {
+   "id": "tp-128",
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Le soir, avant d'aller dormir, qu'est-ce qu'on se dit ?",
+   "anecdote": "Avant de dormir, on dit « bonne nuit » pour se souhaiter de faire de beaux rêves.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/bonne_nuit",
+    "https://fr.wikipedia.org/wiki/Salutation"
+   ],
+   "choix": [
+    "Bonne nuit",
+    "Bon appétit",
+    "Joyeux anniversaire",
+    "Bon voyage"
+   ],
+   "bonne_reponse": "Bonne nuit"
+  },
+  {
+   "id": "tp-129",
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Pour demander quelque chose gentiment, qu'est-ce qu'on dit ?",
+   "anecdote": "Dire « s'il te plaît » quand on demande quelque chose, c'est être poli et gentil.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/s%E2%80%99il_te_pla%C3%AEt",
+    "https://fr.wiktionary.org/wiki/s%E2%80%99il_vous_pla%C3%AEt"
+   ],
+   "choix": [
+    "Vite vite",
+    "S'il te plaît",
+    "C'est à moi",
+    "Tant pis"
+   ],
+   "bonne_reponse": "S'il te plaît"
+  },
+  {
+   "id": "tp-130",
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quand on s'en va, qu'est-ce qu'on dit gentiment aux autres ?",
+   "anecdote": "On dit « au revoir » quand on quitte quelqu'un, en espérant le revoir bientôt.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/au_revoir",
+    "https://fr.wikipedia.org/wiki/Salutation"
+   ],
+   "choix": [
+    "Bon appétit",
+    "Bravo",
+    "Joyeux anniversaire",
+    "Au revoir"
+   ],
+   "bonne_reponse": "Au revoir"
   },
   {
    "id": "script-S7",
