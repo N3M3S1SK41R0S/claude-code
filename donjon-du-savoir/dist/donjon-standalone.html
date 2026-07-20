@@ -2288,7 +2288,7 @@ function subset(b, formats, { ignoreAsked = false, petitOnly = false } = {}) {
   let candidates = bank.filter((q) => (!asked || !asked.has(q.id)));
   candidates = petitOnly
     ? candidates.filter((q) => q.niveau_age === "tout_petit")
-    : candidates.filter((q) => inWindow(q, b));
+    : candidates.filter((q) => q.niveau_age !== "tout_petit" && inWindow(q, b));
   if (formats) candidates = candidates.filter((q) => formats.includes(q.format));
   return candidates;
 }
