@@ -25,9 +25,13 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
 ## Comment on joue
 
 1. **Préparez l'expédition** : 1 à 20 joueurs (ou 2 à 6 équipes — un pion par
-   équipe, porte-parole tournant), chacun avec un nom, un profil
-   👶 enfant / 🎩 adulte et un personnage du Donjon — puis **choisissez votre
-   donjon** parmi 5 plateaux :
+   équipe, porte-parole tournant), chacun avec un nom, une **tranche d'âge**
+   (🍼 2-5 · 🧸 5-8 · 🧒 9-11 · 🧑 12-14 · 🎓 14-16 · 🧑‍🎓 16-18 · 🧙 18 ans et +)
+   et un personnage du Donjon. Chaque tranche ouvre une fenêtre de difficulté :
+   les tout-petits reçoivent des questions dédiées (animaux, couleurs, formes…),
+   les grands des questions plus corsées. Une **question collective** vise
+   toujours la tranche la **plus jeune** à la table ; une équipe joue au niveau
+   de son plus jeune membre. Puis **choisissez votre donjon** parmi 5 plateaux :
 
    | Donjon | Cases | Caractère |
    |--------|-------|-----------|
@@ -53,7 +57,8 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
    de bonnes réponses, 💰 le plus d'or, 🤕 le plus de coups durs encaissés…) et
    peuvent renverser le classement au tout dernier moment.
 2. À son tour : **lancer le dé** (1d6), avancer, subir la case — et **utiliser
-   ses objets** (besace) quand on veut.
+   un objet** de sa besace quand on veut (**un seul objet par tour** ; après
+   usage, on reprend son tour, besace grisée).
 3. Cases : ❓ Question · 🍀 Chance · 🎪 Événement collectif · 💀 Coup dur ·
    🪙 Pièces · 🃏 Joker · 🎲 Gambit (×2) · 🕳️ Trou Noir · 🛒 Boutique ·
    🦩 Savoir insolite · 🎭 Défi d'expression · 🏆 Trésor / ⭐ Étoile.
@@ -93,7 +98,10 @@ déplacent le pion sans re-déclencher (un tour se termine toujours).
 
 ### Difficulté adaptative (§5)
 
-- Profil 👶 : questions « enfant » uniquement (elles conviennent à tous).
+- Chaque **tranche d'âge** ouvre une fenêtre de difficulté (1-5) : 🍼 2-5 → 1
+  (contenu tout-petit dédié), 🧸 5-8 → 1-2, 🧒 9-11 → 1-3, 🧑 12-14 → 2-4,
+  🎓 14-16 → 3-5, 🧑‍🎓 16-18 → 4-5, 🧙 18+ → 3-5. Jamais de question au-dessus
+  de sa fenêtre — les repêchages recyclent dans la même tranche.
 - Le **1er du classement** pioche dans le tiers le plus dur de sa tranche.
 - Le **dernier** (à partir de 3 pions) pioche plus facile **et** bénéficie du
   *coup de pouce du Donjon* : une mauvaise réponse éliminée sur les QCM.
@@ -126,10 +134,11 @@ système demande de réduire les animations).
 
 ## La banque de questions
 
-`data/questions.json` — **824 questions vérifiées** (chaque fait contrôlé
+`data/questions.json` — **880 questions vérifiées** (chaque fait contrôlé
 contre ≥ 2 sources indépendantes, citées sous chaque anecdote), 13 catégories,
-3 tranches d'âge, 6 formats. Elle est générée depuis la banque fact-checkée du
-projet frère `../grand-mogul` :
+6 formats, réparties en niveaux `tout_petit` / `enfant` / `ado` / `adulte`
+(difficulté 1-5). Elle est générée depuis la banque fact-checkée du projet
+frère `../grand-mogul` :
 
 ```bash
 node tools/build-questions.mjs   # régénère data/questions.json
@@ -138,7 +147,10 @@ node tools/build-questions.mjs   # régénère data/questions.json
 Pour l'étendre : enrichir la banque de `grand-mogul` (pipeline de génération +
 fact-check adversarial) puis relancer le script — ou ajouter des entrées à la
 main dans `data/questions.json` en respectant le schéma du cahier (§7), avec
-2 sources minimum par question.
+2 sources minimum par question. Le contenu **2-5 ans** (`tout_petit`) s'ajoute
+via `grand-mogul/scripts/add-tout-petit.mjs <candidats.json>` (revalidation :
+≥ 2 sources https distinctes, choix cohérents, dédup sur toute la banque,
+rejet par défaut), avant de relancer `build-questions.mjs`.
 
 **Défis d'expression** : `data/wordgames.json` — un lot vérifié, **100 %
 original et tout public** de défis 🚫 Tabou (mot + 5 mots interdits), 🔑 Password
