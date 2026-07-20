@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 824,
+ "count": 880,
  "questions": [
   {
    "id": "arts-001",
@@ -15691,6 +15691,1100 @@
     "Orange vif"
    ],
    "bonne_reponse": "Orange vif"
+  },
+  {
+   "id": "tp-001",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel cri fait le chat ?",
+   "anecdote": "Le chat fait « miaou » quand il veut te parler !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/miaou",
+    "https://jeretiens.net/le-nom-des-cris-des-animaux/"
+   ],
+   "choix": [
+    "Miaou",
+    "Meuh",
+    "Coin-coin",
+    "Ouaf"
+   ],
+   "bonne_reponse": "Miaou"
+  },
+  {
+   "id": "tp-002",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel cri fait la vache ?",
+   "anecdote": "La vache fait « meuh » dans le pré, tout doucement.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/meuh",
+    "https://jeretiens.net/le-nom-des-cris-des-animaux/"
+   ],
+   "choix": [
+    "Meuh",
+    "Miaou",
+    "Cui-cui",
+    "Ouaf"
+   ],
+   "bonne_reponse": "Meuh"
+  },
+  {
+   "id": "tp-003",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel cri fait le canard ?",
+   "anecdote": "Le canard fait « coin-coin » tout près de l'eau !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/coin-coin",
+    "https://jeretiens.net/le-nom-des-cris-des-animaux/"
+   ],
+   "choix": [
+    "Coin-coin",
+    "Miaou",
+    "Meuh",
+    "Ouaf"
+   ],
+   "bonne_reponse": "Coin-coin"
+  },
+  {
+   "id": "tp-004",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel cri fait le chien ?",
+   "anecdote": "Le chien fait « ouaf ouaf » pour dire bonjour !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/ouaf",
+    "https://jeretiens.net/le-nom-des-cris-des-animaux/"
+   ],
+   "choix": [
+    "Ouaf",
+    "Miaou",
+    "Meuh",
+    "Coin-coin"
+   ],
+   "bonne_reponse": "Ouaf"
+  },
+  {
+   "id": "tp-005",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le mouton fait « bêê ». Vrai ou faux ?",
+   "anecdote": "Le mouton fait « bêê » et sa laine est toute douce !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/b%C3%AA%C3%AA",
+    "https://jeretiens.net/le-nom-des-cris-des-animaux/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-006",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien de pattes a un oiseau ?",
+   "anecdote": "L'oiseau a deux pattes et deux jolies ailes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Oiseau",
+    "https://fr.wiktionary.org/wiki/oiseau"
+   ],
+   "choix": [
+    "2",
+    "4",
+    "6",
+    "8"
+   ],
+   "bonne_reponse": "2"
+  },
+  {
+   "id": "tp-007",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Où vit le poisson ?",
+   "anecdote": "Le poisson vit dans l'eau et il nage toute la journée !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Poisson",
+    "https://fr.wiktionary.org/wiki/poisson"
+   ],
+   "choix": [
+    "Dans l'eau",
+    "Dans le ciel",
+    "Dans un arbre",
+    "Sous la terre"
+   ],
+   "bonne_reponse": "Dans l'eau"
+  },
+  {
+   "id": "tp-008",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment s'appelle le petit de la vache ?",
+   "anecdote": "Le petit de la vache, c'est le veau : il boit le lait de sa maman.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/veau",
+    "https://www.espacefrancais.com/les-animaux-le-male-la-femelle-le-petit-et-leur-cri/"
+   ],
+   "choix": [
+    "Le veau",
+    "Le poulain",
+    "L'agneau",
+    "Le chaton"
+   ],
+   "bonne_reponse": "Le veau"
+  },
+  {
+   "id": "tp-009",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment s'appelle le petit de la poule ?",
+   "anecdote": "Le petit de la poule, c'est le poussin, tout jaune et tout doux !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/poussin",
+    "https://www.espacefrancais.com/les-animaux-le-male-la-femelle-le-petit-et-leur-cri/"
+   ],
+   "choix": [
+    "Le poussin",
+    "Le veau",
+    "Le chiot",
+    "Le chaton"
+   ],
+   "bonne_reponse": "Le poussin"
+  },
+  {
+   "id": "tp-010",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment s'appelle le petit du chat ?",
+   "anecdote": "Le petit du chat, c'est le chaton : il adore jouer !",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/chaton",
+    "https://fr.wikipedia.org/wiki/Chaton_(animal)"
+   ],
+   "choix": [
+    "Le chaton",
+    "Le chiot",
+    "Le poussin",
+    "Le veau"
+   ],
+   "bonne_reponse": "Le chaton"
+  },
+  {
+   "id": "tp-011",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel animal a une trompe ?",
+   "anecdote": "L'éléphant se sert de sa trompe pour boire et attraper à manger.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89l%C3%A9phant",
+    "https://fr.wiktionary.org/wiki/%C3%A9l%C3%A9phant"
+   ],
+   "choix": [
+    "L'éléphant",
+    "La girafe",
+    "Le lapin",
+    "Le chat"
+   ],
+   "bonne_reponse": "L'éléphant"
+  },
+  {
+   "id": "tp-012",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel animal a un très long cou ?",
+   "anecdote": "La girafe a un si long cou qu'elle attrape les feuilles tout en haut des arbres !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Girafe",
+    "https://fr.wiktionary.org/wiki/girafe"
+   ],
+   "choix": [
+    "La girafe",
+    "Le chien",
+    "Le poisson",
+    "La souris"
+   ],
+   "bonne_reponse": "La girafe"
+  },
+  {
+   "id": "tp-013",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel animal peut voler dans le ciel ?",
+   "anecdote": "L'oiseau bat des ailes pour voler tout là-haut dans le ciel !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Oiseau",
+    "https://fr.wikimini.org/wiki/Oiseau"
+   ],
+   "choix": [
+    "L'oiseau",
+    "Le poisson",
+    "La vache",
+    "Le chat"
+   ],
+   "bonne_reponse": "L'oiseau"
+  },
+  {
+   "id": "tp-014",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est la neige ?",
+   "anecdote": "La neige, ce sont plein de petits flocons blancs et glacés qui tombent du ciel en hiver.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Neige",
+    "https://www.larousse.fr/dictionnaires/francais/neige/54039"
+   ],
+   "choix": [
+    "Blanche",
+    "Verte",
+    "Noire",
+    "Rose"
+   ],
+   "bonne_reponse": "Blanche"
+  },
+  {
+   "id": "tp-015",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La pluie, c'est de l'eau qui tombe du ciel.",
+   "anecdote": "Quand il pleut, l'eau tombe des nuages : tu peux l'écouter faire ploc-ploc sur la fenêtre !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pluie",
+    "https://www.larousse.fr/dictionnaires/francais/pluie/61685"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-016",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien y a-t-il de doigts sur une main ?",
+   "anecdote": "Regarde ta main : tu peux compter tes cinq doigts, du pouce jusqu'au petit doigt !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Main",
+    "https://fr.wikipedia.org/wiki/Doigt"
+   ],
+   "choix": [
+    "Cinq",
+    "Deux",
+    "Dix",
+    "Un"
+   ],
+   "bonne_reponse": "Cinq"
+  },
+  {
+   "id": "tp-017",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La glace est froide.",
+   "anecdote": "La glace, c'est de l'eau devenue toute dure à cause du froid : brrr, elle est bien froide !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Glace",
+    "https://www.larousse.fr/dictionnaires/francais/glace/36951"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-018",
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "L'eau de la mer est salée.",
+   "anecdote": "Si une petite vague te touche les lèvres à la mer, tu sens que l'eau a un goût salé !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Eau_de_mer",
+    "https://fr.wiktionary.org/wiki/mer"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-019",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "À quoi servent les dents ?",
+   "anecdote": "Tes dents sont super fortes pour croquer et mâcher les pommes et le pain.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dent",
+    "https://fr.wiktionary.org/wiki/dent"
+   ],
+   "choix": [
+    "À mâcher",
+    "À courir",
+    "À voler",
+    "À dormir"
+   ],
+   "bonne_reponse": "À mâcher"
+  },
+  {
+   "id": "tp-020",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi vois-tu les images et les couleurs ?",
+   "anecdote": "Tes deux yeux te permettent de voir les jolies couleurs tout autour de toi.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C5%92il_humain",
+    "https://www.larousse.fr/dictionnaires/francais/%C5%93il/55589"
+   ],
+   "choix": [
+    "Les yeux",
+    "Les pieds",
+    "Le nez",
+    "Les mains"
+   ],
+   "bonne_reponse": "Les yeux"
+  },
+  {
+   "id": "tp-021",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le feu est froid.",
+   "anecdote": "Le feu donne de la lumière et de la chaleur, mais il est brûlant : on ne le touche jamais !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Feu",
+    "https://fr.wiktionary.org/wiki/feu"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "tp-022",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qu'est-ce qui pousse sur les branches d'un arbre ?",
+   "anecdote": "Sur les branches des arbres poussent des feuilles vertes que le vent fait danser.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Arbre",
+    "https://fr.wiktionary.org/wiki/arbre"
+   ],
+   "choix": [
+    "Des feuilles",
+    "Des ballons",
+    "Des voitures",
+    "Des chaussures"
+   ],
+   "bonne_reponse": "Des feuilles"
+  },
+  {
+   "id": "tp-023",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les arbres et les fleurs poussent avec leurs racines dans la terre.",
+   "anecdote": "Les plantes ont des racines cachées sous la terre qui boivent l'eau pour grandir.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Racine_(botanique)",
+    "https://www.larousse.fr/dictionnaires/francais/racine/66288"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-024",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quand il fait beau, de quelle couleur est le ciel le jour ?",
+   "anecdote": "Quand il fait beau, lève la tête : le ciel est tout bleu au-dessus de toi !",
+   "sources": [
+    "https://meteofrance.com/actualites-et-dossiers/comprendre-la-meteo/pourquoi-le-ciel-est-il-bleu",
+    "https://fr.wikipedia.org/wiki/Couleur_du_ciel"
+   ],
+   "choix": [
+    "Bleu",
+    "Vert",
+    "Noir",
+    "Rose"
+   ],
+   "bonne_reponse": "Bleu"
+  },
+  {
+   "id": "tp-025",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quand voit-on briller les étoiles dans le ciel ?",
+   "anecdote": "La nuit, quand il fait tout noir, plein de petites étoiles brillent dans le ciel.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89toile",
+    "https://fr.wiktionary.org/wiki/%C3%A9toile"
+   ],
+   "choix": [
+    "La nuit",
+    "À midi",
+    "Le matin",
+    "Jamais"
+   ],
+   "bonne_reponse": "La nuit"
+  },
+  {
+   "id": "tp-026",
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Le soleil qui brille le jour, qu'est-ce que c'est ?",
+   "anecdote": "Le soleil est une étoile géante qui nous donne de la lumière et nous réchauffe le jour.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Soleil",
+    "https://www.larousse.fr/dictionnaires/francais/soleil/73194"
+   ],
+   "choix": [
+    "Une étoile",
+    "Un nuage",
+    "Un caillou",
+    "Un gâteau"
+   ],
+   "bonne_reponse": "Une étoile"
+  },
+  {
+   "id": "tp-027",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel astre brille dans le ciel la nuit et tourne autour de la Terre ?",
+   "anecdote": "La nuit, la lune brille doucement dans le ciel ; elle tourne autour de la Terre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Lune",
+    "https://fr.wiktionary.org/wiki/lune"
+   ],
+   "choix": [
+    "La lune",
+    "Le soleil",
+    "Une fleur",
+    "Un poisson"
+   ],
+   "bonne_reponse": "La lune"
+  },
+  {
+   "id": "tp-028",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "En hiver, quel temps fait-il souvent dehors ?",
+   "anecdote": "En hiver il fait froid, alors on met un bonnet, une écharpe et un gros manteau !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Hiver",
+    "https://fr.wikipedia.org/wiki/Saison"
+   ],
+   "choix": [
+    "Froid",
+    "Brûlant",
+    "Bouillant",
+    "Torride"
+   ],
+   "bonne_reponse": "Froid"
+  },
+  {
+   "id": "tp-029",
+   "categorie": "Arts",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est le sang ?",
+   "anecdote": "Quand on a un petit bobo, on voit une goutte de sang toute rouge.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sang",
+    "https://www.larousse.fr/dictionnaires/francais/sang/70929"
+   ],
+   "choix": [
+    "Bleu",
+    "Jaune",
+    "Rouge",
+    "Vert"
+   ],
+   "bonne_reponse": "Rouge"
+  },
+  {
+   "id": "tp-030",
+   "categorie": "Arts",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est l'herbe dans le jardin ?",
+   "anecdote": "L'herbe des prés est verte, comme les feuilles des arbres.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Herbe",
+    "https://www.larousse.fr/dictionnaires/francais/herbe/39504"
+   ],
+   "choix": [
+    "Rouge",
+    "Noire",
+    "Verte",
+    "Bleue"
+   ],
+   "bonne_reponse": "Verte"
+  },
+  {
+   "id": "tp-031",
+   "categorie": "Arts",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est un citron ?",
+   "anecdote": "Le citron est jaune et il a un goût tout acidulé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Citron",
+    "https://www.larousse.fr/dictionnaires/francais/citron/16391"
+   ],
+   "choix": [
+    "Jaune",
+    "Bleu",
+    "Rose",
+    "Noir"
+   ],
+   "bonne_reponse": "Jaune"
+  },
+  {
+   "id": "tp-032",
+   "categorie": "Arts",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le charbon est noir. Vrai ou faux ?",
+   "anecdote": "Le charbon est noir comme la nuit.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Charbon_de_bois",
+    "https://www.larousse.fr/dictionnaires/francais/charbon/14778"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-033",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien de côtés a un triangle ?",
+   "anecdote": "Un triangle a trois côtés et trois pointes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Triangle",
+    "https://www.larousse.fr/dictionnaires/francais/triangle/79436"
+   ],
+   "choix": [
+    "Deux",
+    "Trois",
+    "Quatre",
+    "Six"
+   ],
+   "bonne_reponse": "Trois"
+  },
+  {
+   "id": "tp-034",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien de côtés a un carré ?",
+   "anecdote": "Un carré a quatre côtés tous pareils.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Carr%C3%A9",
+    "https://www.larousse.fr/dictionnaires/francais/carr%C3%A9/13341"
+   ],
+   "choix": [
+    "Trois",
+    "Quatre",
+    "Deux",
+    "Cinq"
+   ],
+   "bonne_reponse": "Quatre"
+  },
+  {
+   "id": "tp-035",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien de roues a un vélo ?",
+   "anecdote": "Un vélo roule sur ses deux roues.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bicyclette",
+    "https://fr.wiktionary.org/wiki/v%C3%A9lo"
+   ],
+   "choix": [
+    "Une",
+    "Deux",
+    "Trois",
+    "Quatre"
+   ],
+   "bonne_reponse": "Deux"
+  },
+  {
+   "id": "tp-036",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un cercle est tout rond. Vrai ou faux ?",
+   "anecdote": "Un cercle est rond, comme un ballon ou une roue.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cercle",
+    "https://www.larousse.fr/dictionnaires/francais/cercle/14318"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-037",
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel est le contraire de « grand » ?",
+   "anecdote": "Le contraire de grand, c'est petit, comme une petite souris.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/petit",
+    "https://www.larousse.fr/dictionnaires/synonymes/grand"
+   ],
+   "choix": [
+    "Gros",
+    "Petit",
+    "Long",
+    "Lourd"
+   ],
+   "bonne_reponse": "Petit"
+  },
+  {
+   "id": "tp-038",
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel est le contraire de « jour » ?",
+   "anecdote": "Le jour il fait clair, la nuit il fait sombre et on dort.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/jour",
+    "https://www.larousse.fr/dictionnaires/synonymes/jour"
+   ],
+   "choix": [
+    "Matin",
+    "Nuit",
+    "Midi",
+    "Soleil"
+   ],
+   "bonne_reponse": "Nuit"
+  },
+  {
+   "id": "tp-039",
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel est le contraire de « ouvert » ?",
+   "anecdote": "Une porte peut être ouverte ou fermée : ce sont des contraires.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/ouvert",
+    "https://www.larousse.fr/dictionnaires/synonymes/ouvert"
+   ],
+   "choix": [
+    "Grand",
+    "Vide",
+    "Fermé",
+    "Cassé"
+   ],
+   "bonne_reponse": "Fermé"
+  },
+  {
+   "id": "tp-040",
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le contraire de « chaud », c'est « froid ». Vrai ou faux ?",
+   "anecdote": "La soupe est chaude et la glace est froide : ce sont des contraires.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/chaud",
+    "https://www.larousse.fr/dictionnaires/synonymes/chaud"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-041",
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel est le contraire de « haut » ?",
+   "anecdote": "Les oiseaux volent en haut dans le ciel, et nous marchons en bas.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/haut",
+    "https://www.larousse.fr/dictionnaires/synonymes/haut"
+   ],
+   "choix": [
+    "Loin",
+    "Bas",
+    "Vite",
+    "Grand"
+   ],
+   "bonne_reponse": "Bas"
+  },
+  {
+   "id": "tp-042",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est une banane bien mûre ?",
+   "anecdote": "La banane devient toute jaune quand elle est prête à être mangée !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Banane",
+    "https://www.larousse.fr/dictionnaires/francais/banane/7775"
+   ],
+   "choix": [
+    "Bleue",
+    "Jaune",
+    "Rose",
+    "Grise"
+   ],
+   "bonne_reponse": "Jaune"
+  },
+  {
+   "id": "tp-043",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est une fraise bien mûre ?",
+   "anecdote": "Miam, la fraise rouge est douce et sucrée !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fraise",
+    "https://fr.wiktionary.org/wiki/fraise"
+   ],
+   "choix": [
+    "Verte",
+    "Bleue",
+    "Rouge",
+    "Grise"
+   ],
+   "bonne_reponse": "Rouge"
+  },
+  {
+   "id": "tp-044",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel goût a le citron ?",
+   "anecdote": "Le citron est tout acide, il fait faire une drôle de grimace !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Citron",
+    "https://fr.wiktionary.org/wiki/citron"
+   ],
+   "choix": [
+    "Sucré",
+    "Acide",
+    "Salé",
+    "Piquant"
+   ],
+   "bonne_reponse": "Acide"
+  },
+  {
+   "id": "tp-045",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quel animal vient le lait qu'on boit souvent ?",
+   "anecdote": "La vache nous donne du bon lait tout blanc !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Lait",
+    "https://fr.wiktionary.org/wiki/lait"
+   ],
+   "choix": [
+    "Le chat",
+    "L'oiseau",
+    "Le poisson",
+    "La vache"
+   ],
+   "bonne_reponse": "La vache"
+  },
+  {
+   "id": "tp-046",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le sucre a un goût sucré.",
+   "anecdote": "Le sucre, c'est tout sucré, comme dans les gâteaux !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sucre",
+    "https://fr.wiktionary.org/wiki/sucre"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-047",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qui fabrique le miel ?",
+   "anecdote": "Les petites abeilles font le miel tout doré et sucré !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Miel",
+    "https://fr.wiktionary.org/wiki/miel"
+   ],
+   "choix": [
+    "Les chats",
+    "Les abeilles",
+    "Les poissons",
+    "Les souris"
+   ],
+   "bonne_reponse": "Les abeilles"
+  },
+  {
+   "id": "tp-048",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qu'y a-t-il sur une guitare pour faire de la musique ?",
+   "anecdote": "On pince les cordes de la guitare pour jouer une jolie musique !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guitare",
+    "https://fr.wiktionary.org/wiki/guitare"
+   ],
+   "choix": [
+    "Des roues",
+    "Des cordes",
+    "Des plumes",
+    "Des bougies"
+   ],
+   "bonne_reponse": "Des cordes"
+  },
+  {
+   "id": "tp-049",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Sur un piano, on appuie sur des touches pour jouer.",
+   "anecdote": "On appuie sur les touches blanches et noires du piano, et ça fait de la musique !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Piano",
+    "https://fr.wiktionary.org/wiki/piano"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-050",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment joue-t-on du tambour ?",
+   "anecdote": "Boum boum ! On tape sur le tambour avec les mains ou des baguettes !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tambour_(instrument)",
+    "https://fr.wiktionary.org/wiki/tambour"
+   ],
+   "choix": [
+    "On souffle dedans",
+    "On tape dessus",
+    "On le mange",
+    "On le lit"
+   ],
+   "bonne_reponse": "On tape dessus"
+  },
+  {
+   "id": "tp-051",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que fait-on pour jouer de la flûte ?",
+   "anecdote": "On souffle dans la flûte et elle fait une petite musique !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Flûte",
+    "https://fr.wiktionary.org/wiki/flûte"
+   ],
+   "choix": [
+    "On tape",
+    "On souffle",
+    "On roule",
+    "On saute"
+   ],
+   "bonne_reponse": "On souffle"
+  },
+  {
+   "id": "tp-052",
+   "categorie": "Sport",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quelle partie du corps tape-t-on dans un ballon de foot ?",
+   "anecdote": "Au football, on tape dans le ballon rond avec le pied !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Football",
+    "https://fr.wiktionary.org/wiki/football"
+   ],
+   "choix": [
+    "La main",
+    "Le pied",
+    "Le nez",
+    "L'oreille"
+   ],
+   "bonne_reponse": "Le pied"
+  },
+  {
+   "id": "tp-053",
+   "categorie": "Sport",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "On nage dans l'eau.",
+   "anecdote": "On nage dans l'eau de la piscine ou de la mer, plouf !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Natation",
+    "https://fr.wiktionary.org/wiki/natation"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-054",
+   "categorie": "Sport",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi court-on ?",
+   "anecdote": "Pour courir vite, on bouge bien nos deux jambes !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Course_à_pied",
+    "https://fr.wiktionary.org/wiki/courir"
+   ],
+   "choix": [
+    "Les oreilles",
+    "Les jambes",
+    "Les yeux",
+    "Le nez"
+   ],
+   "bonne_reponse": "Les jambes"
+  },
+  {
+   "id": "tp-055",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qu'est-ce que l'éléphant a sur le nez ?",
+   "anecdote": "L'éléphant a une grande trompe pour attraper à manger et pour boire !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Éléphant",
+    "https://fr.wiktionary.org/wiki/éléphant"
+   ],
+   "choix": [
+    "Une corde",
+    "Une trompe",
+    "Un chapeau",
+    "Une plume"
+   ],
+   "bonne_reponse": "Une trompe"
+  },
+  {
+   "id": "tp-056",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La girafe a un très long cou.",
+   "anecdote": "La girafe a un cou tout long pour manger les feuilles en haut des arbres !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Girafe",
+    "https://fr.wiktionary.org/wiki/girafe"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
   },
   {
    "id": "script-S7",
