@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 996,
+ "count": 1033,
  "questions": [
   {
    "id": "arts-001",
@@ -19019,6 +19019,668 @@
     "Au revoir"
    ],
    "bonne_reponse": "Au revoir"
+  },
+  {
+   "id": "ext-0043",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Malgré son nom, combien d'années la guerre de Cent Ans a-t-elle réellement duré ?",
+   "anecdote": "Ce conflit entre les royaumes de France et d'Angleterre s'étira du 24 mai 1337 au 9 octobre 1453, soit 116 ans faits d'une série de guerres entrecoupées de trêves.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guerre_de_Cent_Ans",
+    "https://www.britannica.com/event/Hundred-Years-War"
+   ],
+   "reponse_numerique": 116
+  },
+  {
+   "id": "ext-0044",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Jules César a été le tout premier empereur romain.",
+   "anecdote": "Le premier empereur fut Auguste (Octave), petit-neveu et fils adoptif de César, à partir de 27 av. J.-C. César, lui, ne fut jamais empereur mais dictateur de la République.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Auguste",
+    "https://www.britannica.com/biography/Augustus-Roman-emperor"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0045",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Napoléon Bonaparte est né sur l'île de Corse.",
+   "anecdote": "Il naît à Ajaccio le 15 août 1769, environ un an après le rattachement de la Corse à la France.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Napol%C3%A9on_Ier",
+    "https://www.britannica.com/biography/Napoleon-I"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0046",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel roi de France signa l'édit de Nantes en 1598, mettant fin aux guerres de Religion ?",
+   "anecdote": "Promulgué à Nantes en avril 1598, cet édit accorda aux protestants une liberté de culte et mit fin aux guerres de Religion.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89dit_de_Nantes",
+    "https://www.britannica.com/event/Edict-of-Nantes"
+   ],
+   "choix": [
+    "François Ier",
+    "Henri IV",
+    "Louis XIII",
+    "Louis XIV"
+   ],
+   "bonne_reponse": "Henri IV"
+  },
+  {
+   "id": "ext-0047",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Dans quelle ville normande Jeanne d'Arc fut-elle brûlée vive en 1431 ?",
+   "anecdote": "Condamnée pour hérésie, elle fut brûlée à Rouen le 30 mai 1431, à l'âge d'environ 19 ans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeanne_d%27Arc",
+    "https://www.britannica.com/biography/Saint-Joan-of-Arc"
+   ],
+   "choix": [
+    "Orléans",
+    "Rouen",
+    "Reims",
+    "Domrémy"
+   ],
+   "bonne_reponse": "Rouen"
+  },
+  {
+   "id": "ext-0048",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien d'États membres compte l'Union européenne depuis le départ du Royaume-Uni ?",
+   "anecdote": "Le Brexit, entré en vigueur en 2020, a fait passer le nombre d'États membres de 28 à 27.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Union_europ%C3%A9enne",
+    "https://european-union.europa.eu/principles-countries-history/country-profiles_en"
+   ],
+   "reponse_numerique": 27
+  },
+  {
+   "id": "ext-0049",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est le symbole chimique de l'or dans le tableau périodique ?",
+   "anecdote": "Le symbole Au vient du latin aurum ; Ag (argentum) désigne l'argent. Le numéro atomique de l'or est 79.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Or",
+    "https://www.britannica.com/science/gold-chemical-element"
+   ],
+   "choix": [
+    "Ag",
+    "Au",
+    "Or",
+    "Go"
+   ],
+   "bonne_reponse": "Au"
+  },
+  {
+   "id": "ext-0050",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle est la planète la plus proche du Soleil dans le Système solaire ?",
+   "anecdote": "Mercure est aussi la plus petite planète du Système solaire ; sa proximité au Soleil la rend difficile à observer depuis la Terre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mercure_(plan%C3%A8te)",
+    "https://www.britannica.com/place/Mercury-planet"
+   ],
+   "choix": [
+    "Vénus",
+    "Mars",
+    "Mercure",
+    "La Terre"
+   ],
+   "bonne_reponse": "Mercure"
+  },
+  {
+   "id": "ext-0051",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de chromosomes contient une cellule humaine normale (non reproductrice) ?",
+   "anecdote": "Ils sont répartis en 23 paires : 22 paires d'autosomes et une paire de chromosomes sexuels (XX ou XY).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chromosome",
+    "https://www.genome.gov/genetics-glossary/Chromosome"
+   ],
+   "reponse_numerique": 46
+  },
+  {
+   "id": "ext-0052",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Victor Hugo publie-t-il pour la première fois son roman « Les Misérables » ?",
+   "anecdote": "Paru en 1862, le roman connaît un succès populaire immédiat et est très vite traduit en plusieurs langues.",
+   "sources": [
+    "https://www.herodote.net/3_avril_1862-evenement-18620403.php",
+    "https://essentiels.bnf.fr/fr/article/760a35cd-c477-41c1-9301-20e27a69871f-miserables"
+   ],
+   "reponse_numerique": 1862
+  },
+  {
+   "id": "ext-0053",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui est l'auteur du roman « Madame Bovary » (1857) ?",
+   "anecdote": "À sa parution en 1857, le roman vaut à Flaubert un procès pour « outrage à la morale », dont il sort acquitté.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Madame_Bovary",
+    "https://junior.universalis.fr/encyclopedie/madame-bovary-livre-de-gustave-flaubert"
+   ],
+   "choix": [
+    "Émile Zola",
+    "Gustave Flaubert",
+    "Stendhal",
+    "Honoré de Balzac"
+   ],
+   "bonne_reponse": "Gustave Flaubert"
+  },
+  {
+   "id": "ext-0054",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année l'écrivain Albert Camus reçoit-il le prix Nobel de littérature ?",
+   "anecdote": "À 44 ans, Camus devint le deuxième plus jeune lauréat du Nobel de littérature, après Rudyard Kipling.",
+   "sources": [
+    "https://www.nobelprize.org/prizes/literature/1957/summary/",
+    "https://en.wikipedia.org/wiki/1957_Nobel_Prize_in_Literature"
+   ],
+   "reponse_numerique": 1957
+  },
+  {
+   "id": "ext-0055",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le roman « Le Comte de Monte-Cristo » a été écrit par Alexandre Dumas.",
+   "anecdote": "Publié en feuilleton de 1844 à 1846, le roman fut écrit par Dumas avec la collaboration d'Auguste Maquet.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Comte_de_Monte-Cristo",
+    "https://www.britannica.com/topic/The-Count-of-Monte-Cristo"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0056",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel écrivain britannique a créé le détective Sherlock Holmes ?",
+   "anecdote": "Le personnage apparaît pour la première fois en 1887 dans le roman « Une étude en rouge ».",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Sherlock_Holmes",
+    "https://www.pbs.org/articles/sir-arthur-conan-doyle-reluctant-creator-of-sherlock-holmes"
+   ],
+   "choix": [
+    "Agatha Christie",
+    "Charles Dickens",
+    "Arthur Conan Doyle",
+    "Robert Louis Stevenson"
+   ],
+   "bonne_reponse": "Arthur Conan Doyle"
+  },
+  {
+   "id": "ext-0057",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a peint « La Nuit étoilée » (1889), aujourd'hui conservée au MoMA de New York ?",
+   "anecdote": "Van Gogh peignit cette toile en 1889 depuis sa chambre de l'asile Saint-Paul-de-Mausole, à Saint-Rémy-de-Provence.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Nuit_%C3%A9toil%C3%A9e_(1889)",
+    "https://www.moma.org/collection/works/79802"
+   ],
+   "choix": [
+    "Paul Cézanne",
+    "Claude Monet",
+    "Paul Gauguin",
+    "Vincent van Gogh"
+   ],
+   "bonne_reponse": "Vincent van Gogh"
+  },
+  {
+   "id": "ext-0058",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel sculpteur français est l'auteur de la célèbre sculpture « Le Penseur » ?",
+   "anecdote": "Conçue vers 1880, la figure faisait à l'origine partie de l'ensemble monumental « La Porte de l'Enfer ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Penseur",
+    "https://www.musee-orsay.fr/en/artworks/penseur-moyen-modele-265572"
+   ],
+   "choix": [
+    "Auguste Rodin",
+    "Camille Claudel",
+    "Aristide Maillol",
+    "Antoine Bourdelle"
+   ],
+   "bonne_reponse": "Auguste Rodin"
+  },
+  {
+   "id": "ext-0059",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel peintre a réalisé « La Liberté guidant le peuple », toile conservée au Louvre ?",
+   "anecdote": "Peinte en 1830, l'œuvre s'inspire des Trois Glorieuses, la révolution de juillet 1830.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Libert%C3%A9_guidant_le_peuple",
+    "https://collections.louvre.fr/en/ark:/53355/cl010065872"
+   ],
+   "choix": [
+    "Théodore Géricault",
+    "Jacques-Louis David",
+    "Eugène Delacroix",
+    "Gustave Courbet"
+   ],
+   "bonne_reponse": "Eugène Delacroix"
+  },
+  {
+   "id": "ext-0060",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Claude Monet est considéré comme l'un des fondateurs du mouvement impressionniste.",
+   "anecdote": "C'est son tableau « Impression, soleil levant » (1872) qui donna son nom au mouvement impressionniste.",
+   "sources": [
+    "https://claudemonetgiverny.fr/en/actualites/impression-sunrise-the-saga-of-a-legendary-painting/",
+    "https://www.franceinfo.fr/culture/les-150-ans-de-l-impressionnisme/impression-soleil-levant-une-toile-a-la-loupe_7404622.html"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0061",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Charlie Chaplin est le réalisateur du film « Les Temps modernes » (1936).",
+   "anecdote": "C'est la dernière apparition du personnage de Charlot, dans une satire du travail à la chaîne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Temps_modernes_(film)",
+    "https://www.cinematheque.fr/film/31066.html"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0062",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a réalisé le film « La Liste de Schindler » (1993) ?",
+   "anecdote": "Tourné en noir et blanc, le film est adapté du roman de Thomas Keneally et retrace le sauvetage d'environ 1 200 Juifs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Liste_de_Schindler",
+    "https://www.cinematheque.fr/film/36506.html"
+   ],
+   "choix": [
+    "Martin Scorsese",
+    "Steven Spielberg",
+    "Francis Ford Coppola",
+    "Roman Polanski"
+   ],
+   "bonne_reponse": "Steven Spielberg"
+  },
+  {
+   "id": "ext-0063",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année la Symphonie n°9 de Beethoven fut-elle créée pour la première fois, à Vienne ?",
+   "anecdote": "Créée le 7 mai 1824, elle intègre un chœur chantant « L'Ode à la joie » de Schiller, une innovation majeure.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Symphonie_no_9_de_Beethoven",
+    "https://www.larousse.fr/encyclopedie/oeuvre/Symphonie_n_9/135067"
+   ],
+   "reponse_numerique": 1824
+  },
+  {
+   "id": "ext-0064",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel compositeur français est l'auteur du « Boléro » (1928) ?",
+   "anecdote": "Composé en 1928 pour la danseuse Ida Rubinstein, le Boléro repose sur un même thème répété en un long crescendo.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bol%C3%A9ro_(Ravel)",
+    "https://www.britannica.com/topic/Bolero-by-Ravel"
+   ],
+   "choix": [
+    "Claude Debussy",
+    "Camille Saint-Saëns",
+    "Maurice Ravel",
+    "Erik Satie"
+   ],
+   "bonne_reponse": "Maurice Ravel"
+  },
+  {
+   "id": "ext-0065",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel compositeur italien a écrit le cycle de concertos « Les Quatre Saisons » ?",
+   "anecdote": "Ces quatre concertos pour violon, publiés en 1725, comptent parmi les premiers exemples de musique à programme.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Quatre_Saisons",
+    "https://philharmoniedeparis.fr/fr/magazine/series/les-cles-du-classique/les-cles-du-classique-51-les-quatre-saisons-de-vivaldi"
+   ],
+   "choix": [
+    "Antonio Vivaldi",
+    "Arcangelo Corelli",
+    "Domenico Scarlatti",
+    "Tomaso Albinoni"
+   ],
+   "bonne_reponse": "Antonio Vivaldi"
+  },
+  {
+   "id": "ext-0066",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le « Requiem » de Wolfgang Amadeus Mozart est resté inachevé à la mort du compositeur.",
+   "anecdote": "Mort en décembre 1791, Mozart laissa l'œuvre inachevée ; elle fut complétée par son élève Franz Xaver Süssmayr.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Requiem_(Mozart)",
+    "https://philharmoniedeparis.fr/fr/magazine/series/les-cles-du-classique/les-cles-du-classique-35-le-requiem-de-mozart"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0067",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Selon la Loi 7 du football, quelle est la durée réglementaire d'un match, en minutes (hors prolongations et arrêts de jeu) ?",
+   "anecdote": "Un match se compose de deux périodes de 45 minutes séparées par une pause d'au maximum 15 minutes. Cette durée de 90 minutes remonte à un compromis trouvé au XIXe siècle en Angleterre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Loi_7_du_football",
+    "https://www.theifab.com/fr/laws/latest/the-duration-of-the-match/"
+   ],
+   "reponse_numerique": 90
+  },
+  {
+   "id": "ext-0068",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Au volley-ball, combien de joueurs chaque équipe aligne-t-elle sur le terrain ?",
+   "anecdote": "Les six joueurs effectuent une rotation dans le sens des aiguilles d'une montre chaque fois que leur équipe récupère le service. Le libéro est un joueur défensif spécialisé cantonné à l'arrière.",
+   "sources": [
+    "https://www.fivb.com/volleyball/the-game/official-volleyball-rules/",
+    "https://www.olympics.com/en/news/how-to-play-volleyball-rules-game-court-about-match-set-smash-spike"
+   ],
+   "reponse_numerique": 6
+  },
+  {
+   "id": "ext-0069",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le tout premier Tour de France cycliste a eu lieu en 1903.",
+   "anecdote": "Organisée par le journal L'Auto, la première édition s'est déroulée du 1er au 19 juillet 1903 en six étapes. Elle fut remportée par Maurice Garin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_de_France_cycliste_1903",
+    "https://fr.wikipedia.org/wiki/Histoire_du_Tour_de_France"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0070",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "À partir du lait de quel animal le roquefort est-il traditionnellement fabriqué ?",
+   "anecdote": "Le roquefort AOP est élaboré exclusivement avec du lait de brebis et affiné dans les caves naturelles du plateau du Combalou. Ses veines bleues proviennent du champignon Penicillium roqueforti.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Roquefort_(fromage)",
+    "https://www.larousse.fr/dictionnaires/francais/roquefort/69857"
+   ],
+   "choix": [
+    "Vache",
+    "Chèvre",
+    "Brebis",
+    "Bufflonne"
+   ],
+   "bonne_reponse": "Brebis"
+  },
+  {
+   "id": "ext-0071",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "De quelle fleur provient l'épice safran ?",
+   "anecdote": "Le safran est obtenu en séchant les trois stigmates rouges de la fleur de Crocus sativus. Il faut récolter à la main des dizaines de milliers de fleurs pour un seul kilo d'épice, ce qui en fait l'une des plus chères au monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Safran_(%C3%A9pice)",
+    "https://www.larousse.fr/dictionnaires/francais/safran/70489"
+   ],
+   "choix": [
+    "La tulipe",
+    "Le crocus",
+    "Le lys",
+    "Le dahlia"
+   ],
+   "bonne_reponse": "Le crocus"
+  },
+  {
+   "id": "ext-0072",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "D'un point de vue botanique, la tomate est un fruit.",
+   "anecdote": "Issue de la fleur et contenant les graines, la tomate est botaniquement une baie, donc un fruit. En cuisine on la range parmi les légumes, un usage qu'une décision de la Cour suprême des États-Unis a même entériné en 1893.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Lycopersicon_esculentum",
+    "https://fr.wikipedia.org/wiki/Fruit_(botanique)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0073",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de lettres compte l'alphabet français ?",
+   "anecdote": "L'alphabet français reprend les 26 lettres de l'alphabet latin. Les lettres K et W, longtemps rares, en font bien partie, même si elles servent surtout dans des mots d'origine étrangère.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Alphabet_du_fran%C3%A7ais",
+    "https://www.larousse.fr/dictionnaires/francais/alphabet/2509"
+   ],
+   "reponse_numerique": 26
+  },
+  {
+   "id": "ext-0074",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est le pluriel courant du nom « œil » (l'organe de la vue) ?",
+   "anecdote": "Le pluriel usuel de « œil » est « yeux », l'un des pluriels les plus irréguliers du français. La forme « œils » ne subsiste que dans quelques mots composés ou termes techniques, comme « des œils-de-bœuf ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pluriels_irr%C3%A9guliers_en_fran%C3%A7ais",
+    "https://www.larousse.fr/dictionnaires/francais/%C5%93il/55645"
+   ],
+   "choix": [
+    "Œils",
+    "Yeux",
+    "Oeuils",
+    "Œilles"
+   ],
+   "bonne_reponse": "Yeux"
+  },
+  {
+   "id": "ext-0075",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Depuis la redéfinition de 2006 qui a reclassé Pluton, combien de planètes compte le Système solaire ?",
+   "anecdote": "En 2006, l'Union astronomique internationale a défini le mot « planète » et exclu Pluton, devenue « planète naine ». Il reste huit planètes : Mercure, Vénus, la Terre, Mars, Jupiter, Saturne, Uranus et Neptune.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Syst%C3%A8me_solaire",
+    "https://fr.wikipedia.org/wiki/D%C3%A9finition_d%27une_plan%C3%A8te_(2006)"
+   ],
+   "reponse_numerique": 8
+  },
+  {
+   "id": "ext-0076",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "La girafe possède le même nombre de vertèbres cervicales que l'être humain, soit sept.",
+   "anecdote": "Comme presque tous les mammifères, la girafe n'a que sept vertèbres cervicales ; elles sont simplement très allongées. Le lamantin, avec six, fait partie des rares exceptions.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vert%C3%A8bre_cervicale",
+    "https://www.larousse.fr/encyclopedie/vie-sauvage/girafe/178172"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0077",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Pourquoi le plumage du flamant rose est-il rose ?",
+   "anecdote": "La couleur rose vient des caroténoïdes contenus dans les crustacés et micro-algues (comme la spiruline) dont se nourrit l'oiseau. Privé de ces pigments, un flamant devient blanchâtre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Flamant_rose",
+    "https://www.larousse.fr/encyclopedie/vie-sauvage/flamant_rose/178194"
+   ],
+   "choix": [
+    "À cause de pigments (caroténoïdes) présents dans son alimentation",
+    "Uniquement à cause de ses gènes",
+    "À cause de la température de l'eau",
+    "À cause de l'exposition au soleil"
+   ],
+   "bonne_reponse": "À cause de pigments (caroténoïdes) présents dans son alimentation"
+  },
+  {
+   "id": "ext-0078",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a écrit et illustré « Le Petit Prince » ?",
+   "anecdote": "Publié en 1943 à New York, « Le Petit Prince » est l'œuvre la plus connue d'Antoine de Saint-Exupéry, aviateur et écrivain. C'est l'un des livres les plus traduits au monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Petit_Prince",
+    "https://www.larousse.fr/encyclopedie/oeuvre/le_Petit_Prince/137800"
+   ],
+   "choix": [
+    "Antoine de Saint-Exupéry",
+    "Jean de La Fontaine",
+    "Marcel Pagnol",
+    "Jules Verne"
+   ],
+   "bonne_reponse": "Antoine de Saint-Exupéry"
+  },
+  {
+   "id": "ext-0079",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel auteur belge a créé les Schtroumpfs ?",
+   "anecdote": "Les Schtroumpfs sont apparus en 1958 sous le crayon de Peyo, de son vrai nom Pierre Culliford. Ces petits personnages bleus sont d'abord nés comme figures secondaires de la série « Johan et Pirlouit ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Schtroumpfs",
+    "https://www.larousse.fr/encyclopedie/personnage/Pierre_Culliford_dit_Peyo/137870"
+   ],
+   "choix": [
+    "Hergé",
+    "Peyo",
+    "Franquin",
+    "Morris"
+   ],
+   "bonne_reponse": "Peyo"
   },
   {
    "id": "script-S7",

@@ -85,7 +85,7 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
    🔑 **Password** (indices d'un seul mot) ou 🤫 **Mime** (en silence). Contenu
    **vérifié, 100 % original et tout public** (`data/wordgames.json`) — aucun
    nom de marque, aucun personnage sous licence.
-8. Premier pion au Trésor : victoire (jamais d'élimination).
+9. Premier pion au Trésor : victoire (jamais d'élimination).
 
 ### Formats de question (aucun n'est chronométré)
 
@@ -143,7 +143,7 @@ système demande de réduire les animations).
 
 ## La banque de questions
 
-`data/questions.json` — **996 questions vérifiées** (chaque fait contrôlé
+`data/questions.json` — **1033 questions vérifiées** (chaque fait contrôlé
 contre ≥ 2 sources indépendantes, citées sous chaque anecdote), 13 catégories,
 6 formats, réparties en niveaux `tout_petit` / `enfant` / `ado` / `adulte`
 (difficulté 1-5). Elle est générée depuis la banque fact-checkée du projet

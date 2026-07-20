@@ -61,7 +61,11 @@ const check = (name, ok) => {
 try {
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: "load" });
   check("home loads", (await page.title()).includes("Donjon du Savoir"));
-  check("bank loaded", /\d+ questions vérifiées/.test(await page.locator("#bank-info").textContent({ timeout: 8000 })));
+  // Boot is async (loadBank → loadWordgames → renderHome); wait for the count
+  // to appear rather than reading #bank-info at the "load" event.
+  const bankLoaded = await page.locator("#bank-info").filter({ hasText: /\d+ questions vérifiées/ })
+    .waitFor({ timeout: 10000 }).then(() => true).catch(() => false);
+  check("bank loaded", bankLoaded);
 
   const swOk = await page
     .evaluate(() => Promise.race([
