@@ -127,6 +127,8 @@ déplacent le pion sans re-déclencher (un tour se termine toujours).
 | 🏴‍☠️ | Capitaine Flaque | Abordage (pille 3 🪙 au plus riche) | Vent en Poupe (relance le dé) |
 | 🧶 | Mémé Pelote | Maille Solide (se tricote un bouclier) | Doudou Réconfort (annule un Coup dur) |
 | 🦉 | Professeur Hibou | Cinquante-Cinquante (retire 2 mauvaises réponses) | Petit Curieux (révèle la 1re lettre) |
+| 👾 | Kribouille | Aspiration farceuse (chipe 2 🪙 au choix) | Galipette (relance le dé) |
+| 🔧 | Sire Plomberoy | Super Bond (avance de 3 cases) | Coup de Clé (annule un Coup dur) |
 
 ### Le narrateur
 
@@ -230,7 +232,7 @@ banque vérifiée avec anecdotes systématiques et sources, narrateur-mascotte
 original + synthèse vocale, 1-20 joueurs pass-and-play, équipes avec
 porte-parole tournant, difficulté adaptative (bonus : par score fin 1-5, pas
 seulement par tranche d'âge), sauvegarde/reprise automatique, PWA hors-ligne,
-**habillage illustré original complet** (portraits des 9 compagnons, mascotte
+**habillage illustré original complet** (portraits des 11 compagnons, mascotte
 Héraut, 12 jetons de case, 12 décors, bannière d'accueil, 5 fonds de donjon et
 icônes de l'app dans `assets/` — chaque image est posée par-dessus le médaillon
 SVG / l'emoji / le dégradé d'origine, qui reste en **repli** si une image

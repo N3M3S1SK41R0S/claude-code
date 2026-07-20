@@ -1,4 +1,4 @@
-// Original hand-drawn SVG medallions for the nine companions — flat cartoon
+// Original hand-drawn SVG medallions for the eleven companions — flat cartoon
 // style, no external assets (fills the §12 "illustrations" gap until real
 // artwork lands; the §6 prompts remain available for a generator pass).
 
@@ -132,6 +132,44 @@ export const PORTRAITS = {
     <circle cx="59" cy="52" r="3.4" fill="#221a10"/>
     <path d="M 46 60 l 4 6 4 -6 Z" fill="#e0a83a" stroke="#a87c1f" stroke-width="1.4" stroke-linejoin="round"/>
   `),
+  // Petite créature des étoiles : fourrure turquoise, ventre lavande, grandes
+  // oreilles rondes, croissant et collerette d'étoiles.
+  kribouille: medallion("#2fb0a0", `
+    <circle cx="31" cy="42" r="11" fill="#3fc4b0"/>
+    <circle cx="69" cy="42" r="11" fill="#3fc4b0"/>
+    <circle cx="31" cy="42" r="5" fill="#c9a6e0"/>
+    <circle cx="69" cy="42" r="5" fill="#c9a6e0"/>
+    <ellipse cx="50" cy="70" rx="24" ry="22" fill="#3fc4b0"/>
+    <ellipse cx="50" cy="76" rx="12" ry="13" fill="#c9a6e0"/>
+    <circle cx="50" cy="54" r="21" fill="#3fc4b0"/>
+    <path d="M 46 46 a 4.5 4.5 0 0 0 8 0" fill="none" stroke="#e0b04a" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="42" cy="55" r="5" fill="#221a10"/>
+    <circle cx="58" cy="55" r="5" fill="#221a10"/>
+    <circle cx="43.6" cy="53.2" r="1.6" fill="#fff"/>
+    <circle cx="59.6" cy="53.2" r="1.6" fill="#fff"/>
+    <path d="M 45 62 q 5 5 10 0" fill="none" stroke="#221a10" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M 47 65 l 1.5 3 3 0 -1.5 3 M 50 65 l 1.5 3 3 0" fill="#c23e6b" opacity="0"/>
+    <path d="M 40 66 l 2 -6 2 6 Z" fill="#e0b04a"/>
+    <path d="M 56 66 l 2 -6 2 6 Z" fill="#e0b04a"/>
+    <path d="M 50 82 l 2.2 -6 2.2 6 Z" fill="#f0d080"/>
+    <circle cx="34" cy="60" r="1.4" fill="#f0e6a0"/>
+    <circle cx="66" cy="60" r="1.4" fill="#f0e6a0"/>
+  `),
+  // Plombier-chevalier : casque à plume, grosse moustache, armure rouge, clé.
+  plomberoy: medallion("#c0532f", `
+    <path d="M 56 26 q 18 -4 22 12 q -12 -4 -20 3 Z" fill="#e8d6b8" stroke="#c9b48a" stroke-width="1.5"/>
+    <rect x="33" y="66" width="34" height="26" rx="6" fill="#b23a2a" stroke="#7a2418" stroke-width="2"/>
+    <rect x="60" y="66" width="14" height="26" rx="5" fill="#9c3020" stroke="#7a2418" stroke-width="2"/>
+    <circle cx="50" cy="55" r="17" fill="${FACE}"/>
+    <path d="M 31 46 a 19 13 0 0 1 38 0 l -2 5 -34 0 Z" fill="#9aa2ad" stroke="#6d747e" stroke-width="2"/>
+    <g stroke="#6d747e" stroke-width="2"><path d="M 41 47 v 5"/><path d="M 47 47 v 5"/><path d="M 53 47 v 5"/><path d="M 59 47 v 5"/></g>
+    <circle cx="44" cy="57" r="2.6" fill="#221a10"/>
+    <circle cx="56" cy="57" r="2.6" fill="#221a10"/>
+    <ellipse cx="50" cy="60" rx="3.4" ry="2.6" fill="#c67a3a"/>
+    <path d="M 38 64 q 6 7 12 2 q 6 5 12 -2" fill="none" stroke="#a0522d" stroke-width="5" stroke-linecap="round"/>
+    <path d="M 25 52 l 7 -6 5 5 -5 5 -3 -2 2 -3 -2 -2 -2 3 Z" fill="#c9a86a" stroke="#8a6a3a" stroke-width="1.4" stroke-linejoin="round"/>
+    <rect x="25" y="58" width="4.5" height="18" rx="2" fill="#c9a86a" stroke="#8a6a3a" stroke-width="1.2" transform="rotate(28 27 62)"/>
+  `),
 };
 
 // Illustrations peintes (PNG) posées PAR-DESSUS le médaillon SVG : si une image
@@ -147,6 +185,8 @@ const PORTRAIT_ART = {
   flaque: "assets/portrait-flaque.png",
   pelote: "assets/portrait-pelote.png",
   hibou: "assets/portrait-hibou.png",
+  kribouille: "assets/portrait-kribouille.png",
+  plomberoy: "assets/portrait-plomberoy.png",
 };
 
 /** DOM element for a character medallion (decorative; name is given elsewhere). */

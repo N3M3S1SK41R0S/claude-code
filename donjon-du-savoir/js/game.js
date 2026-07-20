@@ -1002,6 +1002,30 @@ function useTurnPower(pion) {
       pion.bouclier = true;
       render();
       return done();
+    case "kribouille:adulte": {
+      // Aspiration farceuse : chipe 2 🪙 à un adversaire choisi.
+      const cibles = others.filter((p) => p.pieces > 0);
+      if (cibles.length === 0) { addCoins(pion, 1); render(); return done(); }
+      setPanel(
+        el("h2", { class: "panel-title", text: "Aspiration farceuse — à qui chiper 2 🪙 ?" }),
+        ...cibles.map((t) => choiceButton(`${t.nom} (🪙 ${t.pieces})`, () => {
+          const loot = Math.min(2, t.pieces);
+          t.pieces -= loot;
+          addCoins(pion, loot);
+          render();
+          done();
+        })),
+        choiceButton("Annuler", () => startTurn({ silent: true })),
+      );
+      return;
+    }
+    case "plomberoy:adulte":
+      // Super Bond : un grand bond de 3 cases.
+      pion.pouvoirUtilise = true;
+      save();
+      heraldSays(herald.pouvoir());
+      if (shift(pion, 3)) return;
+      return startTurn({ silent: true });
     default:
       return startTurn({ silent: true });
   }

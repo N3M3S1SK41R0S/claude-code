@@ -112,6 +112,30 @@ export const POWERS = {
       quand: "question",
     },
   },
+  kribouille: {
+    adulte: {
+      nom: "Aspiration farceuse",
+      desc: "Chipe 2 pièces à un adversaire au choix.",
+      quand: "tour",
+    },
+    enfant: {
+      nom: "Galipette",
+      desc: "Relance le dé une fois.",
+      quand: "de",
+    },
+  },
+  plomberoy: {
+    adulte: {
+      nom: "Super Bond",
+      desc: "Avance d'un grand bond de 3 cases.",
+      quand: "tour",
+    },
+    enfant: {
+      nom: "Coup de Clé",
+      desc: "Répare tout : annule un Coup dur.",
+      quand: "malus",
+    },
+  },
 };
 
 export function powerOf(pion) {

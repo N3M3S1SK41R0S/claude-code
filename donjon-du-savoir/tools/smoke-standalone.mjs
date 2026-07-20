@@ -85,7 +85,7 @@ try {
   // Rules screen reachable and populated (fresh reload → clean home screen).
   await page.goto(pathToFileURL(file).href, { waitUntil: "load" });
   await page.getByRole("button", { name: "📖 Les règles" }).click();
-  check("rules screen", (await page.locator(".rules-cast-item").count()) === 9);
+  check("rules screen", (await page.locator(".rules-cast-item").count()) === 11);
 
   // Custom-question screen: add one, confirm it registers.
   await page.getByRole("button", { name: "← Retour" }).click();
