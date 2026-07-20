@@ -5,7 +5,7 @@ import { loadWordgames } from "./wordgames.js";
 import { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } from "./custom.js";
 import { BOARDS, boardById, generateBoard } from "./board.js";
 import { resumeGame, startGame } from "./game.js";
-import { CHARACTERS, characterById, clearSave, loadSave, newGame } from "./state.js";
+import { AGE_BRACKETS, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, loadSave, newGame, youngestBracket } from "./state.js";
 import { portraitEl } from "./portraits.js";
 import { POWERS } from "./powers.js";
 import { setVoice, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
@@ -196,10 +196,11 @@ let setupMode = "individuel";
 let selectedBoardId = "grand-donjon";
 let variant = "course";
 let rounds = 10;
-let players = [{ nom: "", profil: "adulte", characterId: "cageot" }, { nom: "", profil: "adulte", characterId: "etincelle" }];
+const DEFAULT_BRACKET = "18+";
+let players = [{ nom: "", bracket: DEFAULT_BRACKET, characterId: "cageot" }, { nom: "", bracket: DEFAULT_BRACKET, characterId: "etincelle" }];
 let teams = [
-  { nom: "Les Dragons", characterId: "cageot", membres: [{ nom: "", profil: "adulte" }] },
-  { nom: "Les Licornes", characterId: "etincelle", membres: [{ nom: "", profil: "adulte" }] },
+  { nom: "Les Dragons", characterId: "cageot", membres: [{ nom: "", bracket: DEFAULT_BRACKET }] },
+  { nom: "Les Licornes", characterId: "etincelle", membres: [{ nom: "", bracket: DEFAULT_BRACKET }] },
 ];
 
 function cycleCharacter(currentId) {
@@ -207,17 +208,19 @@ function cycleCharacter(currentId) {
   return CHARACTERS[(idx + 1) % CHARACTERS.length].id;
 }
 
-function profilToggle(obj, rerender) {
-  const isChild = obj.profil === "enfant";
-  return el("button", {
-    class: "btn btn-toggle" + (isChild ? " btn-toggle-enfant" : ""),
-    type: "button",
-    "aria-label": `Profil : ${obj.profil} (toucher pour changer)`,
-    onclick: () => {
-      obj.profil = isChild ? "adulte" : "enfant";
-      rerender();
-    },
-  }, isChild ? "👶 enfant" : "🎩 adulte");
+/** Sélecteur de tranche d'âge (7 tranches) — adapte la difficulté des questions. */
+function ageSelect(obj, rerender) {
+  if (!obj.bracket) obj.bracket = DEFAULT_BRACKET;
+  const sel = el("select", {
+    class: "name-input age-select",
+    "aria-label": "Tranche d'âge du joueur",
+    onchange: (e) => { obj.bracket = e.target.value; if (rerender) rerender(); },
+  }, ...AGE_BRACKETS.map((b) => {
+    const o = el("option", { value: b.id, text: `${b.emoji} ${b.label}` });
+    if (b.id === obj.bracket) o.selected = true;
+    return o;
+  }));
+  return sel;
 }
 
 function characterButton(obj, rerender) {
@@ -272,7 +275,7 @@ function renderSetup() {
       list.append(
         el("div", { class: "setup-row" },
           nameInput(p, `Joueur ${i + 1}`),
-          profilToggle(p, renderSetup),
+          ageSelect(p, renderSetup),
           characterButton(p, renderSetup),
           players.length > 1
             ? el("button", { class: "btn btn-x", type: "button", "aria-label": `Retirer le joueur ${i + 1}`, onclick: () => { players.splice(i, 1); renderSetup(); } }, "✕")
@@ -285,7 +288,7 @@ function renderSetup() {
       zone.append(el("button", {
         class: "btn", type: "button",
         onclick: () => {
-          players.push({ nom: "", profil: "adulte", characterId: CHARACTERS[players.length % CHARACTERS.length].id });
+          players.push({ nom: "", bracket: DEFAULT_BRACKET, characterId: CHARACTERS[players.length % CHARACTERS.length].id });
           renderSetup();
         },
       }, "＋ Ajouter un joueur"));
@@ -306,7 +309,7 @@ function renderSetup() {
         block.append(
           el("div", { class: "setup-row setup-row-membre" },
             nameInput(m, `Membre ${mi + 1}`),
-            profilToggle(m, renderSetup),
+            ageSelect(m, renderSetup),
             t.membres.length > 1
               ? el("button", { class: "btn btn-x", type: "button", "aria-label": "Retirer le membre", onclick: () => { t.membres.splice(mi, 1); renderSetup(); } }, "✕")
               : null,
@@ -314,7 +317,7 @@ function renderSetup() {
         );
       });
       if (totalMembers() < MAX_PLAYERS) {
-        block.append(el("button", { class: "btn btn-small", type: "button", onclick: () => { t.membres.push({ nom: "", profil: "adulte" }); renderSetup(); } }, "＋ Membre"));
+        block.append(el("button", { class: "btn btn-small", type: "button", onclick: () => { t.membres.push({ nom: "", bracket: DEFAULT_BRACKET }); renderSetup(); } }, "＋ Membre"));
       }
       list.append(block);
     });
@@ -323,7 +326,7 @@ function renderSetup() {
       zone.append(el("button", {
         class: "btn", type: "button",
         onclick: () => {
-          teams.push({ nom: `Équipe ${teams.length + 1}`, characterId: CHARACTERS[teams.length % CHARACTERS.length].id, membres: [{ nom: "", profil: "adulte" }] });
+          teams.push({ nom: `Équipe ${teams.length + 1}`, characterId: CHARACTERS[teams.length % CHARACTERS.length].id, membres: [{ nom: "", bracket: DEFAULT_BRACKET }] });
           renderSetup();
         },
       }, "＋ Ajouter une équipe"));
@@ -401,7 +404,7 @@ function renderSetup() {
   }
 
   zone.append(
-    el("p", { class: "help-note", text: "Les questions « enfant » conviennent à tout le monde ; le profil ne sert qu'à adapter la difficulté. En équipe, un porte-parole différent répond à chaque question." }),
+    el("p", { class: "help-note", text: "Choisissez une tranche d'âge par joueur : les questions s'adaptent à la difficulté correspondante. En équipe, on joue au niveau du plus jeune, et un porte-parole différent répond à chaque question." }),
     el("button", { class: "btn btn-big btn-gold", type: "button", onclick: launchGame }, "🏰 Entrer dans le Donjon"),
     el("button", { class: "btn", type: "button", onclick: () => { renderHome(); show("home"); } }, "← Retour"),
   );
@@ -420,17 +423,26 @@ function launchGame() {
   let pions;
   if (setupMode === "individuel") {
     pions = players
-      .map((p, i) => ({ ...p, nom: p.nom.trim() || `Joueur ${i + 1}` }))
+      .map((p, i) => {
+        const bracket = p.bracket ?? DEFAULT_BRACKET;
+        return { ...p, nom: p.nom.trim() || `Joueur ${i + 1}`, bracket, profil: bracketProfil(bracket) };
+      })
       .slice(0, MAX_PLAYERS);
     if (pions.length < 1) return;
   } else {
     pions = teams.map((t, i) => {
-      const membres = t.membres.map((m, mi) => ({ nom: m.nom.trim() || `Membre ${mi + 1}`, profil: m.profil }));
+      const membres = t.membres.map((m, mi) => {
+        const bracket = m.bracket ?? DEFAULT_BRACKET;
+        return { nom: m.nom.trim() || `Membre ${mi + 1}`, bracket, profil: bracketProfil(bracket) };
+      });
+      // A team plays for the YOUNGEST member aboard: collective questions and
+      // difficulty adapt to the youngest age present.
+      const bracket = youngestBracket(membres.map((m) => m.bracket));
       return {
         nom: t.nom.trim() || `Équipe ${i + 1}`,
         characterId: t.characterId,
-        // A team plays at child level as soon as one child is aboard.
-        profil: membres.some((m) => m.profil === "enfant") ? "enfant" : "adulte",
+        bracket,
+        profil: bracketProfil(bracket),
         membres,
       };
     });

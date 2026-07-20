@@ -5,7 +5,7 @@
 // HARD RULE (cahier §5): a child profile NEVER receives an above-age
 // question. Every fallback recycles within the same age subset instead of
 // escalating the difficulty.
-import { getState, isLast, isLeader, markAsked } from "./state.js";
+import { bracketById, getState, isLast, isLeader, markAsked, youngestBracket } from "./state.js";
 import { loadCustom } from "./custom.js";
 
 let bank = [];
@@ -63,27 +63,46 @@ export function bankSize() {
   return bank.length;
 }
 
-/** enfant profile → enfant questions only; adulte → the whole bank. */
-function allowedFor(profil) {
-  return profil === "enfant" ? ["enfant"] : ["enfant", "ado", "adulte"];
+/** Fenêtre de difficulté (1-5) de la tranche d'âge d'un pion. */
+function rangeFor(pion) {
+  return bracketById(pion?.bracket ?? "9-11");
 }
 
 /** Formats whose UI is a button grid (safe everywhere, incl. Trou Noir). */
 const CHOICE_FORMATS = ["qcm", "vrai_faux"];
 
-function subset(ages, formats, { ignoreAsked = false } = {}) {
+const diffOf = (q) => q.difficulte ?? 3;
+const inWindow = (q, b) => diffOf(q) >= b.difMin && diffOf(q) <= b.difMax;
+
+function subset(b, formats, { ignoreAsked = false, petitOnly = false } = {}) {
   const asked = ignoreAsked ? null : new Set(getState().askedIds);
-  let candidates = bank.filter((q) => ages.includes(q.niveau_age) && (!asked || !asked.has(q.id)));
+  let candidates = bank.filter((q) => (!asked || !asked.has(q.id)));
+  candidates = petitOnly
+    ? candidates.filter((q) => q.niveau_age === "tout_petit")
+    : candidates.filter((q) => inWindow(q, b));
   if (formats) candidates = candidates.filter((q) => formats.includes(q.format));
   return candidates;
 }
 
-/** Fresh questions first; when the subset is exhausted, recycle it — but
- *  NEVER widen the age constraint. */
-function drawableFrom(ages, formats) {
-  const fresh = subset(ages, formats);
+/**
+ * Questions jouables pour une tranche : contenu frais d'abord, puis recyclage
+ * dans la MÊME fenêtre. La tranche 2-5 privilégie le contenu « tout-petit » s'il
+ * existe. Dernier recours seulement (fenêtre vide dans la banque) : on élargit
+ * d'un cran pour ne jamais bloquer le jeu — jamais au-delà.
+ */
+function drawableFrom(b, formats) {
+  if (b.petit) {
+    const petit = subset(b, formats, { petitOnly: true });
+    if (petit.length > 0) return petit;
+    const petitRecycle = subset(b, formats, { petitOnly: true, ignoreAsked: true });
+    if (petitRecycle.length > 0) return petitRecycle;
+  }
+  const fresh = subset(b, formats);
   if (fresh.length > 0) return fresh;
-  return subset(ages, formats, { ignoreAsked: true });
+  const recycled = subset(b, formats, { ignoreAsked: true });
+  if (recycled.length > 0) return recycled;
+  const wide = { difMin: Math.max(1, b.difMin - 1), difMax: Math.min(5, b.difMax + 1) };
+  return subset(wide, formats, { ignoreAsked: true });
 }
 
 function pick(candidates) {
@@ -102,51 +121,56 @@ function pick(candidates) {
  * uniformly. Slices always fall back to the full allowed pool.
  */
 export function drawQuestion(pion, { formats = null } = {}) {
-  const candidates = drawableFrom(allowedFor(pion.profil), formats);
+  const candidates = drawableFrom(rangeFor(pion), formats);
   if (candidates.length === 0) return null;
-  const sorted = [...candidates].sort((a, b) => (a.difficulte ?? 3) - (b.difficulte ?? 3));
+  const sorted = [...candidates].sort((a, b) => diffOf(a) - diffOf(b));
   let slice = sorted;
   if (isLeader(pion)) slice = sorted.slice(Math.floor(sorted.length * 0.66));
   else if (isLast(pion)) slice = sorted.slice(0, Math.ceil(sorted.length / 2));
   return pick(slice.length > 0 ? slice : sorted);
 }
 
-/** Trou Noir: the hardest CHOICE question of the pion's allowed pool —
- *  choice formats only, so the panel always has answer buttons. */
+/** Trou Noir: the hardest CHOICE question within the pion's age window. */
 export function drawHardest(pion) {
-  const candidates = drawableFrom(allowedFor(pion.profil), CHOICE_FORMATS);
+  const candidates = drawableFrom(rangeFor(pion), CHOICE_FORMATS);
   if (candidates.length === 0) return null;
-  const maxDiff = Math.max(...candidates.map((q) => q.difficulte ?? 3));
-  return pick(candidates.filter((q) => (q.difficulte ?? 3) === maxDiff));
+  const maxDiff = Math.max(...candidates.map(diffOf));
+  return pick(candidates.filter((q) => diffOf(q) === maxDiff));
 }
 
 /**
- * Événement collectif: a question EVERYONE at the table can answer.
- * With a child present, only enfant questions qualify — vrai/faux first,
- * then enfant QCM, then recycled enfant questions. Never age-escalation.
+ * Événement collectif : une question que TOUT LE MONDE peut tenter. On vise la
+ * tranche d'âge la PLUS JEUNE présente à la table (les pions et leurs membres
+ * d'équipe), vrai/faux d'abord puis QCM — jamais au-dessus de cet âge.
  */
 export function drawEvent() {
-  const hasChild = getState().pions.some((p) => p.profil === "enfant");
-  const ages = hasChild ? ["enfant"] : ["enfant", "ado", "adulte"];
-  const vf = drawableFrom(ages, ["vrai_faux"]);
+  const brackets = [];
+  for (const p of getState().pions) {
+    if (Array.isArray(p.membres) && p.membres.length) {
+      for (const m of p.membres) brackets.push(m.bracket ?? p.bracket ?? "9-11");
+    } else {
+      brackets.push(p.bracket ?? "9-11");
+    }
+  }
+  const b = bracketById(youngestBracket(brackets));
+  const vf = drawableFrom(b, ["vrai_faux"]);
   if (vf.length > 0) return pick(vf);
-  const qcm = drawableFrom(ages, ["qcm"]);
+  const qcm = drawableFrom(b, ["qcm"]);
   if (qcm.length > 0) return pick(qcm);
   return null;
 }
 
-/** Gambit: numeric question within the pion's allowed ages — or null
- *  (the case then falls back to a classic question, never age-escalates). */
+/** Gambit: numeric question within the pion's age window — or null. */
 export function drawGambit(pion) {
-  const candidates = drawableFrom(allowedFor(pion.profil), ["gambit_numerique"]);
+  const candidates = drawableFrom(rangeFor(pion), ["gambit_numerique"]);
   return candidates.length > 0 ? pick(candidates) : null;
 }
 
 /** Easier replacement (Bouclier Facile) — may return null; the caller must
  *  then NOT consume the power. */
 export function drawEasier(pion, currentDifficulty) {
-  const all = drawableFrom(allowedFor(pion.profil), CHOICE_FORMATS);
+  const all = drawableFrom(rangeFor(pion), CHOICE_FORMATS);
   if (all.length === 0) return null;
-  const easier = all.filter((q) => (q.difficulte ?? 3) < (currentDifficulty ?? 3));
+  const easier = all.filter((q) => diffOf(q) < (currentDifficulty ?? 3));
   return pick(easier.length > 0 ? easier : all);
 }

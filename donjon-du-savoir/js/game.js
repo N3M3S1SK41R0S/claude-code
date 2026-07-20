@@ -158,8 +158,8 @@ function startTurn({ silent = false, prefix = "" } = {}) {
 
   const actions = [bigButton("🎲 Lancer le dé", () => rollDie())];
 
-  // Besace : objets utilisables quand on veut (dés spéciaux, jokers, malus).
-  if (inventoryCount(pion) > 0) {
+  // Besace : UN seul objet par tour ; on peut ensuite quand même lancer le dé.
+  if (inventoryCount(pion) > 0 && !pion.objetUtilise) {
     actions.push(choiceButton(`🎒 Ma besace (${inventoryCount(pion)}/${inventoryCap(pion)})`, () => openBag(pion)));
   }
 
@@ -241,9 +241,20 @@ function rollN(n) {
   return s;
 }
 
+/** Après un objet « de soutien » (bouclier, aimant, malus, échange) : on REND la
+ *  main au joueur pour qu'il puisse encore lancer le dé ce tour-ci (la besace est
+ *  désormais fermée : un seul objet par tour). */
+function afterItem(message) {
+  setPanel(
+    el("p", { class: "panel-text panel-event", text: message }),
+    bigButton("🎲 Continuer mon tour", () => startTurn({ silent: true })),
+  );
+}
+
 function applyItem(pion, id, target) {
   const item = ITEMS[id];
   consumeItem(pion, id);
+  pion.objetUtilise = true; // un seul objet par tour ; la besace se referme
   save();
   heraldSays(`${item.emoji} ${item.nom} !`);
   switch (id) {
@@ -280,33 +291,33 @@ function applyItem(pion, id, target) {
     }
     case "de_echange":
       if (target) { [pion.position, target.position] = [target.position, pion.position]; render(); }
-      return endPanel(`🔄 Places échangées avec ${target ? target.nom : "personne"} !`);
+      return afterItem(`🔄 Places échangées avec ${target ? target.nom : "personne"} ! À vous de lancer le dé.`);
     case "bouclier":
       pion.bouclier = true;
       save();
       renderPlayersStrip();
-      return openBag(pion);
+      return afterItem("🛡️ Bouclier en main : le prochain malus ou vol sera paré. À vous de lancer le dé.");
     case "aimant_or":
       pion.aimantOr = true;
       save();
-      return openBag(pion);
+      return afterItem("🧲 Aimant à Or actif : l'or gagné ce tour est doublé. À vous de lancer le dé.");
     case "relance":
       pion.relanceBonus = true;
       save();
       return rollDie();
     case "sabotage":
       if (target) { applyMalusTo(target, () => { target.position = Math.max(0, target.position - 3); render(); }); }
-      return endPanel(`💣 ${target ? target.nom : "La cible"} recule de 3 cases !`);
+      return afterItem(`💣 ${target ? target.nom : "La cible"} recule de 3 cases ! À vous de lancer le dé.`);
     case "racket":
       if (target) { applyMalusTo(target, () => { const stolen = Math.min(5, target.pieces); target.pieces -= stolen; pion.pieces += stolen; renderPlayersStrip(); }); }
-      return endPanel(`🪙 Racket sur ${target ? target.nom : "la cible"} !`);
+      return afterItem(`🪙 Racket sur ${target ? target.nom : "la cible"} ! À vous de lancer le dé.`);
     case "sceptre_larcin": {
-      if (!target) return endPanel("👑 Le Sceptre du Larcin n'a trouvé personne à détrousser.");
+      if (!target) return afterItem("👑 Le Sceptre du Larcin n'a trouvé personne à détrousser. À vous de lancer le dé.");
       const pare = target.bouclier;
       applyMalusTo(target, () => { if ((target.etoiles ?? 0) > 0) { target.etoiles -= 1; pion.etoiles = (pion.etoiles ?? 0) + 1; renderPlayersStrip(); } });
-      return endPanel(pare
-        ? `👑🛡️ Le bouclier de ${target.nom} a protégé son étoile ! Le sceptre repart bredouille.`
-        : `👑 Le Sceptre du Larcin dérobe une ⭐ à ${target.nom} pour ${pion.nom} !`);
+      return afterItem(pare
+        ? `👑🛡️ Le bouclier de ${target.nom} a protégé son étoile ! À vous de lancer le dé.`
+        : `👑 Le Sceptre du Larcin dérobe une ⭐ à ${target.nom} pour ${pion.nom} ! À vous de lancer le dé.`);
     }
     default:
       return openBag(pion);
@@ -1567,6 +1578,7 @@ function finishTurn() {
   pion.doublePieces = false;
   pion.aimantOr = false; // l'Aimant à Or ne dure qu'un tour
   pion.relanceBonus = false; // relance non utilisée : perdue en fin de tour
+  pion.objetUtilise = false; // nouvel objet autorisé au prochain tour
   const { skipped } = nextTurn();
 
   // Mode Étoiles : fin après le nombre de manches fixé.

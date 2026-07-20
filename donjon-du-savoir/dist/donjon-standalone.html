@@ -201,6 +201,7 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
   min-height: 48px;
 }
 .name-input::placeholder { color: var(--soft); }
+select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor: pointer; }
 #setup-zone { display: flex; flex-direction: column; gap: 1rem; }
 .setup-subtitle { color: var(--gold); font-size: 1.1rem; text-align: center; }
 
@@ -1518,6 +1519,50 @@ function characterById(id) {
   return CHARACTERS.find((c) => c.id === id) ?? CHARACTERS[0];
 }
 
+/**
+ * Tranches d'âge des joueurs (du plus jeune au plus âgé). Chaque tranche ouvre
+ * une FENÊTRE de difficulté de questions (difMin..difMax, sur l'échelle 1-5) ;
+ * la 1re privilégie le contenu « tout-petit » (`petit`). Les pouvoirs des
+ * personnages restent en deux familles : « enfant » pour les 3 plus jeunes
+ * tranches, « adulte » pour les 3 plus âgées.
+ */
+const AGE_BRACKETS = [
+  { id: "2-5", label: "2–5 ans", emoji: "🍼", difMin: 1, difMax: 1, petit: true },
+  { id: "5-8", label: "5–8 ans", emoji: "🧸", difMin: 1, difMax: 2 },
+  { id: "9-11", label: "9–11 ans", emoji: "🧒", difMin: 1, difMax: 3 },
+  { id: "12-14", label: "12–14 ans", emoji: "🧑", difMin: 2, difMax: 4 },
+  { id: "14-16", label: "14–16 ans", emoji: "🎓", difMin: 3, difMax: 5 },
+  { id: "16-18", label: "16–18 ans", emoji: "🧑‍🎓", difMin: 4, difMax: 5 },
+  { id: "18+", label: "18 ans et +", emoji: "🧙", difMin: 3, difMax: 5 },
+];
+
+function bracketById(id) {
+  return AGE_BRACKETS.find((b) => b.id === id) ?? AGE_BRACKETS[2];
+}
+
+function bracketIndex(id) {
+  const i = AGE_BRACKETS.findIndex((b) => b.id === id);
+  return i === -1 ? 2 : i;
+}
+
+/** Famille de pouvoirs : « enfant » pour les 3 tranches les plus jeunes. */
+function bracketProfil(id) {
+  return bracketIndex(id) <= 2 ? "enfant" : "adulte";
+}
+
+/** Tranche la PLUS JEUNE d'un ensemble (pour que le collectif convienne à tous). */
+function youngestBracket(ids) {
+  if (!ids || ids.length === 0) return "9-11";
+  let best = AGE_BRACKETS.length - 1;
+  for (const id of ids) best = Math.min(best, bracketIndex(id));
+  return AGE_BRACKETS[Math.max(0, best)].id;
+}
+
+/** Compat : ancien profil enfant/adulte → une tranche par défaut. */
+function profilToBracket(profil) {
+  return profil === "enfant" ? "5-8" : "18+";
+}
+
 let state = null;
 
 function getState() {
@@ -1557,7 +1602,9 @@ function newGame(config, boardLayout) {
       id: i,
       nom: p.nom,
       characterId: p.characterId,
-      profil: p.profil,
+      // Tranche d'âge (fenêtre de difficulté) + profil dérivé (famille de pouvoirs).
+      bracket: p.bracket ?? profilToBracket(p.profil),
+      profil: p.profil ?? bracketProfil(p.bracket ?? "16-18"),
       membres: p.membres ?? null,
       porteParoleIndex: 0,
       position: 0,
@@ -1570,6 +1617,7 @@ function newGame(config, boardLayout) {
       besasse: false,
       pouvoirUtilise: false,
       tourASauter: false,
+      objetUtilise: false,
       doublePieces: false,
       stats: { bonnes: 0, questions: 0 },
       malusSubis: 0,
@@ -1757,6 +1805,12 @@ function loadSave() {
     if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.pions)) return null;
     if (!parsed.boardId) parsed.boardId = "grand-donjon"; // saves from before multi-boards
     if (parsed.pendingCase === undefined) parsed.pendingCase = null;
+    // Sauvegardes d'avant les tranches d'âge : dériver un bracket depuis le profil.
+    for (const p of parsed.pions) {
+      if (!p.bracket) p.bracket = p.profil === "enfant" ? "5-8" : "18+";
+      if (!p.profil) p.profil = bracketProfil(p.bracket);
+      if (p.objetUtilise === undefined) p.objetUtilise = false;
+    }
     state = parsed;
     return state;
   } catch {
@@ -1773,7 +1827,7 @@ function clearSave() {
   }
 }
 
-;Object.assign(module.exports, {characterById, getState, newGame, isEtoiles, starPrice, moveStar, computeBonusStars, setPendingCase, clearPendingCase, currentPion, ranking, rankOf, isLast, isLeader, nextTurn, porteParole, markAsked, resetAskedIfNeeded, save, loadSave, clearSave, SAVE_KEY, CHARACTERS, STAR_BASE_PRICE, STAR_STEP, LAP_BONUS, LAST_ROUND_BONUS, BONUS_STAR_POOL});
+;Object.assign(module.exports, {characterById, bracketById, bracketIndex, bracketProfil, youngestBracket, getState, newGame, isEtoiles, starPrice, moveStar, computeBonusStars, setPendingCase, clearPendingCase, currentPion, ranking, rankOf, isLast, isLeader, nextTurn, porteParole, markAsked, resetAskedIfNeeded, save, loadSave, clearSave, SAVE_KEY, CHARACTERS, AGE_BRACKETS, STAR_BASE_PRICE, STAR_STEP, LAP_BONUS, LAST_ROUND_BONUS, BONUS_STAR_POOL});
 };
 __modules["./board.js"] = function(module, exports, require) {
 // Boards — Mario-Party-style winding maps, now PLURAL: five dungeons with
@@ -2160,7 +2214,7 @@ __modules["./data.js"] = function(module, exports, require) {
 // HARD RULE (cahier §5): a child profile NEVER receives an above-age
 // question. Every fallback recycles within the same age subset instead of
 // escalating the difficulty.
-const { getState, isLast, isLeader, markAsked } = require("./state.js");
+const { bracketById, getState, isLast, isLeader, markAsked, youngestBracket } = require("./state.js");
 const { loadCustom } = require("./custom.js");
 
 let bank = [];
@@ -2218,27 +2272,46 @@ function bankSize() {
   return bank.length;
 }
 
-/** enfant profile → enfant questions only; adulte → the whole bank. */
-function allowedFor(profil) {
-  return profil === "enfant" ? ["enfant"] : ["enfant", "ado", "adulte"];
+/** Fenêtre de difficulté (1-5) de la tranche d'âge d'un pion. */
+function rangeFor(pion) {
+  return bracketById(pion?.bracket ?? "9-11");
 }
 
 /** Formats whose UI is a button grid (safe everywhere, incl. Trou Noir). */
 const CHOICE_FORMATS = ["qcm", "vrai_faux"];
 
-function subset(ages, formats, { ignoreAsked = false } = {}) {
+const diffOf = (q) => q.difficulte ?? 3;
+const inWindow = (q, b) => diffOf(q) >= b.difMin && diffOf(q) <= b.difMax;
+
+function subset(b, formats, { ignoreAsked = false, petitOnly = false } = {}) {
   const asked = ignoreAsked ? null : new Set(getState().askedIds);
-  let candidates = bank.filter((q) => ages.includes(q.niveau_age) && (!asked || !asked.has(q.id)));
+  let candidates = bank.filter((q) => (!asked || !asked.has(q.id)));
+  candidates = petitOnly
+    ? candidates.filter((q) => q.niveau_age === "tout_petit")
+    : candidates.filter((q) => inWindow(q, b));
   if (formats) candidates = candidates.filter((q) => formats.includes(q.format));
   return candidates;
 }
 
-/** Fresh questions first; when the subset is exhausted, recycle it — but
- *  NEVER widen the age constraint. */
-function drawableFrom(ages, formats) {
-  const fresh = subset(ages, formats);
+/**
+ * Questions jouables pour une tranche : contenu frais d'abord, puis recyclage
+ * dans la MÊME fenêtre. La tranche 2-5 privilégie le contenu « tout-petit » s'il
+ * existe. Dernier recours seulement (fenêtre vide dans la banque) : on élargit
+ * d'un cran pour ne jamais bloquer le jeu — jamais au-delà.
+ */
+function drawableFrom(b, formats) {
+  if (b.petit) {
+    const petit = subset(b, formats, { petitOnly: true });
+    if (petit.length > 0) return petit;
+    const petitRecycle = subset(b, formats, { petitOnly: true, ignoreAsked: true });
+    if (petitRecycle.length > 0) return petitRecycle;
+  }
+  const fresh = subset(b, formats);
   if (fresh.length > 0) return fresh;
-  return subset(ages, formats, { ignoreAsked: true });
+  const recycled = subset(b, formats, { ignoreAsked: true });
+  if (recycled.length > 0) return recycled;
+  const wide = { difMin: Math.max(1, b.difMin - 1), difMax: Math.min(5, b.difMax + 1) };
+  return subset(wide, formats, { ignoreAsked: true });
 }
 
 function pick(candidates) {
@@ -2257,52 +2330,57 @@ function pick(candidates) {
  * uniformly. Slices always fall back to the full allowed pool.
  */
 function drawQuestion(pion, { formats = null } = {}) {
-  const candidates = drawableFrom(allowedFor(pion.profil), formats);
+  const candidates = drawableFrom(rangeFor(pion), formats);
   if (candidates.length === 0) return null;
-  const sorted = [...candidates].sort((a, b) => (a.difficulte ?? 3) - (b.difficulte ?? 3));
+  const sorted = [...candidates].sort((a, b) => diffOf(a) - diffOf(b));
   let slice = sorted;
   if (isLeader(pion)) slice = sorted.slice(Math.floor(sorted.length * 0.66));
   else if (isLast(pion)) slice = sorted.slice(0, Math.ceil(sorted.length / 2));
   return pick(slice.length > 0 ? slice : sorted);
 }
 
-/** Trou Noir: the hardest CHOICE question of the pion's allowed pool —
- *  choice formats only, so the panel always has answer buttons. */
+/** Trou Noir: the hardest CHOICE question within the pion's age window. */
 function drawHardest(pion) {
-  const candidates = drawableFrom(allowedFor(pion.profil), CHOICE_FORMATS);
+  const candidates = drawableFrom(rangeFor(pion), CHOICE_FORMATS);
   if (candidates.length === 0) return null;
-  const maxDiff = Math.max(...candidates.map((q) => q.difficulte ?? 3));
-  return pick(candidates.filter((q) => (q.difficulte ?? 3) === maxDiff));
+  const maxDiff = Math.max(...candidates.map(diffOf));
+  return pick(candidates.filter((q) => diffOf(q) === maxDiff));
 }
 
 /**
- * Événement collectif: a question EVERYONE at the table can answer.
- * With a child present, only enfant questions qualify — vrai/faux first,
- * then enfant QCM, then recycled enfant questions. Never age-escalation.
+ * Événement collectif : une question que TOUT LE MONDE peut tenter. On vise la
+ * tranche d'âge la PLUS JEUNE présente à la table (les pions et leurs membres
+ * d'équipe), vrai/faux d'abord puis QCM — jamais au-dessus de cet âge.
  */
 function drawEvent() {
-  const hasChild = getState().pions.some((p) => p.profil === "enfant");
-  const ages = hasChild ? ["enfant"] : ["enfant", "ado", "adulte"];
-  const vf = drawableFrom(ages, ["vrai_faux"]);
+  const brackets = [];
+  for (const p of getState().pions) {
+    if (Array.isArray(p.membres) && p.membres.length) {
+      for (const m of p.membres) brackets.push(m.bracket ?? p.bracket ?? "9-11");
+    } else {
+      brackets.push(p.bracket ?? "9-11");
+    }
+  }
+  const b = bracketById(youngestBracket(brackets));
+  const vf = drawableFrom(b, ["vrai_faux"]);
   if (vf.length > 0) return pick(vf);
-  const qcm = drawableFrom(ages, ["qcm"]);
+  const qcm = drawableFrom(b, ["qcm"]);
   if (qcm.length > 0) return pick(qcm);
   return null;
 }
 
-/** Gambit: numeric question within the pion's allowed ages — or null
- *  (the case then falls back to a classic question, never age-escalates). */
+/** Gambit: numeric question within the pion's age window — or null. */
 function drawGambit(pion) {
-  const candidates = drawableFrom(allowedFor(pion.profil), ["gambit_numerique"]);
+  const candidates = drawableFrom(rangeFor(pion), ["gambit_numerique"]);
   return candidates.length > 0 ? pick(candidates) : null;
 }
 
 /** Easier replacement (Bouclier Facile) — may return null; the caller must
  *  then NOT consume the power. */
 function drawEasier(pion, currentDifficulty) {
-  const all = drawableFrom(allowedFor(pion.profil), CHOICE_FORMATS);
+  const all = drawableFrom(rangeFor(pion), CHOICE_FORMATS);
   if (all.length === 0) return null;
-  const easier = all.filter((q) => (q.difficulte ?? 3) < (currentDifficulty ?? 3));
+  const easier = all.filter((q) => diffOf(q) < (currentDifficulty ?? 3));
   return pick(easier.length > 0 ? easier : all);
 }
 
@@ -2538,8 +2616,8 @@ function startTurn({ silent = false, prefix = "" } = {}) {
 
   const actions = [bigButton("🎲 Lancer le dé", () => rollDie())];
 
-  // Besace : objets utilisables quand on veut (dés spéciaux, jokers, malus).
-  if (inventoryCount(pion) > 0) {
+  // Besace : UN seul objet par tour ; on peut ensuite quand même lancer le dé.
+  if (inventoryCount(pion) > 0 && !pion.objetUtilise) {
     actions.push(choiceButton(`🎒 Ma besace (${inventoryCount(pion)}/${inventoryCap(pion)})`, () => openBag(pion)));
   }
 
@@ -2621,9 +2699,20 @@ function rollN(n) {
   return s;
 }
 
+/** Après un objet « de soutien » (bouclier, aimant, malus, échange) : on REND la
+ *  main au joueur pour qu'il puisse encore lancer le dé ce tour-ci (la besace est
+ *  désormais fermée : un seul objet par tour). */
+function afterItem(message) {
+  setPanel(
+    el("p", { class: "panel-text panel-event", text: message }),
+    bigButton("🎲 Continuer mon tour", () => startTurn({ silent: true })),
+  );
+}
+
 function applyItem(pion, id, target) {
   const item = ITEMS[id];
   consumeItem(pion, id);
+  pion.objetUtilise = true; // un seul objet par tour ; la besace se referme
   save();
   heraldSays(`${item.emoji} ${item.nom} !`);
   switch (id) {
@@ -2660,33 +2749,33 @@ function applyItem(pion, id, target) {
     }
     case "de_echange":
       if (target) { [pion.position, target.position] = [target.position, pion.position]; render(); }
-      return endPanel(`🔄 Places échangées avec ${target ? target.nom : "personne"} !`);
+      return afterItem(`🔄 Places échangées avec ${target ? target.nom : "personne"} ! À vous de lancer le dé.`);
     case "bouclier":
       pion.bouclier = true;
       save();
       renderPlayersStrip();
-      return openBag(pion);
+      return afterItem("🛡️ Bouclier en main : le prochain malus ou vol sera paré. À vous de lancer le dé.");
     case "aimant_or":
       pion.aimantOr = true;
       save();
-      return openBag(pion);
+      return afterItem("🧲 Aimant à Or actif : l'or gagné ce tour est doublé. À vous de lancer le dé.");
     case "relance":
       pion.relanceBonus = true;
       save();
       return rollDie();
     case "sabotage":
       if (target) { applyMalusTo(target, () => { target.position = Math.max(0, target.position - 3); render(); }); }
-      return endPanel(`💣 ${target ? target.nom : "La cible"} recule de 3 cases !`);
+      return afterItem(`💣 ${target ? target.nom : "La cible"} recule de 3 cases ! À vous de lancer le dé.`);
     case "racket":
       if (target) { applyMalusTo(target, () => { const stolen = Math.min(5, target.pieces); target.pieces -= stolen; pion.pieces += stolen; renderPlayersStrip(); }); }
-      return endPanel(`🪙 Racket sur ${target ? target.nom : "la cible"} !`);
+      return afterItem(`🪙 Racket sur ${target ? target.nom : "la cible"} ! À vous de lancer le dé.`);
     case "sceptre_larcin": {
-      if (!target) return endPanel("👑 Le Sceptre du Larcin n'a trouvé personne à détrousser.");
+      if (!target) return afterItem("👑 Le Sceptre du Larcin n'a trouvé personne à détrousser. À vous de lancer le dé.");
       const pare = target.bouclier;
       applyMalusTo(target, () => { if ((target.etoiles ?? 0) > 0) { target.etoiles -= 1; pion.etoiles = (pion.etoiles ?? 0) + 1; renderPlayersStrip(); } });
-      return endPanel(pare
-        ? `👑🛡️ Le bouclier de ${target.nom} a protégé son étoile ! Le sceptre repart bredouille.`
-        : `👑 Le Sceptre du Larcin dérobe une ⭐ à ${target.nom} pour ${pion.nom} !`);
+      return afterItem(pare
+        ? `👑🛡️ Le bouclier de ${target.nom} a protégé son étoile ! À vous de lancer le dé.`
+        : `👑 Le Sceptre du Larcin dérobe une ⭐ à ${target.nom} pour ${pion.nom} ! À vous de lancer le dé.`);
     }
     default:
       return openBag(pion);
@@ -3947,6 +4036,7 @@ function finishTurn() {
   pion.doublePieces = false;
   pion.aimantOr = false; // l'Aimant à Or ne dure qu'un tour
   pion.relanceBonus = false; // relance non utilisée : perdue en fin de tour
+  pion.objetUtilise = false; // nouvel objet autorisé au prochain tour
   const { skipped } = nextTurn();
 
   // Mode Étoiles : fin après le nombre de manches fixé.
@@ -4073,7 +4163,7 @@ const { loadWordgames } = require("./wordgames.js");
 const { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } = require("./custom.js");
 const { BOARDS, boardById, generateBoard } = require("./board.js");
 const { resumeGame, startGame } = require("./game.js");
-const { CHARACTERS, characterById, clearSave, loadSave, newGame } = require("./state.js");
+const { AGE_BRACKETS, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, loadSave, newGame, youngestBracket } = require("./state.js");
 const { portraitEl } = require("./portraits.js");
 const { POWERS } = require("./powers.js");
 const { setVoice, voiceAvailable, voiceEnabled, warmVoices } = require("./tts.js");
@@ -4264,10 +4354,11 @@ let setupMode = "individuel";
 let selectedBoardId = "grand-donjon";
 let variant = "course";
 let rounds = 10;
-let players = [{ nom: "", profil: "adulte", characterId: "cageot" }, { nom: "", profil: "adulte", characterId: "etincelle" }];
+const DEFAULT_BRACKET = "18+";
+let players = [{ nom: "", bracket: DEFAULT_BRACKET, characterId: "cageot" }, { nom: "", bracket: DEFAULT_BRACKET, characterId: "etincelle" }];
 let teams = [
-  { nom: "Les Dragons", characterId: "cageot", membres: [{ nom: "", profil: "adulte" }] },
-  { nom: "Les Licornes", characterId: "etincelle", membres: [{ nom: "", profil: "adulte" }] },
+  { nom: "Les Dragons", characterId: "cageot", membres: [{ nom: "", bracket: DEFAULT_BRACKET }] },
+  { nom: "Les Licornes", characterId: "etincelle", membres: [{ nom: "", bracket: DEFAULT_BRACKET }] },
 ];
 
 function cycleCharacter(currentId) {
@@ -4275,17 +4366,19 @@ function cycleCharacter(currentId) {
   return CHARACTERS[(idx + 1) % CHARACTERS.length].id;
 }
 
-function profilToggle(obj, rerender) {
-  const isChild = obj.profil === "enfant";
-  return el("button", {
-    class: "btn btn-toggle" + (isChild ? " btn-toggle-enfant" : ""),
-    type: "button",
-    "aria-label": `Profil : ${obj.profil} (toucher pour changer)`,
-    onclick: () => {
-      obj.profil = isChild ? "adulte" : "enfant";
-      rerender();
-    },
-  }, isChild ? "👶 enfant" : "🎩 adulte");
+/** Sélecteur de tranche d'âge (7 tranches) — adapte la difficulté des questions. */
+function ageSelect(obj, rerender) {
+  if (!obj.bracket) obj.bracket = DEFAULT_BRACKET;
+  const sel = el("select", {
+    class: "name-input age-select",
+    "aria-label": "Tranche d'âge du joueur",
+    onchange: (e) => { obj.bracket = e.target.value; if (rerender) rerender(); },
+  }, ...AGE_BRACKETS.map((b) => {
+    const o = el("option", { value: b.id, text: `${b.emoji} ${b.label}` });
+    if (b.id === obj.bracket) o.selected = true;
+    return o;
+  }));
+  return sel;
 }
 
 function characterButton(obj, rerender) {
@@ -4340,7 +4433,7 @@ function renderSetup() {
       list.append(
         el("div", { class: "setup-row" },
           nameInput(p, `Joueur ${i + 1}`),
-          profilToggle(p, renderSetup),
+          ageSelect(p, renderSetup),
           characterButton(p, renderSetup),
           players.length > 1
             ? el("button", { class: "btn btn-x", type: "button", "aria-label": `Retirer le joueur ${i + 1}`, onclick: () => { players.splice(i, 1); renderSetup(); } }, "✕")
@@ -4353,7 +4446,7 @@ function renderSetup() {
       zone.append(el("button", {
         class: "btn", type: "button",
         onclick: () => {
-          players.push({ nom: "", profil: "adulte", characterId: CHARACTERS[players.length % CHARACTERS.length].id });
+          players.push({ nom: "", bracket: DEFAULT_BRACKET, characterId: CHARACTERS[players.length % CHARACTERS.length].id });
           renderSetup();
         },
       }, "＋ Ajouter un joueur"));
@@ -4374,7 +4467,7 @@ function renderSetup() {
         block.append(
           el("div", { class: "setup-row setup-row-membre" },
             nameInput(m, `Membre ${mi + 1}`),
-            profilToggle(m, renderSetup),
+            ageSelect(m, renderSetup),
             t.membres.length > 1
               ? el("button", { class: "btn btn-x", type: "button", "aria-label": "Retirer le membre", onclick: () => { t.membres.splice(mi, 1); renderSetup(); } }, "✕")
               : null,
@@ -4382,7 +4475,7 @@ function renderSetup() {
         );
       });
       if (totalMembers() < MAX_PLAYERS) {
-        block.append(el("button", { class: "btn btn-small", type: "button", onclick: () => { t.membres.push({ nom: "", profil: "adulte" }); renderSetup(); } }, "＋ Membre"));
+        block.append(el("button", { class: "btn btn-small", type: "button", onclick: () => { t.membres.push({ nom: "", bracket: DEFAULT_BRACKET }); renderSetup(); } }, "＋ Membre"));
       }
       list.append(block);
     });
@@ -4391,7 +4484,7 @@ function renderSetup() {
       zone.append(el("button", {
         class: "btn", type: "button",
         onclick: () => {
-          teams.push({ nom: `Équipe ${teams.length + 1}`, characterId: CHARACTERS[teams.length % CHARACTERS.length].id, membres: [{ nom: "", profil: "adulte" }] });
+          teams.push({ nom: `Équipe ${teams.length + 1}`, characterId: CHARACTERS[teams.length % CHARACTERS.length].id, membres: [{ nom: "", bracket: DEFAULT_BRACKET }] });
           renderSetup();
         },
       }, "＋ Ajouter une équipe"));
@@ -4469,7 +4562,7 @@ function renderSetup() {
   }
 
   zone.append(
-    el("p", { class: "help-note", text: "Les questions « enfant » conviennent à tout le monde ; le profil ne sert qu'à adapter la difficulté. En équipe, un porte-parole différent répond à chaque question." }),
+    el("p", { class: "help-note", text: "Choisissez une tranche d'âge par joueur : les questions s'adaptent à la difficulté correspondante. En équipe, on joue au niveau du plus jeune, et un porte-parole différent répond à chaque question." }),
     el("button", { class: "btn btn-big btn-gold", type: "button", onclick: launchGame }, "🏰 Entrer dans le Donjon"),
     el("button", { class: "btn", type: "button", onclick: () => { renderHome(); show("home"); } }, "← Retour"),
   );
@@ -4488,17 +4581,26 @@ function launchGame() {
   let pions;
   if (setupMode === "individuel") {
     pions = players
-      .map((p, i) => ({ ...p, nom: p.nom.trim() || `Joueur ${i + 1}` }))
+      .map((p, i) => {
+        const bracket = p.bracket ?? DEFAULT_BRACKET;
+        return { ...p, nom: p.nom.trim() || `Joueur ${i + 1}`, bracket, profil: bracketProfil(bracket) };
+      })
       .slice(0, MAX_PLAYERS);
     if (pions.length < 1) return;
   } else {
     pions = teams.map((t, i) => {
-      const membres = t.membres.map((m, mi) => ({ nom: m.nom.trim() || `Membre ${mi + 1}`, profil: m.profil }));
+      const membres = t.membres.map((m, mi) => {
+        const bracket = m.bracket ?? DEFAULT_BRACKET;
+        return { nom: m.nom.trim() || `Membre ${mi + 1}`, bracket, profil: bracketProfil(bracket) };
+      });
+      // A team plays for the YOUNGEST member aboard: collective questions and
+      // difficulty adapt to the youngest age present.
+      const bracket = youngestBracket(membres.map((m) => m.bracket));
       return {
         nom: t.nom.trim() || `Équipe ${i + 1}`,
         characterId: t.characterId,
-        // A team plays at child level as soon as one child is aboard.
-        profil: membres.some((m) => m.profil === "enfant") ? "enfant" : "adulte",
+        bracket,
+        profil: bracketProfil(bracket),
         membres,
       };
     });

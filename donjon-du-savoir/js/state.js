@@ -17,6 +17,50 @@ export function characterById(id) {
   return CHARACTERS.find((c) => c.id === id) ?? CHARACTERS[0];
 }
 
+/**
+ * Tranches d'âge des joueurs (du plus jeune au plus âgé). Chaque tranche ouvre
+ * une FENÊTRE de difficulté de questions (difMin..difMax, sur l'échelle 1-5) ;
+ * la 1re privilégie le contenu « tout-petit » (`petit`). Les pouvoirs des
+ * personnages restent en deux familles : « enfant » pour les 3 plus jeunes
+ * tranches, « adulte » pour les 3 plus âgées.
+ */
+export const AGE_BRACKETS = [
+  { id: "2-5", label: "2–5 ans", emoji: "🍼", difMin: 1, difMax: 1, petit: true },
+  { id: "5-8", label: "5–8 ans", emoji: "🧸", difMin: 1, difMax: 2 },
+  { id: "9-11", label: "9–11 ans", emoji: "🧒", difMin: 1, difMax: 3 },
+  { id: "12-14", label: "12–14 ans", emoji: "🧑", difMin: 2, difMax: 4 },
+  { id: "14-16", label: "14–16 ans", emoji: "🎓", difMin: 3, difMax: 5 },
+  { id: "16-18", label: "16–18 ans", emoji: "🧑‍🎓", difMin: 4, difMax: 5 },
+  { id: "18+", label: "18 ans et +", emoji: "🧙", difMin: 3, difMax: 5 },
+];
+
+export function bracketById(id) {
+  return AGE_BRACKETS.find((b) => b.id === id) ?? AGE_BRACKETS[2];
+}
+
+export function bracketIndex(id) {
+  const i = AGE_BRACKETS.findIndex((b) => b.id === id);
+  return i === -1 ? 2 : i;
+}
+
+/** Famille de pouvoirs : « enfant » pour les 3 tranches les plus jeunes. */
+export function bracketProfil(id) {
+  return bracketIndex(id) <= 2 ? "enfant" : "adulte";
+}
+
+/** Tranche la PLUS JEUNE d'un ensemble (pour que le collectif convienne à tous). */
+export function youngestBracket(ids) {
+  if (!ids || ids.length === 0) return "9-11";
+  let best = AGE_BRACKETS.length - 1;
+  for (const id of ids) best = Math.min(best, bracketIndex(id));
+  return AGE_BRACKETS[Math.max(0, best)].id;
+}
+
+/** Compat : ancien profil enfant/adulte → une tranche par défaut. */
+function profilToBracket(profil) {
+  return profil === "enfant" ? "5-8" : "18+";
+}
+
 let state = null;
 
 export function getState() {
@@ -56,7 +100,9 @@ export function newGame(config, boardLayout) {
       id: i,
       nom: p.nom,
       characterId: p.characterId,
-      profil: p.profil,
+      // Tranche d'âge (fenêtre de difficulté) + profil dérivé (famille de pouvoirs).
+      bracket: p.bracket ?? profilToBracket(p.profil),
+      profil: p.profil ?? bracketProfil(p.bracket ?? "16-18"),
       membres: p.membres ?? null,
       porteParoleIndex: 0,
       position: 0,
@@ -69,6 +115,7 @@ export function newGame(config, boardLayout) {
       besasse: false,
       pouvoirUtilise: false,
       tourASauter: false,
+      objetUtilise: false,
       doublePieces: false,
       stats: { bonnes: 0, questions: 0 },
       malusSubis: 0,
@@ -256,6 +303,12 @@ export function loadSave() {
     if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.pions)) return null;
     if (!parsed.boardId) parsed.boardId = "grand-donjon"; // saves from before multi-boards
     if (parsed.pendingCase === undefined) parsed.pendingCase = null;
+    // Sauvegardes d'avant les tranches d'âge : dériver un bracket depuis le profil.
+    for (const p of parsed.pions) {
+      if (!p.bracket) p.bracket = p.profil === "enfant" ? "5-8" : "18+";
+      if (!p.profil) p.profil = bracketProfil(p.bracket);
+      if (p.objetUtilise === undefined) p.objetUtilise = false;
+    }
     state = parsed;
     return state;
   } catch {

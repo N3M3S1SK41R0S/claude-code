@@ -191,6 +191,7 @@ main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
   min-height: 48px;
 }
 .name-input::placeholder { color: var(--soft); }
+select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor: pointer; }
 #setup-zone { display: flex; flex-direction: column; gap: 1rem; }
 .setup-subtitle { color: var(--gold); font-size: 1.1rem; text-align: center; }
 
