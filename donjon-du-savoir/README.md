@@ -78,14 +78,20 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
    (on devine les lettres, 6 erreurs max). Ils sont **dérivés de la banque déjà
    vérifiée** — aucun contenu neuf, donc aucun risque factuel.
 7. **Question bonus de la tablée** : de temps en temps, entre deux tours, le
-   Héraut lance une question à **toute la table** — la première bonne réponse
-   criée rafle quelques pièces (toujours zéro chronomètre, la table est juge).
+   Héraut lance une question à **toute la table** — **sans course** : chacun
+   réfléchit tranquillement, et **tous ceux qui avaient bon** empochent l'or
+   (zéro chronomètre, aucune rapidité, la table est juge).
 8. **Défis d'expression** (case 🎭) : le pion actif devient meneur et fait
    deviner à la tablée un défi 🚫 **Tabou** (sans dire les mots interdits),
-   🔑 **Password** (indices d'un seul mot) ou 🤫 **Mime** (en silence). Contenu
-   **vérifié, 100 % original et tout public** (`data/wordgames.json`) — aucun
-   nom de marque, aucun personnage sous licence.
-9. Premier pion au Trésor : victoire (jamais d'élimination).
+   🔑 **Password** (indices d'un seul mot), 🤫 **Mime** (en silence) ou
+   ✏️ **Pictionary** (en dessin). Contenu **original et tout public**
+   (`data/wordgames.json`) — aucun nom de marque, aucun personnage sous licence.
+9. **Rencontres de PNJ** (case 🍀) : Merlinouche l'Étourdi, Biscornu le
+   Dragonnet, Maître Hibou… surgissent avec une bonne humeur communicative ;
+   beaucoup posent une **vraie question individuelle** (bonne réponse = cadeau).
+   Certaines cases **Coup dur** 💀 peuvent aussi s'**esquiver** en répondant
+   juste — plus de questions individuelles, partout.
+10. Premier pion au Trésor : victoire (jamais d'élimination).
 
 ### Formats de question (aucun n'est chronométré)
 

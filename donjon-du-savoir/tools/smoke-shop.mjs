@@ -35,6 +35,9 @@ function findChromium() {
 
 const browser = await chromium.launch({ executablePath: findChromium(), args: ["--no-proxy-server"] });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+// Deterministic shop navigation: the test seam disables the random NPC /
+// minigame / dodge-quiz encounters that would otherwise eat the turn budget.
+await page.addInitScript(() => { window.__DONJON_TEST = true; });
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e)));
 const failures = [];

@@ -714,6 +714,12 @@ const EXPRESSION_KIND = {
     consigne: (d) => `Mimez « ${d.expression} » — sans parler, sans bruitage.`,
     cible: (d) => d.expression,
   },
+  pictionary: {
+    titre: "✏️ Pictionary",
+    passerelle: "Prenez une feuille et un crayon : dessinez le mot, sans écrire ni parler !",
+    consigne: (d) => `Dessinez « ${d.mot} » pour le faire deviner. Interdit : écrire une lettre ou un chiffre, et parler.`,
+    cible: (d) => d.mot,
+  },
 };
 
 /**
@@ -724,7 +730,8 @@ const EXPRESSION_KIND = {
 function doExpression(pion) {
   setPendingCase("resolu");
   const hasChild = getState().pions.some((p) => p.profil === "enfant");
-  const d = drawDefi({ hasChild });
+  const forceType = testFlag("__DONJON_PICTIONARY") ? "pictionary" : null;
+  const d = drawDefi({ hasChild, type: forceType });
   if (!d) { addCoins(pion, 2); return endPanel("🎭 La malle aux défis est vide pour l'instant. +2 🪙 pour la peine."); }
   const kind = EXPRESSION_KIND[d.type] ?? EXPRESSION_KIND.mime;
   const meneur = speakerName(pion);
@@ -830,6 +837,12 @@ const CHANCE_EFFECTS = [
   { texte: "Le trésor d'un rat distrait : +5 pièces.", apply: (p) => void addCoins(p, 5) },
   { texte: "Une carte Joker qui traînait ! +1 Joker.", apply: (p) => void (p.jokers += 1) },
   { texte: "Petit bond en avant : +1 case.", apply: (p) => shift(p, 1) },
+  { texte: "Un lutin farceur vous pousse… vers l'avant ! +2 cases.", apply: (p) => shift(p, 2) },
+  { texte: "Un trèfle à quatre feuilles pousse à vos pieds : +1 Joker.", apply: (p) => void (p.jokers += 1) },
+  { texte: "Une chauve-souris laisse tomber une pièce en plein vol : +2 pièces.", apply: (p) => void addCoins(p, 2) },
+  { texte: "Un marchand généreux vide sa besace pour vous : +4 pièces.", apply: (p) => void addCoins(p, 4) },
+  { texte: "Vous glissez sur une peau de banane… enchantée : +2 cases vers l'avant !", apply: (p) => shift(p, 2) },
+  { texte: "Le Héraut vous applaudit et vous ouvre un passage : +3 cases.", apply: (p) => shift(p, 3) },
 ];
 
 const MALUS_EFFECTS = [
@@ -838,6 +851,49 @@ const MALUS_EFFECTS = [
   { texte: "Un péage de gobelins : −3 pièces.", apply: (p) => void (p.pieces = Math.max(0, p.pieces - 3)) },
   { texte: "Une sieste involontaire : vous passez votre prochain tour.", apply: (p) => void (p.tourASauter = true) },
   { texte: "Petite chute : reculez d'1 case.", apply: (p) => shift(p, -1) },
+  { texte: "Un nuage grognon vous trempe : −2 pièces pour vous sécher.", apply: (p) => void (p.pieces = Math.max(0, p.pieces - 2)) },
+  { texte: "Des corbeaux chapardeurs raflent votre goûter : −2 pièces.", apply: (p) => void (p.pieces = Math.max(0, p.pieces - 2)) },
+  { texte: "Un pont-levis capricieux se referme : reculez de 2 cases.", apply: (p) => shift(p, -2) },
+  { texte: "Une flaque de boue collante : reculez d'1 case (et vos chaussettes puent).", apply: (p) => shift(p, -1) },
+];
+
+/* ---------- rencontres de PNJ (drôles) : parfois une vraie question ---------- */
+const NPCS = [
+  { emoji: "🧙", nom: "Merlinouche l'Étourdi", quiz: true,
+    intro: "« Aaah, un aventurier ! J'ai encore raté ma potion… réponds juste et je te change un caillou en or ! »",
+    demande: "Bonne réponse = le magot. Sinon, ça sentira le chou.",
+    reward: { texte: "+4 🪙", apply: (p) => void addCoins(p, 4) },
+    rate: "La potion fait « splotch » et sent le chou bouilli. Rien de grave." },
+  { emoji: "🐲", nom: "Biscornu le Dragonnet", quiz: true,
+    intro: "« Grrr… enfin, miaou. Réponds à mon énigme et je te souffle un p'tit trésor (pas de feu, promis). »",
+    demande: "Bonne réponse : le dragonnet crache 3 pièces.",
+    reward: { texte: "+3 🪙", apply: (p) => void addCoins(p, 3) },
+    rate: "Le dragonnet boude et recrache une chaussette calcinée." },
+  { emoji: "🦉", nom: "Maître Hibou de Passage", quiz: true,
+    intro: "« Hou hou ! Une petite colle pour un esprit bien affûté ? »",
+    demande: "Réussite : le hibou vous glisse un Joker.",
+    reward: { texte: "+1 Joker", apply: (p) => void (p.jokers += 1) },
+    rate: "Le hibou hoche la tête, déçu mais bienveillant." },
+  { emoji: "🎪", nom: "Barnabé le Bateleur", quiz: true,
+    intro: "« Approchez, approchez ! Une devinette, un cadeau ! »",
+    demande: "Bonne réponse : +2 cases vers la gloire.",
+    reward: { texte: "+2 cases", apply: (p) => shift(p, 2) },
+    rate: "Barnabé sort un lapin de son chapeau… non, une carotte. Dommage." },
+  { emoji: "🐭", nom: "Roquefort le Mulot Marchand", plain: true,
+    intro: "« Psst ! Un raccourci sous les racines, ça t'dit ? Suis-moi ! »",
+    effet: { texte: "+2 cases", apply: (p) => shift(p, 2) } },
+  { emoji: "🧚", nom: "Fée Bricole", plain: true,
+    intro: "« Tiens, un petit sort de chance — je l'avais en double ! »",
+    effet: { texte: "+1 Joker", apply: (p) => void (p.jokers += 1) } },
+  { emoji: "👻", nom: "Boubou le Fantôme Timide", plain: true,
+    intro: "« Bouh… oh pardon, j'voulais pas faire peur. Tiens, un bonbon-pièce. »",
+    effet: { texte: "+2 🪙", apply: (p) => void addCoins(p, 2) } },
+  { emoji: "🧟", nom: "Gérard le Squelette Poli", plain: true,
+    intro: "« Auriez-vous deux pièces pour un os de rechange ? Merci infiniment, très aimable. »",
+    effet: { texte: "−2 🪙", apply: (p) => void (p.pieces = Math.max(0, p.pieces - 2)) } },
+  { emoji: "🐌", nom: "Turbo l'Escargot", plain: true,
+    intro: "« Suis-moi, je connais un raccourci ! …enfin, dès que j'y arrive. »",
+    effet: { texte: "−1 case (Turbo n'est pas si rapide)", apply: (p) => shift(p, -1) } },
 ];
 
 /** Larcin fortuné : un vol d'étoile GRATUIT (~4 %) offert par la pure chance,
@@ -864,6 +920,10 @@ function doChance(pion, { forced = null, onDone = null } = {}) {
       .sort((a, b) => (b.etoiles ?? 0) - (a.etoiles ?? 0));
     if (cibles.length > 0) return larcinFortune(pion, cibles[0]);
   }
+  // Rencontre de PNJ drôle (~45 %) — souvent une vraie question individuelle.
+  if (!forced && !onDone && (testFlag("__DONJON_NPC") || (!testFlag("__DONJON_TEST") && Math.random() < 0.45))) {
+    return doNPC(pion);
+  }
   const effect = forced ?? CHANCE_EFFECTS[Math.floor(Math.random() * CHANCE_EFFECTS.length)];
   const won = effect.apply(pion) === true; // shift() returns true on victory
   save();
@@ -881,6 +941,11 @@ function doChance(pion, { forced = null, onDone = null } = {}) {
 
 function doMalus(pion) {
   const effect = MALUS_EFFECTS[Math.floor(Math.random() * MALUS_EFFECTS.length)];
+  // Parfois (~40 %), on peut ESQUIVER le coup dur en répondant à une question
+  // individuelle : bonne réponse = piège évité, mauvaise = piège subi.
+  if (testFlag("__DONJON_MALUSQUIZ") || (!testFlag("__DONJON_TEST") && Math.random() < 0.4)) {
+    return malusQuiz(pion, effect);
+  }
   const power = powerOf(pion);
   const apply = () => {
     setPendingCase("resolu");
@@ -906,6 +971,100 @@ function doMalus(pion) {
     return;
   }
   apply();
+}
+
+/* ---------- rencontres de PNJ (case 🍀) : parfois une vraie question ---------- */
+
+function doNPC(pion) {
+  setPendingCase("resolu");
+  const pool = testFlag("__DONJON_NPC") ? NPCS.filter((n) => n.quiz) : NPCS;
+  const npc = pool[Math.floor(Math.random() * pool.length)] ?? NPCS[0];
+  heraldSays(`✨ Une rencontre ! ${npc.emoji} ${npc.nom} surgit sur le chemin.`);
+  if (npc.quiz) return npcQuiz(pion, npc);
+  const won = npc.effet.apply(pion) === true; // shift() peut déclencher la victoire
+  save();
+  render();
+  if (won) return;
+  endPanel(`${npc.emoji} ${npc.nom} : ${npc.intro} → ${npc.effet.texte}`);
+}
+
+function npcQuiz(pion, npc) {
+  const q = drawQuestion(pion, { formats: ["qcm", "vrai_faux"] });
+  if (!q) { addCoins(pion, 2); return endPanel(`${npc.emoji} ${npc.nom} a perdu sa devinette… +2 🪙 pour la peine.`); }
+  const choices = q.choix ?? ["Vrai", "Faux"];
+  const grid = el("div", { class: `choices ${choices.length === 2 ? "choices-2" : ""}`, role: "group", "aria-label": "Choix de réponse" });
+  choices.forEach((choice) => {
+    grid.append(choiceButton(choice, () => {
+      const correct = choice === q.bonne_reponse;
+      pion.stats.questions += 1;
+      if (correct) pion.stats.bonnes += 1;
+      bumpNiveau(pion, correct);
+      sfx(correct ? "good" : "bad");
+      const won = correct && npc.reward.apply(pion) === true;
+      save();
+      render();
+      if (won) return;
+      showAnecdote(q, {
+        verdictHtml: correct
+          ? `✅ Bien vu ! ${npc.emoji} ${npc.reward.texte}`
+          : `❌ Raté — la réponse était « ${q.bonne_reponse} ». ${npc.rate}`,
+        onContinue: () => finishTurn(),
+      });
+    }));
+  });
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: `${npc.emoji} ${npc.nom}` }),
+      el("p", { class: "panel-text", text: npc.intro }),
+      el("p", { class: "help-note", text: npc.demande }),
+      questionHeader(q, pion),
+      el("p", { class: "question-texte", text: q.texte }),
+      grid,
+    ),
+  );
+}
+
+/** Coup dur « à esquiver » : répondez juste pour éviter le malus. */
+function malusQuiz(pion, effect) {
+  const q = drawQuestion(pion, { formats: ["qcm", "vrai_faux"] });
+  if (!q) {
+    setPendingCase("resolu");
+    effect.apply(pion);
+    save();
+    sfx("malus");
+    render();
+    return endPanel(`💀 ${effect.texte}`);
+  }
+  const choices = q.choix ?? ["Vrai", "Faux"];
+  const grid = el("div", { class: `choices ${choices.length === 2 ? "choices-2" : ""}`, role: "group", "aria-label": "Choix de réponse" });
+  choices.forEach((choice) => {
+    grid.append(choiceButton(choice, () => {
+      const correct = choice === q.bonne_reponse;
+      pion.stats.questions += 1;
+      if (correct) pion.stats.bonnes += 1;
+      bumpNiveau(pion, correct);
+      setPendingCase("resolu");
+      if (correct) { sfx("good"); } else { effect.apply(pion); sfx("malus"); }
+      save();
+      render();
+      showAnecdote(q, {
+        verdictHtml: correct
+          ? `✅ Esquive réussie ! Vous évitez : « ${effect.texte} »`
+          : `❌ Raté — la réponse était « ${q.bonne_reponse} ». Vous subissez : ${effect.texte}`,
+        onContinue: () => finishTurn(),
+      });
+    }));
+  });
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "💀 Coup dur… ou pas !" }),
+      el("p", { class: "panel-text", text: `Un piège se profile : ${effect.texte}` }),
+      el("p", { class: "help-note", text: "Répondez juste pour l'ESQUIVER !" }),
+      questionHeader(q, pion),
+      el("p", { class: "question-texte", text: q.texte }),
+      grid,
+    ),
+  );
 }
 
 /* ---------- turn-timed powers ---------- */
