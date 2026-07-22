@@ -274,13 +274,37 @@ function startTurn({ silent = false, prefix = "" } = {}) {
 
 /* ---------- besace : usage d'objets ---------- */
 
+/** Icône d'objet : image 3D peinte, repli sur l'emoji si elle manque. */
+function itemIconEl(it) {
+  const span = el("span", { class: "item-icon" });
+  span.innerHTML = `<span class="item-emoji">${it.emoji}</span>`;
+  if (it.art) {
+    const img = document.createElement("img");
+    img.className = "item-art";
+    img.alt = "";
+    img.decoding = "async";
+    img.src = it.art;
+    img.onerror = () => img.remove(); // repli : l'emoji reste
+    span.appendChild(img);
+  }
+  return span;
+}
+
+/** Bouton d'objet (boutique / besace) : icône 3D + libellé. */
+function itemButton(it, labelHtml, onclick) {
+  return el("button", { class: "btn btn-choice btn-item", type: "button", onclick },
+    itemIconEl(it),
+    el("span", { class: "btn-item-text", html: labelHtml }),
+  );
+}
+
 function openBag(pion) {
   const items = ownedItems(pion);
   setPanel(
     el("h2", { class: "panel-title", text: "🎒 Votre besace" }),
     el("p", { class: "help-note", text: "Utilisez un objet, ou refermez pour lancer le dé." }),
     ...items.map((it) =>
-      choiceButton(`${it.emoji} ${it.nom}${it.qte > 1 ? ` ×${it.qte}` : ""} — ${it.desc}`, () => useItem(pion, it.id)),
+      itemButton(it, `<strong>${it.nom}</strong>${it.qte > 1 ? ` ×${it.qte}` : ""} — ${it.desc}`, () => useItem(pion, it.id)),
     ),
     bigButton("↩︎ Refermer", () => startTurn({ silent: true })),
   );
@@ -647,8 +671,9 @@ function doBoutique(pion, onDone = null) {
     for (const id of shopIds) {
       const it = ITEMS[id];
       const abordable = pion.pieces >= it.cout && hasRoom(pion);
-      const btn = choiceButton(
-        `${it.emoji} ${it.nom} — ${it.cout} 🪙 · ${it.desc}`,
+      const btn = itemButton(
+        it,
+        `<strong>${it.nom}</strong> — ${it.cout} 🪙 · ${it.desc}`,
         () => {
           if (pion.pieces < it.cout || !hasRoom(pion)) return;
           pion.pieces -= it.cout;

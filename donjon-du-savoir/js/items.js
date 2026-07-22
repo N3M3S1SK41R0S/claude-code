@@ -12,24 +12,26 @@ export const BESASSE_COST = 40;
 // Prix calés sur le panel de design (revenu ~14 or/tour ; l'objet le plus fort
 // reste sous le prix d'une étoile de base à 20, sauf le tuyau d'or, quasi-étoile).
 // cible : "soi" (sur son tour), "autre" (choisir une victime), "aucune" (dé).
+// `art` : icône 3D peinte affichée à la place de l'emoji en boutique et dans la
+// besace (repli sur l'emoji si l'image manque).
 export const ITEMS = {
   // ---- dés spéciaux ----
-  de_double: { id: "de_double", nom: "Dé Double", emoji: "🎲🎲", type: "de", cible: "aucune", cout: 8, desc: "Lance 2 dés, avance de leur somme." },
-  de_choisi: { id: "de_choisi", nom: "Dé Choisi", emoji: "🎯", type: "de", cible: "aucune", cout: 12, desc: "Choisis la valeur 1 à 6 : vise ta case." },
-  de_triple: { id: "de_triple", nom: "Dé Triple", emoji: "🎲🎲🎲", type: "de", cible: "aucune", cout: 14, desc: "Lance 3 dés, avance de leur somme." },
-  de_teleport: { id: "de_teleport", nom: "Dé Mirage", emoji: "🌫️", type: "de", cible: "aucune", cout: 10, desc: "Téléporte sur une case au hasard." },
-  de_echange: { id: "de_echange", nom: "Dé d'Échange", emoji: "🔄", type: "de", cible: "autre", cout: 12, desc: "Échange ta place avec un adversaire au choix." },
-  tuyau_or: { id: "tuyau_or", nom: "Tuyau d'Or", emoji: "🌀", type: "de", cible: "aucune", cout: 18, desc: "Bond en avant vers l'Étoile / le Trésor." },
+  de_double: { id: "de_double", nom: "Dé Double", emoji: "🎲🎲", art: "assets/objet-de.png", type: "de", cible: "aucune", cout: 8, desc: "Lance 2 dés, avance de leur somme." },
+  de_choisi: { id: "de_choisi", nom: "Dé Choisi", emoji: "🎯", art: "assets/objet-de.png", type: "de", cible: "aucune", cout: 12, desc: "Choisis la valeur 1 à 6 : vise ta case." },
+  de_triple: { id: "de_triple", nom: "Dé Triple", emoji: "🎲🎲🎲", art: "assets/objet-de.png", type: "de", cible: "aucune", cout: 14, desc: "Lance 3 dés, avance de leur somme." },
+  de_teleport: { id: "de_teleport", nom: "Dé Mirage", emoji: "🌫️", art: "assets/objet-cristal.png", type: "de", cible: "aucune", cout: 10, desc: "Téléporte sur une case au hasard." },
+  de_echange: { id: "de_echange", nom: "Dé d'Échange", emoji: "🔄", art: "assets/objet-sablier.png", type: "de", cible: "autre", cout: 12, desc: "Échange ta place avec un adversaire au choix." },
+  tuyau_or: { id: "tuyau_or", nom: "Tuyau d'Or", emoji: "🌀", art: "assets/objet-etoile.png", type: "de", cible: "aucune", cout: 18, desc: "Bond en avant vers l'Étoile / le Trésor." },
 
   // ---- jokers (sur soi) ----
-  bouclier: { id: "bouclier", nom: "Bouclier", emoji: "🛡️", type: "joker", cible: "soi", cout: 10, desc: "Pare le prochain malus ou vol subi." },
-  aimant_or: { id: "aimant_or", nom: "Aimant à Or", emoji: "🧲", type: "joker", cible: "soi", cout: 9, desc: "Double l'or gagné pendant ce tour." },
-  relance: { id: "relance", nom: "Fiole de Relance", emoji: "🔁", type: "joker", cible: "soi", cout: 6, desc: "Relance le dé une fois." },
+  bouclier: { id: "bouclier", nom: "Bouclier", emoji: "🛡️", art: "assets/objet-bouclier.png", type: "joker", cible: "soi", cout: 10, desc: "Pare le prochain malus ou vol subi." },
+  aimant_or: { id: "aimant_or", nom: "Aimant à Or", emoji: "🧲", art: "assets/objet-pieces.png", type: "joker", cible: "soi", cout: 9, desc: "Double l'or gagné pendant ce tour." },
+  relance: { id: "relance", nom: "Fiole de Relance", emoji: "🔁", art: "assets/objet-potion.png", type: "joker", cible: "soi", cout: 6, desc: "Relance le dé une fois." },
 
   // ---- malus (sur autrui, parables — jamais cruels) ----
-  sabotage: { id: "sabotage", nom: "Sabotage", emoji: "💣", type: "malus", cible: "autre", cout: 6, desc: "Recule un adversaire de 3 cases." },
-  racket: { id: "racket", nom: "Racket", emoji: "🪙", type: "malus", cible: "autre", cout: 6, desc: "Vole 5 or à un adversaire." },
-  sceptre_larcin: { id: "sceptre_larcin", nom: "Sceptre du Larcin", emoji: "👑", type: "malus", cible: "autre", cout: 35, desc: "Vole une étoile à un adversaire (mode Étoiles, très cher)." },
+  sabotage: { id: "sabotage", nom: "Sabotage", emoji: "💣", art: "assets/objet-tonneau.png", type: "malus", cible: "autre", cout: 6, desc: "Recule un adversaire de 3 cases." },
+  racket: { id: "racket", nom: "Racket", emoji: "🪙", art: "assets/objet-cle.png", type: "malus", cible: "autre", cout: 6, desc: "Vole 5 or à un adversaire." },
+  sceptre_larcin: { id: "sceptre_larcin", nom: "Sceptre du Larcin", emoji: "👑", art: "assets/objet-parchemin.png", type: "malus", cible: "autre", cout: 35, desc: "Vole une étoile à un adversaire (mode Étoiles, très cher)." },
 };
 
 /** Objets proposés en boutique (ordre d'affichage). */

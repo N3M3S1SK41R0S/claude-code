@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v45";
+const VERSION = "donjon-v46";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -62,6 +62,31 @@ const SHELL = [
   "./assets/batiment-fontaine.png",
   "./assets/batiment-etoile.png",
   "./assets/batiment-champignon.png",
+  "./assets/hero-cageot.png",
+  "./assets/hero-etincelle.png",
+  "./assets/hero-gobelin.png",
+  "./assets/hero-nebulia.png",
+  "./assets/hero-boumbastien.png",
+  "./assets/hero-duchesse.png",
+  "./assets/hero-flaque.png",
+  "./assets/hero-pelote.png",
+  "./assets/hero-hibou.png",
+  "./assets/hero-kribouille.png",
+  "./assets/hero-plomberoy.png",
+  "./assets/objet-coffre.png",
+  "./assets/objet-pieces.png",
+  "./assets/objet-etoile.png",
+  "./assets/objet-potion.png",
+  "./assets/objet-cristal.png",
+  "./assets/objet-champignon.png",
+  "./assets/objet-torche.png",
+  "./assets/objet-tonneau.png",
+  "./assets/objet-cle.png",
+  "./assets/objet-bouclier.png",
+  "./assets/objet-de.png",
+  "./assets/objet-parchemin.png",
+  "./assets/objet-sablier.png",
+  "./assets/objet-joker.png",
   "./assets/case-question.png",
   "./assets/case-chance.png",
   "./assets/case-evenement.png",

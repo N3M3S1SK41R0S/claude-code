@@ -224,6 +224,22 @@ const BUILDINGS = [
   { art: "assets/batiment-champignon.png", u: 0.955, v: 0.90, w: 12 },
 ];
 
+/** Figurines 3D des héros = pions du plateau. Chemins littéraux (inlinés en
+ *  data-URI dans le fichier unique). Repli : l'emoji du pion si l'image manque. */
+const HERO_TOKEN = {
+  cageot: "assets/hero-cageot.png",
+  etincelle: "assets/hero-etincelle.png",
+  gobelin: "assets/hero-gobelin.png",
+  nebulia: "assets/hero-nebulia.png",
+  boumbastien: "assets/hero-boumbastien.png",
+  duchesse: "assets/hero-duchesse.png",
+  flaque: "assets/hero-flaque.png",
+  pelote: "assets/hero-pelote.png",
+  hibou: "assets/hero-hibou.png",
+  kribouille: "assets/hero-kribouille.png",
+  plomberoy: "assets/hero-plomberoy.png",
+};
+
 /* ---------- rendering ---------- */
 
 let builtSignature = null;
@@ -380,13 +396,27 @@ function updatePions(container, layout, pions, currentPionId) {
     group.forEach((p, i) => {
       seen.add(p.id);
       let token = layer.querySelector(`[data-pion="${p.id}"]`);
+      const fig = HERO_TOKEN[p.characterId];
       if (!token) {
         token = document.createElement("div");
         token.dataset.pion = String(p.id);
-        token.textContent = p.emoji;
+        // Emoji en repli (dessous) + figurine 3D par-dessus si disponible.
+        const emojiSpan = document.createElement("span");
+        emojiSpan.className = "pion-emoji";
+        emojiSpan.textContent = p.emoji;
+        token.appendChild(emojiSpan);
+        if (fig) {
+          const img = document.createElement("img");
+          img.className = "pion-art";
+          img.alt = "";
+          img.decoding = "async";
+          img.src = fig;
+          img.onerror = () => { img.remove(); token.classList.remove("pion-fig"); };
+          token.appendChild(img);
+        }
         layer.appendChild(token);
       }
-      token.className = "pion" + (p.id === currentPionId ? " pion-actif" : "");
+      token.className = "pion" + (fig ? " pion-fig" : "") + (p.id === currentPionId ? " pion-actif" : "");
       token.style.setProperty("--pion-color", p.couleur);
       const angle = (i / Math.max(1, group.length)) * 2 * Math.PI;
       const spread = group.length > 1 ? 16 : 0;
