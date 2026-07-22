@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 1182,
+ "count": 1236,
  "questions": [
   {
    "id": "arts-001",
@@ -22529,6 +22529,992 @@
    "sources": [
     "https://fr.wikipedia.org/wiki/Girafe",
     "https://www.larousse.fr/encyclopedie/vie-sauvage/girafe/178172"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0229",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au football, combien y a-t-il de joueurs dans une équipe sur le terrain ?",
+   "anecdote": "Il y en a 11 : un gardien de but et dix autres joueurs qui courent après le ballon.",
+   "sources": [
+    "https://www.aspoissyfootball.fr/combien-joueurs-equipe-foot/",
+    "https://www.sport-et-loisir.com/combien-de-joueurs-au-football-terrain-remplacants-et-effectif/"
+   ],
+   "choix": [
+    "7",
+    "9",
+    "11",
+    "15"
+   ],
+   "bonne_reponse": "11"
+  },
+  {
+   "id": "ext-0230",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au basket, combien de joueurs d'une même équipe jouent en même temps sur le terrain ?",
+   "anecdote": "Cinq joueurs par équipe : c'est la même règle partout dans le monde.",
+   "sources": [
+    "https://lesportpourtous.fr/combien-de-joueurs-au-basket-effectif-sur-le-terrain-et-au-banc/",
+    "https://www.panierbasket.fr/combien-joueurs-equipe-basket/"
+   ],
+   "choix": [
+    "2",
+    "5",
+    "8",
+    "11"
+   ],
+   "bonne_reponse": "5"
+  },
+  {
+   "id": "ext-0231",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le ballon de rugby est tout rond, comme un ballon de football.",
+   "anecdote": "Faux ! Le ballon de rugby est ovale, en forme de gros œuf, pour bien le tenir dans les mains quand on court.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ballon_de_rugby_%C3%A0_XV",
+    "https://cspg-rugby.ffr.fr/actualites/culture-rugby/pourquoi-le-ballon-de-rugby-a-t-il-une-forme-ovale"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0232",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien d'anneaux y a-t-il sur le drapeau des Jeux Olympiques ?",
+   "anecdote": "Cinq anneaux de couleurs différentes, reliés entre eux, pour représenter les continents unis par le sport.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_olympique",
+    "https://cnosf.franceolympique.com/les-anneaux-et-le-drapeau-olympique"
+   ],
+   "choix": [
+    "3",
+    "4",
+    "5",
+    "6"
+   ],
+   "bonne_reponse": "5"
+  },
+  {
+   "id": "ext-0233",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au volley-ball, combien de joueurs d'une équipe sont sur le terrain ?",
+   "anecdote": "Six joueurs par équipe, qui se passent le ballon par-dessus un filet sans le laisser tomber.",
+   "sources": [
+    "https://roidusport.fr/combien-joueurs-equipe-volley-ball/",
+    "https://www.decathlonpro.fr/dossier-sport/regles-volley-ball"
+   ],
+   "choix": [
+    "4",
+    "6",
+    "9",
+    "11"
+   ],
+   "bonne_reponse": "6"
+  },
+  {
+   "id": "ext-0234",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quel objet frappe-t-on la balle au tennis ?",
+   "anecdote": "On frappe la balle avec le tamis, la partie plate de la raquette faite de cordes bien tendues.",
+   "sources": [
+    "https://www.team-tennis.fr/la-technique-du-tennis/la-technique-gestuelle-au-tennis/les-prises-de-raquette/les-prises-de-raquette-et-le-plan-de-frappe",
+    "https://tennisclubmenton.fr/partie-raquette-frappe/"
+   ],
+   "choix": [
+    "Un bâton",
+    "Une raquette",
+    "Une cuillère",
+    "Un parapluie"
+   ],
+   "bonne_reponse": "Une raquette"
+  },
+  {
+   "id": "ext-0235",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La natation est un sport qui se pratique dans l'eau.",
+   "anecdote": "On peut nager dans une piscine, mais aussi dans un lac ou dans la mer.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Natation",
+    "https://dicodusport.fr/definition-sport/natation/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0236",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le cyclisme est un sport que l'on pratique à vélo.",
+   "anecdote": "Le mot « cyclisme » vient de la bicyclette, un autre nom pour le vélo.",
+   "sources": [
+    "https://www.larousse.fr/encyclopedie/divers/cyclisme/39299",
+    "https://dicodusport.fr/definition-sport/cyclisme/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0237",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel pays viennent les dessins animés que l'on appelle des « animés » ?",
+   "anecdote": "Le mot « animé » désigne les dessins animés fabriqués au Japon.",
+   "sources": [
+    "https://www.adobe.com/fr/creativecloud/animation/discover/anime.html",
+    "https://fr.wikipedia.org/wiki/S%C3%A9rie_d'animation_japonaise"
+   ],
+   "choix": [
+    "La France",
+    "Le Japon",
+    "Le Canada",
+    "L'Italie"
+   ],
+   "bonne_reponse": "Le Japon"
+  },
+  {
+   "id": "ext-0238",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans un dessin animé, on montre plein d'images très vite pour donner l'impression que ça bouge.",
+   "anecdote": "C'est un petit tour joué à nos yeux : les images défilent si vite qu'on croit voir un vrai mouvement.",
+   "sources": [
+    "https://fr.wikimini.org/wiki/Dessin_anim%C3%A9",
+    "https://www.techno-science.net/definition/7469.html"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0239",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Un folioscope, c'est un petit carnet de dessins qu'on feuillette très vite, et le dessin semble bouger.",
+   "anecdote": "On tourne les pages avec le pouce et l'image prend vie : c'est l'ancêtre du dessin animé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Folioscope",
+    "https://www.adobe.com/fr/creativecloud/animation/discover/flipbook-animation.html"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0240",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on une personne dont le métier est de faire des dessins ?",
+   "anecdote": "Un dessinateur peut travailler pour les livres, les bandes dessinées ou les dessins animés.",
+   "sources": [
+    "https://www.larousse.fr/dictionnaires/francais/dessinateur/24655",
+    "https://dictionnaire.lerobert.com/en/definition/dessinateur"
+   ],
+   "choix": [
+    "Un dessinateur",
+    "Un jardinier",
+    "Un boulanger",
+    "Un plombier"
+   ],
+   "bonne_reponse": "Un dessinateur"
+  },
+  {
+   "id": "ext-0241",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Autrefois, les dessins animés étaient dessinés à la main, une image après l'autre.",
+   "anecdote": "Il fallait des milliers de dessins pour faire un seul film : un travail très long et très patient.",
+   "sources": [
+    "https://www.afca.asso.fr/ressources/list_techniques/9,Dessin-anime-traditionnel",
+    "https://www.futura-sciences.com/tech/dossiers/technologie-cinema-animation-techniques-plus-grands-films-2537/page/3/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0242",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les dessins animés ont été inventés il y a seulement quelques mois.",
+   "anecdote": "Faux ! Les images qui bougent existent depuis plus de cent ans, bien avant tes grands-parents.",
+   "sources": [
+    "https://www.futura-sciences.com/tech/dossiers/technologie-cinema-animation-techniques-plus-grands-films-2537/page/3/",
+    "https://upopi.ciclic.fr/apprendre/l-histoire-des-images/histoire-du-cinema-d-animation"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0243",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quel objet tient-on dans les mains pour jouer à un jeu vidéo sur une console ?",
+   "anecdote": "La manette est couverte de petits boutons : chaque bouton fait faire une action dans le jeu.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Manette_de_jeu",
+    "https://www.linternaute.fr/dictionnaire/fr/definition/manette-de-jeu/"
+   ],
+   "choix": [
+    "Une manette",
+    "Un balai",
+    "Une casserole",
+    "Un crayon"
+   ],
+   "bonne_reponse": "Une manette"
+  },
+  {
+   "id": "ext-0244",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment s'appellent les tout petits points qui forment l'image sur un écran ?",
+   "anecdote": "Le mot « pixel » vient de l'anglais et veut dire « petit élément d'image ».",
+   "sources": [
+    "https://www.larousse.fr/encyclopedie/divers/pixel/80152",
+    "https://www.le-dictionnaire.com/definition/pixel"
+   ],
+   "choix": [
+    "Des pixels",
+    "Des cailloux",
+    "Des bulles",
+    "Des miettes"
+   ],
+   "bonne_reponse": "Des pixels"
+  },
+  {
+   "id": "ext-0245",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un jeu vidéo se joue sans jamais avoir besoin d'un écran.",
+   "anecdote": "Faux ! Le jeu s'affiche sur un écran : une télévision, un ordinateur ou un téléphone.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Console_de_jeux_vid%C3%A9o",
+    "https://dictionnaire.lerobert.com/en/definition/console"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0246",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment s'appelle l'appareil qu'on branche sur la télévision pour jouer aux jeux vidéo ?",
+   "anecdote": "La console lit le jeu et l'affiche sur la télé ; on le dirige avec une manette.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Console_de_jeux_vid%C3%A9o",
+    "https://animation-vr.com/quest-ce-quune-console-de-jeu/"
+   ],
+   "choix": [
+    "Une console",
+    "Une gazinière",
+    "Une perceuse",
+    "Une lampe de poche"
+   ],
+   "bonne_reponse": "Une console"
+  },
+  {
+   "id": "ext-0247",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Sur une manette de jeu, il y a des boutons sur lesquels on appuie.",
+   "anecdote": "Selon le bouton qu'on presse, le personnage peut sauter, courir ou attraper un objet.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Manette_de_jeu",
+    "https://gamingcampus.fr/boite-a-outils/les-manettes-de-jeu-video.html"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0248",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un puzzle, c'est un jeu où l'on assemble des pièces pour former une image.",
+   "anecdote": "Chaque pièce a une forme unique et ne va qu'à un seul endroit.",
+   "sources": [
+    "https://dictionnaire.lerobert.com/en/definition/puzzle",
+    "https://www.lalanguefrancaise.com/dictionnaire/definition/puzzle"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0249",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "À combien de joueurs joue-t-on une partie d'échecs ?",
+   "anecdote": "Deux joueurs s'affrontent : un avec les pièces blanches, l'autre avec les noires.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/R%C3%A8gles_du_jeu_d'%C3%A9checs",
+    "https://www.universalis.fr/encyclopedie/jeu-d-echecs/2-la-partie/"
+   ],
+   "choix": [
+    "1",
+    "2",
+    "4",
+    "6"
+   ],
+   "bonne_reponse": "2"
+  },
+  {
+   "id": "ext-0250",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Pour jouer à un jeu de société, il faut toujours être tout seul.",
+   "anecdote": "Faux ! On joue le plus souvent à plusieurs, assis autour d'une table, pour s'amuser ensemble.",
+   "sources": [
+    "https://www.ludum.fr/blog/dossiers/qu-est-ce-qu-un-jeu-de-societe",
+    "https://www.quirios.com/le-jeu-de-societe/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0251",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans beaucoup de jeux de plateau, on lance un dé pour savoir de combien de cases on avance son pion.",
+   "anecdote": "Comme au jeu de l'oie : on lance le dé et on avance son pion du nombre indiqué.",
+   "sources": [
+    "https://jeux-regles.com/regles-jeu-de-loie/",
+    "https://www.regles-de-jeux.com/regle-du-backgammon/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0252",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle série d'animation détient le record Guinness de la plus longue série animée diffusée en prime time (aux heures de grande écoute) ?",
+   "anecdote": "Diffusée depuis décembre 1989, elle a dépassé les 700 épisodes et figure au Guinness World Records comme la plus ancienne série animée en prime time.",
+   "sources": [
+    "https://www.guinnessworldrecords.com/records/hall-of-fame/the-simpsons-longest-running-animated-sitcom-number-of-episodes",
+    "https://en.wikipedia.org/wiki/List_of_awards_and_nominations_received_by_The_Simpsons"
+   ],
+   "choix": [
+    "Les Simpson",
+    "South Park",
+    "Les Griffin",
+    "Futurama"
+   ],
+   "bonne_reponse": "Les Simpson"
+  },
+  {
+   "id": "ext-0253",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année la série britannique de science-fiction Doctor Who, détentrice du record Guinness de la plus longue série de SF, a-t-elle été diffusée pour la première fois ?",
+   "anecdote": "Le tout premier épisode a été diffusé par la BBC le 23 novembre 1963, soit le lendemain de l'assassinat de John F. Kennedy.",
+   "sources": [
+    "https://www.guinnessworldrecords.com/world-records/longest-running-science-fiction-tv-series",
+    "https://www.campaignlive.co.uk/article/doctor-named-longest-running-sci-fi-tv-show/595605"
+   ],
+   "reponse_numerique": 1963
+  },
+  {
+   "id": "ext-0254",
+   "categorie": "Séries",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année s'est tenue la toute première cérémonie des Emmy Awards, les récompenses de la télévision américaine ?",
+   "anecdote": "La première remise a eu lieu le 25 janvier 1949 ; le nom « Emmy » viendrait de « Immy », surnom d'un tube de caméra de télévision.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Emmys",
+    "https://www.critictoo.com/les-chroniques/emmy-awards-origines/"
+   ],
+   "reponse_numerique": 1949
+  },
+  {
+   "id": "ext-0255",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Netflix a-t-il été fondé, à l'origine comme service de location de DVD par courrier ?",
+   "anecdote": "Fondée en 1997 par Reed Hastings et Marc Randolph, l'entreprise expédiait ses DVD dans de célèbres enveloppes rouges avant l'ère du streaming.",
+   "sources": [
+    "https://www.britannica.com/money/Netflix-Inc",
+    "https://www.foxbusiness.com/markets/how-was-netflix-founded-history"
+   ],
+   "reponse_numerique": 1997
+  },
+  {
+   "id": "ext-0256",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "La série britannique Coronation Street détient le record Guinness du plus long feuilleton télévisé (soap opera) au monde.",
+   "anecdote": "Diffusée depuis décembre 1960, elle ne devait à l'origine durer que treize épisodes.",
+   "sources": [
+    "https://www.guinnessworldrecords.com/world-records/longest-running-tv-soap-opera",
+    "https://feeds.bbci.co.uk/news/entertainment-arts-54906433"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0257",
+   "categorie": "Séries",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "En quelle année le dictionnaire britannique Collins a-t-il élu « binge-watch » (visionner en rafale) mot de l'année ?",
+   "anecdote": "En 2015, Collins notait que l'emploi du mot avait bondi de 200 % en un an, porté par l'essor des plateformes de streaming.",
+   "sources": [
+    "https://blog.collinsdictionary.com/language-lovers/binge-watch-collins-word-of-the-year-2015/",
+    "https://time.com/4102569/collins-dictionary-word-of-the-year/"
+   ],
+   "choix": [
+    "2011",
+    "2013",
+    "2015",
+    "2019"
+   ],
+   "bonne_reponse": "2015"
+  },
+  {
+   "id": "ext-0258",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "La série Game of Thrones détient le record Guinness du plus grand nombre d'Emmy Awards remportés par une série de fiction.",
+   "anecdote": "Au terme de sa diffusion en 2019, elle totalisait 59 Emmy Awards, détrônant le précédent record détenu par la sitcom Frasier.",
+   "sources": [
+    "https://www.guinnessworldrecords.com/world-records/444453-most-emmy-awards-for-a-fictional-series",
+    "https://www.goldderby.com/tv/2019/game-of-thrones-all-59-emmys-every-category-news/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0259",
+   "categorie": "Séries",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Lancée en 1972, quelle chaîne américaine fut la première chaîne câblée payante (premium) au monde ?",
+   "anecdote": "Home Box Office (HBO) a démarré le 8 novembre 1972, inaugurant le modèle de l'abonnement mensuel à la place de la publicité.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/HBO",
+    "https://dailygeekshow.com/histoire-hbo-series/"
+   ],
+   "choix": [
+    "MTV",
+    "HBO",
+    "CNN",
+    "ESPN"
+   ],
+   "bonne_reponse": "HBO"
+  },
+  {
+   "id": "ext-0260",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "« Le Voyage de Chihiro » a été le premier film d'animation japonais (anime) à remporter l'Oscar du meilleur film d'animation.",
+   "anecdote": "Réalisé par Hayao Miyazaki, le film a décroché la statuette en 2003 ; c'est le premier anime primé dans cette catégorie.",
+   "sources": [
+    "https://www.guinnessworldrecords.com/world-records/first-anime-film-to-win-an-oscar",
+    "https://www.hollywoodreporter.com/movies/movie-news/spirited-away-film-oscars-records-history-1235052088/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0261",
+   "categorie": "Manga",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le célèbre magazine japonais de prépublication de mangas « Weekly Shonen Jump » a-t-il sorti son premier numéro ?",
+   "anecdote": "Publié par Shueisha depuis 1968, c'est le magazine de manga le plus vendu de l'histoire, avec plusieurs milliards d'exemplaires écoulés.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Weekly_Sh%C5%8Dnen_Jump",
+    "https://jump.fandom.com/wiki/Weekly_Shonen_Jump"
+   ],
+   "reponse_numerique": 1968
+  },
+  {
+   "id": "ext-0262",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Le mot japonais « otaku », aujourd'hui associé aux passionnés de manga et d'anime, vient d'un terme signifiant à l'origine :",
+   "anecdote": "Formé du préfixe poli « o » et de « taku » (maison), le mot a été popularisé dans ce sens par un essai d'Akio Nakamori en 1983.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Otaku",
+    "https://www.gogaku.fr/%E3%81%8A%E5%AE%85/"
+   ],
+   "choix": [
+    "« votre maison »",
+    "« grand rêveur »",
+    "« petit dragon »",
+    "« livre d'images »"
+   ],
+   "bonne_reponse": "« votre maison »"
+  },
+  {
+   "id": "ext-0263",
+   "categorie": "Manga",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année a débuté la diffusion d'Astro Boy, considérée comme la première grande série télévisée d'animation japonaise (anime) ?",
+   "anecdote": "Lancée le 1er janvier 1963 sur Fuji TV et créée par Osamu Tezuka, elle a imposé le style visuel qui deviendra celui de l'anime.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Astro_Boy_(s%C3%A9rie_t%C3%A9l%C3%A9vis%C3%A9e_d'animation)",
+    "https://www.imdb.com/title/tt0056739/"
+   ],
+   "reponse_numerique": 1963
+  },
+  {
+   "id": "ext-0264",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Popularisé au XIXe siècle par le maître de l'estampe Hokusai, que signifie littéralement le mot japonais « manga » ?",
+   "anecdote": "Hokusai publie ses carnets de croquis « Hokusai manga » à partir de 1814 ; le terme se traduit par « dessin dérisoire ».",
+   "sources": [
+    "https://www.larousse.fr/encyclopedie/divers/manga/67941",
+    "https://www.citebd.org/neuvieme-art/manga"
+   ],
+   "choix": [
+    "Dessin dérisoire",
+    "Livre sacré",
+    "Grande fresque",
+    "Conte du soir"
+   ],
+   "bonne_reponse": "Dessin dérisoire"
+  },
+  {
+   "id": "ext-0265",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La France est le deuxième pays consommateur de mangas au monde, derrière le Japon.",
+   "anecdote": "Le manga représente aujourd'hui une part majeure des ventes de bandes dessinées en France, deuxième marché mondial derrière le Japon.",
+   "sources": [
+    "https://www.franceinfo.fr/culture/bd/mangas/mangas-un-succes-retentissant-en-france_6412402.html",
+    "https://cnlj.bnf.fr/fr/page-editorial/focus-manga"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0266",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La Game Boy, la fameuse console portable de Nintendo, est sortie pour la première fois dans les années 2000.",
+   "anecdote": "Faux : la première Game Boy est apparue au Japon en 1989. Elle fonctionnait avec des cartouches et... quatre piles !",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Game_Boy",
+    "https://www.forbes.com/sites/olliebarder/2017/04/21/nearly-three-decades-ago-today-the-original-game-boy-was-released-in-japan/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0267",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Sonic, le hérisson bleu qui court très vite, est la mascotte de l'entreprise Sega.",
+   "anecdote": "Sonic a été créé en 1991 pour donner à Sega une mascotte capable de rivaliser avec le plombier moustachu de Nintendo.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Sonic_the_Hedgehog_(character)",
+    "https://www.nintendolife.com/games/megadrive/sonic_the_hedgehog"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0268",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle grande entreprise informatique a créé la console de jeux Xbox ?",
+   "anecdote": "La première Xbox est sortie fin 2001 : c'était la toute première console de Microsoft, jusque-là surtout connu pour Windows.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Xbox_(console)",
+    "https://www.digitaltrends.com/gaming/the-history-of-the-xbox/"
+   ],
+   "choix": [
+    "Apple",
+    "Sony",
+    "Microsoft",
+    "Google"
+   ],
+   "bonne_reponse": "Microsoft"
+  },
+  {
+   "id": "ext-0269",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Le nom de l'entreprise « Sega » est la contraction de quelle expression anglaise ?",
+   "anecdote": "« Sega » vient de « Service Games », une société qui installait des machines de jeu sur des bases militaires américaines dès les années 1940.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Sega",
+    "https://www.britannica.com/money/Sega-Corporation"
+   ],
+   "choix": [
+    "Service Games",
+    "Sensational Games",
+    "Sega Entertainment",
+    "Super Electronic Games"
+   ],
+   "bonne_reponse": "Service Games"
+  },
+  {
+   "id": "ext-0270",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Sur quelle console les tout premiers jeux Pokémon sont-ils sortis en 1996 au Japon ?",
+   "anecdote": "Les toutes premières versions sont sorties sur Game Boy en 1996 et ont lancé l'une des plus grandes licences du divertissement.",
+   "sources": [
+    "https://www.smithsonianmag.com/smithsonian-institution/nintendo-released-its-first-pokemon-games-30-years-ago-heres-how-the-beloved-catchable-pocket-monsters-became-the-worlds-biggest-media-franchise-180988271/",
+    "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9mon_Red_and_Green_Versions"
+   ],
+   "choix": [
+    "La Nintendo 64",
+    "La PlayStation",
+    "La Nintendo DS",
+    "La Game Boy"
+   ],
+   "bonne_reponse": "La Game Boy"
+  },
+  {
+   "id": "ext-0271",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La Nintendo Switch est une console qui se joue uniquement branchée sur une télévision, sans mode portable.",
+   "anecdote": "Faux : la Switch est une console « hybride ». Sortie en 2017, elle doit son nom au fait qu'on peut basculer (to switch) entre la télé et l'écran portable.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Nintendo_Switch",
+    "https://www.gamedeveloper.com/game-platforms/nintendo-s-new-console-is-a-handheld-hybrid-called-the-switch"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0272",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle entreprise a lancé en 2003 Steam, la célèbre plateforme de téléchargement de jeux vidéo sur PC ?",
+   "anecdote": "Au départ, Steam servait surtout à mettre à jour les jeux de son créateur, avant de devenir la plus grande boutique de jeux sur PC.",
+   "sources": [
+    "https://www.valvesoftware.com/en/about",
+    "https://en.wikipedia.org/wiki/Steam_(service)"
+   ],
+   "choix": [
+    "Ubisoft",
+    "Valve",
+    "Electronic Arts",
+    "Adobe"
+   ],
+   "bonne_reponse": "Valve"
+  },
+  {
+   "id": "ext-0273",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de cartes contient un jeu de cartes classique (sans compter les jokers) ?",
+   "anecdote": "Un jeu classique compte 52 cartes, réparties en 4 couleurs (pique, cœur, carreau, trèfle) de 13 cartes chacune.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Standard_52-card_deck",
+    "https://gambiter.com/cards/Standard_52-card_deck.html"
+   ],
+   "reponse_numerique": 52
+  },
+  {
+   "id": "ext-0274",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Au célèbre jeu de dés Yahtzee (le Yam's), avec combien de dés joue-t-on à chaque tour ?",
+   "anecdote": "Le Yahtzee se joue avec 5 dés que l'on peut relancer jusqu'à deux fois pour tenter la meilleure combinaison.",
+   "sources": [
+    "https://winning-moves.com/images/YAHTZEERULES_2022.pdf",
+    "https://www.dicegamedepot.com/yahtzee-rules/"
+   ],
+   "reponse_numerique": 5
+  },
+  {
+   "id": "ext-0275",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Le jeu de cartes Uno a été inventé en 1971 par l'Américain Merle Robbins. Quel était son métier ?",
+   "anecdote": "Merle Robbins, coiffeur dans l'Ohio, a inventé Uno pour régler une dispute de règles avec son fils, puis a vendu les premiers jeux dans son salon.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Merle_Robbins",
+    "https://www.museumofplay.org/blog/americas-favorite-game-and-success-story-uno/"
+   ],
+   "choix": [
+    "Coiffeur (barbier)",
+    "Instituteur",
+    "Médecin",
+    "Facteur"
+   ],
+   "bonne_reponse": "Coiffeur (barbier)"
+  },
+  {
+   "id": "ext-0276",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Une tour de Jenga classique est constituée de combien de blocs de bois ?",
+   "anecdote": "Une partie de Jenga démarre avec 54 blocs empilés par étages de trois ; il faut en retirer sans faire tomber la tour.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Jenga",
+    "https://www.jenga.com/about.php"
+   ],
+   "reponse_numerique": 54
+  },
+  {
+   "id": "ext-0277",
+   "categorie": "Jeux de société",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Le nom « Jenga » vient d'un mot de quelle langue africaine, qui signifie « construire » ?",
+   "anecdote": "« Jenga » vient du verbe swahili « kujenga », qui veut dire « construire » : tout un programme pour ce jeu d'empilement !",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Jenga",
+    "https://www.mentalfloss.com/article/586590/jenga-game-facts"
+   ],
+   "choix": [
+    "Le zoulou",
+    "L'arabe",
+    "Le swahili",
+    "Le wolof"
+   ],
+   "bonne_reponse": "Le swahili"
+  },
+  {
+   "id": "ext-0278",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Le célèbre jeu de questions Trivial Pursuit a été inventé en 1979 par deux amis originaires de quel pays ?",
+   "anecdote": "Deux Canadiens, un photographe et un journaliste sportif, ont imaginé Trivial Pursuit en 1979... alors qu'ils jouaient au Scrabble.",
+   "sources": [
+    "https://www.thecanadianencyclopedia.ca/en/article/trivial-pursuit",
+    "https://www.britannica.com/topic/Trivial-Pursuit"
+   ],
+   "choix": [
+    "Le Canada",
+    "Les États-Unis",
+    "Le Royaume-Uni",
+    "La France"
+   ],
+   "bonne_reponse": "Le Canada"
+  },
+  {
+   "id": "ext-0279",
+   "categorie": "Jeux de société",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Le jeu de société à succès « Les Colons de Catane » (Catan), créé par Klaus Teuber en 1995, est originaire de quel pays ?",
+   "anecdote": "Catan est un pur produit de l'« école allemande » du jeu de société ; il s'est vendu à des dizaines de millions d'exemplaires dans le monde.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Catan",
+    "https://www.deseret.com/entertainment/2023/4/5/23671744/settlers-of-catan-creator-dies/"
+   ],
+   "choix": [
+    "Les États-Unis",
+    "L'Allemagne",
+    "Le Japon",
+    "La Suède"
+   ],
+   "bonne_reponse": "L'Allemagne"
+  },
+  {
+   "id": "ext-0280",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "La grille du jeu Puissance 4 comporte 7 colonnes et 6 rangées : combien de jetons peut-elle contenir en tout ?",
+   "anecdote": "7 colonnes × 6 rangées = 42 cases. Commercialisé sous le nom « Connect Four » en 1974, le but est d'aligner quatre jetons.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Connect_Four",
+    "https://gamescrafters.berkeley.edu/games.php?game=connect4"
+   ],
+   "reponse_numerique": 42
+  },
+  {
+   "id": "ext-0281",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Le jeu « Serpents et échelles » (Snakes and Ladders) trouve son origine dans quel pays, où il servait à enseigner la morale ?",
+   "anecdote": "Né en Inde sous le nom de Moksha Patam, il illustrait les vertus (les échelles) et les vices (les serpents) avant d'arriver en Occident au XIXe siècle.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Snakes_and_ladders",
+    "https://azimpremjiuniversity.edu.in/thats-the-thing/how-moksha-patam-rolled-into-snakes-and-ladders"
+   ],
+   "choix": [
+    "L'Inde",
+    "L'Égypte",
+    "La Grèce",
+    "Le Mexique"
+   ],
+   "bonne_reponse": "L'Inde"
+  },
+  {
+   "id": "ext-0282",
+   "categorie": "Jeux de société",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le jeu de plateau Othello, où l'on retourne des pions noirs et blancs, doit son nom à une pièce de théâtre de William Shakespeare.",
+   "anecdote": "L'inventeur japonais Goro Hasegawa a baptisé son jeu « Othello » en référence à la pièce de Shakespeare, en écho au contraste entre les pions noirs et blancs.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Reversi",
+    "https://www.japantimes.co.jp/news/2016/06/23/national/goro-hasegawa-inventor-board-game-othello-dies-83/"
    ],
    "choix": [
     "Vrai",
