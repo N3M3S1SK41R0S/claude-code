@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 1076,
+ "count": 1182,
  "questions": [
   {
    "id": "arts-001",
@@ -20507,6 +20507,2028 @@
    "sources": [
     "https://fr.wikipedia.org/wiki/Chiroptera",
     "https://www.britannica.com/animal/bat-mammal"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0123",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Que signifie l'abréviation « RPG » dans le jeu vidéo ?",
+   "anecdote": "Le genre s'inspire des jeux de rôle sur table comme Donjons & Dragons (1974) : le joueur incarne un personnage qui évolue au fil d'une quête.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeu_vid%C3%A9o_de_r%C3%B4le",
+    "https://www.rtbf.be/article/jeux-video-c-est-quoi-un-jeu-de-role-ou-rpg-role-playing-game-11704424"
+   ],
+   "choix": [
+    "Role-Playing Game (jeu de rôle)",
+    "Rapid Play Game",
+    "Real Player Graphics",
+    "Random Puzzle Game"
+   ],
+   "bonne_reponse": "Role-Playing Game (jeu de rôle)"
+  },
+  {
+   "id": "ext-0124",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Que désigne l'abréviation « NPC » dans un jeu vidéo ?",
+   "anecdote": "NPC signifie « non-player character » ; en français on parle de personnage non-joueur (PNJ). Le terme vient des jeux de rôle sur table.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Personnage_non-joueur",
+    "https://vitrinelinguistique.oqlf.gouv.qc.ca/fiche-gdt/fiche/39341/personnage-non-joueur"
+   ],
+   "choix": [
+    "Un personnage non-joueur, contrôlé par le jeu",
+    "Le score maximal d'une partie",
+    "Un nouveau niveau de puissance",
+    "Un mode multijoueur en ligne"
+   ],
+   "bonne_reponse": "Un personnage non-joueur, contrôlé par le jeu"
+  },
+  {
+   "id": "ext-0125",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En 1972, quelle société a lancé le célèbre jeu d'arcade Pong ?",
+   "anecdote": "Conçu par Allan Alcorn comme un simple exercice d'entraînement, Pong fut l'un des premiers grands succès commerciaux du jeu vidéo.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Pong",
+    "https://www.museumofplay.org/games/pong/"
+   ],
+   "choix": [
+    "Atari",
+    "Nintendo",
+    "Sega",
+    "Sony"
+   ],
+   "bonne_reponse": "Atari"
+  },
+  {
+   "id": "ext-0126",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "De quel pays était originaire Alexeï Pajitnov, le créateur de Tetris en 1984 ?",
+   "anecdote": "Pajitnov programma Tetris sur un ordinateur Electronika 60 à l'Académie des sciences soviétique, à Moscou.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Alexey_Pajitnov",
+    "https://www.moma.org/collection/works/152403"
+   ],
+   "choix": [
+    "L'Union soviétique",
+    "Le Japon",
+    "Les États-Unis",
+    "La Finlande"
+   ],
+   "bonne_reponse": "L'Union soviétique"
+  },
+  {
+   "id": "ext-0127",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle entreprise japonaise a créé le jeu d'arcade Pac-Man, sorti en 1980 ?",
+   "anecdote": "Son concepteur Toru Iwatani a dessiné le personnage en arrondissant l'idéogramme japonais de la bouche, « kuchi ».",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Pac-Man",
+    "https://www.museumofplay.org/games/pac-man/"
+   ],
+   "choix": [
+    "Namco",
+    "Nintendo",
+    "Taito",
+    "Konami"
+   ],
+   "bonne_reponse": "Namco"
+  },
+  {
+   "id": "ext-0128",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Que fabriquait la société Nintendo lors de sa fondation en 1889 ?",
+   "anecdote": "Fondée par Fusajiro Yamauchi, Nintendo produisait des cartes à jouer traditionnelles japonaises appelées hanafuda.",
+   "sources": [
+    "https://dailygeekshow.com/origines-nintendo-cartes-hanafuda-jeu-video",
+    "https://cultea.fr/nintendo-histoire-dune-compagnie-legendaire-fondee-en-1889.html"
+   ],
+   "choix": [
+    "Des cartes à jouer",
+    "Des consoles de jeux",
+    "Des jouets en plastique",
+    "Des téléviseurs"
+   ],
+   "bonne_reponse": "Des cartes à jouer"
+  },
+  {
+   "id": "ext-0129",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle société japonaise a édité le jeu d'arcade Space Invaders en 1978 ?",
+   "anecdote": "Créé par Tomohiro Nishikado, Space Invaders marqua le début de l'âge d'or des jeux d'arcade.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Space_Invaders",
+    "https://www.museumofplay.org/games/space-invaders/"
+   ],
+   "choix": [
+    "Taito",
+    "Atari",
+    "Nintendo",
+    "Namco"
+   ],
+   "bonne_reponse": "Taito"
+  },
+  {
+   "id": "ext-0130",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quelle est la première console de jeu vidéo de salon commercialisée, sortie en 1972 ?",
+   "anecdote": "Elle fut imaginée par l'ingénieur Ralph Baer, souvent surnommé « le père du jeu vidéo ».",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Magnavox_Odyssey",
+    "https://www.videogameconsolelibrary.com/console/magnavox-odyssey/"
+   ],
+   "choix": [
+    "La Magnavox Odyssey",
+    "L'Atari 2600",
+    "La NES",
+    "La Sega Master System"
+   ],
+   "bonne_reponse": "La Magnavox Odyssey"
+  },
+  {
+   "id": "ext-0131",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel jeu vidéo est le plus vendu de toute l'histoire ?",
+   "anecdote": "Développé par le studio Mojang, Minecraft a dépassé les 300 millions d'exemplaires vendus dans le monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Liste_des_jeux_vid%C3%A9o_les_plus_vendus",
+    "https://minecraft.fr/minecraft-depasse-les-350-millions-dexemplaires-vendus-un-record-historique-pour-le-jeu-video/"
+   ],
+   "choix": [
+    "Minecraft",
+    "Grand Theft Auto V",
+    "Tetris",
+    "Wii Sports"
+   ],
+   "bonne_reponse": "Minecraft"
+  },
+  {
+   "id": "ext-0132",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le personnage de Mario est apparu pour la première fois en 1981 dans le jeu Donkey Kong, sous le nom de « Jumpman ».",
+   "anecdote": "Créé par Shigeru Miyamoto, le personnage était alors charpentier ; il deviendra plombier par la suite.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mario",
+    "https://en.wikipedia.org/wiki/Donkey_Kong"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0133",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année Nintendo a-t-il lancé sa console portable Game Boy ?",
+   "anecdote": "Conçue sous la direction de Gunpei Yokoi, la Game Boy s'est vendue à plus de 100 millions d'unités.",
+   "sources": [
+    "https://thenvm.org/objects/game-boy/",
+    "https://www.historytools.org/products/the-history-of-the-game-boy-a-complete-guide"
+   ],
+   "choix": [
+    "1989",
+    "1985",
+    "1994",
+    "2001"
+   ],
+   "bonne_reponse": "1989"
+  },
+  {
+   "id": "ext-0134",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année la première console PlayStation de Sony est-elle sortie au Japon ?",
+   "anecdote": "Lancée le 3 décembre 1994, elle fut la première console de jeu à dépasser 100 millions d'unités écoulées.",
+   "sources": [
+    "https://www.britannica.com/topic/PlayStation",
+    "https://time.com/3613610/sony-playstation/"
+   ],
+   "reponse_numerique": 1994
+  },
+  {
+   "id": "ext-0135",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de cases compte un échiquier ?",
+   "anecdote": "Soit une grille de 8 cases sur 8, réparties en 32 cases claires et 32 cases sombres.",
+   "sources": [
+    "https://www.echecs.asso.fr/livrearbitre/110.pdf",
+    "https://www.echecs-cotedazur.com/pourquoi-un-echiquier-compte-t-il-64-cases/"
+   ],
+   "reponse_numerique": 64
+  },
+  {
+   "id": "ext-0136",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Au début d'une partie d'échecs, combien de pièces possède chaque joueur ?",
+   "anecdote": "Soit 1 roi, 1 dame, 2 tours, 2 fous, 2 cavaliers et 8 pions.",
+   "sources": [
+    "https://www.echecs.asso.fr/livrearbitre/110.pdf",
+    "https://ecole.apprendre-les-echecs.com/lessons/lechiquier-les-pieces-et-leur-deplacement/"
+   ],
+   "choix": [
+    "16",
+    "12",
+    "20",
+    "8"
+   ],
+   "bonne_reponse": "16"
+  },
+  {
+   "id": "ext-0137",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien d'intersections compte un plateau de go standard, formé de 19 lignes sur 19 ?",
+   "anecdote": "On y joue avec 181 pierres noires et 180 pierres blanches, soit 361 pierres au total.",
+   "sources": [
+    "https://jeudego.org/_php/materiel.php",
+    "https://www.jedisjeux.net/jeu-de-societe/go"
+   ],
+   "reponse_numerique": 361
+  },
+  {
+   "id": "ext-0138",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de pièces compte un jeu de dominos standard « double-six » ?",
+   "anecdote": "Il réunit toutes les combinaisons de valeurs de 0 à 6, du double-blanc au double-six.",
+   "sources": [
+    "https://www.hasbro.com/common/instruct/Double_Six_Dominoes.PDF",
+    "https://bordeauxgames.com/regles/dominos/"
+   ],
+   "reponse_numerique": 28
+  },
+  {
+   "id": "ext-0139",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Au jeu de dames français, sur combien de cases se joue le damier ?",
+   "anecdote": "Le damier français mesure 10 cases sur 10, et chaque joueur aligne 20 pions au départ.",
+   "sources": [
+    "https://cinebeldonne.fr/regles-jeu-dames-100-cases/",
+    "https://www.universalis.fr/encyclopedie/jeu-de-dames/"
+   ],
+   "choix": [
+    "100",
+    "64",
+    "81",
+    "144"
+   ],
+   "bonne_reponse": "100"
+  },
+  {
+   "id": "ext-0140",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de cartes compte un jeu de tarot français ?",
+   "anecdote": "Soit 56 cartes réparties en quatre couleurs, 21 atouts, et l'Excuse.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tarot_fran%C3%A7ais",
+    "https://fftarot.fr/assets/documents/Reglement%20FFT.pdf"
+   ],
+   "reponse_numerique": 78
+  },
+  {
+   "id": "ext-0141",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui a inventé le Rubik's Cube en 1974 ?",
+   "anecdote": "Professeur d'architecture hongrois, Rubik baptisa d'abord son casse-tête le « Cube magique ».",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Rubik's_Cube",
+    "https://invention.si.edu/invention-stories/twist-fate-invention-rubiks-cube"
+   ],
+   "choix": [
+    "Ernő Rubik",
+    "Alfred Butts",
+    "Elizabeth Magie",
+    "Gunpei Yokoi"
+   ],
+   "bonne_reponse": "Ernő Rubik"
+  },
+  {
+   "id": "ext-0142",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel était le métier d'Alfred Mosher Butts, l'inventeur du Scrabble ?",
+   "anecdote": "Il imagina un jeu de 100 jetons, la valeur de chaque lettre dépendant de sa fréquence dans la langue.",
+   "sources": [
+    "https://www.ffscrabble.fr/origine-du-scrabble/",
+    "https://en.wikipedia.org/wiki/Alfred_Mosher_Butts"
+   ],
+   "choix": [
+    "Architecte",
+    "Médecin",
+    "Journaliste",
+    "Professeur de mathématiques"
+   ],
+   "bonne_reponse": "Architecte"
+  },
+  {
+   "id": "ext-0143",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Sur un dé à six faces classique, la somme des points de deux faces opposées est toujours égale à 7.",
+   "anecdote": "Les paires opposées sont 1-6, 2-5 et 3-4, dont la somme fait bien 7 à chaque fois.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/D%C3%A9",
+    "https://etab.ac-poitiers.fr/coll-gerard-philipe-niort/IMG/pdf/enigme-8_solution.pdf"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0144",
+   "categorie": "Jeux de société",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Comment s'appelait l'ancêtre du Monopoly, breveté en 1904 par Elizabeth Magie ?",
+   "anecdote": "Elizabeth Magie voulait au départ dénoncer l'accaparement des terres par les grands propriétaires.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/The_Landlord%27s_Game",
+    "https://fr.wikipedia.org/wiki/The_Landlord%27s_Game"
+   ],
+   "choix": [
+    "The Landlord's Game",
+    "Capitalism",
+    "Business Empire",
+    "Rich Uncle"
+   ],
+   "bonne_reponse": "The Landlord's Game"
+  },
+  {
+   "id": "ext-0145",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien d'armes différentes contient le jeu du Cluedo ?",
+   "anecdote": "Le chandelier, la clé anglaise, la corde, la matraque, le poignard et le revolver.",
+   "sources": [
+    "https://www.regles-de-jeux.com/regle-du-cluedo/",
+    "https://regle.net/cluedo"
+   ],
+   "reponse_numerique": 6
+  },
+  {
+   "id": "ext-0146",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "De quel pays est originaire le chaturanga, l'ancêtre des échecs ?",
+   "anecdote": "Apparu vers le VIe siècle, le mot sanskrit « chaturanga » désigne les « quatre divisions de l'armée ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Histoire_du_jeu_d%27%C3%A9checs",
+    "https://www.giggleacademy.com/blog/fr/what-is-the-chess-origin-and-how-did-the-game-spread-around-the-world"
+   ],
+   "choix": [
+    "L'Inde",
+    "La Chine",
+    "La Perse",
+    "L'Égypte"
+   ],
+   "bonne_reponse": "L'Inde"
+  },
+  {
+   "id": "ext-0147",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on le tout premier épisode d'une série, réalisé pour convaincre une chaîne de la produire ?",
+   "anecdote": "Le pilote sert de prototype : les scénaristes y testent le ton, les personnages et l'univers. C'est pour ça qu'il est parfois assez différent du reste de la série une fois qu'elle est lancée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pilote_(t%C3%A9l%C3%A9vision)",
+    "https://fr.wiktionary.org/wiki/%C3%A9pisode_pilote"
+   ],
+   "choix": [
+    "Le pilote",
+    "Le prologue",
+    "Le teaser",
+    "Le générique"
+   ],
+   "bonne_reponse": "Le pilote"
+  },
+  {
+   "id": "ext-0148",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Le mot « sitcom » est la contraction de quelle expression anglaise ?",
+   "anecdote": "L'abréviation « sitcom » est apparue dans les années 1950 dans la presse spécialisée américaine. Le genre tire son nom du fait que chaque épisode plonge des personnages récurrents dans une nouvelle « situation ».",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Sitcom",
+    "https://www.collinsdictionary.com/dictionary/english/sitcom"
+   ],
+   "choix": [
+    "Situation comedy",
+    "Sit-down comedy",
+    "Situation commercial",
+    "Sitting comedy"
+   ],
+   "bonne_reponse": "Situation comedy"
+  },
+  {
+   "id": "ext-0149",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Que désigne un « cliffhanger » à la fin d'un épisode ?",
+   "anecdote": "Le procédé est hérité des romans-feuilletons et des serials américains des années 1940 : laisser le héros en mauvaise posture pour être sûr que le spectateur reviendra à l'épisode suivant.",
+   "sources": [
+    "https://leclaireur.fnac.com/article/cp48419-lexique-tv-quest-ce-quun-cliffhanger/",
+    "https://en.wikipedia.org/wiki/Cliffhanger"
+   ],
+   "choix": [
+    "Une fin en suspense qui interrompt l'action à un moment crucial",
+    "Le générique de fin",
+    "Un épisode diffusé hors saison",
+    "Une scène coupée au montage"
+   ],
+   "bonne_reponse": "Une fin en suspense qui interrompt l'action à un moment crucial"
+  },
+  {
+   "id": "ext-0150",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Comment nomme-t-on une série dérivée d'une autre, souvent centrée sur un personnage secondaire de l'originale ?",
+   "anecdote": "Le spin-off (ou « série dérivée ») profite de la notoriété d'une œuvre existante pour lancer un nouveau programme en limitant les risques, en s'appuyant sur un public déjà conquis.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/S%C3%A9rie_d%C3%A9riv%C3%A9e",
+    "https://leclaireur.fnac.com/article/cp48775-lexique-tv-quest-ce-quun-spin-off/"
+   ],
+   "choix": [
+    "Un spin-off",
+    "Un reboot",
+    "Un pilote",
+    "Un cameo"
+   ],
+   "bonne_reponse": "Un spin-off"
+  },
+  {
+   "id": "ext-0151",
+   "categorie": "Séries",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Dans une série, quel est le rôle du « showrunner » ?",
+   "anecdote": "Le terme s'est répandu dans les années 1990. Le showrunner écrit des épisodes clés, encadre l'écriture et supervise la production, du scénario à la post-production.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Show_runner",
+    "https://www.cnc.fr/series-tv/actualites/questce-quun-showrunner_1105196"
+   ],
+   "choix": [
+    "Producteur exécutif et scénariste en chef qui supervise l'ensemble",
+    "Acteur principal de la série",
+    "Chef monteur au montage",
+    "Compositeur de la musique"
+   ],
+   "bonne_reponse": "Producteur exécutif et scénariste en chef qui supervise l'ensemble"
+  },
+  {
+   "id": "ext-0152",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Les Emmy Awards récompensent chaque année l'excellence dans quel domaine ?",
+   "anecdote": "L'Emmy est à la télévision ce que l'Oscar est au cinéma, le Grammy à la musique et le Tony au théâtre.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Emmy_Awards",
+    "https://www.foxnews.com/entertainment/emmy-breakdown-prestigious-award"
+   ],
+   "choix": [
+    "La télévision",
+    "Le cinéma",
+    "La musique",
+    "Le théâtre"
+   ],
+   "bonne_reponse": "La télévision"
+  },
+  {
+   "id": "ext-0153",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle série animée détient le record de la plus longue série de fiction diffusée en prime time de la télévision américaine ?",
+   "anecdote": "En avril 2018, avec son 636e épisode, la série a dépassé le western Gunsmoke (635 épisodes) pour devenir la plus longue fiction de prime time. Elle est diffusée depuis 1989.",
+   "sources": [
+    "https://www.cbsnews.com/news/the-simpsons-to-become-longest-running-primetime-scripted-series-on-tv/",
+    "https://www.tvinsider.com/list/longest-running-scripted-primetime-tv-shows/"
+   ],
+   "choix": [
+    "Les Simpson",
+    "South Park",
+    "Les Griffin (Family Guy)",
+    "Futurama"
+   ],
+   "bonne_reponse": "Les Simpson"
+  },
+  {
+   "id": "ext-0154",
+   "categorie": "Séries",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel feuilleton britannique diffusé depuis 1960 détient le record Guinness du soap opera le plus ancien encore à l'antenne ?",
+   "anecdote": "Le tout premier épisode fut diffusé en direct et en noir et blanc le 9 décembre 1960. Ironie du sort : la série n'était au départ prévue que pour 13 épisodes.",
+   "sources": [
+    "https://www.guinnessworldrecords.com/world-records/longest-running-tv-soap-opera",
+    "https://en.wikipedia.org/wiki/Coronation_Street"
+   ],
+   "choix": [
+    "Coronation Street",
+    "EastEnders",
+    "Plus belle la vie",
+    "Les Feux de l'amour"
+   ],
+   "bonne_reponse": "Coronation Street"
+  },
+  {
+   "id": "ext-0155",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Avant de devenir un service de streaming, Netflix a d'abord été un service de location de DVD envoyés par la poste.",
+   "anecdote": "Fondée en 1997 par Reed Hastings et Marc Randolph, l'entreprise expédiait des DVD par courrier dans ses fameuses enveloppes. Le streaming n'est arrivé qu'en 2007.",
+   "sources": [
+    "https://www.britannica.com/money/Netflix-Inc",
+    "https://interestingengineering.com/culture/the-fascinating-history-of-netflix"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0156",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En télévision, que désigne le « prime time », recommandé en français sous le nom « heure de grande écoute » ?",
+   "anecdote": "C'est le créneau le plus convoité des annonceurs. En France, il démarre généralement autour de 20h30-21h ; les horaires varient selon les pays.",
+   "sources": [
+    "https://www.larousse.fr/dictionnaires/francais/prime_time/63946",
+    "https://fr.wikipedia.org/wiki/Premi%C3%A8re_partie_de_soir%C3%A9e"
+   ],
+   "choix": [
+    "La première partie de soirée, créneau de plus forte audience",
+    "Le journal télévisé du matin",
+    "La rediffusion de nuit",
+    "La coupure publicitaire"
+   ],
+   "bonne_reponse": "La première partie de soirée, créneau de plus forte audience"
+  },
+  {
+   "id": "ext-0157",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel événement du 14 juillet 1789 est considéré comme le point de départ symbolique de la Révolution française ?",
+   "anecdote": "La forteresse-prison ne détenait pourtant que sept prisonniers ce jour-là. C'est sa portée symbolique — le peuple faisant reculer le pouvoir royal par les armes — qui reste dans l'Histoire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Prise_de_la_Bastille",
+    "https://www.herodote.net/14_juillet_1789-evenement-17890714.php"
+   ],
+   "choix": [
+    "La prise de la Bastille",
+    "Le sacre de Napoléon",
+    "La fête de la Fédération",
+    "La déclaration des droits de l'homme"
+   ],
+   "bonne_reponse": "La prise de la Bastille"
+  },
+  {
+   "id": "ext-0158",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Pour quel grand événement de 1889 la tour Eiffel a-t-elle été construite ?",
+   "anecdote": "Pensée comme une structure temporaire (concession de 20 ans), la tour devait être démontée. Elle a été sauvée de la démolition grâce à son utilité comme antenne radio.",
+   "sources": [
+    "https://www.toureiffel.paris/fr/actualites/130-ans/comment-la-radio-sauve-la-tour-eiffel",
+    "https://en.wikipedia.org/wiki/Exposition_Universelle_(1889)"
+   ],
+   "choix": [
+    "L'Exposition universelle de Paris",
+    "Les Jeux olympiques",
+    "Le couronnement d'un roi",
+    "L'inauguration du métro parisien"
+   ],
+   "bonne_reponse": "L'Exposition universelle de Paris"
+  },
+  {
+   "id": "ext-0159",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est le plus petit État souverain du monde ?",
+   "anecdote": "Avec environ 0,44 km² enclavés dans Rome, le Vatican est reconnu comme État indépendant depuis les accords du Latran de 1929.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/G%C3%A9ographie_du_Vatican",
+    "https://www.larousse.fr/encyclopedie/pays/%C3%89tat_de_la_Cit%C3%A9_du_Vatican/148390"
+   ],
+   "choix": [
+    "Le Vatican",
+    "Monaco",
+    "Saint-Marin",
+    "Le Liechtenstein"
+   ],
+   "bonne_reponse": "Le Vatican"
+  },
+  {
+   "id": "ext-0160",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel sommet est le point culminant de la Terre au-dessus du niveau de la mer ?",
+   "anecdote": "En 2020, la Chine et le Népal ont annoncé conjointement une altitude officielle révisée de 8 848,86 m (souvent arrondie à 8 849 m).",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Mount_Everest",
+    "https://www.altitude.news/culture/sciences/2020/12/08/everest-nouvelle-altitude-8848-86-metres/"
+   ],
+   "choix": [
+    "Le mont Everest",
+    "Le K2",
+    "Le mont Blanc",
+    "Le Kilimandjaro"
+   ],
+   "bonne_reponse": "Le mont Everest"
+  },
+  {
+   "id": "ext-0161",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "À quelle vitesse la lumière se propage-t-elle dans le vide (valeur approchée) ?",
+   "anecdote": "La valeur exacte est 299 792 458 m/s. Depuis 1983, elle est si bien établie qu'elle sert à définir le mètre lui-même.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vitesse_de_la_lumi%C3%A8re",
+    "https://www.techno-science.net/definition/1711.html"
+   ],
+   "choix": [
+    "Environ 300 000 km/s",
+    "Environ 30 000 km/s",
+    "Environ 3 000 km/s",
+    "Environ 3 millions de km/s"
+   ],
+   "bonne_reponse": "Environ 300 000 km/s"
+  },
+  {
+   "id": "ext-0162",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui a peint La Joconde, exposée au musée du Louvre ?",
+   "anecdote": "En 1911, le tableau fut volé au Louvre par Vincenzo Peruggia, un ouvrier italien. Retrouvé deux ans plus tard, ce vol retentissant a largement contribué à faire de la Joconde le tableau le plus célèbre du monde.",
+   "sources": [
+    "https://www.washingtonpost.com/history/2019/10/20/how-theft-mona-lisa-made-it-worlds-most-famous-painting/",
+    "https://www.history.com/this-day-in-history/august-22/theft-of-mona-lisa-is-discovered"
+   ],
+   "choix": [
+    "Léonard de Vinci",
+    "Michel-Ange",
+    "Raphaël",
+    "Sandro Botticelli"
+   ],
+   "bonne_reponse": "Léonard de Vinci"
+  },
+  {
+   "id": "ext-0163",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "C'est l'oreille gauche que le peintre Vincent van Gogh a mutilée en décembre 1888.",
+   "anecdote": "L'épisode a eu lieu la nuit du 23 décembre 1888 à Arles, après une dispute avec Paul Gauguin. C'est bien (une partie de) l'oreille gauche qui fut sectionnée.",
+   "sources": [
+    "https://www.futura-sciences.com/sante/actualites/psychologie-mystere-oreille-mutilee-van-gogh-resolu-scientifiques-pensent-avoir-trouve-il-souffrait-84033/",
+    "https://artshortlist.com/fr/journal/article/oreille-coupee-de-vincent-van-gogh"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0164",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "La Grande Muraille de Chine est le seul ouvrage humain visible à l'œil nu depuis l'espace.",
+   "anecdote": "C'est une légende tenace : large de seulement quelques mètres et d'une couleur proche du terrain environnant, la muraille est en réalité indiscernable à l'œil nu depuis l'orbite. Aucun astronaute ne l'a jamais vue ainsi.",
+   "sources": [
+    "https://www.futura-sciences.com/sciences/questions-reponses/espace-grande-muraille-chine-divisible-depuis-espace-vrai-faux-21652/",
+    "https://sciencepost.fr/la-grande-muraille-visible-de-lespace-la-reponse-des-astronautes-met-enfin-un-terme-au-debat/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0165",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans quel sens se lit traditionnellement un manga japonais ?",
+   "anecdote": "Le manga suit le sens de l'écriture japonaise traditionnelle : les pages, les cases et les bulles se lisent de droite à gauche.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Manga",
+    "https://friscolibrary.com/blogs/post/how-to-read-manga/"
+   ],
+   "choix": [
+    "De gauche à droite",
+    "De droite à gauche",
+    "De bas en haut uniquement",
+    "En diagonale"
+   ],
+   "bonne_reponse": "De droite à gauche"
+  },
+  {
+   "id": "ext-0166",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel pays le manga est-il originaire ?",
+   "anecdote": "Le mot « manga » (漫画) désigne les bandes dessinées originaires du Japon.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Manga",
+    "https://friscolibrary.com/blogs/post/how-to-read-manga/"
+   ],
+   "choix": [
+    "Chine",
+    "Corée du Sud",
+    "Japon",
+    "Thaïlande"
+   ],
+   "bonne_reponse": "Japon"
+  },
+  {
+   "id": "ext-0167",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on l'auteur-dessinateur de manga ?",
+   "anecdote": "« Mangaka » associe « manga » au suffixe « -ka », qui indique une expertise dans un domaine.",
+   "sources": [
+    "https://simple.wikipedia.org/wiki/Mangaka",
+    "https://en.wikipedia.org/wiki/Manga_artist"
+   ],
+   "choix": [
+    "Un mangaka",
+    "Un otaku",
+    "Un sensei",
+    "Un shogun"
+   ],
+   "bonne_reponse": "Un mangaka"
+  },
+  {
+   "id": "ext-0168",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le mot « shonen » désigne des mangas destinés avant tout à un public d'adolescents garçons.",
+   "anecdote": "« Shonen » signifie « garçons » : c'est une catégorie éditoriale ciblant surtout les adolescents, même si le lectorat réel est bien plus large.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Sh%C5%8Dnen_manga",
+    "https://www.cbr.com/four-main-shonen-shojo-seinen-josei-manga-demographics-explained/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0169",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "À quel public s'adressent avant tout les mangas dits « shojo » ?",
+   "anecdote": "« Shojo » vise principalement les jeunes filles et adolescentes.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Shojo",
+    "https://www.cbr.com/four-main-shonen-shojo-seinen-josei-manga-demographics-explained/"
+   ],
+   "choix": [
+    "Les adolescentes",
+    "Les hommes adultes",
+    "Les jeunes garçons",
+    "Les tout-petits"
+   ],
+   "bonne_reponse": "Les adolescentes"
+  },
+  {
+   "id": "ext-0170",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "À quel public s'adressent avant tout les mangas dits « seinen » ?",
+   "anecdote": "« Seinen » signifie « jeune homme » : cette catégorie vise les hommes adultes (environ 18-40 ans).",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Seinen_manga",
+    "https://www.liveabout.com/seinen-definition-144808"
+   ],
+   "choix": [
+    "Les jeunes enfants",
+    "Les hommes adultes",
+    "Les adolescentes",
+    "Les personnes âgées"
+   ],
+   "bonne_reponse": "Les hommes adultes"
+  },
+  {
+   "id": "ext-0171",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel mangaka, créateur d'Astro Boy, est surnommé « le dieu du manga » ?",
+   "anecdote": "Osamu Tezuka (1928-1989) est surnommé « le dieu du manga » pour son rôle fondateur dans le manga et l'animation d'après-guerre.",
+   "sources": [
+    "https://www.cbr.com/osamu-tezuka-astro-boy-creator-facts-trivia/",
+    "https://libguides.pratt.edu/graphicnovels/osamu-tezuka"
+   ],
+   "choix": [
+    "Akira Toriyama",
+    "Eiichiro Oda",
+    "Osamu Tezuka",
+    "Katsushika Hokusai"
+   ],
+   "bonne_reponse": "Osamu Tezuka"
+  },
+  {
+   "id": "ext-0172",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle série détient le record Guinness du plus grand nombre d'exemplaires publiés pour une bande dessinée d'un seul auteur ?",
+   "anecdote": "One Piece a été reconnu par le Guinness World Records avec plus de 416 millions d'exemplaires publiés entre décembre 1997 et juillet 2022.",
+   "sources": [
+    "https://www.guinnessworldrecords.com/world-records/118397-most-copies-published-by-a-single-author-for-the-same-comic-book-series",
+    "https://comicbook.com/comicbook/news/one-piece-sets-guinness-world-record-for-most-copies-published-o/"
+   ],
+   "choix": [
+    "Naruto",
+    "One Piece",
+    "Dragon Ball",
+    "Bleach"
+   ],
+   "bonne_reponse": "One Piece"
+  },
+  {
+   "id": "ext-0173",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui est l'auteur (mangaka) de la série One Piece ?",
+   "anecdote": "Eiichiro Oda dessine One Piece, prépublié dans le Weekly Shonen Jump depuis 1997.",
+   "sources": [
+    "https://www.guinnessworldrecords.com/world-records/118397-most-copies-published-by-a-single-author-for-the-same-comic-book-series",
+    "https://comicbook.com/comicbook/news/one-piece-sets-guinness-world-record-for-most-copies-published-o/"
+   ],
+   "choix": [
+    "Eiichiro Oda",
+    "Masashi Kishimoto",
+    "Akira Toriyama",
+    "Osamu Tezuka"
+   ],
+   "bonne_reponse": "Eiichiro Oda"
+  },
+  {
+   "id": "ext-0174",
+   "categorie": "Manga",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel grand artiste japonais du XIXe siècle a popularisé le mot « manga » avec ses recueils de croquis publiés à partir de 1814 ?",
+   "anecdote": "Les recueils de croquis de Hokusai, publiés dès 1814, s'intitulent « Hokusai Manga » ; le maître a popularisé le terme, même si le contenu diffère du manga narratif moderne.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Hokusai_Manga",
+    "https://www.britishmuseum.org/blog/hokusai-father-manga"
+   ],
+   "choix": [
+    "Katsushika Hokusai",
+    "Osamu Tezuka",
+    "Hayao Miyazaki",
+    "Utagawa Hiroshige"
+   ],
+   "bonne_reponse": "Katsushika Hokusai"
+  },
+  {
+   "id": "ext-0175",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "En dehors du Japon, le mot « otaku » désigne le plus souvent…",
+   "anecdote": "Hors du Japon, « otaku » désigne surtout un fan passionné de manga, d'anime ou de culture japonaise.",
+   "sources": [
+    "https://www.merriam-webster.com/dictionary/otaku",
+    "https://www.britannica.com/topic/otaku"
+   ],
+   "choix": [
+    "un passionné (fan) de manga et d'anime",
+    "un auteur de manga",
+    "un éditeur de manga",
+    "un traducteur de manga"
+   ],
+   "bonne_reponse": "un passionné (fan) de manga et d'anime"
+  },
+  {
+   "id": "ext-0176",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Que désigne le plus souvent le mot « anime » en dehors du Japon ?",
+   "anecdote": "Au Japon, « anime » désigne toute animation ; à l'étranger, le mot renvoie surtout à l'animation japonaise.",
+   "sources": [
+    "https://www.merriam-webster.com/dictionary/anime",
+    "https://simple.wikipedia.org/wiki/Anime"
+   ],
+   "choix": [
+    "L'animation japonaise",
+    "Le cinéma muet",
+    "La bande dessinée franco-belge",
+    "Un genre de jeu vidéo"
+   ],
+   "bonne_reponse": "L'animation japonaise"
+  },
+  {
+   "id": "ext-0177",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le mot « anime » est une abréviation du mot « animation ».",
+   "anecdote": "« Anime » (アニメ) est l'abréviation japonaise de « animation » (アニメーション).",
+   "sources": [
+    "https://www.merriam-webster.com/dictionary/anime",
+    "https://simple.wikipedia.org/wiki/Anime"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0178",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Comment nomme-t-on la technique d'animation qui photographie image par image des objets réels (marionnettes, pâte à modeler) déplacés un peu entre chaque prise ?",
+   "anecdote": "En stop-motion, on manipule des objets par petits incréments entre chaque photo ; projetées à la suite, les images donnent l'illusion du mouvement.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Stop_motion",
+    "https://www.adobe.com/creativecloud/animation/discover/stop-motion-animation.html"
+   ],
+   "choix": [
+    "Le rotoscope",
+    "Le stop-motion (image par image)",
+    "Le morphing",
+    "Le fondu enchaîné"
+   ],
+   "bonne_reponse": "Le stop-motion (image par image)"
+  },
+  {
+   "id": "ext-0179",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "En animation traditionnelle, comment appelle-t-on la feuille transparente sur laquelle on dessine et peint les personnages ?",
+   "anecdote": "« Cel » vient de « celluloïd » : ces feuilles transparentes, superposées à un décor, ont servi de base à l'animation dessinée tout au long du XXe siècle.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Cel",
+    "https://www.studiobinder.com/blog/what-is-cel-animation-definition/"
+   ],
+   "choix": [
+    "Le cellulo (cel)",
+    "Le storyboard",
+    "Le flip-book",
+    "Le zootrope"
+   ],
+   "bonne_reponse": "Le cellulo (cel)"
+  },
+  {
+   "id": "ext-0180",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on ce jouet optique du XIXe siècle : un tambour percé de fentes qui, en tournant, anime une bande d'images placée à l'intérieur ?",
+   "anecdote": "Du grec « zoê » (vie) et « tropos » (tour), le zootrope fut l'un des jouets optiques les plus populaires du XIXe siècle.",
+   "sources": [
+    "https://mymodernmet.com/what-is-a-zoetrope/",
+    "https://www.studiobinder.com/blog/what-is-a-zoetrope-definition/"
+   ],
+   "choix": [
+    "Le kaléidoscope",
+    "Le zootrope",
+    "Le télescope",
+    "Le périscope"
+   ],
+   "bonne_reponse": "Le zootrope"
+  },
+  {
+   "id": "ext-0181",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel film muet d'Émile Cohl est considéré par les historiens comme le premier dessin animé de l'histoire ?",
+   "anecdote": "« Fantasmagorie » d'Émile Cohl repose sur environ 700 dessins et dure près de deux minutes.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Fantasmagorie_(film)",
+    "https://publicdomainreview.org/collection/emile-cohl-s-fantasmagorie-1908/"
+   ],
+   "choix": [
+    "Fantasmagorie",
+    "Gertie le dinosaure",
+    "Steamboat Willie",
+    "Pauvre Pierrot"
+   ],
+   "bonne_reponse": "Fantasmagorie"
+  },
+  {
+   "id": "ext-0182",
+   "categorie": "Dessin animé",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel Français, inventeur du praxinoscope, a projeté dès 1892 ses « Pantomimes Lumineuses », parmi les toutes premières séances d'images animées ?",
+   "anecdote": "Émile Reynaud a présenté ses Pantomimes Lumineuses au musée Grévin à partir du 28 octobre 1892, avant même le cinématographe des frères Lumière.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Th%C3%A9%C3%A2tre_Optique",
+    "https://www.acmi.net.au/works/99657--facsimile-reynauds-praxinoscope-or-theatre-optique-gives-the-illusion-of-movement-by-a-rapid-succession-of-images/"
+   ],
+   "choix": [
+    "Georges Méliès",
+    "Louis Lumière",
+    "Émile Reynaud",
+    "Émile Cohl"
+   ],
+   "bonne_reponse": "Émile Reynaud"
+  },
+  {
+   "id": "ext-0183",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Dans quel court métrage de Walt Disney le personnage de Mickey Mouse fait-il ses grands débuts au public ?",
+   "anecdote": "« Steamboat Willie » (1928) marque les débuts officiels de Mickey Mouse et fut l'un des premiers dessins animés à son synchronisé.",
+   "sources": [
+    "https://d23.com/a-to-z/steamboat-willie-film/",
+    "https://en.wikipedia.org/wiki/Steamboat_Willie"
+   ],
+   "choix": [
+    "Steamboat Willie",
+    "Fantasia",
+    "Dumbo",
+    "Gertie le dinosaure"
+   ],
+   "bonne_reponse": "Steamboat Willie"
+  },
+  {
+   "id": "ext-0184",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel long métrage de Walt Disney est considéré comme le premier long métrage d'animation en cellulo de l'histoire ?",
+   "anecdote": "« Blanche-Neige et les Sept Nains » (première le 21 décembre 1937) est le premier long métrage d'animation en cellulo.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Snow_White_and_the_Seven_Dwarfs_(1937_film)",
+    "https://www.history.com/articles/disney-snow-white-full-length-animated-feature-film"
+   ],
+   "choix": [
+    "Pinocchio",
+    "Blanche-Neige et les Sept Nains",
+    "Bambi",
+    "Fantasia"
+   ],
+   "bonne_reponse": "Blanche-Neige et les Sept Nains"
+  },
+  {
+   "id": "ext-0185",
+   "categorie": "Dessin animé",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "En quelle année est sorti « Fantasmagorie » d'Émile Cohl, considéré comme le premier dessin animé de l'histoire ?",
+   "anecdote": "« Fantasmagorie » est sorti le 17 août 1908.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Fantasmagorie_(film)",
+    "https://publicdomainreview.org/collection/emile-cohl-s-fantasmagorie-1908/"
+   ],
+   "reponse_numerique": 1908
+  },
+  {
+   "id": "ext-0186",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le Studio Ghibli, célèbre studio d'animation japonais cofondé par Hayao Miyazaki, a-t-il été fondé ?",
+   "anecdote": "Le Studio Ghibli a été fondé le 15 juin 1985 par Hayao Miyazaki, Isao Takahata et le producteur Toshio Suzuki.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Studio_Ghibli",
+    "https://www.britannica.com/money/Studio-Ghibli"
+   ],
+   "reponse_numerique": 1985
+  },
+  {
+   "id": "ext-0187",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Le wombat, petit marsupial australien, produit des crottes d'une forme très inhabituelle. Laquelle ?",
+   "anecdote": "Ses intestins alternent zones rigides et zones souples qui moulent les excréments en cubes. Résultat : ils s'empilent sans rouler, bien pratique pour marquer son territoire en haut d'un rocher.",
+   "sources": [
+    "https://www.slate.fr/story/199806/caca-wombat-cubique",
+    "https://www.futura-sciences.com/planete/actualites/animaux-crottes-cubiques-wombats-donnent-idees-chercheurs-73855/"
+   ],
+   "choix": [
+    "En forme de cube",
+    "En forme d'étoile",
+    "En spirale",
+    "Parfaitement sphériques"
+   ],
+   "bonne_reponse": "En forme de cube"
+  },
+  {
+   "id": "ext-0188",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle est la seule planète du système solaire qui flotterait si on la plongeait dans un océan assez grand ?",
+   "anecdote": "Sa densité (environ 0,69) est inférieure à celle de l'eau. Faite surtout d'hydrogène et d'hélium, Saturne est plus légère que le liquide dans lequel on l'imaginerait flotter.",
+   "sources": [
+    "https://sciencepost.fr/saturne-est-la-seule-planete-du-systeme-solaire-qui-flotterait-si-on-la-posait-dans-une-baignoire-assez-grande/",
+    "https://www.quebecscience.qc.ca/14-17-ans/encyclo/saturne-rond/"
+   ],
+   "choix": [
+    "Jupiter",
+    "Saturne",
+    "Neptune",
+    "Mars"
+   ],
+   "bonne_reponse": "Saturne"
+  },
+  {
+   "id": "ext-0189",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Mesurée de sa base à son sommet, quelle est la plus haute montagne du monde, bien plus haute que l'Everest ?",
+   "anecdote": "Le Mauna Kea ne dépasse la mer que d'environ 4 200 m, mais sa base plonge sous le Pacifique : du pied au sommet, il mesure plus de 10 000 m, soit plus d'un kilomètre de plus que l'Everest.",
+   "sources": [
+    "https://www.guinnessworldrecords.com/world-records/tallest-mountain",
+    "https://fr.wikipedia.org/wiki/Mauna_Kea"
+   ],
+   "choix": [
+    "Le Mauna Kea (Hawaï)",
+    "Le K2",
+    "Le Kilimandjaro",
+    "Le mont Blanc"
+   ],
+   "bonne_reponse": "Le Mauna Kea (Hawaï)"
+  },
+  {
+   "id": "ext-0190",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Pourquoi croit-on à tort que Napoléon était de très petite taille ?",
+   "anecdote": "Mesuré en pieds et pouces français, il faisait environ 1,69 m, une taille banale pour l'époque. Mal reconvertie en pouces anglais, plus courts, elle tombait à 1,58 m. Son surnom « le petit caporal » a fait le reste.",
+   "sources": [
+    "https://www.letribunaldunet.fr/insolite/napoleon-petit-mythe-vrai-faux.html",
+    "https://fr.wikipedia.org/wiki/Complexe_de_Napol%C3%A9on"
+   ],
+   "choix": [
+    "Il portait toujours d'immenses chapeaux",
+    "À cause d'une confusion entre pouces français et pouces anglais",
+    "Il se tenait toujours voûté",
+    "Ses soldats étaient tous très grands"
+   ],
+   "bonne_reponse": "À cause d'une confusion entre pouces français et pouces anglais"
+  },
+  {
+   "id": "ext-0191",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel animal possède des empreintes digitales si proches des nôtres qu'on peut les confondre au microscope ?",
+   "anecdote": "Boucles et tourbillons quasi identiques aux nôtres… alors que nos lignées se sont séparées il y a environ 70 millions d'années. Un bel exemple d'évolution convergente liée à sa vie dans les arbres.",
+   "sources": [
+    "https://www.rtbf.be/article/la-minute-insolite-les-empreintes-digitales-des-koalas-sont-presque-indiscernables-de-celles-des-humains-11585514",
+    "https://sciencepost.fr/koalas-empreintes-digitales-presque-identiques-humains/"
+   ],
+   "choix": [
+    "Le chat",
+    "Le koala",
+    "Le dauphin",
+    "Le corbeau"
+   ],
+   "bonne_reponse": "Le koala"
+  },
+  {
+   "id": "ext-0192",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel animal détient le record de longévité connu chez les vertébrés, pouvant vivre près de 400 ans ?",
+   "anecdote": "Certains individus nageant aujourd'hui seraient nés avant la Révolution française. Il ne grandit que d'environ 1 cm par an et n'atteint sa maturité sexuelle que vers 150 ans.",
+   "sources": [
+    "https://www.futura-sciences.com/planete/actualites/zoologie-400-ans-requin-groenland-bat-record-longevite-63925/",
+    "https://fr.wikipedia.org/wiki/Requin_du_Groenland"
+   ],
+   "choix": [
+    "La tortue géante",
+    "Le requin du Groenland",
+    "La baleine bleue",
+    "La carpe koï"
+   ],
+   "bonne_reponse": "Le requin du Groenland"
+  },
+  {
+   "id": "ext-0193",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "À quoi sert le petit trou percé sur le capuchon des stylos Bic ?",
+   "anecdote": "Ce petit trou peut sauver une vie : avalé par accident, le capuchon laisse encore passer un filet d'air le temps des secours. La mesure est même inscrite dans une norme internationale (ISO 11540).",
+   "sources": [
+    "https://www.chosesasavoir.com/bouchon-stylos-bic-perce/",
+    "https://www.santeplusmag.com/111121775-a-quoi-sert-le-petit-trou-du-capuchon-du-stylo-bic-il-peut-vous-sauver-la-vie-ma-vie-au-quotidien/"
+   ],
+   "choix": [
+    "À équilibrer la pression de l'encre",
+    "À laisser passer l'air si on l'avale, pour éviter l'étouffement",
+    "À empêcher le stylo de sécher",
+    "À rien, c'est purement décoratif"
+   ],
+   "bonne_reponse": "À laisser passer l'air si on l'avale, pour éviter l'étouffement"
+  },
+  {
+   "id": "ext-0194",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Que signifie littéralement le mot « aujourd'hui » ?",
+   "anecdote": "« Hui » vient du latin hodie, « ce jour ». « Au-jour-d'hui » dit donc déjà deux fois « jour ». Et dire « au jour d'aujourd'hui » le répète… une troisième fois !",
+   "sources": [
+    "https://www.grevisse.fr/histoire-des-mots/aujourd-hui-entre-hui-et-au-jour-d-aujourd-hui",
+    "https://www.projet-voltaire.fr/regles-orthographe/pleonasme-au-jour-d-aujourdhui/"
+   ],
+   "choix": [
+    "« le jour du soleil »",
+    "« au jour de ce jour »",
+    "« le beau jour »",
+    "« au petit matin »"
+   ],
+   "bonne_reponse": "« au jour de ce jour »"
+  },
+  {
+   "id": "ext-0195",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "De quelles couleurs étaient surtout les carottes avant le XVIe siècle ?",
+   "anecdote": "La carotte orange a été mise au point par les horticulteurs hollandais à la Renaissance. Une légende tenace veut qu'ils l'aient teintée en hommage à la maison royale d'Orange-Nassau.",
+   "sources": [
+    "https://dailygeekshow.com/carottes-violettes/",
+    "https://www.eurotoques.fr/petite-histoire-de-la-carotte/"
+   ],
+   "choix": [
+    "Orange vif",
+    "Violette et jaune",
+    "Bleue",
+    "Blanche uniquement"
+   ],
+   "bonne_reponse": "Violette et jaune"
+  },
+  {
+   "id": "ext-0196",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Sur quelles planètes les scientifiques pensent-ils qu'il « pleut des diamants » ?",
+   "anecdote": "Sous des pressions colossales, le méthane de ces géantes de glace se brise et son carbone se comprime en diamants qui « pleuvent » lentement vers le cœur de la planète.",
+   "sources": [
+    "https://www.slate.fr/story/221975/pluie-diamants-uranus-neptune-espace",
+    "https://ici.radio-canada.ca/nouvelle/1053143/pluies-diamants-uranus-neptune"
+   ],
+   "choix": [
+    "Mercure et Vénus",
+    "Neptune et Uranus",
+    "Mars et Jupiter",
+    "Saturne et Pluton"
+   ],
+   "bonne_reponse": "Neptune et Uranus"
+  },
+  {
+   "id": "ext-0197",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel type de plante provient la vanille ?",
+   "anecdote": "C'est la seule orchidée cultivée pour son fruit, et non pour ses fleurs. Les Aztèques s'en servaient déjà pour parfumer leur précieuse boisson au cacao.",
+   "sources": [
+    "https://www.mnhn.fr/fr/vanille",
+    "https://www.gerbeaud.com/jardin/fiches/vanille-orchidee,1269.html"
+   ],
+   "choix": [
+    "Une orchidée",
+    "Un cactus",
+    "Une fougère",
+    "Un palmier"
+   ],
+   "bonne_reponse": "Une orchidée"
+  },
+  {
+   "id": "ext-0198",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Avec quoi les tout premiers paniers de basket ont-ils été fabriqués en 1891 ?",
+   "anecdote": "James Naismith cloua deux cageots à pêches à 3,05 m de haut. Le fond étant plein, il fallait grimper à une échelle récupérer le ballon après chaque point marqué !",
+   "sources": [
+    "https://www.artips.fr/articles/invention-basketball",
+    "https://www.noovomoi.ca/style-et-maison/infos-pratiques/article.origine-basket-ball.1.1482601.html"
+   ],
+   "choix": [
+    "Des cerceaux en métal",
+    "Des paniers de pêches (les fruits)",
+    "Des tonneaux en bois",
+    "Des filets de pêcheur"
+   ],
+   "bonne_reponse": "Des paniers de pêches (les fruits)"
+  },
+  {
+   "id": "ext-0199",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Pourquoi un marathon fait-il exactement 42,195 km ?",
+   "anecdote": "En 1908, on plaça le départ sous les fenêtres du château de Windsor et l'arrivée devant la loge royale. Ces quelques mètres ajoutés « pour la famille royale » sont devenus la norme mondiale.",
+   "sources": [
+    "https://worldathletics.org/news/news/queen-elizabeth-marks-1908-london-olympics-an",
+    "https://www.iflscience.com/why-is-a-marathon-262-miles-some-blame-the-british-royal-family-73883"
+   ],
+   "choix": [
+    "C'est la distance parcourue par le messager grec de Marathon",
+    "Pour que l'arrivée tombe devant la tribune royale aux JO de Londres 1908",
+    "À cause d'un calcul basé sur le mille romain",
+    "C'est un pur hasard de mesure"
+   ],
+   "bonne_reponse": "Pour que l'arrivée tombe devant la tribune royale aux JO de Londres 1908"
+  },
+  {
+   "id": "ext-0200",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Sur une fraise, que sont en réalité les petits grains visibles à sa surface ?",
+   "anecdote": "Botaniquement, la fraise n'est même pas une baie mais un « faux-fruit » : la partie rouge et charnue est un réceptacle gonflé, et chacun de ses petits grains est un vrai fruit à part entière.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fraise",
+    "https://www.gerbeaud.com/reponses-experts/fraise-faux-fruit,189.html"
+   ],
+   "choix": [
+    "Des graines",
+    "Les véritables fruits de la plante (des akènes)",
+    "De minuscules épines",
+    "Des glandes à sucre"
+   ],
+   "bonne_reponse": "Les véritables fruits de la plante (des akènes)"
+  },
+  {
+   "id": "ext-0201",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Cléopâtre a vécu à une époque plus proche de l'alunissage de 1969 que de la construction de la grande pyramide de Gizeh. Vrai ou faux ?",
+   "anecdote": "La pyramide fut achevée vers 2560 av. J.-C. et Cléopâtre mourut en 30 av. J.-C. : environ 2 500 ans les séparent, contre à peine 2 000 ans jusqu'à Neil Armstrong. La pyramide était déjà une antiquité pour elle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cl%C3%A9op%C3%A2tre_VII",
+    "https://www.histoire-pour-tous.fr/dossiers/5735-la-grande-pyramide-de-kheops-gizeh-egypte.html"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0202",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "On peut voir la Grande Muraille de Chine à l'œil nu depuis la Lune. Vrai ou faux ?",
+   "anecdote": "Pur mythe, né dès 1754. Large d'à peine 7 mètres et de la couleur du paysage, la Muraille est même invisible à l'œil nu depuis la Station spatiale, comme l'a confirmé Thomas Pesquet.",
+   "sources": [
+    "https://sciencepost.fr/la-grande-muraille-visible-de-lespace-la-reponse-des-astronautes-met-enfin-un-terme-au-debat/",
+    "https://www.futura-sciences.com/sciences/questions-reponses/espace-grande-muraille-chine-divisible-depuis-espace-vrai-faux-21652/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0203",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "L'air traversé par un éclair peut devenir environ cinq fois plus chaud que la surface du Soleil. Vrai ou faux ?",
+   "anecdote": "Un éclair chauffe l'air à près de 30 000 °C, contre environ 5 500 °C à la surface du Soleil. L'air, transformé en plasma, explose littéralement : c'est ce qui provoque le tonnerre.",
+   "sources": [
+    "https://meteofrance.com/comprendre-la-meteo/orages/foudre-eclair-et-tonnerre",
+    "https://www.meteocontact.fr/pour-aller-plus-loin/la-meteo-en-bref/la-foudre-et-les-eclairs/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0204",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "On enseignait déjà à l'université d'Oxford avant même la fondation de l'empire aztèque. Vrai ou faux ?",
+   "anecdote": "Les premiers cours à Oxford datent d'environ 1096, alors que Tenochtitlan, la capitale aztèque, ne fut fondée qu'en 1325. Oxford avait déjà plus de deux siècles quand l'empire aztèque a vu le jour.",
+   "sources": [
+    "https://www.smithsonianmag.com/smart-news/university-oxford-older-than-aztec-empire-other-facts-will-change-your-perspective-history-1529607/",
+    "https://www.chosesasavoir.com/luniversite-doxford-est-plus-ancienne-que-lempire-azteque/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0205",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Sur Vénus, une journée (une rotation complète sur elle-même) dure plus longtemps qu'une année vénusienne. Vrai ou faux ?",
+   "anecdote": "Vénus met 243 jours terrestres pour tourner sur elle-même, mais seulement 225 pour faire le tour du Soleil. Et elle tourne à l'envers des autres planètes : le Soleil s'y lève à l'ouest.",
+   "sources": [
+    "https://www.futura-sciences.com/sciences/breves/venus-voici-duree-exacte-journee-venus-4301/",
+    "https://sciencepost.fr/sur-venus-un-seul-jour-dure-plus-longtemps-qu-un-tour-complet-autour-du-soleil-les-astronomes-ont-mis-du-temps-a-comprendre-pourquoi/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0206",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "Combien de minutes a duré la guerre la plus courte de l'histoire, la guerre anglo-zanzibaraise de 1896 ?",
+   "anecdote": "Le 27 août 1896, le bombardement britannique du palais du sultan de Zanzibar commença à 9 h 02 et cessa à 9 h 40 : 38 minutes chrono, et le conflit était terminé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bombardement_de_Zanzibar",
+    "https://sciencepost.fr/38-minutes-chrono-le-recit-de-la-guerre-la-plus-courte-de-lhistoire-qui-a-oppose-un-empire-a-un-sultan/"
+   ],
+   "reponse_numerique": 38
+  },
+  {
+   "id": "ext-0207",
+   "categorie": "Langue française",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de lettres compte le mot « anticonstitutionnellement », longtemps cité comme le plus long mot courant du français ?",
+   "anecdote": "Ses 25 lettres en ont fait la star des cours de récré. Il a depuis été détrôné par des termes plus techniques comme « intergouvernementalisations » (27 lettres).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Liste_des_mots_les_plus_longs_en_fran%C3%A7ais",
+    "https://www.femmesdaujourdhui.be/societe/anticonstitutionnellement-nest-plus-le-mot-le-plus-long-de-la-langue-francaise/"
+   ],
+   "reponse_numerique": 25
+  },
+  {
+   "id": "ext-0208",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Combien de cases y a-t-il sur un échiquier ?",
+   "anecdote": "Un échiquier, c'est une grille de 8 rangées de 8 cases : 8 fois 8, ça fait bien 64 !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89chiquier",
+    "https://www.larousse.fr/dictionnaires/francais/%C3%A9checs/27737"
+   ],
+   "choix": [
+    "64",
+    "32",
+    "48",
+    "100"
+   ],
+   "bonne_reponse": "64"
+  },
+  {
+   "id": "ext-0209",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur sont les cases d'un échiquier ?",
+   "anecdote": "Les cases claires et foncées se suivent en alternance : jamais deux voisines de la même couleur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89chiquier",
+    "https://fr.wikipedia.org/wiki/%C3%89checs"
+   ],
+   "choix": [
+    "Rouges et bleues",
+    "Noires et blanches",
+    "Toutes vertes",
+    "Jaunes et roses"
+   ],
+   "bonne_reponse": "Noires et blanches"
+  },
+  {
+   "id": "ext-0210",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Aux échecs, combien de pièces a chaque joueur au début de la partie ?",
+   "anecdote": "16 pièces chacun : 1 roi, 1 dame, 2 tours, 2 fous, 2 cavaliers et 8 pions.",
+   "sources": [
+    "https://www.larousse.fr/dictionnaires/francais/%C3%A9checs/27737",
+    "https://fr.wikipedia.org/wiki/%C3%89checs"
+   ],
+   "choix": [
+    "8",
+    "12",
+    "16",
+    "32"
+   ],
+   "bonne_reponse": "16"
+  },
+  {
+   "id": "ext-0211",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien de faces a un dé à jouer classique ?",
+   "anecdote": "Sur un dé, les points de deux faces opposées font toujours 7 : le 1 est en face du 6, le 2 en face du 5.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/D%C3%A9_%C3%A0_jouer",
+    "https://www.larousse.fr/dictionnaires/francais/d%C3%A9/22333"
+   ],
+   "choix": [
+    "4",
+    "8",
+    "12",
+    "6"
+   ],
+   "bonne_reponse": "6"
+  },
+  {
+   "id": "ext-0212",
+   "categorie": "Jeux de société",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Combien de dominos y a-t-il dans un jeu classique dit « double-six » ?",
+   "anecdote": "Un jeu double-six compte 28 dominos, du double-blanc jusqu'au double-six.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Domino_(jeu)",
+    "https://www.larousse.fr/dictionnaires/francais/domino/26526"
+   ],
+   "choix": [
+    "28",
+    "20",
+    "36",
+    "52"
+   ],
+   "bonne_reponse": "28"
+  },
+  {
+   "id": "ext-0213",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le jeu de dames se joue sur un plateau tout blanc, sans aucune case.",
+   "anecdote": "Faux ! On joue sur un damier, un plateau quadrillé de cases de deux couleurs, comme l'échiquier.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeu_de_dames",
+    "https://fr.wikipedia.org/wiki/Damier"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0214",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on un dessin animé qui vient du Japon ?",
+   "anecdote": "En Occident, « anime » désigne l'animation japonaise ; beaucoup d'anime sont d'abord des mangas avant d'être animés.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Anime",
+    "https://fr.wikipedia.org/wiki/Animation_japonaise"
+   ],
+   "choix": [
+    "Un manga",
+    "Un anime",
+    "Un comic américain",
+    "Une BD franco-belge"
+   ],
+   "bonne_reponse": "Un anime"
+  },
+  {
+   "id": "ext-0215",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on une bande dessinée qui vient du Japon ?",
+   "anecdote": "« Manga » est un mot japonais : c'est une bande dessinée du Japon, alors que l'« anime » est le dessin animé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Manga",
+    "https://www.larousse.fr/dictionnaires/francais/manga/48918"
+   ],
+   "choix": [
+    "Un anime",
+    "Un pixel",
+    "Un manga",
+    "Un domino"
+   ],
+   "bonne_reponse": "Un manga"
+  },
+  {
+   "id": "ext-0216",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Avec quelle matière molle fabrique-t-on souvent les personnages des films en « stop-motion » ?",
+   "anecdote": "L'animation en pâte à modeler porte un nom bien à elle : la « claymation ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Animation_en_volume",
+    "https://fr.wikipedia.org/wiki/P%C3%A2te_%C3%A0_modeler"
+   ],
+   "choix": [
+    "Du chocolat",
+    "Du verre",
+    "Du papier journal",
+    "De la pâte à modeler"
+   ],
+   "bonne_reponse": "De la pâte à modeler"
+  },
+  {
+   "id": "ext-0217",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Pour un film en « stop-motion », on prend une photo, on déplace un peu les personnages, puis on reprend une photo.",
+   "anecdote": "En bougeant les objets tout petit à petit entre chaque photo, on donne l'illusion qu'ils bougent tout seuls.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Animation_en_volume",
+    "https://fr.wikipedia.org/wiki/P%C3%A2te_%C3%A0_modeler"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0218",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un dessin animé est fait d'une longue suite d'images qui défilent très vite pour donner l'impression que ça bouge.",
+   "anecdote": "Au cinéma, on projette environ 24 images par seconde : trop rapide pour que l'œil les voie une par une !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cin%C3%A9ma_d%27animation",
+    "https://fr.wikipedia.org/wiki/Animation_en_volume"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0219",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Sur une console de jeux, avec quel objet tenu dans les mains joue-t-on ?",
+   "anecdote": "La manette est le principal objet pour jouer sur presque toutes les consoles.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Manette_de_jeu",
+    "https://fr.wikipedia.org/wiki/Contr%C3%B4leur_de_jeu"
+   ],
+   "choix": [
+    "Une manette",
+    "Une télécommande de télé",
+    "Un clavier",
+    "Une calculatrice"
+   ],
+   "bonne_reponse": "Une manette"
+  },
+  {
+   "id": "ext-0220",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on un tout petit point qui compose une image sur un écran ?",
+   "anecdote": "Une image d'écran est faite de milliers de pixels rangés en lignes et en colonnes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pixel",
+    "https://fr.wikipedia.org/wiki/Image_num%C3%A9rique"
+   ],
+   "choix": [
+    "Un octet",
+    "Un pixel",
+    "Un curseur",
+    "Un aimant"
+   ],
+   "bonne_reponse": "Un pixel"
+  },
+  {
+   "id": "ext-0221",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Sur un ordinateur, avec quel objet déplace-t-on la flèche (le curseur) à l'écran ?",
+   "anecdote": "La souris est un dispositif de pointage : on la bouge sur la table et le curseur bouge à l'écran.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Souris_(informatique)",
+    "https://fr.wikipedia.org/wiki/Dispositif_de_pointage"
+   ],
+   "choix": [
+    "L'imprimante",
+    "Le haut-parleur",
+    "La souris",
+    "La webcam"
+   ],
+   "bonne_reponse": "La souris"
+  },
+  {
+   "id": "ext-0222",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La manette est le principal objet qui permet de jouer sur presque toutes les consoles de jeux modernes.",
+   "anecdote": "La manette est le périphérique d'entrée principal de presque toutes les consoles d'aujourd'hui.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Contr%C3%B4leur_de_jeu",
+    "https://fr.wikipedia.org/wiki/Manette_de_jeu"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0223",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "L'escargot laisse une trace de bave qui l'aide à avancer en glissant.",
+   "anecdote": "Sa bave l'aide même à grimper à la verticale sur une vitre sans tomber !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Escargot",
+    "https://fr.wikipedia.org/wiki/Gast%C3%A9ropode"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0224",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment l'abeille explique-t-elle à ses copines où trouver les fleurs ?",
+   "anecdote": "Sa petite danse en forme de huit indique la direction et la distance des fleurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Danse_des_abeilles",
+    "https://fr.wikipedia.org/wiki/Abeille"
+   ],
+   "choix": [
+    "Elle chante",
+    "Elle siffle",
+    "Elle tape des pattes",
+    "Elle danse"
+   ],
+   "bonne_reponse": "Elle danse"
+  },
+  {
+   "id": "ext-0225",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel aliment sucré les abeilles fabriquent-elles ?",
+   "anecdote": "Les abeilles fabriquent le miel à partir du nectar sucré qu'elles récoltent dans les fleurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Miel",
+    "https://www.larousse.fr/dictionnaires/francais/abeille/104"
+   ],
+   "choix": [
+    "Le miel",
+    "Le chocolat",
+    "Le caramel",
+    "La confiture"
+   ],
+   "bonne_reponse": "Le miel"
+  },
+  {
+   "id": "ext-0226",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le manchot est un oiseau qui vole très haut dans le ciel comme un aigle.",
+   "anecdote": "Faux ! Le manchot ne vole pas dans les airs, mais il « vole » sous l'eau en nageant très vite avec ses ailes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Manchot",
+    "https://www.larousse.fr/dictionnaires/francais/manchot/49122"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0227",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est le plus grand oiseau du monde ?",
+   "anecdote": "L'autruche ne vole pas, mais elle court très vite : c'est le plus grand oiseau du monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Autruche_d%27Afrique",
+    "https://fr.wikipedia.org/wiki/Autruche"
+   ],
+   "choix": [
+    "L'aigle",
+    "Le pigeon",
+    "L'autruche",
+    "Le moineau"
+   ],
+   "bonne_reponse": "L'autruche"
+  },
+  {
+   "id": "ext-0228",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La girafe est l'animal terrestre le plus grand en hauteur.",
+   "anecdote": "Grâce à son très long cou, la girafe peut dépasser 5 mètres de haut !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Girafe",
+    "https://www.larousse.fr/encyclopedie/vie-sauvage/girafe/178172"
    ],
    "choix": [
     "Vrai",

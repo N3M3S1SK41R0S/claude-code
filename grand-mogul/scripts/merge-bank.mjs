@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 const THEME_IDS = [
   "histoire", "geographie", "litterature", "sciences", "arts", "cinema",
   "musique", "gastronomie", "sport", "langue", "pop-culture", "insolite", "general",
+  "jeux-video", "jeux-societe", "manga", "dessin-anime", "series",
 ];
 
 const SCRIPT_CATEGORY_MAP = {

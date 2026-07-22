@@ -29,6 +29,11 @@ const CATEGORY_LABEL = {
   musique: "Musique",
   gastronomie: "Gastronomie",
   langue: "Langue française",
+  "jeux-video": "Jeux vidéo",
+  "jeux-societe": "Jeux de société",
+  manga: "Manga",
+  "dessin-anime": "Dessin animé",
+  series: "Séries",
 };
 
 const questions = [];

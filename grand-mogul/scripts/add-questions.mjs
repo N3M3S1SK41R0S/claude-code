@@ -13,6 +13,7 @@ import { fileURLToPath } from "node:url";
 const THEME_IDS = new Set([
   "histoire", "geographie", "litterature", "sciences", "arts", "cinema",
   "musique", "gastronomie", "sport", "langue", "pop-culture", "insolite", "general",
+  "jeux-video", "jeux-societe", "manga", "dessin-anime", "series",
 ]);
 const DIFFICULTY_TO_AGE = (d) => (d <= 1 ? "enfant" : d <= 3 ? "ado" : "adulte");
 

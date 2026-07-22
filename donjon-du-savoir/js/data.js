@@ -141,12 +141,8 @@ export function drawHardest(pion) {
   return pick(candidates.filter((q) => diffOf(q) === maxDiff));
 }
 
-/**
- * Événement collectif : une question que TOUT LE MONDE peut tenter. On vise la
- * tranche d'âge la PLUS JEUNE présente à la table (les pions et leurs membres
- * d'équipe), vrai/faux d'abord puis QCM — jamais au-dessus de cet âge.
- */
-export function drawEvent() {
+/** Toutes les tranches d'âge présentes à la table (pions + membres d'équipe). */
+function tableBrackets() {
   const brackets = [];
   for (const p of getState().pions) {
     if (Array.isArray(p.membres) && p.membres.length) {
@@ -155,12 +151,47 @@ export function drawEvent() {
       brackets.push(p.bracket ?? "9-11");
     }
   }
-  const b = bracketById(youngestBracket(brackets));
-  const vf = drawableFrom(b, ["vrai_faux"]);
-  if (vf.length > 0) return pick(vf);
-  const qcm = drawableFrom(b, ["qcm"]);
-  if (qcm.length > 0) return pick(qcm);
+  return brackets;
+}
+
+/** Une question collective à un palier d'âge donné (vrai/faux puis QCM). */
+function drawEventFor(b, { exclude = null } = {}) {
+  for (const fmt of [["vrai_faux"], ["qcm"]]) {
+    let pool = drawableFrom(b, fmt);
+    if (exclude) pool = pool.filter((q) => !exclude.has(q.id));
+    if (pool.length > 0) return pick(pool);
+  }
   return null;
+}
+
+/**
+ * Événement collectif : une question que TOUT LE MONDE peut tenter. On vise la
+ * tranche d'âge la PLUS JEUNE présente à la table (les pions et leurs membres
+ * d'équipe), vrai/faux d'abord puis QCM — jamais au-dessus de cet âge.
+ */
+export function drawEvent() {
+  return drawEventFor(bracketById(youngestBracket(tableBrackets())));
+}
+
+/**
+ * Collectif « à deux difficultés » (demande du cahier) : quand la tablée réunit
+ * à la fois de jeunes joueurs ET des joueurs qui peuvent recevoir de l'adulte,
+ * on prépare DEUX questions — une accessible aux plus jeunes, une pour les
+ * adultes — pour que chacun brille à son niveau. Renvoie { enfant, adulte } ;
+ * `null` si un seul niveau suffit (la table est homogène) → collectif simple.
+ */
+export function drawEventPair() {
+  const brackets = tableBrackets();
+  const young = bracketById(youngestBracket(brackets));
+  const adulte = bracketById("18+");
+  // Deux niveaux seulement si l'écart est réel : le plus jeune n'atteint pas
+  // le palier « adulte » mais au moins un joueur, si.
+  const hasAdult = brackets.some((id) => bracketById(id).tiers.includes("adulte"));
+  if (!hasAdult || young.tiers.includes("adulte")) return null;
+  const qEnfant = drawEventFor(young);
+  const qAdulte = drawEventFor(adulte, { exclude: qEnfant ? new Set([qEnfant.id]) : null });
+  if (!qEnfant || !qAdulte) return null;
+  return { enfant: qEnfant, adulte: qAdulte };
 }
 
 /** Gambit: numeric question within the pion's allowed tiers — or null. */

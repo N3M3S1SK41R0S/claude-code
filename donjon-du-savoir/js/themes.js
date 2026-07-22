@@ -17,6 +17,11 @@ export const THEME_META = {
   "Musique": { emoji: "🎵", color: "#3fb3a3" },
   "Gastronomie": { emoji: "🍽️", color: "#d9a441" },
   "Langue française": { emoji: "🔤", color: "#cc5f6a" },
+  "Jeux vidéo": { emoji: "🎮", color: "#5c8ce0" },
+  "Jeux de société": { emoji: "♟️", color: "#c98a3c" },
+  "Manga": { emoji: "📖", color: "#e05f7a" },
+  "Dessin animé": { emoji: "🧸", color: "#5fb85f" },
+  "Séries": { emoji: "📺", color: "#a06fd6" },
 };
 
 const THEME_DEFAULT = { emoji: "🏠", color: "#9a86c9" };
@@ -25,7 +30,7 @@ export function themeMeta(categorie) {
   return THEME_META[categorie] ?? THEME_DEFAULT;
 }
 
-// Ordered for the legend (matches the 13 verified categories).
+// Ordered for the legend (matches the 18 verified categories).
 export const THEME_ORDER = Object.keys(THEME_META);
 
 // Question TYPES (the underlying format). The displayed question may morph
