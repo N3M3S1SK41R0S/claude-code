@@ -1,6 +1,6 @@
 {
  "version": 1784445901415,
- "count": 1234,
+ "count": 1327,
  "questions": [
   {
    "id": "arts-001",
@@ -23514,6 +23514,1718 @@
    "sources": [
     "https://en.wikipedia.org/wiki/Reversi",
     "https://www.japantimes.co.jp/news/2016/06/23/national/goro-hasegawa-inventor-board-game-othello-dies-83/"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0283",
+   "theme": "manga",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Quel mangaka est le créateur de Dragon Ball et de Dr Slump ?",
+   "anecdote": "Akira Toriyama (1955-2024) lance Dr Slump en 1980 puis Dragon Ball en 1984. Il a aussi imaginé les personnages de la saga de jeux vidéo Dragon Quest.",
+   "sources": [
+    "https://www.hollywoodreporter.com/news/general-news/akira-toriyama-dragon-ball-dr-slump-dead-at-68-1235846307/",
+    "https://www.allocine.fr/article/fichearticle_gen_carticle=1000069895.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Eiichiro Oda",
+    "Akira Toriyama",
+    "Masashi Kishimoto",
+    "Osamu Tezuka"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0284",
+   "theme": "manga",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Doraemon, héros d'un célèbre manga japonais, est un chat-robot venu du futur.",
+   "anecdote": "Créé par Fujiko F. Fujio, il apparaît pour la première fois en 1969. Envoyé depuis le XXIIe siècle, il aide le jeune Nobita à l'aide de gadgets futuristes.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/List_of_Doraemon_characters",
+    "https://www.japantimes.co.jp/culture/2014/03/01/books/doraemon-the-robot-cat-gets-your-tongue/"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0285",
+   "theme": "manga",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Naruto, qui raconte les aventures d'un jeune ninja, a été créé par quel mangaka ?",
+   "anecdote": "Le manga a été prépublié dans le Weekly Shonen Jump de 1999 à 2014 et s'est écoulé à plus de 250 millions d'exemplaires dans le monde.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Naruto",
+    "https://naruto-official.com/en/about"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Tite Kubo",
+    "Gosho Aoyama",
+    "Masashi Kishimoto",
+    "Akira Toriyama"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0286",
+   "theme": "manga",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Qui est l'autrice du manga Sailor Moon ?",
+   "anecdote": "Ce manga shojo (destiné aux jeunes filles) a été prépublié dans le magazine Nakayoshi à partir de 1991-1992.",
+   "sources": [
+    "https://www.britannica.com/topic/Sailor-Moon",
+    "https://en.wikipedia.org/wiki/Sailor_Moon"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Naoko Takeuchi",
+    "Rumiko Takahashi",
+    "Machiko Hasegawa",
+    "Kyoko Okazaki"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0287",
+   "theme": "manga",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le manga Dragon Ball s'inspire d'un grand roman classique chinois, La Pérégrination vers l'Ouest (aussi appelé Le Voyage en Occident).",
+   "anecdote": "Le héros Son Goku est inspiré de Sun Wukong, le roi des singes de ce roman du XVIe siècle, et la quête des boules de cristal fait écho à celle des textes sacrés bouddhiques.",
+   "sources": [
+    "https://www.cbr.com/dragon-ball-journey-to-the-west-inspiration/",
+    "https://screenrant.com/dragon-ball-akira-toriyama-journey-west-explained/"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0288",
+   "theme": "manga",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Dans le vocabulaire du manga, que désigne un « tankobon » ?",
+   "anecdote": "Les chapitres paraissent d'abord dans un magazine, puis sont compilés dans un tankobon d'environ 150 à 200 pages. Ce format s'est développé au Japon à partir des années 1950.",
+   "sources": [
+    "https://www.manga-news.com/index.php/definition/Tankobon",
+    "https://en.wikipedia.org/wiki/Tank%C5%8Dbon"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Un magazine hebdomadaire de prépublication",
+    "Un volume relié qui regroupe plusieurs chapitres",
+    "Un salon de dédicaces",
+    "Un apprenti mangaka"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0289",
+   "theme": "manga",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Combien de cases comporte, par définition, un manga de type « yonkoma » ?",
+   "anecdote": "« Yon-koma » signifie littéralement « quatre cases » en japonais. Disposées verticalement, elles suivent souvent une structure en quatre temps et un ton humoristique.",
+   "sources": [
+    "https://dailygeekshow.com/style-manga-yonkoma/",
+    "https://wikimonde.com/article/Yonkoma"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 4
+  },
+  {
+   "id": "ext-0290",
+   "theme": "manga",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le manga policier Detective Conan (Case Closed) est l'œuvre du mangaka Gosho Aoyama.",
+   "anecdote": "Prépublié depuis 1994 dans le Weekly Shonen Sunday, il suit un jeune détective transformé en enfant. C'est l'un des mangas les plus longs, avec plus de mille chapitres.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Case_Closed",
+    "https://www.animenewsnetwork.com/encyclopedia/people.php?id=4883"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0291",
+   "theme": "manga",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Quel record du monde Guinness le manga Golgo 13 détient-il ?",
+   "anecdote": "Publié depuis octobre 1968, Golgo 13 est le plus ancien manga encore en cours. Le record Guinness du « plus grand nombre de volumes publiés pour une série de manga » lui a été décerné avec le tome 201 en 2021.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Golgo_13",
+    "https://japanization.org/golgo-13-le-manga-le-plus-long-de-lhistoire/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le manga le plus vendu en une seule journée",
+    "Le plus grand nombre de volumes pour une même série de manga",
+    "Le mangaka le plus jeune de l'histoire",
+    "La plus grande case jamais dessinée"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0292",
+   "theme": "manga",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Quel terme, forgé par Yoshihiro Tatsumi en 1957, désigne un manga au ton plus dramatique et destiné à un public adulte ?",
+   "anecdote": "« Gekiga » signifie « images dramatiques », par opposition à « manga » (« images dérisoires »). Tatsumi voulait distinguer ses récits sombres et réalistes du manga humoristique de l'époque.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Yoshihiro_Tatsumi",
+    "https://www.tcj.com/tatsumi-yoshihiro-1935-2015/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Gekiga",
+    "Josei",
+    "Kodomo",
+    "Mecha"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0293",
+   "theme": "manga",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Selon le Guinness World Records, la série animée japonaise Sazae-san est la plus longue série animée télévisée du monde.",
+   "anecdote": "Diffusée au Japon depuis le 5 octobre 1969, elle est tirée d'un manga en quatre cases (yonkoma) de Machiko Hasegawa et devance Les Simpson pour ce record.",
+   "sources": [
+    "https://www.guinnessworldrecords.com/world-records/longest-running-animated-tv-series",
+    "https://japantoday.com/category/entertainment/sazae-san-enters-guinness-world-records-as-longest-running-animated-tv-series"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0294",
+   "theme": "manga",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le kamishibai, considéré comme un ancêtre du manga et de l'anime, est un art japonais qui consiste en… ?",
+   "anecdote": "Dans les années 1930, des conteurs itinérants (kamishibaiya) allaient de village en village avec un petit cadre de bois, le butai, pour y faire défiler leurs images en racontant l'histoire.",
+   "sources": [
+    "https://dailygeekshow.com/kamishibai-ludique-theatre/",
+    "https://www.soleilrouge.org/kamishibai-le-theatre-de-papier-japonais/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Un théâtre de papier : un conteur fait défiler des planches illustrées",
+    "Un origami géant animé",
+    "Un jeu de cartes à collectionner",
+    "Une danse traditionnelle"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0295",
+   "theme": "manga",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "En 2019, la mangaka Rumiko Takahashi, autrice de Ranma ½ et Inuyasha, a reçu le Grand Prix du Festival international de la bande dessinée d'Angoulême.",
+   "anecdote": "Elle est la deuxième mangaka à recevoir cette distinction, après Katsuhiro Otomo en 2015, et l'une des autrices de bande dessinée les plus vendues au monde.",
+   "sources": [
+    "https://actualitte.com/article/15176/edition/rumiko-takahashi-grand-prix-2019-du-festival-de-bd-d-angouleme",
+    "https://www.animenewsnetwork.com/news/2019-01-24/rumiko-takahashi-wins-angouleme-grand-prix-2019-prize/.142469"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0296",
+   "theme": "series",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Pourquoi les feuilletons mélodramatiques américains sont-ils surnommés « soap operas » (opéras de savon) ?",
+   "anecdote": "Dès les années 1930, des fabricants de produits ménagers comme Procter & Gamble finançaient ces feuilletons radiophoniques diffusés en journée, visant surtout un public de femmes au foyer.",
+   "sources": [
+    "https://www.mentalfloss.com/entertainment/tv/soap-opera-phrase-origins",
+    "https://www.encyclopedia.com/literature-and-arts/performing-arts/film-and-television/soap-operas"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Parce qu'ils étaient tournés dans des usines",
+    "Parce que des fabricants de savon en étaient les principaux sponsors",
+    "Parce que les acteurs se lavaient à l'antenne",
+    "Parce qu'ils passaient le jour de la lessive"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0297",
+   "theme": "series",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "L'épisode final de la série M*A*S*H, diffusé en 1983, reste l'un des épisodes de série scénarisée les plus regardés de l'histoire de la télévision américaine.",
+   "anecdote": "Diffusé le 28 février 1983, « Goodbye, Farewell and Amen » a réuni environ 106 millions de téléspectateurs aux États-Unis.",
+   "sources": [
+    "https://parade.com/news/43-years-ago-today-the-biggest-tv-episode-ever-aired-it-still-hasnt-been-beaten",
+    "https://www.foxnews.com/lifestyle/this-day-history-feb-28-1983-mash-finale-draws-record-tv-audience-100-million"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0298",
+   "theme": "series",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Une telenovela est un feuilleton, surtout latino-américain, qui se distingue du soap opera par une fin prévue dès le départ et un nombre d'épisodes limité.",
+   "anecdote": "Souvent diffusées chaque soir du lundi au vendredi, les telenovelas comptent généralement autour de 200 épisodes et s'achèvent après plusieurs mois.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Feuilleton_t%C3%A9l%C3%A9vis%C3%A9",
+    "https://www.dictionary.com/browse/telenovela"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0299",
+   "theme": "series",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "En audiovisuel, qu'est-ce qu'un « préquel » (ou préquelle) ?",
+   "anecdote": "Le mot anglais « prequel », apparu dans les années 1970, combine le préfixe « pre- » (avant) et « sequel » (suite).",
+   "sources": [
+    "https://dictionnaire.lerobert.com/en/definition/prequel",
+    "https://fr.wikipedia.org/wiki/Pr%C3%A9quelle"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Une œuvre qui raconte des événements situés avant ceux de l'œuvre d'origine",
+    "La toute première saison d'une série",
+    "Un court résumé de l'épisode précédent",
+    "Un épisode bonus hors intrigue"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0300",
+   "theme": "series",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "En fiction, un « reboot » consiste à relancer une franchise en repartant du début, souvent en faisant table rase de la continuité précédente.",
+   "anecdote": "Le mot vient de l'informatique (« redémarrer »). On parle de « soft reboot » lorsque certains éléments d'origine, comme des personnages, sont conservés.",
+   "sources": [
+    "https://leclaireur.fnac.com/article/cp48371-lexique-tv-quest-ce-quun-reboot/",
+    "https://en.wikipedia.org/wiki/Reboot_(fiction)"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0301",
+   "theme": "series",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "En quelle année l'émission éducative pour enfants Sesame Street (1, rue Sésame) a-t-elle été diffusée pour la première fois aux États-Unis ?",
+   "anecdote": "Créée par Joan Ganz Cooney, elle a été diffusée pour la première fois le 10 novembre 1969 et est devenue l'un des programmes jeunesse les plus célèbres au monde.",
+   "sources": [
+    "https://www.history.com/this-day-in-history/november-10/sesame-street-debuts",
+    "https://en.wikipedia.org/wiki/History_of_Sesame_Street"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 1969
+  },
+  {
+   "id": "ext-0302",
+   "theme": "series",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Qui a inventé, dans les années 1950, la machine à rires (« Laff Box ») qui a popularisé les rires enregistrés à la télévision ?",
+   "anecdote": "Ingénieur du son, Douglass déclenchait différents types de rires à l'aide d'un clavier. Sa boîte a fourni des rires à des milliers d'épisodes de sitcoms.",
+   "sources": [
+    "https://slate.com/culture/2018/04/charlie-douglass-and-his-laff-box-invented-the-laugh-track-as-we-know-it.html",
+    "https://en.wikipedia.org/wiki/Laugh_track"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Charley Douglass",
+    "Walt Disney",
+    "Lucille Ball",
+    "Rod Serling"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0303",
+   "theme": "series",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "En télévision et au cinéma, qu'est-ce qu'un « caméo » ?",
+   "anecdote": "Contrairement à la « guest star » créditée au générique, le caméo est une courte apparition, souvent un clin d'œil. Le cinéaste Alfred Hitchcock était célèbre pour apparaître ainsi dans ses propres films.",
+   "sources": [
+    "https://www.pickx.be/fr/2052221/le-cameo-cette-apparition-surprise-dune-celebrite-dans-un-film",
+    "https://wikimonde.com/article/Cam%C3%A9o"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le générique de fin d'une série",
+    "Une brève apparition d'une personnalité connue",
+    "Un décor entièrement reconstitué en studio",
+    "Un changement de casting en cours de série"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0304",
+   "theme": "series",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "En quelle année, et sous quel premier nom, a été fondée la BBC, plus ancien radiodiffuseur national du monde ?",
+   "anecdote": "Fondée le 18 octobre 1922 comme société privée (Company), elle devient une société publique (Corporation) par charte royale en 1927.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/BBC",
+    "https://britishheritage.org/en/bbc"
+   ],
+   "format": "qcm",
+   "choices": [
+    "En 1922, sous le nom de British Broadcasting Company",
+    "En 1936, sous le nom de BBC Television",
+    "En 1901, sous le nom de Royal Radio",
+    "En 1945, sous le nom de British Broadcasting Corporation"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0305",
+   "theme": "series",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Combien de saisons compte la célèbre sitcom américaine Friends ?",
+   "anecdote": "Diffusée sur NBC de 1994 à 2004, la série compte 10 saisons et 236 épisodes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Friends_(s%C3%A9rie_t%C3%A9l%C3%A9vis%C3%A9e)",
+    "https://www.allocine.fr/series/ficheserie_gen_cserie=49.html"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 10
+  },
+  {
+   "id": "ext-0306",
+   "theme": "series",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "En télévision, qu'est-ce qu'un « crossover » ?",
+   "anecdote": "« To cross over » signifie « traverser » : le procédé fait passer des personnages d'une série à une autre, souvent pour faire profiter une série de l'audience d'une autre.",
+   "sources": [
+    "https://leclaireur.fnac.com/article/cp48307-lexique-tv-que-veut-dire-crossover/",
+    "https://www.critictoo.com/les-chroniques/crossover/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Un épisode qui réunit des personnages issus d'univers ou de séries différents",
+    "Le tout dernier épisode d'une série",
+    "Un épisode diffusé en direct",
+    "Un simple changement d'horaire de diffusion"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0307",
+   "theme": "series",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Comment appelle-t-on une série où chaque épisode (ou chaque saison) raconte une histoire complète et indépendante, sans personnages récurrents ?",
+   "anecdote": "La Quatrième Dimension (The Twilight Zone), lancée en 1959, en est un exemple emblématique : seule une ambiance commune relie ses épisodes indépendants.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Quatri%C3%A8me_Dimension_(s%C3%A9rie_t%C3%A9l%C3%A9vis%C3%A9e)",
+    "https://biiinge.konbini.com/seriescanal/the-twilight-zone-la-serie-danthologie-qui-ressuscite-la-quatrieme-dimension/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Une série anthologique",
+    "Une sitcom",
+    "Une mini-série",
+    "Un soap opera"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0308",
+   "theme": "series",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "La sitcom I Love Lucy, lancée en 1951, a popularisé le tournage à trois caméras devant un public en studio, une technique encore utilisée aujourd'hui.",
+   "anecdote": "C'est Desi Arnaz, mari et partenaire de Lucille Ball, qui imposa ce système de tournage sur pellicule 35 mm, devenu un standard des sitcoms.",
+   "sources": [
+    "https://www.npr.org/2025/06/02/nx-s1-5417932/i-love-lucy-desi-arnaz-lucille-ball-todd-purdum",
+    "https://en.wikipedia.org/wiki/I_Love_Lucy"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0309",
+   "theme": "dessin-anime",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Dans le célèbre dessin animé « Tom et Jerry », Tom est un chat. Et Jerry, quel animal est-il ?",
+   "anecdote": "Tom le chat court après Jerry la souris depuis 1940. Malgré leurs chamailleries, les deux compères finissent parfois par s'entraider.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tom_et_Jerry",
+    "https://www.lorientlejour.com/article/1206870/-tom-et-jerry-80-ans-de-jeu-du-chat-et-de-la-souris.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Un chien",
+    "Un oiseau",
+    "Une souris",
+    "Un lapin"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0310",
+   "theme": "dessin-anime",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Quel film de 1995 est le tout premier long-métrage de cinéma réalisé entièrement en images de synthèse (en 3D par ordinateur) ?",
+   "anecdote": "Réalisé par le studio Pixar, Toy Story raconte l'histoire de jouets qui prennent vie. Ce fut une petite révolution dans l'animation.",
+   "sources": [
+    "https://www.allocine.fr/article/fichearticle_gen_carticle=18644695.html",
+    "https://www.europe1.fr/culture/trois-raisons-qui-prouvent-que-toy-story-a-revolutionne-le-film-danimation-3471521"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Toy Story",
+    "Le Roi Lion",
+    "Shrek",
+    "Le Voyage de Chihiro"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0311",
+   "theme": "dessin-anime",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Le film d'animation « Le Roi Lion », sorti en 1994, a été réalisé par quel grand studio ?",
+   "anecdote": "« Le Roi Lion » est un des grands classiques des studios Disney. Sa musique a notamment été composée par Hans Zimmer.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Roi_lion_(film,_1994)",
+    "https://www.allocine.fr/film/fichefilm_gen_cfilm=10862.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Pixar",
+    "DreamWorks",
+    "Aardman",
+    "Disney"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "ext-0312",
+   "theme": "dessin-anime",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le studio Aardman, qui a créé Wallace et Gromit et anime ses films image par image, se trouve dans quel pays ?",
+   "anecdote": "Aardman est installé à Bristol, en Angleterre, depuis les années 1970. C'est devenu une véritable institution de l'animation.",
+   "sources": [
+    "https://theconversation.com/inside-aardman-at-the-young-vanda-the-creative-magic-behind-britains-beloved-stop-motion-pioneers-275899",
+    "https://www.countrylife.co.uk/culture/art-exhibitions/stop-motion-gold-aardman-animations-is-thriving-in-its-50th-year-and-continues-to-live-life-in-the-slow-lane"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Japon",
+    "Le Brésil",
+    "Le Royaume-Uni",
+    "La Chine"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0313",
+   "theme": "dessin-anime",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le film d'animation français « Kirikou et la sorcière » (1998) a été réalisé par quel cinéaste ?",
+   "anecdote": "Inspiré d'un conte d'Afrique de l'Ouest, ce film de Michel Ocelot a connu un grand succès en France, avec près d'un million de spectateurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kirikou_et_la_Sorci%C3%A8re",
+    "https://www.cnc.fr/cinema/actualites/neuf-choses-a-savoir-sur-kirikou-et-la-sorciere_906293"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Michel Ocelot",
+    "Hayao Miyazaki",
+    "Walt Disney",
+    "John Lasseter"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0314",
+   "theme": "dessin-anime",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quelle est la mascotte du studio d'animation Pixar, que l'on voit sauter dans son logo au début des films ?",
+   "anecdote": "Cette petite lampe s'appelle Luxo Jr. Elle vient d'un court-métrage de 1986 et est devenue le symbole du studio.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Luxo_Jr.",
+    "https://www.slate.fr/story/78000/luxo-lampe-de-bureau-egerie-disney"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Un lion",
+    "Une petite lampe",
+    "Une étoile filante",
+    "Un château"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0315",
+   "theme": "dessin-anime",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Un « thaumatrope » est un petit jouet optique : un disque avec un dessin de chaque côté. Que se passe-t-il quand on le fait tourner très vite ?",
+   "anecdote": "Popularisé dans les années 1820, le thaumatrope utilise la persistance rétinienne : l'œil garde un instant la première image et la mélange avec la seconde.",
+   "sources": [
+    "https://www.wikidebrouillard.org/wiki/Thaumatrope",
+    "https://upopi.ciclic.fr/transmettre/parcours-pedagogiques/le-precinema/seance-1-le-thaumatrope"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le disque devient tout noir",
+    "Les dessins disparaissent",
+    "Le disque change de couleur",
+    "Les deux dessins semblent se réunir en une seule image"
+   ],
+   "answerIndex": 3
+  },
+  {
+   "id": "ext-0316",
+   "theme": "dessin-anime",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "« Shrek » est le tout premier film à avoir reçu l'Oscar du meilleur film d'animation.",
+   "anecdote": "Cette récompense a été créée en 2002, et Shrek en fut le tout premier lauréat, devant Monstres & Cie.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Academy_Award_for_Best_Animated_Feature",
+    "https://www.billboard.com/lists/oscar-winners-best-animated-feature-complete-list/"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0317",
+   "theme": "dessin-anime",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "La « rotoscopie » consiste à dessiner par-dessus des images filmées de vrais acteurs pour rendre les mouvements réalistes. Qui a inventé cette technique au début du XXe siècle ?",
+   "anecdote": "L'Américain Max Fleischer a mis au point la rotoscopie dans les années 1910. Elle a ensuite servi pour de nombreux dessins animés.",
+   "sources": [
+    "https://www.skwigly.co.uk/the-rotoscope-of-max-fleischer/",
+    "https://thesciencesurvey.com/spotlight/2020/11/19/the-history-of-modern-animation/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Walt Disney",
+    "Charlie Chaplin",
+    "Max Fleischer",
+    "Hayao Miyazaki"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0318",
+   "theme": "dessin-anime",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "« Les Aventures du prince Ahmed » (1926), un des tout premiers longs-métrages d'animation, a été réalisé avec quelle technique ?",
+   "anecdote": "La réalisatrice allemande Lotte Reiniger a découpé des silhouettes en carton et en fines feuilles de plomb. C'est le plus ancien long-métrage d'animation parvenu jusqu'à nous.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/The_Adventures_of_Prince_Achmed",
+    "https://www.cinematheque.fr/film/38313.html"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Des silhouettes découpées, animées image par image",
+    "De la peinture à l'huile",
+    "Des photos de vrais acteurs",
+    "Des images faites par ordinateur"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0319",
+   "theme": "dessin-anime",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Dans un dessin animé, ce sont de vrais comédiens qui prêtent leur voix aux personnages.",
+   "anecdote": "Des comédiens enregistrent les paroles des personnages dans un studio. C'est ce qu'on appelle le doublage.",
+   "sources": [
+    "https://www.cnc.fr/cinema/actualites/les-doubleurs_837653",
+    "https://www.disneypixar.fr/explorer/dossiers/1-le-doublage-disney"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0320",
+   "theme": "dessin-anime",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Bugs Bunny, le célèbre personnage de dessin animé aux longues oreilles, adore manger des carottes.",
+   "anecdote": "Bugs Bunny est apparu en 1940 dans les Looney Tunes. On le voit très souvent croquer une carotte.",
+   "sources": [
+    "https://ici.radio-canada.ca/nouvelle/731453/bugs-bunny-anniversaire-75ans",
+    "https://heros-fr.fandom.com/fr/wiki/Bugs_Bunny"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0321",
+   "theme": "jeux-societe",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Dans beaucoup de jeux de plateau, comment appelle-t-on le petit objet que chaque joueur déplace de case en case ?",
+   "anecdote": "Le pion représente le joueur sur le plateau. On le déplace souvent après avoir lancé un dé ou joué une carte.",
+   "sources": [
+    "https://www.universalis.fr/encyclopedie/jeux-de-pions/",
+    "https://dictionary.reverso.net/french-definition/pion"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Un dé",
+    "Une carte",
+    "Un pion",
+    "Un plateau"
+   ],
+   "answerIndex": 2
+  },
+  {
+   "id": "ext-0322",
+   "theme": "jeux-societe",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Dans un jeu de 52 cartes classique, il y a quatre « couleurs ». Lesquelles ?",
+   "anecdote": "Ces quatre enseignes sont apparues en France vers la fin du Moyen Âge. Deux sont rouges (cœur, carreau) et deux sont noires (trèfle, pique).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeu_de_cartes_fran%C3%A7ais",
+    "https://fr.pokerlistings.com/blog/les-origines-des-4-couleurs-du-jeu-de-cartes"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Cœur, carreau, trèfle et pique",
+    "Rouge, bleu, vert et jaune",
+    "Lune, soleil, étoile et nuage",
+    "Roi, dame, valet et as"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0323",
+   "theme": "jeux-video",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Dans un jeu vidéo, le message « Game Over » apparaît le plus souvent quand on a perdu la partie.",
+   "anecdote": "« Game Over » veut dire « partie terminée » en anglais. On le voit souvent quand le personnage n'a plus de vies.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Partie_termin%C3%A9e",
+    "https://www.journaldunet.com/guides-d-achat/guide-du-jeu-video/1502957-game-over-definition-traduction-exemple/"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0324",
+   "theme": "jeux-video",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Dans le célèbre jeu vidéo Pac-Man, que doit faire le petit personnage jaune dans son labyrinthe ?",
+   "anecdote": "Créé en 1980, Pac-Man doit avaler toutes les pastilles du labyrinthe tout en évitant quatre petits fantômes colorés.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Pac-Man",
+    "https://pacman.com/en/history/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Construire une maison",
+    "Manger toutes les pastilles",
+    "Faire une course de voitures",
+    "Pêcher des poissons"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0325",
+   "theme": "jeux-video",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Beaucoup de jeux vidéo sont découpés en plusieurs « niveaux ».",
+   "anecdote": "Un niveau est une étape du jeu. En général, il faut réussir un niveau pour passer au suivant, souvent un peu plus difficile.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Niveau_(jeu_vid%C3%A9o)",
+    "https://www.lalanguefrancaise.com/dictionnaire/definition/niveau-de-jeu"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0326",
+   "theme": "manga",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Dans quel sens lit-on le plus souvent un manga japonais ?",
+   "anecdote": "On commence en haut à droite de la page : c'est le sens de lecture traditionnel du japonais.",
+   "sources": [
+    "https://www.manga-news.com/index.php/article/Comment-lire-un-manga",
+    "https://www.bubblebd.com/9emeart/mangas/edito/encyclobubble-pourquoi-lit-on-les-mangas-a-l-envers"
+   ],
+   "format": "qcm",
+   "choices": [
+    "De droite à gauche",
+    "De gauche à droite",
+    "De bas en haut",
+    "En commençant par le milieu"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0327",
+   "theme": "manga",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Les mangas sont le plus souvent imprimés en noir et blanc.",
+   "anecdote": "Le noir et blanc coûte moins cher et permet de fabriquer les mangas plus vite. La bande dessinée européenne, elle, est souvent en couleurs.",
+   "sources": [
+    "https://www.lejde.be/culture/2022/01/13/bd-et-mangas-quelle-difference-7835/",
+    "https://www.makma.com/2020/08/12/codes-graphiques-du-manga/"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0328",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Au backgammon, combien de pions (dames) possède chaque joueur en début de partie ?",
+   "anecdote": "Chaque joueur dispose de 15 pions sur un plateau de 24 flèches. Le backgammon est l'un des plus anciens jeux du monde : des tabliers apparentés remontent à près de 5 000 ans.",
+   "sources": [
+    "https://123jouons.com/regle-jeu-backgammon/",
+    "https://leconservatoiredujeu.fr/index.php/backgammon/"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 15
+  },
+  {
+   "id": "ext-0329",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Combien de tuiles compte un jeu de mah-jong complet ?",
+   "anecdote": "Le jeu de mah-jong complet comprend 144 tuiles. D'origine chinoise, il est apparu autour de Shanghai au XIXe siècle et se joue traditionnellement à quatre joueurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mah-jong",
+    "https://www.ffmahjong.fr/FFMJ-site/mahjong.php?ancien=0"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 144
+  },
+  {
+   "id": "ext-0330",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Combien de cases compte un jeu de l'oie traditionnel ?",
+   "anecdote": "Le parcours en spirale du jeu de l'oie compte 63 cases. Ce nombre correspond à 9 × 7, deux chiffres jugés magiques à la Renaissance italienne, époque où le jeu s'est répandu.",
+   "sources": [
+    "https://www.mediagaga.fr/le-jeu-de-loie-a-63-cases-histoire-et-regles-completes/",
+    "https://lesjeuxsontfaits.fr/jeu-de-l-oie-case-guide-complet-des-63-cases-et-regles/"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 63
+  },
+  {
+   "id": "ext-0331",
+   "theme": "jeux-societe",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le jeu de stratégie Risk (« La Conquête du Monde ») a été inventé en 1957 par le Français Albert Lamorisse, également célèbre en tant que…",
+   "anecdote": "Albert Lamorisse était surtout cinéaste : son court-métrage Le Ballon rouge a remporté la Palme d'or à Cannes et un Oscar. Parker Brothers publia son jeu sous le nom de Risk en 1959.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Albert_Lamorisse",
+    "https://www.museumofplay.org/toys/risk/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Cinéaste, réalisateur du court-métrage Le Ballon rouge",
+    "Champion du monde d'échecs",
+    "Explorateur polaire",
+    "Grand mathématicien"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0332",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Combien de jetons au total (lettres et jokers compris) contient la version française du Scrabble ?",
+   "anecdote": "Le Scrabble français contient 102 jetons : 100 lettres et 2 jokers (jetons blancs). La répartition des lettres suit la fréquence des lettres dans la langue française.",
+   "sources": [
+    "https://www.motscroises.fr/info/combien-lettres-scrabble",
+    "https://fr.wikipedia.org/wiki/Scrabble"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 102
+  },
+  {
+   "id": "ext-0333",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Dans quel pays le célèbre jeu d'enquête Cluedo a-t-il été créé par Anthony Pratt ?",
+   "anecdote": "Anthony Pratt, un Anglais de Birmingham, imagina le Cluedo pendant la Seconde Guerre mondiale ; il fut commercialisé en 1949 par l'éditeur britannique Waddingtons.",
+   "sources": [
+    "https://collections.vam.ac.uk/item/O184717/cluedo-board-game-anthony-e-pratt/",
+    "https://en.wikipedia.org/wiki/Cluedo"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Angleterre",
+    "États-Unis",
+    "Allemagne",
+    "France"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0334",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Combien de baguettes compte un jeu de mikado ?",
+   "anecdote": "Le mikado comprend 41 baguettes. La baguette noire, le « Mikado », vaut à elle seule 20 points. En France, un jeu proche s'appelait autrefois le jeu de jonchets.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mikado_(jeu)",
+    "https://www.fetedujeu.org/jeux-societe/mikado/"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 41
+  },
+  {
+   "id": "ext-0335",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le jeu de Rummikub se joue avec 106 tuiles.",
+   "anecdote": "Vrai : le Rummikub compte 106 tuiles (104 numérotées dans quatre couleurs et 2 jokers). Il a été inventé par Ephraim Hertzano, un immigré roumain installé en Israël.",
+   "sources": [
+    "https://www.rummikub.fr/",
+    "https://en.wikipedia.org/wiki/Rummikub"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0336",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Combien de cases numérotées (le zéro compris) compte une roulette européenne de casino ?",
+   "anecdote": "La roulette européenne compte 37 cases, de 0 à 36. La version américaine en possède 38, avec un double zéro, ce qui augmente l'avantage du casino.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Roulette_(jeu_de_hasard)",
+    "https://www.regles.com/jeux/roulette.html"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 37
+  },
+  {
+   "id": "ext-0337",
+   "theme": "jeux-societe",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Si l'on additionne tous les numéros d'une roulette de casino (de 1 à 36), on obtient 666.",
+   "anecdote": "Vrai : 1 + 2 + … + 36 = 666. Cette coïncidence a valu à la roulette le surnom de « roue du diable ».",
+   "sources": [
+    "https://www.playojo.com/fr-ca/blog/roulette/roulette-secrets/",
+    "https://roulette77.co.uk/qa/why-sum-of-roulette-numbers-666"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0338",
+   "theme": "jeux-societe",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Selon la tradition des jeux de cartes français, quel empereur est représenté par le Roi de cœur ?",
+   "anecdote": "Dans la tradition française, les quatre rois figurent de grands personnages : Charlemagne (cœur), Jules César (carreau), Alexandre le Grand (trèfle) et le roi David (pique).",
+   "sources": [
+    "https://lesavaistu.fr/valets-dames-rois-jeux-de-cartes-representent-personnages/",
+    "https://dailygeekshow.com/rois-jeux-cartes/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Charlemagne",
+    "Jules César",
+    "Alexandre le Grand",
+    "Napoléon"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0339",
+   "theme": "jeux-societe",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Au jeu du Twister, on doit poser ses mains et ses pieds sur de grands ronds de couleur.",
+   "anecdote": "Vrai ! Sorti en 1966, le Twister fut le premier jeu à succès où le corps des joueurs sert de pions.",
+   "sources": [
+    "https://www.smithsonianmag.com/innovation/how-the-classic-american-game-of-twister-went-from-risque-to-record-breaking-180988656/",
+    "https://board-games.fandom.com/wiki/Twister"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0340",
+   "theme": "jeux-societe",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Au Pictionary, on fait deviner un mot à son équipe en le dessinant.",
+   "anecdote": "Vrai : le nom « Pictionary » vient de picture (image) et dictionary (dictionnaire). Robert Angel, alors serveur, l'a créé en 1985.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Pictionary",
+    "https://www.cnbc.com/2020/08/26/how-a-young-waiter-created-pictionary-in-the-1980s.html"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0341",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Le jeu de société Carcassonne tire son nom d'une véritable ville fortifiée française.",
+   "anecdote": "Vrai : Carcassonne, dans l'Aude, est une célèbre cité médiévale fortifiée classée à l'UNESCO. L'auteur allemand Klaus-Jürgen Wrede, séduit par le lieu, en a fait un jeu en 2000.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Carcassonne_(jeu)",
+    "https://whc.unesco.org/en/list/345/"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0342",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "De quel jeu traditionnel indien descendent le Ludo anglais et les Petits Chevaux français ?",
+   "anecdote": "Le Pachisi, jeu national de l'Inde, est l'ancêtre commun du Ludo anglais, du Parcheesi américain et des Petits Chevaux, arrivés en France en 1936.",
+   "sources": [
+    "https://leconservatoiredujeu.fr/index.php/petits-chevaux/",
+    "https://www.lecomptoirdesjeux.com/pachisi-indien-en-tissu.htm"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le Pachisi",
+    "Le Go",
+    "Le Mah-jong",
+    "Le Backgammon"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0343",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "L'awalé, où l'on sème des graines dans de petits trous, est un jeu traditionnel originaire de quel continent ?",
+   "anecdote": "L'awalé, de la famille des mancalas, se joue en Afrique depuis des millénaires sur un plateau de 12 trous et 48 graines. On y « sème » les graines de trou en trou.",
+   "sources": [
+    "https://lesjeuxsontfaits.fr/awale-regles-completes-et-guide-du-jeu-africain/",
+    "https://ilovemyafrica.com/blogs/blog-sur-la-culture-africaine/awale-regle-du-jeu"
+   ],
+   "format": "qcm",
+   "choices": [
+    "L'Afrique",
+    "L'Amérique",
+    "L'Océanie",
+    "L'Europe"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0344",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Dans le Trivial Pursuit classique, de quelle couleur est la part de camembert de la catégorie « Sports et Loisirs » ?",
+   "anecdote": "Le Trivial Pursuit compte six catégories : bleu (Géographie), rose (Divertissement), jaune (Histoire), marron (Arts & Littérature), vert (Sciences & Nature) et orange (Sports & Loisirs).",
+   "sources": [
+    "https://trivial-pursuit.info/categorie-trivial-pursuit/",
+    "https://triviabliss.com/trivial-pursuit-categories/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Orange",
+    "Bleu",
+    "Rose",
+    "Vert"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0345",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "La bataille navale était à l'origine un jeu de papier et crayon inventé par des soldats pendant la Première Guerre mondiale.",
+   "anecdote": "Vrai : dès la Grande Guerre, des soldats dessinaient des grilles pour « couler » la flotte adverse. La célèbre version en plastique est sortie chez Milton Bradley en 1967.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bataille_navale_(jeu)",
+    "https://jeu-bataille-navale.fr/articles_blog/histoire-bataille-navale"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0346",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "En combien de manches successives se déroule une partie du jeu Time's Up ! ?",
+   "anecdote": "Time's Up ! se joue en 3 manches sur les mêmes personnalités : on peut d'abord parler librement, puis dire un seul mot, et enfin seulement mimer. Il a reçu l'As d'or en 2006.",
+   "sources": [
+    "https://www.regledujeu.fr/times-up/",
+    "https://www.lad.education/jeux-de-regles/jeux-expression/time-s-up-family-1"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 3
+  },
+  {
+   "id": "ext-0347",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Dans la version française classique du Monopoly, quelle est la case (rue) la plus chère du plateau ?",
+   "anecdote": "Dans le Monopoly français traditionnel, la rue de la Paix est la case la plus chère, juste devant les Champs-Élysées ; le boulevard de Belleville est la moins chère.",
+   "sources": [
+    "https://avenuedesinvestisseurs.fr/monopoly-nom-rues-prix-reel-paris/",
+    "https://www.synonyme-du-mot.com/les-articles/quelle-est-la-rue-la-plus-chere-au-monopoly"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La rue de la Paix",
+    "Les Champs-Élysées",
+    "L'avenue Henri-Martin",
+    "Le boulevard de Belleville"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0348",
+   "theme": "jeux-societe",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Le « nombre de Shannon » estime le nombre de parties d'échecs possibles. À quel ordre de grandeur correspond-il environ ?",
+   "anecdote": "En 1950, Claude Shannon, père de la théorie de l'information, a estimé à environ 10^120 le nombre de parties d'échecs possibles — bien plus que le nombre d'atomes dans l'univers observable.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Nombre_de_Shannon",
+    "https://www.etaletaculture.fr/bref/combien-existe-t-il-de-parties-dechecs-differentes/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "10 puissance 120",
+    "10 puissance 12",
+    "1 million",
+    "10 puissance 40"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0349",
+   "theme": "jeux-societe",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le jeu Mafia, ancêtre des Loups-Garous de Thiercelieux, a été inventé par un professeur de psychologie en Union soviétique.",
+   "anecdote": "Vrai : Dimitri Davidoff, professeur de psychologie à l'Université de Moscou, créa le jeu Mafia en 1986. Le thème des loups-garous fut ajouté plus tard, avant la version française de 2001.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mafia_(jeu)",
+    "https://leclaireur.fnac.com/article/544204-loups-garous-de-thiercelieux-la-folle-histoire-derriere-le-jeu-de-societe/"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0350",
+   "theme": "jeux-societe",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Combien de coups a duré la plus longue partie d'échecs de tournoi de l'histoire (Nikolić–Arsović, 1989) ?",
+   "anecdote": "La partie Nikolić–Arsović, jouée à Belgrade en 1989, dura 269 coups et plus de 20 heures… pour finalement se terminer sur une partie nulle.",
+   "sources": [
+    "https://www.chess.com/blog/GuiGui2009/les-records-aux-echecs",
+    "https://www.pousseurdebois.fr/le-saviez-vous/la-partie-dechecs-la-plus-longue/"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 269
+  },
+  {
+   "id": "ext-0351",
+   "theme": "jeux-societe",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Dans le jeu Pandemic, les joueurs s'affrontent chacun pour soi pour être le premier à guérir une maladie.",
+   "anecdote": "Faux : Pandemic est un jeu coopératif. Les joueurs unissent leurs forces contre le jeu pour enrayer quatre maladies avant qu'elles ne submergent la planète. Il a été créé par Matt Leacock en 2008.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pand%C3%A9mie_(jeu)",
+    "https://www.jeucooperatif.fr/jeux-de-societe/en-quoi-consiste-le-jeu-pandemic/"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0352",
+   "theme": "jeux-video",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le géant français du jeu vidéo Ubisoft a été fondé en 1986 par cinq frères. Quel est leur nom de famille ?",
+   "anecdote": "Les cinq frères Guillemot ont créé Ubisoft le 28 mars 1986 dans le petit village breton de Carentoir. Le nom évoque un logiciel « ubiquitaire », présent partout.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ubisoft",
+    "https://thenextweb.com/news/claude-guillemot-ubisoft-co-founder-dies-plane-crash-69"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Guillemot",
+    "Motte",
+    "Guichard",
+    "Dassault"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0353",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Quelle est la console de salon la plus vendue de toute l'histoire du jeu vidéo ?",
+   "anecdote": "Sortie en 2000, la PlayStation 2 de Sony s'est écoulée à plus de 155 millions d'exemplaires, un record inscrit au Guinness des records. Son lecteur DVD intégré a beaucoup aidé à son succès.",
+   "sources": [
+    "https://www.guinnessworldrecords.com/world-records/88365-best-selling-videogame-platform",
+    "https://en.wikipedia.org/wiki/List_of_best-selling_game_consoles"
+   ],
+   "format": "qcm",
+   "choices": [
+    "PlayStation 2",
+    "Nintendo Wii",
+    "Xbox 360",
+    "PlayStation 4"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0354",
+   "theme": "jeux-video",
+   "age": "adulte",
+   "difficulty": 5,
+   "question": "Le tout premier « easter egg » (secret caché) célèbre d'un jeu vidéo, dans le jeu Adventure sur Atari 2600, permettait de découvrir quoi ?",
+   "anecdote": "À l'époque, Atari ne créditait pas ses développeurs. Warren Robinett a donc caché son propre nom dans une salle secrète du jeu : c'est resté comme le premier « easter egg » célèbre de l'histoire.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Adventure_(1980_video_game)",
+    "https://atari.com/blogs/atari/so-let-s-talk-about-that-easter-egg"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Le nom du programmeur",
+    "Un niveau bonus secret",
+    "Une vie supplémentaire",
+    "Un code de triche"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0355",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Lara Croft, l'héroïne de Tomb Raider (1996), a été créée par le studio Core Design, installé dans quel pays ?",
+   "anecdote": "Le personnage de Lara Croft a été imaginé par Toby Gard au sein du studio britannique Core Design, en partenariat avec l'éditeur Eidos.",
+   "sources": [
+    "https://www.britannica.com/topic/Tomb-Raider",
+    "https://en.wikipedia.org/wiki/Tomb_Raider"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Royaume-Uni",
+    "États-Unis",
+    "Japon",
+    "France"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0356",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Le studio Rovio, créateur du célèbre jeu mobile Angry Birds, vient de quel pays ?",
+   "anecdote": "Angry Birds, sorti en 2009, était le 52e jeu du studio finlandais Rovio, alors au bord de la faillite. Ce fut un succès mondial retentissant.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Angry_Birds_(video_game)",
+    "https://venturebeat.com/games/in-the-land-of-angry-birds-my-trip-to-rovios-headquarters-photo-gallery/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Finlande",
+    "Suède",
+    "Corée du Sud",
+    "Canada"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0357",
+   "theme": "jeux-video",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Qui est le créateur du jeu Les Sims (2000), devenu l'un des jeux sur PC les plus vendus de l'histoire ?",
+   "anecdote": "Conçu par Will Wright chez Maxis, Les Sims a détrôné Myst comme jeu PC le plus vendu. Wright avait eu l'idée après avoir perdu sa maison dans un incendie en 1991.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/The_Sims",
+    "https://www.gamedeveloper.com/game-platforms/ea-proclaims-the-sims-the-best-selling-pc-game-of-all-time"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Will Wright",
+    "Sid Meier",
+    "Hideo Kojima",
+    "Shigeru Miyamoto"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0358",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le siège social de l'entreprise Nintendo se trouve à Tokyo, au Japon.",
+   "anecdote": "Faux : le siège de Nintendo est à Kyoto, l'ancienne capitale impériale, où l'entreprise est née en 1889 (à l'origine comme fabricant de cartes à jouer).",
+   "sources": [
+    "https://www.nintendo.co.jp/corporate/en/offices/index.html",
+    "https://en.wikipedia.org/wiki/Nintendo"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0359",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le mot « pixel » vient de l'anglais « picture element » (élément d'image).",
+   "anecdote": "Vrai. « Pixel » est la contraction de « pix » (argot pour « pictures ») et d'« element ». C'est le plus petit point qui compose une image à l'écran.",
+   "sources": [
+    "https://www.etymonline.com/word/pixel",
+    "https://en.wikipedia.org/wiki/Pixel"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0360",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le tout premier jeu de la série Mario Kart, sorti en 1992, est apparu sur quelle console ?",
+   "anecdote": "Super Mario Kart (1992) inaugurait la série de courses la plus célèbre de Nintendo, en utilisant l'effet « Mode 7 » de la Super Nintendo pour simuler la profondeur des circuits.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Super_Mario_Kart",
+    "https://www.nintendolife.com/games/snes/super_mario_kart"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Super Nintendo",
+    "Nintendo 64",
+    "Game Boy",
+    "Nintendo Wii"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0361",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Le jeu mobile Pokémon Go (2016) repose sur quelle technologie qui fait apparaître des créatures dans le décor réel filmé par le téléphone ?",
+   "anecdote": "Développé par Niantic, Pokémon Go utilise le GPS et la réalité augmentée. Le succès fut tel que des millions de joueurs se sont mis à marcher dehors pour attraper des créatures.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Pok%C3%A9mon_Go",
+    "https://www.inverse.com/article/25543-2016-pokemon-go-niantic-augmented-reality"
+   ],
+   "format": "qcm",
+   "choices": [
+    "La réalité augmentée",
+    "La réalité virtuelle",
+    "La 3D en relief",
+    "Le cloud gaming"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0362",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Dans une partie classique de « Battle Royale » de Fortnite, combien de joueurs s'affrontent au maximum jusqu'à ce qu'il n'en reste qu'un ?",
+   "anecdote": "Le mode Battle Royale de Fortnite, lancé en 2017 par Epic Games, réunit jusqu'à 100 joueurs sur une même île. Le dernier survivant remporte la partie.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Fortnite_Battle_Royale",
+    "https://www.pcgamer.com/fortnite-battle-royale-is-a-100-player-last-man-standing-mode-coming-this-month/"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 100
+  },
+  {
+   "id": "ext-0363",
+   "theme": "jeux-video",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "L'ordinateur personnel le plus vendu de l'histoire (pour un seul et même modèle) est l'Apple II.",
+   "anecdote": "Faux : c'est le Commodore 64, sorti en 1982, qui détient ce record au Guinness des records. On l'estime à au moins 12,5 millions d'unités vendues.",
+   "sources": [
+    "https://www.guinnessworldrecords.com/world-records/72695-most-computer-sales",
+    "https://en.wikipedia.org/wiki/Commodore_64"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0364",
+   "theme": "jeux-video",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "De quelle couleur est le célèbre petit personnage tout rond de Nintendo appelé Kirby ?",
+   "anecdote": "Kirby, apparu en 1992 dans un jeu du studio HAL Laboratory, est aujourd'hui reconnaissable à sa couleur rose. Il peut aspirer ses ennemis pour copier leurs pouvoirs.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Kirby_(character)",
+    "https://www.cbr.com/kirby-original-color-pink/"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Rose",
+    "Jaune",
+    "Vert",
+    "Bleu"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0365",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "La console Nintendo 64 tire son nom de son processeur de 64 bits.",
+   "anecdote": "Vrai. Sortie en 1996, la Nintendo 64 doit son nom à son processeur central de 64 bits, une puissance impressionnante pour l'époque.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Nintendo_64",
+    "https://www.videogamesmuseum.org/en/nintendo/nintendo-64-29"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0366",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "Dans la série The Legend of Zelda, le personnage que le joueur dirige s'appelle Zelda.",
+   "anecdote": "Faux : le héros que l'on incarne s'appelle Link. Zelda, elle, est la princesse du royaume d'Hyrule. Beaucoup se trompent encore !",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Link_(The_Legend_of_Zelda)",
+    "https://zelda.fandom.com/wiki/The_Legend_of_Zelda"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 1
+  },
+  {
+   "id": "ext-0367",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "La plateforme de diffusion en direct de jeux vidéo Twitch a été rachetée en 2014 par quelle entreprise ?",
+   "anecdote": "Amazon a racheté Twitch en 2014 pour environ 970 millions de dollars, coiffant Google au poteau. C'était alors la plus grosse acquisition de l'histoire d'Amazon.",
+   "sources": [
+    "https://www.britannica.com/topic/Twitch-service",
+    "https://en.wikipedia.org/wiki/Twitch_(service)"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Amazon",
+    "Google",
+    "Microsoft",
+    "Sony"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0368",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le héros de jeu vidéo Rayman, créé par le Français Michel Ancel, n'a ni bras ni jambes reliant ses mains et ses pieds au reste de son corps.",
+   "anecdote": "Vrai. Faute de mémoire informatique suffisante en 1995, l'équipe a détaché les mains, les pieds et la tête de Rayman du reste de son corps. Ce look est devenu sa marque de fabrique.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Rayman_(character)",
+    "https://www.superjumpmagazine.com/michel-ancel-a-fallen-legend/"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0369",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Le jeu League of Legends, l'un des plus grands succès de l'e-sport, est développé par quel studio ?",
+   "anecdote": "Sorti en 2009, League of Legends est le tout premier jeu du studio Riot Games. Sa finale mondiale (les « Worlds ») remplit des stades entiers.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/League_of_Legends",
+    "https://www.redbull.com/ca-en/history-of-league-of-legends"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Riot Games",
+    "Blizzard",
+    "Valve",
+    "Electronic Arts"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0370",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Dans le jeu d'arcade original Pac-Man, combien de fantômes poursuivent le héros dans le labyrinthe ?",
+   "anecdote": "Quatre fantômes traquent Pac-Man : Blinky (rouge), Pinky (rose), Inky (cyan) et Clyde (orange). Chacun a son propre comportement de poursuite.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Ghosts_(Pac-Man)",
+    "https://www.techspot.com/trivia/42-ghosts-original-pac-man-had-unique-ai-traits/"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 4
+  },
+  {
+   "id": "ext-0371",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 2,
+   "question": "La console Nintendo Wii (2006) se jouait en bougeant physiquement une manette, grâce à la détection de mouvement.",
+   "anecdote": "Vrai. La « Wii Remote » détectait les mouvements du joueur, qui pouvait mimer un coup de raquette de tennis ou lancer une boule de bowling. La Wii a démocratisé le jeu en mouvement.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Wii_Remote",
+    "https://www.digitalgamemuseum.org/consolecontrollerevolution/modern/wiiremote/"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0372",
+   "theme": "jeux-video",
+   "age": "ado",
+   "difficulty": 3,
+   "question": "Dans le vocabulaire du jeu vidéo, que signifie réaliser un « speedrun » ?",
+   "anecdote": "Un « speedrun » consiste à finir un jeu (ou une partie) le plus rapidement possible. Les joueurs préparent des itinéraires optimisés et exploitent parfois des bugs pour gagner du temps.",
+   "sources": [
+    "https://www.merriam-webster.com/dictionary/speedrunning",
+    "https://en.wikipedia.org/wiki/Speedrunning"
+   ],
+   "format": "qcm",
+   "choices": [
+    "Terminer le jeu le plus vite possible",
+    "Jouer sans jamais perdre une vie",
+    "Finir le jeu à 100 %",
+    "Jouer en ligne à plusieurs"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0373",
+   "theme": "jeux-video",
+   "age": "enfant",
+   "difficulty": 1,
+   "question": "Dans l'univers de Nintendo, Luigi, le personnage habillé en vert, est le frère de Mario.",
+   "anecdote": "Vrai. Luigi, plus grand et plus mince que son frère, est apparu comme second joueur dans le jeu d'arcade Mario Bros. en 1983.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Luigi",
+    "https://www.mariowiki.com/Luigi"
+   ],
+   "format": "vrai_faux",
+   "choices": [
+    "Vrai",
+    "Faux"
+   ],
+   "answerIndex": 0
+  },
+  {
+   "id": "ext-0374",
+   "theme": "jeux-video",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "La console Sega Mega Drive (appelée Genesis aux États-Unis) était une console de combien de « bits » ?",
+   "anecdote": "La Mega Drive, sortie à la fin des années 1980, était une console 16 bits. Elle a livré une grande « guerre des consoles » à la Super Nintendo.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Sega_Genesis",
+    "https://www.consoledatabase.com/consoleinfo/segamegadrive/"
+   ],
+   "format": "gambit_numerique",
+   "numericAnswer": 16
+  },
+  {
+   "id": "ext-0375",
+   "theme": "jeux-video",
+   "age": "adulte",
+   "difficulty": 4,
+   "question": "Le jeu Wii Sports, fourni avec la console Wii, a longtemps été le jeu vidéo le plus vendu de toute l'histoire.",
+   "anecdote": "Vrai. Vendu avec la Wii dans la plupart des pays, Wii Sports s'est écoulé à près de 83 millions d'exemplaires et a longtemps détenu le record du jeu le plus vendu.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Wii_Sports",
+    "https://www.mensjournal.com/news/nintendos-highest-selling-game-ever-almost-never-existed"
    ],
    "format": "vrai_faux",
    "choices": [
