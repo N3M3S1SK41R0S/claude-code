@@ -123,13 +123,26 @@ let assetCount = 0;
 
 const artifactContent = inlineAssets(`<style>\n${css}\n</style>\n${body}\n<script>${runtime}</script>\n`);
 
+// Icône embarquée : le fichier standalone montre une vraie icône du jeu dans
+// l'onglet du navigateur et sur l'écran d'accueil (« Ajouter à l'écran »),
+// pour qu'on puisse le lancer d'un clic sur une jolie icône plutôt que sur un
+// fichier anonyme.
+const iconUri = (f) => `data:image/png;base64,${readFileSync(join(root, "icons", f)).toString("base64")}`;
+const favicon = iconUri("icon-192.png");
+const appleIcon = iconUri("apple-touch-icon.png");
+
 const fullPage = `<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Le Donjon du Savoir — version un seul fichier</title>
+<title>Le Donjon du Savoir</title>
 <meta name="theme-color" content="#1a1230" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Le Donjon du Savoir" />
+<link rel="icon" type="image/png" href="${favicon}" />
+<link rel="apple-touch-icon" href="${appleIcon}" />
 </head>
 <body>
 ${artifactContent}</body>
