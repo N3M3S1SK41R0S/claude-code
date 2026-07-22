@@ -580,6 +580,13 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .portrait svg { width: 100%; height: 100%; display: block; }
 /* Illustration peinte par-dessus le médaillon SVG (repli si l'image manque). */
 .portrait-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+/* PNJ : image peinte carrée à fond transparent — on la montre EN ENTIER (pas de
+   rognage circulaire) sur un doux médaillon, et l'emoji sert de repli centré. */
+.portrait-npc { border-radius: 18px; background: radial-gradient(circle at 50% 34%, rgba(224, 176, 74, 0.20), rgba(42, 31, 74, 0.30)); }
+.portrait-npc .portrait-art { object-fit: contain; border-radius: 14px; }
+.portrait-emoji { display: block; width: 100%; height: 100%; text-align: center; }
+.npc-card { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; margin-bottom: 0.6rem; }
+.npc-card .npc-nom { font-size: 1.05rem; font-weight: bold; text-align: center; }
 .btn-character { display: inline-flex; align-items: center; gap: 0.5rem; }
 .victory-who { display: inline-flex; align-items: center; gap: 0.5rem; }
 .player-info { display: flex; flex-direction: column; }

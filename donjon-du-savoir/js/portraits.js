@@ -189,6 +189,48 @@ const PORTRAIT_ART = {
   plomberoy: "assets/portrait-plomberoy.png",
 };
 
+// Portraits peints (PNG) des 15 PNJ rencontrés sur le plateau. Repli : l'emoji
+// du PNJ si l'image manque. En version un seul fichier, le bundler remplace ces
+// chemins par des data-URI.
+const NPC_ART = {
+  "merlinouche": "assets/pnj-merlinouche.png",
+  "biscornu": "assets/pnj-biscornu.png",
+  "hibou-passage": "assets/pnj-hibou-passage.png",
+  "barnabe": "assets/pnj-barnabe.png",
+  "roquefort": "assets/pnj-roquefort.png",
+  "fee-bricole": "assets/pnj-fee-bricole.png",
+  "boubou": "assets/pnj-boubou.png",
+  "gerard": "assets/pnj-gerard.png",
+  "turbo": "assets/pnj-turbo.png",
+  "groumf": "assets/pnj-groumf.png",
+  "ratichon": "assets/pnj-ratichon.png",
+  "sylvette": "assets/pnj-sylvette.png",
+  "coassin": "assets/pnj-coassin.png",
+  "piquot": "assets/pnj-piquot.png",
+  "zebulon": "assets/pnj-zebulon.png",
+};
+
+/** Portrait d'un PNJ (image peinte, repli sur l'emoji). */
+export function npcPortraitEl(slug, emoji, size = 96) {
+  const div = document.createElement("div");
+  div.className = "portrait portrait-npc";
+  div.style.width = `${size}px`;
+  div.style.height = `${size}px`;
+  div.setAttribute("aria-hidden", "true");
+  div.innerHTML = `<span class="portrait-emoji" style="font-size:${Math.round(size * 0.6)}px;line-height:${size}px">${emoji ?? ""}</span>`;
+  const src = NPC_ART[slug];
+  if (src) {
+    const img = document.createElement("img");
+    img.className = "portrait-art";
+    img.alt = "";
+    img.decoding = "async";
+    img.src = src;
+    img.onerror = () => img.remove(); // repli : l'emoji reste visible
+    div.appendChild(img);
+  }
+  return div;
+}
+
 /** DOM element for a character medallion (decorative; name is given elsewhere). */
 export function portraitEl(characterId, size = 56) {
   const div = document.createElement("div");

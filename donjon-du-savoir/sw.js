@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v43";
+const VERSION = "donjon-v44";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -37,6 +37,21 @@ const SHELL = [
   "./assets/portrait-nebulia.png",
   "./assets/portrait-boumbastien.png",
   "./assets/portrait-duchesse.png",
+  "./assets/pnj-merlinouche.png",
+  "./assets/pnj-biscornu.png",
+  "./assets/pnj-hibou-passage.png",
+  "./assets/pnj-barnabe.png",
+  "./assets/pnj-roquefort.png",
+  "./assets/pnj-fee-bricole.png",
+  "./assets/pnj-boubou.png",
+  "./assets/pnj-gerard.png",
+  "./assets/pnj-turbo.png",
+  "./assets/pnj-groumf.png",
+  "./assets/pnj-ratichon.png",
+  "./assets/pnj-sylvette.png",
+  "./assets/pnj-coassin.png",
+  "./assets/pnj-piquot.png",
+  "./assets/pnj-zebulon.png",
   "./assets/case-question.png",
   "./assets/case-chance.png",
   "./assets/case-evenement.png",

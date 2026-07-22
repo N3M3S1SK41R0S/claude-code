@@ -10,7 +10,7 @@ import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, setPanel } from "./ui.js";
-import { portraitEl } from "./portraits.js";
+import { npcPortraitEl, portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
 import { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } from "./minigames.js";
 import { drawDefi } from "./wordgames.js";
@@ -877,63 +877,63 @@ const MALUS_EFFECTS = [
 
 /* ---------- rencontres de PNJ (drôles) : parfois une vraie question ---------- */
 const NPCS = [
-  { emoji: "🧙", nom: "Merlinouche l'Étourdi", quiz: true,
+  { emoji: "🧙", nom: "Merlinouche l'Étourdi", slug: "merlinouche", quiz: true,
     intro: "« Aaah, un aventurier ! J'ai encore raté ma potion… réponds juste et je te change un caillou en or ! »",
     demande: "Bonne réponse = le magot. Sinon, ça sentira le chou.",
     reward: { texte: "+4 🪙", apply: (p) => void addCoins(p, 4) },
     rate: "La potion fait « splotch » et sent le chou bouilli. Rien de grave." },
-  { emoji: "🐲", nom: "Biscornu le Dragonnet", quiz: true,
+  { emoji: "🐲", nom: "Biscornu le Dragonnet", slug: "biscornu", quiz: true,
     intro: "« Grrr… enfin, miaou. Réponds à mon énigme et je te souffle un p'tit trésor (pas de feu, promis). »",
     demande: "Bonne réponse : le dragonnet crache 3 pièces.",
     reward: { texte: "+3 🪙", apply: (p) => void addCoins(p, 3) },
     rate: "Le dragonnet boude et recrache une chaussette calcinée." },
-  { emoji: "🦉", nom: "Maître Hibou de Passage", quiz: true,
+  { emoji: "🦉", nom: "Maître Hibou de Passage", slug: "hibou-passage", quiz: true,
     intro: "« Hou hou ! Une petite colle pour un esprit bien affûté ? »",
     demande: "Réussite : le hibou vous glisse un Joker.",
     reward: { texte: "+1 Joker", apply: (p) => void (p.jokers += 1) },
     rate: "Le hibou hoche la tête, déçu mais bienveillant." },
-  { emoji: "🎪", nom: "Barnabé le Bateleur", quiz: true,
+  { emoji: "🎪", nom: "Barnabé le Bateleur", slug: "barnabe", quiz: true,
     intro: "« Approchez, approchez ! Une devinette, un cadeau ! »",
     demande: "Bonne réponse : +2 cases vers la gloire.",
     reward: { texte: "+2 cases", apply: (p) => shift(p, 2) },
     rate: "Barnabé sort un lapin de son chapeau… non, une carotte. Dommage." },
-  { emoji: "🐭", nom: "Roquefort le Mulot Marchand", plain: true,
+  { emoji: "🐭", nom: "Roquefort le Mulot Marchand", slug: "roquefort", plain: true,
     intro: "« Psst ! Un raccourci sous les racines, ça t'dit ? Suis-moi ! »",
     effet: { texte: "+2 cases", apply: (p) => shift(p, 2) } },
-  { emoji: "🧚", nom: "Fée Bricole", plain: true,
+  { emoji: "🧚", nom: "Fée Bricole", slug: "fee-bricole", plain: true,
     intro: "« Tiens, un petit sort de chance — je l'avais en double ! »",
     effet: { texte: "+1 Joker", apply: (p) => void (p.jokers += 1) } },
-  { emoji: "👻", nom: "Boubou le Fantôme Timide", plain: true,
+  { emoji: "👻", nom: "Boubou le Fantôme Timide", slug: "boubou", plain: true,
     intro: "« Bouh… oh pardon, j'voulais pas faire peur. Tiens, un bonbon-pièce. »",
     effet: { texte: "+2 🪙", apply: (p) => void addCoins(p, 2) } },
-  { emoji: "🧟", nom: "Gérard le Squelette Poli", plain: true,
+  { emoji: "🧟", nom: "Gérard le Squelette Poli", slug: "gerard", plain: true,
     intro: "« Auriez-vous deux pièces pour un os de rechange ? Merci infiniment, très aimable. »",
     effet: { texte: "−2 🪙", apply: (p) => void (p.pieces = Math.max(0, p.pieces - 2)) } },
-  { emoji: "🐌", nom: "Turbo l'Escargot", plain: true,
+  { emoji: "🐌", nom: "Turbo l'Escargot", slug: "turbo", plain: true,
     intro: "« Suis-moi, je connais un raccourci ! …enfin, dès que j'y arrive. »",
     effet: { texte: "−1 case (Turbo n'est pas si rapide)", apply: (p) => shift(p, -1) } },
-  { emoji: "🧌", nom: "Groumf le Troll Gentil", quiz: true,
+  { emoji: "🧌", nom: "Groumf le Troll Gentil", slug: "groumf", quiz: true,
     intro: "« Moi Groumf. Moi pas manger toi si toi réponds bien. Marché ? »",
     demande: "Bonne réponse : Groumf partage son casse-croûte (+3 🪙).",
     reward: { texte: "+3 🪙", apply: (p) => void addCoins(p, 3) },
     rate: "Groumf hausse les épaules et croque un caillou. Rien pour vous." },
-  { emoji: "🦝", nom: "Ratichon le Chapardeur Repenti", quiz: true,
+  { emoji: "🦝", nom: "Ratichon le Chapardeur Repenti", slug: "ratichon", quiz: true,
     intro: "« J'ai arrêté de voler ! Enfin… presque. Une devinette et je te rends ton or ! »",
     demande: "Bonne réponse : +2 cases (il vous montre un passage).",
     reward: { texte: "+2 cases", apply: (p) => shift(p, 2) },
     rate: "Ratichon disparaît dans un buisson en sifflotant. Suspect." },
-  { emoji: "🧝", nom: "Sylvette la Sylphide", quiz: true,
+  { emoji: "🧝", nom: "Sylvette la Sylphide", slug: "sylvette", quiz: true,
     intro: "« Une énigme des bois, voyageur ? La forêt récompense les curieux. »",
     demande: "Réussite : +1 Joker soufflé par le vent.",
     reward: { texte: "+1 Joker", apply: (p) => void (p.jokers += 1) },
     rate: "Sylvette sourit et s'évapore en pétales. Ce sera pour une autre fois." },
-  { emoji: "🐸", nom: "Coassin le Crapaud Bavard", plain: true,
+  { emoji: "🐸", nom: "Coassin le Crapaud Bavard", slug: "coassin", plain: true,
     intro: "« Coa ! Un bisou ? Non ? Tant pis, tiens quand même une piécette. »",
     effet: { texte: "+2 🪙", apply: (p) => void addCoins(p, 2) } },
-  { emoji: "🦔", nom: "Piquot le Hérisson Pressé", plain: true,
+  { emoji: "🦔", nom: "Piquot le Hérisson Pressé", slug: "piquot", plain: true,
     intro: "« Poussez-vous, poussez-vous ! Oh, pardon — filez donc devant moi. »",
     effet: { texte: "+1 case", apply: (p) => shift(p, 1) } },
-  { emoji: "🧞", nom: "Zébulon le Génie Distrait", plain: true,
+  { emoji: "🧞", nom: "Zébulon le Génie Distrait", slug: "zebulon", plain: true,
     intro: "« Ton vœu est exaucé ! …c'était quoi déjà ? Bon, tiens de l'or. »",
     effet: { texte: "+4 🪙", apply: (p) => void addCoins(p, 4) } },
 ];
@@ -1018,6 +1018,14 @@ function doMalus(pion) {
 
 /* ---------- rencontres de PNJ (case 🍀) : parfois une vraie question ---------- */
 
+/** Carte de présentation d'un PNJ : son portrait peint + son nom. */
+function npcCard(npc) {
+  return el("div", { class: "npc-card" },
+    npcPortraitEl(npc.slug, npc.emoji, 112),
+    el("div", { class: "npc-nom", text: `${npc.emoji} ${npc.nom}` }),
+  );
+}
+
 function doNPC(pion) {
   setPendingCase("resolu");
   const pool = testFlag("__DONJON_NPC") ? NPCS.filter((n) => n.quiz) : NPCS;
@@ -1028,7 +1036,14 @@ function doNPC(pion) {
   save();
   render();
   if (won) return;
-  endPanel(`${npc.emoji} ${npc.nom} : ${npc.intro} → ${npc.effet.texte}`);
+  setPanel(
+    el("div", { class: "question-block" },
+      npcCard(npc),
+      el("p", { class: "panel-text", text: npc.intro }),
+      el("p", { class: "panel-text panel-event", text: `→ ${npc.effet.texte}` }),
+      bigButton("Continuer", () => finishTurn()),
+    ),
+  );
 }
 
 function npcQuiz(pion, npc) {
@@ -1058,7 +1073,7 @@ function npcQuiz(pion, npc) {
   });
   setPanel(
     el("div", { class: "question-block" },
-      el("h2", { class: "panel-title", text: `${npc.emoji} ${npc.nom}` }),
+      npcCard(npc),
       el("p", { class: "panel-text", text: npc.intro }),
       el("p", { class: "help-note", text: npc.demande }),
       questionHeader(q, pion),
