@@ -207,6 +207,23 @@ const DECOR = [
   { e: "⭐", u: 0.968, v: 0.14, s: 26, art: "assets/decor-etoile.png" }, { e: "🔥", u: 0.12, v: 0.09, s: 22, art: "assets/decor-flamme.png" },
 ];
 
+/** Bâtiments 3D (rendus isométriques) posés en décor sur les bords du plateau,
+ *  derrière les cases et les pions. `u`,`v` : position relative 0-1 ; `w` :
+ *  largeur en cqw (unités de largeur du plateau). Repli : rien si l'image manque
+ *  (aucun emoji sous-jacent — ce sont de purs décors d'ambiance). */
+const BUILDINGS = [
+  { art: "assets/batiment-chateau.png", u: 0.10, v: 0.86, w: 20 },
+  { art: "assets/batiment-etoile.png", u: 0.11, v: 0.12, w: 14 },
+  { art: "assets/batiment-tour-mage.png", u: 0.065, v: 0.32, w: 13 },
+  { art: "assets/batiment-bibliotheque.png", u: 0.94, v: 0.30, w: 14 },
+  { art: "assets/batiment-taverne.png", u: 0.935, v: 0.64, w: 14 },
+  { art: "assets/batiment-portail.png", u: 0.91, v: 0.11, w: 13 },
+  { art: "assets/batiment-boutique.png", u: 0.27, v: 0.975, w: 14 },
+  { art: "assets/batiment-fontaine.png", u: 0.52, v: 0.98, w: 11 },
+  { art: "assets/batiment-pont.png", u: 0.74, v: 0.975, w: 14 },
+  { art: "assets/batiment-champignon.png", u: 0.955, v: 0.90, w: 12 },
+];
+
 /* ---------- rendering ---------- */
 
 let builtSignature = null;
@@ -263,6 +280,21 @@ function buildStatic(container, layout, def) {
     <path d="${d}" fill="none" stroke="${def.road}" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="${d}" fill="none" stroke="#e0b04a" stroke-width="3" stroke-dasharray="2 14" stroke-linecap="round" opacity="0.7"/>`;
   container.appendChild(svg);
+
+  // Bâtiments 3D : posés d'abord (tout au fond, derrière décors, cases et pions).
+  for (const b of BUILDINGS) {
+    const img = document.createElement("img");
+    img.className = "building";
+    img.alt = "";
+    img.decoding = "async";
+    img.src = b.art;
+    img.style.left = `${b.u * 100}%`;
+    img.style.top = `${b.v * 100}%`;
+    img.style.width = `${b.w}cqw`;
+    img.onerror = () => img.remove(); // repli : pas de bâtiment, le plateau reste net
+    img.setAttribute("aria-hidden", "true");
+    container.appendChild(img);
+  }
 
   for (const dec of DECOR) {
     const span = document.createElement("span");

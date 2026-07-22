@@ -296,6 +296,16 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   filter: saturate(0.85);
   pointer-events: none;
 }
+/* Bâtiments 3D (décor d'ambiance, tout au fond, sous les cases et les pions). */
+.building {
+  position: absolute;
+  translate: -50% -50%;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  opacity: 0.96;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+}
 /* Décor peint posé sur l'emoji (repli si l'image manque). */
 .decor-art { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 1.7em; height: 1.7em; object-fit: contain; }
 
