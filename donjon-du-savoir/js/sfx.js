@@ -54,6 +54,12 @@ const SFX = {
   star: () => { tone(659, 0.09, { gain: 0.11 }); tone(988, 0.09, { gain: 0.11, delay: 0.08 }); tone(1319, 0.22, { type: "triangle", gain: 0.11, delay: 0.16 }); },
   win: () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.22, { type: "triangle", gain: 0.13, delay: i * 0.13 })); },
   malus: () => { tone(320, 0.2, { type: "sawtooth", gain: 0.09, sweep: -180 }); },
+  // Scintillement magique (pouvoir), coffre qui s'ouvre (trésor/boutique), petit
+  // roulement joueur (défi), fanfare de rencontre (PNJ).
+  power: () => { tone(660, 0.08, { type: "triangle", gain: 0.1 }); tone(990, 0.1, { type: "triangle", gain: 0.09, delay: 0.06 }); tone(1480, 0.14, { type: "sine", gain: 0.08, delay: 0.12 }); },
+  chest: () => { tone(392, 0.09, { type: "triangle", gain: 0.1 }); tone(587, 0.12, { type: "triangle", gain: 0.1, delay: 0.08 }); tone(880, 0.18, { type: "triangle", gain: 0.1, delay: 0.16 }); },
+  defi: () => { tone(494, 0.07, { type: "square", gain: 0.06 }); tone(587, 0.07, { type: "square", gain: 0.06, delay: 0.07 }); tone(740, 0.1, { type: "square", gain: 0.06, delay: 0.14 }); },
+  npc: () => { tone(523, 0.08, { type: "triangle", gain: 0.1 }); tone(784, 0.14, { type: "triangle", gain: 0.09, delay: 0.07 }); },
 };
 
 /** Joue un effet nommé ; silencieux si désactivé ou si l'audio est indisponible. */

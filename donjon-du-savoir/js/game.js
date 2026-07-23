@@ -486,7 +486,7 @@ function showDieResult(value, { rerollAvailable }) {
       choiceButton(`${characterById(pion.characterId).emoji} ${power.nom} — relancer le dé`, () => {
         pion.pouvoirUtilise = true;
         save();
-        heraldSays(herald.pouvoir());
+        heraldSays(herald.pouvoir()); sfx("power");
         const v2 = 1 + Math.floor(Math.random() * 6);
         showDieResult(v2, { rerollAvailable: false });
       }),
@@ -663,6 +663,7 @@ function resolveCase(type) {
 function doBoutique(pion, onDone = null) {
   const done = onDone ?? (() => finishTurn());
   setPendingCase("resolu");
+  sfx("chest");
   // Le Sceptre du Larcin (vol d'étoile) n'a de sens qu'en mode Étoiles : on ne
   // le propose donc qu'ici, tout en bas et hors de prix, comme un coup d'éclat.
   const shopIds = isEtoiles() ? [...SHOP_ORDER, "sceptre_larcin"] : SHOP_ORDER;
@@ -771,7 +772,7 @@ function doExpression(pion) {
   const kind = EXPRESSION_KIND[d.type] ?? EXPRESSION_KIND.mime;
   const meneur = speakerName(pion);
   const others = getState().pions.filter((p) => p.id !== pion.id);
-  heraldSays(`🎭 Défi d'expression : ${kind.titre.replace(/^\S+\s/, "")} ! À ${meneur} de faire deviner.`);
+  heraldSays(`🎭 Défi d'expression : ${kind.titre.replace(/^\S+\s/, "")} ! À ${meneur} de faire deviner.`); sfx("defi");
 
   // Solo : personne à qui faire deviner — un tour d'entraînement récompensé.
   if (others.length === 0) {
@@ -1031,7 +1032,7 @@ function doMalus(pion) {
         setPendingCase("resolu");
         pion.pouvoirUtilise = true;
         save();
-        heraldSays(herald.pouvoir());
+        heraldSays(herald.pouvoir()); sfx("power");
         endPanel("🫧 Le malus éclate comme une bulle de savon. Il ne s'est rien passé.");
       }),
       bigButton("Subir son destin", apply),
@@ -1055,7 +1056,7 @@ function doNPC(pion) {
   setPendingCase("resolu");
   const pool = testFlag("__DONJON_NPC") ? NPCS.filter((n) => n.quiz) : NPCS;
   const npc = pool[Math.floor(Math.random() * pool.length)] ?? NPCS[0];
-  heraldSays(`✨ Une rencontre ! ${npc.emoji} ${npc.nom} surgit sur le chemin.`);
+  heraldSays(`✨ Une rencontre ! ${npc.emoji} ${npc.nom} surgit sur le chemin.`); sfx("npc");
   if (npc.quiz) return npcQuiz(pion, npc);
   const won = npc.effet.apply(pion) === true; // shift() peut déclencher la victoire
   save();
@@ -1160,7 +1161,7 @@ function useTurnPower(pion) {
   const done = () => {
     pion.pouvoirUtilise = true;
     save();
-    heraldSays(herald.pouvoir());
+    heraldSays(herald.pouvoir()); sfx("power");
     startTurn({ silent: true });
   };
   switch (`${pion.characterId}:${pion.profil}`) {
@@ -1188,7 +1189,7 @@ function useTurnPower(pion) {
       const useCard = (card) => {
         pion.pouvoirUtilise = true;
         save();
-        heraldSays(herald.pouvoir());
+        heraldSays(herald.pouvoir()); sfx("power");
         doChance(pion, { forced: card, onDone: () => startTurn({ silent: true }) });
       };
       setPanel(
@@ -1214,7 +1215,7 @@ function useTurnPower(pion) {
     case "boumbastien:enfant":
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       if (shift(pion, 2)) return;
       return startTurn({ silent: true });
     case "flaque:adulte": {
@@ -1258,7 +1259,7 @@ function useTurnPower(pion) {
       // Super Bond : un grand bond de 3 cases.
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       if (shift(pion, 3)) return;
       return startTurn({ silent: true });
     default:
@@ -1599,7 +1600,7 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCag
     zone.append(choiceButton(`${c.emoji} ${power.nom} — répondre CASH (+${ADVANCE.cash} cases)`, () => {
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       openAnswerFlow(pion, q, { advance: ADVANCE.cash, accepted: [q.bonne_reponse], kind: "cash" });
     }));
   } else if (key === "cageot:enfant") {
@@ -1612,14 +1613,14 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCag
       }
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       questionFlow(pion, easier);
     }));
   } else if (key === "duchesse:adulte") {
     zone.append(choiceButton(`${c.emoji} ${power.nom} — lire l'anecdote maintenant`, () => {
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       hintZone.append(el("p", { class: "hint", text: `📜 ${q.anecdote}` }));
       zone.remove();
     }));
@@ -1627,7 +1628,7 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCag
     zone.append(choiceButton(`${c.emoji} ${power.nom} — un indice !`, () => {
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       const answer = q.bonne_reponse ?? String(q.reponse_numerique ?? "");
       const first = answer.trim().charAt(0).toUpperCase();
       hintZone.append(el("p", { class: "hint", text: `💡 La réponse commence par « ${first} ».` }));
@@ -1637,7 +1638,7 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCag
     zone.append(choiceButton(`${c.emoji} ${power.nom} — retirer 2 mauvaises réponses`, () => {
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       const wrong = [...container.querySelectorAll(".choices .btn-choice")]
         .filter((b) => !b.disabled && b.textContent.trim() !== String(q.bonne_reponse).trim());
       for (const b of wrong.sort(() => Math.random() - 0.5).slice(0, 2)) {
@@ -1651,7 +1652,7 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCag
     zone.append(choiceButton(`${c.emoji} ${power.nom} — un petit indice`, () => {
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       const answer = q.bonne_reponse ?? String(q.reponse_numerique ?? "");
       const first = answer.trim().charAt(0).toUpperCase();
       hintZone.append(el("p", { class: "hint", text: `💡 La réponse commence par « ${first} ».` }));

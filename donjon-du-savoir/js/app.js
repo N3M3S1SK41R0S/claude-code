@@ -10,6 +10,7 @@ import { portraitEl } from "./portraits.js";
 import { POWERS } from "./powers.js";
 import { setVoice, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
 import { setSfx, sfx, sfxAvailable, sfxEnabled } from "./sfx.js";
+import { setMusic, musicAvailable, musicEnabled } from "./music.js";
 import { el } from "./ui.js";
 
 const MAX_PLAYERS = 20;
@@ -554,6 +555,24 @@ function wireHeader() {
     });
     try { if (localStorage.getItem("donjon-sfx") === "1") setSfx(true); } catch { /* ignore */ }
     refreshSfx();
+  }
+
+  // Musique de fond procédurale (muetable, désactivée par défaut).
+  const musicBtn = document.getElementById("music-toggle");
+  if (!musicAvailable()) {
+    musicBtn.hidden = true;
+  } else {
+    const refreshMusic = () => {
+      musicBtn.textContent = musicEnabled() ? "🎵 Musique" : "🎶 Silence";
+      musicBtn.setAttribute("aria-pressed", String(musicEnabled()));
+    };
+    musicBtn.addEventListener("click", () => {
+      setMusic(!musicEnabled());
+      try { localStorage.setItem("donjon-music", musicEnabled() ? "1" : "0"); } catch { /* ignore */ }
+      refreshMusic();
+    });
+    try { if (localStorage.getItem("donjon-music") === "1") setMusic(true); } catch { /* ignore */ }
+    refreshMusic();
   }
 
   document.getElementById("rules-back").addEventListener("click", () => {

@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 const THEME_IDS = new Set([
   "histoire", "geographie", "litterature", "sciences", "arts", "cinema",
   "musique", "gastronomie", "sport", "langue", "pop-culture", "insolite", "general",
+  "jeux-video", "jeux-societe", "manga", "dessin-anime", "series",
 ]);
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");

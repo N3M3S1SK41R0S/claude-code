@@ -714,6 +714,7 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
       <strong>LE DONJON DU SAVOIR</strong>
     </div>
     <div class="topbar-actions">
+      <button id="music-toggle" class="btn btn-small" type="button" aria-pressed="false">🎵 Musique</button>
       <button id="sfx-toggle" class="btn btn-small" type="button" aria-pressed="false">🔕 Sons</button>
       <button id="voice-toggle" class="btn btn-small" type="button" aria-pressed="false">🔇 Héraut muet</button>
       <button id="help-btn" class="btn btn-small" type="button" aria-label="Aide-mémoire (règles, pouvoirs, objets)">📖 Aide</button>
@@ -939,6 +940,12 @@ const SFX = {
   star: () => { tone(659, 0.09, { gain: 0.11 }); tone(988, 0.09, { gain: 0.11, delay: 0.08 }); tone(1319, 0.22, { type: "triangle", gain: 0.11, delay: 0.16 }); },
   win: () => { [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.22, { type: "triangle", gain: 0.13, delay: i * 0.13 })); },
   malus: () => { tone(320, 0.2, { type: "sawtooth", gain: 0.09, sweep: -180 }); },
+  // Scintillement magique (pouvoir), coffre qui s'ouvre (trésor/boutique), petit
+  // roulement joueur (défi), fanfare de rencontre (PNJ).
+  power: () => { tone(660, 0.08, { type: "triangle", gain: 0.1 }); tone(990, 0.1, { type: "triangle", gain: 0.09, delay: 0.06 }); tone(1480, 0.14, { type: "sine", gain: 0.08, delay: 0.12 }); },
+  chest: () => { tone(392, 0.09, { type: "triangle", gain: 0.1 }); tone(587, 0.12, { type: "triangle", gain: 0.1, delay: 0.08 }); tone(880, 0.18, { type: "triangle", gain: 0.1, delay: 0.16 }); },
+  defi: () => { tone(494, 0.07, { type: "square", gain: 0.06 }); tone(587, 0.07, { type: "square", gain: 0.06, delay: 0.07 }); tone(740, 0.1, { type: "square", gain: 0.06, delay: 0.14 }); },
+  npc: () => { tone(523, 0.08, { type: "triangle", gain: 0.1 }); tone(784, 0.14, { type: "triangle", gain: 0.09, delay: 0.07 }); },
 };
 
 /** Joue un effet nommé ; silencieux si désactivé ou si l'audio est indisponible. */
@@ -947,6 +954,193 @@ function sfx(name) {
 }
 
 ;Object.assign(module.exports, {sfxAvailable, setSfx, sfxEnabled, sfx});
+};
+__modules["./music.js"] = function(module, exports, require) {
+// Musique de fond PROCÉDURALE (Web Audio) — aucun fichier, hors-ligne, muetable.
+// Une boucle douce et chaleureuse « donjon de conte » : nappe d'accords + basse
+// paisible + arpège cristallin épars, en la mineur pentatonique (aucune fausse
+// note possible). Volume volontairement bas : c'est une ambiance, jamais un
+// premier plan. Désactivée par défaut ; activée via le bouton 🎵 de l'en-tête.
+
+let ctx = null;
+let master = null;
+let filter = null;
+let want = false;       // l'utilisateur veut-il la musique ?
+let running = false;    // le séquenceur tourne-t-il ?
+let timer = null;
+let nextTime = 0;
+let step = 0;
+
+function musicAvailable() {
+  return typeof window !== "undefined" && !!(window.AudioContext || window.webkitAudioContext);
+}
+
+function musicEnabled() {
+  return want;
+}
+
+function ensureCtx() {
+  if (!musicAvailable()) return null;
+  if (!ctx) {
+    const C = window.AudioContext || window.webkitAudioContext;
+    try { ctx = new C(); } catch { return null; }
+    filter = ctx.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 1600; // adoucit le timbre
+    master = ctx.createGain();
+    master.gain.value = 0.0001;
+    filter.connect(master).connect(ctx.destination);
+  }
+  if (ctx.state === "suspended") ctx.resume().catch(() => {});
+  return ctx;
+}
+
+/* ---------- briques sonores ---------- */
+
+function padChord(freqs, t, dur) {
+  const c = ctx;
+  for (const f of freqs) {
+    const osc = c.createOscillator();
+    const g = c.createGain();
+    osc.type = "triangle";
+    osc.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.05, t + 0.5);       // attaque lente
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);      // longue extinction
+    osc.connect(g).connect(filter);
+    osc.start(t);
+    osc.stop(t + dur + 0.05);
+  }
+}
+
+function bass(freq, t, dur) {
+  const c = ctx;
+  const osc = c.createOscillator();
+  const g = c.createGain();
+  osc.type = "sine";
+  osc.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.09, t + 0.04);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.connect(g).connect(filter);
+  osc.start(t);
+  osc.stop(t + dur + 0.05);
+}
+
+function pluck(freq, t) {
+  const c = ctx;
+  const osc = c.createOscillator();
+  const g = c.createGain();
+  osc.type = "triangle";
+  osc.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.06, t + 0.015);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+  osc.connect(g).connect(filter);
+  osc.start(t);
+  osc.stop(t + 0.55);
+}
+
+/* ---------- partition (la mineur : Am – F – C – G) ---------- */
+
+// Accords (nappe) par mesure, basse à la fondamentale.
+const CHORDS = [
+  { pad: [220.0, 261.63, 329.63], bass: 110.0 }, // Am  (A3 C4 E4 / A2)
+  { pad: [174.61, 220.0, 261.63], bass: 87.31 }, // F   (F3 A3 C4 / F2)
+  { pad: [261.63, 329.63, 392.0], bass: 130.81 }, // C  (C4 E4 G4 / C3)
+  { pad: [196.0, 246.94, 293.66], bass: 98.0 },  // G   (G3 B3 D4 / G2)
+];
+// Vivier pentatonique pour l'arpège cristallin (A C D E G, aigus).
+const PENTA = [440.0, 523.25, 587.33, 659.25, 783.99, 880.0];
+
+const STEPS_PER_BAR = 8;       // croches
+const BARS = CHORDS.length;    // 4 mesures
+const TOTAL = STEPS_PER_BAR * BARS;
+const BPM = 68;
+const STEP_DUR = 60 / BPM / 2; // durée d'une croche
+
+// Mélodie éparse déterministe (pas de hasard : douce et reproductible), un motif
+// par mesure sur quelques croches choisies.
+const MELODY_HITS = new Set([0, 3, 6, 9, 12, 14, 17, 20, 22, 25, 28, 30]);
+
+function scheduleStep(s, t) {
+  const bar = Math.floor(s / STEPS_PER_BAR);
+  const inBar = s % STEPS_PER_BAR;
+  const chord = CHORDS[bar];
+  if (inBar === 0) {
+    padChord(chord.pad, t, STEP_DUR * STEPS_PER_BAR * 0.98);
+    bass(chord.bass, t, STEP_DUR * 3.2);
+  } else if (inBar === 4) {
+    bass(chord.bass, t, STEP_DUR * 2.4);
+  }
+  if (MELODY_HITS.has(s)) {
+    // note pentatonique liée à la position (motif montant/descendant doux)
+    const idx = (s * 3 + bar * 2) % PENTA.length;
+    pluck(PENTA[idx], t + STEP_DUR * 0.02);
+  }
+}
+
+function scheduler() {
+  if (!running || !ctx) return;
+  const ahead = ctx.currentTime + 0.28;
+  while (nextTime < ahead) {
+    scheduleStep(step, nextTime);
+    nextTime += STEP_DUR;
+    step = (step + 1) % TOTAL;
+  }
+}
+
+function startLoop() {
+  if (running || !ensureCtx()) return;
+  running = true;
+  step = 0;
+  nextTime = ctx.currentTime + 0.1;
+  master.gain.cancelScheduledValues(ctx.currentTime);
+  master.gain.setValueAtTime(Math.max(0.0001, master.gain.value), ctx.currentTime);
+  master.gain.exponentialRampToValueAtTime(0.9, ctx.currentTime + 2.0); // fondu d'entrée
+  timer = window.setInterval(scheduler, 60);
+  scheduler();
+}
+
+function stopLoop() {
+  if (!running) return;
+  running = false;
+  if (timer) { clearInterval(timer); timer = null; }
+  if (ctx && master) {
+    master.gain.cancelScheduledValues(ctx.currentTime);
+    master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
+    master.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6); // fondu de sortie
+  }
+}
+
+/** Active/coupe la musique (persistée par l'appelant). Démarre le contexte audio
+ *  sur le geste utilisateur ; si activée sans geste (au chargement), un écouteur
+ *  unique la lance à la première interaction. */
+function setMusic(on) {
+  want = !!on;
+  if (want) {
+    if (ensureCtx() && ctx.state === "running") startLoop();
+    else armGesture();
+  } else {
+    stopLoop();
+  }
+}
+
+let armed = false;
+function armGesture() {
+  if (armed) return;
+  armed = true;
+  const go = () => {
+    armed = false;
+    document.removeEventListener("pointerdown", go);
+    document.removeEventListener("keydown", go);
+    if (want) { ensureCtx(); startLoop(); }
+  };
+  document.addEventListener("pointerdown", go, { once: true });
+  document.addEventListener("keydown", go, { once: true });
+}
+
+;Object.assign(module.exports, {musicAvailable, musicEnabled, setMusic});
 };
 __modules["./herald.js"] = function(module, exports, require) {
 // LE GRAND HÉRAUT DU DONJON — original mascot narrator (option B of §9).
@@ -3424,7 +3618,7 @@ function showDieResult(value, { rerollAvailable }) {
       choiceButton(`${characterById(pion.characterId).emoji} ${power.nom} — relancer le dé`, () => {
         pion.pouvoirUtilise = true;
         save();
-        heraldSays(herald.pouvoir());
+        heraldSays(herald.pouvoir()); sfx("power");
         const v2 = 1 + Math.floor(Math.random() * 6);
         showDieResult(v2, { rerollAvailable: false });
       }),
@@ -3601,6 +3795,7 @@ function resolveCase(type) {
 function doBoutique(pion, onDone = null) {
   const done = onDone ?? (() => finishTurn());
   setPendingCase("resolu");
+  sfx("chest");
   // Le Sceptre du Larcin (vol d'étoile) n'a de sens qu'en mode Étoiles : on ne
   // le propose donc qu'ici, tout en bas et hors de prix, comme un coup d'éclat.
   const shopIds = isEtoiles() ? [...SHOP_ORDER, "sceptre_larcin"] : SHOP_ORDER;
@@ -3709,7 +3904,7 @@ function doExpression(pion) {
   const kind = EXPRESSION_KIND[d.type] ?? EXPRESSION_KIND.mime;
   const meneur = speakerName(pion);
   const others = getState().pions.filter((p) => p.id !== pion.id);
-  heraldSays(`🎭 Défi d'expression : ${kind.titre.replace(/^\S+\s/, "")} ! À ${meneur} de faire deviner.`);
+  heraldSays(`🎭 Défi d'expression : ${kind.titre.replace(/^\S+\s/, "")} ! À ${meneur} de faire deviner.`); sfx("defi");
 
   // Solo : personne à qui faire deviner — un tour d'entraînement récompensé.
   if (others.length === 0) {
@@ -3969,7 +4164,7 @@ function doMalus(pion) {
         setPendingCase("resolu");
         pion.pouvoirUtilise = true;
         save();
-        heraldSays(herald.pouvoir());
+        heraldSays(herald.pouvoir()); sfx("power");
         endPanel("🫧 Le malus éclate comme une bulle de savon. Il ne s'est rien passé.");
       }),
       bigButton("Subir son destin", apply),
@@ -3993,7 +4188,7 @@ function doNPC(pion) {
   setPendingCase("resolu");
   const pool = testFlag("__DONJON_NPC") ? NPCS.filter((n) => n.quiz) : NPCS;
   const npc = pool[Math.floor(Math.random() * pool.length)] ?? NPCS[0];
-  heraldSays(`✨ Une rencontre ! ${npc.emoji} ${npc.nom} surgit sur le chemin.`);
+  heraldSays(`✨ Une rencontre ! ${npc.emoji} ${npc.nom} surgit sur le chemin.`); sfx("npc");
   if (npc.quiz) return npcQuiz(pion, npc);
   const won = npc.effet.apply(pion) === true; // shift() peut déclencher la victoire
   save();
@@ -4098,7 +4293,7 @@ function useTurnPower(pion) {
   const done = () => {
     pion.pouvoirUtilise = true;
     save();
-    heraldSays(herald.pouvoir());
+    heraldSays(herald.pouvoir()); sfx("power");
     startTurn({ silent: true });
   };
   switch (`${pion.characterId}:${pion.profil}`) {
@@ -4126,7 +4321,7 @@ function useTurnPower(pion) {
       const useCard = (card) => {
         pion.pouvoirUtilise = true;
         save();
-        heraldSays(herald.pouvoir());
+        heraldSays(herald.pouvoir()); sfx("power");
         doChance(pion, { forced: card, onDone: () => startTurn({ silent: true }) });
       };
       setPanel(
@@ -4152,7 +4347,7 @@ function useTurnPower(pion) {
     case "boumbastien:enfant":
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       if (shift(pion, 2)) return;
       return startTurn({ silent: true });
     case "flaque:adulte": {
@@ -4196,7 +4391,7 @@ function useTurnPower(pion) {
       // Super Bond : un grand bond de 3 cases.
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       if (shift(pion, 3)) return;
       return startTurn({ silent: true });
     default:
@@ -4537,7 +4732,7 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCag
     zone.append(choiceButton(`${c.emoji} ${power.nom} — répondre CASH (+${ADVANCE.cash} cases)`, () => {
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       openAnswerFlow(pion, q, { advance: ADVANCE.cash, accepted: [q.bonne_reponse], kind: "cash" });
     }));
   } else if (key === "cageot:enfant") {
@@ -4550,14 +4745,14 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCag
       }
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       questionFlow(pion, easier);
     }));
   } else if (key === "duchesse:adulte") {
     zone.append(choiceButton(`${c.emoji} ${power.nom} — lire l'anecdote maintenant`, () => {
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       hintZone.append(el("p", { class: "hint", text: `📜 ${q.anecdote}` }));
       zone.remove();
     }));
@@ -4565,7 +4760,7 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCag
     zone.append(choiceButton(`${c.emoji} ${power.nom} — un indice !`, () => {
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       const answer = q.bonne_reponse ?? String(q.reponse_numerique ?? "");
       const first = answer.trim().charAt(0).toUpperCase();
       hintZone.append(el("p", { class: "hint", text: `💡 La réponse commence par « ${first} ».` }));
@@ -4575,7 +4770,7 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCag
     zone.append(choiceButton(`${c.emoji} ${power.nom} — retirer 2 mauvaises réponses`, () => {
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       const wrong = [...container.querySelectorAll(".choices .btn-choice")]
         .filter((b) => !b.disabled && b.textContent.trim() !== String(q.bonne_reponse).trim());
       for (const b of wrong.sort(() => Math.random() - 0.5).slice(0, 2)) {
@@ -4589,7 +4784,7 @@ function appendQuestionPowers(container, hintZone, pion, q, { cashMode, blockCag
     zone.append(choiceButton(`${c.emoji} ${power.nom} — un petit indice`, () => {
       pion.pouvoirUtilise = true;
       save();
-      heraldSays(herald.pouvoir());
+      heraldSays(herald.pouvoir()); sfx("power");
       const answer = q.bonne_reponse ?? String(q.reponse_numerique ?? "");
       const first = answer.trim().charAt(0).toUpperCase();
       hintZone.append(el("p", { class: "hint", text: `💡 La réponse commence par « ${first} ».` }));
@@ -5154,6 +5349,7 @@ const { portraitEl } = require("./portraits.js");
 const { POWERS } = require("./powers.js");
 const { setVoice, voiceAvailable, voiceEnabled, warmVoices } = require("./tts.js");
 const { setSfx, sfx, sfxAvailable, sfxEnabled } = require("./sfx.js");
+const { setMusic, musicAvailable, musicEnabled } = require("./music.js");
 const { el } = require("./ui.js");
 
 const MAX_PLAYERS = 20;
@@ -5698,6 +5894,24 @@ function wireHeader() {
     });
     try { if (localStorage.getItem("donjon-sfx") === "1") setSfx(true); } catch { /* ignore */ }
     refreshSfx();
+  }
+
+  // Musique de fond procédurale (muetable, désactivée par défaut).
+  const musicBtn = document.getElementById("music-toggle");
+  if (!musicAvailable()) {
+    musicBtn.hidden = true;
+  } else {
+    const refreshMusic = () => {
+      musicBtn.textContent = musicEnabled() ? "🎵 Musique" : "🎶 Silence";
+      musicBtn.setAttribute("aria-pressed", String(musicEnabled()));
+    };
+    musicBtn.addEventListener("click", () => {
+      setMusic(!musicEnabled());
+      try { localStorage.setItem("donjon-music", musicEnabled() ? "1" : "0"); } catch { /* ignore */ }
+      refreshMusic();
+    });
+    try { if (localStorage.getItem("donjon-music") === "1") setMusic(true); } catch { /* ignore */ }
+    refreshMusic();
   }
 
   document.getElementById("rules-back").addEventListener("click", () => {
