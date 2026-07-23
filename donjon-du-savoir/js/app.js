@@ -529,6 +529,24 @@ function showVictory(winner, rankingData, extras = {}) {
       ),
     );
   }
+  // Podium festif : le top 3 sur des marches, le gagnant surélevé et couronné.
+  const top = rankingData.slice(0, 3);
+  if (top.length >= 2) {
+    const order = [1, 0, 2].filter((idx) => top[idx]); // 2e · 1er (centre) · 3e
+    zone.append(
+      el("div", { class: "victory-podium", "aria-hidden": "true" },
+        ...order.map((idx) => {
+          const p = top[idx];
+          return el("div", { class: `podium-col podium-rank-${idx + 1}` },
+            el("span", { class: "podium-crown", text: idx === 0 ? "👑" : idx === 1 ? "🥈" : "🥉" }),
+            portraitEl(p.characterId, idx === 0 ? 84 : 60),
+            el("span", { class: "podium-name", text: p.nom }),
+            el("span", { class: "podium-stand", text: String(idx + 1) }),
+          );
+        }),
+      ),
+    );
+  }
   zone.append(
     el("ol", { class: "victory-list" },
       ...rankingData.map((p, i) =>
@@ -536,7 +554,7 @@ function showVictory(winner, rankingData, extras = {}) {
           el("span", { class: "victory-who" },
             el("span", { "aria-hidden": "true", text: i === 0 ? "👑" : i === 1 ? "🥈" : i === 2 ? "🥉" : "🎓" }),
             portraitEl(p.characterId, 40),
-            el("span", { text: p.nom }),
+            el("span", { text: p.nom + (p.bot ? " 🤖" : "") }),
           ),
           el("span", { class: "victory-meta", text: etoilesMode
             ? `⭐${p.etoiles ?? 0} · 🪙${p.pieces} · ${p.bonnes}/${p.questions} bonnes réponses`
@@ -544,8 +562,37 @@ function showVictory(winner, rankingData, extras = {}) {
         ),
       ),
     ),
+    statsTable(rankingData, etoilesMode),
     el("button", { class: "btn btn-big btn-gold", type: "button", onclick: () => { clearSave(); renderSetup(); show("setup"); } }, "⚔️ Revanche"),
     el("button", { class: "btn", type: "button", onclick: () => { clearSave(); renderHome(); show("home"); } }, "🏠 Accueil"),
+  );
+}
+
+/** Tableau de statistiques détaillées par joueur, repliable (consultable en fin
+ *  de partie) : bonnes réponses, taux de réussite, or gagné, cases/étoiles, malus. */
+function statsTable(rankingData, etoilesMode) {
+  const taux = (p) => (p.questions ? `${Math.round((p.bonnes / p.questions) * 100)} %` : "—");
+  const cols = [
+    etoilesMode ? { th: "⭐", get: (p) => p.etoiles ?? 0 } : { th: "👣 Cases", get: (p) => p.casesParcourues ?? p.position ?? 0 },
+    { th: "✅ Bonnes", get: (p) => p.bonnes ?? 0 },
+    { th: "❓ Posées", get: (p) => p.questions ?? 0 },
+    { th: "🎯 Réussite", get: taux },
+    { th: "🪙 Or gagné", get: (p) => p.orGagne ?? 0 },
+    { th: "🪙 Solde", get: (p) => p.pieces ?? 0 },
+    { th: "💀 Coups durs", get: (p) => p.malusSubis ?? 0 },
+  ];
+  const table = el("table", { class: "stats-table" },
+    el("thead", {}, el("tr", {}, el("th", { class: "stats-th-name", text: "Joueur" }), ...cols.map((c) => el("th", { text: c.th })))),
+    el("tbody", {}, ...rankingData.map((p, i) =>
+      el("tr", { class: i === 0 ? "stats-first" : "" },
+        el("td", { class: "stats-name" }, el("span", { text: `${i + 1}. ${p.nom}${p.bot ? " 🤖" : ""}` })),
+        ...cols.map((c) => el("td", { text: String(c.get(p)) })),
+      ),
+    )),
+  );
+  return el("details", { class: "stats-details" },
+    el("summary", { text: "📊 Statistiques détaillées de la partie" }),
+    el("div", { class: "stats-scroll" }, table),
   );
 }
 

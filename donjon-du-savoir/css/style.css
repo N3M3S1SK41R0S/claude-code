@@ -642,6 +642,29 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .setup-row-bot { background: color-mix(in srgb, var(--gold) 8%, transparent); border-radius: 12px; padding: 0.25rem; }
 .setup-add-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 .bot-level { font-weight: bold; }
+/* Podium festif de fin de partie : top 3 sur des marches, gagnant surélevé. */
+.victory-podium { display: flex; justify-content: center; align-items: flex-end; gap: 0.6rem; margin: 0.6rem 0 1rem; flex-wrap: nowrap; }
+.podium-col { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; }
+.podium-crown { font-size: 1.3rem; line-height: 1; }
+.podium-name { font-weight: bold; font-size: 0.82rem; text-align: center; max-width: 6.5rem; overflow-wrap: anywhere; }
+.podium-stand { display: flex; align-items: flex-start; justify-content: center; width: 5rem; border: 2px solid var(--gold-dark); border-bottom: none; border-radius: 8px 8px 0 0; color: var(--gold); font-weight: bold; font-size: 1.05rem; padding-top: 0.25rem; background: linear-gradient(#3a2d5e, #2a1f4a); }
+.podium-rank-1 .podium-stand { height: 4.2rem; background: linear-gradient(#6a531f, #3a2d0e); }
+.podium-rank-2 .podium-stand { height: 3rem; }
+.podium-rank-3 .podium-stand { height: 2rem; }
+.podium-rank-1 .podium-crown { font-size: 1.7rem; filter: drop-shadow(0 0 6px var(--gold)); }
+.podium-rank-1 { animation: podium-bounce 1.5s ease-in-out infinite; }
+@keyframes podium-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .podium-rank-1 { animation: none; } }
+/* Tableau de statistiques de fin de partie (repliable). */
+.stats-details { margin: 0.4rem auto 0.8rem; max-width: 42rem; width: 100%; background: var(--stone); border: 1px solid var(--line); border-radius: 12px; padding: 0.3rem 0.7rem; }
+.stats-details summary { cursor: pointer; font-weight: bold; padding: 0.4rem 0.2rem; color: var(--gold); }
+.stats-scroll { overflow-x: auto; }
+.stats-table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+.stats-table th, .stats-table td { padding: 0.35rem 0.5rem; text-align: center; white-space: nowrap; border-bottom: 1px solid var(--line); }
+.stats-table th { color: var(--soft); font-weight: bold; }
+.stats-table .stats-th-name, .stats-table .stats-name { text-align: left; }
+.stats-table .stats-first td { color: var(--gold); font-weight: bold; }
+.stats-table tbody tr:last-child td { border-bottom: none; }
 .btn-character { display: inline-flex; align-items: center; gap: 0.5rem; }
 .victory-who { display: inline-flex; align-items: center; gap: 0.5rem; }
 .player-info { display: flex; flex-direction: column; }

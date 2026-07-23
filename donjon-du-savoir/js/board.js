@@ -240,6 +240,21 @@ const HERO_TOKEN = {
   plomberoy: "assets/hero-plomberoy.png",
 };
 
+// Petits objets 3D d'ambiance, CHOISIS SELON LE THÈME du donjon (« décor par
+// plateau ») : posés dans la marge haute (zone libre), derrière tout le reste.
+const PROP_SPOTS = [
+  { u: 0.37, v: 0.055, w: 6.5 },
+  { u: 0.50, v: 0.045, w: 6.5 },
+  { u: 0.63, v: 0.055, w: 6.5 },
+];
+const THEME_PROPS = {
+  crypte: ["assets/objet-torche.png", "assets/objet-potion.png", "assets/objet-champignon.png"],
+  donjon: ["assets/objet-coffre.png", "assets/objet-bouclier.png", "assets/objet-cristal.png"],
+  tour: ["assets/objet-cristal.png", "assets/objet-sablier.png", "assets/objet-de.png"],
+  catacombes: ["assets/objet-tonneau.png", "assets/objet-cle.png", "assets/objet-parchemin.png"],
+  labyrinthe: ["assets/objet-coffre.png", "assets/objet-pieces.png", "assets/objet-etoile.png"],
+};
+
 /* ---------- rendering ---------- */
 
 let builtSignature = null;
@@ -311,6 +326,23 @@ function buildStatic(container, layout, def) {
     img.setAttribute("aria-hidden", "true");
     container.appendChild(img);
   }
+
+  // Objets d'ambiance propres au thème du donjon (décor par plateau).
+  const props = THEME_PROPS[def.theme] ?? THEME_PROPS.donjon;
+  PROP_SPOTS.forEach((spot, i) => {
+    if (!props[i]) return;
+    const img = document.createElement("img");
+    img.className = "building building-prop";
+    img.alt = "";
+    img.decoding = "async";
+    img.src = props[i];
+    img.style.left = `${spot.u * 100}%`;
+    img.style.top = `${spot.v * 100}%`;
+    img.style.width = `${spot.w}cqw`;
+    img.onerror = () => img.remove();
+    img.setAttribute("aria-hidden", "true");
+    container.appendChild(img);
+  });
 
   for (const dec of DECOR) {
     const span = document.createElement("span");

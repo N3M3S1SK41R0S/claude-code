@@ -660,6 +660,8 @@ function moveAndResolve(steps) {
     pion.casesParcourues = (pion.casesParcourues ?? 0) + steps;
   } else {
     after = Math.max(0, Math.min(L - 1, before + steps));
+    // Course : on compte les cases réellement avancées (bornées à l'arrivée).
+    pion.casesParcourues = (pion.casesParcourues ?? 0) + Math.max(0, after - before);
   }
   pion.position = after;
   if (isEtoiles() && laps > 0) addCoins(pion, LAP_BONUS * laps); // prime de tour
@@ -2329,6 +2331,11 @@ function endStarGame() {
     position: p.position,
     bonnes: p.stats.bonnes,
     questions: p.stats.questions,
+    orGagne: p.orGagne ?? 0,
+    malusSubis: p.malusSubis ?? 0,
+    casesParcourues: p.casesParcourues ?? 0,
+    bot: p.bot ?? false,
+    botLevel: p.botLevel ?? null,
   }));
   save();
   const winner = classement[0];
@@ -2352,6 +2359,11 @@ function finishGame(winner) {
     pieces: p.pieces,
     bonnes: p.stats.bonnes,
     questions: p.stats.questions,
+    orGagne: p.orGagne ?? 0,
+    malusSubis: p.malusSubis ?? 0,
+    casesParcourues: p.casesParcourues ?? 0,
+    bot: p.bot ?? false,
+    botLevel: p.botLevel ?? null,
   }));
   save();
   sfx("win");
