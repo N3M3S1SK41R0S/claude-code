@@ -11,7 +11,7 @@ import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } from "./ui.js";
-import { say } from "./tts.js";
+import { say, sayHost } from "./tts.js";
 import { heroLine, voiceOf } from "./voices.js";
 import { botNumericGuess, botWantsCorrect } from "./bots.js";
 import { playScene } from "./scene.js";
@@ -1708,6 +1708,7 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
 
   appendQuestionPowers(container, hintZone, pion, q, { cashMode });
   setPanel(container);
+  sayHost(q.texte, "question"); // l'animateur lit la question (si Héraut vocal actif)
 }
 
 function questionHeader(q, pion = null) {
@@ -1944,6 +1945,7 @@ function showAnecdote(q, { verdictHtml, onContinue }) {
       bigButton("Continuer", onContinue),
     ),
   );
+  sayHost(q.anecdote, "anecdote"); // l'animateur lit l'anecdote (si Héraut vocal actif)
 }
 
 /* ---------- special cases ---------- */
@@ -2308,6 +2310,7 @@ function poseTableQuestion(q, label, next) {
       bigButton("Tout le monde a écrit → Révéler la réponse", () => revealTableBonus(q, next)),
     ),
   );
+  sayHost(q.texte, "question"); // l'animateur lit la question bonus
 }
 
 function revealTableBonus(q, onDone) {
@@ -2332,6 +2335,9 @@ function revealTableBonus(q, onDone) {
   };
   setPanel(
     el("div", { class: "question-block" },
+      // On RAPPELLE la question au moment de la révélation : sans elle, une
+      // réponse « Vrai/Faux » ou un chiffre ne veut plus rien dire.
+      el("p", { class: "question-rappel", text: `❓ ${q.texte}` }),
       el("p", { class: "reveal-answer", html: `✅ Réponse : <strong>${accepted}</strong>` }),
       anecdoteCardEl(q),
       el("p", { class: "panel-text", text: `Qui avait la bonne réponse ? Touchez chaque personne (ou équipe) qui a trouvé : chacune empoche +${REWARD} 🪙. La table est juge, aucune course.` }),
@@ -2340,6 +2346,7 @@ function revealTableBonus(q, onDone) {
       bigButton("Personne n'a trouvé", onDone),
     ),
   );
+  sayHost(q.anecdote, "anecdote"); // l'animateur lit l'anecdote à la révélation
 }
 
 function endStarGame() {

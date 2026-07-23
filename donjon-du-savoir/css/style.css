@@ -921,3 +921,6 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
 }
 .minimap svg { display: block; width: 100%; height: auto; }
+
+/* Rappel de la question au moment de la révélation (collectif/bonus). */
+.question-rappel { color: var(--soft); font-style: italic; line-height: 1.4; margin-bottom: 0.2rem; }

@@ -37,6 +37,28 @@ export function say(text, { pitch = 1.05, rate = 0.95, v = 0, queue = false } = 
   synth.speak(utter);
 }
 
+// Voix d'ANIMATEUR (maître de jeu télé, plein d'entrain, jamais l'imitation
+// d'une personne réelle) : timbre vif, débit enlevé. Lit les questions puis les
+// anecdotes avec une petite accroche qui change à chaque fois.
+const HOST = { pitch: 1.12, rate: 1.03, v: 0 };
+const INTRO_Q = [
+  "Attention, question !", "À vous de jouer !", "Ouvrez grand les oreilles…",
+  "Roulement de tambour…", "Alors, alors…", "Celle-là, elle est belle !",
+];
+const INTRO_A = [
+  "Et maintenant, l'anecdote !", "Le saviez-vous ?", "Minute culture !",
+  "Accrochez-vous…", "Et l'anecdote qui tue…", "Petit bonus de savoir…",
+];
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+/** L'animateur lit un texte à voix haute, précédé d'une accroche selon le type
+ *  ("question" ou "anecdote"). Ne fait rien si le Héraut vocal est coupé. */
+export function sayHost(text, kind = null) {
+  if (!enabled || !text) return;
+  const intro = kind === "question" ? pick(INTRO_Q) : kind === "anecdote" ? pick(INTRO_A) : null;
+  say(intro ? `${intro} ${text}` : text, HOST);
+}
+
 export function warmVoices() {
   if (!voiceAvailable()) return;
   window.speechSynthesis.getVoices();
