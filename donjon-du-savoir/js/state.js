@@ -95,10 +95,15 @@ export function newGame(config, boardLayout) {
   const starPos = variant === "etoiles"
     ? 1 + Math.floor(Math.random() * Math.max(1, boardLayout.length - 2))
     : null;
+  // Règle maison de difficulté : « douce » (toujours facile), « corsée »
+  // (toujours ardu) ou « adaptative » (défaut : facile puis se durcit).
+  const difficulte = ["douce", "corsee"].includes(config.difficulte) ? config.difficulte : "adaptative";
+  const baseNiveau = difficulte === "douce" ? 1.2 : difficulte === "corsee" ? 4.5 : 1.5;
   state = {
     version: 1,
     mode: config.mode,
     variant,
+    difficulte,
     // Manches : de 5 à 200 (bornées ici quelle que soit l'entrée).
     rounds: variant === "etoiles" ? Math.max(5, Math.min(200, Math.round(config.rounds ?? 10))) : null,
     starPos,
@@ -131,7 +136,8 @@ export function newGame(config, boardLayout) {
       doublePieces: false,
       // Difficulté adaptative : on démarre FACILE, on durcit quand le joueur
       // enchaîne les bonnes réponses (voir bumpNiveau). Sur l'échelle 1-5.
-      niveau: 1.5,
+      // Une règle maison « douce » / « corsée » fixe ce niveau d'entrée.
+      niveau: baseNiveau,
       stats: { bonnes: 0, questions: 0 },
       malusSubis: 0,
       orGagne: 0,
@@ -305,6 +311,9 @@ export function markAsked(id) {
  */
 export function bumpNiveau(pion, correct) {
   if (!pion) return;
+  // Règle maison « douce » / « corsée » : la difficulté est verrouillée, on ne
+  // l'ajuste pas au fil des réponses (seul le mode « adaptative » évolue).
+  if (state?.difficulte && state.difficulte !== "adaptative") return;
   const n = pion.niveau ?? 1.5;
   pion.niveau = Math.max(1, Math.min(5, correct ? n + 0.45 : n - 0.6));
 }

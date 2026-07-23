@@ -97,13 +97,15 @@ export function boardById(id) {
  * gambits, trous noirs), then the weighted shuffle of everything else, with
  * the first travelled cases guaranteed harmless.
  */
-export function generateBoard(def = boardById("grand-donjon")) {
+export function generateBoard(def = boardById("grand-donjon"), { trouNoir = true } = {}) {
   const L = def.length;
   const layout = new Array(L).fill(null);
   layout[0] = "depart";
   layout[L - 1] = "arrivee";
   for (const g of def.gambits) layout[g] = "gambit";
-  for (const t of def.trounoirs) layout[t] = "trounoir";
+  // Règle maison : le Trou Noir peut être désactivé — ses cases redeviennent
+  // alors de simples cases (remplies comme les autres plus bas).
+  if (trouNoir) for (const t of def.trounoirs) layout[t] = "trounoir";
 
   const free = [];
   for (let i = 0; i < L; i++) if (layout[i] === null) free.push(i);

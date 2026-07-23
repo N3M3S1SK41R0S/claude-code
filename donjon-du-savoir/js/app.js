@@ -202,6 +202,9 @@ let setupMode = "individuel";
 let selectedBoardId = "grand-donjon";
 let variant = "course";
 let rounds = 10;
+// Règles maison : Trou Noir activable et difficulté (adaptative par défaut).
+let houseTrouNoir = true;
+let houseDifficulte = "adaptative";
 const DEFAULT_BRACKET = "18+";
 let players = [{ nom: "", bracket: DEFAULT_BRACKET, characterId: "cageot" }, { nom: "", bracket: DEFAULT_BRACKET, characterId: "etincelle" }];
 let teams = [
@@ -470,6 +473,35 @@ function renderSetup() {
     );
   }
 
+  // Règles maison (repliable) : contrôles segmentés qui se rafraîchissent sur
+  // place (sans reconstruire tout l'écran, pour ne pas refermer le volet).
+  const houseSeg = (options, getCurrent, onPick) => {
+    const wrap = el("div", { class: "reglage-control" });
+    const items = options.map((o) => ({ o, b: el("button", { class: "seg-btn", type: "button", onclick: () => { onPick(o.val); refresh(); } }, o.label) }));
+    const refresh = () => items.forEach(({ o, b }) => { const on = o.val === getCurrent(); b.classList.toggle("seg-on", on); b.setAttribute("aria-pressed", String(on)); });
+    wrap.append(...items.map((x) => x.b));
+    refresh();
+    return wrap;
+  };
+  const houseRow = (titre, desc, control) => el("div", { class: "reglage-row" },
+    el("div", { class: "reglage-label" },
+      el("span", { class: "reglage-titre", text: titre }),
+      el("span", { class: "reglage-desc", text: desc }),
+    ),
+    control,
+  );
+  zone.append(
+    el("details", { class: "house-rules" },
+      el("summary", { text: "🏠 Règles maison (facultatif)" }),
+      el("div", { class: "house-rules-body" },
+        houseRow("🕳️ Trou Noir", "La case redoutable (+3 cases ou recul de 6). Désactivez-la pour une partie plus douce.",
+          houseSeg([{ val: true, label: "Activé" }, { val: false, label: "Désactivé" }], () => houseTrouNoir, (v) => { houseTrouNoir = v; })),
+        houseRow("🎚️ Difficulté", "Adaptative : facile puis se durcit. Douce : toujours accessible. Corsée : questions ardues.",
+          houseSeg([{ val: "adaptative", label: "Adaptative" }, { val: "douce", label: "Douce" }, { val: "corsee", label: "Corsée" }], () => houseDifficulte, (v) => { houseDifficulte = v; })),
+      ),
+    ),
+  );
+
   zone.append(
     el("p", { class: "help-note", text: "Choisissez une tranche d'âge par joueur : les questions s'adaptent à la difficulté correspondante. En équipe, on joue au niveau du plus jeune, et un porte-parole différent répond à chaque question." }),
     el("button", { class: "btn btn-big btn-gold", type: "button", onclick: launchGame }, "🏰 Entrer dans le Donjon"),
@@ -531,7 +563,10 @@ function launchGame() {
   }
   clearSave();
   const def = boardById(selectedBoardId);
-  newGame({ mode: setupMode, pions, boardId: def.id, variant, rounds }, generateBoard(def));
+  newGame(
+    { mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte },
+    generateBoard(def, { trouNoir: houseTrouNoir }),
+  );
   show("game");
   startGame(showVictory);
 }

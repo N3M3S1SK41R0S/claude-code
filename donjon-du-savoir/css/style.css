@@ -840,3 +840,16 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 .succes-unlock-title { color: var(--gold); font-size: 1.05rem; text-align: center; }
 .succes-unlock-line { font-size: 0.92rem; text-align: center; }
+
+/* ---------- règles maison (configuration) ---------- */
+.house-rules {
+  border: 1px solid var(--line); border-radius: 0.9rem; background: var(--card);
+  padding: 0.2rem 0.2rem; max-width: 40rem; margin: 0 auto; width: 100%;
+}
+.house-rules > summary {
+  cursor: pointer; list-style: none; padding: 0.7rem 0.9rem; font-weight: bold; color: var(--gold);
+}
+.house-rules > summary::-webkit-details-marker { display: none; }
+.house-rules > summary::before { content: "▸ "; }
+.house-rules[open] > summary::before { content: "▾ "; }
+.house-rules-body { display: flex; flex-direction: column; gap: 0.5rem; padding: 0 0.5rem 0.6rem; }

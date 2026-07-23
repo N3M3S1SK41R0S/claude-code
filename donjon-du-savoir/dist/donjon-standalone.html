@@ -856,6 +856,19 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .succes-unlock-title { color: var(--gold); font-size: 1.05rem; text-align: center; }
 .succes-unlock-line { font-size: 0.92rem; text-align: center; }
 
+/* ---------- règles maison (configuration) ---------- */
+.house-rules {
+  border: 1px solid var(--line); border-radius: 0.9rem; background: var(--card);
+  padding: 0.2rem 0.2rem; max-width: 40rem; margin: 0 auto; width: 100%;
+}
+.house-rules > summary {
+  cursor: pointer; list-style: none; padding: 0.7rem 0.9rem; font-weight: bold; color: var(--gold);
+}
+.house-rules > summary::-webkit-details-marker { display: none; }
+.house-rules > summary::before { content: "▸ "; }
+.house-rules[open] > summary::before { content: "▾ "; }
+.house-rules-body { display: flex; flex-direction: column; gap: 0.5rem; padding: 0 0.5rem 0.6rem; }
+
 </style>
 
   <header class="topbar">
@@ -2641,10 +2654,15 @@ function newGame(config, boardLayout) {
   const starPos = variant === "etoiles"
     ? 1 + Math.floor(Math.random() * Math.max(1, boardLayout.length - 2))
     : null;
+  // Règle maison de difficulté : « douce » (toujours facile), « corsée »
+  // (toujours ardu) ou « adaptative » (défaut : facile puis se durcit).
+  const difficulte = ["douce", "corsee"].includes(config.difficulte) ? config.difficulte : "adaptative";
+  const baseNiveau = difficulte === "douce" ? 1.2 : difficulte === "corsee" ? 4.5 : 1.5;
   state = {
     version: 1,
     mode: config.mode,
     variant,
+    difficulte,
     // Manches : de 5 à 200 (bornées ici quelle que soit l'entrée).
     rounds: variant === "etoiles" ? Math.max(5, Math.min(200, Math.round(config.rounds ?? 10))) : null,
     starPos,
@@ -2677,7 +2695,8 @@ function newGame(config, boardLayout) {
       doublePieces: false,
       // Difficulté adaptative : on démarre FACILE, on durcit quand le joueur
       // enchaîne les bonnes réponses (voir bumpNiveau). Sur l'échelle 1-5.
-      niveau: 1.5,
+      // Une règle maison « douce » / « corsée » fixe ce niveau d'entrée.
+      niveau: baseNiveau,
       stats: { bonnes: 0, questions: 0 },
       malusSubis: 0,
       orGagne: 0,
@@ -2851,6 +2870,9 @@ function markAsked(id) {
  */
 function bumpNiveau(pion, correct) {
   if (!pion) return;
+  // Règle maison « douce » / « corsée » : la difficulté est verrouillée, on ne
+  // l'ajuste pas au fil des réponses (seul le mode « adaptative » évolue).
+  if (state?.difficulte && state.difficulte !== "adaptative") return;
   const n = pion.niveau ?? 1.5;
   pion.niveau = Math.max(1, Math.min(5, correct ? n + 0.45 : n - 0.6));
 }
@@ -3000,13 +3022,15 @@ function boardById(id) {
  * gambits, trous noirs), then the weighted shuffle of everything else, with
  * the first travelled cases guaranteed harmless.
  */
-function generateBoard(def = boardById("grand-donjon")) {
+function generateBoard(def = boardById("grand-donjon"), { trouNoir = true } = {}) {
   const L = def.length;
   const layout = new Array(L).fill(null);
   layout[0] = "depart";
   layout[L - 1] = "arrivee";
   for (const g of def.gambits) layout[g] = "gambit";
-  for (const t of def.trounoirs) layout[t] = "trounoir";
+  // Règle maison : le Trou Noir peut être désactivé — ses cases redeviennent
+  // alors de simples cases (remplies comme les autres plus bas).
+  if (trouNoir) for (const t of def.trounoirs) layout[t] = "trounoir";
 
   const free = [];
   for (let i = 0; i < L; i++) if (layout[i] === null) free.push(i);
@@ -6265,6 +6289,9 @@ let setupMode = "individuel";
 let selectedBoardId = "grand-donjon";
 let variant = "course";
 let rounds = 10;
+// Règles maison : Trou Noir activable et difficulté (adaptative par défaut).
+let houseTrouNoir = true;
+let houseDifficulte = "adaptative";
 const DEFAULT_BRACKET = "18+";
 let players = [{ nom: "", bracket: DEFAULT_BRACKET, characterId: "cageot" }, { nom: "", bracket: DEFAULT_BRACKET, characterId: "etincelle" }];
 let teams = [
@@ -6533,6 +6560,35 @@ function renderSetup() {
     );
   }
 
+  // Règles maison (repliable) : contrôles segmentés qui se rafraîchissent sur
+  // place (sans reconstruire tout l'écran, pour ne pas refermer le volet).
+  const houseSeg = (options, getCurrent, onPick) => {
+    const wrap = el("div", { class: "reglage-control" });
+    const items = options.map((o) => ({ o, b: el("button", { class: "seg-btn", type: "button", onclick: () => { onPick(o.val); refresh(); } }, o.label) }));
+    const refresh = () => items.forEach(({ o, b }) => { const on = o.val === getCurrent(); b.classList.toggle("seg-on", on); b.setAttribute("aria-pressed", String(on)); });
+    wrap.append(...items.map((x) => x.b));
+    refresh();
+    return wrap;
+  };
+  const houseRow = (titre, desc, control) => el("div", { class: "reglage-row" },
+    el("div", { class: "reglage-label" },
+      el("span", { class: "reglage-titre", text: titre }),
+      el("span", { class: "reglage-desc", text: desc }),
+    ),
+    control,
+  );
+  zone.append(
+    el("details", { class: "house-rules" },
+      el("summary", { text: "🏠 Règles maison (facultatif)" }),
+      el("div", { class: "house-rules-body" },
+        houseRow("🕳️ Trou Noir", "La case redoutable (+3 cases ou recul de 6). Désactivez-la pour une partie plus douce.",
+          houseSeg([{ val: true, label: "Activé" }, { val: false, label: "Désactivé" }], () => houseTrouNoir, (v) => { houseTrouNoir = v; })),
+        houseRow("🎚️ Difficulté", "Adaptative : facile puis se durcit. Douce : toujours accessible. Corsée : questions ardues.",
+          houseSeg([{ val: "adaptative", label: "Adaptative" }, { val: "douce", label: "Douce" }, { val: "corsee", label: "Corsée" }], () => houseDifficulte, (v) => { houseDifficulte = v; })),
+      ),
+    ),
+  );
+
   zone.append(
     el("p", { class: "help-note", text: "Choisissez une tranche d'âge par joueur : les questions s'adaptent à la difficulté correspondante. En équipe, on joue au niveau du plus jeune, et un porte-parole différent répond à chaque question." }),
     el("button", { class: "btn btn-big btn-gold", type: "button", onclick: launchGame }, "🏰 Entrer dans le Donjon"),
@@ -6594,7 +6650,10 @@ function launchGame() {
   }
   clearSave();
   const def = boardById(selectedBoardId);
-  newGame({ mode: setupMode, pions, boardId: def.id, variant, rounds }, generateBoard(def));
+  newGame(
+    { mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte },
+    generateBoard(def, { trouNoir: houseTrouNoir }),
+  );
   show("game");
   startGame(showVictory);
 }
