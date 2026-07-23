@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 1329,
+ "count": 1409,
  "questions": [
   {
    "id": "arts-001",
@@ -25227,6 +25227,1530 @@
    "sources": [
     "https://en.wikipedia.org/wiki/Wii_Sports",
     "https://www.mensjournal.com/news/nintendos-highest-selling-game-ever-almost-never-existed"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0376",
+   "categorie": "Séries",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Sur quel appareil regarde-t-on une série télé ?",
+   "anecdote": "On peut aussi regarder des séries sur une tablette ou un téléphone !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/S%C3%A9rie_t%C3%A9l%C3%A9vis%C3%A9e",
+    "https://www.linternaute.fr/dictionnaire/fr/definition/serie-televisee/"
+   ],
+   "choix": [
+    "La télévision",
+    "Le frigo",
+    "La baignoire",
+    "La casserole"
+   ],
+   "bonne_reponse": "La télévision"
+  },
+  {
+   "id": "ext-0377",
+   "categorie": "Séries",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Peppa Pig est quel animal ?",
+   "anecdote": "Peppa adore sauter à pieds joints dans les flaques de boue avec ses bottes !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Peppa_Cochon",
+    "https://fr.vikidia.org/wiki/Peppa_Pig"
+   ],
+   "choix": [
+    "Un cochon",
+    "Un chat",
+    "Un lapin",
+    "Un poisson"
+   ],
+   "bonne_reponse": "Un cochon"
+  },
+  {
+   "id": "ext-0378",
+   "categorie": "Séries",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans la Pat'Patrouille, les héros sont des chiens.",
+   "anecdote": "Chase, un des chiots, fait le policier pour aider tout le monde.",
+   "sources": [
+    "https://www.joueclub.fr/contenu/les-personnages-principaux-des-series-paw-patrol.html",
+    "https://www.expert-du-chien.com/races-chiens-pat-patrouille/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0379",
+   "categorie": "Séries",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur sont les Schtroumpfs ?",
+   "anecdote": "Les Schtroumpfs sont tout petits et vivent dans des maisons en forme de champignon.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Schtroumpfs",
+    "https://www.francebleu.fr/emissions/n-arrete-pas-le-progres-saison-3/les-schtroumpfs"
+   ],
+   "choix": [
+    "Bleus",
+    "Rouges",
+    "Verts",
+    "Jaunes"
+   ],
+   "bonne_reponse": "Bleus"
+  },
+  {
+   "id": "ext-0380",
+   "categorie": "Séries",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Bluey est un petit chien.",
+   "anecdote": "Bluey est une petite chienne pleine d'énergie qui adore inventer des jeux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bluey_(s%C3%A9rie_t%C3%A9l%C3%A9vis%C3%A9e_d'animation)",
+    "https://newsroom.disney.fr/actualites/detendez-vous-devant-bluey-la-nouvelle-serie-danimation-de-disney-junior-0e84-dc71f.html"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0381",
+   "categorie": "Séries",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans 'Masha et Michka', l'ami de Masha est un ours.",
+   "anecdote": "Michka l'ours veille toujours sur la petite Masha.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Masha_et_Michka",
+    "https://www.allocine.fr/series/ficheserie_gen_cserie=20115.html"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0382",
+   "categorie": "Séries",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Trotro, le héros du dessin animé, est quel animal ?",
+   "anecdote": "Trotro est un petit âne gris rigolo qui voit toujours le bon côté des choses.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Trotro",
+    "https://www.filmspourenfants.net/lane-trotro/"
+   ],
+   "choix": [
+    "Un âne",
+    "Un cheval",
+    "Un chien",
+    "Un ours"
+   ],
+   "bonne_reponse": "Un âne"
+  },
+  {
+   "id": "ext-0383",
+   "categorie": "Séries",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Sam le Pompier est un pompier.",
+   "anecdote": "Sam éteint les feux et aide les habitants de son petit village.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sam_le_pompier",
+    "https://www.senscritique.com/serie/sam_le_pompier/15878899"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0384",
+   "categorie": "Séries",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans 'Dora l'exploratrice', son ami Babouche est quel animal ?",
+   "anecdote": "Babouche le singe suit Dora partout dans ses aventures.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dora_l'exploratrice",
+    "https://www.fnac.com/Dora-l-exploratrice/ia835096/bio"
+   ],
+   "choix": [
+    "Un singe",
+    "Un chien",
+    "Un ours",
+    "Un lion"
+   ],
+   "bonne_reponse": "Un singe"
+  },
+  {
+   "id": "ext-0385",
+   "categorie": "Séries",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Une série est faite de plusieurs épisodes.",
+   "anecdote": "Quand un épisode se termine, un nouvel épisode continue l'histoire !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/S%C3%A9rie_t%C3%A9l%C3%A9vis%C3%A9e",
+    "https://fr.wiktionary.org/wiki/s%C3%A9rie_t%C3%A9l%C3%A9vis%C3%A9e"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0386",
+   "categorie": "Manga",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est Pikachu ?",
+   "anecdote": "Pikachu garde de l'électricité dans ses petites joues rouges.",
+   "sources": [
+    "https://www.pokepedia.fr/Pikachu",
+    "https://www.pokemontrash.com/pokedex/25-Pikachu"
+   ],
+   "choix": [
+    "Jaune",
+    "Bleu",
+    "Vert",
+    "Violet"
+   ],
+   "bonne_reponse": "Jaune"
+  },
+  {
+   "id": "ext-0387",
+   "categorie": "Manga",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Pikachu est une sorte de souris.",
+   "anecdote": "C'est un Pokémon 'souris' avec une queue en forme d'éclair.",
+   "sources": [
+    "https://www.pokepedia.fr/Pikachu",
+    "https://www.pokemontrash.com/pokedex/25-Pikachu"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0388",
+   "categorie": "Manga",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans Pokémon, avec quoi attrape-t-on les Pokémon ?",
+   "anecdote": "La Poké Ball est une petite boule qui s'ouvre pour attraper le Pokémon.",
+   "sources": [
+    "https://www.pokepedia.fr/Ball",
+    "https://www.pokemontrash.com/pokemon/etude-pokeball"
+   ],
+   "choix": [
+    "Une Poké Ball",
+    "Un filet à papillons",
+    "Une casserole",
+    "Un parapluie"
+   ],
+   "bonne_reponse": "Une Poké Ball"
+  },
+  {
+   "id": "ext-0389",
+   "categorie": "Manga",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les mangas sont souvent imprimés en noir et blanc.",
+   "anecdote": "Comme ça, les mangas coûtent moins cher et sortent plus vite.",
+   "sources": [
+    "https://www.manga-online.fr/pourquoi-les-mangas-sont-ils-souvent-en-noir-et-blanc/",
+    "https://www.mangabox.fr/noir-blanc-couleur-histoire-visuelle-mangas-japonais/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0390",
+   "categorie": "Manga",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un manga, c'est une sorte de bande dessinée.",
+   "anecdote": "Un manga se lit dans un livre, avec des cases et des bulles.",
+   "sources": [
+    "https://fr.vikidia.org/wiki/Manga",
+    "https://fr.wikimini.org/wiki/Manga"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0391",
+   "categorie": "Manga",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans Dragon Ball, comment s'appelle le héros ?",
+   "anecdote": "Son Goku est un héros très fort et très gentil.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Son_Goku",
+    "https://dragonball.fandom.com/fr/wiki/Son_Goku"
+   ],
+   "choix": [
+    "Son Goku",
+    "Pikachu",
+    "Mario",
+    "Sonic"
+   ],
+   "bonne_reponse": "Son Goku"
+  },
+  {
+   "id": "ext-0392",
+   "categorie": "Manga",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Totoro est un personnage d'un film d'animation japonais.",
+   "anecdote": "Totoro est un gros esprit de la forêt, tout doux et tout gentil.",
+   "sources": [
+    "https://www.studioghibli.fr/les-films/mon-voisin-totoro/",
+    "https://www.allocine.fr/film/fichefilm_gen_cfilm=14790.html"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0393",
+   "categorie": "Manga",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Naruto est un ninja.",
+   "anecdote": "Naruto rêve de devenir le chef de son village de ninjas.",
+   "sources": [
+    "https://www.manga-news.com/index.php/personnage/UZUMAKI-Naruto",
+    "https://fr.vikidia.org/wiki/Liste_des_personnages_de_Naruto"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0394",
+   "categorie": "Manga",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans One Piece, les héros sont des...",
+   "anecdote": "Les héros de One Piece cherchent un grand trésor sur la mer.",
+   "sources": [
+    "https://onepiece.fandom.com/fr/wiki/One_Piece",
+    "https://www.planetebd.com/manga/les-livres-du-dragon-d-or/one-piece/a-la-recherche-du-tresor/12599.html"
+   ],
+   "choix": [
+    "Pirates",
+    "Cuisiniers",
+    "Docteurs",
+    "Facteurs"
+   ],
+   "bonne_reponse": "Pirates"
+  },
+  {
+   "id": "ext-0395",
+   "categorie": "Manga",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans Dragon Ball, on cherche sept boules magiques.",
+   "anecdote": "Quand on réunit les sept boules, un dragon peut exaucer un vœu !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dragon_Balls",
+    "https://www.allocine.fr/diaporamas/series/diaporama-18686845/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0396",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel est le métier de Mario ?",
+   "anecdote": "Mario porte des gants blancs et a une grande moustache !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mario_(personnage)",
+    "https://www.jeuxvideo.com/news/705331/mario-le-celebre-plombier-a-quitte-la-profession.htm"
+   ],
+   "choix": [
+    "Plombier",
+    "Pompier",
+    "Docteur",
+    "Cuisinier"
+   ],
+   "bonne_reponse": "Plombier"
+  },
+  {
+   "id": "ext-0397",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est la casquette de Mario ?",
+   "anecdote": "Sur sa casquette rouge, il y a un grand 'M' comme Mario.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mario_(personnage)",
+    "https://fr.vikidia.org/wiki/Mario"
+   ],
+   "choix": [
+    "Rouge",
+    "Bleue",
+    "Verte",
+    "Noire"
+   ],
+   "bonne_reponse": "Rouge"
+  },
+  {
+   "id": "ext-0398",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est Sonic le hérisson ?",
+   "anecdote": "Sonic court super vite, presque aussi vite que le son !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sonic_the_Hedgehog_(jeu_vid%C3%A9o,_1991,_version_16_bits)",
+    "https://www.journaldugeek.com/dossier/sonic-fete-ses-35-ans-retour-sur-la-guerre-avec-nintendo-la-chute-de-sega-la-renaissance-et-le-top-5-des-meilleurs-jeux-de-la-licence/"
+   ],
+   "choix": [
+    "Bleu",
+    "Rouge",
+    "Jaune",
+    "Marron"
+   ],
+   "bonne_reponse": "Bleu"
+  },
+  {
+   "id": "ext-0399",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est Yoshi, le dinosaure ami de Mario ?",
+   "anecdote": "Yoshi a une longue langue pour attraper les choses.",
+   "sources": [
+    "https://leclaireur.fnac.com/article/cp49340-yoshi-tout-savoir-sur-le-fidele-acolyte-des-freres-mario/",
+    "https://dinosaures.org/article/comment-s-appelle-le-dinosaure-vert-dans-mario-99.html"
+   ],
+   "choix": [
+    "Vert",
+    "Rose",
+    "Bleu",
+    "Orange"
+   ],
+   "bonne_reponse": "Vert"
+  },
+  {
+   "id": "ext-0400",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans Minecraft, le monde est fait de cubes.",
+   "anecdote": "Avec les cubes, on peut construire tout ce qu'on veut, même un château !",
+   "sources": [
+    "https://www.rtbf.be/article/minecraft-le-jeu-video-pour-creer-un-monde-a-votre-image-mais-en-cubes-7271373",
+    "https://minecraft.fr/sam1-des-cubes-en-mouvement/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0401",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans les jeux Mario, on ramasse des pièces dorées.",
+   "anecdote": "Les pièces font un joli 'pling' quand Mario les attrape.",
+   "sources": [
+    "https://www.nintendo.com/fr-fr/Assistance/Nintendo-3DS-et-Nintendo-2DS/Astuces-de-jeu/New-Super-Mario-Bros-2/Trucs-et-astuces-pour-recolter-des-pieces/Trucs-et-astuces-pour-recolter-des-pieces-677901.html",
+    "https://www.jeuxvideo.com/wikis-soluce-astuces/les-blocs-de-pieces-dores/234908"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0402",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans le jeu Angry Birds, qu'est-ce qu'on lance ?",
+   "anecdote": "On tire les oiseaux avec un lance-pierre pour viser les cochons verts.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Angry_Birds_(jeu_vid%C3%A9o)",
+    "https://www.happyfete.com/Blog/Angry-birds-qu-est-ce-que-c-est.html"
+   ],
+   "choix": [
+    "Des oiseaux",
+    "Des ballons",
+    "Des voitures",
+    "Des fleurs"
+   ],
+   "bonne_reponse": "Des oiseaux"
+  },
+  {
+   "id": "ext-0403",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans beaucoup de jeux Mario, qui Mario vient-il sauver ?",
+   "anecdote": "La princesse Peach porte une belle robe rose et une couronne.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Princess_Peach",
+    "https://www.p-nintendo.com/personnages/peach"
+   ],
+   "choix": [
+    "La princesse Peach",
+    "Une sorcière",
+    "Un facteur",
+    "Un robot"
+   ],
+   "bonne_reponse": "La princesse Peach"
+  },
+  {
+   "id": "ext-0404",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est Pac-Man ?",
+   "anecdote": "Pac-Man est un rond jaune avec une grande bouche.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pac-Man",
+    "https://www.culture-games.com/personnages/pac-man"
+   ],
+   "choix": [
+    "Jaune",
+    "Rouge",
+    "Vert",
+    "Bleu"
+   ],
+   "bonne_reponse": "Jaune"
+  },
+  {
+   "id": "ext-0405",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Kirby a un corps tout rond.",
+   "anecdote": "Kirby est une petite boule ronde toute mignonne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kirby_(personnage)",
+    "https://leclaireur.fnac.com/article/cp49393-kirby-tout-savoir-sur-la-boule-rose-de-nintendo/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0406",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Mickey, le célèbre personnage de Disney, est quel animal ?",
+   "anecdote": "Mickey est une petite souris aux grandes oreilles rondes. C'est Walt Disney qui l'a imaginé il y a très longtemps !",
+   "sources": [
+    "https://fr.vikidia.org/wiki/Mickey_Mouse",
+    "https://www.techno-science.net/definition/7549.html"
+   ],
+   "choix": [
+    "Une souris",
+    "Un chat",
+    "Un lapin",
+    "Un ours"
+   ],
+   "bonne_reponse": "Une souris"
+  },
+  {
+   "id": "ext-0407",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel aliment Winnie l'ourson adore-t-il par-dessus tout ?",
+   "anecdote": "Winnie est un gentil ourson tout jaune qui raffole du miel. Il en cherche partout dans la forêt !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Winnie_l'ourson",
+    "https://disney.fandom.com/fr/wiki/Winnie_l'ourson_(personnage)"
+   ],
+   "choix": [
+    "Le miel",
+    "Les frites",
+    "Le chocolat",
+    "La soupe"
+   ],
+   "bonne_reponse": "Le miel"
+  },
+  {
+   "id": "ext-0408",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans le dessin animé Les Simpson, la peau des personnages est jaune.",
+   "anecdote": "Oui ! Homer, Bart et Lisa ont tous la peau jaune. Cette couleur vive aide à les reconnaître tout de suite à la télé.",
+   "sources": [
+    "https://www.allocine.fr/article/fichearticle_gen_carticle=18675628.html",
+    "https://fr.news.yahoo.com/simpsons-pourquoi-personnages-jaunes-130000210.html"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0409",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que mange Popeye le marin pour devenir tout fort ?",
+   "anecdote": "Dès que Popeye avale une boîte d'épinards, ses muscles gonflent et il devient super costaud !",
+   "sources": [
+    "https://www.findus.fr/findus-vous-accompagne/nutrition-et-sante/conseils-et-astuces-nutrition-sante/bienfaits-epinards-legende-popeye",
+    "https://sciencefourchette.com/science/epinards-fer-mythe-nutrition/"
+   ],
+   "choix": [
+    "Des épinards",
+    "Des bonbons",
+    "Des gâteaux",
+    "Du fromage"
+   ],
+   "bonne_reponse": "Des épinards"
+  },
+  {
+   "id": "ext-0410",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans 'Le Monde de Nemo', Nemo est un petit... ?",
+   "anecdote": "Nemo est un petit poisson-clown orange et blanc. Son papa Marin traverse tout l'océan pour le retrouver !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Monde_de_Nemo",
+    "https://www.chroniquedisney.fr/animation/2003-nemo.htm"
+   ],
+   "choix": [
+    "Poisson",
+    "Oiseau",
+    "Chien",
+    "Crabe"
+   ],
+   "bonne_reponse": "Poisson"
+  },
+  {
+   "id": "ext-0411",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Scooby-Doo, qui résout des mystères avec ses amis, est un chat.",
+   "anecdote": "Faux ! Scooby-Doo est un grand chien un peu peureux mais très gourmand. Il adore résoudre des énigmes avec ses amis.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Scooby-Doo_(personnage)",
+    "https://www.chien.com/culture/dessin-anime-scooby-doo-23296-12259.php"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0412",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Garfield est un chat orange qui adore manger quoi ?",
+   "anecdote": "Garfield est un gros chat paresseux qui raffole des lasagnes et qui déteste les lundis !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Garfield_(personnage)",
+    "https://www.techno-science.net/glossaire-definition/Garfield-personnage.html"
+   ],
+   "choix": [
+    "Des lasagnes",
+    "Des pommes",
+    "Des croquettes",
+    "Des bananes"
+   ],
+   "bonne_reponse": "Des lasagnes"
+  },
+  {
+   "id": "ext-0413",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans 'La Reine des Neiges', Olaf est un gentil... ?",
+   "anecdote": "Olaf est un bonhomme de neige rigolo qui rêve de connaître l'été et adore les câlins !",
+   "sources": [
+    "https://www.chroniquedisney.fr/perso/2013-olaf.htm",
+    "https://disney.fandom.com/fr/wiki/Olaf"
+   ],
+   "choix": [
+    "Bonhomme de neige",
+    "Renne",
+    "Dragon",
+    "Ours"
+   ],
+   "bonne_reponse": "Bonhomme de neige"
+  },
+  {
+   "id": "ext-0414",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Donald, l'ami de Mickey, est quel animal ?",
+   "anecdote": "Donald est un canard qui porte un costume de marin bleu. Il se met vite en colère, mais on l'aime bien !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Univers_des_canards_de_Disney",
+    "https://www.chroniquedisney.fr/perso/1934-donald.htm"
+   ],
+   "choix": [
+    "Un canard",
+    "Un cochon",
+    "Un cheval",
+    "Un singe"
+   ],
+   "bonne_reponse": "Un canard"
+  },
+  {
+   "id": "ext-0415",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Titi, le petit oiseau des dessins animés, est de quelle couleur ?",
+   "anecdote": "Titi est un petit canari jaune tout mignon. Le chat Grosminet essaie toujours de l'attraper, sans jamais y arriver !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Titi_(personnage)",
+    "https://fr.wikimini.org/wiki/Titi_(Looney_Tunes)"
+   ],
+   "choix": [
+    "Jaune",
+    "Vert",
+    "Bleu",
+    "Rouge"
+   ],
+   "bonne_reponse": "Jaune"
+  },
+  {
+   "id": "ext-0416",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dumbo, le célèbre personnage Disney, est un éléphant qui sait... ?",
+   "anecdote": "Dumbo est un éléphanteau aux très grandes oreilles. Elles sont si grandes qu'il s'en sert pour voler comme un oiseau !",
+   "sources": [
+    "https://disney.fandom.com/fr/wiki/Dumbo_(personnage)",
+    "https://www.lesgrandsclassiques.fr/004.htm"
+   ],
+   "choix": [
+    "Voler",
+    "Nager",
+    "Cuisiner",
+    "Conduire"
+   ],
+   "bonne_reponse": "Voler"
+  },
+  {
+   "id": "ext-0417",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Milou, le compagnon de Tintin, est un petit chien blanc.",
+   "anecdote": "C'est vrai ! Milou est un petit chien blanc qui suit Tintin partout dans ses aventures autour du monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Milou",
+    "https://www.equilibre-et-instinct.com/blogs/nos-conseils-veterinaires/chiens-celebres-milou"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0418",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Bob l'éponge, qui vit au fond de la mer, est une... ?",
+   "anecdote": "Bob l'éponge est une éponge jaune toute carrée qui habite dans un ananas au fond de la mer !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bob_l'%C3%A9ponge_(personnage)",
+    "https://bob-leponge.fandom.com/fr/wiki/Bob_l'%C3%A9ponge"
+   ],
+   "choix": [
+    "Éponge",
+    "Tortue",
+    "Baleine",
+    "Méduse"
+   ],
+   "bonne_reponse": "Éponge"
+  },
+  {
+   "id": "ext-0419",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien de cases y a-t-il sur un plateau d'échecs (un échiquier) ?",
+   "anecdote": "L'échiquier a 64 cases : des claires et des sombres qui se suivent. Cela fait 8 cases sur 8 !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89chiquier",
+    "https://fr.vikidia.org/wiki/%C3%89checs"
+   ],
+   "choix": [
+    "64",
+    "10",
+    "100",
+    "20"
+   ],
+   "bonne_reponse": "64"
+  },
+  {
+   "id": "ext-0420",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans un jeu de cartes, le roi et la dame sont des cartes appelées 'figures'.",
+   "anecdote": "Oui ! Les figures sont les cartes qui montrent un personnage : le roi, la dame et le valet. Elles portent un joli dessin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Figure_(carte_%C3%A0_jouer)",
+    "https://www.playsmart.ca/social-hub/meet-the-face-cards/?lang=fr"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0421",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "À quoi joue-t-on au Scrabble ?",
+   "anecdote": "Au Scrabble, chaque joueur pioche des lettres et les pose sur le plateau pour former des mots. Plus le mot est malin, plus on gagne de points !",
+   "sources": [
+    "https://shopping.mattel.com/fr-fr/collections/scrabble",
+    "https://www.regles-de-jeux.com/regle-du-scrabble/"
+   ],
+   "choix": [
+    "On forme des mots avec des lettres",
+    "On lance un ballon",
+    "On dessine des animaux",
+    "On chante des chansons"
+   ],
+   "bonne_reponse": "On forme des mots avec des lettres"
+  },
+  {
+   "id": "ext-0422",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au jeu du Mikado, que faut-il faire ?",
+   "anecdote": "On laisse tomber les bâtonnets en tas, puis on essaie d'en retirer un tout doucement. Si les autres bougent, c'est au tour du voisin !",
+   "sources": [
+    "https://www.regles-de-jeux.com/regle-du-mikado/",
+    "https://www.femmes-references.com/famille/loisirs/comment-jouer-au-mikado/"
+   ],
+   "choix": [
+    "Ramasser un bâtonnet sans faire bouger les autres",
+    "Sauter le plus haut possible",
+    "Compter jusqu'à cent",
+    "Courir très vite"
+   ],
+   "bonne_reponse": "Ramasser un bâtonnet sans faire bouger les autres"
+  },
+  {
+   "id": "ext-0423",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Au Monopoly, on achète des rues et des maisons avec de l'argent du jeu.",
+   "anecdote": "Vrai ! Chaque joueur reçoit des billets pour acheter des rues et construire des maisons. C'est un jeu où l'on fait semblant d'être riche.",
+   "sources": [
+    "https://www.regles-du-jeu.net/regles-du-monopoly/",
+    "https://www.ludum.fr/blog/dossiers/guide-complet-du-monopoly-regles-strategies-materiel-et-versions-du-jeu"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0424",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Aux dominos, comment pose-t-on ses pièces ?",
+   "anecdote": "Un domino a deux côtés avec des points. On le pose contre un autre domino qui montre le même nombre de points, et la chaîne s'allonge !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dominos_(jeu)",
+    "https://www.regles-de-jeux.com/regle-domino/"
+   ],
+   "choix": [
+    "On met ensemble deux côtés avec le même nombre de points",
+    "On les empile en tour",
+    "On les jette en l'air",
+    "On les cache sous la table"
+   ],
+   "bonne_reponse": "On met ensemble deux côtés avec le même nombre de points"
+  },
+  {
+   "id": "ext-0425",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au jeu du morpion, on gagne quand on aligne combien de symboles pareils ?",
+   "anecdote": "Au morpion, on dessine des croix et des ronds. Le premier qui aligne trois signes pareils, en ligne, en colonne ou en diagonale, a gagné !",
+   "sources": [
+    "https://www.regles-de-jeux.com/regle-du-morpion/",
+    "https://interstices.info/le-morpion-simple-comme-un-jeu-denfant/"
+   ],
+   "choix": [
+    "Trois",
+    "Six",
+    "Dix",
+    "Un"
+   ],
+   "bonne_reponse": "Trois"
+  },
+  {
+   "id": "ext-0426",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Au jeu du loto, on recouvre les numéros de son carton quand ils sont tirés.",
+   "anecdote": "C'est vrai ! Un meneur tire des numéros au hasard et les annonce. Si tu as le numéro sur ton carton, tu le recouvres avec un petit jeton.",
+   "sources": [
+    "https://www.regles-de-jeux.com/regle-du-loto/",
+    "https://www.lemagloisirs.fr/regle-loto/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0427",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans le jeu des serpents et échelles, que font les échelles ?",
+   "anecdote": "Si ton pion s'arrête au pied d'une échelle, il grimpe tout en haut ! Mais attention aux serpents qui, eux, te font glisser en arrière.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Serpents_et_%C3%A9chelles",
+    "https://www.didacto.com/jeux-classiques/6449-jeu-de-serpents-et-echelles-9791039515603.html"
+   ],
+   "choix": [
+    "Elles font monter plus haut",
+    "Elles font reculer",
+    "Elles font perdre son tour",
+    "Elles font dormir"
+   ],
+   "bonne_reponse": "Elles font monter plus haut"
+  },
+  {
+   "id": "ext-0428",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au Puissance 4, il faut aligner combien de jetons de la même couleur ?",
+   "anecdote": "On glisse ses jetons dans la grille chacun son tour. Le premier qui aligne quatre jetons de sa couleur gagne la partie !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Puissance_4",
+    "https://www.regles-de-jeux.com/regle-du-puissance-4/"
+   ],
+   "choix": [
+    "Quatre",
+    "Deux",
+    "Sept",
+    "Douze"
+   ],
+   "bonne_reponse": "Quatre"
+  },
+  {
+   "id": "ext-0429",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans un jeu de cartes, les cœurs sont de couleur verte.",
+   "anecdote": "Faux ! Les cœurs sont rouges. Dans un jeu de cartes, il y a deux familles rouges (les cœurs et les carreaux) et deux familles noires (les piques et les trèfles).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeu_de_cartes_fran%C3%A7ais",
+    "https://www.puresolitaire.games/fr/blog/playing-card-symbols/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "ext-0430",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au jeu du Jenga, avec quoi construit-on la grande tour ?",
+   "anecdote": "On empile des petits blocs en bois pour faire une grande tour. Ensuite, on en retire un par un sans la faire tomber. Ça tremble !",
+   "sources": [
+    "https://instructions.hasbro.com/fr-fr/instruction/classic-jenga",
+    "https://www.regledujeu.fr/regle-du-jenga/"
+   ],
+   "choix": [
+    "Des blocs en bois",
+    "Des ballons",
+    "Des coussins",
+    "Des crayons"
+   ],
+   "bonne_reponse": "Des blocs en bois"
+  },
+  {
+   "id": "ext-0431",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les billes avec lesquelles jouent les enfants sont souvent de petites boules en verre.",
+   "anecdote": "Oui ! Les billes sont de jolies petites boules, souvent en verre coloré. On les fait rouler avec le doigt pour viser.",
+   "sources": [
+    "https://www.jeuxetcompagnie.fr/regle-billes-des-billes-jouer/",
+    "https://www.la-bille.com/jeux-de-lancer/934-jeu-de-billes-en-verre.html"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "ext-0432",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans le jeu des petits chevaux, à quoi ressemblent les pions ?",
+   "anecdote": "Dans ce jeu, chaque joueur a des pions en forme de petits chevaux. Il faut leur faire faire le tour du plateau pour rentrer à l'écurie !",
+   "sources": [
+    "https://www.ribambel.com/activites-en-interieur/regles-du-jeu-les-petits-chevaux",
+    "https://reglesdujeu.fr/petits-chevaux/"
+   ],
+   "choix": [
+    "À de petits chevaux",
+    "À des voitures",
+    "À des poissons",
+    "À des étoiles"
+   ],
+   "bonne_reponse": "À de petits chevaux"
+  },
+  {
+   "id": "ext-0433",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au jeu de cartes Uno, quelle carte peut-on poser sur la carte du dessus ?",
+   "anecdote": "Au Uno, on pose une carte de la même couleur ou du même chiffre que celle du dessus. Quand il te reste une seule carte, il faut crier 'Uno' !",
+   "sources": [
+    "https://www.regles-de-jeux.com/regle-du-uno/",
+    "https://www.ribambel.com/activites-en-interieur/les-regles-du-jeu-du-uno"
+   ],
+   "choix": [
+    "Une carte de la même couleur ou du même chiffre",
+    "N'importe quelle carte",
+    "Seulement une carte rouge",
+    "Aucune carte"
+   ],
+   "bonne_reponse": "Une carte de la même couleur ou du même chiffre"
+  },
+  {
+   "id": "tp-131",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un dessin animé, ce sont des images qui bougent. Vrai ou faux ?",
+   "anecdote": "Les images défilent très vite, alors on croit que ça bouge !",
+   "sources": [
+    "https://fr.wikimini.org/wiki/Dessin_anim%C3%A9",
+    "https://fr.wikipedia.org/wiki/Dessin_anim%C3%A9"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-132",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "On peut regarder un dessin animé à la télévision. Vrai ou faux ?",
+   "anecdote": "Il y a même des chaînes de télé faites pour les enfants.",
+   "sources": [
+    "https://www.hello-merlin.com/2023/04/14/selection-de-films-et-dessins-animes-pour-enfants/",
+    "https://guides.justwatch.com/fr/dessins-animes-2000s"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-133",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un dessin animé, c'est fait avec plein de dessins. Vrai ou faux ?",
+   "anecdote": "On dessine chaque petit mouvement, image après image.",
+   "sources": [
+    "https://www.grignoux.be/dossiers/47/",
+    "https://fr.wikipedia.org/wiki/Dessin_anim%C3%A9"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-134",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans les dessins animés, il y a souvent de la musique. Vrai ou faux ?",
+   "anecdote": "On retient souvent par cœur les chansons des dessins animés !",
+   "sources": [
+    "https://thebackstage-deezer.com/fr/musique/bandes-originales-marquantes-musiques-animes/",
+    "https://www.chroniquedisney.fr/dossier/2014-disney-musique.htm"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-135",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans un dessin animé, les personnages parlent. Vrai ou faux ?",
+   "anecdote": "Des comédiens prêtent leur voix aux personnages : c'est le doublage.",
+   "sources": [
+    "https://www.disneypixar.fr/explorer/dossiers/1-le-doublage-disney",
+    "https://www.studio-son.fr/post/d%C3%A9couvrez-les-stars-du-doublages-de-dessins-anim%C3%A9s-en-france"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-136",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi regarde-t-on un dessin animé ?",
+   "anecdote": "Les yeux, c'est l'organe de la vue : ils servent à voir.",
+   "sources": [
+    "https://www.opticiensparconviction.fr/la-vue-expliquee-aux-enfants",
+    "https://dessinemoiunehistoire.net/5-sens-vue/"
+   ],
+   "choix": [
+    "Avec les yeux",
+    "Avec les pieds",
+    "Avec le nez",
+    "Avec les genoux"
+   ],
+   "bonne_reponse": "Avec les yeux"
+  },
+  {
+   "id": "tp-137",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans quel endroit peut-on aussi regarder un dessin animé ?",
+   "anecdote": "Beaucoup de dessins animés sortent aussi au cinéma, en famille.",
+   "sources": [
+    "https://www.citizenkid.com/cinema/film-animation",
+    "https://www.pathe.fr/actualites/les-films-d-animation-a-voir-au-cinema-en-2026"
+   ],
+   "choix": [
+    "Au cinéma",
+    "Dans le frigo",
+    "Dans la baignoire",
+    "Dans le four"
+   ],
+   "bonne_reponse": "Au cinéma"
+  },
+  {
+   "id": "tp-138",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un dessin animé raconte souvent une histoire. Vrai ou faux ?",
+   "anecdote": "Les personnages vivent des aventures rigolotes ou magiques.",
+   "sources": [
+    "https://app-enfant.fr/application/des-films-danimation-pour-raconter-lhistoire-aux-enfants/",
+    "https://www.enfant-world.com/blog/2022/03/25/choisir-un-dessin-anime-pour-enfant/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-139",
+   "categorie": "Jeux de société",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un dé, on le lance pour jouer. Vrai ou faux ?",
+   "anecdote": "On lance le dé sur la table et on regarde le résultat.",
+   "sources": [
+    "https://ludikbazar.com/maitriser-lart-du-lancer-de-des-guide-pour-joueurs/",
+    "https://fr.wikipedia.org/wiki/D%C3%A9"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-140",
+   "categorie": "Jeux de société",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Sur un dé, il y a des petits points. Vrai ou faux ?",
+   "anecdote": "Les points sur les faces servent à compter.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/D%C3%A9",
+    "https://toutpourlejeu.com/fr/158-des-chiffres"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-141",
+   "categorie": "Jeux de société",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les cartes à jouer, on peut les mélanger. Vrai ou faux ?",
+   "anecdote": "On mélange les cartes pour que la partie soit une surprise.",
+   "sources": [
+    "https://www.linternaute.fr/dictionnaire/fr/definition/battre-les-cartes/",
+    "https://vipbelote.fr/blog/comment-melanger-les-cartes/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-142",
+   "categorie": "Jeux de société",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un puzzle, on assemble les pièces pour faire une image. Vrai ou faux ?",
+   "anecdote": "Chaque pièce a sa place pour révéler le dessin.",
+   "sources": [
+    "https://www.auzou.fr/3-puzzles",
+    "https://wanapix.fr/blog/7-conseils-pour-assembler-des-puzzles"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-143",
+   "categorie": "Jeux de société",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un domino, c'est une petite pièce avec des points. Vrai ou faux ?",
+   "anecdote": "On pose les dominos côte à côte en suivant les points.",
+   "sources": [
+    "https://www.regledujeu.fr/dominos/",
+    "https://www.ribambel.com/activites-en-interieur/les-regles-du-jeu-des-dominos"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-144",
+   "categorie": "Jeux de société",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un jeu de société, on y joue à plusieurs. Vrai ou faux ?",
+   "anecdote": "On joue ensemble, souvent en famille ou entre amis.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeu_de_soci%C3%A9t%C3%A9",
+    "https://www.ludum.fr/blog/dossiers/qu-est-ce-qu-un-jeu-de-societe"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-145",
+   "categorie": "Jeux de société",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Où pose-t-on souvent un jeu de société pour jouer ?",
+   "anecdote": "On s'assoit autour de la table pour jouer tous ensemble.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeu_de_soci%C3%A9t%C3%A9",
+    "https://www.joueclub.fr/contenu/le-guide-des-jeux-de-societe.html"
+   ],
+   "choix": [
+    "Sur une table",
+    "Dans la baignoire",
+    "Dans le frigo",
+    "Dans la poubelle"
+   ],
+   "bonne_reponse": "Sur une table"
+  },
+  {
+   "id": "tp-146",
+   "categorie": "Jeux de société",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi joue-t-on à un jeu de cartes ?",
+   "anecdote": "On tient les cartes dans la main pour jouer.",
+   "sources": [
+    "https://www.linternaute.fr/dictionnaire/fr/definition/battre-les-cartes/",
+    "https://www.ludicash.com/belote-en-ligne/bases-belote/distribution-belote"
+   ],
+   "choix": [
+    "Des cartes",
+    "Des chaussettes",
+    "Des glaçons",
+    "Des cailloux"
+   ],
+   "bonne_reponse": "Des cartes"
+  },
+  {
+   "id": "tp-147",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que fait-on avec une console de jeux vidéo ?",
+   "anecdote": "Une console est un appareil fait exprès pour jouer.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Console_de_jeux_vid%C3%A9o",
+    "https://dictionnaire.reverso.net/francais-definition/console+de+jeu+vid%C3%A9o"
+   ],
+   "choix": [
+    "On joue",
+    "On fait la sieste",
+    "On fait la vaisselle",
+    "On arrose les fleurs"
+   ],
+   "bonne_reponse": "On joue"
+  },
+  {
+   "id": "tp-148",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Sur quoi appuie-t-on pour jouer à un jeu vidéo ?",
+   "anecdote": "On appuie sur les boutons pour faire agir le personnage.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Manette_de_jeu",
+    "https://gamingcampus.fr/boite-a-outils/les-manettes-de-jeu-video.html"
+   ],
+   "choix": [
+    "Des boutons",
+    "Des nuages",
+    "Des cailloux",
+    "Des fleurs"
+   ],
+   "bonne_reponse": "Des boutons"
+  },
+  {
+   "id": "tp-149",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans un jeu vidéo, il y a des sons et de la musique. Vrai ou faux ?",
+   "anecdote": "Les bruits et la musique rendent le jeu plus vivant.",
+   "sources": [
+    "https://www.bellecour.fr/ressources/definition-sound-design-dans-les-jeux-video",
+    "https://www.nicolastiteux.com/blog/sound-design-jeu-video/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-150",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "On peut jouer à un jeu vidéo à plusieurs. Vrai ou faux ?",
+   "anecdote": "En mode multijoueur, on joue ensemble ou l'un contre l'autre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Multijoueur",
+    "https://www.larousse.fr/dictionnaires/francais/multijoueur/10910424"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-151",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Il existe des petites consoles qu'on peut tenir dans les mains. Vrai ou faux ?",
+   "anecdote": "Les consoles portables ont leur petit écran et se glissent partout.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Console_portable",
+    "https://vitrinelinguistique.oqlf.gouv.qc.ca/fiche-gdt/fiche/8356350/console-portable"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "tp-152",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "On joue à un jeu vidéo avec les mains. Vrai ou faux ?",
+   "anecdote": "On appuie sur les boutons avec les doigts pour jouer.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Console_de_jeux_vid%C3%A9o",
+    "https://gamingcampus.fr/boite-a-outils/les-manettes-de-jeu-video.html"
    ],
    "choix": [
     "Vrai",
