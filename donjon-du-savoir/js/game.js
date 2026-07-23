@@ -10,6 +10,8 @@ import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, setPanel } from "./ui.js";
+import { say } from "./tts.js";
+import { heroLine, voiceOf } from "./voices.js";
 import { npcPortraitEl, portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
 import { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } from "./minigames.js";
@@ -32,6 +34,24 @@ let onVictory = null;
 // finishTurn() en pose une d'office si la case n'en a pas déjà donné.
 let qPosedThisTurn = false;
 function markQuestionPosed() { qPosedThisTurn = true; }
+
+/** Réplique de personnage : petite bulle (portrait + texte) sous le Héraut, et
+ *  voix propre au héros si le Héraut vocal est activé. Silencieux pour un
+ *  personnage sans répliques (repli discret). */
+function charSays(pion, moment) {
+  const txt = heroLine(pion?.characterId, moment);
+  if (!txt) return;
+  const zone = document.getElementById("herald-zone");
+  if (zone) {
+    zone.append(
+      el("div", { class: "char-bubble", role: "status", "aria-live": "polite" },
+        portraitEl(pion.characterId, 40),
+        el("p", { class: "char-text", text: `${pion.nom} : « ${txt} »` }),
+      ),
+    );
+  }
+  say(txt, { ...voiceOf(pion.characterId), queue: true });
+}
 
 export function startGame(victoryCallback) {
   onVictory = victoryCallback;
@@ -240,7 +260,7 @@ function startTurn({ silent = false, prefix = "" } = {}) {
   qPosedThisTurn = false; // nouveau tour : la question du tour reste à poser
   const pion = currentPion();
   render();
-  if (!silent) heraldSays(`${prefix}${herald.debutTour(pion.nom)}`);
+  if (!silent) { heraldSays(`${prefix}${herald.debutTour(pion.nom)}`); charSays(pion, "tour"); }
 
   const actions = [bigButton("🎲 Lancer le dé", () => rollDie())];
 
@@ -1057,6 +1077,7 @@ function doNPC(pion) {
   const pool = testFlag("__DONJON_NPC") ? NPCS.filter((n) => n.quiz) : NPCS;
   const npc = pool[Math.floor(Math.random() * pool.length)] ?? NPCS[0];
   heraldSays(`✨ Une rencontre ! ${npc.emoji} ${npc.nom} surgit sur le chemin.`); sfx("npc");
+  say(npc.intro, { ...voiceOf(npc.slug), queue: true }); // le PNJ parle de sa propre voix
   if (npc.quiz) return npcQuiz(pion, npc);
   const won = npc.effet.apply(pion) === true; // shift() peut déclencher la victoire
   save();
@@ -1161,7 +1182,7 @@ function useTurnPower(pion) {
   const done = () => {
     pion.pouvoirUtilise = true;
     save();
-    heraldSays(herald.pouvoir()); sfx("power");
+    heraldSays(herald.pouvoir()); sfx("power"); charSays(pion, "pouvoir");
     startTurn({ silent: true });
   };
   switch (`${pion.characterId}:${pion.profil}`) {
@@ -1753,6 +1774,7 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   save();
   sfx(correct ? "good" : "bad");
   heraldSays(correct ? herald.bonne() : herald.mauvaise());
+  charSays(pion, correct ? "bonne" : "mauvaise");
   showAnecdote(q, {
     verdictHtml: correct
       ? `✅ <strong>Bonne réponse !</strong> ${q.bonne_reponse ? `(${q.bonne_reponse})` : ""} +${advance} case${advance > 1 ? "s" : ""}${coinGain ? ` · +${coinGain} 🪙` : ""}`
@@ -2180,6 +2202,7 @@ function endStarGame() {
     : "";
   sfx("win");
   heraldSays(`Rideau ! ${winner.nom} règne sur le Donjon avec ${winner.etoiles ?? 0} étoile${(winner.etoiles ?? 0) > 1 ? "s" : ""} !${primes}`);
+  charSays(winner, "victoire");
   if (onVictory) onVictory(winner, state.ranking, { bonusStars: bonus });
 }
 
@@ -2198,6 +2221,7 @@ function finishGame(winner) {
   save();
   sfx("win");
   heraldSays(herald.victoire(winner.nom));
+  charSays(winner, "victoire");
   if (onVictory) onVictory(winner, state.ranking);
   return true;
 }

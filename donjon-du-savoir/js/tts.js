@@ -21,16 +21,19 @@ export function stop() {
   if (voiceAvailable()) window.speechSynthesis.cancel();
 }
 
-export function say(text) {
+/** Dit un texte. Un profil { pitch, rate, v } donne une voix propre au
+ *  personnage (défaut : le timbre du Héraut). `queue:true` n'annule pas ce qui
+ *  parle déjà (pour enchaîner Héraut puis réplique de héros). */
+export function say(text, { pitch = 1.05, rate = 0.95, v = 0, queue = false } = {}) {
   if (!enabled || !voiceAvailable() || !text) return;
   const synth = window.speechSynthesis;
-  synth.cancel();
+  if (!queue) synth.cancel();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = "fr-FR";
-  utter.pitch = 1.05;
-  utter.rate = 0.95;
-  const fr = synth.getVoices().filter((v) => v.lang.toLowerCase().startsWith("fr"));
-  if (fr.length > 0) utter.voice = fr[0];
+  utter.pitch = pitch;
+  utter.rate = rate;
+  const fr = synth.getVoices().filter((voice) => voice.lang.toLowerCase().startsWith("fr"));
+  if (fr.length > 0) utter.voice = fr[v % fr.length];
   synth.speak(utter);
 }
 
