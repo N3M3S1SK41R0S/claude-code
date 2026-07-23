@@ -722,6 +722,8 @@ function renderReglages() {
       seg(oui_non, p.gros, (v) => setPref("gros", v))),
     row("🌈 Mode daltonien", "Bonne réponse en bleu, coup dur en orange (au lieu de vert / rouge).",
       seg(oui_non, p.daltonien, (v) => setPref("daltonien", v))),
+    row("🎬 Vue immersive", "Petites saynètes animées à l'arrivée sur les cases marquantes (façon Mario Party).",
+      seg(oui_non, p.immersion !== false, (v) => setPref("immersion", v))),
     row("🎬 Animations", "Réduisez les mouvements à l'écran si vous préférez le calme.",
       seg([{ val: "completes", label: "Complètes" }, { val: "reduites", label: "Réduites" }], p.animations, (v) => setPref("animations", v))),
     row("📖 Revoir le tutoriel", "Le petit guide de démarrage du Donjon.",

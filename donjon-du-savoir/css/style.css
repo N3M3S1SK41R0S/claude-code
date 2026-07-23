@@ -853,3 +853,53 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .house-rules > summary::before { content: "▸ "; }
 .house-rules[open] > summary::before { content: "▾ "; }
 .house-rules-body { display: flex; flex-direction: column; gap: 0.5rem; padding: 0 0.5rem 0.6rem; }
+
+/* ---------- scène immersive 2.5D (arrivée sur une case marquante) ---------- */
+/* Calque décoratif NON bloquant (transparent aux clics), qui se dissipe seul. */
+.scene-overlay {
+  position: fixed; inset: 0; z-index: 40; pointer-events: none;
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
+  animation: scene-overlay-fade 1.9s ease forwards;
+}
+@keyframes scene-overlay-fade {
+  0% { opacity: 0; } 12% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; }
+}
+.scene-stage {
+  position: relative; width: min(26rem, 92vw); height: clamp(150px, 44vw, 210px);
+  border-radius: 1rem; overflow: hidden; border: 1px solid var(--gold);
+  isolation: isolate; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  background: linear-gradient(180deg, #2c2052 0%, #1a1230 100%);
+}
+.scene-bg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0.5; filter: saturate(0.9) brightness(0.78);
+  animation: scene-bg-in 0.6s ease both;
+}
+.scene-building {
+  position: absolute; left: 50%; bottom: 5%; height: 84%; transform: translateX(-50%);
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.5));
+  animation: scene-rise 0.5s cubic-bezier(0.2, 0.8, 0.3, 1.2) both;
+}
+.scene-npc {
+  position: absolute; right: 7%; bottom: 8%; height: 50%;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.5));
+  animation: scene-npc-in 0.6s ease 0.15s both;
+}
+.scene-hero {
+  position: absolute; left: 11%; bottom: 6%; height: 60%;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.55));
+  animation: scene-walk-in 0.7s cubic-bezier(0.3, 0.7, 0.4, 1) both, scene-bob 1.7s ease-in-out 0.7s infinite;
+}
+.scene-hero-emoji { font-size: 2.8rem; align-items: flex-end; }
+.scene-caption {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg, transparent, rgba(12, 8, 26, 0.88));
+  color: var(--ink); text-align: center; padding: 1rem 0.6rem 0.45rem;
+  font-weight: bold; animation: scene-cap-in 0.5s ease 0.25s both;
+}
+@keyframes scene-bg-in { from { opacity: 0; } to { opacity: 0.5; } }
+@keyframes scene-rise { from { opacity: 0; transform: translateX(-50%) translateY(30%) scale(0.9); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+@keyframes scene-npc-in { from { opacity: 0; transform: translateX(30%); } to { opacity: 1; transform: none; } }
+@keyframes scene-walk-in { from { opacity: 0; transform: translateX(-170%); } to { opacity: 1; transform: translateX(0); } }
+@keyframes scene-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7%); } }
+@keyframes scene-cap-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }

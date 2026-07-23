@@ -10,6 +10,7 @@ const DEFAULTS = {
   daltonien: false, // palette bonne/coup dur adaptée (bleu / orange, distinguables)
   animations: "completes", // "completes" | "reduites" — coupe les animations au choix
   gros: false, // texte plus grand pour le confort de lecture
+  immersion: true, // saynètes 2.5D + caméra qui suit le pion (façon Mario Party)
   tutoVu: false, // le tutoriel du 1er lancement a déjà été vu
 };
 

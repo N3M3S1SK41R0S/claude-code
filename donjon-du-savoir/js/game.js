@@ -13,6 +13,7 @@ import { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } from
 import { say } from "./tts.js";
 import { heroLine, voiceOf } from "./voices.js";
 import { botNumericGuess, botWantsCorrect } from "./bots.js";
+import { playScene } from "./scene.js";
 import { npcPortraitEl, portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
 import { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } from "./minigames.js";
@@ -712,6 +713,7 @@ function moveAndResolve(steps) {
 function doStar(pion, onDone = null) {
   const done = onDone ?? (() => finishTurn());
   setPendingCase("resolu");
+  if (!pion.bot) playScene("etoile", pion.characterId); // saynète du marchand d'étoiles
   const prix = starPrice(pion);
   const abordable = pion.pieces >= prix;
   heraldSays(abordable
@@ -789,6 +791,8 @@ function doBoutique(pion, onDone = null) {
   // Bot : il ne fait pas ses courses, il salue le marchand et repart.
   if (pion.bot) { heraldSays(`🛒 ${pion.nom} jette un œil à la boutique et poursuit sa route.`); return done(); }
   sfx("chest");
+  playScene("boutique", pion.characterId); // saynète d'arrivée à l'échoppe
+
   // Le Sceptre du Larcin (vol d'étoile) n'a de sens qu'en mode Étoiles : on ne
   // le propose donc qu'ici, tout en bas et hors de prix, comme un coup d'éclat.
   const shopIds = isEtoiles() ? [...SHOP_ORDER, "sceptre_larcin"] : SHOP_ORDER;
@@ -849,6 +853,7 @@ function doInsolite(pion) {
     heraldSays("🦩 Savoir insolite : une question pour le bot !");
     return questionFlow(pion, bq);
   }
+  playScene("insolite", pion.characterId); // saynète du savoir insolite
   // Case 🦩 : une VRAIE question, un brin farfelue (catégorie « Insolite » de
   // préférence), posée et récompensée comme une question normale.
   const q = drawInsolite(pion);
@@ -904,6 +909,7 @@ function doExpression(pion) {
     const g = addCoins(pion, 2);
     return endPanel(`🎭 ${pion.nom} tente un défi d'expression… et empoche +${g} 🪙 pour l'effort.`);
   }
+  playScene("expression", pion.characterId); // saynète du défi d'expression
   const hasChild = getState().pions.some((p) => p.profil === "enfant");
   const forceType = testFlag("__DONJON_PICTIONARY") ? "pictionary" : null;
   const d = drawDefi({ hasChild, type: forceType });
@@ -1930,6 +1936,7 @@ function showAnecdote(q, { verdictHtml, onContinue }) {
 /* ---------- special cases ---------- */
 
 function doTrouNoir(pion) {
+  if (!pion.bot) playScene("trounoir", pion.characterId); // saynète du Trou Noir
   const q = drawHardest(pion);
   const advance = 3;
   const recul = -6;
@@ -1997,6 +2004,7 @@ function doTrouNoir(pion) {
 
 /** Gambit: numeric answer + the other pions bet "trop haut / trop bas / juste". */
 function doGambit(pion) {
+  if (!pion.bot) playScene("gambit", pion.characterId); // saynète de la table des paris
   const q = drawGambit(pion);
   if (!q) {
     // No numeric question fits this pion's age bracket: the case falls back
@@ -2119,6 +2127,7 @@ function doEvent() {
     setPendingCase("resolu");
     return endPanel("Pas d'événement disponible — le Donjon improvise une pause.");
   }
+  playScene("evenement", currentPion().characterId); // saynète de l'événement collectif
   const pions = getState().pions;
   const answers = new Map();
   const rows = pions.map((p) => {

@@ -228,6 +228,10 @@ const BUILDINGS = [
 
 /** Figurines 3D des héros = pions du plateau. Chemins littéraux (inlinés en
  *  data-URI dans le fichier unique). Repli : l'emoji du pion si l'image manque. */
+export function heroArt(id) {
+  return HERO_TOKEN[id] ?? null;
+}
+
 const HERO_TOKEN = {
   cageot: "assets/hero-cageot.png",
   etincelle: "assets/hero-etincelle.png",
