@@ -267,6 +267,9 @@ export function walk3D(pionId, path, length) {
 function loop() {
   raf = requestAnimationFrame(loop);
   if (!R) return;
+  // Canvas non affiché (écran caché, ou vue 2D active) : offsetParent est null,
+  // on ne rend rien pour épargner le GPU/la batterie ; la boucle reste programmée.
+  if (mounted && mounted.canvas.offsetParent === null) return;
   const dt = 1 / 60;
 
   // Avance les pions en trajet (vitesse ~ 7 unités/s).
