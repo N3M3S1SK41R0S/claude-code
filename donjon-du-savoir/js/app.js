@@ -328,6 +328,24 @@ function renderSetup() {
   } else {
     const list = el("div", { class: "setup-list" });
     teams.forEach((t, ti) => {
+      // Équipe automatique (bot) : un adversaire piloté par l'IA, sans membres
+      // humains — un seul niveau à choisir, elle joue son tour toute seule.
+      if (t.bot) {
+        list.append(
+          el("div", { class: "team-block team-block-bot" },
+            el("div", { class: "setup-row setup-row-bot" },
+              nameInput(t, `Équipe bot ${ti + 1}`),
+              botLevelSelect(t, renderSetup),
+              characterButton(t, renderSetup),
+              teams.length > 2
+                ? el("button", { class: "btn btn-x", type: "button", "aria-label": "Retirer l'équipe de bots", onclick: () => { teams.splice(ti, 1); renderSetup(); } }, "✕")
+                : null,
+            ),
+            el("p", { class: "help-note team-bot-note", text: "🤖 Équipe automatique — elle joue son tour toute seule." }),
+          ),
+        );
+        return;
+      }
       const block = el("div", { class: "team-block" },
         el("div", { class: "setup-row" },
           nameInput(t, `Équipe ${ti + 1}`),
@@ -354,15 +372,28 @@ function renderSetup() {
       list.append(block);
     });
     zone.append(list);
+    const teamAdd = el("div", { class: "setup-add-row" });
     if (teams.length < 6) {
-      zone.append(el("button", {
-        class: "btn", type: "button",
-        onclick: () => {
-          teams.push({ nom: `Équipe ${teams.length + 1}`, characterId: CHARACTERS[teams.length % CHARACTERS.length].id, membres: [{ nom: "", bracket: DEFAULT_BRACKET }] });
-          renderSetup();
-        },
-      }, "＋ Ajouter une équipe"));
+      teamAdd.append(
+        el("button", {
+          class: "btn", type: "button",
+          onclick: () => {
+            teams.push({ nom: `Équipe ${teams.length + 1}`, characterId: CHARACTERS[teams.length % CHARACTERS.length].id, membres: [{ nom: "", bracket: DEFAULT_BRACKET }] });
+            renderSetup();
+          },
+        }, "＋ Ajouter une équipe"),
+        el("button", {
+          class: "btn", type: "button",
+          title: "Une équipe automatique pour compléter la partie",
+          onclick: () => {
+            teams.push({ nom: "", characterId: CHARACTERS[teams.length % CHARACTERS.length].id, bot: true, botLevel: "intermediaire" });
+            renderSetup();
+          },
+        }, "🤖 Ajouter une équipe de bots"),
+      );
     }
+    zone.append(teamAdd);
+    zone.append(el("p", { class: "help-note", text: "🤖 Pas assez de monde ? Ajoutez une équipe de bots : elle joue toute seule, au niveau choisi." }));
   }
 
   // Board picker: five dungeons, five moods.
@@ -443,7 +474,8 @@ function renderSetup() {
 }
 
 function totalMembers() {
-  return teams.reduce((n, t) => n + t.membres.length, 0);
+  // Les équipes de bots n'ont pas de membres humains (t.membres absent).
+  return teams.reduce((n, t) => n + (t.membres?.length ?? 0), 0);
 }
 
 function launchGame() {
@@ -464,6 +496,18 @@ function launchGame() {
     if (pions.length < 1) return;
   } else {
     pions = teams.map((t, i) => {
+      // Équipe automatique : pas de membres, difficulté adulte, pilotée par l'IA.
+      if (t.bot) {
+        return {
+          nom: t.nom.trim() || `Bot ${botLevelMeta(t.botLevel).nom}`,
+          characterId: t.characterId,
+          bracket: "18+",
+          profil: bracketProfil("18+"),
+          bot: true,
+          botLevel: t.botLevel,
+          membres: null,
+        };
+      }
       const membres = t.membres.map((m, mi) => {
         const bracket = m.bracket ?? DEFAULT_BRACKET;
         return { nom: m.nom.trim() || `Membre ${mi + 1}`, bracket, profil: bracketProfil(bracket) };
