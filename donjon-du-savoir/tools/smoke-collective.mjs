@@ -55,7 +55,7 @@ async function advancePanels(page) {
     const grp = groups.nth(g);
     if ((await grp.locator(".bet-selected").count()) === 0) { await grp.locator("button").first().click(); return true; }
   }
-  const next = page.getByRole("button", { name: /Découvrir|Continuer|Révéler|Valider|Subir|Quitter|Garder|Personne|J'abandonne|au meneur seul/ }).first();
+  const next = page.getByRole("button", { name: /Découvrir|Continuer|Révéler|Valider|Subir|Quitter|Garder|Personne|J'abandonne|au meneur seul|a écrit/ }).first();
   if ((await next.isVisible().catch(() => false)) && (await next.isEnabled().catch(() => false))) {
     if ((await next.textContent()) === "Valider mon nombre") await page.locator(".num-input").fill("50");
     await next.click(); return true;

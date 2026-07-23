@@ -49,7 +49,7 @@ async function microStep(page) {
     await page.locator(".choices .btn-choice:not([disabled])").first().click();
     return;
   }
-  const next = page.getByRole("button", { name: /Découvrir|Continuer|Révéler|Valider|Subir|Quitter|Garder/ }).first();
+  const next = page.getByRole("button", { name: /Découvrir|Continuer|Révéler|Valider|Subir|Quitter|Garder|a écrit/ }).first();
   if ((await next.isVisible().catch(() => false)) && (await next.isEnabled().catch(() => false))) {
     if ((await next.textContent()) === "Valider mon nombre") await page.locator(".num-input").fill("50");
     await next.click();

@@ -2159,14 +2159,24 @@ function doEvent() {
     showAnecdoteEvent(q, lines);
   });
   validateBtn.disabled = true;
+  // Panneau de saisie : chacun reporte sur l'écran ce qu'il a écrit sur sa feuille.
+  const entryPanel = el("div", { class: "question-block" },
+    el("h2", { class: "panel-title", text: "🎪 Événement collectif !" }),
+    questionHeader(q),
+    el("p", { class: "question-texte", text: q.texte }),
+    el("p", { class: "help-note", text: "Chacun reporte la réponse écrite sur sa feuille (🚫 pour un joueur absent), puis on révèle — +2 pièces par bonne réponse." }),
+    ...rows,
+    validateBtn,
+  );
+  // Étape « feuille de papier » : tout le monde écrit AU SECRET avant de saisir
+  // et de valider — personne ne copie, personne ne se presse (esprit du cahier).
   setPanel(
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: "🎪 Événement collectif !" }),
       questionHeader(q),
       el("p", { class: "question-texte", text: q.texte }),
-      el("p", { class: "help-note", text: "Tout le monde répond (🚫 pour un joueur absent), puis on révèle — +2 pièces par bonne réponse." }),
-      ...rows,
-      validateBtn,
+      el("p", { class: "help-note paper-note", text: "✍️ Chacun écrit sa réponse sur SA feuille de papier, en secret et sans se presser. On ne saisit et on ne valide qu'ensuite." }),
+      bigButton("Tout le monde a écrit ✍️", () => setPanel(entryPanel)),
     ),
   );
 }
@@ -2272,8 +2282,8 @@ function poseTableQuestion(q, label, next) {
         el("span", { class: "badge", text: "★".repeat(q.difficulte ?? 3) }),
       ),
       el("p", { class: "question-texte", text: q.texte }),
-      el("p", { class: "help-note", text: "🗣️ Chacun réfléchit tranquillement, puis on révèle. Tous ceux qui avaient bon sont récompensés — aucune course, aucun chronomètre." }),
-      bigButton("Révéler la réponse", () => revealTableBonus(q, next)),
+      el("p", { class: "help-note paper-note", text: "✍️ Chacun écrit sa réponse sur SA feuille de papier — en secret, sans se presser. On ne révèle qu'une fois que tout le monde a écrit : impossible de dire « je le savais » après coup !" }),
+      bigButton("Tout le monde a écrit → Révéler la réponse", () => revealTableBonus(q, next)),
     ),
   );
 }

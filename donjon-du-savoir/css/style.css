@@ -554,6 +554,15 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 
 .hint-zone .hint { color: var(--gold); font-style: italic; }
 .help-note { color: var(--soft); font-size: 0.9rem; }
+/* Consigne « écris ta réponse sur ta feuille » : mise en avant douce (pas de course). */
+.paper-note {
+  color: var(--ink);
+  background: rgba(224, 176, 74, 0.12);
+  border: 1px dashed var(--gold);
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  line-height: 1.4;
+}
 /* Règle claire en tête de chaque question (comment répondre + récompense). */
 .regle-banner {
   background: color-mix(in srgb, var(--gold) 13%, var(--card));
