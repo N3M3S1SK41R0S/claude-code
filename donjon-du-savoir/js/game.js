@@ -5,7 +5,7 @@
 //  - nothing is ever timed (non-negotiable rule of the cahier des charges);
 //  - anecdote after EVERY question, no exception.
 import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawHardest, drawInsolite, drawQuestion } from "./data.js";
-import { boardById, renderBoard } from "./board.js";
+import { boardById, renderBoard, walkPion } from "./board.js";
 import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
@@ -666,7 +666,14 @@ function moveAndResolve(steps) {
   }
   pion.position = after;
   if (isEtoiles() && laps > 0) addCoins(pion, LAP_BONUS * laps); // prime de tour
+  // Chemin case-par-case pour l'animation « on voit le pion avancer » (boucle
+  // comprise en mode Étoiles). Purement visuel ; sans effet si l'immersion est
+  // coupée (le pion se pose alors direct via updatePions).
+  const walkPath = [];
+  if (isEtoiles()) for (let k = 1; k <= steps; k++) walkPath.push(((before + k) % L + L) % L);
+  else for (let c = before + 1; c <= after; c++) walkPath.push(c);
   save();
+  walkPion(pion.id, walkPath, L); // marque le pion « en trajet » avant le rendu
   render();
   // Empêche l'exploit du rechargement en plein déplacement (position déjà
   // sauvegardée ; un reload rendra la main sans relancer le dé).

@@ -1,6 +1,7 @@
 // Boards — Mario-Party-style winding maps, now PLURAL: five dungeons with
 // different lengths, hazards, distributions and moods. Geometry and layout
 // are fully parametric; §4 frequencies remain the baseline of the classic.
+import { getPrefs } from "./prefs.js";
 
 // `art` : jeton peint (PNG) posé par-dessus l'emoji ; si l'image manque, l'emoji
 // reste (repli garanti). Le bundler du fichier unique remplace ces chemins par
@@ -275,6 +276,7 @@ export function renderBoard(container, layout, pions, currentPionId, boardDef = 
   if (builtSignature !== signature || !container.querySelector(".pion-layer")) {
     buildStatic(container, layout, boardDef);
     builtSignature = signature;
+    walkingPions.clear(); // nouveau plateau : on oublie tout trajet en cours
   }
   updateStar(container, layout, starPos);
   updatePions(container, layout, pions, currentPionId);
@@ -418,6 +420,43 @@ function buildStatic(container, layout, def) {
   container.appendChild(layer);
 }
 
+// Pions dont la position est pilotée par une animation de trajet (walkPion) :
+// updatePions ne doit PAS les repositionner tant qu'ils « marchent ».
+const walkingPions = new Set();
+
+/**
+ * Fait « marcher » un pion le long du chemin (case par case) — on voit son
+ * personnage avancer sur le plateau, façon Mario Party. `path` est la suite
+ * d'indices de cases à traverser (calculée par le moteur, boucle comprise).
+ * Sans effet en test, immersion coupée ou mouvements réduits : le pion se pose
+ * directement (comportement d'origine).
+ */
+export function walkPion(pionId, path, length) {
+  if (globalThis.__DONJON_TEST) return;
+  if (!Array.isArray(path) || path.length === 0) return;
+  if (getPrefs().immersion === false || getPrefs().animations === "reduites") return;
+  try { if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; } catch { /* pas de matchMedia */ }
+  const layer = document.querySelector(".pion-layer");
+  const token = layer?.querySelector(`[data-pion="${pionId}"]`);
+  if (!token) return;
+  const { coords, viewH } = geometry(length);
+  const place = (pos) => {
+    const c = coords[Math.max(0, Math.min(length - 1, pos))];
+    token.style.left = `${(c.x / VIEW_W) * 100}%`;
+    token.style.top = `${((c.y - 26) / viewH) * 100}%`;
+  };
+  walkingPions.add(pionId);
+  let i = 0;
+  const hop = () => {
+    if (!walkingPions.has(pionId)) return; // trajet annulé (nouvelle partie, etc.)
+    if (i >= path.length) { walkingPions.delete(pionId); return; }
+    place(path[i]);
+    i += 1;
+    setTimeout(hop, 150);
+  };
+  hop();
+}
+
 function updatePions(container, layout, pions, currentPionId) {
   const { coords, viewH } = geometry(layout.length);
   const layer = container.querySelector(".pion-layer");
@@ -460,8 +499,11 @@ function updatePions(container, layout, pions, currentPionId) {
       const spread = group.length > 1 ? 16 : 0;
       const px = x + Math.cos(angle) * spread;
       const py = y - 26 + Math.sin(angle) * (spread * 0.6);
-      token.style.left = `${(px / VIEW_W) * 100}%`;
-      token.style.top = `${(py / viewH) * 100}%`;
+      // Un pion en plein trajet animé garde la main sur sa position.
+      if (!walkingPions.has(p.id)) {
+        token.style.left = `${(px / VIEW_W) * 100}%`;
+        token.style.top = `${(py / viewH) * 100}%`;
+      }
       token.title = p.nom;
       token.setAttribute("aria-label", `${p.nom}, case ${pos}`);
     });
