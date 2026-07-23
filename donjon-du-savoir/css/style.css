@@ -743,3 +743,69 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   .panel { grid-area: panel; }
   .players-strip { grid-area: players; }
 }
+
+/* ============================================================
+   Confort & accessibilité (réglages persistés dans prefs.js)
+   ============================================================ */
+
+/* Police plus lisible : sans empattement, aérée — aide notamment la dyslexie.
+   Polices système universelles (aucun téléchargement, marche hors-ligne). */
+.pref-lisible body,
+.pref-lisible input,
+.pref-lisible select,
+.pref-lisible textarea,
+.pref-lisible button {
+  font-family: Verdana, Tahoma, "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+.pref-lisible body { line-height: 1.6; word-spacing: 0.05em; }
+
+/* Mode daltonien : « bonne réponse » vire au bleu ciel et « coup dur » à
+   l'orange — un couple lisible pour les daltonismes rouge/vert les plus courants. */
+.pref-daltonien { --good: #56b4e9; --bad: #e69f00; }
+
+/* Animations réduites AU CHOIX (même si le système ne le demande pas). */
+.pref-anim-reduites *,
+.pref-anim-reduites *::before,
+.pref-anim-reduites *::after {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Texte plus grand pour lire sans effort. */
+.pref-gros body { font-size: 1.13rem; }
+
+/* ---------- écran Réglages ---------- */
+.reglages-body { display: flex; flex-direction: column; gap: 0.8rem; width: 100%; max-width: 34rem; margin: 0 auto; }
+.reglage-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  background: var(--card); border: 1px solid var(--line); border-radius: 0.8rem;
+  padding: 0.8rem 1rem; text-align: left;
+}
+.reglage-label { display: flex; flex-direction: column; gap: 0.15rem; }
+.reglage-titre { font-weight: bold; color: var(--ink); }
+.reglage-desc { color: var(--soft); font-size: 0.85rem; }
+.reglage-control { display: flex; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+.seg-btn {
+  background: var(--stone); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 0.6rem; padding: 0.5rem 0.8rem; cursor: pointer; font-size: 0.9rem;
+}
+.seg-btn.seg-on { background: var(--gold); color: var(--gold-dark); border-color: var(--gold); font-weight: bold; }
+
+/* ---------- tutoriel (1er lancement) ---------- */
+.tuto-overlay {
+  position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+  background: rgba(12, 8, 26, 0.82); padding: 1.2rem; backdrop-filter: blur(2px);
+}
+.tuto-card {
+  background: var(--card); border: 2px solid var(--gold); border-radius: 1rem;
+  max-width: 30rem; width: 100%; padding: 1.4rem; text-align: center;
+  display: flex; flex-direction: column; gap: 0.9rem; box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+}
+.tuto-emoji { font-size: 3rem; line-height: 1; }
+.tuto-titre { color: var(--gold); font-size: 1.35rem; }
+.tuto-texte { color: var(--ink); line-height: 1.5; }
+.tuto-dots { display: flex; gap: 0.4rem; justify-content: center; }
+.tuto-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--line); }
+.tuto-dot.tuto-dot-on { background: var(--gold); }
+.tuto-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }

@@ -12,11 +12,12 @@ import { setVoice, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
 import { setSfx, sfx, sfxAvailable, sfxEnabled } from "./sfx.js";
 import { setMusic, musicAvailable, musicEnabled } from "./music.js";
 import { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } from "./bots.js";
+import { getPrefs, loadPrefs, setPref } from "./prefs.js";
 import { el } from "./ui.js";
 
 const MAX_PLAYERS = 20;
 
-const screens = ["home", "rules", "custom", "setup", "game", "victory"];
+const screens = ["home", "rules", "custom", "reglages", "setup", "game", "victory"];
 function show(name) {
   for (const s of screens) {
     document.getElementById(`screen-${s}`).hidden = s !== name;
@@ -47,6 +48,7 @@ function renderHome() {
   zone.append(newBtn);
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderRules(); show("rules"); } }, "📖 Les règles"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderCustom(); show("custom"); } }, "✍️ Vos questions maison"));
+  zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderReglages(); show("reglages"); } }, "⚙️ Réglages & accessibilité"));
   document.getElementById("bank-info").textContent = bankOk
     ? `${bankSize()} questions vérifiées et sourcées · 13 catégories · zéro chronomètre`
     : "⚠️ Impossible de charger les questions (data/questions.json). Rechargez la page une fois en ligne.";
@@ -640,6 +642,82 @@ function statsTable(rankingData, etoilesMode) {
   );
 }
 
+/* ---------- réglages (confort & accessibilité) ---------- */
+
+function renderReglages() {
+  const zone = document.getElementById("reglages-zone");
+  zone.innerHTML = "";
+  const p = getPrefs();
+  // Groupe de boutons « segmentés » : une option active à la fois.
+  const seg = (options, current, onPick) => el("div", { class: "reglage-control" },
+    ...options.map((o) =>
+      el("button", {
+        class: "seg-btn" + (o.val === current ? " seg-on" : ""),
+        type: "button", "aria-pressed": String(o.val === current),
+        onclick: () => { onPick(o.val); renderReglages(); },
+      }, o.label),
+    ),
+  );
+  const row = (titre, desc, control) => el("div", { class: "reglage-row" },
+    el("div", { class: "reglage-label" },
+      el("span", { class: "reglage-titre", text: titre }),
+      el("span", { class: "reglage-desc", text: desc }),
+    ),
+    control,
+  );
+  const oui_non = [{ val: false, label: "Non" }, { val: true, label: "Oui" }];
+  zone.append(
+    row("🔠 Police plus lisible", "Sans empattement, plus aérée — pratique en cas de dyslexie.",
+      seg([{ val: "standard", label: "Standard" }, { val: "lisible", label: "Lisible" }], p.police, (v) => setPref("police", v))),
+    row("🔎 Texte plus grand", "Agrandit le texte pour lire sans effort.",
+      seg(oui_non, p.gros, (v) => setPref("gros", v))),
+    row("🌈 Mode daltonien", "Bonne réponse en bleu, coup dur en orange (au lieu de vert / rouge).",
+      seg(oui_non, p.daltonien, (v) => setPref("daltonien", v))),
+    row("🎬 Animations", "Réduisez les mouvements à l'écran si vous préférez le calme.",
+      seg([{ val: "completes", label: "Complètes" }, { val: "reduites", label: "Réduites" }], p.animations, (v) => setPref("animations", v))),
+    row("📖 Revoir le tutoriel", "Le petit guide de démarrage du Donjon.",
+      el("div", { class: "reglage-control" }, el("button", { class: "seg-btn", type: "button", onclick: () => showTutorial() }, "▶️ Revoir"))),
+  );
+}
+
+/* ---------- tutoriel du premier lancement ---------- */
+
+const TUTO_STEPS = [
+  { emoji: "🏰", titre: "Bienvenue au Donjon !", texte: "Un jeu de plateau de culture générale pour 1 à 20 aventuriers. On se cultive en s'amusant — et il n'y a JAMAIS de chronomètre." },
+  { emoji: "🎲", titre: "Avancez, répondez", texte: "À votre tour, lancez le dé et avancez. La plupart des cases posent une question : bonne réponse = on avance et on gagne des pièces. Personne n'est jamais éliminé." },
+  { emoji: "💡", titre: "Toujours une anecdote", texte: "Après chaque question, le Héraut révèle la bonne réponse ET une anecdote vérifiée avec ses sources. On repart toujours un peu moins bête !" },
+  { emoji: "👑", titre: "Le premier au Trésor gagne", texte: "En mode Course, le premier au Trésor l'emporte. En mode Étoiles (façon Mario Party), on achète des étoiles chez le marchand. À la fin, un tableau récapitule les exploits de chacun." },
+  { emoji: "⚙️", titre: "À votre main", texte: "Pas assez de joueurs ? Ajoutez des bots. Besoin de confort ? Les Réglages offrent une police plus lisible, un mode daltonien et bien plus. Bon jeu !" },
+];
+
+/** Affiche le tutoriel (overlay pas-à-pas). onClose optionnel après fermeture. */
+function showTutorial(onClose) {
+  let i = 0;
+  const overlay = el("div", { class: "tuto-overlay", role: "dialog", "aria-modal": "true", "aria-label": "Tutoriel du Donjon" });
+  const close = () => { overlay.remove(); setPref("tutoVu", true); if (onClose) onClose(); };
+  const render = () => {
+    const s = TUTO_STEPS[i];
+    const last = i === TUTO_STEPS.length - 1;
+    overlay.innerHTML = "";
+    overlay.append(
+      el("div", { class: "tuto-card" },
+        el("div", { class: "tuto-emoji", "aria-hidden": "true", text: s.emoji }),
+        el("h2", { class: "tuto-titre", text: s.titre }),
+        el("p", { class: "tuto-texte", text: s.texte }),
+        el("div", { class: "tuto-dots", "aria-hidden": "true" },
+          ...TUTO_STEPS.map((_, k) => el("span", { class: "tuto-dot" + (k === i ? " tuto-dot-on" : "") }))),
+        el("div", { class: "tuto-actions" },
+          i > 0 ? el("button", { class: "btn btn-small", type: "button", onclick: () => { i--; render(); } }, "← Précédent") : null,
+          el("button", { class: "btn btn-gold", type: "button", onclick: () => { if (last) close(); else { i++; render(); } } }, last ? "C'est parti !" : "Suivant →"),
+        ),
+        el("button", { class: "btn btn-small", type: "button", onclick: close }, "Passer le tutoriel"),
+      ),
+    );
+  };
+  render();
+  document.body.append(overlay);
+}
+
 /* ---------- header controls ---------- */
 
 function wireHeader() {
@@ -708,6 +786,11 @@ function wireHeader() {
     show("home");
   });
 
+  document.getElementById("reglages-back").addEventListener("click", () => {
+    renderHome();
+    show("home");
+  });
+
   document.getElementById("help-btn").addEventListener("click", () => openReference());
 
   document.getElementById("quit-btn").addEventListener("click", () => {
@@ -727,6 +810,7 @@ function wireHeader() {
 /* ---------- boot ---------- */
 
 async function boot() {
+  loadPrefs(); // applique tôt les préférences d'accessibilité (police, couleurs…)
   wireHeader();
   warmVoices();
   try {
@@ -739,6 +823,9 @@ async function boot() {
   await loadWordgames().catch(() => {});
   renderHome();
   show("home");
+  // Tutoriel au tout premier lancement (une seule fois — mémorisé ensuite).
+  // Jamais pendant les tests automatisés (l'overlay bloquerait les clics).
+  if (!getPrefs().tutoVu && !globalThis.__DONJON_TEST) showTutorial();
 
   // navigator.serviceWorker exists on the prototype but reads back undefined on
   // insecure/file:// origins (and some sandboxes) — guard the value, not just

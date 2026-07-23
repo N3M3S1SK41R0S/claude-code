@@ -31,6 +31,9 @@ const failures = [];
 const check = (name, ok) => { console.log(`${ok ? "✓" : "✗"} ${name}`); if (!ok) failures.push(name); };
 
 try {
+  // Joueur qui revient : tutoriel déjà vu (l'overlay du 1er lancement bloquerait
+  // les clics). Persiste sur les rechargements de la même page.
+  await page.addInitScript(() => { try { localStorage.setItem("donjon-prefs", JSON.stringify({ tutoVu: true })); } catch { /* mode privé */ } });
   await page.goto(pathToFileURL(file).href, { waitUntil: "load" });
   check("page loads", (await page.title()).includes("Donjon du Savoir"));
   check("bank embedded", /\d+ questions vérifiées/.test(await page.locator("#bank-info").textContent({ timeout: 8000 })));
@@ -67,7 +70,7 @@ try {
         continue;
       }
       if ((await page.locator(".anecdote-card").count()) > 0) sawAnecdote = true;
-      const next = page.getByRole("button", { name: /Découvrir|Continuer|Révéler|Valider|Subir|Quitter/ }).first();
+      const next = page.getByRole("button", { name: /Découvrir|Continuer|Révéler|Valider|Subir|Quitter|a écrit/ }).first();
       if ((await next.isVisible().catch(() => false)) && (await next.isEnabled().catch(() => false))) {
         if ((await next.textContent()) === "Valider mon nombre") await page.locator(".num-input").fill("100");
         await next.click();

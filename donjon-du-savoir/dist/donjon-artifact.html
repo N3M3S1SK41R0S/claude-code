@@ -745,6 +745,72 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   .players-strip { grid-area: players; }
 }
 
+/* ============================================================
+   Confort & accessibilité (réglages persistés dans prefs.js)
+   ============================================================ */
+
+/* Police plus lisible : sans empattement, aérée — aide notamment la dyslexie.
+   Polices système universelles (aucun téléchargement, marche hors-ligne). */
+.pref-lisible body,
+.pref-lisible input,
+.pref-lisible select,
+.pref-lisible textarea,
+.pref-lisible button {
+  font-family: Verdana, Tahoma, "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+.pref-lisible body { line-height: 1.6; word-spacing: 0.05em; }
+
+/* Mode daltonien : « bonne réponse » vire au bleu ciel et « coup dur » à
+   l'orange — un couple lisible pour les daltonismes rouge/vert les plus courants. */
+.pref-daltonien { --good: #56b4e9; --bad: #e69f00; }
+
+/* Animations réduites AU CHOIX (même si le système ne le demande pas). */
+.pref-anim-reduites *,
+.pref-anim-reduites *::before,
+.pref-anim-reduites *::after {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Texte plus grand pour lire sans effort. */
+.pref-gros body { font-size: 1.13rem; }
+
+/* ---------- écran Réglages ---------- */
+.reglages-body { display: flex; flex-direction: column; gap: 0.8rem; width: 100%; max-width: 34rem; margin: 0 auto; }
+.reglage-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  background: var(--card); border: 1px solid var(--line); border-radius: 0.8rem;
+  padding: 0.8rem 1rem; text-align: left;
+}
+.reglage-label { display: flex; flex-direction: column; gap: 0.15rem; }
+.reglage-titre { font-weight: bold; color: var(--ink); }
+.reglage-desc { color: var(--soft); font-size: 0.85rem; }
+.reglage-control { display: flex; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+.seg-btn {
+  background: var(--stone); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 0.6rem; padding: 0.5rem 0.8rem; cursor: pointer; font-size: 0.9rem;
+}
+.seg-btn.seg-on { background: var(--gold); color: var(--gold-dark); border-color: var(--gold); font-weight: bold; }
+
+/* ---------- tutoriel (1er lancement) ---------- */
+.tuto-overlay {
+  position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+  background: rgba(12, 8, 26, 0.82); padding: 1.2rem; backdrop-filter: blur(2px);
+}
+.tuto-card {
+  background: var(--card); border: 2px solid var(--gold); border-radius: 1rem;
+  max-width: 30rem; width: 100%; padding: 1.4rem; text-align: center;
+  display: flex; flex-direction: column; gap: 0.9rem; box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+}
+.tuto-emoji { font-size: 3rem; line-height: 1; }
+.tuto-titre { color: var(--gold); font-size: 1.35rem; }
+.tuto-texte { color: var(--ink); line-height: 1.5; }
+.tuto-dots { display: flex; gap: 0.4rem; justify-content: center; }
+.tuto-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--line); }
+.tuto-dot.tuto-dot-on { background: var(--gold); }
+.tuto-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+
 </style>
 
   <header class="topbar">
@@ -821,6 +887,14 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
       <p class="help-note" style="text-align:center">Écrites par la table, mélangées à la banque du Donjon (sur cet appareil uniquement). Marquées 🏠 en jeu — idéal pour piéger les parents.</p>
       <div id="custom-zone"></div>
       <button id="custom-back" class="btn btn-big" type="button">← Retour</button>
+    </section>
+
+    <!-- Réglages (confort & accessibilité) -->
+    <section id="screen-reglages" class="screen" hidden>
+      <h1 class="screen-title">⚙️ Réglages</h1>
+      <p class="help-note" style="text-align:center">Confort et accessibilité — vos choix sont mémorisés sur cet appareil.</p>
+      <div id="reglages-zone" class="reglages-body"></div>
+      <button id="reglages-back" class="btn btn-big" type="button" style="max-width:34rem;margin:0 auto;width:100%">← Retour</button>
     </section>
 
     <!-- Configuration -->
@@ -1360,6 +1434,57 @@ function botNumericGuess(answer, level) {
 }
 
 ;Object.assign(module.exports, {botLevelMeta, botProb, botWantsCorrect, botNumericGuess, BOT_LEVELS, BOT_LEVEL_ORDER});
+};
+__modules["./prefs.js"] = function(module, exports, require) {
+// Préférences de confort persistées (accessibilité + affichage) et petits
+// drapeaux d'état (tutoriel déjà vu). Tout est stocké dans localStorage et
+// appliqué sur <html> via des classes que le CSS interprète. Résilient au mode
+// privé : en cas d'échec de stockage, on retombe sur les valeurs par défaut.
+
+const KEY = "donjon-prefs";
+
+const DEFAULTS = {
+  police: "standard", // "standard" | "lisible" — police sans empattement aérée (aide la dyslexie)
+  daltonien: false, // palette bonne/coup dur adaptée (bleu / orange, distinguables)
+  animations: "completes", // "completes" | "reduites" — coupe les animations au choix
+  gros: false, // texte plus grand pour le confort de lecture
+  tutoVu: false, // le tutoriel du 1er lancement a déjà été vu
+};
+
+let prefs = { ...DEFAULTS };
+
+/** Charge les préférences et les applique. À appeler tôt au démarrage. */
+function loadPrefs() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEY));
+    if (raw && typeof raw === "object") prefs = { ...DEFAULTS, ...raw };
+  } catch { /* mode privé : valeurs par défaut */ }
+  applyPrefs();
+  return prefs;
+}
+
+function getPrefs() {
+  return prefs;
+}
+
+/** Modifie une préférence, la persiste et l'applique aussitôt. */
+function setPref(key, value) {
+  prefs[key] = value;
+  try { localStorage.setItem(KEY, JSON.stringify(prefs)); } catch { /* mode privé */ }
+  applyPrefs();
+}
+
+/** Applique les préférences sous forme de classes sur <html> (lues par le CSS). */
+function applyPrefs() {
+  if (typeof document === "undefined") return;
+  const r = document.documentElement;
+  r.classList.toggle("pref-lisible", prefs.police === "lisible");
+  r.classList.toggle("pref-daltonien", !!prefs.daltonien);
+  r.classList.toggle("pref-anim-reduites", prefs.animations === "reduites");
+  r.classList.toggle("pref-gros", !!prefs.gros);
+}
+
+;Object.assign(module.exports, {loadPrefs, getPrefs, setPref, applyPrefs});
 };
 __modules["./herald.js"] = function(module, exports, require) {
 // LE GRAND HÉRAUT DU DONJON — original mascot narrator (option B of §9).
@@ -5792,11 +5917,12 @@ const { setVoice, voiceAvailable, voiceEnabled, warmVoices } = require("./tts.js
 const { setSfx, sfx, sfxAvailable, sfxEnabled } = require("./sfx.js");
 const { setMusic, musicAvailable, musicEnabled } = require("./music.js");
 const { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } = require("./bots.js");
+const { getPrefs, loadPrefs, setPref } = require("./prefs.js");
 const { el } = require("./ui.js");
 
 const MAX_PLAYERS = 20;
 
-const screens = ["home", "rules", "custom", "setup", "game", "victory"];
+const screens = ["home", "rules", "custom", "reglages", "setup", "game", "victory"];
 function show(name) {
   for (const s of screens) {
     document.getElementById(`screen-${s}`).hidden = s !== name;
@@ -5827,6 +5953,7 @@ function renderHome() {
   zone.append(newBtn);
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderRules(); show("rules"); } }, "📖 Les règles"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderCustom(); show("custom"); } }, "✍️ Vos questions maison"));
+  zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderReglages(); show("reglages"); } }, "⚙️ Réglages & accessibilité"));
   document.getElementById("bank-info").textContent = bankOk
     ? `${bankSize()} questions vérifiées et sourcées · 13 catégories · zéro chronomètre`
     : "⚠️ Impossible de charger les questions (data/questions.json). Rechargez la page une fois en ligne.";
@@ -6420,6 +6547,82 @@ function statsTable(rankingData, etoilesMode) {
   );
 }
 
+/* ---------- réglages (confort & accessibilité) ---------- */
+
+function renderReglages() {
+  const zone = document.getElementById("reglages-zone");
+  zone.innerHTML = "";
+  const p = getPrefs();
+  // Groupe de boutons « segmentés » : une option active à la fois.
+  const seg = (options, current, onPick) => el("div", { class: "reglage-control" },
+    ...options.map((o) =>
+      el("button", {
+        class: "seg-btn" + (o.val === current ? " seg-on" : ""),
+        type: "button", "aria-pressed": String(o.val === current),
+        onclick: () => { onPick(o.val); renderReglages(); },
+      }, o.label),
+    ),
+  );
+  const row = (titre, desc, control) => el("div", { class: "reglage-row" },
+    el("div", { class: "reglage-label" },
+      el("span", { class: "reglage-titre", text: titre }),
+      el("span", { class: "reglage-desc", text: desc }),
+    ),
+    control,
+  );
+  const oui_non = [{ val: false, label: "Non" }, { val: true, label: "Oui" }];
+  zone.append(
+    row("🔠 Police plus lisible", "Sans empattement, plus aérée — pratique en cas de dyslexie.",
+      seg([{ val: "standard", label: "Standard" }, { val: "lisible", label: "Lisible" }], p.police, (v) => setPref("police", v))),
+    row("🔎 Texte plus grand", "Agrandit le texte pour lire sans effort.",
+      seg(oui_non, p.gros, (v) => setPref("gros", v))),
+    row("🌈 Mode daltonien", "Bonne réponse en bleu, coup dur en orange (au lieu de vert / rouge).",
+      seg(oui_non, p.daltonien, (v) => setPref("daltonien", v))),
+    row("🎬 Animations", "Réduisez les mouvements à l'écran si vous préférez le calme.",
+      seg([{ val: "completes", label: "Complètes" }, { val: "reduites", label: "Réduites" }], p.animations, (v) => setPref("animations", v))),
+    row("📖 Revoir le tutoriel", "Le petit guide de démarrage du Donjon.",
+      el("div", { class: "reglage-control" }, el("button", { class: "seg-btn", type: "button", onclick: () => showTutorial() }, "▶️ Revoir"))),
+  );
+}
+
+/* ---------- tutoriel du premier lancement ---------- */
+
+const TUTO_STEPS = [
+  { emoji: "🏰", titre: "Bienvenue au Donjon !", texte: "Un jeu de plateau de culture générale pour 1 à 20 aventuriers. On se cultive en s'amusant — et il n'y a JAMAIS de chronomètre." },
+  { emoji: "🎲", titre: "Avancez, répondez", texte: "À votre tour, lancez le dé et avancez. La plupart des cases posent une question : bonne réponse = on avance et on gagne des pièces. Personne n'est jamais éliminé." },
+  { emoji: "💡", titre: "Toujours une anecdote", texte: "Après chaque question, le Héraut révèle la bonne réponse ET une anecdote vérifiée avec ses sources. On repart toujours un peu moins bête !" },
+  { emoji: "👑", titre: "Le premier au Trésor gagne", texte: "En mode Course, le premier au Trésor l'emporte. En mode Étoiles (façon Mario Party), on achète des étoiles chez le marchand. À la fin, un tableau récapitule les exploits de chacun." },
+  { emoji: "⚙️", titre: "À votre main", texte: "Pas assez de joueurs ? Ajoutez des bots. Besoin de confort ? Les Réglages offrent une police plus lisible, un mode daltonien et bien plus. Bon jeu !" },
+];
+
+/** Affiche le tutoriel (overlay pas-à-pas). onClose optionnel après fermeture. */
+function showTutorial(onClose) {
+  let i = 0;
+  const overlay = el("div", { class: "tuto-overlay", role: "dialog", "aria-modal": "true", "aria-label": "Tutoriel du Donjon" });
+  const close = () => { overlay.remove(); setPref("tutoVu", true); if (onClose) onClose(); };
+  const render = () => {
+    const s = TUTO_STEPS[i];
+    const last = i === TUTO_STEPS.length - 1;
+    overlay.innerHTML = "";
+    overlay.append(
+      el("div", { class: "tuto-card" },
+        el("div", { class: "tuto-emoji", "aria-hidden": "true", text: s.emoji }),
+        el("h2", { class: "tuto-titre", text: s.titre }),
+        el("p", { class: "tuto-texte", text: s.texte }),
+        el("div", { class: "tuto-dots", "aria-hidden": "true" },
+          ...TUTO_STEPS.map((_, k) => el("span", { class: "tuto-dot" + (k === i ? " tuto-dot-on" : "") }))),
+        el("div", { class: "tuto-actions" },
+          i > 0 ? el("button", { class: "btn btn-small", type: "button", onclick: () => { i--; render(); } }, "← Précédent") : null,
+          el("button", { class: "btn btn-gold", type: "button", onclick: () => { if (last) close(); else { i++; render(); } } }, last ? "C'est parti !" : "Suivant →"),
+        ),
+        el("button", { class: "btn btn-small", type: "button", onclick: close }, "Passer le tutoriel"),
+      ),
+    );
+  };
+  render();
+  document.body.append(overlay);
+}
+
 /* ---------- header controls ---------- */
 
 function wireHeader() {
@@ -6488,6 +6691,11 @@ function wireHeader() {
     show("home");
   });
 
+  document.getElementById("reglages-back").addEventListener("click", () => {
+    renderHome();
+    show("home");
+  });
+
   document.getElementById("help-btn").addEventListener("click", () => openReference());
 
   document.getElementById("quit-btn").addEventListener("click", () => {
@@ -6507,6 +6715,7 @@ function wireHeader() {
 /* ---------- boot ---------- */
 
 async function boot() {
+  loadPrefs(); // applique tôt les préférences d'accessibilité (police, couleurs…)
   wireHeader();
   warmVoices();
   try {
@@ -6519,6 +6728,9 @@ async function boot() {
   await loadWordgames().catch(() => {});
   renderHome();
   show("home");
+  // Tutoriel au tout premier lancement (une seule fois — mémorisé ensuite).
+  // Jamais pendant les tests automatisés (l'overlay bloquerait les clics).
+  if (!getPrefs().tutoVu && !globalThis.__DONJON_TEST) showTutorial();
 
   // navigator.serviceWorker exists on the prototype but reads back undefined on
   // insecure/file:// origins (and some sandboxes) — guard the value, not just
