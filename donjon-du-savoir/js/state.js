@@ -109,6 +109,9 @@ export function newGame(config, boardLayout) {
       id: i,
       nom: p.nom,
       characterId: p.characterId,
+      // Joueur automatique (bot) et son niveau (probabilité de bonne réponse).
+      bot: p.bot ?? false,
+      botLevel: p.botLevel ?? null,
       // Tranche d'âge (fenêtre de difficulté) + profil dérivé (famille de pouvoirs).
       bracket: p.bracket ?? profilToBracket(p.profil),
       profil: p.profil ?? bracketProfil(p.bracket ?? "16-18"),

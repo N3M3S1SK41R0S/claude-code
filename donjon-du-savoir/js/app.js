@@ -11,6 +11,7 @@ import { POWERS } from "./powers.js";
 import { setVoice, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
 import { setSfx, sfx, sfxAvailable, sfxEnabled } from "./sfx.js";
 import { setMusic, musicAvailable, musicEnabled } from "./music.js";
+import { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } from "./bots.js";
 import { el } from "./ui.js";
 
 const MAX_PLAYERS = 20;
@@ -224,6 +225,21 @@ function ageSelect(obj, rerender) {
   return sel;
 }
 
+/** Sélecteur de niveau d'un bot (Facile → Génie). */
+function botLevelSelect(obj, rerender) {
+  if (!obj.botLevel) obj.botLevel = "intermediaire";
+  return el("select", {
+    class: "name-input age-select bot-level",
+    "aria-label": "Niveau du bot",
+    onchange: (e) => { obj.botLevel = e.target.value; if (rerender) rerender(); },
+  }, ...BOT_LEVEL_ORDER.map((id) => {
+    const m = BOT_LEVELS[id];
+    const o = el("option", { value: id, text: `${m.emoji} ${m.nom}` });
+    if (id === obj.botLevel) o.selected = true;
+    return o;
+  }));
+}
+
 function characterButton(obj, rerender) {
   const c = characterById(obj.characterId);
   return el("button", {
@@ -274,26 +290,41 @@ function renderSetup() {
     const list = el("div", { class: "setup-list" });
     players.forEach((p, i) => {
       list.append(
-        el("div", { class: "setup-row" },
-          nameInput(p, `Joueur ${i + 1}`),
-          ageSelect(p, renderSetup),
+        el("div", { class: "setup-row" + (p.bot ? " setup-row-bot" : "") },
+          nameInput(p, p.bot ? `Bot ${i + 1}` : `Joueur ${i + 1}`),
+          // Un bot montre son niveau (probabilité de bonne réponse) ; un humain,
+          // sa tranche d'âge (difficulté des questions).
+          p.bot ? botLevelSelect(p, renderSetup) : ageSelect(p, renderSetup),
           characterButton(p, renderSetup),
           players.length > 1
-            ? el("button", { class: "btn btn-x", type: "button", "aria-label": `Retirer le joueur ${i + 1}`, onclick: () => { players.splice(i, 1); renderSetup(); } }, "✕")
+            ? el("button", { class: "btn btn-x", type: "button", "aria-label": `Retirer ${p.bot ? "le bot" : "le joueur"} ${i + 1}`, onclick: () => { players.splice(i, 1); renderSetup(); } }, "✕")
             : null,
         ),
       );
     });
     zone.append(list);
+    const addRow = el("div", { class: "setup-add-row" });
     if (players.length < MAX_PLAYERS) {
-      zone.append(el("button", {
-        class: "btn", type: "button",
-        onclick: () => {
-          players.push({ nom: "", bracket: DEFAULT_BRACKET, characterId: CHARACTERS[players.length % CHARACTERS.length].id });
-          renderSetup();
-        },
-      }, "＋ Ajouter un joueur"));
+      addRow.append(
+        el("button", {
+          class: "btn", type: "button",
+          onclick: () => {
+            players.push({ nom: "", bracket: DEFAULT_BRACKET, characterId: CHARACTERS[players.length % CHARACTERS.length].id });
+            renderSetup();
+          },
+        }, "＋ Ajouter un joueur"),
+        el("button", {
+          class: "btn", type: "button",
+          title: "Un joueur automatique pour compléter la partie",
+          onclick: () => {
+            players.push({ nom: "", bracket: "18+", characterId: CHARACTERS[players.length % CHARACTERS.length].id, bot: true, botLevel: "intermediaire" });
+            renderSetup();
+          },
+        }, "🤖 Ajouter un bot"),
+      );
     }
+    zone.append(addRow);
+    zone.append(el("p", { class: "help-note", text: "🤖 Pas assez de joueurs ? Ajoutez des bots (Facile, Intermédiaire, Difficile ou Génie) : ils jouent tout seuls leur tour." }));
   } else {
     const list = el("div", { class: "setup-list" });
     teams.forEach((t, ti) => {
@@ -426,7 +457,8 @@ function launchGame() {
     pions = players
       .map((p, i) => {
         const bracket = p.bracket ?? DEFAULT_BRACKET;
-        return { ...p, nom: p.nom.trim() || `Joueur ${i + 1}`, bracket, profil: bracketProfil(bracket) };
+        const defaut = p.bot ? `Bot ${botLevelMeta(p.botLevel).nom}` : `Joueur ${i + 1}`;
+        return { ...p, nom: p.nom.trim() || defaut, bracket, profil: bracketProfil(bracket) };
       })
       .slice(0, MAX_PLAYERS);
     if (pions.length < 1) return;

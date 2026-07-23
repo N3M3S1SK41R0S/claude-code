@@ -639,6 +639,10 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .item-icon { position: relative; flex-shrink: 0; width: 46px; height: 46px; display: inline-flex; align-items: center; justify-content: center; }
 .item-emoji { font-size: 1.5rem; }
 .item-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4)); }
+/* Réglages : ligne d'un bot (fond légèrement teinté), boutons d'ajout côte à côte. */
+.setup-row-bot { background: color-mix(in srgb, var(--gold) 8%, transparent); border-radius: 12px; padding: 0.25rem; }
+.setup-add-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.bot-level { font-weight: bold; }
 .btn-character { display: inline-flex; align-items: center; gap: 0.5rem; }
 .victory-who { display: inline-flex; align-items: center; gap: 0.5rem; }
 .player-info { display: flex; flex-direction: column; }
@@ -1282,6 +1286,48 @@ function voiceOf(id) {
 }
 
 ;Object.assign(module.exports, {heroLine, voiceOf, VOICE, HERO_LINES});
+};
+__modules["./bots.js"] = function(module, exports, require) {
+// Joueurs automatiques (bots) pour compléter une partie quand on n'est pas assez
+// nombreux. Quatre niveaux : ils changent la PROBABILITÉ qu'un bot réponde juste
+// (jamais le contenu des questions, jamais l'âge des autres joueurs). Un bot joue
+// tout seul son tour : il lance le dé, avance, et répond selon son niveau.
+
+const BOT_LEVELS = {
+  facile: { id: "facile", nom: "Facile", emoji: "🙂", p: 0.40 },
+  intermediaire: { id: "intermediaire", nom: "Intermédiaire", emoji: "😎", p: 0.62 },
+  difficile: { id: "difficile", nom: "Difficile", emoji: "🧠", p: 0.80 },
+  genie: { id: "genie", nom: "Génie", emoji: "🧞", p: 0.95 },
+};
+
+const BOT_LEVEL_ORDER = ["facile", "intermediaire", "difficile", "genie"];
+
+function botLevelMeta(level) {
+  return BOT_LEVELS[level] ?? BOT_LEVELS.intermediaire;
+}
+
+/** Probabilité qu'un bot de ce niveau réponde juste. */
+function botProb(level) {
+  return botLevelMeta(level).p;
+}
+
+/** Le bot vise-t-il la bonne réponse à ce coup ? */
+function botWantsCorrect(level) {
+  return Math.random() < botProb(level);
+}
+
+/** Réponse numérique d'un bot (Gambit) : juste avec sa probabilité, sinon un
+ *  nombre plausible mais à côté — l'écart se resserre avec le niveau. */
+function botNumericGuess(answer, level) {
+  const p = botProb(level);
+  if (Math.random() < p) return answer; // pile bon
+  const base = Math.abs(answer) || 10;
+  const spread = Math.max(1, Math.round(base * (1 - p) * 0.6) + 2);
+  const off = Math.round((Math.random() * 2 - 1) * spread) || 1;
+  return answer + off;
+}
+
+;Object.assign(module.exports, {botLevelMeta, botProb, botWantsCorrect, botNumericGuess, BOT_LEVELS, BOT_LEVEL_ORDER});
 };
 __modules["./herald.js"] = function(module, exports, require) {
 // LE GRAND HÉRAUT DU DONJON — original mascot narrator (option B of §9).
@@ -2294,6 +2340,9 @@ function newGame(config, boardLayout) {
       id: i,
       nom: p.nom,
       characterId: p.characterId,
+      // Joueur automatique (bot) et son niveau (probabilité de bonne réponse).
+      bot: p.bot ?? false,
+      botLevel: p.botLevel ?? null,
       // Tranche d'âge (fenêtre de difficulté) + profil dérivé (famille de pouvoirs).
       bracket: p.bracket ?? profilToBracket(p.profil),
       profil: p.profil ?? bracketProfil(p.bracket ?? "16-18"),
@@ -3225,11 +3274,17 @@ function el(tag, attrs = {}, ...children) {
 const panel = () => document.getElementById("panel");
 
 /** Replace the action panel content (the zone under the board). */
+// Crochet appelé après chaque rendu de panneau (utilisé par le pilote de bots
+// pour jouer automatiquement le tour d'un joueur automatique).
+let panelHook = null;
+function onPanelRender(cb) { panelHook = cb; }
+
 function setPanel(...children) {
   const p = panel();
   p.innerHTML = "";
   p.append(...children.filter(Boolean));
   p.scrollTop = 0;
+  if (panelHook) { try { panelHook(); } catch { /* le pilote de bot ne doit jamais casser le rendu */ } }
 }
 
 /** Avatar du Héraut : médaillon peint posé sur l'emoji 📯 (repli si absent). */
@@ -3268,7 +3323,7 @@ function choiceButton(label, onclick, cls = "") {
 }
 
 
-;Object.assign(module.exports, {el, setPanel, heraldAvatar, heraldSays, bigButton, choiceButton, herald});
+;Object.assign(module.exports, {el, onPanelRender, setPanel, heraldAvatar, heraldSays, bigButton, choiceButton, herald});
 };
 __modules["./game.js"] = function(module, exports, require) {
 // Turn engine: dice, case effects, question formats, powers, victory.
@@ -3282,9 +3337,10 @@ const { boardById, renderBoard } = require("./board.js");
 const { herald } = require("./herald.js");
 const { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } = require("./powers.js");
 const { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } = require("./state.js");
-const { bigButton, choiceButton, el, heraldSays, setPanel } = require("./ui.js");
+const { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } = require("./ui.js");
 const { say } = require("./tts.js");
 const { heroLine, voiceOf } = require("./voices.js");
+const { botNumericGuess, botWantsCorrect } = require("./bots.js");
 const { npcPortraitEl, portraitEl } = require("./portraits.js");
 const { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } = require("./items.js");
 const { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } = require("./minigames.js");
@@ -3299,6 +3355,106 @@ function testFlag(name) {
 }
 
 let onVictory = null;
+
+/* ---------- pilote de bots : joue automatiquement le tour d'un joueur bot ---------- */
+
+let botTimer = null;
+
+/** Programme la prochaine action du bot (petit délai pour qu'on le voie jouer). */
+function scheduleBot(delay = 800) {
+  if (botTimer) { clearTimeout(botTimer); botTimer = null; }
+  const st = getState();
+  if (!st || st.finished) return;
+  botTimer = window.setTimeout(botAct, delay);
+}
+
+function botClick(btn) {
+  if (!btn) return;
+  try { btn.click(); } catch { /* ignore */ }
+  scheduleBot(); // enchaîne l'action suivante
+}
+
+/** Choisit une mauvaise réponse (pour un bot qui « rate »). */
+function botPickWrong(choices, good) {
+  const wrong = choices.filter((c) => c !== good);
+  return (wrong.length ? wrong : choices)[Math.floor(Math.random() * (wrong.length || choices.length))];
+}
+
+/** Inspecte le panneau courant et joue à la place du bot dont c'est le tour.
+ *  Toujours défensif : on trouve TOUJOURS un bouton pour avancer (anti-blocage). */
+function botAct() {
+  botTimer = null;
+  const st = getState();
+  if (!st || st.finished) return;
+  const panel = document.getElementById("panel");
+  if (!panel) return;
+  const btns = [...panel.querySelectorAll("button:not([disabled])")].filter((b) => b.offsetParent !== null || true);
+  const byText = (re) => btns.find((b) => re.test(b.textContent || ""));
+
+  // (A) Groupe de paris/réponses appartenant à un bot (Gambit ou événement
+  // collectif), même quand le lanceur est humain.
+  const betGroup = [...panel.querySelectorAll(".bet-buttons[data-bot='1']")]
+    .find((g) => g.querySelector(".bet-selected") === null);
+  if (betGroup) {
+    const opts = [...betGroup.querySelectorAll("button")];
+    const good = betGroup.querySelector("button[data-good='1']");
+    let pick;
+    if (good) {
+      // Question de connaissance (événement) : juste selon le niveau du bot.
+      if (botWantsCorrect(betGroup.dataset.level)) pick = good;
+      else { const wrong = opts.filter((b) => b !== good && b.textContent !== "🚫"); pick = wrong[Math.floor(Math.random() * wrong.length)] ?? opts[0]; }
+    } else {
+      // Pari du Gambit (mise) : au hasard parmi Plus / Égal / Moins.
+      pick = opts[Math.floor(Math.random() * Math.max(1, Math.min(3, opts.length)))];
+    }
+    return botClick(pick);
+  }
+
+  const pion = currentPion();
+  if (!pion || !pion.bot) return; // le reste ne concerne que le tour d'un bot
+
+  // (B) Lancer le dé, (C) avancer.
+  const roll = byText(/Lancer le dé/); if (roll) return botClick(roll);
+  const adv = byText(/Avancer de \d/); if (adv) return botClick(adv);
+
+  // (D) Question à choix : le bot vise le bon selon son niveau.
+  const choices = [...panel.querySelectorAll(".choices .btn-choice:not([disabled])")];
+  if (choices.length) {
+    const good = choices.find((c) => c.dataset.good === "1");
+    const pick = (good && botWantsCorrect(pion.botLevel)) ? good : botPickWrong(choices, good);
+    return botClick(pick);
+  }
+
+  // (E) Gambit numérique : le bot saisit un nombre (juste selon son niveau).
+  const num = panel.querySelector(".num-input");
+  const valider = byText(/Valider mon nombre/);
+  if (num && valider) {
+    const target = Number(num.dataset.answer);
+    num.value = String(Number.isFinite(target) ? botNumericGuess(target, pion.botLevel) : 1 + Math.floor(Math.random() * 100));
+    return botClick(valider);
+  }
+
+  // (F) Boutique : un bot ne fait pas ses courses, il repart.
+  const quitShop = byText(/Quitter la boutique/); if (quitShop) return botClick(quitShop);
+
+  // (G) Boutons génériques (continuer, révéler, valider, subir, découvrir…).
+  const gen = byText(/Découvrir|Continuer|Révéler|Valider les gagnants|Valider|Subir|Garder|Personne n'a trouvé|au meneur seul|J'abandonne|Quitter|Au hasard/);
+  if (gen) return botClick(gen);
+
+  // (H) Dernier recours : le premier bouton disponible (jamais de blocage).
+  if (btns.length) return botClick(btns[0]);
+}
+
+/** Marque les boutons de choix d'une grille comme bon/mauvais (pour le pilote de
+ *  bots), en comparant leur texte à la bonne réponse. */
+function markGood(grid, answer) {
+  grid.querySelectorAll(".btn-choice").forEach((b) => {
+    b.dataset.good = b.textContent === answer ? "1" : "0";
+  });
+}
+
+/** Branche le pilote de bots sur chaque rendu de panneau. */
+onPanelRender(() => scheduleBot());
 
 // Garantie « une question par tour, quelle que soit la case » : ce drapeau est
 // remis à zéro au début de chaque tour, puis passe à true dès qu'une VRAIE
@@ -3956,6 +4112,8 @@ function resolveCase(type) {
 function doBoutique(pion, onDone = null) {
   const done = onDone ?? (() => finishTurn());
   setPendingCase("resolu");
+  // Bot : il ne fait pas ses courses, il salue le marchand et repart.
+  if (pion.bot) { heraldSays(`🛒 ${pion.nom} jette un œil à la boutique et poursuit sa route.`); return done(); }
   sfx("chest");
   // Le Sceptre du Larcin (vol d'étoile) n'a de sens qu'en mode Étoiles : on ne
   // le propose donc qu'ici, tout en bas et hors de prix, comme un coup d'éclat.
@@ -4009,6 +4167,14 @@ function doBoutique(pion, onDone = null) {
 /* ---------- savoir insolite : pure culture, +2 or garantis ---------- */
 
 function doInsolite(pion) {
+  // Bot : question à choix jouable en automatique (on garde la saveur insolite
+  // pour les humains).
+  if (pion.bot) {
+    const bq = drawQuestion(pion, { formats: ["qcm", "vrai_faux"] });
+    if (!bq) { setPendingCase("resolu"); const g = addCoins(pion, 2); return endPanel(`🦩 +${g} 🪙 pour la curiosité.`); }
+    heraldSays("🦩 Savoir insolite : une question pour le bot !");
+    return questionFlow(pion, bq);
+  }
   // Case 🦩 : une VRAIE question, un brin farfelue (catégorie « Insolite » de
   // préférence), posée et récompensée comme une question normale.
   const q = drawInsolite(pion);
@@ -4057,6 +4223,13 @@ const EXPRESSION_KIND = {
  */
 function doExpression(pion) {
   setPendingCase("resolu");
+  // Bot meneur : il ne peut ni mimer ni dessiner — on résout d'office (petit
+  // gain), le jeu continue sans bloquer.
+  if (pion.bot) {
+    markQuestionPosed();
+    const g = addCoins(pion, 2);
+    return endPanel(`🎭 ${pion.nom} tente un défi d'expression… et empoche +${g} 🪙 pour l'effort.`);
+  }
   const hasChild = getState().pions.some((p) => p.profil === "enfant");
   const forceType = testFlag("__DONJON_PICTIONARY") ? "pictionary" : null;
   const d = drawDefi({ hasChild, type: forceType });
@@ -4391,6 +4564,7 @@ function npcQuiz(pion, npc) {
       });
     }));
   });
+  markGood(grid, q.bonne_reponse);
   setPanel(
     el("div", { class: "question-block" },
       npcCard(npc),
@@ -4435,6 +4609,7 @@ function malusQuiz(pion, effect) {
       });
     }));
   });
+  markGood(grid, q.bonne_reponse);
   setPanel(
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: "💀 Coup dur… ou pas !" }),
@@ -4598,6 +4773,12 @@ const QUESTION_FORMATS = ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_
 function doQuestion() {
   if (testFlag("__DONJON_EXPRESSION")) return doExpression(currentPion());
   const pion = currentPion();
+  // Bot : question à choix (jouable en automatique), sans choix de thème.
+  if (pion.bot) {
+    const bq = drawQuestion(pion, { formats: ["qcm", "vrai_faux"], commit: false });
+    if (!bq) return endPanel("La banque de questions est épuisée. Le Donjon est impressionné.");
+    return posePicked(pion, bq);
+  }
   // On SÉLECTIONNE sans consommer : seule la question réellement posée sera
   // marquée « vue » (sinon le choix de thème brûlerait 2 questions par tour et
   // les redites reviendraient vite).
@@ -4672,6 +4853,7 @@ function themeChoiceGate(pion, qA, qB) {
 function posePicked(pion, q) {
   commitQuestion(q); // la question RÉELLEMENT posée est marquée vue/posée ici
   markQuestionPosed(); // le tour a eu sa question individuelle
+  if (pion.bot) return questionFlow(pion, q); // bot : QCM simple, joué en automatique
   if (q.format === "qcm") {
     const forced = testFlag("__DONJON_MINIGAME");
     const eligible = miniGameAnswer(q); // réponse convenant à un anagramme/pendu
@@ -4820,6 +5002,7 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
   const grid = el("div", { class: `choices ${choices.length === 2 ? "choices-2" : ""}`, role: "group", "aria-label": "Choix de réponse" });
   choices.forEach((choice) => {
     const btn = choiceButton(choice, () => resolveAnswer(pion, q, choice === q.bonne_reponse, advance));
+    btn.dataset.good = choice === q.bonne_reponse ? "1" : "0"; // repère pour le pilote de bots
     if (struck === choice) {
       btn.classList.add("choice-struck");
       btn.disabled = true;
@@ -5130,6 +5313,7 @@ function doTrouNoir(pion) {
     choices.forEach((choice) => {
       grid.append(choiceButton(choice, () => resolveTrouNoir(choice === q.bonne_reponse)));
     });
+    markGood(grid, q.bonne_reponse);
     container.append(grid);
   }
   // Hints allowed, but no power may rewrite the Trou Noir's stakes.
@@ -5156,6 +5340,7 @@ function doGambit(pion) {
     autocomplete: "off",
     "aria-label": "Votre réponse numérique",
     placeholder: "Votre nombre…",
+    "data-answer": String(q.reponse_numerique), // indice pour le pilote de bots
   });
   const form = el("form", { class: "question-block" },
     el("h2", { class: "panel-title", text: "🎲 GAMBIT" }),
@@ -5188,6 +5373,7 @@ function gambitBets(pion, q, guess, others) {
   const rows = others.map((p) => {
     const row = el("div", { class: "bet-row" }, el("strong", { class: "bet-name", text: p.nom }));
     const group = el("div", { class: "bet-buttons", role: "group", "aria-label": `Pari de ${p.nom}` });
+    if (p.bot) group.dataset.bot = "1"; // le pilote de bots pariera pour lui
     for (const [key, label] of [["haut", "⬆️ Plus"], ["juste", "🎯 Égal"], ["bas", "⬇️ Moins"], ["absent", "🚫"]]) {
       const btn = choiceButton(label, () => {
         bets.set(p.id, key);
@@ -5264,6 +5450,7 @@ function doEvent() {
   const rows = pions.map((p) => {
     const row = el("div", { class: "bet-row" }, el("strong", { class: "bet-name", text: p.nom }));
     const group = el("div", { class: "bet-buttons", role: "group", "aria-label": `Réponse de ${p.nom}` });
+    if (p.bot) { group.dataset.bot = "1"; group.dataset.level = p.botLevel ?? "intermediaire"; } // pilote de bots
     for (const choice of [...(q.choix ?? ["Vrai", "Faux"]), "🚫"]) {
       const btn = choiceButton(choice, () => {
         answers.set(p.id, choice);
@@ -5271,6 +5458,7 @@ function doEvent() {
         btn.classList.add("bet-selected");
         if (answers.size === pions.length) validateBtn.disabled = false;
       }, "btn-bet");
+      if (choice === q.bonne_reponse) btn.dataset.good = "1"; // repère bonne réponse pour les bots
       if (choice === "🚫") btn.setAttribute("aria-label", `${p.nom} ne répond pas (absent)`);
       group.append(btn);
     }
@@ -5426,6 +5614,8 @@ function revealTableBonus(q, onDone) {
       if (found.has(p.id)) { found.delete(p.id); btn.classList.remove("bet-selected"); }
       else { found.add(p.id); btn.classList.add("bet-selected"); }
     });
+    // Bot : pré-sélectionné comme gagnant selon son niveau (l'humain ajuste avant de valider).
+    if (p.bot && botWantsCorrect(p.botLevel)) { found.add(p.id); btn.classList.add("bet-selected"); }
     grid.append(btn);
   }
   const done = () => {
@@ -5515,6 +5705,7 @@ const { POWERS } = require("./powers.js");
 const { setVoice, voiceAvailable, voiceEnabled, warmVoices } = require("./tts.js");
 const { setSfx, sfx, sfxAvailable, sfxEnabled } = require("./sfx.js");
 const { setMusic, musicAvailable, musicEnabled } = require("./music.js");
+const { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } = require("./bots.js");
 const { el } = require("./ui.js");
 
 const MAX_PLAYERS = 20;
@@ -5728,6 +5919,21 @@ function ageSelect(obj, rerender) {
   return sel;
 }
 
+/** Sélecteur de niveau d'un bot (Facile → Génie). */
+function botLevelSelect(obj, rerender) {
+  if (!obj.botLevel) obj.botLevel = "intermediaire";
+  return el("select", {
+    class: "name-input age-select bot-level",
+    "aria-label": "Niveau du bot",
+    onchange: (e) => { obj.botLevel = e.target.value; if (rerender) rerender(); },
+  }, ...BOT_LEVEL_ORDER.map((id) => {
+    const m = BOT_LEVELS[id];
+    const o = el("option", { value: id, text: `${m.emoji} ${m.nom}` });
+    if (id === obj.botLevel) o.selected = true;
+    return o;
+  }));
+}
+
 function characterButton(obj, rerender) {
   const c = characterById(obj.characterId);
   return el("button", {
@@ -5778,26 +5984,41 @@ function renderSetup() {
     const list = el("div", { class: "setup-list" });
     players.forEach((p, i) => {
       list.append(
-        el("div", { class: "setup-row" },
-          nameInput(p, `Joueur ${i + 1}`),
-          ageSelect(p, renderSetup),
+        el("div", { class: "setup-row" + (p.bot ? " setup-row-bot" : "") },
+          nameInput(p, p.bot ? `Bot ${i + 1}` : `Joueur ${i + 1}`),
+          // Un bot montre son niveau (probabilité de bonne réponse) ; un humain,
+          // sa tranche d'âge (difficulté des questions).
+          p.bot ? botLevelSelect(p, renderSetup) : ageSelect(p, renderSetup),
           characterButton(p, renderSetup),
           players.length > 1
-            ? el("button", { class: "btn btn-x", type: "button", "aria-label": `Retirer le joueur ${i + 1}`, onclick: () => { players.splice(i, 1); renderSetup(); } }, "✕")
+            ? el("button", { class: "btn btn-x", type: "button", "aria-label": `Retirer ${p.bot ? "le bot" : "le joueur"} ${i + 1}`, onclick: () => { players.splice(i, 1); renderSetup(); } }, "✕")
             : null,
         ),
       );
     });
     zone.append(list);
+    const addRow = el("div", { class: "setup-add-row" });
     if (players.length < MAX_PLAYERS) {
-      zone.append(el("button", {
-        class: "btn", type: "button",
-        onclick: () => {
-          players.push({ nom: "", bracket: DEFAULT_BRACKET, characterId: CHARACTERS[players.length % CHARACTERS.length].id });
-          renderSetup();
-        },
-      }, "＋ Ajouter un joueur"));
+      addRow.append(
+        el("button", {
+          class: "btn", type: "button",
+          onclick: () => {
+            players.push({ nom: "", bracket: DEFAULT_BRACKET, characterId: CHARACTERS[players.length % CHARACTERS.length].id });
+            renderSetup();
+          },
+        }, "＋ Ajouter un joueur"),
+        el("button", {
+          class: "btn", type: "button",
+          title: "Un joueur automatique pour compléter la partie",
+          onclick: () => {
+            players.push({ nom: "", bracket: "18+", characterId: CHARACTERS[players.length % CHARACTERS.length].id, bot: true, botLevel: "intermediaire" });
+            renderSetup();
+          },
+        }, "🤖 Ajouter un bot"),
+      );
     }
+    zone.append(addRow);
+    zone.append(el("p", { class: "help-note", text: "🤖 Pas assez de joueurs ? Ajoutez des bots (Facile, Intermédiaire, Difficile ou Génie) : ils jouent tout seuls leur tour." }));
   } else {
     const list = el("div", { class: "setup-list" });
     teams.forEach((t, ti) => {
@@ -5930,7 +6151,8 @@ function launchGame() {
     pions = players
       .map((p, i) => {
         const bracket = p.bracket ?? DEFAULT_BRACKET;
-        return { ...p, nom: p.nom.trim() || `Joueur ${i + 1}`, bracket, profil: bracketProfil(bracket) };
+        const defaut = p.bot ? `Bot ${botLevelMeta(p.botLevel).nom}` : `Joueur ${i + 1}`;
+        return { ...p, nom: p.nom.trim() || defaut, bracket, profil: bracketProfil(bracket) };
       })
       .slice(0, MAX_PLAYERS);
     if (pions.length < 1) return;

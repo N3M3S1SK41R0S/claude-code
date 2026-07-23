@@ -9,9 +9,10 @@ import { boardById, renderBoard } from "./board.js";
 import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
-import { bigButton, choiceButton, el, heraldSays, setPanel } from "./ui.js";
+import { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } from "./ui.js";
 import { say } from "./tts.js";
 import { heroLine, voiceOf } from "./voices.js";
+import { botNumericGuess, botWantsCorrect } from "./bots.js";
 import { npcPortraitEl, portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
 import { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } from "./minigames.js";
@@ -26,6 +27,106 @@ function testFlag(name) {
 }
 
 let onVictory = null;
+
+/* ---------- pilote de bots : joue automatiquement le tour d'un joueur bot ---------- */
+
+let botTimer = null;
+
+/** Programme la prochaine action du bot (petit délai pour qu'on le voie jouer). */
+function scheduleBot(delay = 800) {
+  if (botTimer) { clearTimeout(botTimer); botTimer = null; }
+  const st = getState();
+  if (!st || st.finished) return;
+  botTimer = window.setTimeout(botAct, testFlag("__DONJON_BOTFAST") ? 15 : delay);
+}
+
+function botClick(btn) {
+  if (!btn) return;
+  try { btn.click(); } catch { /* ignore */ }
+  scheduleBot(); // enchaîne l'action suivante
+}
+
+/** Choisit une mauvaise réponse (pour un bot qui « rate »). */
+function botPickWrong(choices, good) {
+  const wrong = choices.filter((c) => c !== good);
+  return (wrong.length ? wrong : choices)[Math.floor(Math.random() * (wrong.length || choices.length))];
+}
+
+/** Inspecte le panneau courant et joue à la place du bot dont c'est le tour.
+ *  Toujours défensif : on trouve TOUJOURS un bouton pour avancer (anti-blocage). */
+function botAct() {
+  botTimer = null;
+  const st = getState();
+  if (!st || st.finished) return;
+  const panel = document.getElementById("panel");
+  if (!panel) return;
+  const btns = [...panel.querySelectorAll("button:not([disabled])")].filter((b) => b.offsetParent !== null || true);
+  const byText = (re) => btns.find((b) => re.test(b.textContent || ""));
+
+  // (A) Groupe de paris/réponses appartenant à un bot (Gambit ou événement
+  // collectif), même quand le lanceur est humain.
+  const betGroup = [...panel.querySelectorAll(".bet-buttons[data-bot='1']")]
+    .find((g) => g.querySelector(".bet-selected") === null);
+  if (betGroup) {
+    const opts = [...betGroup.querySelectorAll("button")];
+    const good = betGroup.querySelector("button[data-good='1']");
+    let pick;
+    if (good) {
+      // Question de connaissance (événement) : juste selon le niveau du bot.
+      if (botWantsCorrect(betGroup.dataset.level)) pick = good;
+      else { const wrong = opts.filter((b) => b !== good && b.textContent !== "🚫"); pick = wrong[Math.floor(Math.random() * wrong.length)] ?? opts[0]; }
+    } else {
+      // Pari du Gambit (mise) : au hasard parmi Plus / Égal / Moins.
+      pick = opts[Math.floor(Math.random() * Math.max(1, Math.min(3, opts.length)))];
+    }
+    return botClick(pick);
+  }
+
+  const pion = currentPion();
+  if (!pion || !pion.bot) return; // le reste ne concerne que le tour d'un bot
+
+  // (B) Lancer le dé, (C) avancer.
+  const roll = byText(/Lancer le dé/); if (roll) return botClick(roll);
+  const adv = byText(/Avancer de \d/); if (adv) return botClick(adv);
+
+  // (D) Question à choix : le bot vise le bon selon son niveau.
+  const choices = [...panel.querySelectorAll(".choices .btn-choice:not([disabled])")];
+  if (choices.length) {
+    const good = choices.find((c) => c.dataset.good === "1");
+    const pick = (good && botWantsCorrect(pion.botLevel)) ? good : botPickWrong(choices, good);
+    return botClick(pick);
+  }
+
+  // (E) Gambit numérique : le bot saisit un nombre (juste selon son niveau).
+  const num = panel.querySelector(".num-input");
+  const valider = byText(/Valider mon nombre/);
+  if (num && valider) {
+    const target = Number(num.dataset.answer);
+    num.value = String(Number.isFinite(target) ? botNumericGuess(target, pion.botLevel) : 1 + Math.floor(Math.random() * 100));
+    return botClick(valider);
+  }
+
+  // (F) Boutique : un bot ne fait pas ses courses, il repart.
+  const quitShop = byText(/Quitter la boutique/); if (quitShop) return botClick(quitShop);
+
+  // (G) Boutons génériques (continuer, révéler, valider, subir, découvrir…).
+  const gen = byText(/Découvrir|Continuer|Révéler|Valider les gagnants|Valider|Subir|Garder|Personne n'a trouvé|au meneur seul|J'abandonne|Quitter|Au hasard/);
+  if (gen) return botClick(gen);
+
+  // (H) Dernier recours : le premier bouton disponible (jamais de blocage).
+  if (btns.length) return botClick(btns[0]);
+}
+
+/** Marque les boutons de choix d'une grille comme bon/mauvais (pour le pilote de
+ *  bots), en comparant leur texte à la bonne réponse. */
+function markGood(grid, answer) {
+  grid.querySelectorAll(".btn-choice").forEach((b) => {
+    b.dataset.good = b.textContent === answer ? "1" : "0";
+  });
+}
+
+/** Branche le pilote de bots sur chaque rendu de panneau. */
+onPanelRender(() => scheduleBot());
 
 // Garantie « une question par tour, quelle que soit la case » : ce drapeau est
 // remis à zéro au début de chaque tour, puis passe à true dès qu'une VRAIE
@@ -683,6 +784,8 @@ function resolveCase(type) {
 function doBoutique(pion, onDone = null) {
   const done = onDone ?? (() => finishTurn());
   setPendingCase("resolu");
+  // Bot : il ne fait pas ses courses, il salue le marchand et repart.
+  if (pion.bot) { heraldSays(`🛒 ${pion.nom} jette un œil à la boutique et poursuit sa route.`); return done(); }
   sfx("chest");
   // Le Sceptre du Larcin (vol d'étoile) n'a de sens qu'en mode Étoiles : on ne
   // le propose donc qu'ici, tout en bas et hors de prix, comme un coup d'éclat.
@@ -736,6 +839,14 @@ function doBoutique(pion, onDone = null) {
 /* ---------- savoir insolite : pure culture, +2 or garantis ---------- */
 
 function doInsolite(pion) {
+  // Bot : question à choix jouable en automatique (on garde la saveur insolite
+  // pour les humains).
+  if (pion.bot) {
+    const bq = drawQuestion(pion, { formats: ["qcm", "vrai_faux"] });
+    if (!bq) { setPendingCase("resolu"); const g = addCoins(pion, 2); return endPanel(`🦩 +${g} 🪙 pour la curiosité.`); }
+    heraldSays("🦩 Savoir insolite : une question pour le bot !");
+    return questionFlow(pion, bq);
+  }
   // Case 🦩 : une VRAIE question, un brin farfelue (catégorie « Insolite » de
   // préférence), posée et récompensée comme une question normale.
   const q = drawInsolite(pion);
@@ -784,6 +895,13 @@ const EXPRESSION_KIND = {
  */
 function doExpression(pion) {
   setPendingCase("resolu");
+  // Bot meneur : il ne peut ni mimer ni dessiner — on résout d'office (petit
+  // gain), le jeu continue sans bloquer.
+  if (pion.bot) {
+    markQuestionPosed();
+    const g = addCoins(pion, 2);
+    return endPanel(`🎭 ${pion.nom} tente un défi d'expression… et empoche +${g} 🪙 pour l'effort.`);
+  }
   const hasChild = getState().pions.some((p) => p.profil === "enfant");
   const forceType = testFlag("__DONJON_PICTIONARY") ? "pictionary" : null;
   const d = drawDefi({ hasChild, type: forceType });
@@ -1118,6 +1236,7 @@ function npcQuiz(pion, npc) {
       });
     }));
   });
+  markGood(grid, q.bonne_reponse);
   setPanel(
     el("div", { class: "question-block" },
       npcCard(npc),
@@ -1162,6 +1281,7 @@ function malusQuiz(pion, effect) {
       });
     }));
   });
+  markGood(grid, q.bonne_reponse);
   setPanel(
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: "💀 Coup dur… ou pas !" }),
@@ -1325,6 +1445,12 @@ const QUESTION_FORMATS = ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_
 function doQuestion() {
   if (testFlag("__DONJON_EXPRESSION")) return doExpression(currentPion());
   const pion = currentPion();
+  // Bot : question à choix (jouable en automatique), sans choix de thème.
+  if (pion.bot) {
+    const bq = drawQuestion(pion, { formats: ["qcm", "vrai_faux"], commit: false });
+    if (!bq) return endPanel("La banque de questions est épuisée. Le Donjon est impressionné.");
+    return posePicked(pion, bq);
+  }
   // On SÉLECTIONNE sans consommer : seule la question réellement posée sera
   // marquée « vue » (sinon le choix de thème brûlerait 2 questions par tour et
   // les redites reviendraient vite).
@@ -1399,6 +1525,7 @@ function themeChoiceGate(pion, qA, qB) {
 function posePicked(pion, q) {
   commitQuestion(q); // la question RÉELLEMENT posée est marquée vue/posée ici
   markQuestionPosed(); // le tour a eu sa question individuelle
+  if (pion.bot) return questionFlow(pion, q); // bot : QCM simple, joué en automatique
   if (q.format === "qcm") {
     const forced = testFlag("__DONJON_MINIGAME");
     const eligible = miniGameAnswer(q); // réponse convenant à un anagramme/pendu
@@ -1547,6 +1674,7 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
   const grid = el("div", { class: `choices ${choices.length === 2 ? "choices-2" : ""}`, role: "group", "aria-label": "Choix de réponse" });
   choices.forEach((choice) => {
     const btn = choiceButton(choice, () => resolveAnswer(pion, q, choice === q.bonne_reponse, advance));
+    btn.dataset.good = choice === q.bonne_reponse ? "1" : "0"; // repère pour le pilote de bots
     if (struck === choice) {
       btn.classList.add("choice-struck");
       btn.disabled = true;
@@ -1857,6 +1985,7 @@ function doTrouNoir(pion) {
     choices.forEach((choice) => {
       grid.append(choiceButton(choice, () => resolveTrouNoir(choice === q.bonne_reponse)));
     });
+    markGood(grid, q.bonne_reponse);
     container.append(grid);
   }
   // Hints allowed, but no power may rewrite the Trou Noir's stakes.
@@ -1883,6 +2012,7 @@ function doGambit(pion) {
     autocomplete: "off",
     "aria-label": "Votre réponse numérique",
     placeholder: "Votre nombre…",
+    "data-answer": String(q.reponse_numerique), // indice pour le pilote de bots
   });
   const form = el("form", { class: "question-block" },
     el("h2", { class: "panel-title", text: "🎲 GAMBIT" }),
@@ -1915,6 +2045,7 @@ function gambitBets(pion, q, guess, others) {
   const rows = others.map((p) => {
     const row = el("div", { class: "bet-row" }, el("strong", { class: "bet-name", text: p.nom }));
     const group = el("div", { class: "bet-buttons", role: "group", "aria-label": `Pari de ${p.nom}` });
+    if (p.bot) group.dataset.bot = "1"; // le pilote de bots pariera pour lui
     for (const [key, label] of [["haut", "⬆️ Plus"], ["juste", "🎯 Égal"], ["bas", "⬇️ Moins"], ["absent", "🚫"]]) {
       const btn = choiceButton(label, () => {
         bets.set(p.id, key);
@@ -1991,6 +2122,7 @@ function doEvent() {
   const rows = pions.map((p) => {
     const row = el("div", { class: "bet-row" }, el("strong", { class: "bet-name", text: p.nom }));
     const group = el("div", { class: "bet-buttons", role: "group", "aria-label": `Réponse de ${p.nom}` });
+    if (p.bot) { group.dataset.bot = "1"; group.dataset.level = p.botLevel ?? "intermediaire"; } // pilote de bots
     for (const choice of [...(q.choix ?? ["Vrai", "Faux"]), "🚫"]) {
       const btn = choiceButton(choice, () => {
         answers.set(p.id, choice);
@@ -1998,6 +2130,7 @@ function doEvent() {
         btn.classList.add("bet-selected");
         if (answers.size === pions.length) validateBtn.disabled = false;
       }, "btn-bet");
+      if (choice === q.bonne_reponse) btn.dataset.good = "1"; // repère bonne réponse pour les bots
       if (choice === "🚫") btn.setAttribute("aria-label", `${p.nom} ne répond pas (absent)`);
       group.append(btn);
     }
@@ -2153,6 +2286,8 @@ function revealTableBonus(q, onDone) {
       if (found.has(p.id)) { found.delete(p.id); btn.classList.remove("bet-selected"); }
       else { found.add(p.id); btn.classList.add("bet-selected"); }
     });
+    // Bot : pré-sélectionné comme gagnant selon son niveau (l'humain ajuste avant de valider).
+    if (p.bot && botWantsCorrect(p.botLevel)) { found.add(p.id); btn.classList.add("bet-selected"); }
     grid.append(btn);
   }
   const done = () => {

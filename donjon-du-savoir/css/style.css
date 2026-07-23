@@ -638,6 +638,10 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .item-icon { position: relative; flex-shrink: 0; width: 46px; height: 46px; display: inline-flex; align-items: center; justify-content: center; }
 .item-emoji { font-size: 1.5rem; }
 .item-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4)); }
+/* Réglages : ligne d'un bot (fond légèrement teinté), boutons d'ajout côte à côte. */
+.setup-row-bot { background: color-mix(in srgb, var(--gold) 8%, transparent); border-radius: 12px; padding: 0.25rem; }
+.setup-add-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.bot-level { font-weight: bold; }
 .btn-character { display: inline-flex; align-items: center; gap: 0.5rem; }
 .victory-who { display: inline-flex; align-items: center; gap: 0.5rem; }
 .player-info { display: flex; flex-direction: column; }

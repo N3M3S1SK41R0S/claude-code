@@ -21,11 +21,17 @@ export function el(tag, attrs = {}, ...children) {
 const panel = () => document.getElementById("panel");
 
 /** Replace the action panel content (the zone under the board). */
+// Crochet appelé après chaque rendu de panneau (utilisé par le pilote de bots
+// pour jouer automatiquement le tour d'un joueur automatique).
+let panelHook = null;
+export function onPanelRender(cb) { panelHook = cb; }
+
 export function setPanel(...children) {
   const p = panel();
   p.innerHTML = "";
   p.append(...children.filter(Boolean));
   p.scrollTop = 0;
+  if (panelHook) { try { panelHook(); } catch { /* le pilote de bot ne doit jamais casser le rendu */ } }
 }
 
 /** Avatar du Héraut : médaillon peint posé sur l'emoji 📯 (repli si absent). */
