@@ -209,7 +209,7 @@ function roadPath(coords) {
 
 /** Dungeon scenery (relative positions 0-1, scaled to each board). `art` : décor
  *  peint posé par-dessus l'emoji (repli si l'image manque). */
-const DECOR = [
+export const DECOR = [
   { e: "🏰", u: 0.03, v: 0.94, s: 44, art: "assets/decor-chateau.png" }, { e: "🌲", u: 0.19, v: 0.97, s: 26, art: "assets/decor-arbre.png" },
   { e: "🕯️", u: 0.975, v: 0.91, s: 24, art: "assets/decor-bougie.png" }, { e: "🍄", u: 0.955, v: 0.75, s: 22, art: "assets/decor-champignon.png" },
   { e: "🦇", u: 0.06, v: 0.55, s: 22, art: "assets/decor-chauvesouris.png" }, { e: "🕸️", u: 0.025, v: 0.72, s: 26, art: "assets/decor-toile.png" },
@@ -222,7 +222,7 @@ const DECOR = [
  *  derrière les cases et les pions. `u`,`v` : position relative 0-1 ; `w` :
  *  largeur en cqw (unités de largeur du plateau). Repli : rien si l'image manque
  *  (aucun emoji sous-jacent — ce sont de purs décors d'ambiance). */
-const BUILDINGS = [
+export const BUILDINGS = [
   { art: "assets/batiment-chateau.png", u: 0.10, v: 0.86, w: 20 },
   { art: "assets/batiment-etoile.png", u: 0.11, v: 0.12, w: 14 },
   { art: "assets/batiment-tour-mage.png", u: 0.065, v: 0.32, w: 13 },

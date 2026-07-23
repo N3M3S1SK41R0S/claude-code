@@ -911,3 +911,13 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   background: linear-gradient(160deg, #241a45 0%, #1a1230 55%, #150e28 100%);
   touch-action: pan-y;
 }
+
+/* ---------- mini-carte (vue d'ensemble en mode 3D) ---------- */
+.board-scroll { position: relative; } /* ancre la mini-carte */
+.minimap {
+  position: absolute; top: 10px; right: 10px; width: 94px; z-index: 4;
+  background: rgba(20, 14, 40, 0.74); border: 1px solid var(--line);
+  border-radius: 9px; padding: 5px; pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+.minimap svg { display: block; width: 100%; height: auto; }

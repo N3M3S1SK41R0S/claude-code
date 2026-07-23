@@ -3,7 +3,7 @@
 // posées dessus, et la CAMÉRA SUIT le joueur actif quand il avance. Purement
 // visuel : les règles ne connaissent que des positions. Repli 2D garanti si
 // WebGL est indisponible, l'immersion coupée, ou en test (voir use3D()).
-import { CASE_TYPES, boardGeometry, VIEW_W, heroArt } from "./board.js";
+import { BUILDINGS, CASE_TYPES, DECOR, boardGeometry, VIEW_W, heroArt } from "./board.js";
 import { getPrefs } from "./prefs.js";
 
 const THREE = globalThis.THREE;
@@ -50,9 +50,47 @@ function worldOf(pos, length) {
   return new THREE.Vector3((c.x - VIEW_W / 2) * s, 0, (c.y - viewH / 2) * s);
 }
 
+/** Position monde d'un point relatif (u,v ∈ 0-1) — pour bâtiments et décors. */
+function worldUV(u, v, length) {
+  const { viewH } = boardGeometry(length);
+  const s = SPAN / VIEW_W;
+  return new THREE.Vector3((u - 0.5) * SPAN, 0, (v - 0.5) * viewH * s);
+}
+
 function hex(color) {
   return new THREE.Color(color);
 }
+
+// Textures partagées (une par image) pour éviter de recharger le même PNG.
+const texCache = new Map();
+function loadTex(src) {
+  if (texCache.has(src)) return texCache.get(src);
+  const t = new THREE.TextureLoader().load(src);
+  t.encoding = THREE.sRGBEncoding;
+  texCache.set(src, t);
+  return t;
+}
+
+/** Panneau debout (billboard) posé au sol en `pos`, haut de `height` unités. */
+function standee(art, pos, height) {
+  const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: loadTex(art), transparent: true, depthWrite: false }));
+  spr.center.set(0.5, 0);
+  spr.scale.set(height * 0.92, height, 1);
+  spr.position.copy(pos);
+  return spr;
+}
+
+// Bâtiment « repère » posé sur certaines cases (on reconnaît l'échoppe, etc.).
+const CASE_BUILDING = {
+  boutique: "assets/batiment-boutique.png",
+  gambit: "assets/batiment-taverne.png",
+  trounoir: "assets/batiment-portail.png",
+  insolite: "assets/batiment-champignon.png",
+  expression: "assets/batiment-taverne.png",
+  evenement: "assets/batiment-fontaine.png",
+  arrivee: "assets/batiment-chateau.png",
+  depart: "assets/batiment-pont.png",
+};
 
 /* ---------- init / dispose ---------- */
 
@@ -117,8 +155,9 @@ export function dispose3D() {
   window.removeEventListener("resize", resize);
   try { R?.dispose?.(); } catch { /* ignore */ }
   mounted?.canvas?.remove();
+  minimapEl?.remove();
   R = scene = camera = boardGroup = pionGroup = starMesh = null;
-  builtSig = null; focusId = null; mounted = null;
+  builtSig = null; focusId = null; mounted = null; minimapEl = null;
   pionObjs.clear();
 }
 
@@ -127,7 +166,26 @@ export function show3D(on) {
   if (mounted) {
     mounted.canvas.style.display = on ? "block" : "none";
     mounted.hostBoard.style.display = on ? "none" : "";
+    if (minimapEl) minimapEl.style.display = on ? "block" : "none";
   }
+}
+
+/* ---------- mini-carte (vue d'ensemble du plateau) ---------- */
+
+let minimapEl = null;
+function updateMinimap(hostBoard, layout, pions, currentId, starPos) {
+  const host = hostBoard.parentElement || hostBoard;
+  const length = layout.length;
+  const { coords, viewH } = boardGeometry(length);
+  if (!minimapEl) { minimapEl = document.createElement("div"); minimapEl.className = "minimap"; minimapEl.setAttribute("aria-hidden", "true"); host.appendChild(minimapEl); }
+  const W = 100, H = Math.round((100 * viewH) / VIEW_W);
+  const nx = (x) => ((x / VIEW_W) * W).toFixed(1);
+  const ny = (y) => ((y / viewH) * H).toFixed(1);
+  const cl = (p) => coords[Math.max(0, Math.min(length - 1, p))];
+  const pathD = coords.map((c, i) => `${i ? "L" : "M"}${nx(c.x)} ${ny(c.y)}`).join(" ");
+  const star = starPos != null ? `<circle cx="${nx(cl(starPos).x)}" cy="${ny(cl(starPos).y)}" r="3.4" fill="#e0b04a" stroke="#1a1230" stroke-width="0.6"/>` : "";
+  const dots = pions.map((p) => { const c = cl(p.position); return `<circle cx="${nx(c.x)}" cy="${ny(c.y)}" r="${p.id === currentId ? 4 : 2.6}" fill="${p.couleur || "#e0b04a"}" stroke="#fff" stroke-width="0.7"/>`; }).join("");
+  minimapEl.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><path d="${pathD}" fill="none" stroke="#8e6cff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>${star}${dots}</svg>`;
 }
 
 /* ---------- construction du plateau ---------- */
@@ -166,18 +224,26 @@ function buildBoard(layout, boardDef) {
     boardGroup.add(tube);
   }
 
-  // Une tuile 3D par case, teintée par son type.
+  // Une tuile 3D par case, teintée par son type ; bâtiment-repère sur certaines.
   const tileGeo = new THREE.CylinderGeometry(1.05, 1.2, 0.5, 20);
   for (let i = 0; i < length; i++) {
-    const t = CASE_TYPES[layout[i]] ?? CASE_TYPES.question;
+    const type = layout[i];
+    const t = CASE_TYPES[type] ?? CASE_TYPES.question;
     const mat = new THREE.MeshStandardMaterial({ color: hex(t.couleur), roughness: 0.6, metalness: 0.05 });
     const tile = new THREE.Mesh(tileGeo, mat);
     const p = worldOf(i, length);
     tile.position.set(p.x, 0, p.z);
-    const special = layout[i] === "depart" || layout[i] === "arrivee";
+    const special = type === "depart" || type === "arrivee";
     if (special) tile.scale.set(1.3, 1.6, 1.3);
     boardGroup.add(tile);
+    // Bâtiment posé DERRIÈRE la case-repère (le héros se tient devant).
+    const bat = CASE_BUILDING[type];
+    if (bat) boardGroup.add(standee(bat, p.clone().setZ(p.z - 1.6), type === "arrivee" ? 6.5 : 4.6));
   }
+
+  // Bâtiments et décors d'ambiance aux abords du plateau (village de donjon).
+  for (const b of BUILDINGS) boardGroup.add(standee(b.art, worldUV(b.u, b.v, length), b.w * (SPAN / 100) * 1.35));
+  for (const d of DECOR) boardGroup.add(standee(d.art, worldUV(d.u, d.v, length), d.s * 0.05 + 1.2));
 }
 
 /* ---------- pions ---------- */
@@ -186,9 +252,7 @@ function makePion(p) {
   const art = heroArt(p.characterId);
   let obj;
   if (art) {
-    const tex = new THREE.TextureLoader().load(art);
-    tex.encoding = THREE.sRGBEncoding;
-    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+    const mat = new THREE.SpriteMaterial({ map: loadTex(art), transparent: true });
     obj = new THREE.Sprite(mat);
     obj.scale.set(2.8, 2.8, 1);
     obj.center.set(0.5, 0);
@@ -250,6 +314,7 @@ export function render3D(hostBoard, layout, pions, currentPionId, boardDef, star
   for (const [id, rec] of pionObjs) {
     if (!seen.has(id)) { pionGroup.remove(rec.obj); pionObjs.delete(id); }
   }
+  updateMinimap(hostBoard, layout, pions, currentPionId, starPos);
   return true;
 }
 
@@ -296,8 +361,10 @@ function loop() {
   const foc = focusId != null ? pionObjs.get(focusId) : null;
   if (foc) {
     const t = foc.obj.position;
-    camPos.lerp(new THREE.Vector3(t.x * 0.55, 11, t.z + 13), 0.06);
-    camLook.lerp(new THREE.Vector3(t.x * 0.7, 1.2, t.z), 0.09);
+    // Caméra plus haute et un peu en retrait ; on regarde LÉGÈREMENT devant le
+    // pion (vers l'arrivée) pour découvrir le chemin plutôt que le mur du fond.
+    camPos.lerp(new THREE.Vector3(t.x * 0.5, 13.5, t.z + 15), 0.06);
+    camLook.lerp(new THREE.Vector3(t.x * 0.6, 1.6, t.z - 2.5), 0.09);
   } else {
     camPos.lerp(new THREE.Vector3(0, 24, 30), 0.04);
     camLook.lerp(new THREE.Vector3(0, 0, 0), 0.04);
