@@ -39,6 +39,9 @@ const pionObjs = new Map(); // id -> { obj, target:THREE.Vector3, walk:[Vector3]
 let focusId = null; // pion suivi par la caméra
 const camPos = THREE ? new THREE.Vector3(0, 24, 30) : null;
 const camLook = THREE ? new THREE.Vector3(0, 0, 0) : null;
+// Vue d'ensemble (recadrée sur tout le plateau) — recalculée par plateau.
+const overPos = THREE ? new THREE.Vector3(0, 24, 30) : null;
+const overLook = THREE ? new THREE.Vector3(0, 0, 0) : null;
 let mounted = null; // conteneur canvas
 
 /* ---------- utilitaires de coordonnées ---------- */
@@ -79,6 +82,15 @@ function standee(art, pos, height) {
   spr.position.copy(pos);
   return spr;
 }
+
+// Fond peint du donjon (thème) posé en toile de fond de la scène 3D.
+const THEME_FOND = {
+  donjon: "assets/fond-donjon.webp",
+  crypte: "assets/fond-crypte.webp",
+  tour: "assets/fond-tour.webp",
+  labyrinthe: "assets/fond-labyrinthe.webp",
+  catacombes: "assets/fond-catacombes.webp",
+};
 
 // Bâtiment « repère » posé sur certaines cases (on reconnaît l'échoppe, etc.).
 const CASE_BUILDING = {
@@ -194,6 +206,8 @@ function buildBoard(layout, boardDef) {
   const sig = `${boardDef.id}:${layout.length}`;
   if (builtSig === sig) return;
   builtSig = sig;
+  // Toile de fond peinte selon le thème du donjon (ambiance).
+  try { scene.background = loadTex(THEME_FOND[boardDef.theme] ?? THEME_FOND.donjon); } catch { /* repli : fond uni */ }
   while (boardGroup.children.length) boardGroup.remove(boardGroup.children[0]);
   // Nouveau plateau : on repart de pions neufs (personnages potentiellement
   // différents) pour ne pas réutiliser une figurine périmée.
@@ -226,6 +240,7 @@ function buildBoard(layout, boardDef) {
 
   // Une tuile 3D par case, teintée par son type ; bâtiment-repère sur certaines.
   const tileGeo = new THREE.CylinderGeometry(1.05, 1.2, 0.5, 20);
+  let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
   for (let i = 0; i < length; i++) {
     const type = layout[i];
     const t = CASE_TYPES[type] ?? CASE_TYPES.question;
@@ -233,6 +248,8 @@ function buildBoard(layout, boardDef) {
     const tile = new THREE.Mesh(tileGeo, mat);
     const p = worldOf(i, length);
     tile.position.set(p.x, 0, p.z);
+    minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+    minZ = Math.min(minZ, p.z); maxZ = Math.max(maxZ, p.z);
     const special = type === "depart" || type === "arrivee";
     if (special) tile.scale.set(1.3, 1.6, 1.3);
     boardGroup.add(tile);
@@ -244,6 +261,15 @@ function buildBoard(layout, boardDef) {
   // Bâtiments et décors d'ambiance aux abords du plateau (village de donjon).
   for (const b of BUILDINGS) boardGroup.add(standee(b.art, worldUV(b.u, b.v, length), b.w * (SPAN / 100) * 1.35));
   for (const d of DECOR) boardGroup.add(standee(d.art, worldUV(d.u, d.v, length), d.s * 0.05 + 1.2));
+
+  // Vue d'ensemble : recule assez pour cadrer TOUT le plateau (le joueur voit
+  // le plateau global au repos ; la caméra ne se rapproche que pendant un trajet).
+  const cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2;
+  const spanX = Math.max(1, maxX - minX), spanZ = Math.max(1, maxZ - minZ);
+  const dist = Math.max(spanX * 0.62, spanZ * 0.95) + 12;
+  overPos.set(cx, dist * 0.92, cz + dist * 0.82);
+  overLook.set(cx, 0, cz + 1);
+  camPos.copy(overPos); camLook.copy(overLook); // départ en vue d'ensemble
 }
 
 /* ---------- pions ---------- */
@@ -357,17 +383,17 @@ function loop() {
     if (rec.obj.isSprite) rec.obj.position.y = 0.35;
   }
 
-  // Caméra : suit le pion focalisé (derrière + au-dessus), sinon vue d'ensemble.
-  const foc = focusId != null ? pionObjs.get(focusId) : null;
-  if (foc) {
-    const t = foc.obj.position;
-    // Caméra plus haute et un peu en retrait ; on regarde LÉGÈREMENT devant le
-    // pion (vers l'arrivée) pour découvrir le chemin plutôt que le mur du fond.
-    camPos.lerp(new THREE.Vector3(t.x * 0.5, 13.5, t.z + 15), 0.06);
-    camLook.lerp(new THREE.Vector3(t.x * 0.6, 1.6, t.z - 2.5), 0.09);
+  // Caméra : au REPOS, vue d'ensemble (tout le plateau visible). Pendant un
+  // TRAJET, elle se rapproche et suit le pion qui marche, puis revient.
+  let walker = null;
+  for (const rec of pionObjs.values()) { if (rec.walk) { walker = rec; break; } }
+  if (walker) {
+    const t = walker.obj.position;
+    camPos.lerp(new THREE.Vector3(t.x * 0.55, 13, overLook.z * 0.2 + t.z + 14), 0.05);
+    camLook.lerp(new THREE.Vector3(t.x * 0.6, 1.6, t.z - 2), 0.07);
   } else {
-    camPos.lerp(new THREE.Vector3(0, 24, 30), 0.04);
-    camLook.lerp(new THREE.Vector3(0, 0, 0), 0.04);
+    camPos.lerp(overPos, 0.045);
+    camLook.lerp(overLook, 0.045);
   }
   camera.position.copy(camPos);
   camera.lookAt(camLook);

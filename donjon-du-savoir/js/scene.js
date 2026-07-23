@@ -24,11 +24,11 @@ const SCENES = {
 
 // thème du donjon → image de fond (parallaxe arrière). Repli : dégradé CSS.
 const THEME_FOND = {
-  donjon: "assets/fond-donjon.png",
-  crypte: "assets/fond-crypte.png",
-  tour: "assets/fond-tour.png",
-  labyrinthe: "assets/fond-labyrinthe.png",
-  catacombes: "assets/fond-catacombes.png",
+  donjon: "assets/fond-donjon.webp",
+  crypte: "assets/fond-crypte.webp",
+  tour: "assets/fond-tour.webp",
+  labyrinthe: "assets/fond-labyrinthe.webp",
+  catacombes: "assets/fond-catacombes.webp",
 };
 
 /** L'immersion (scènes + caméra) est-elle active ? (réglage, activé par défaut). */
