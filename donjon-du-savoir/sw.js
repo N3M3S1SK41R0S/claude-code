@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v54";
+const VERSION = "donjon-v55";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -27,6 +27,7 @@ const SHELL = [
   "./js/voices.js",
   "./js/bots.js",
   "./js/prefs.js",
+  "./js/palmares.js",
   "./js/ui.js",
   "./data/questions.json",
   "./data/wordgames.json",

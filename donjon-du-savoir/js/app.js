@@ -5,7 +5,7 @@ import { loadWordgames } from "./wordgames.js";
 import { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } from "./custom.js";
 import { BOARDS, boardById, generateBoard } from "./board.js";
 import { openReference, resumeGame, startGame } from "./game.js";
-import { AGE_BRACKETS, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, loadSave, newGame, youngestBracket } from "./state.js";
+import { AGE_BRACKETS, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, getState, loadSave, newGame, youngestBracket } from "./state.js";
 import { portraitEl } from "./portraits.js";
 import { POWERS } from "./powers.js";
 import { setVoice, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
@@ -13,11 +13,12 @@ import { setSfx, sfx, sfxAvailable, sfxEnabled } from "./sfx.js";
 import { setMusic, musicAvailable, musicEnabled } from "./music.js";
 import { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } from "./bots.js";
 import { getPrefs, loadPrefs, setPref } from "./prefs.js";
+import { getPalmares, loadPalmares, recordGame, SUCCES } from "./palmares.js";
 import { el } from "./ui.js";
 
 const MAX_PLAYERS = 20;
 
-const screens = ["home", "rules", "custom", "reglages", "setup", "game", "victory"];
+const screens = ["home", "rules", "custom", "palmares", "reglages", "setup", "game", "victory"];
 function show(name) {
   for (const s of screens) {
     document.getElementById(`screen-${s}`).hidden = s !== name;
@@ -48,6 +49,7 @@ function renderHome() {
   zone.append(newBtn);
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderRules(); show("rules"); } }, "📖 Les règles"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderCustom(); show("custom"); } }, "✍️ Vos questions maison"));
+  zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderPalmares(); show("palmares"); } }, "🏅 Palmarès & succès"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderReglages(); show("reglages"); } }, "⚙️ Réglages & accessibilité"));
   document.getElementById("bank-info").textContent = bankOk
     ? `${bankSize()} questions vérifiées et sourcées · 13 catégories · zéro chronomètre`
@@ -560,11 +562,23 @@ function showVictory(winner, rankingData, extras = {}) {
   zone.innerHTML = "";
   const etoilesMode = rankingData.some((p) => p.etoiles !== undefined);
   const bonusStars = extras.bonusStars ?? [];
+  // Enregistre la partie au palmarès et récupère les succès nouvellement débloqués.
+  const newSucces = recordGame({ pions: rankingData, winner, mode: getState()?.mode ?? "individuel", etoilesMode });
   zone.append(
     el("h2", { class: "victory-title", text: etoilesMode
       ? `🏆 ${winner.nom} remporte le Donjon avec ${winner.etoiles ?? 0} ⭐ !`
       : `🏆 ${winner.nom} remporte le Trésor du Savoir !` }),
   );
+  if (newSucces.length > 0) {
+    zone.append(
+      el("div", { class: "succes-unlock" },
+        el("h3", { class: "succes-unlock-title", text: newSucces.length > 1 ? "🏅 Nouveaux succès débloqués !" : "🏅 Succès débloqué !" }),
+        ...newSucces.map((s) =>
+          el("p", { class: "succes-unlock-line", text: `${s.emoji} ${s.titre} — ${s.desc}` }),
+        ),
+      ),
+    );
+  }
   if (bonusStars.length > 0) {
     zone.append(
       el("div", { class: "bonus-stars" },
@@ -680,6 +694,47 @@ function renderReglages() {
   );
 }
 
+/* ---------- palmarès & succès ---------- */
+
+function renderPalmares() {
+  const zone = document.getElementById("palmares-zone");
+  zone.innerHTML = "";
+  const d = getPalmares();
+  const tauxMoyen = d.questionsTotal ? Math.round((d.bonnesTotal / d.questionsTotal) * 100) : 0;
+  const stat = (emoji, valeur, label) => el("div", { class: "palm-stat" },
+    el("span", { class: "palm-stat-val", text: String(valeur) }),
+    el("span", { class: "palm-stat-lbl", text: `${emoji} ${label}` }),
+  );
+  zone.append(
+    el("div", { class: "palm-stats" },
+      stat("🎮", d.parties, "parties"),
+      stat("🏆", d.victoires, "victoires"),
+      stat("✅", d.bonnesTotal, "bonnes réponses"),
+      stat("🎯", `${tauxMoyen} %`, "réussite moyenne"),
+      stat("🪙", d.orTotal, "or amassé"),
+      stat("🌟", d.meilleuresEtoiles, "record d'étoiles"),
+    ),
+  );
+  zone.append(el("h2", { class: "palm-succes-titre", text: `🏅 Succès débloqués — ${d.succes.length} / ${SUCCES.length}` }));
+  const grid = el("div", { class: "palm-succes-grid" });
+  for (const s of SUCCES) {
+    const got = d.succes.includes(s.id);
+    grid.append(
+      el("div", { class: "palm-succes" + (got ? " palm-succes-on" : "") },
+        el("span", { class: "palm-succes-emoji", "aria-hidden": "true", text: got ? s.emoji : "🔒" }),
+        el("div", { class: "palm-succes-txt" },
+          el("span", { class: "palm-succes-nom", text: s.titre }),
+          el("span", { class: "palm-succes-desc", text: s.desc }),
+        ),
+      ),
+    );
+  }
+  zone.append(grid);
+  if (d.parties === 0) {
+    zone.append(el("p", { class: "help-note", style: "text-align:center", text: "Jouez une partie pour commencer à garnir votre palmarès !" }));
+  }
+}
+
 /* ---------- tutoriel du premier lancement ---------- */
 
 const TUTO_STEPS = [
@@ -791,6 +846,11 @@ function wireHeader() {
     show("home");
   });
 
+  document.getElementById("palmares-back").addEventListener("click", () => {
+    renderHome();
+    show("home");
+  });
+
   document.getElementById("help-btn").addEventListener("click", () => openReference());
 
   document.getElementById("quit-btn").addEventListener("click", () => {
@@ -811,6 +871,7 @@ function wireHeader() {
 
 async function boot() {
   loadPrefs(); // applique tôt les préférences d'accessibilité (police, couleurs…)
+  loadPalmares(); // charge le palmarès persistant (parties, victoires, succès)
   wireHeader();
   warmVoices();
   try {

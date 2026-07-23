@@ -85,7 +85,7 @@ try {
     for (let g = 0; g < (await groups.count()); g++) { const grp = groups.nth(g); if ((await grp.locator(".bet-selected").count()) === 0) { await grp.locator("button").first().click(); voted = true; break; } }
     if (voted) continue;
     if ((await page.locator(".choices .btn-choice:not([disabled])").count()) > 0) { await page.locator(".choices .btn-choice:not([disabled])").first().click(); continue; }
-    const next = page.getByRole("button", { name: /Découvrir|Continuer|Révéler|Valider|Subir|Quitter|Garder/ }).first();
+    const next = page.getByRole("button", { name: /Découvrir|Continuer|Révéler|Valider|Subir|Quitter|Garder|a écrit/ }).first();
     if ((await next.isVisible().catch(() => false)) && (await next.isEnabled().catch(() => false))) {
       if ((await next.textContent()) === "Valider mon nombre") await page.locator(".num-input").fill("50");
       await next.click();
