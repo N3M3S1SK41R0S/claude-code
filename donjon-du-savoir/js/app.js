@@ -722,7 +722,7 @@ function renderReglages() {
       seg(oui_non, p.gros, (v) => setPref("gros", v))),
     row("🌈 Mode daltonien", "Bonne réponse en bleu, coup dur en orange (au lieu de vert / rouge).",
       seg(oui_non, p.daltonien, (v) => setPref("daltonien", v))),
-    row("🎬 Vue immersive", "Petites saynètes animées à l'arrivée sur les cases marquantes (façon Mario Party).",
+    row("🎬 Vue immersive (3D)", "Plateau en 3D avec caméra qui suit le pion + saynètes animées (façon Mario Party). Décochez pour le plateau 2D classique. Repli 2D automatique si l'appareil ne gère pas la 3D.",
       seg(oui_non, p.immersion !== false, (v) => setPref("immersion", v))),
     row("🎬 Animations", "Réduisez les mouvements à l'écran si vous préférez le calme.",
       seg([{ val: "completes", label: "Complètes" }, { val: "reduites", label: "Réduites" }], p.animations, (v) => setPref("animations", v))),

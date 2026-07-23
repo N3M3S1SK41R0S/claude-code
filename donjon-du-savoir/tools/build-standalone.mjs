@@ -16,7 +16,7 @@ const R = (p) => readFileSync(join(root, p), "utf8");
 // the entry last. We register every module, then require("./app.js").
 const MODULES = [
   "tts", "sfx", "music", "voices", "bots", "prefs", "palmares", "herald", "powers", "portraits", "custom", "items", "minigames",
-  "wordgames", "themes", "state", "board", "data", "ui", "scene", "game", "app",
+  "wordgames", "themes", "state", "board", "data", "ui", "scene", "board3d", "game", "app",
 ];
 
 function collectExports(src) {
@@ -121,7 +121,11 @@ function inlineAssets(text) {
 }
 let assetCount = 0;
 
-const artifactContent = inlineAssets(`<style>\n${css}\n</style>\n${body}\n<script>${runtime}</script>\n`);
+// three.js (MIT) embarqué : la vue 3D fonctionne hors-ligne, sans aucun CDN.
+// Il expose le global THREE, utilisé par board3d.js ; repli 2D si absent.
+const three = R("vendor/three.min.js");
+
+const artifactContent = inlineAssets(`<style>\n${css}\n</style>\n${body}\n<script>${three}</script>\n<script>${runtime}</script>\n`);
 
 // Icône embarquée : le fichier standalone montre une vraie icône du jeu dans
 // l'onglet du navigateur et sur l'écran d'accueil (« Ajouter à l'écran »),

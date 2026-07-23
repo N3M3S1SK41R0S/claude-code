@@ -185,6 +185,14 @@ function geometry(length) {
   return geomCache.get(length);
 }
 
+/** Géométrie du plateau (coords des cases + hauteur du viewBox) — partagée avec
+ *  le rendu 3D (board3d.js) pour placer les cases dans la scène. */
+export function boardGeometry(length) {
+  return geometry(length);
+}
+
+export { VIEW_W };
+
 /** Catmull-Rom spline through the case centers → smooth SVG road. */
 function roadPath(coords) {
   const p = coords;

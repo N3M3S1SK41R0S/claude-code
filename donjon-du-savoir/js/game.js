@@ -6,6 +6,7 @@
 //  - anecdote after EVERY question, no exception.
 import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawHardest, drawInsolite, drawQuestion } from "./data.js";
 import { boardById, renderBoard, walkPion } from "./board.js";
+import { render3D, show3D, use3D, walk3D } from "./board3d.js";
 import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
@@ -270,14 +271,17 @@ function boardLen() {
 
 function render() {
   const state = getState();
-  renderBoard(
-    document.getElementById("board"),
-    state.board,
-    state.pions.map(pionView),
-    currentPion().id,
-    boardById(state.boardId),
-    state.starPos,
-  );
+  const boardEl = document.getElementById("board");
+  const pv = state.pions.map(pionView);
+  const def = boardById(state.boardId);
+  // Rendu 3D si disponible/activé ; sinon plateau 2D (repli garanti). Si la 3D
+  // échoue à l'init, render3D renvoie falsy et on retombe proprement sur le 2D.
+  let done3d = false;
+  if (use3D()) { try { done3d = render3D(boardEl, state.board, pv, currentPion().id, def, state.starPos); } catch { done3d = false; } }
+  if (!done3d) {
+    show3D(false);
+    renderBoard(boardEl, state.board, pv, currentPion().id, def, state.starPos);
+  }
   renderPlayersStrip();
 }
 
@@ -673,7 +677,9 @@ function moveAndResolve(steps) {
   if (isEtoiles()) for (let k = 1; k <= steps; k++) walkPath.push(((before + k) % L + L) % L);
   else for (let c = before + 1; c <= after; c++) walkPath.push(c);
   save();
-  walkPion(pion.id, walkPath, L); // marque le pion « en trajet » avant le rendu
+  // Animation de trajet : en 3D la caméra suit le pion, sinon le jeton 2D marche.
+  if (use3D()) walk3D(pion.id, walkPath, L);
+  else walkPion(pion.id, walkPath, L);
   render();
   // Empêche l'exploit du rechargement en plein déplacement (position déjà
   // sauvegardée ; un reload rendra la main sans relancer le dé).

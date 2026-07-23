@@ -31,9 +31,9 @@ const failures = [];
 const check = (name, ok) => { console.log(`${ok ? "✓" : "✗"} ${name}`); if (!ok) failures.push(name); };
 
 try {
-  // Joueur qui revient : tutoriel déjà vu (l'overlay du 1er lancement bloquerait
-  // les clics). Persiste sur les rechargements de la même page.
-  await page.addInitScript(() => { try { localStorage.setItem("donjon-prefs", JSON.stringify({ tutoVu: true })); } catch { /* mode privé */ } });
+  // Joueur qui revient : tutoriel déjà vu (l'overlay bloquerait les clics) et
+  // vue immersive coupée → plateau 2D déterministe. Persiste aux rechargements.
+  await page.addInitScript(() => { try { localStorage.setItem("donjon-prefs", JSON.stringify({ tutoVu: true, immersion: false })); } catch { /* mode privé */ } });
   await page.goto(pathToFileURL(file).href, { waitUntil: "load" });
   check("page loads", (await page.title()).includes("Donjon du Savoir"));
   check("bank embedded", /\d+ questions vérifiées/.test(await page.locator("#bank-info").textContent({ timeout: 8000 })));

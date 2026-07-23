@@ -60,8 +60,9 @@ const check = (name, ok) => {
 
 try {
   // Simule un joueur qui revient : tutoriel déjà vu (sinon l'overlay du 1er
-  // lancement bloquerait les clics). N'altère pas le déroulé du jeu.
-  await page.addInitScript(() => { try { localStorage.setItem("donjon-prefs", JSON.stringify({ tutoVu: true })); } catch { /* mode privé */ } });
+  // lancement bloquerait les clics) et vue immersive coupée → plateau 2D
+  // déterministe (ce test vérifie le rendu 2D et le déroulé du jeu).
+  await page.addInitScript(() => { try { localStorage.setItem("donjon-prefs", JSON.stringify({ tutoVu: true, immersion: false })); } catch { /* mode privé */ } });
   await page.goto(`http://localhost:${PORT}/`, { waitUntil: "load" });
   check("home loads", (await page.title()).includes("Donjon du Savoir"));
   // Boot is async (loadBank → loadWordgames → renderHome); wait for the count

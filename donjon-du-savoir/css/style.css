@@ -903,3 +903,11 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 @keyframes scene-walk-in { from { opacity: 0; transform: translateX(-170%); } to { opacity: 1; transform: translateX(0); } }
 @keyframes scene-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7%); } }
 @keyframes scene-cap-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ---------- plateau 3D (WebGL, board3d.js) ---------- */
+.board3d-canvas {
+  display: block; width: 100%; max-width: 760px; margin-inline: auto;
+  border-radius: 18px; border: 2px solid var(--line);
+  background: linear-gradient(160deg, #241a45 0%, #1a1230 55%, #150e28 100%);
+  touch-action: pan-y;
+}

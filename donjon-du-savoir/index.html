@@ -129,6 +129,10 @@
   </main>
 
   <noscript><p style="padding:2rem;text-align:center">Le Donjon du Savoir a besoin de JavaScript pour ouvrir ses portes.</p></noscript>
+  <!-- three.js (MIT) embarqué en local pour la vue 3D immersive : hors-ligne,
+       aucun CDN. Chargé avant les modules (defer garde l'ordre). Repli 2D si
+       WebGL est indisponible. -->
+  <script defer src="vendor/three.min.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
