@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 3886,
+ "count": 3981,
  "questions": [
   {
    "id": "arts-001",
@@ -74343,6 +74343,1860 @@
     "Faux"
    ],
    "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2478",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quels traités, signés en 1648, mettent fin à la guerre de Trente Ans ?",
+   "anecdote": "Ils furent négociés simultanément dans deux villes distinctes, Münster et Osnabrück, les délégations catholiques et protestantes refusant de siéger ensemble.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Traités_de_Westphalie",
+    "https://en.wikipedia.org/wiki/Peace_of_Westphalia"
+   ],
+   "choix": [
+    "Les traités de Westphalie",
+    "Le traité d'Utrecht",
+    "Le traité de Vienne",
+    "Le traité de Tordesillas"
+   ],
+   "bonne_reponse": "Les traités de Westphalie"
+  },
+  {
+   "id": "add-2479",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "À quelle dynastie appartenait Cléopâtre VII, dernière reine d'Égypte ?",
+   "anecdote": "D'origine macédonienne, la dynastie des Lagides fut fondée par Ptolémée, un général d'Alexandre le Grand ; selon Plutarque, Cléopâtre fut l'une des rares de sa lignée à apprendre l'égyptien.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cléopâtre_VII",
+    "https://en.wikipedia.org/wiki/Ptolemaic_dynasty"
+   ],
+   "choix": [
+    "Les Lagides",
+    "Les Séleucides",
+    "Les Achéménides",
+    "Les Antigonides"
+   ],
+   "bonne_reponse": "Les Lagides"
+  },
+  {
+   "id": "add-2480",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Napoléon Bonaparte est né à Ajaccio en 1769, l'année qui a suivi la cession de la Corse à la France par Gênes.",
+   "anecdote": "Né le 15 août 1769, quelques mois après la bataille de Ponte-Novo, Napoléon aurait pu naître génois : Gênes n'avait cédé ses droits sur l'île qu'en 1768.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Napoléon_Ier",
+    "https://en.wikipedia.org/wiki/Napoleon"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2481",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel roi de France fut fait prisonnier à la bataille de Pavie en 1525 ?",
+   "anecdote": "Capturé par les troupes de Charles Quint puis emmené en Espagne, François Ier écrivit à sa mère une lettre restée célèbre sous la forme « Tout est perdu, fors l'honneur ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bataille_de_Pavie_(1525)",
+    "https://en.wikipedia.org/wiki/Battle_of_Pavia"
+   ],
+   "choix": [
+    "François Ier",
+    "Jean II le Bon",
+    "Charles VIII",
+    "Louis XII"
+   ],
+   "bonne_reponse": "François Ier"
+  },
+  {
+   "id": "add-2482",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "En quelle année eut lieu le massacre de la Saint-Barthélemy ?",
+   "anecdote": "Déclenchée dans la nuit du 23 au 24 août 1572 à Paris, la tuerie des protestants s'étendit ensuite à de nombreuses villes de province pendant plusieurs semaines.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Massacre_de_la_Saint-Barthélemy",
+    "https://en.wikipedia.org/wiki/St._Bartholomew%27s_Day_massacre"
+   ],
+   "choix": [
+    "1572",
+    "1562",
+    "1589",
+    "1598"
+   ],
+   "bonne_reponse": "1572"
+  },
+  {
+   "id": "add-2483",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Qui fut le premier président de la Troisième République française ?",
+   "anecdote": "Élu « chef du pouvoir exécutif » puis président en 1871, Adolphe Thiers dirigea la répression de la Commune de Paris avant d'être remplacé par Mac Mahon en 1873.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Adolphe_Thiers",
+    "https://en.wikipedia.org/wiki/Adolphe_Thiers"
+   ],
+   "choix": [
+    "Adolphe Thiers",
+    "Patrice de Mac Mahon",
+    "Jules Grévy",
+    "Sadi Carnot"
+   ],
+   "bonne_reponse": "Adolphe Thiers"
+  },
+  {
+   "id": "add-2484",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le mur de Berlin est tombé en 1989, l'année même du bicentenaire de la Révolution française.",
+   "anecdote": "Le mur s'est ouvert le 9 novembre 1989, à la suite d'une annonce confuse du porte-parole Günter Schabowski en conférence de presse.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chute_du_mur_de_Berlin",
+    "https://en.wikipedia.org/wiki/Berlin_Wall"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2485",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quelle victoire napoléonienne de 1805 est surnommée « la bataille des Trois Empereurs » ?",
+   "anecdote": "Remportée le 2 décembre 1805 face aux empereurs de Russie et d'Autriche, elle tomba exactement un an après le sacre de Napoléon à Notre-Dame de Paris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bataille_d%27Austerlitz",
+    "https://en.wikipedia.org/wiki/Battle_of_Austerlitz"
+   ],
+   "choix": [
+    "Austerlitz",
+    "Iéna",
+    "Wagram",
+    "Eylau"
+   ],
+   "bonne_reponse": "Austerlitz"
+  },
+  {
+   "id": "add-2486",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel pharaon conclut avec le roi hittite Hattousili III un traité de paix considéré comme l'un des plus anciens conservés ?",
+   "anecdote": "Signé vers 1259 avant notre ère après la bataille de Qadech, ce traité est si emblématique qu'une reproduction en est exposée au siège des Nations unies à New York.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ramsès_II",
+    "https://en.wikipedia.org/wiki/Egyptian%E2%80%93Hittite_peace_treaty"
+   ],
+   "choix": [
+    "Ramsès II",
+    "Toutânkhamon",
+    "Akhenaton",
+    "Thoutmôsis III"
+   ],
+   "bonne_reponse": "Ramsès II"
+  },
+  {
+   "id": "add-2487",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quelle dynastie succède aux Mérovingiens sur le trône des Francs en 751 ?",
+   "anecdote": "Pépin le Bref, premier roi carolingien, fut sacré une seconde fois en 754 à Saint-Denis par le pape Étienne II en personne, un geste alors exceptionnel.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pépin_le_Bref",
+    "https://en.wikipedia.org/wiki/Carolingian_dynasty"
+   ],
+   "choix": [
+    "Les Carolingiens",
+    "Les Capétiens",
+    "Les Valois",
+    "Les Bourbons"
+   ],
+   "bonne_reponse": "Les Carolingiens"
+  },
+  {
+   "id": "add-2488",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel est le plus long fleuve entièrement situé sur le territoire français ?",
+   "anecdote": "Longue d'environ 1 000 kilomètres, la Loire prend sa source au mont Gerbier-de-Jonc, en Ardèche, à moins de 150 kilomètres de la Méditerranée... avant de filer vers l'Atlantique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Loire",
+    "https://en.wikipedia.org/wiki/Loire"
+   ],
+   "choix": [
+    "La Loire",
+    "La Seine",
+    "Le Rhône",
+    "La Garonne"
+   ],
+   "bonne_reponse": "La Loire"
+  },
+  {
+   "id": "add-2489",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel bras de mer sépare la Corse de la Sardaigne ?",
+   "anecdote": "Larges d'une dizaine de kilomètres seulement, les Bouches de Bonifacio abritent une réserve naturelle et sont réputées pour leurs vents violents, redoutés des navigateurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bouches_de_Bonifacio",
+    "https://en.wikipedia.org/wiki/Strait_of_Bonifacio"
+   ],
+   "choix": [
+    "Les Bouches de Bonifacio",
+    "Le canal de Corse",
+    "Le détroit de Messine",
+    "Le canal d'Otrante"
+   ],
+   "bonne_reponse": "Les Bouches de Bonifacio"
+  },
+  {
+   "id": "add-2490",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel est le point culminant de la Corse ?",
+   "anecdote": "Avec ses 2 706 mètres, le Monte Cinto domine une île si montagneuse que les Grecs anciens l'appelaient Kallistê, « la plus belle », et qu'on la surnomme « île de Beauté ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Monte_Cinto",
+    "https://en.wikipedia.org/wiki/Monte_Cinto"
+   ],
+   "choix": [
+    "Le Monte Cinto",
+    "Le Monte Rotondo",
+    "Le Monte d'Oro",
+    "La Paglia Orba"
+   ],
+   "bonne_reponse": "Le Monte Cinto"
+  },
+  {
+   "id": "add-2491",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le lac Baïkal, en Sibérie, contient à lui seul environ 20 % de l'eau douce liquide de surface de la planète.",
+   "anecdote": "Profond de 1 642 mètres, le Baïkal est le lac le plus profond du monde ; il abrite une espèce de phoque d'eau douce unique, le nerpa.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Lac_Baïkal",
+    "https://en.wikipedia.org/wiki/Lake_Baikal"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2492",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Avec quel pays la France partage-t-elle sa plus longue frontière terrestre ?",
+   "anecdote": "Grâce à la Guyane, la frontière franco-brésilienne s'étire sur environ 730 kilomètres de forêt amazonienne, davantage que la frontière des Pyrénées avec l'Espagne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Frontière_entre_le_Brésil_et_la_France",
+    "https://en.wikipedia.org/wiki/Brazil%E2%80%93France_border"
+   ],
+   "choix": [
+    "Le Brésil",
+    "L'Espagne",
+    "La Belgique",
+    "L'Allemagne"
+   ],
+   "bonne_reponse": "Le Brésil"
+  },
+  {
+   "id": "add-2493",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quelle est la plus vaste étendue d'eau fermée du monde, souvent considérée comme le plus grand lac de la planète ?",
+   "anecdote": "Avec environ 371 000 km², la mer Caspienne dépasse la superficie de l'Allemagne ; son niveau se situe en dessous de celui des océans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mer_Caspienne",
+    "https://en.wikipedia.org/wiki/Caspian_Sea"
+   ],
+   "choix": [
+    "La mer Caspienne",
+    "Le lac Supérieur",
+    "Le lac Victoria",
+    "Le lac Baïkal"
+   ],
+   "bonne_reponse": "La mer Caspienne"
+  },
+  {
+   "id": "add-2494",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quelle ville est la préfecture du département de la Haute-Corse ?",
+   "anecdote": "Ancienne capitale de la Corse génoise, Bastia doit son nom à la « bastiglia », la bastille fortifiée construite par les Génois au XIVe siècle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Haute-Corse",
+    "https://en.wikipedia.org/wiki/Bastia"
+   ],
+   "choix": [
+    "Bastia",
+    "Ajaccio",
+    "Corte",
+    "Calvi"
+   ],
+   "bonne_reponse": "Bastia"
+  },
+  {
+   "id": "add-2495",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Dans quel pays se trouve le cap Horn ?",
+   "anecdote": "Situé sur une île chilienne de la Terre de Feu, le cap doit son nom à Hoorn, la ville néerlandaise d'origine des navigateurs qui le franchirent en 1616.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cap_Horn",
+    "https://en.wikipedia.org/wiki/Cape_Horn"
+   ],
+   "choix": [
+    "Le Chili",
+    "L'Argentine",
+    "Le Pérou",
+    "L'Uruguay"
+   ],
+   "bonne_reponse": "Le Chili"
+  },
+  {
+   "id": "add-2496",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "vrai_faux",
+   "texte": "La Corse est la quatrième île de Méditerranée par la superficie, derrière la Sicile, la Sardaigne et Chypre.",
+   "anecdote": "Avec environ 8 700 km², la Corse est aussi la plus montagneuse des grandes îles méditerranéennes : plus d'une centaine de ses sommets dépassent 2 000 mètres.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Corse",
+    "https://en.wikipedia.org/wiki/Corsica"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2497",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel élément chimique a pour symbole W ?",
+   "anecdote": "Le W vient de son autre nom, le wolfram ; le tungstène possède le point de fusion le plus élevé de tous les métaux, environ 3 422 °C.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tungstène",
+    "https://en.wikipedia.org/wiki/Tungsten"
+   ],
+   "choix": [
+    "Le tungstène",
+    "Le titane",
+    "Le tantale",
+    "Le tellure"
+   ],
+   "bonne_reponse": "Le tungstène"
+  },
+  {
+   "id": "add-2498",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quelle personnalité a reçu le prix Nobel dans deux disciplines scientifiques différentes ?",
+   "anecdote": "Marie Curie reçut le Nobel de physique en 1903 puis celui de chimie en 1911 ; seul Linus Pauling a aussi obtenu deux Nobel individuels, mais en chimie et pour la paix.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marie_Curie",
+    "https://www.nobelprize.org/prizes/physics/1903/summary/"
+   ],
+   "choix": [
+    "Marie Curie",
+    "Albert Einstein",
+    "Ernest Rutherford",
+    "Frédéric Joliot-Curie"
+   ],
+   "bonne_reponse": "Marie Curie"
+  },
+  {
+   "id": "add-2499",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "La lumière du Soleil met environ huit minutes à parvenir jusqu'à la Terre.",
+   "anecdote": "Il faut précisément près de 8 minutes et 20 secondes aux photons pour franchir les 150 millions de kilomètres qui nous séparent du Soleil.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Soleil",
+    "https://en.wikipedia.org/wiki/Sunlight"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2500",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Autour de quelle planète orbite Ganymède, la plus grande lune du Système solaire ?",
+   "anecdote": "Ganymède, satellite de Jupiter découvert par Galilée en 1610, est plus grande que la planète Mercure et possède son propre champ magnétique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ganymède_(lune)",
+    "https://en.wikipedia.org/wiki/Ganymede_(moon)"
+   ],
+   "choix": [
+    "Jupiter",
+    "Saturne",
+    "Uranus",
+    "Neptune"
+   ],
+   "bonne_reponse": "Jupiter"
+  },
+  {
+   "id": "add-2501",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel physicien a démontré expérimentalement la rotation de la Terre grâce à un pendule installé au Panthéon en 1851 ?",
+   "anecdote": "Le pendule de Léon Foucault, suspendu à un fil de 67 mètres sous la coupole du Panthéon, voyait son plan d'oscillation tourner lentement au fil des heures.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pendule_de_Foucault",
+    "https://en.wikipedia.org/wiki/Foucault_pendulum"
+   ],
+   "choix": [
+    "Léon Foucault",
+    "Hippolyte Fizeau",
+    "François Arago",
+    "Urbain Le Verrier"
+   ],
+   "bonne_reponse": "Léon Foucault"
+  },
+  {
+   "id": "add-2502",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "vrai_faux",
+   "texte": "Le neutrino a été postulé théoriquement par Wolfgang Pauli avant d'être détecté expérimentalement en 1956.",
+   "anecdote": "Pauli imagina en 1930 cette particule « indétectable » pour sauver la conservation de l'énergie ; Frederick Reines, qui la détecta avec Clyde Cowan, reçut le Nobel en 1995.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Neutrino",
+    "https://en.wikipedia.org/wiki/Neutrino"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2503",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Combien d'os compte, en général, le squelette d'un être humain adulte ?",
+   "anecdote": "Le nouveau-né possède près de 300 os et cartilages osseux ; beaucoup fusionnent au cours de la croissance pour aboutir aux 206 os de l'adulte.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Squelette_humain",
+    "https://en.wikipedia.org/wiki/Human_skeleton"
+   ],
+   "choix": [
+    "206",
+    "186",
+    "226",
+    "246"
+   ],
+   "bonne_reponse": "206"
+  },
+  {
+   "id": "add-2504",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel est le métal le plus abondant dans la croûte terrestre ?",
+   "anecdote": "L'aluminium représente environ 8 % de la masse de la croûte terrestre, ce qui en fait le troisième élément derrière l'oxygène et le silicium, loin devant le fer.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Aluminium",
+    "https://en.wikipedia.org/wiki/Abundance_of_elements_in_Earth%27s_crust"
+   ],
+   "choix": [
+    "L'aluminium",
+    "Le fer",
+    "Le cuivre",
+    "Le calcium"
+   ],
+   "bonne_reponse": "L'aluminium"
+  },
+  {
+   "id": "add-2505",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quelle est l'unité du Système international mesurant l'activité d'une source radioactive ?",
+   "anecdote": "Un becquerel correspond à une désintégration par seconde ; il a remplacé le curie, unité historique qui valait 37 milliards de becquerels.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Becquerel_(unité)",
+    "https://en.wikipedia.org/wiki/Becquerel"
+   ],
+   "choix": [
+    "Le becquerel",
+    "Le sievert",
+    "Le gray",
+    "Le curie"
+   ],
+   "bonne_reponse": "Le becquerel"
+  },
+  {
+   "id": "add-2506",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel physicien, pionnier de l'induction électromagnétique, a donné son nom à l'unité de capacité électrique ?",
+   "anecdote": "Ancien apprenti relieur devenu l'un des plus grands expérimentateurs de l'histoire, Michael Faraday découvrit l'induction électromagnétique en 1831 ; le farad lui rend hommage.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Michael_Faraday",
+    "https://en.wikipedia.org/wiki/Farad"
+   ],
+   "choix": [
+    "Michael Faraday",
+    "Alessandro Volta",
+    "Nikola Tesla",
+    "Joseph Henry"
+   ],
+   "bonne_reponse": "Michael Faraday"
+  },
+  {
+   "id": "add-2507",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel roman de Gustave Flaubert lui a valu un procès pour outrage aux bonnes mœurs en 1857 ?",
+   "anecdote": "Flaubert fut acquitté ; la même année 1857, Baudelaire, lui, fut condamné pour « Les Fleurs du mal », défendu par un avocat moins habile.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Madame_Bovary",
+    "https://en.wikipedia.org/wiki/Madame_Bovary"
+   ],
+   "choix": [
+    "Madame Bovary",
+    "Salammbô",
+    "L'Éducation sentimentale",
+    "Bouvard et Pécuchet"
+   ],
+   "bonne_reponse": "Madame Bovary"
+  },
+  {
+   "id": "add-2508",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Qui fut le tout premier lauréat du prix Nobel de littérature, en 1901 ?",
+   "anecdote": "Le choix du poète français Sully Prudhomme, préféré à Léon Tolstoï, provoqua une protestation d'écrivains et d'artistes suédois adressée au romancier russe.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sully_Prudhomme",
+    "https://www.nobelprize.org/prizes/literature/1901/summary/"
+   ],
+   "choix": [
+    "Sully Prudhomme",
+    "Rudyard Kipling",
+    "Frédéric Mistral",
+    "Léon Tolstoï"
+   ],
+   "bonne_reponse": "Sully Prudhomme"
+  },
+  {
+   "id": "add-2509",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Jean-Paul Sartre a refusé le prix Nobel de littérature qui lui avait été attribué en 1964.",
+   "anecdote": "Sartre, qui déclinait systématiquement les honneurs officiels, avait déjà refusé la Légion d'honneur ; il estimait qu'un écrivain ne doit pas se laisser « transformer en institution ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jean-Paul_Sartre",
+    "https://www.nobelprize.org/prizes/literature/1964/summary/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2510",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel poète est l'auteur du « Bateau ivre », composé en 1871 ?",
+   "anecdote": "Arthur Rimbaud écrivit ce long poème visionnaire sur l'océan sans avoir encore jamais vu la mer ; il le récita à Verlaine lors de son arrivée à Paris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Bateau_ivre",
+    "https://en.wikipedia.org/wiki/Arthur_Rimbaud"
+   ],
+   "choix": [
+    "Arthur Rimbaud",
+    "Paul Verlaine",
+    "Stéphane Mallarmé",
+    "Charles Baudelaire"
+   ],
+   "bonne_reponse": "Arthur Rimbaud"
+  },
+  {
+   "id": "add-2511",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel est le premier volume du cycle « À la recherche du temps perdu » de Marcel Proust ?",
+   "anecdote": "Refusé notamment par la NRF d'André Gide, « Du côté de chez Swann » parut en 1913 à compte d'auteur chez Grasset ; Gide qualifia plus tard ce refus de grave erreur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Du_côté_de_chez_Swann",
+    "https://en.wikipedia.org/wiki/In_Search_of_Lost_Time"
+   ],
+   "choix": [
+    "Du côté de chez Swann",
+    "À l'ombre des jeunes filles en fleurs",
+    "Le Côté de Guermantes",
+    "Le Temps retrouvé"
+   ],
+   "bonne_reponse": "Du côté de chez Swann"
+  },
+  {
+   "id": "add-2512",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Qui a écrit le roman « Cent ans de solitude », publié en 1967 ?",
+   "anecdote": "Chef-d'œuvre du réalisme magique retraçant la saga des Buendía à Macondo, le roman valut à Gabriel García Márquez le prix Nobel de littérature en 1982.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cent_Ans_de_solitude",
+    "https://en.wikipedia.org/wiki/Gabriel_García_Márquez"
+   ],
+   "choix": [
+    "Gabriel García Márquez",
+    "Mario Vargas Llosa",
+    "Jorge Luis Borges",
+    "Julio Cortázar"
+   ],
+   "bonne_reponse": "Gabriel García Márquez"
+  },
+  {
+   "id": "add-2513",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "vrai_faux",
+   "texte": "Molière est mort quelques heures après avoir joué dans une représentation du « Malade imaginaire ».",
+   "anecdote": "Contrairement à la légende, il n'est pas mort sur scène : pris d'un malaise lors de la quatrième représentation, le 17 février 1673, il s'éteignit chez lui peu après.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Molière",
+    "https://en.wikipedia.org/wiki/Molière"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2514",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quelle romancière fut, en 1980, la première femme élue à l'Académie française ?",
+   "anecdote": "L'auteure des « Mémoires d'Hadrien » vivait alors sur l'île des Monts-Déserts, aux États-Unis, dont elle avait aussi la nationalité ; elle succéda à Roger Caillois.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marguerite_Yourcenar",
+    "https://www.britannica.com/biography/Marguerite-Yourcenar"
+   ],
+   "choix": [
+    "Marguerite Yourcenar",
+    "Simone de Beauvoir",
+    "Marguerite Duras",
+    "Nathalie Sarraute"
+   ],
+   "bonne_reponse": "Marguerite Yourcenar"
+  },
+  {
+   "id": "add-2515",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Par quelle phrase s'ouvre « L'Étranger » d'Albert Camus ?",
+   "anecdote": "Cet incipit, l'un des plus célèbres de la littérature française, se poursuit par « Ou peut-être hier, je ne sais pas. » ; Camus reçut le Nobel en 1957.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/L%27Étranger",
+    "https://www.nobelprize.org/prizes/literature/1957/summary/"
+   ],
+   "choix": [
+    "« Aujourd'hui, maman est morte. »",
+    "« Longtemps, je me suis couché de bonne heure. »",
+    "« Ça a débuté comme ça. »",
+    "« Je forme une entreprise qui n'eut jamais d'exemple. »"
+   ],
+   "bonne_reponse": "« Aujourd'hui, maman est morte. »"
+  },
+  {
+   "id": "add-2516",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel peintre est l'auteur de « La Jeune Fille à la perle » ?",
+   "anecdote": "Surnommé « la Joconde du Nord », ce tableau de Johannes Vermeer conservé au Mauritshuis de La Haye n'est pas un portrait mais un « tronie », une étude de visage.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Jeune_Fille_à_la_perle",
+    "https://en.wikipedia.org/wiki/Girl_with_a_Pearl_Earring"
+   ],
+   "choix": [
+    "Johannes Vermeer",
+    "Rembrandt",
+    "Frans Hals",
+    "Antoine van Dyck"
+   ],
+   "bonne_reponse": "Johannes Vermeer"
+  },
+  {
+   "id": "add-2517",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Dans quel musée est exposée « La Ronde de nuit » de Rembrandt ?",
+   "anecdote": "Le chef-d'œuvre, dont le vrai titre évoque la compagnie du capitaine Frans Banninck Cocq, fut amputé sur les bords au XVIIIe siècle pour tenir entre deux portes de l'hôtel de ville d'Amsterdam.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Ronde_de_nuit",
+    "https://en.wikipedia.org/wiki/The_Night_Watch"
+   ],
+   "choix": [
+    "Le Rijksmuseum d'Amsterdam",
+    "Le Mauritshuis de La Haye",
+    "Le Louvre",
+    "La National Gallery de Londres"
+   ],
+   "bonne_reponse": "Le Rijksmuseum d'Amsterdam"
+  },
+  {
+   "id": "add-2518",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "« La Joconde » a été volée au Louvre en 1911 par un vitrier italien, Vincenzo Peruggia.",
+   "anecdote": "Le tableau resta introuvable plus de deux ans avant de réapparaître à Florence ; pendant l'enquête, Guillaume Apollinaire fut incarcéré et Picasso interrogé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Joconde",
+    "https://en.wikipedia.org/wiki/Vincenzo_Peruggia"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2519",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel sculpteur français a réalisé « La Liberté éclairant le monde », offerte aux États-Unis ?",
+   "anecdote": "Frédéric Auguste Bartholdi confia l'ossature métallique interne de la statue à l'ingénieur Gustave Eiffel, quelques années avant la construction de sa tour.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Statue_de_la_Liberté",
+    "https://en.wikipedia.org/wiki/Frédéric_Auguste_Bartholdi"
+   ],
+   "choix": [
+    "Frédéric Auguste Bartholdi",
+    "Auguste Rodin",
+    "François Rude",
+    "Jean-Baptiste Carpeaux"
+   ],
+   "bonne_reponse": "Frédéric Auguste Bartholdi"
+  },
+  {
+   "id": "add-2520",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel peintre espagnol, portraitiste de la cour de Philippe IV, a réalisé « Les Ménines » ?",
+   "anecdote": "Dans ce tableau de 1656 conservé au Prado, Diego Vélasquez se représente lui-même en train de peindre, le regard tourné vers le spectateur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Ménines",
+    "https://en.wikipedia.org/wiki/Diego_Velázquez"
+   ],
+   "choix": [
+    "Diego Vélasquez",
+    "Francisco de Goya",
+    "Francisco de Zurbarán",
+    "Bartolomé Esteban Murillo"
+   ],
+   "bonne_reponse": "Diego Vélasquez"
+  },
+  {
+   "id": "add-2521",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Le tableau « Guernica » de Picasso évoque un bombardement survenu pendant quel conflit ?",
+   "anecdote": "Peinte en quelques semaines après le bombardement de la ville basque par la légion Condor en avril 1937, la toile fut présentée la même année au pavillon espagnol de l'Exposition internationale de Paris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guernica_(Picasso)",
+    "https://en.wikipedia.org/wiki/Guernica_(Picasso)"
+   ],
+   "choix": [
+    "La guerre civile espagnole",
+    "La Première Guerre mondiale",
+    "La Seconde Guerre mondiale",
+    "La guerre du Rif"
+   ],
+   "bonne_reponse": "La guerre civile espagnole"
+  },
+  {
+   "id": "add-2522",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Vincent van Gogh a connu un grand succès commercial de son vivant.",
+   "anecdote": "« La Vigne rouge », achetée par la peintre Anna Boch, est souvent citée comme la seule toile dont la vente du vivant de l'artiste soit clairement attestée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vincent_van_Gogh",
+    "https://en.wikipedia.org/wiki/The_Red_Vineyard"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2523",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel architecte a conçu le musée Guggenheim de Bilbao, inauguré en 1997 ?",
+   "anecdote": "Les courbes de titane de Frank Gehry ont si bien relancé la ville qu'on parle depuis d'« effet Bilbao » pour désigner la régénération urbaine par un bâtiment phare.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Musée_Guggenheim_(Bilbao)",
+    "https://en.wikipedia.org/wiki/Guggenheim_Museum_Bilbao"
+   ],
+   "choix": [
+    "Frank Gehry",
+    "Norman Foster",
+    "Renzo Piano",
+    "Jean Nouvel"
+   ],
+   "bonne_reponse": "Frank Gehry"
+  },
+  {
+   "id": "add-2524",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Sous quel pape Michel-Ange a-t-il peint le plafond de la chapelle Sixtine ?",
+   "anecdote": "Commandée par Jules II et réalisée de 1508 à 1512, la fresque fut acceptée à contrecœur par Michel-Ange, qui se considérait avant tout comme un sculpteur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Plafond_de_la_chapelle_Sixtine",
+    "https://en.wikipedia.org/wiki/Sistine_Chapel_ceiling"
+   ],
+   "choix": [
+    "Jules II",
+    "Léon X",
+    "Alexandre VI",
+    "Paul III"
+   ],
+   "bonne_reponse": "Jules II"
+  },
+  {
+   "id": "add-2525",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel architecte a dessiné la pyramide de verre du Louvre, inaugurée en 1989 ?",
+   "anecdote": "Une légende tenace prête 666 panneaux de verre à la pyramide de Ieoh Ming Pei ; le Louvre en a recensé officiellement 673.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pyramide_du_Louvre",
+    "https://en.wikipedia.org/wiki/I._M._Pei"
+   ],
+   "choix": [
+    "Ieoh Ming Pei",
+    "Jean Nouvel",
+    "Christian de Portzamparc",
+    "Paul Andreu"
+   ],
+   "bonne_reponse": "Ieoh Ming Pei"
+  },
+  {
+   "id": "add-2526",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel opéra de Georges Bizet fut froidement accueilli lors de sa création à l'Opéra-Comique en mars 1875 ?",
+   "anecdote": "Bizet mourut le 3 juin 1875, trois mois après cette création jugée scandaleuse, sans savoir que « Carmen » deviendrait l'un des opéras les plus joués au monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Carmen_(opéra)",
+    "https://en.wikipedia.org/wiki/Carmen"
+   ],
+   "choix": [
+    "Carmen",
+    "Les Pêcheurs de perles",
+    "La Jolie Fille de Perth",
+    "Djamileh"
+   ],
+   "bonne_reponse": "Carmen"
+  },
+  {
+   "id": "add-2527",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Mozart est mort avant d'avoir achevé son Requiem.",
+   "anecdote": "Commandé anonymement par un émissaire du comte Walsegg, le Requiem fut complété après la mort de Mozart en 1791 par son élève Franz Xaver Süssmayr.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Requiem_de_Mozart",
+    "https://en.wikipedia.org/wiki/Requiem_(Mozart)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2528",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel virtuose italien du XIXe siècle fut surnommé « le violoniste du diable » ?",
+   "anecdote": "La virtuosité de Niccolò Paganini semblait si surnaturelle que la rumeur lui prêtait un pacte avec le diable ; l'Église lui refusa longtemps une sépulture religieuse.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Niccolò_Paganini",
+    "https://en.wikipedia.org/wiki/Niccolò_Paganini"
+   ],
+   "choix": [
+    "Niccolò Paganini",
+    "Pablo de Sarasate",
+    "Antonio Vivaldi",
+    "Fritz Kreisler"
+   ],
+   "bonne_reponse": "Niccolò Paganini"
+  },
+  {
+   "id": "add-2529",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel album de Miles Davis, enregistré en 1959, est souvent cité comme l'album de jazz le plus vendu de l'histoire ?",
+   "anecdote": "« Kind of Blue », enregistré en deux séances avec notamment John Coltrane et Bill Evans, repose sur le jazz modal, avec très peu d'indications écrites données aux musiciens.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kind_of_Blue",
+    "https://en.wikipedia.org/wiki/Kind_of_Blue"
+   ],
+   "choix": [
+    "Kind of Blue",
+    "Bitches Brew",
+    "Birth of the Cool",
+    "Sketches of Spain"
+   ],
+   "bonne_reponse": "Kind of Blue"
+  },
+  {
+   "id": "add-2530",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Dans quelle ville Rouget de Lisle a-t-il composé « La Marseillaise » en 1792 ?",
+   "anecdote": "Composé à Strasbourg sous le titre « Chant de guerre pour l'armée du Rhin », l'hymne doit son nom aux fédérés marseillais qui le chantèrent en montant vers Paris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Marseillaise",
+    "https://en.wikipedia.org/wiki/La_Marseillaise"
+   ],
+   "choix": [
+    "Strasbourg",
+    "Marseille",
+    "Paris",
+    "Lyon"
+   ],
+   "bonne_reponse": "Strasbourg"
+  },
+  {
+   "id": "add-2531",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le groupe ABBA a remporté le concours Eurovision de la chanson en 1974 avec « Waterloo ».",
+   "anecdote": "La victoire de Brighton lança la carrière internationale du quatuor suédois ; en 2005, « Waterloo » fut élue meilleure chanson de l'histoire du concours.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/ABBA",
+    "https://en.wikipedia.org/wiki/Waterloo_(ABBA_song)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2532",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel compositeur autrichien est traditionnellement surnommé « le père de la symphonie » ?",
+   "anecdote": "Joseph Haydn a laissé 104 symphonies numérotées ; longtemps au service des princes Esterházy, il fut aussi le professeur du jeune Beethoven.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Joseph_Haydn",
+    "https://en.wikipedia.org/wiki/Joseph_Haydn"
+   ],
+   "choix": [
+    "Joseph Haydn",
+    "Franz Schubert",
+    "Anton Bruckner",
+    "Wolfgang Amadeus Mozart"
+   ],
+   "bonne_reponse": "Joseph Haydn"
+  },
+  {
+   "id": "add-2533",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "De quel opéra de Verdi est tiré le célèbre air « La donna è mobile » ?",
+   "anecdote": "Redoutant que la mélodie ne soit fredonnée dans toute Venise avant la première de « Rigoletto » en 1851, Verdi ne la dévoila aux interprètes qu'au dernier moment.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rigoletto",
+    "https://en.wikipedia.org/wiki/La_donna_è_mobile"
+   ],
+   "choix": [
+    "Rigoletto",
+    "La Traviata",
+    "Aida",
+    "Nabucco"
+   ],
+   "bonne_reponse": "Rigoletto"
+  },
+  {
+   "id": "add-2534",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "De quelle ville était originaire Tino Rossi, l'interprète de « Petit Papa Noël » ?",
+   "anecdote": "Né à Ajaccio en 1907, Tino Rossi a fait de « Petit Papa Noël » l'un des singles les plus vendus de l'histoire du disque en France, avec plusieurs millions d'exemplaires.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tino_Rossi",
+    "https://en.wikipedia.org/wiki/Tino_Rossi"
+   ],
+   "choix": [
+    "Ajaccio",
+    "Bastia",
+    "Marseille",
+    "Nice"
+   ],
+   "bonne_reponse": "Ajaccio"
+  },
+  {
+   "id": "add-2535",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "De quelle langue le mot « alcool » est-il issu ?",
+   "anecdote": "L'arabe « al-kuhl » désignait à l'origine la poudre de khôl utilisée pour maquiller les yeux, avant que le mot ne passe aux substances distillées.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Alcool",
+    "https://en.wikipedia.org/wiki/Alcohol"
+   ],
+   "choix": [
+    "De l'arabe",
+    "Du grec",
+    "Du latin",
+    "De l'hébreu"
+   ],
+   "bonne_reponse": "De l'arabe"
+  },
+  {
+   "id": "add-2536",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Que désigne le mot « ataraxie » ?",
+   "anecdote": "Idéal des épicuriens, des stoïciens et des sceptiques, l'ataraxie vient du grec « ataraxia », littéralement « absence de trouble ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ataraxie",
+    "https://en.wikipedia.org/wiki/Ataraxia"
+   ],
+   "choix": [
+    "La tranquillité absolue de l'âme",
+    "La perte totale de la mémoire",
+    "L'incapacité à coordonner ses mouvements",
+    "La peur irraisonnée du vide"
+   ],
+   "bonne_reponse": "La tranquillité absolue de l'âme"
+  },
+  {
+   "id": "add-2537",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le mot « amour » est masculin au singulier, mais souvent féminin au pluriel dans la langue littéraire.",
+   "anecdote": "« Amour », « délice » et « orgue » forment le trio classique des mots français qui changent de genre entre le singulier et le pluriel.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/amour",
+    "https://en.wiktionary.org/wiki/amour"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2538",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quelle figure de style consiste à dire moins pour suggérer davantage, comme dans « Va, je ne te hais point » ?",
+   "anecdote": "Cette réplique de Chimène dans « Le Cid » de Corneille est l'exemple canonique de la litote : elle avoue son amour en feignant de nier sa haine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Litote",
+    "https://en.wikipedia.org/wiki/Litotes"
+   ],
+   "choix": [
+    "La litote",
+    "L'euphémisme",
+    "L'hyperbole",
+    "L'oxymore"
+   ],
+   "bonne_reponse": "La litote"
+  },
+  {
+   "id": "add-2539",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "De quel mot latin le français « travail » est-il traditionnellement dérivé ?",
+   "anecdote": "Le « tripalium » était un dispositif à trois pieux servant à immobiliser les animaux, voire à torturer : l'étymologie classique du travail n'évoque guère la partie de plaisir.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tripalium",
+    "https://en.wiktionary.org/wiki/travail"
+   ],
+   "choix": [
+    "Tripalium",
+    "Trivium",
+    "Tabula",
+    "Labor"
+   ],
+   "bonne_reponse": "Tripalium"
+  },
+  {
+   "id": "add-2540",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le verbe « ressasser » est souvent cité comme le plus long palindrome d'usage courant de la langue française.",
+   "anecdote": "Avec ses neuf lettres, « ressasser » se lit identiquement dans les deux sens, tout comme « radar », « kayak » ou « été ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Palindrome",
+    "https://en.wikipedia.org/wiki/Palindrome"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2541",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "En lexicographie, qu'est-ce qu'un « hapax » ?",
+   "anecdote": "Du grec « hapax legomenon », « dit une seule fois » : certains mots anciens ne nous sont connus que par une unique occurrence dans tout un corpus.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Hapax",
+    "https://en.wikipedia.org/wiki/Hapax_legomenon"
+   ],
+   "choix": [
+    "Un mot attesté par une seule occurrence dans un corpus",
+    "Une faute de langue devenue la norme",
+    "Un vers de treize syllabes",
+    "Un mot formé par la fusion de deux autres"
+   ],
+   "bonne_reponse": "Un mot attesté par une seule occurrence dans un corpus"
+  },
+  {
+   "id": "add-2542",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quelle figure de style emploie-t-on en disant « boire un verre », le contenant désignant le contenu ?",
+   "anecdote": "La métonymie est partout dans la langue courante : on lit « un Zola », on croise « des cols blancs » et l'Élysée « annonce » des décisions.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Métonymie",
+    "https://en.wikipedia.org/wiki/Metonymy"
+   ],
+   "choix": [
+    "La métonymie",
+    "La métaphore",
+    "La catachrèse",
+    "La périphrase"
+   ],
+   "bonne_reponse": "La métonymie"
+  },
+  {
+   "id": "add-2543",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "vrai_faux",
+   "texte": "Le mot « rien » vient du latin « rem », accusatif de « res », qui signifie « chose ».",
+   "anecdote": "En ancien français, « rien » signifiait précisément « quelque chose » ; c'est son emploi constant avec la négation « ne » qui a fini par inverser son sens.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/rien",
+    "https://en.wiktionary.org/wiki/rien"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2544",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel coureur cycliste a remporté cinq Tours de France consécutifs, de 1991 à 1995 ?",
+   "anecdote": "L'Espagnol Miguel Indurain fut le premier à aligner cinq victoires d'affilée ; rouleur hors pair, il ne gagna aucune étape en ligne lors de ces cinq Tours, seulement des contre-la-montre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Miguel_Indurain",
+    "https://en.wikipedia.org/wiki/Miguel_Induráin"
+   ],
+   "choix": [
+    "Miguel Indurain",
+    "Bernard Hinault",
+    "Eddy Merckx",
+    "Laurent Fignon"
+   ],
+   "bonne_reponse": "Miguel Indurain"
+  },
+  {
+   "id": "add-2545",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "La distance du marathon, 42,195 km, provient du parcours des Jeux olympiques de Londres en 1908.",
+   "anecdote": "Le départ fut fixé au château de Windsor et l'arrivée face à la loge royale du stade ; cette distance de circonstance ne devint la norme officielle qu'en 1921.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marathon_(sport)",
+    "https://en.wikipedia.org/wiki/Marathon"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2546",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays a remporté la première Coupe du monde de football, en 1930 ?",
+   "anecdote": "Organisateur du tournoi, l'Uruguay battit l'Argentine 4 à 2 en finale à Montevideo ; plusieurs équipes européennes avaient renoncé au long voyage transatlantique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Coupe_du_monde_de_football_de_1930",
+    "https://en.wikipedia.org/wiki/1930_FIFA_World_Cup"
+   ],
+   "choix": [
+    "L'Uruguay",
+    "L'Argentine",
+    "Le Brésil",
+    "L'Italie"
+   ],
+   "bonne_reponse": "L'Uruguay"
+  },
+  {
+   "id": "add-2547",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "En escrime, avec quelle arme la totalité du corps constitue-t-elle une surface valable ?",
+   "anecdote": "À l'épée, tout touche compte, de la pointe du pied au sommet du masque ; au fleuret, seul le tronc est valable, et au sabre, tout ce qui se situe au-dessus de la ceinture.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Épée_(escrime)",
+    "https://en.wikipedia.org/wiki/Épée"
+   ],
+   "choix": [
+    "L'épée",
+    "Le fleuret",
+    "Le sabre",
+    "Les trois armes"
+   ],
+   "bonne_reponse": "L'épée"
+  },
+  {
+   "id": "add-2548",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel joueur de tennis a réalisé le Grand Chelem calendaire en 1969 ?",
+   "anecdote": "L'Australien Rod Laver est le seul joueur à avoir réussi deux fois le Grand Chelem calendaire en simple : en 1962 chez les amateurs, puis en 1969 à l'ère Open.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rod_Laver",
+    "https://en.wikipedia.org/wiki/Rod_Laver"
+   ],
+   "choix": [
+    "Rod Laver",
+    "Roy Emerson",
+    "Björn Borg",
+    "Jimmy Connors"
+   ],
+   "bonne_reponse": "Rod Laver"
+  },
+  {
+   "id": "add-2549",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Michel Platini a remporté trois Ballons d'or consécutifs, en 1983, 1984 et 1985.",
+   "anecdote": "Platini fut le premier joueur à réussir le triplé consécutif au Ballon d'or, à l'époque où le trophée était réservé aux joueurs européens.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Michel_Platini",
+    "https://en.wikipedia.org/wiki/Michel_Platini"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2550",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "En quelle année le Tour de France cycliste a-t-il été disputé pour la première fois ?",
+   "anecdote": "Créé en 1903 par le journal L'Auto pour doper ses ventes, le Tour n'introduisit le maillot jaune qu'en 1919, couleur choisie en écho au papier jaune du quotidien.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_de_France",
+    "https://en.wikipedia.org/wiki/Tour_de_France"
+   ],
+   "choix": [
+    "1903",
+    "1898",
+    "1910",
+    "1919"
+   ],
+   "bonne_reponse": "1903"
+  },
+  {
+   "id": "add-2551",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel nageur détient le record de titres olympiques avec 23 médailles d'or ?",
+   "anecdote": "Michael Phelps a décroché à lui seul huit titres lors des seuls Jeux de Pékin en 2008, un record pour une même édition, et 28 médailles olympiques au total.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Michael_Phelps",
+    "https://en.wikipedia.org/wiki/Michael_Phelps"
+   ],
+   "choix": [
+    "Michael Phelps",
+    "Mark Spitz",
+    "Ian Thorpe",
+    "Ryan Lochte"
+   ],
+   "bonne_reponse": "Michael Phelps"
+  },
+  {
+   "id": "add-2552",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "En quelle année le judo a-t-il fait son entrée au programme olympique, à Tokyo ?",
+   "anecdote": "Pour cette première en 1964, le Néerlandais Anton Geesink créa une sensation énorme en battant le Japonais Kaminaga en finale toutes catégories, dans le temple même du judo.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Judo_aux_Jeux_olympiques",
+    "https://en.wikipedia.org/wiki/Judo_at_the_Summer_Olympics"
+   ],
+   "choix": [
+    "1964",
+    "1952",
+    "1960",
+    "1972"
+   ],
+   "bonne_reponse": "1964"
+  },
+  {
+   "id": "add-2553",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel film des frères Lumière figurait au programme de la première projection publique payante, le 28 décembre 1895 ?",
+   "anecdote": "La séance historique du Salon indien du Grand Café, à Paris, présenta une dizaine de courtes bandes, dont « La Sortie de l'usine Lumière à Lyon », devant une trentaine de spectateurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Sortie_de_l%27usine_Lumière_à_Lyon",
+    "https://en.wikipedia.org/wiki/Workers_Leaving_the_Lumière_Factory"
+   ],
+   "choix": [
+    "La Sortie de l'usine Lumière à Lyon",
+    "Le Voyage dans la Lune",
+    "Fantômas",
+    "Assaut d'escrime"
+   ],
+   "bonne_reponse": "La Sortie de l'usine Lumière à Lyon"
+  },
+  {
+   "id": "add-2554",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel réalisateur a remporté la Palme d'or en 1976 pour « Taxi Driver » ?",
+   "anecdote": "Le jury cannois qui couronna le film de Martin Scorsese était présidé cette année-là par le dramaturge américain Tennessee Williams.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Taxi_Driver",
+    "https://en.wikipedia.org/wiki/Taxi_Driver"
+   ],
+   "choix": [
+    "Martin Scorsese",
+    "Francis Ford Coppola",
+    "Michael Cimino",
+    "Robert Altman"
+   ],
+   "bonne_reponse": "Martin Scorsese"
+  },
+  {
+   "id": "add-2555",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "« Le Voyage dans la Lune » de Georges Méliès est sorti en 1902.",
+   "anecdote": "Ce film d'une quinzaine de minutes, dont l'image de la fusée plantée dans l'œil de la Lune est devenue une icône, existait aussi en version coloriée à la main, image par image.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Voyage_dans_la_Lune",
+    "https://en.wikipedia.org/wiki/A_Trip_to_the_Moon"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2556",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Qui a réalisé « À bout de souffle », film emblématique de la Nouvelle Vague sorti en 1960 ?",
+   "anecdote": "Tourné caméra à l'épaule avec Belmondo et Jean Seberg, le film de Jean-Luc Godard repose sur une idée de scénario de François Truffaut.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/À_bout_de_souffle",
+    "https://en.wikipedia.org/wiki/Breathless_(1960_film)"
+   ],
+   "choix": [
+    "Jean-Luc Godard",
+    "François Truffaut",
+    "Claude Chabrol",
+    "Éric Rohmer"
+   ],
+   "bonne_reponse": "Jean-Luc Godard"
+  },
+  {
+   "id": "add-2557",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel film a reçu le tout premier Oscar du meilleur film, lors de la cérémonie de 1929 ?",
+   "anecdote": "« Les Ailes » (« Wings »), fresque sur les aviateurs de la Grande Guerre, resta le seul film muet titré dans cette catégorie jusqu'au sacre de « The Artist » en 2012.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Oscar_du_meilleur_film",
+    "https://en.wikipedia.org/wiki/Wings_(1927_film)"
+   ],
+   "choix": [
+    "Les Ailes (Wings)",
+    "L'Aurore (Sunrise)",
+    "Le Chanteur de jazz",
+    "Metropolis"
+   ],
+   "bonne_reponse": "Les Ailes (Wings)"
+  },
+  {
+   "id": "add-2558",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel acteur incarne Vito Corleone dans « Le Parrain » de Francis Ford Coppola ?",
+   "anecdote": "Marlon Brando refusa l'Oscar obtenu pour ce rôle en 1973 et envoya à sa place Sacheen Littlefeather dénoncer le traitement des Amérindiens par Hollywood.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Parrain",
+    "https://en.wikipedia.org/wiki/Marlon_Brando"
+   ],
+   "choix": [
+    "Marlon Brando",
+    "Al Pacino",
+    "Robert De Niro",
+    "James Caan"
+   ],
+   "bonne_reponse": "Marlon Brando"
+  },
+  {
+   "id": "add-2559",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "vrai_faux",
+   "texte": "Alfred Hitchcock n'a jamais remporté l'Oscar du meilleur réalisateur.",
+   "anecdote": "Nommé cinq fois sans succès, le maître du suspense reçut tout de même en 1968 le prix honorifique Irving G. Thalberg, qu'il remercia d'un laconique « Thank you ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Alfred_Hitchcock",
+    "https://en.wikipedia.org/wiki/Alfred_Hitchcock"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2560",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Qui a réalisé « La Grande Illusion », chef-d'œuvre du cinéma français sorti en 1937 ?",
+   "anecdote": "Fils du peintre Auguste Renoir, Jean Renoir vit son film devenir le premier long-métrage en langue étrangère cité à l'Oscar du meilleur film.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Grande_Illusion",
+    "https://en.wikipedia.org/wiki/La_Grande_Illusion"
+   ],
+   "choix": [
+    "Jean Renoir",
+    "Marcel Carné",
+    "Julien Duvivier",
+    "René Clair"
+   ],
+   "bonne_reponse": "Jean Renoir"
+  },
+  {
+   "id": "add-2561",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quelle actrice détient le record d'Oscars d'interprétation, avec quatre statuettes de la meilleure actrice ?",
+   "anecdote": "Katharine Hepburn, récompensée entre 1934 et 1982, ne se déplaça jamais aux cérémonies pour recevoir ses propres trophées.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Katharine_Hepburn",
+    "https://en.wikipedia.org/wiki/Katharine_Hepburn"
+   ],
+   "choix": [
+    "Katharine Hepburn",
+    "Meryl Streep",
+    "Bette Davis",
+    "Ingrid Bergman"
+   ],
+   "bonne_reponse": "Katharine Hepburn"
+  },
+  {
+   "id": "add-2562",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Depuis 1955, quelle est la récompense suprême du Festival de Cannes ?",
+   "anecdote": "La première Palme d'or couronna « Marty » de Delbert Mann ; auparavant, le festival décernait un « Grand Prix », rétabli ensuite comme deuxième récompense.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Palme_d%27or",
+    "https://en.wikipedia.org/wiki/Palme_d%27Or"
+   ],
+   "choix": [
+    "La Palme d'or",
+    "Le Lion d'or",
+    "L'Ours d'or",
+    "Le Léopard d'or"
+   ],
+   "bonne_reponse": "La Palme d'or"
+  },
+  {
+   "id": "add-2563",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "La tour Eiffel grandit de plusieurs centimètres en été.",
+   "anecdote": "Sous l'effet de la dilatation thermique du fer, la tour peut gagner jusqu'à une quinzaine de centimètres lors des fortes chaleurs, avant de « rétrécir » en hiver.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_Eiffel",
+    "https://en.wikipedia.org/wiki/Eiffel_Tower"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2564",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel animal possède trois cœurs ?",
+   "anecdote": "La pieuvre a deux cœurs branchiaux et un cœur systémique ; son sang est bleu, car il transporte l'oxygène grâce à l'hémocyanine, une molécule à base de cuivre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pieuvre",
+    "https://en.wikipedia.org/wiki/Octopus"
+   ],
+   "choix": [
+    "La pieuvre",
+    "Le requin-marteau",
+    "Le dauphin",
+    "Le crocodile marin"
+   ],
+   "bonne_reponse": "La pieuvre"
+  },
+  {
+   "id": "add-2565",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Le miel peut se conserver pendant des millénaires sans se périmer.",
+   "anecdote": "Sa très faible teneur en eau et son acidité empêchent les microbes de proliférer ; des pots de miel encore comestibles ont été retrouvés dans des tombes de l'Égypte ancienne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Miel",
+    "https://en.wikipedia.org/wiki/Honey"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2566",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Que désigne la « triskaïdékaphobie » ?",
+   "anecdote": "La peur spécifique du vendredi 13 porte, elle, un nom encore plus redoutable à prononcer : la paraskevidékatriaphobie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Triskaïdékaphobie",
+    "https://en.wikipedia.org/wiki/Triskaidekaphobia"
+   ],
+   "choix": [
+    "La peur du nombre 13",
+    "La peur des miroirs brisés",
+    "La peur des chats noirs",
+    "La peur du nombre 666"
+   ],
+   "bonne_reponse": "La peur du nombre 13"
+  },
+  {
+   "id": "add-2567",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "Cléopâtre a vécu plus près dans le temps des premiers pas sur la Lune que de la construction de la grande pyramide de Gizeh.",
+   "anecdote": "La pyramide de Khéops date d'environ 2560 avant notre ère, soit près de 2 500 ans avant Cléopâtre, morte en 30 avant notre ère, à moins de 2 000 ans du vol d'Apollo 11.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pyramide_de_Khéops",
+    "https://en.wikipedia.org/wiki/Cleopatra"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2568",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Combien de temps a duré la guerre anglo-zanzibarienne de 1896, réputée la plus courte de l'histoire ?",
+   "anecdote": "Le 27 août 1896, le bombardement britannique du palais du sultan de Zanzibar cessa au bout d'environ 40 minutes, la durée exacte variant de 38 à 45 minutes selon les sources.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guerre_anglo-zanzibarienne",
+    "https://en.wikipedia.org/wiki/Anglo-Zanzibar_War"
+   ],
+   "choix": [
+    "Environ 40 minutes",
+    "Environ 4 heures",
+    "Environ 4 jours",
+    "Environ 4 semaines"
+   ],
+   "bonne_reponse": "Environ 40 minutes"
+  },
+  {
+   "id": "add-2569",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quel pays vit avec un fuseau horaire décalé de 45 minutes, à UTC+5h45 ?",
+   "anecdote": "Le Népal a choisi ce décalage insolite calé sur un méridien local, ce qui le place à seulement 15 minutes de l'heure de son voisin indien, réglé sur UTC+5h30.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Népal",
+    "https://en.wikipedia.org/wiki/Time_in_Nepal"
+   ],
+   "choix": [
+    "Le Népal",
+    "L'Inde",
+    "L'Iran",
+    "La Birmanie"
+   ],
+   "bonne_reponse": "Le Népal"
+  },
+  {
+   "id": "add-2570",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "En 1932, l'armée australienne a échoué dans une opération militaire menée contre des émeus.",
+   "anecdote": "Lors de la « guerre des émeus », des soldats équipés de mitrailleuses ne parvinrent pas à venir à bout des oiseaux, trop rapides et dispersés ; la presse consacra la victoire des émeus.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guerre_des_émeus",
+    "https://en.wikipedia.org/wiki/Emu_War"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2571",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quelle capitale est réputée être la plus froide du monde, avec une température moyenne annuelle inférieure à zéro ?",
+   "anecdote": "Oulan-Bator, capitale de la Mongolie, connaît des hivers où le thermomètre plonge régulièrement sous les -30 °C, en plein anticyclone sibérien.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Oulan-Bator",
+    "https://en.wikipedia.org/wiki/Ulaanbaatar"
+   ],
+   "choix": [
+    "Oulan-Bator",
+    "Moscou",
+    "Ottawa",
+    "Reykjavik"
+   ],
+   "bonne_reponse": "Oulan-Bator"
+  },
+  {
+   "id": "add-2572",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Que signifie « Fluctuat nec mergitur », la devise de la ville de Paris ?",
+   "anecdote": "Cette devise latine accompagne le navire des armoiries de Paris, hérité de la puissante corporation des marchands de l'eau qui commerçait sur la Seine au Moyen Âge.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fluctuat_nec_mergitur",
+    "https://en.wikipedia.org/wiki/Coat_of_arms_of_Paris"
+   ],
+   "choix": [
+    "« Il est battu par les flots mais ne sombre pas »",
+    "« Il flotte et navigue toujours »",
+    "« Ni pluie ni tempête ne l'arrêtent »",
+    "« Des flots elle tire sa force »"
+   ],
+   "bonne_reponse": "« Il est battu par les flots mais ne sombre pas »"
   }
  ]
 }
