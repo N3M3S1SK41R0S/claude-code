@@ -15,7 +15,7 @@ const R = (p) => readFileSync(join(root, p), "utf8");
 // Dependency-agnostic: the CommonJS shim resolves lazily, so order only needs
 // the entry last. We register every module, then require("./app.js").
 const MODULES = [
-  "tts", "sfx", "music", "voices", "bots", "prefs", "palmares", "herald", "powers", "portraits", "custom", "items", "minigames",
+  "host-voice", "tts", "sfx", "music", "voices", "bots", "prefs", "palmares", "herald", "powers", "portraits", "custom", "items", "minigames",
   "wordgames", "themes", "state", "board", "data", "ui", "scene", "board3d", "game", "app",
 ];
 
@@ -44,7 +44,7 @@ function transform(name, src) {
   const exports = collectExports(src);
   let code = src
     // import { a, b } from "./x.js"  →  const { a, b } = require("./x.js")
-    .replace(/^import\s*\{([^}]*)\}\s*from\s*["']\.\/([A-Za-z0-9_$]+)\.js["'];?/gm,
+    .replace(/^import\s*\{([^}]*)\}\s*from\s*["']\.\/([-A-Za-z0-9_$]+)\.js["'];?/gm,
       (_, names, mod) => `const {${names}} = require("./${mod}.js");`)
     // drop `export { ... }` statements (re-exported explicitly at the end)
     .replace(/^export\s*\{[^}]*\}\s*;?\s*$/gm, "")
@@ -102,16 +102,32 @@ body = body.replace(/<script[^>]*type="module"[^>]*><\/script>/, "");
 
 const css = R("css/style.css");
 
-// Inline the painted artwork (portraits + case tokens) as data-URI : the single
-// file has no server, so the "assets/…png" references in the JS must be embedded.
+// Inline récursivement les illustrations et les accroches vocales en data-URI :
+// le fichier unique n'a aucun serveur, y compris lorsqu'il est ouvert en file://.
 function inlineAssets(text) {
   const dir = join(root, "assets");
   let out = text;
   let count = 0;
-  for (const file of readdirSync(dir).filter((f) => /\.(png|webp)$/.test(f))) {
+  const files = [];
+  const walk = (current, relative = "") => {
+    for (const entry of readdirSync(current, { withFileTypes: true })) {
+      const rel = relative ? `${relative}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) walk(join(current, entry.name), rel);
+      else files.push(rel);
+    }
+  };
+  walk(dir);
+  const mimeByExtension = {
+    png: "image/png",
+    webp: "image/webp",
+    webm: "audio/webm;codecs=opus",
+  };
+  for (const file of files) {
+    const extension = file.split(".").pop().toLowerCase();
+    const mime = mimeByExtension[extension];
+    if (!mime) continue;
     const ref = `assets/${file}`;
     if (!out.includes(ref)) continue;
-    const mime = file.endsWith(".webp") ? "image/webp" : "image/png";
     const dataUri = `data:${mime};base64,${readFileSync(join(dir, file)).toString("base64")}`;
     out = out.split(ref).join(dataUri);
     count += 1;
@@ -157,5 +173,5 @@ mkdirSync(join(root, "dist"), { recursive: true });
 writeFileSync(join(root, "dist", "donjon-standalone.html"), fullPage, "utf8");
 writeFileSync(join(root, "dist", "donjon-artifact.html"), artifactContent, "utf8");
 const kb = (s) => Math.round(Buffer.byteLength(s) / 1024);
-console.log(`✓ dist/donjon-standalone.html (${kb(fullPage)} Ko, ${bank.questions.length} questions, ${assetCount} illustrations inline)`);
+console.log(`✓ dist/donjon-standalone.html (${kb(fullPage)} Ko, ${bank.questions.length} questions, ${assetCount} assets inline)`);
 console.log(`✓ dist/donjon-artifact.html (${kb(artifactContent)} Ko)`);

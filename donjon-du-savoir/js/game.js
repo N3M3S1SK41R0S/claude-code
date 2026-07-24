@@ -1268,6 +1268,7 @@ function npcQuiz(pion, npc) {
       grid,
     ),
   );
+  narrateQuestion(q);
 }
 
 /** Coup dur « à esquiver » : répondez juste pour éviter le malus. */
@@ -1313,6 +1314,7 @@ function malusQuiz(pion, effect) {
       grid,
     ),
   );
+  narrateQuestion(q);
 }
 
 /* ---------- turn-timed powers ---------- */
@@ -1432,6 +1434,16 @@ function useTurnPower(pion) {
 /* ---------- questions (all formats, never timed) ---------- */
 
 const ADVANCE = { qcm: 2, vrai_faux: 1, equipe: 2, duo: 1, carre: 2, cash: 4 };
+
+/** Point d'entrée unique de la lecture : tous les formats de question passent
+ *  par ces deux fonctions afin de garantir l'ordre question puis anecdote. */
+function narrateQuestion(q) {
+  if (q?.texte) sayHost(q.texte, "question");
+}
+
+function narrateAnecdote(q) {
+  if (q?.anecdote) sayHost(q.anecdote, "anecdote");
+}
 
 // Règle affichée clairement en tête de CHAQUE type de question : comment on
 // répond, et ce qu'on gagne. (Format → texte explicite.)
@@ -1600,6 +1612,7 @@ function anagramFlow(pion, q) {
     )),
   );
   setPanel(container);
+  narrateQuestion(q);
 }
 
 /** Pendu (façon Motus) : on devine les lettres de la réponse, 6 erreurs max.
@@ -1660,6 +1673,7 @@ function hangmanFlow(pion, q) {
     setPanel(container);
   };
   rerender();
+  narrateQuestion(q);
 }
 
 function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {}) {
@@ -1708,7 +1722,7 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
 
   appendQuestionPowers(container, hintZone, pion, q, { cashMode });
   setPanel(container);
-  sayHost(q.texte, "question"); // l'animateur lit la question (si Héraut vocal actif)
+  narrateQuestion(q);
 }
 
 function questionHeader(q, pion = null) {
@@ -1875,6 +1889,7 @@ function openAnswerFlow(pion, q, { advance, accepted, onResolve = null, kind = "
   );
   appendQuestionPowers(container, hintZone, pion, q, { cashMode: null });
   setPanel(container);
+  narrateQuestion(q);
 }
 
 /** Confidence bet on a classic QCM: self-evaluate 1-10 BEFORE seeing it. */
@@ -1945,7 +1960,7 @@ function showAnecdote(q, { verdictHtml, onContinue }) {
       bigButton("Continuer", onContinue),
     ),
   );
-  sayHost(q.anecdote, "anecdote"); // l'animateur lit l'anecdote (si Héraut vocal actif)
+  narrateAnecdote(q);
 }
 
 /* ---------- special cases ---------- */
@@ -2015,6 +2030,7 @@ function doTrouNoir(pion) {
   // Hints allowed, but no power may rewrite the Trou Noir's stakes.
   appendQuestionPowers(container, hintZone, pion, q, { cashMode: null, blockCageot: true });
   setPanel(container);
+  narrateQuestion(q);
 }
 
 /** Gambit: numeric answer + the other pions bet "trop haut / trop bas / juste". */
@@ -2063,6 +2079,7 @@ function doGambit(pion) {
   });
   setPanel(form);
   input.focus();
+  narrateQuestion(q);
 }
 
 function gambitBets(pion, q, guess, others) {
@@ -2133,6 +2150,7 @@ function gambitReveal(pion, q, guess, bets) {
       }),
     ),
   );
+  narrateAnecdote(q);
 }
 
 /** Événement: everyone answers the same Vrai/Faux; each correct pion +2 🪙. */
@@ -2203,6 +2221,7 @@ function doEvent() {
       bigButton("Tout le monde a écrit ✍️", () => setPanel(entryPanel)),
     ),
   );
+  narrateQuestion(q);
 }
 
 function showAnecdoteEvent(q, lines) {
@@ -2214,6 +2233,7 @@ function showAnecdoteEvent(q, lines) {
       bigButton("Continuer", () => finishTurn()),
     ),
   );
+  narrateAnecdote(q);
 }
 
 /* ---------- turn end & victory ---------- */
@@ -2310,7 +2330,7 @@ function poseTableQuestion(q, label, next) {
       bigButton("Tout le monde a écrit → Révéler la réponse", () => revealTableBonus(q, next)),
     ),
   );
-  sayHost(q.texte, "question"); // l'animateur lit la question bonus
+  narrateQuestion(q);
 }
 
 function revealTableBonus(q, onDone) {
@@ -2346,7 +2366,7 @@ function revealTableBonus(q, onDone) {
       bigButton("Personne n'a trouvé", onDone),
     ),
   );
-  sayHost(q.anecdote, "anecdote"); // l'animateur lit l'anecdote à la révélation
+  narrateAnecdote(q);
 }
 
 function endStarGame() {

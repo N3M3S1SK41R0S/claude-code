@@ -1,0 +1,235 @@
+{
+  "version": 1,
+  "langue": "fr-FR",
+  "voix": {
+    "id": "grand-heraut-original-v1",
+    "nom": "Le Grand Héraut",
+    "description": "Voix de personnage entièrement originale, chaleureuse, vive et légèrement théâtrale, sans imitation d'une personne réelle.",
+    "production": "Synthèse locale hors-ligne puis traitement sonore original. Aucun service réseau n'est utilisé par le jeu."
+  },
+  "format": {
+    "conteneur": "WebM",
+    "codec": "Opus",
+    "frequence_hz": 48000,
+    "canaux": 1,
+    "debit_kbps": 20
+  },
+  "clips": [
+    {
+      "id": "question-01",
+      "categorie": "question",
+      "fichier": "assets/voix/question-01.webm",
+      "texte": "Attention, les neurones entrent en scène !"
+    },
+    {
+      "id": "question-02",
+      "categorie": "question",
+      "fichier": "assets/voix/question-02.webm",
+      "texte": "Question en approche. Les sourcils sont autorisés à réfléchir."
+    },
+    {
+      "id": "question-03",
+      "categorie": "question",
+      "fichier": "assets/voix/question-03.webm",
+      "texte": "Silence dans le donjon, juste assez pour entendre la question."
+    },
+    {
+      "id": "question-04",
+      "categorie": "question",
+      "fichier": "assets/voix/question-04.webm",
+      "texte": "À vos cerveaux, prêts, pensez !"
+    },
+    {
+      "id": "question-05",
+      "categorie": "question",
+      "fichier": "assets/voix/question-05.webm",
+      "texte": "Le donjon pose la question. Prenez tout votre temps."
+    },
+    {
+      "id": "question-06",
+      "categorie": "question",
+      "fichier": "assets/voix/question-06.webm",
+      "texte": "Celle-ci est très sérieuse. Enfin, elle essaie."
+    },
+    {
+      "id": "question-07",
+      "categorie": "question",
+      "fichier": "assets/voix/question-07.webm",
+      "texte": "Ouvrez grand les oreilles et le petit tiroir à savoir."
+    },
+    {
+      "id": "question-08",
+      "categorie": "question",
+      "fichier": "assets/voix/question-08.webm",
+      "texte": "Question fraîche, servie sans chronomètre."
+    },
+    {
+      "id": "question-09",
+      "categorie": "question",
+      "fichier": "assets/voix/question-09.webm",
+      "texte": "Le savoir frappe à la porte. On lui ouvre !"
+    },
+    {
+      "id": "question-10",
+      "categorie": "question",
+      "fichier": "assets/voix/question-10.webm",
+      "texte": "Attention, question avec supplément panache."
+    },
+    {
+      "id": "question-11",
+      "categorie": "question",
+      "fichier": "assets/voix/question-11.webm",
+      "texte": "Le prochain indice est la question elle-même."
+    },
+    {
+      "id": "question-12",
+      "categorie": "question",
+      "fichier": "assets/voix/question-12.webm",
+      "texte": "Concentration royale. Voici la question !"
+    },
+    {
+      "id": "anecdote-01",
+      "categorie": "anecdote",
+      "fichier": "assets/voix/anecdote-01.webm",
+      "texte": "Et voici le petit trésor derrière la réponse."
+    },
+    {
+      "id": "anecdote-02",
+      "categorie": "anecdote",
+      "fichier": "assets/voix/anecdote-02.webm",
+      "texte": "Minute culture. Elle dure le temps qu'il faut."
+    },
+    {
+      "id": "anecdote-03",
+      "categorie": "anecdote",
+      "fichier": "assets/voix/anecdote-03.webm",
+      "texte": "L'anecdote arrive, bien coiffée et presque à l'heure."
+    },
+    {
+      "id": "anecdote-04",
+      "categorie": "anecdote",
+      "fichier": "assets/voix/anecdote-04.webm",
+      "texte": "Le saviez-vous ? Le donjon, lui, vient de l'apprendre."
+    },
+    {
+      "id": "anecdote-05",
+      "categorie": "anecdote",
+      "fichier": "assets/voix/anecdote-05.webm",
+      "texte": "Place au détail qui fait briller les lunettes."
+    },
+    {
+      "id": "anecdote-06",
+      "categorie": "anecdote",
+      "fichier": "assets/voix/anecdote-06.webm",
+      "texte": "Un peu de savoir en plus, ça ne prend aucune place."
+    },
+    {
+      "id": "anecdote-07",
+      "categorie": "anecdote",
+      "fichier": "assets/voix/anecdote-07.webm",
+      "texte": "Attention, anecdote à raconter dès demain."
+    },
+    {
+      "id": "anecdote-08",
+      "categorie": "anecdote",
+      "fichier": "assets/voix/anecdote-08.webm",
+      "texte": "Le rideau se lève sur les coulisses du savoir."
+    },
+    {
+      "id": "anecdote-09",
+      "categorie": "anecdote",
+      "fichier": "assets/voix/anecdote-09.webm",
+      "texte": "Bonus de culture, sans supplément de prix."
+    },
+    {
+      "id": "anecdote-10",
+      "categorie": "anecdote",
+      "fichier": "assets/voix/anecdote-10.webm",
+      "texte": "Et maintenant, le pourquoi du comment."
+    },
+    {
+      "id": "anecdote-11",
+      "categorie": "anecdote",
+      "fichier": "assets/voix/anecdote-11.webm",
+      "texte": "Une réponse, c'est bien. Son histoire, c'est encore mieux."
+    },
+    {
+      "id": "anecdote-12",
+      "categorie": "anecdote",
+      "fichier": "assets/voix/anecdote-12.webm",
+      "texte": "Le grand héraut ouvre son tiroir à anecdotes."
+    },
+    {
+      "id": "bonne-01",
+      "categorie": "bonne",
+      "fichier": "assets/voix/bonne-01.webm",
+      "texte": "Bonne réponse ! Les neurones saluent la performance."
+    },
+    {
+      "id": "bonne-02",
+      "categorie": "bonne",
+      "fichier": "assets/voix/bonne-02.webm",
+      "texte": "Exact ! Le donjon applaudit avec ses deux mains."
+    },
+    {
+      "id": "bonne-03",
+      "categorie": "bonne",
+      "fichier": "assets/voix/bonne-03.webm",
+      "texte": "Bien joué ! Une réponse nette, sans miettes."
+    },
+    {
+      "id": "bonne-04",
+      "categorie": "bonne",
+      "fichier": "assets/voix/bonne-04.webm",
+      "texte": "C'est juste ! Même la pierre avait parié sur vous."
+    },
+    {
+      "id": "bonne-05",
+      "categorie": "bonne",
+      "fichier": "assets/voix/bonne-05.webm",
+      "texte": "Magnifique ! Le savoir vous va très bien."
+    },
+    {
+      "id": "bonne-06",
+      "categorie": "bonne",
+      "fichier": "assets/voix/bonne-06.webm",
+      "texte": "Réponse validée avec panache et petit bruit de trompette."
+    },
+    {
+      "id": "mauvaise-01",
+      "categorie": "mauvaise",
+      "fichier": "assets/voix/mauvaise-01.webm",
+      "texte": "Raté, mais avec une élégance remarquable."
+    },
+    {
+      "id": "mauvaise-02",
+      "categorie": "mauvaise",
+      "fichier": "assets/voix/mauvaise-02.webm",
+      "texte": "Pas cette fois. Le savoir revient au prochain tour."
+    },
+    {
+      "id": "mauvaise-03",
+      "categorie": "mauvaise",
+      "fichier": "assets/voix/mauvaise-03.webm",
+      "texte": "Presque ! Enfin, à quelques connaissances près."
+    },
+    {
+      "id": "mauvaise-04",
+      "categorie": "mauvaise",
+      "fichier": "assets/voix/mauvaise-04.webm",
+      "texte": "Le donjon dit non, mais très gentiment."
+    },
+    {
+      "id": "mauvaise-05",
+      "categorie": "mauvaise",
+      "fichier": "assets/voix/mauvaise-05.webm",
+      "texte": "Réponse cabossée. Anecdote toute neuve en échange."
+    },
+    {
+      "id": "mauvaise-06",
+      "categorie": "mauvaise",
+      "fichier": "assets/voix/mauvaise-06.webm",
+      "texte": "Ce n'est pas juste, mais personne ne perd son goûter."
+    }
+  ]
+}

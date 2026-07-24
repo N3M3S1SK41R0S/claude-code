@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v65";
+const VERSION = "donjon-v66";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -9,6 +9,7 @@ const SHELL = [
   "./index.html",
   "./css/style.css",
   "./js/app.js",
+  "./js/host-voice.js",
   "./js/board.js",
   "./js/custom.js",
   "./js/items.js",
@@ -33,6 +34,7 @@ const SHELL = [
   "./js/ui.js",
   "./vendor/three.min.js",
   "./data/questions.json",
+  "./data/voix.json",
   "./data/wordgames.json",
   "./manifest.webmanifest",
   "./icons/icon-192.png",
@@ -127,6 +129,42 @@ const SHELL = [
   "./assets/fond-tour.webp",
   "./assets/fond-catacombes.webp",
   "./assets/fond-labyrinthe.webp",
+  "./assets/voix/question-01.webm",
+  "./assets/voix/question-02.webm",
+  "./assets/voix/question-03.webm",
+  "./assets/voix/question-04.webm",
+  "./assets/voix/question-05.webm",
+  "./assets/voix/question-06.webm",
+  "./assets/voix/question-07.webm",
+  "./assets/voix/question-08.webm",
+  "./assets/voix/question-09.webm",
+  "./assets/voix/question-10.webm",
+  "./assets/voix/question-11.webm",
+  "./assets/voix/question-12.webm",
+  "./assets/voix/anecdote-01.webm",
+  "./assets/voix/anecdote-02.webm",
+  "./assets/voix/anecdote-03.webm",
+  "./assets/voix/anecdote-04.webm",
+  "./assets/voix/anecdote-05.webm",
+  "./assets/voix/anecdote-06.webm",
+  "./assets/voix/anecdote-07.webm",
+  "./assets/voix/anecdote-08.webm",
+  "./assets/voix/anecdote-09.webm",
+  "./assets/voix/anecdote-10.webm",
+  "./assets/voix/anecdote-11.webm",
+  "./assets/voix/anecdote-12.webm",
+  "./assets/voix/bonne-01.webm",
+  "./assets/voix/bonne-02.webm",
+  "./assets/voix/bonne-03.webm",
+  "./assets/voix/bonne-04.webm",
+  "./assets/voix/bonne-05.webm",
+  "./assets/voix/bonne-06.webm",
+  "./assets/voix/mauvaise-01.webm",
+  "./assets/voix/mauvaise-02.webm",
+  "./assets/voix/mauvaise-03.webm",
+  "./assets/voix/mauvaise-04.webm",
+  "./assets/voix/mauvaise-05.webm",
+  "./assets/voix/mauvaise-06.webm",
 ];
 
 self.addEventListener("install", (event) => {
