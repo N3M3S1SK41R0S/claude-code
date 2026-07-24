@@ -231,6 +231,12 @@ export function npcPortraitEl(slug, emoji, size = 96) {
   return div;
 }
 
+/** Chemin de l'illustration peinte d'un compagnon (null si absente) — utilisé
+ *  par la carte-souvenir pour dessiner les portraits dans un canvas. */
+export function portraitArtSrc(characterId) {
+  return PORTRAIT_ART[characterId] ?? null;
+}
+
 /** DOM element for a character medallion (decorative; name is given elsewhere). */
 export function portraitEl(characterId, size = 56) {
   const div = document.createElement("div");

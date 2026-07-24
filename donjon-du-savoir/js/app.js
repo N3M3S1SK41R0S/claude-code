@@ -15,6 +15,7 @@ import { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } from "./bots.js";
 import { getPrefs, loadPrefs, setPref } from "./prefs.js";
 import { getPalmares, loadPalmares, recordGame, SUCCES } from "./palmares.js";
 import { grimoireEntries, grimoireSize } from "./grimoire.js";
+import { souvenirSection } from "./souvenir.js";
 import { el } from "./ui.js";
 
 const MAX_PLAYERS = 20;
@@ -792,6 +793,7 @@ function showVictory(winner, rankingData, extras = {}) {
       ),
     ),
     statsTable(rankingData, etoilesMode),
+    souvenirSection(winner, rankingData, etoilesMode),
     tournoiBlock(rankingData),
     el("button", { class: "btn btn-big btn-gold", type: "button", onclick: () => { clearSave(); renderSetup(); show("setup"); } }, "⚔️ Revanche"),
     el("button", { class: "btn", type: "button", onclick: () => { clearSave(); renderHome(); show("home"); } }, "🏠 Accueil"),
