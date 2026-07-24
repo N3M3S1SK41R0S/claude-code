@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v67";
+const VERSION = "donjon-v68";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -41,6 +41,7 @@ const SHELL = [
   "./vendor/draco/LICENSE.txt",
   "./vendor/three-r128.LICENSE.txt",
   "./data/questions.json",
+  "./data/decors-3d.json",
   "./data/modeles-3d.json",
   "./data/voix.json",
   "./data/wordgames.json",
@@ -103,6 +104,33 @@ const SHELL = [
   "./assets/3d/heroes/hero-kribouille.glb",
   "./assets/3d/heroes/hero-plomberoy.glb",
   "./assets/3d/heroes/README.md",
+  "./assets/3d/README.md",
+  "./assets/3d/buildings/batiment-chateau.glb",
+  "./assets/3d/buildings/batiment-etoile.glb",
+  "./assets/3d/buildings/batiment-tour-mage.glb",
+  "./assets/3d/buildings/batiment-bibliotheque.glb",
+  "./assets/3d/buildings/batiment-taverne.glb",
+  "./assets/3d/buildings/batiment-portail.glb",
+  "./assets/3d/buildings/batiment-boutique.glb",
+  "./assets/3d/buildings/batiment-fontaine.glb",
+  "./assets/3d/buildings/batiment-pont.glb",
+  "./assets/3d/buildings/batiment-champignon.glb",
+  "./assets/3d/tiles/socle-question.glb",
+  "./assets/3d/tiles/socle-chance.glb",
+  "./assets/3d/tiles/socle-evenement.glb",
+  "./assets/3d/tiles/socle-malus.glb",
+  "./assets/3d/tiles/socle-pieces.glb",
+  "./assets/3d/tiles/socle-joker.glb",
+  "./assets/3d/tiles/socle-gambit.glb",
+  "./assets/3d/tiles/socle-trounoir.glb",
+  "./assets/3d/tiles/socle-boutique.glb",
+  "./assets/3d/tiles/socle-insolite.glb",
+  "./assets/3d/tiles/socle-expression.glb",
+  "./assets/3d/tiles/socle-tresor.glb",
+  "./assets/3d/dungeon/module-mur.glb",
+  "./assets/3d/dungeon/module-arche.glb",
+  "./assets/3d/dungeon/module-colonne.glb",
+  "./assets/3d/dungeon/module-brasero.glb",
   "./assets/objet-coffre.png",
   "./assets/objet-pieces.png",
   "./assets/objet-etoile.png",
