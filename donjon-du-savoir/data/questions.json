@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 3612,
+ "count": 3886,
  "questions": [
   {
    "id": "arts-001",
@@ -69412,6 +69412,4931 @@
    "sources": [
     "https://fr.wikipedia.org/wiki/Casque_de_v%C3%A9lo",
     "https://fr.wiktionary.org/wiki/casque"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2204",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel roi de France était surnommé le « Roi-Soleil » ?",
+   "anecdote": "Son règne de 72 ans, de 1643 à 1715, est le plus long de l'histoire de France.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Louis_XIV",
+    "https://www.britannica.com/biography/Louis-XIV-king-of-France"
+   ],
+   "choix": [
+    "Louis XIII",
+    "Louis XIV",
+    "Louis XV",
+    "Louis XVI"
+   ],
+   "bonne_reponse": "Louis XIV"
+  },
+  {
+   "id": "add-2205",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a lancé l'appel du 18 juin 1940 depuis la radio de Londres ?",
+   "anecdote": "Diffusé sur la BBC, l'appel fut peu entendu sur le moment et il n'en existe aucun enregistrement sonore.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Appel_du_18_Juin",
+    "https://en.wikipedia.org/wiki/Appeal_of_18_June"
+   ],
+   "choix": [
+    "Jean Moulin",
+    "Philippe Pétain",
+    "Charles de Gaulle",
+    "Winston Churchill"
+   ],
+   "bonne_reponse": "Charles de Gaulle"
+  },
+  {
+   "id": "add-2206",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle bataille de 1815 a marqué la défaite définitive de Napoléon ?",
+   "anecdote": "Elle s'est déroulée dans l'actuelle Belgique ; Napoléon fut ensuite exilé sur l'île de Sainte-Hélène.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bataille_de_Waterloo",
+    "https://www.britannica.com/event/Battle-of-Waterloo"
+   ],
+   "choix": [
+    "Austerlitz",
+    "Trafalgar",
+    "Iéna",
+    "Waterloo"
+   ],
+   "bonne_reponse": "Waterloo"
+  },
+  {
+   "id": "add-2207",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel roi de France a signé l'édit de Nantes en 1598 ?",
+   "anecdote": "L'édit accordait la liberté de culte aux protestants ; il fut révoqué par Louis XIV en 1685.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89dit_de_Nantes",
+    "https://en.wikipedia.org/wiki/Edict_of_Nantes"
+   ],
+   "choix": [
+    "François Ier",
+    "Henri IV",
+    "Louis XIII",
+    "Charles IX"
+   ],
+   "bonne_reponse": "Henri IV"
+  },
+  {
+   "id": "add-2208",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "En quelle année le droit de vote a-t-il été accordé aux femmes en France ?",
+   "anecdote": "L'ordonnance date du 21 avril 1944 ; les Françaises ont voté pour la première fois aux municipales d'avril 1945.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Droit_de_vote_des_femmes",
+    "https://en.wikipedia.org/wiki/Women%27s_suffrage"
+   ],
+   "choix": [
+    "1918",
+    "1936",
+    "1944",
+    "1962"
+   ],
+   "bonne_reponse": "1944"
+  },
+  {
+   "id": "add-2209",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "En quelle année Charlemagne a-t-il été couronné empereur ?",
+   "anecdote": "Il fut couronné à Rome le jour de Noël par le pape Léon III.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Charlemagne",
+    "https://www.britannica.com/biography/Charlemagne"
+   ],
+   "choix": [
+    "750",
+    "800",
+    "850",
+    "900"
+   ],
+   "bonne_reponse": "800"
+  },
+  {
+   "id": "add-2210",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle dynastie a succédé aux Mérovingiens sur le trône des Francs ?",
+   "anecdote": "Elle fut fondée par Pépin le Bref, père de Charlemagne, sacré roi en 751.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Carolingiens",
+    "https://en.wikipedia.org/wiki/Carolingian_dynasty"
+   ],
+   "choix": [
+    "Les Capétiens",
+    "Les Carolingiens",
+    "Les Valois",
+    "Les Bourbons"
+   ],
+   "bonne_reponse": "Les Carolingiens"
+  },
+  {
+   "id": "add-2211",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Jules César a été assassiné un 15 mars, le jour des ides de mars.",
+   "anecdote": "En 44 av. J.-C., il fut poignardé en pleine séance du Sénat par des conjurés, dont Brutus.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jules_C%C3%A9sar",
+    "https://en.wikipedia.org/wiki/Julius_Caesar"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2212",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "La monarchie française a été abolie dès le 14 juillet 1789.",
+   "anecdote": "Elle ne fut abolie que le 21 septembre 1792 : Louis XVI est resté roi plus de trois ans après la Bastille.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/R%C3%A9volution_fran%C3%A7aise",
+    "https://en.wikipedia.org/wiki/French_First_Republic"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2213",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est le plus vaste océan du monde ?",
+   "anecdote": "Il couvre environ un tiers de la surface du globe, plus que toutes les terres émergées réunies.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Oc%C3%A9an_Pacifique",
+    "https://en.wikipedia.org/wiki/Pacific_Ocean"
+   ],
+   "choix": [
+    "L'Atlantique",
+    "L'Indien",
+    "L'Arctique",
+    "Le Pacifique"
+   ],
+   "bonne_reponse": "Le Pacifique"
+  },
+  {
+   "id": "add-2214",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans quel pays se trouve la cité inca du Machu Picchu ?",
+   "anecdote": "Perchée à environ 2 400 mètres d'altitude, elle fut révélée au monde par Hiram Bingham en 1911.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Machu_Picchu",
+    "https://en.wikipedia.org/wiki/Machu_Picchu"
+   ],
+   "choix": [
+    "Le Mexique",
+    "Le Brésil",
+    "Le Pérou",
+    "Le Chili"
+   ],
+   "bonne_reponse": "Le Pérou"
+  },
+  {
+   "id": "add-2215",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel fleuve traverse Vienne, Budapest et Belgrade ?",
+   "anecdote": "Il traverse dix pays, un record mondial pour un fleuve.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Danube",
+    "https://en.wikipedia.org/wiki/Danube"
+   ],
+   "choix": [
+    "Le Rhin",
+    "Le Danube",
+    "La Volga",
+    "L'Elbe"
+   ],
+   "bonne_reponse": "Le Danube"
+  },
+  {
+   "id": "add-2216",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Combien de régions compte la France métropolitaine depuis 2016 ?",
+   "anecdote": "La réforme territoriale a fusionné d'anciennes régions ; avec l'outre-mer, la France en compte 18.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/R%C3%A9gion_fran%C3%A7aise",
+    "https://en.wikipedia.org/wiki/Regions_of_France"
+   ],
+   "choix": [
+    "12",
+    "13",
+    "16",
+    "22"
+   ],
+   "bonne_reponse": "13"
+  },
+  {
+   "id": "add-2217",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La Seine se jette dans la Manche.",
+   "anecdote": "Son estuaire s'ouvre sur la Manche entre Le Havre et Honfleur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Seine",
+    "https://en.wikipedia.org/wiki/Seine"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2218",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Istanbul est la capitale de la Turquie.",
+   "anecdote": "La capitale est Ankara depuis 1923 ; Istanbul reste néanmoins la plus grande ville du pays.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ankara",
+    "https://en.wikipedia.org/wiki/Ankara"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2219",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le mont Everest se trouve à la frontière entre le Népal et la Chine.",
+   "anecdote": "Il culmine à environ 8 849 mètres et continue de s'élever de quelques millimètres par an.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Everest",
+    "https://www.britannica.com/place/Mount-Everest"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2220",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est le plus grand animal vivant actuellement sur Terre ?",
+   "anecdote": "Elle peut dépasser 25 mètres de long et son cœur pèse près de 200 kilogrammes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Baleine_bleue",
+    "https://www.britannica.com/animal/blue-whale"
+   ],
+   "choix": [
+    "L'éléphant d'Afrique",
+    "La baleine bleue",
+    "Le requin-baleine",
+    "La girafe"
+   ],
+   "bonne_reponse": "La baleine bleue"
+  },
+  {
+   "id": "add-2221",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Combien d'os compte environ le squelette d'un adulte ?",
+   "anecdote": "Un nouveau-né en possède près de 300 ; beaucoup fusionnent au cours de la croissance.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Squelette_humain",
+    "https://en.wikipedia.org/wiki/Human_skeleton"
+   ],
+   "choix": [
+    "106",
+    "206",
+    "306",
+    "406"
+   ],
+   "bonne_reponse": "206"
+  },
+  {
+   "id": "add-2222",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle unité sert à mesurer l'intensité du courant électrique ?",
+   "anecdote": "Elle rend hommage au physicien français André-Marie Ampère, pionnier de l'électromagnétisme.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Amp%C3%A8re",
+    "https://en.wikipedia.org/wiki/Ampere"
+   ],
+   "choix": [
+    "Le volt",
+    "Le watt",
+    "L'ampère",
+    "L'ohm"
+   ],
+   "bonne_reponse": "L'ampère"
+  },
+  {
+   "id": "add-2223",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle est, approximativement, la vitesse de la lumière dans le vide ?",
+   "anecdote": "À cette vitesse, la lumière du Soleil met tout de même un peu plus de huit minutes à nous parvenir.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vitesse_de_la_lumi%C3%A8re",
+    "https://en.wikipedia.org/wiki/Speed_of_light"
+   ],
+   "choix": [
+    "300 km/s",
+    "3 000 km/s",
+    "300 000 km/s",
+    "3 millions de km/s"
+   ],
+   "bonne_reponse": "300 000 km/s"
+  },
+  {
+   "id": "add-2224",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Les chauves-souris sont des mammifères.",
+   "anecdote": "Ce sont même les seuls mammifères capables d'un véritable vol battu.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chauve-souris",
+    "https://en.wikipedia.org/wiki/Bat"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2225",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Un éclair est plus chaud que la surface du Soleil.",
+   "anecdote": "L'air traversé par la foudre est porté à près de 30 000 °C, soit environ cinq fois la température de la surface solaire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Foudre",
+    "https://en.wikipedia.org/wiki/Lightning"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2226",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "En cas de danger, l'autruche enfouit sa tête dans le sable.",
+   "anecdote": "C'est une légende tenace : l'autruche préfère fuir, avec des pointes à environ 70 km/h.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Autruche",
+    "https://en.wikipedia.org/wiki/Ostrich"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2227",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a écrit « Le Petit Prince » ?",
+   "anecdote": "Publié d'abord à New York en 1943, c'est l'un des livres les plus traduits au monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Petit_Prince",
+    "https://en.wikipedia.org/wiki/The_Little_Prince"
+   ],
+   "choix": [
+    "Antoine de Saint-Exupéry",
+    "Jacques Prévert",
+    "Albert Camus",
+    "Marcel Pagnol"
+   ],
+   "bonne_reponse": "Antoine de Saint-Exupéry"
+  },
+  {
+   "id": "add-2228",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel écrivain a créé le détective Sherlock Holmes ?",
+   "anecdote": "Lassé de son héros, l'auteur l'a fait mourir, avant de le ressusciter sous la pression des lecteurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sherlock_Holmes",
+    "https://www.britannica.com/biography/Arthur-Conan-Doyle"
+   ],
+   "choix": [
+    "Agatha Christie",
+    "Gaston Leroux",
+    "Arthur Conan Doyle",
+    "Maurice Leblanc"
+   ],
+   "bonne_reponse": "Arthur Conan Doyle"
+  },
+  {
+   "id": "add-2229",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a écrit « Les Trois Mousquetaires » ?",
+   "anecdote": "Ils sont en réalité quatre : Athos, Porthos et Aramis, rejoints par d'Artagnan.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Trois_Mousquetaires",
+    "https://en.wikipedia.org/wiki/The_Three_Musketeers"
+   ],
+   "choix": [
+    "Victor Hugo",
+    "Alexandre Dumas",
+    "Jules Verne",
+    "Gustave Flaubert"
+   ],
+   "bonne_reponse": "Alexandre Dumas"
+  },
+  {
+   "id": "add-2230",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle romancière a imaginé le personnage de Harry Potter ?",
+   "anecdote": "Le premier tome fut refusé par une douzaine d'éditeurs avant sa parution en 1997.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/J._K._Rowling",
+    "https://www.britannica.com/biography/J-K-Rowling"
+   ],
+   "choix": [
+    "J. K. Rowling",
+    "Stephenie Meyer",
+    "Suzanne Collins",
+    "Agatha Christie"
+   ],
+   "bonne_reponse": "J. K. Rowling"
+  },
+  {
+   "id": "add-2231",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a écrit « Vingt Mille Lieues sous les mers » ?",
+   "anecdote": "Le nom du capitaine Nemo signifie « personne » en latin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vingt_Mille_Lieues_sous_les_mers",
+    "https://www.britannica.com/biography/Jules-Verne"
+   ],
+   "choix": [
+    "H. G. Wells",
+    "Robert Louis Stevenson",
+    "Daniel Defoe",
+    "Jules Verne"
+   ],
+   "bonne_reponse": "Jules Verne"
+  },
+  {
+   "id": "add-2232",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui est l'auteur de « Madame Bovary » ?",
+   "anecdote": "Le roman valut à son auteur un procès pour immoralité en 1857, dont il sortit acquitté.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Madame_Bovary",
+    "https://www.britannica.com/biography/Gustave-Flaubert"
+   ],
+   "choix": [
+    "Stendhal",
+    "Gustave Flaubert",
+    "Guy de Maupassant",
+    "Émile Zola"
+   ],
+   "bonne_reponse": "Gustave Flaubert"
+  },
+  {
+   "id": "add-2233",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui a écrit le roman « L'Étranger » ?",
+   "anecdote": "Son auteur a reçu le prix Nobel de littérature en 1957, à 44 ans, l'un des plus jeunes lauréats.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/L%27%C3%89tranger",
+    "https://www.britannica.com/biography/Albert-Camus"
+   ],
+   "choix": [
+    "Jean-Paul Sartre",
+    "André Malraux",
+    "Albert Camus",
+    "André Gide"
+   ],
+   "bonne_reponse": "Albert Camus"
+  },
+  {
+   "id": "add-2234",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "De quelle fable de La Fontaine vient la morale « Rien ne sert de courir ; il faut partir à point » ?",
+   "anecdote": "La Fontaine s'inspirait souvent d'Ésope, fabuliste de la Grèce antique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Li%C3%A8vre_et_la_Tortue",
+    "https://en.wikipedia.org/wiki/The_Tortoise_and_the_Hare"
+   ],
+   "choix": [
+    "Le Corbeau et le Renard",
+    "La Cigale et la Fourmi",
+    "Le Lièvre et la Tortue",
+    "Le Loup et l'Agneau"
+   ],
+   "bonne_reponse": "Le Lièvre et la Tortue"
+  },
+  {
+   "id": "add-2235",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel poète a écrit le recueil « Les Fleurs du mal » ?",
+   "anecdote": "Condamné en 1857 pour outrage aux bonnes mœurs, il ne fut réhabilité qu'en 1949.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Fleurs_du_mal",
+    "https://www.britannica.com/biography/Charles-Baudelaire"
+   ],
+   "choix": [
+    "Arthur Rimbaud",
+    "Paul Verlaine",
+    "Charles Baudelaire",
+    "Victor Hugo"
+   ],
+   "bonne_reponse": "Charles Baudelaire"
+  },
+  {
+   "id": "add-2236",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Marcel Proust est l'auteur d'« À la recherche du temps perdu ».",
+   "anecdote": "Le premier tome, refusé par plusieurs éditeurs, fut publié à compte d'auteur en 1913.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%80_la_recherche_du_temps_perdu",
+    "https://www.britannica.com/biography/Marcel-Proust"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2237",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le vrai nom de Molière était Jean-Baptiste Poquelin.",
+   "anecdote": "Fils d'un tapissier du roi, il choisit ce pseudonyme vers 1644 sans jamais en expliquer l'origine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Moli%C3%A8re",
+    "https://en.wikipedia.org/wiki/Moli%C3%A8re"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2238",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "George Sand était un homme.",
+   "anecdote": "C'est le pseudonyme d'Aurore Dupin, qui s'habillait parfois en homme pour circuler plus librement à Paris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/George_Sand",
+    "https://en.wikipedia.org/wiki/George_Sand"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2239",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel peintre s'est tranché une partie de l'oreille en 1888 ?",
+   "anecdote": "De son vivant, il n'a vendu qu'un tout petit nombre de toiles, devenues aujourd'hui inestimables.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vincent_van_Gogh",
+    "https://www.britannica.com/biography/Vincent-van-Gogh"
+   ],
+   "choix": [
+    "Paul Gauguin",
+    "Vincent van Gogh",
+    "Paul Cézanne",
+    "Claude Monet"
+   ],
+   "bonne_reponse": "Vincent van Gogh"
+  },
+  {
+   "id": "add-2240",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel peintre espagnol a fondé le cubisme avec Georges Braque ?",
+   "anecdote": "Son tableau « Guernica » dénonce le bombardement d'une ville basque en 1937.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pablo_Picasso",
+    "https://www.britannica.com/biography/Pablo-Picasso"
+   ],
+   "choix": [
+    "Salvador Dalí",
+    "Joan Miró",
+    "Francisco de Goya",
+    "Pablo Picasso"
+   ],
+   "bonne_reponse": "Pablo Picasso"
+  },
+  {
+   "id": "add-2241",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel sculpteur français a créé « Le Penseur » ?",
+   "anecdote": "La statue fut conçue à l'origine pour orner une monumentale « Porte de l'Enfer ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Penseur",
+    "https://www.britannica.com/biography/Auguste-Rodin"
+   ],
+   "choix": [
+    "Auguste Rodin",
+    "Antoine Bourdelle",
+    "Aristide Maillol",
+    "Alberto Giacometti"
+   ],
+   "bonne_reponse": "Auguste Rodin"
+  },
+  {
+   "id": "add-2242",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel artiste norvégien a peint « Le Cri » ?",
+   "anecdote": "Il en existe plusieurs versions, dont deux ont été volées puis retrouvées.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Cri",
+    "https://www.britannica.com/biography/Edvard-Munch"
+   ],
+   "choix": [
+    "Gustav Klimt",
+    "Edvard Munch",
+    "Vassily Kandinsky",
+    "William Turner"
+   ],
+   "bonne_reponse": "Edvard Munch"
+  },
+  {
+   "id": "add-2243",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel peintre surréaliste est célèbre pour ses « montres molles » ?",
+   "anecdote": "Elles apparaissent dans « La Persistance de la mémoire » (1931), inspirées, disait-il, d'un camembert fondant.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Persistance_de_la_m%C3%A9moire",
+    "https://www.britannica.com/biography/Salvador-Dali"
+   ],
+   "choix": [
+    "René Magritte",
+    "Max Ernst",
+    "Salvador Dalí",
+    "Giorgio De Chirico"
+   ],
+   "bonne_reponse": "Salvador Dalí"
+  },
+  {
+   "id": "add-2244",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Dans quelle ville se trouve le musée du Prado ?",
+   "anecdote": "Il abrite « Les Ménines » de Vélasquez, l'un des tableaux les plus étudiés de la peinture espagnole.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mus%C3%A9e_du_Prado",
+    "https://en.wikipedia.org/wiki/Museo_del_Prado"
+   ],
+   "choix": [
+    "Barcelone",
+    "Madrid",
+    "Séville",
+    "Lisbonne"
+   ],
+   "bonne_reponse": "Madrid"
+  },
+  {
+   "id": "add-2245",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "« La Joconde » est peinte sur une toile.",
+   "anecdote": "Elle est peinte sur un panneau de bois de peuplier, ce qui la rend particulièrement fragile.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Joconde",
+    "https://www.britannica.com/topic/Mona-Lisa-painting"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2246",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La Vénus de Milo est exposée au musée du Louvre.",
+   "anecdote": "Découverte en 1820 sur l'île grecque de Milos, elle a perdu ses bras, jamais retrouvés.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/V%C3%A9nus_de_Milo",
+    "https://en.wikipedia.org/wiki/Venus_de_Milo"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2247",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Léonard de Vinci est mort en France.",
+   "anecdote": "Invité par François Ier, il passa ses dernières années au Clos Lucé, près d'Amboise, où il mourut en 1519.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/L%C3%A9onard_de_Vinci",
+    "https://www.britannica.com/biography/Leonardo-da-Vinci"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2248",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le musée d'Orsay occupe une ancienne gare.",
+   "anecdote": "La gare d'Orsay fut inaugurée pour l'Exposition universelle de 1900 ; le musée a ouvert en 1986.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mus%C3%A9e_d%27Orsay",
+    "https://en.wikipedia.org/wiki/Mus%C3%A9e_d%27Orsay"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2249",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel fromage à pâte persillée est affiné dans des caves de l'Aveyron ?",
+   "anecdote": "Fabriqué au lait de brebis, il fut le premier fromage à obtenir une appellation d'origine, en 1925.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Roquefort_(fromage)",
+    "https://en.wikipedia.org/wiki/Roquefort"
+   ],
+   "choix": [
+    "Le bleu d'Auvergne",
+    "Le roquefort",
+    "Le gorgonzola",
+    "La fourme d'Ambert"
+   ],
+   "bonne_reponse": "Le roquefort"
+  },
+  {
+   "id": "add-2250",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel fruit compose traditionnellement la tarte Tatin ?",
+   "anecdote": "Elle serait née d'une maladresse des sœurs Tatin dans leur hôtel de Sologne, à la fin du XIXe siècle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tarte_Tatin",
+    "https://en.wikipedia.org/wiki/Tarte_Tatin"
+   ],
+   "choix": [
+    "La poire",
+    "L'abricot",
+    "La pomme",
+    "La prune"
+   ],
+   "bonne_reponse": "La pomme"
+  },
+  {
+   "id": "add-2251",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quelle ville la bouillabaisse est-elle la spécialité emblématique ?",
+   "anecdote": "À l'origine, c'était un plat de pêcheurs préparé avec les poissons invendus de la criée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bouillabaisse",
+    "https://en.wikipedia.org/wiki/Bouillabaisse"
+   ],
+   "choix": [
+    "Bordeaux",
+    "Lyon",
+    "Marseille",
+    "Strasbourg"
+   ],
+   "bonne_reponse": "Marseille"
+  },
+  {
+   "id": "add-2252",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel pays la paella est-elle originaire ?",
+   "anecdote": "Née dans la région de Valence, elle tire son nom de la poêle dans laquelle elle cuit.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Paella",
+    "https://en.wikipedia.org/wiki/Paella"
+   ],
+   "choix": [
+    "L'Italie",
+    "L'Espagne",
+    "Le Portugal",
+    "Le Mexique"
+   ],
+   "bonne_reponse": "L'Espagne"
+  },
+  {
+   "id": "add-2253",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel fromage italien entre traditionnellement dans la préparation du tiramisu ?",
+   "anecdote": "En italien, « tiramisù » signifie à peu près « remonte-moi le moral ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tiramisu",
+    "https://en.wikipedia.org/wiki/Tiramisu"
+   ],
+   "choix": [
+    "La ricotta",
+    "Le mascarpone",
+    "Le parmesan",
+    "La mozzarella"
+   ],
+   "bonne_reponse": "Le mascarpone"
+  },
+  {
+   "id": "add-2254",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle sauce prépare-t-on avec du beurre, de la farine et du lait ?",
+   "anecdote": "Son nom rendrait hommage à Louis de Béchameil, maître d'hôtel de Louis XIV.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sauce_b%C3%A9chamel",
+    "https://en.wikipedia.org/wiki/B%C3%A9chamel_sauce"
+   ],
+   "choix": [
+    "La hollandaise",
+    "La béarnaise",
+    "La béchamel",
+    "La mayonnaise"
+   ],
+   "bonne_reponse": "La béchamel"
+  },
+  {
+   "id": "add-2255",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Le cassoulet est une spécialité de quelle partie de la France ?",
+   "anecdote": "Castelnaudary, Carcassonne et Toulouse se disputent la paternité de la recette authentique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cassoulet",
+    "https://en.wikipedia.org/wiki/Cassoulet"
+   ],
+   "choix": [
+    "L'Alsace",
+    "La Bretagne",
+    "Le Sud-Ouest",
+    "La Savoie"
+   ],
+   "bonne_reponse": "Le Sud-Ouest"
+  },
+  {
+   "id": "add-2256",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle épice, la plus chère du monde, est extraite d'une fleur de crocus ?",
+   "anecdote": "Il faut environ 150 fleurs, cueillies à la main, pour obtenir un seul gramme d'épice sèche.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Safran_(%C3%A9pice)",
+    "https://en.wikipedia.org/wiki/Saffron"
+   ],
+   "choix": [
+    "La vanille",
+    "Le safran",
+    "La cardamome",
+    "Le curcuma"
+   ],
+   "bonne_reponse": "Le safran"
+  },
+  {
+   "id": "add-2257",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "De quel pays le goulasch est-il le plat emblématique ?",
+   "anecdote": "C'était à l'origine une soupe de bouviers des plaines, relevée de paprika.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Goulasch",
+    "https://en.wikipedia.org/wiki/Goulash"
+   ],
+   "choix": [
+    "La Pologne",
+    "L'Autriche",
+    "La Hongrie",
+    "La Roumanie"
+   ],
+   "bonne_reponse": "La Hongrie"
+  },
+  {
+   "id": "add-2258",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel alcool est la base du mojito ?",
+   "anecdote": "Ce cocktail né à Cuba se prépare avec de la menthe fraîche et du citron vert.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mojito",
+    "https://en.wikipedia.org/wiki/Mojito"
+   ],
+   "choix": [
+    "La vodka",
+    "Le rhum",
+    "Le gin",
+    "La tequila"
+   ],
+   "bonne_reponse": "Le rhum"
+  },
+  {
+   "id": "add-2259",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le croissant est d'origine autrichienne.",
+   "anecdote": "Il s'inspire du kipferl viennois ; le mot « viennoiserie » en garde d'ailleurs la trace.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Croissant_(viennoiserie)",
+    "https://en.wikipedia.org/wiki/Croissant"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2260",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le camembert est traditionnellement fabriqué au lait de chèvre.",
+   "anecdote": "Il est fait au lait de vache ; la légende attribue sa recette à la fermière normande Marie Harel.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Camembert_(fromage)",
+    "https://en.wikipedia.org/wiki/Camembert"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2261",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le mot « sushi » désigne d'abord le riz vinaigré, et non le poisson cru.",
+   "anecdote": "Certains sushis, comme ceux à l'omelette ou au concombre, ne contiennent d'ailleurs aucun poisson.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sushi",
+    "https://en.wikipedia.org/wiki/Sushi"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2262",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est le pluriel de « un cheval » ?",
+   "anecdote": "Ce pluriel en -aux est célèbre, mais on dit bien « des festivals » et « des carnavals ».",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/chevaux",
+    "https://fr.wikipedia.org/wiki/Cheval"
+   ],
+   "choix": [
+    "Des chevals",
+    "Des chevaux",
+    "Des chevaus",
+    "Des chevauls"
+   ],
+   "bonne_reponse": "Des chevaux"
+  },
+  {
+   "id": "add-2263",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on deux mots qui ont le même sens ?",
+   "anecdote": "Les antonymes, eux, sont des mots de sens opposé, comme « grand » et « petit ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Synonymie",
+    "https://en.wikipedia.org/wiki/Synonym"
+   ],
+   "choix": [
+    "Des synonymes",
+    "Des antonymes",
+    "Des homonymes",
+    "Des paronymes"
+   ],
+   "bonne_reponse": "Des synonymes"
+  },
+  {
+   "id": "add-2264",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle institution fondée en 1635 est chargée de veiller sur la langue française ?",
+   "anecdote": "Fondée par Richelieu, elle compte quarante membres surnommés « les Immortels ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Acad%C3%A9mie_fran%C3%A7aise",
+    "https://en.wikipedia.org/wiki/Acad%C3%A9mie_fran%C3%A7aise"
+   ],
+   "choix": [
+    "La Sorbonne",
+    "L'Académie française",
+    "Le Collège de France",
+    "L'Institut Pasteur"
+   ],
+   "bonne_reponse": "L'Académie française"
+  },
+  {
+   "id": "add-2265",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on un mot qui se lit dans les deux sens, comme « kayak » ?",
+   "anecdote": "La phrase « Ésope reste ici et se repose » en est un exemple célèbre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Palindrome",
+    "https://en.wikipedia.org/wiki/Palindrome"
+   ],
+   "choix": [
+    "Un palindrome",
+    "Une anagramme",
+    "Un acronyme",
+    "Un homophone"
+   ],
+   "bonne_reponse": "Un palindrome"
+  },
+  {
+   "id": "add-2266",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle figure de style consiste à exagérer volontairement, comme dans « mourir de rire » ?",
+   "anecdote": "La litote fait l'inverse : dire moins pour suggérer plus, comme « ce n'est pas mauvais ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Hyperbole_(rh%C3%A9torique)",
+    "https://en.wikipedia.org/wiki/Hyperbole"
+   ],
+   "choix": [
+    "Une litote",
+    "Une hyperbole",
+    "Une métaphore",
+    "Un euphémisme"
+   ],
+   "bonne_reponse": "Une hyperbole"
+  },
+  {
+   "id": "add-2267",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Que signifie le mot « ubiquité » ?",
+   "anecdote": "Il vient du latin « ubique », « partout » ; on parle souvent du « don d'ubiquité ».",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/ubiquit%C3%A9",
+    "https://fr.wikipedia.org/wiki/Ubiquit%C3%A9"
+   ],
+   "choix": [
+    "La capacité d'être présent partout à la fois",
+    "Le fait de parler plusieurs langues",
+    "Une mémoire infaillible",
+    "La peur des lieux publics"
+   ],
+   "bonne_reponse": "La capacité d'être présent partout à la fois"
+  },
+  {
+   "id": "add-2268",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "De quelle langue vient le mot « robot » ?",
+   "anecdote": "Il a été forgé d'après « robota », « corvée », pour la pièce de théâtre R.U.R. de Karel Čapek en 1920.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Robot",
+    "https://en.wikipedia.org/wiki/R.U.R."
+   ],
+   "choix": [
+    "Du russe",
+    "De l'allemand",
+    "Du tchèque",
+    "De l'anglais"
+   ],
+   "bonne_reponse": "Du tchèque"
+  },
+  {
+   "id": "add-2269",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle figure de style rapproche deux mots de sens opposés, comme « une obscure clarté » ?",
+   "anecdote": "Cet exemple fameux vient du « Cid » de Corneille.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Oxymore",
+    "https://en.wikipedia.org/wiki/Oxymoron"
+   ],
+   "choix": [
+    "Un pléonasme",
+    "Un oxymore",
+    "Une allitération",
+    "Une antiphrase"
+   ],
+   "bonne_reponse": "Un oxymore"
+  },
+  {
+   "id": "add-2270",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le pluriel de « un œil » est « des œils ».",
+   "anecdote": "On dit « des yeux » ; la forme « œils » survit dans des composés comme « des œils-de-bœuf ».",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/%C5%93il",
+    "https://fr.wikipedia.org/wiki/%C5%92il"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2271",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "L'accent circonflexe remplace souvent un ancien « s », comme dans « forêt ».",
+   "anecdote": "« Forêt » vient de « forest », et le « s » réapparaît dans « forestier » ou « hôpital »/« hospitalier ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Accent_circonflexe",
+    "https://en.wikipedia.org/wiki/Circumflex"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2272",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Depuis les rectifications orthographiques de 1990, on peut écrire « nénufar ».",
+   "anecdote": "Cette graphie était d'ailleurs courante avant le XXe siècle ; « nénuphar » reste tout aussi correct.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rectifications_orthographiques_du_fran%C3%A7ais_en_1990",
+    "https://fr.wiktionary.org/wiki/n%C3%A9nufar"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2273",
+   "categorie": "Langue française",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le français est langue officielle dans plus de 25 pays.",
+   "anecdote": "Il est officiel dans 29 États, dont la République démocratique du Congo, pays francophone le plus peuplé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Organisation_internationale_de_la_francophonie",
+    "https://en.wikipedia.org/wiki/French_language"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2274",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a réalisé « Titanic » et « Avatar » ?",
+   "anecdote": "« Titanic » a remporté onze Oscars, un record qu'il partage avec deux autres films.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/James_Cameron",
+    "https://www.britannica.com/biography/James-Cameron"
+   ],
+   "choix": [
+    "Steven Spielberg",
+    "James Cameron",
+    "Ridley Scott",
+    "Peter Jackson"
+   ],
+   "bonne_reponse": "James Cameron"
+  },
+  {
+   "id": "add-2275",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel acteur incarne le pirate Jack Sparrow ?",
+   "anecdote": "Il s'est inspiré de Keith Richards, le guitariste des Rolling Stones, pour composer le personnage.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Johnny_Depp",
+    "https://www.britannica.com/biography/Johnny-Depp"
+   ],
+   "choix": [
+    "Orlando Bloom",
+    "Brad Pitt",
+    "Johnny Depp",
+    "Keanu Reeves"
+   ],
+   "bonne_reponse": "Johnny Depp"
+  },
+  {
+   "id": "add-2276",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle est la plus haute récompense du Festival de Cannes ?",
+   "anecdote": "Créée en 1955, elle évoque les palmiers de la Croisette et les armoiries de la ville.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Palme_d%27or",
+    "https://en.wikipedia.org/wiki/Palme_d%27Or"
+   ],
+   "choix": [
+    "Le Lion d'or",
+    "La Palme d'or",
+    "L'Ours d'or",
+    "Le César d'honneur"
+   ],
+   "bonne_reponse": "La Palme d'or"
+  },
+  {
+   "id": "add-2277",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans « Star Wars », qui est le père de Luke Skywalker ?",
+   "anecdote": "La réplique exacte est « Non, je suis ton père », souvent citée de façon erronée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dark_Vador",
+    "https://en.wikipedia.org/wiki/Darth_Vader"
+   ],
+   "choix": [
+    "Obi-Wan Kenobi",
+    "Dark Vador",
+    "L'empereur Palpatine",
+    "Han Solo"
+   ],
+   "bonne_reponse": "Dark Vador"
+  },
+  {
+   "id": "add-2278",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel film français de 2011, avec François Cluzet et Omar Sy, raconte l'amitié entre un aristocrate tétraplégique et son aide à domicile ?",
+   "anecdote": "Inspiré d'une histoire vraie, il a dépassé les 19 millions d'entrées en France.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Intouchables",
+    "https://en.wikipedia.org/wiki/The_Intouchables"
+   ],
+   "choix": [
+    "La Famille Bélier",
+    "Intouchables",
+    "Bienvenue chez les Ch'tis",
+    "Le Dîner de cons"
+   ],
+   "bonne_reponse": "Intouchables"
+  },
+  {
+   "id": "add-2279",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel acteur incarne Forrest Gump dans le film de 1994 ?",
+   "anecdote": "Il a remporté l'Oscar du meilleur acteur deux années de suite, en 1994 puis en 1995.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tom_Hanks",
+    "https://www.britannica.com/biography/Tom-Hanks"
+   ],
+   "choix": [
+    "Robin Williams",
+    "Kevin Costner",
+    "Jim Carrey",
+    "Tom Hanks"
+   ],
+   "bonne_reponse": "Tom Hanks"
+  },
+  {
+   "id": "add-2280",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui a réalisé « Le Fabuleux Destin d'Amélie Poulain » ?",
+   "anecdote": "Le film a fait de Montmartre et du Café des Deux Moulins de véritables lieux de pèlerinage.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Fabuleux_Destin_d%27Am%C3%A9lie_Poulain",
+    "https://en.wikipedia.org/wiki/Am%C3%A9lie"
+   ],
+   "choix": [
+    "Luc Besson",
+    "Jean-Pierre Jeunet",
+    "Michel Gondry",
+    "Cédric Klapisch"
+   ],
+   "bonne_reponse": "Jean-Pierre Jeunet"
+  },
+  {
+   "id": "add-2281",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Dans quelle ville l'Ours d'or est-il décerné ?",
+   "anecdote": "L'ours est l'emblème de la ville, présent sur son blason depuis le Moyen Âge.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Berlinale",
+    "https://en.wikipedia.org/wiki/Berlin_International_Film_Festival"
+   ],
+   "choix": [
+    "Venise",
+    "Berlin",
+    "Rome",
+    "Locarno"
+   ],
+   "bonne_reponse": "Berlin"
+  },
+  {
+   "id": "add-2282",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel réalisateur de la Nouvelle Vague a signé « Les Quatre Cents Coups » ?",
+   "anecdote": "Ce film largement autobiographique ouvre le cycle consacré au personnage d'Antoine Doinel.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Quatre_Cents_Coups",
+    "https://www.britannica.com/biography/Francois-Truffaut"
+   ],
+   "choix": [
+    "Jean-Luc Godard",
+    "Claude Chabrol",
+    "François Truffaut",
+    "Éric Rohmer"
+   ],
+   "bonne_reponse": "François Truffaut"
+  },
+  {
+   "id": "add-2283",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Les frères Lumière ont organisé à Paris, en 1895, l'une des premières projections publiques de cinéma.",
+   "anecdote": "C'était le 28 décembre 1895, au Salon indien du Grand Café, boulevard des Capucines.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Auguste_et_Louis_Lumi%C3%A8re",
+    "https://en.wikipedia.org/wiki/Auguste_and_Louis_Lumi%C3%A8re"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2284",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "« Blanche-Neige et les Sept Nains » fut le premier long métrage d'animation des studios Disney.",
+   "anecdote": "Sorti en 1937, le projet était surnommé « la folie de Disney » par les sceptiques d'Hollywood.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Blanche-Neige_et_les_Sept_Nains",
+    "https://en.wikipedia.org/wiki/Snow_White_and_the_Seven_Dwarfs_(1937_film)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2285",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Alfred Hitchcock a remporté cinq fois l'Oscar du meilleur réalisateur.",
+   "anecdote": "Nommé cinq fois, il ne l'a en réalité jamais gagné ; il reçut toutefois un prix d'honneur en 1968.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Alfred_Hitchcock",
+    "https://www.britannica.com/biography/Alfred-Hitchcock"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2286",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le film « Le Voyage dans la Lune » de Georges Méliès est sorti en 1902.",
+   "anecdote": "Son image de la fusée plantée dans l'œil de la Lune est l'une des plus célèbres de l'histoire du cinéma.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Voyage_dans_la_Lune",
+    "https://en.wikipedia.org/wiki/A_Trip_to_the_Moon"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2287",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel compositeur, devenu sourd, a écrit la « Neuvième Symphonie » ?",
+   "anecdote": "Son « Ode à la joie », tirée de cette symphonie, est devenue l'hymne européen.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ludwig_van_Beethoven",
+    "https://www.britannica.com/biography/Ludwig-van-Beethoven"
+   ],
+   "choix": [
+    "Mozart",
+    "Beethoven",
+    "Bach",
+    "Chopin"
+   ],
+   "bonne_reponse": "Beethoven"
+  },
+  {
+   "id": "add-2288",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quelle ville anglaise les Beatles sont-ils originaires ?",
+   "anecdote": "Avant la gloire, le groupe s'est aguerri dans les clubs de Hambourg, en Allemagne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/The_Beatles",
+    "https://www.britannica.com/topic/the-Beatles"
+   ],
+   "choix": [
+    "Londres",
+    "Manchester",
+    "Liverpool",
+    "Birmingham"
+   ],
+   "bonne_reponse": "Liverpool"
+  },
+  {
+   "id": "add-2289",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle chanteuse française a interprété « La Vie en rose » ?",
+   "anecdote": "Surnommée « la Môme Piaf », « piaf » signifiant « moineau » en argot parisien, elle mesurait 1,47 m.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89dith_Piaf",
+    "https://en.wikipedia.org/wiki/%C3%89dith_Piaf"
+   ],
+   "choix": [
+    "Dalida",
+    "Édith Piaf",
+    "Barbara",
+    "Juliette Gréco"
+   ],
+   "bonne_reponse": "Édith Piaf"
+  },
+  {
+   "id": "add-2290",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Combien de cordes possède une guitare classique ?",
+   "anecdote": "La guitare basse standard, elle, n'en compte que quatre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guitare_classique",
+    "https://en.wikipedia.org/wiki/Classical_guitar"
+   ],
+   "choix": [
+    "4",
+    "5",
+    "6",
+    "7"
+   ],
+   "bonne_reponse": "6"
+  },
+  {
+   "id": "add-2291",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel chanteur américain a popularisé le pas de danse du « moonwalk » ?",
+   "anecdote": "Son album « Thriller » (1982) demeure l'album le plus vendu de l'histoire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Michael_Jackson",
+    "https://en.wikipedia.org/wiki/Michael_Jackson"
+   ],
+   "choix": [
+    "Prince",
+    "Michael Jackson",
+    "Stevie Wonder",
+    "James Brown"
+   ],
+   "bonne_reponse": "Michael Jackson"
+  },
+  {
+   "id": "add-2292",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel compositeur autrichien, enfant prodige, a écrit l'opéra « La Flûte enchantée » ?",
+   "anecdote": "L'opéra fut créé en 1791, quelques semaines seulement avant la mort du compositeur, à 35 ans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Wolfgang_Amadeus_Mozart",
+    "https://www.britannica.com/biography/Wolfgang-Amadeus-Mozart"
+   ],
+   "choix": [
+    "Joseph Haydn",
+    "Franz Schubert",
+    "Wolfgang Amadeus Mozart",
+    "Johann Strauss"
+   ],
+   "bonne_reponse": "Wolfgang Amadeus Mozart"
+  },
+  {
+   "id": "add-2293",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel compositeur français a écrit le « Boléro » ?",
+   "anecdote": "L'œuvre est un long crescendo d'environ quinze minutes qui répète inlassablement le même thème.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bol%C3%A9ro_(Ravel)",
+    "https://www.britannica.com/biography/Maurice-Ravel"
+   ],
+   "choix": [
+    "Claude Debussy",
+    "Maurice Ravel",
+    "Erik Satie",
+    "Camille Saint-Saëns"
+   ],
+   "bonne_reponse": "Maurice Ravel"
+  },
+  {
+   "id": "add-2294",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel instrument complète le quatuor à cordes, aux côtés de deux violons et d'un violoncelle ?",
+   "anecdote": "Légèrement plus grand qu'un violon, il possède une sonorité plus grave et plus chaude.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Quatuor_%C3%A0_cordes",
+    "https://en.wikipedia.org/wiki/String_quartet"
+   ],
+   "choix": [
+    "La contrebasse",
+    "L'alto",
+    "La harpe",
+    "Le piano"
+   ],
+   "bonne_reponse": "L'alto"
+  },
+  {
+   "id": "add-2295",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on la voix féminine la plus aiguë ?",
+   "anecdote": "Parmi les voix masculines courantes, c'est le ténor qui occupe le registre le plus aigu.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Soprano",
+    "https://en.wikipedia.org/wiki/Soprano"
+   ],
+   "choix": [
+    "Mezzo-soprano",
+    "Contralto",
+    "Soprano",
+    "Baryton"
+   ],
+   "bonne_reponse": "Soprano"
+  },
+  {
+   "id": "add-2296",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel chanteur belge a écrit et interprété « Ne me quitte pas » ?",
+   "anecdote": "Enregistrée en 1959, la chanson a été reprise dans de nombreuses langues à travers le monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jacques_Brel",
+    "https://en.wikipedia.org/wiki/Jacques_Brel"
+   ],
+   "choix": [
+    "Serge Gainsbourg",
+    "Jacques Brel",
+    "Georges Brassens",
+    "Charles Aznavour"
+   ],
+   "bonne_reponse": "Jacques Brel"
+  },
+  {
+   "id": "add-2297",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Johnny Hallyday était surnommé « l'idole des jeunes ».",
+   "anecdote": "Le surnom vient de sa chanson de 1962 ; il a vendu plus de 100 millions de disques.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Johnny_Hallyday",
+    "https://en.wikipedia.org/wiki/Johnny_Hallyday"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2298",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Un piano de concert moderne compte 88 touches.",
+   "anecdote": "Soit 52 touches blanches et 36 touches noires, pour un peu plus de sept octaves.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Piano",
+    "https://en.wikipedia.org/wiki/Piano"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2299",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Combien de joueurs d'une équipe de football se trouvent sur le terrain ?",
+   "anecdote": "Gardien compris ; au rugby à XV, chaque équipe en aligne quinze.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Football",
+    "https://en.wikipedia.org/wiki/Association_football"
+   ],
+   "choix": [
+    "9",
+    "10",
+    "11",
+    "12"
+   ],
+   "bonne_reponse": "11"
+  },
+  {
+   "id": "add-2300",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle est la monnaie du Japon ?",
+   "anecdote": "Le yuan est chinois et le won coréen, d'où de fréquentes confusions.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Yen",
+    "https://en.wikipedia.org/wiki/Japanese_yen"
+   ],
+   "choix": [
+    "Le yuan",
+    "Le yen",
+    "Le won",
+    "Le dollar"
+   ],
+   "bonne_reponse": "Le yen"
+  },
+  {
+   "id": "add-2301",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle est la devise de la République française ?",
+   "anecdote": "Héritée de la Révolution, elle est inscrite dans la Constitution de 1958.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Libert%C3%A9,_%C3%89galit%C3%A9,_Fraternit%C3%A9",
+    "https://en.wikipedia.org/wiki/Libert%C3%A9,_%C3%A9galit%C3%A9,_fraternit%C3%A9"
+   ],
+   "choix": [
+    "Liberté, Égalité, Fraternité",
+    "Unité, Travail, Progrès",
+    "Dieu et mon droit",
+    "Paix et Justice"
+   ],
+   "bonne_reponse": "Liberté, Égalité, Fraternité"
+  },
+  {
+   "id": "add-2302",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année l'Homme a-t-il marché sur la Lune pour la première fois ?",
+   "anecdote": "Pendant qu'Armstrong et Aldrin foulaient le sol lunaire, Michael Collins restait seul en orbite.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Apollo_11",
+    "https://en.wikipedia.org/wiki/Apollo_11"
+   ],
+   "choix": [
+    "1959",
+    "1965",
+    "1969",
+    "1975"
+   ],
+   "bonne_reponse": "1969"
+  },
+  {
+   "id": "add-2303",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Pour quelle Exposition universelle la tour Eiffel a-t-elle été construite ?",
+   "anecdote": "Prévue pour être démontée au bout de vingt ans, elle fut sauvée par son utilité pour la radiotélégraphie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_Eiffel",
+    "https://www.britannica.com/topic/Eiffel-Tower"
+   ],
+   "choix": [
+    "Celle de 1878",
+    "Celle de 1889",
+    "Celle de 1900",
+    "Celle de 1925"
+   ],
+   "bonne_reponse": "Celle de 1889"
+  },
+  {
+   "id": "add-2304",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Dans quelle ville se trouve le siège principal de l'ONU ?",
+   "anecdote": "L'organisation, fondée en 1945 au sortir de la guerre, compte 193 États membres.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Organisation_des_Nations_unies",
+    "https://en.wikipedia.org/wiki/United_Nations"
+   ],
+   "choix": [
+    "Genève",
+    "New York",
+    "Bruxelles",
+    "La Haye"
+   ],
+   "bonne_reponse": "New York"
+  },
+  {
+   "id": "add-2305",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Dans quelle ville le prix Nobel de la paix est-il remis ?",
+   "anecdote": "C'est le seul prix Nobel décerné en Norvège ; tous les autres le sont à Stockholm.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Prix_Nobel_de_la_paix",
+    "https://www.nobelprize.org/prizes/peace/"
+   ],
+   "choix": [
+    "Stockholm",
+    "Copenhague",
+    "Oslo",
+    "Genève"
+   ],
+   "bonne_reponse": "Oslo"
+  },
+  {
+   "id": "add-2306",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Un marathon fait un peu plus de 42 kilomètres.",
+   "anecdote": "La distance de 42,195 km est héritée du parcours des Jeux olympiques de Londres en 1908.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marathon_(sport)",
+    "https://en.wikipedia.org/wiki/Marathon"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2307",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le Tour de France cycliste se termine traditionnellement sur les Champs-Élysées.",
+   "anecdote": "La première arrivée sur la célèbre avenue date de 1975 ; en 2024, elle s'est exceptionnellement tenue à Nice.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_de_France",
+    "https://en.wikipedia.org/wiki/Tour_de_France"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2308",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Les Jeux olympiques d'été et d'hiver ont lieu la même année.",
+   "anecdote": "Ils sont décalés de deux ans depuis 1994, année des Jeux d'hiver de Lillehammer.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques_d%27hiver",
+    "https://en.wikipedia.org/wiki/Winter_Olympic_Games"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2309",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "À l'origine, « Big Ben » désigne une cloche et non la tour qui l'abrite.",
+   "anecdote": "La grande cloche pèse plus de 13 tonnes ; la tour, elle, se nomme Elizabeth Tower depuis 2012.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Big_Ben",
+    "https://en.wikipedia.org/wiki/Big_Ben"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2310",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de couleurs compte l'arc-en-ciel, comme on l'apprend à l'école ?",
+   "anecdote": "C'est le savant Isaac Newton qui a fixé la liste à sept couleurs, du rouge au violet.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Arc-en-ciel",
+    "https://en.wikipedia.org/wiki/Rainbow"
+   ],
+   "reponse_numerique": 7
+  },
+  {
+   "id": "add-2311",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de doigts as-tu sur une seule main ?",
+   "anecdote": "Le pouce est le seul doigt qui peut toucher tous les autres : c'est lui qui nous permet d'attraper les objets.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Main",
+    "https://en.wikipedia.org/wiki/Hand"
+   ],
+   "reponse_numerique": 5
+  },
+  {
+   "id": "add-2312",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de jours y a-t-il dans une semaine ?",
+   "anecdote": "Les noms des jours viennent des astres : lundi est le jour de la Lune et dimanche celui du Soleil.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Semaine",
+    "https://en.wikipedia.org/wiki/Week"
+   ],
+   "reponse_numerique": 7
+  },
+  {
+   "id": "add-2313",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de saisons y a-t-il dans l'année en France ?",
+   "anecdote": "Les saisons existent parce que la Terre est penchée : son axe est incliné pendant son voyage autour du Soleil.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Saison",
+    "https://www.britannica.com/science/season"
+   ],
+   "reponse_numerique": 4
+  },
+  {
+   "id": "add-2314",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de pattes a une fourmi ?",
+   "anecdote": "Une fourmi peut porter plusieurs fois son propre poids, comme si tu soulevais une voiture !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fourmi",
+    "https://www.britannica.com/animal/ant"
+   ],
+   "reponse_numerique": 6
+  },
+  {
+   "id": "add-2315",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de joueurs d'une même équipe de football sont sur le terrain pendant un match ?",
+   "anecdote": "Onze joueurs, dont un seul a le droit de toucher le ballon avec les mains : le gardien de but.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Football",
+    "https://www.britannica.com/sports/football-soccer"
+   ],
+   "reponse_numerique": 11
+  },
+  {
+   "id": "add-2316",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de dents de lait un enfant possède-t-il en tout ?",
+   "anecdote": "Ces 20 dents tombent une à une pour laisser la place aux dents définitives, plus nombreuses : 32 chez l'adulte.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dent_de_lait",
+    "https://en.wikipedia.org/wiki/Deciduous_teeth"
+   ],
+   "reponse_numerique": 20
+  },
+  {
+   "id": "add-2317",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de couleurs composent le drapeau français ?",
+   "anecdote": "Le bleu et le rouge sont les couleurs de Paris, et le blanc était la couleur du roi.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_de_la_France",
+    "https://www.elysee.fr/la-presidence/le-drapeau-francais"
+   ],
+   "reponse_numerique": 3
+  },
+  {
+   "id": "add-2318",
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de faces possède un dé à jouer classique ?",
+   "anecdote": "Sur un dé classique, les faces opposées font toujours 7 quand on les additionne : le 1 est en face du 6.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Dice",
+    "https://www.britannica.com/topic/dice"
+   ],
+   "reponse_numerique": 6
+  },
+  {
+   "id": "add-2319",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de joueurs d'une même équipe de basket-ball sont sur le terrain ?",
+   "anecdote": "Le basket a été inventé en 1891 par James Naismith, un professeur qui cherchait un jeu d'intérieur pour l'hiver.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Basket-ball",
+    "https://www.britannica.com/sports/basketball"
+   ],
+   "reponse_numerique": 5
+  },
+  {
+   "id": "add-2320",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de bras possède une pieuvre ?",
+   "anecdote": "On dit bien « bras » et non « tentacules » : chacun des huit bras est couvert de ventouses très sensibles.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pieuvre",
+    "https://en.wikipedia.org/wiki/Octopus"
+   ],
+   "reponse_numerique": 8
+  },
+  {
+   "id": "add-2321",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de dents possède un adulte humain, dents de sagesse comprises ?",
+   "anecdote": "Les quatre dents de sagesse sortent en dernier, souvent vers 18 ans... quand on est censé être devenu sage !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dent",
+    "https://en.wikipedia.org/wiki/Human_tooth"
+   ],
+   "reponse_numerique": 32
+  },
+  {
+   "id": "add-2322",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien d'étoiles figurent sur le drapeau européen ?",
+   "anecdote": "Le nombre d'étoiles ne change jamais : douze est un symbole de perfection, pas le nombre de pays membres.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_europ%C3%A9en",
+    "https://www.britannica.com/topic/European-Union"
+   ],
+   "reponse_numerique": 12
+  },
+  {
+   "id": "add-2323",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien d'os compte le squelette d'un adulte humain ?",
+   "anecdote": "Le plus petit des 206 os est l'étrier, caché dans l'oreille : il mesure à peine 3 millimètres.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Squelette_humain",
+    "https://www.britannica.com/science/human-skeleton"
+   ],
+   "reponse_numerique": 206
+  },
+  {
+   "id": "add-2324",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de minutes environ met la lumière du Soleil pour arriver jusqu'à la Terre ?",
+   "anecdote": "Environ 8 minutes : si le Soleil s'éteignait maintenant, nous ne le verrions que 8 minutes plus tard.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Soleil",
+    "https://science.nasa.gov/sun/"
+   ],
+   "reponse_numerique": 8
+  },
+  {
+   "id": "add-2325",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "Combien de joueurs d'une même équipe de rugby à XV sont sur le terrain ?",
+   "anecdote": "C'est de là que vient le surnom de l'équipe de France : le « XV de France ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rugby_%C3%A0_XV",
+    "https://www.britannica.com/sports/rugby"
+   ],
+   "reponse_numerique": 15
+  },
+  {
+   "id": "add-2326",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année des humains ont-ils marché sur la Lune pour la première fois ?",
+   "anecdote": "Le 21 juillet 1969, Neil Armstrong prononce sa phrase mythique : « Un petit pas pour l'homme, un bond de géant pour l'humanité. »",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Apollo_11",
+    "https://www.britannica.com/topic/Apollo-11"
+   ],
+   "reponse_numerique": 1969
+  },
+  {
+   "id": "add-2327",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de symphonies Beethoven a-t-il achevées ?",
+   "anecdote": "Beethoven a composé sa Neuvième symphonie, avec le célèbre « Hymne à la joie », alors qu'il était devenu sourd.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ludwig_van_Beethoven",
+    "https://www.britannica.com/biography/Ludwig-van-Beethoven"
+   ],
+   "reponse_numerique": 9
+  },
+  {
+   "id": "add-2328",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de kilomètres mesure un marathon, arrondi au kilomètre ?",
+   "anecdote": "La distance exacte, 42,195 km, a été fixée aux Jeux de Londres en 1908, notamment pour faire passer la course devant la loge royale.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marathon_(sport)",
+    "https://en.wikipedia.org/wiki/Marathon"
+   ],
+   "reponse_numerique": 42
+  },
+  {
+   "id": "add-2329",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de chromosomes contient une cellule humaine ordinaire ?",
+   "anecdote": "Nos 46 chromosomes sont rangés par paires : 23 viennent de la mère et 23 du père.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chromosome",
+    "https://www.britannica.com/science/chromosome"
+   ],
+   "reponse_numerique": 46
+  },
+  {
+   "id": "add-2330",
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "gambit_numerique",
+   "texte": "En quelle année a éclaté la Première Guerre mondiale ?",
+   "anecdote": "Déclenchée à l'été 1914, on pensait qu'elle serait courte ; elle a duré plus de quatre ans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Premi%C3%A8re_Guerre_mondiale",
+    "https://www.britannica.com/event/World-War-I"
+   ],
+   "reponse_numerique": 1914
+  },
+  {
+   "id": "add-2331",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien de médailles d'or olympiques le nageur Michael Phelps a-t-il remportées ?",
+   "anecdote": "Avec 23 titres et 28 médailles au total, il est de très loin l'athlète le plus médaillé de l'histoire des Jeux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Michael_Phelps",
+    "https://www.britannica.com/biography/Michael-Phelps"
+   ],
+   "reponse_numerique": 23
+  },
+  {
+   "id": "add-2332",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année Napoléon Bonaparte a-t-il été sacré empereur des Français ?",
+   "anecdote": "Le 2 décembre 1804, à Notre-Dame de Paris, Napoléon prend la couronne des mains du pape et se couronne lui-même.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Napol%C3%A9on_Ier",
+    "https://www.britannica.com/biography/Napoleon-I"
+   ],
+   "reponse_numerique": 1804
+  },
+  {
+   "id": "add-2333",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "À combien de mètres culmine l'Everest, selon la mesure officielle de 2020 arrondie au mètre ?",
+   "anecdote": "La Chine et le Népal ont annoncé ensemble en 2020 une altitude de 8 848,86 mètres, neige comprise.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Everest",
+    "https://www.britannica.com/place/Mount-Everest"
+   ],
+   "reponse_numerique": 8849
+  },
+  {
+   "id": "add-2334",
+   "categorie": "Jeux de société",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de pièces y a-t-il au total sur un échiquier au début d'une partie ?",
+   "anecdote": "Chaque camp aligne 16 pièces : huit pions, deux tours, deux cavaliers, deux fous, une dame et un roi.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89checs",
+    "https://www.britannica.com/topic/chess"
+   ],
+   "reponse_numerique": 32
+  },
+  {
+   "id": "add-2335",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de kilomètres par seconde parcourt la lumière dans le vide, en arrondissant au millier ?",
+   "anecdote": "La valeur exacte est 299 792 km/s : depuis 1983, c'est même elle qui sert à définir le mètre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vitesse_de_la_lumi%C3%A8re",
+    "https://www.britannica.com/science/speed-of-light"
+   ],
+   "reponse_numerique": 300000
+  },
+  {
+   "id": "add-2336",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Combien d'États sont membres de l'Organisation des Nations unies ?",
+   "anecdote": "Le 193e et dernier admis est le Soudan du Sud, entré à l'ONU en 2011 après son indépendance.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Organisation_des_Nations_unies",
+    "https://www.britannica.com/topic/United-Nations"
+   ],
+   "reponse_numerique": 193
+  },
+  {
+   "id": "add-2337",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "En quelle année le Titanic a-t-il fait naufrage ?",
+   "anecdote": "Présenté comme quasi insubmersible, le paquebot a sombré lors de son tout premier voyage, dans la nuit du 14 au 15 avril 1912.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Titanic",
+    "https://www.britannica.com/topic/Titanic"
+   ],
+   "reponse_numerique": 1912
+  },
+  {
+   "id": "add-2338",
+   "categorie": "Sport",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de Coupes du monde de football le Brésil a-t-il remportées ?",
+   "anecdote": "Avec cinq étoiles (1958, 1962, 1970, 1994 et 2002), le Brésil est la seule équipe à avoir disputé toutes les phases finales.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89quipe_du_Br%C3%A9sil_de_football",
+    "https://www.britannica.com/sports/World-Cup-football"
+   ],
+   "reponse_numerique": 5
+  },
+  {
+   "id": "add-2339",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien de satellites naturels la planète Mars possède-t-elle ?",
+   "anecdote": "Phobos et Déimos, découvertes en 1877, portent les noms des fils du dieu de la guerre : Peur et Terreur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mars_(plan%C3%A8te)",
+    "https://science.nasa.gov/mars/"
+   ],
+   "reponse_numerique": 2
+  },
+  {
+   "id": "add-2340",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "gambit_numerique",
+   "texte": "Combien de cordes compte une harpe de concert moderne ?",
+   "anecdote": "Ses 47 cordes se jouent avec seulement huit doigts : les harpistes n'utilisent pas les auriculaires.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Harpe",
+    "https://en.wikipedia.org/wiki/Pedal_harp"
+   ],
+   "reponse_numerique": 47
+  },
+  {
+   "id": "add-2341",
+   "categorie": "Général",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "gambit_numerique",
+   "texte": "Combien d'années dure un mandat du président de la République française ?",
+   "anecdote": "Le quinquennat a remplacé le septennat après le référendum de 2000, et s'applique depuis l'élection de 2002.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pr%C3%A9sident_de_la_R%C3%A9publique_fran%C3%A7aise",
+    "https://www.elysee.fr/"
+   ],
+   "reponse_numerique": 5
+  },
+  {
+   "id": "add-2342",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "Quelle est la distance moyenne entre la Terre et la Lune, en kilomètres ?",
+   "anecdote": "384 400 km en moyenne : on pourrait y aligner toutes les autres planètes du Système solaire, ou presque.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Lune",
+    "https://science.nasa.gov/moon/"
+   ],
+   "reponse_numerique": 384400
+  },
+  {
+   "id": "add-2343",
+   "categorie": "Histoire",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "gambit_numerique",
+   "texte": "En quelle année les Françaises ont-elles obtenu le droit de vote ?",
+   "anecdote": "Accordé par l'ordonnance du 21 avril 1944, ce droit a été exercé pour la première fois aux élections municipales d'avril 1945.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Droit_de_vote_des_femmes",
+    "https://www.britannica.com/topic/woman-suffrage"
+   ],
+   "reponse_numerique": 1944
+  },
+  {
+   "id": "add-2344",
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Quel peintre a réalisé le tableau « La Nuit étoilée » ?",
+   "anecdote": "Van Gogh a peint ce ciel tourbillonnant en 1889, depuis l'asile de Saint-Rémy-de-Provence où il séjournait.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vincent_van_Gogh",
+    "https://www.britannica.com/biography/Vincent-van-Gogh"
+   ],
+   "reponses_acceptees": [
+    "Vincent van Gogh",
+    "Van Gogh"
+   ]
+  },
+  {
+   "id": "add-2345",
+   "categorie": "Littérature",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "equipe",
+   "texte": "Quel écrivain français est l'auteur des « Misérables » ?",
+   "anecdote": "Selon la légende, Hugo aurait demandé des nouvelles des ventes par un simple « ? », et son éditeur aurait répondu « ! ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Mis%C3%A9rables",
+    "https://www.britannica.com/biography/Victor-Hugo"
+   ],
+   "reponses_acceptees": [
+    "Victor Hugo",
+    "Hugo"
+   ]
+  },
+  {
+   "id": "add-2346",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Quel compositeur italien a écrit « Les Quatre Saisons » ?",
+   "anecdote": "Vivaldi, surnommé « le prêtre roux », a composé ces quatre concertos pour violon vers 1725, chacun accompagné d'un poème.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Antonio_Vivaldi",
+    "https://www.britannica.com/biography/Antonio-Vivaldi"
+   ],
+   "reponses_acceptees": [
+    "Antonio Vivaldi",
+    "Vivaldi"
+   ]
+  },
+  {
+   "id": "add-2347",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Quel réalisateur japonais, cofondateur du studio Ghibli, a signé « Le Voyage de Chihiro » ?",
+   "anecdote": "« Le Voyage de Chihiro » a remporté l'Ours d'or à Berlin en 2002, puis l'Oscar du meilleur film d'animation en 2003.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Hayao_Miyazaki",
+    "https://www.britannica.com/biography/Miyazaki-Hayao"
+   ],
+   "reponses_acceptees": [
+    "Hayao Miyazaki",
+    "Miyazaki"
+   ]
+  },
+  {
+   "id": "add-2348",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Quelle scientifique a reçu deux prix Nobel, l'un en physique et l'autre en chimie ?",
+   "anecdote": "Marie Curie reste la seule personne récompensée dans deux sciences différentes ; sa fille Irène a également reçu un Nobel de chimie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marie_Curie",
+    "https://www.britannica.com/biography/Marie-Curie"
+   ],
+   "reponses_acceptees": [
+    "Marie Curie",
+    "Curie",
+    "Marie Sklodowska-Curie"
+   ]
+  },
+  {
+   "id": "add-2349",
+   "categorie": "Général",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "equipe",
+   "texte": "Dans la mythologie grecque, quel dieu règne sur l'Olympe et lance la foudre ?",
+   "anecdote": "Zeus a partagé le monde avec ses frères : Poséidon a reçu la mer et Hadès le royaume des morts.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Zeus",
+    "https://www.britannica.com/topic/Zeus"
+   ],
+   "reponses_acceptees": [
+    "Zeus"
+   ]
+  },
+  {
+   "id": "add-2350",
+   "categorie": "Cinéma",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Quel réalisateur a signé le film « Titanic », sorti en 1997 ?",
+   "anecdote": "« Titanic » a remporté 11 Oscars, un record qu'il partage avec « Ben-Hur » et « Le Retour du roi ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/James_Cameron",
+    "https://www.britannica.com/biography/James-Cameron"
+   ],
+   "reponses_acceptees": [
+    "James Cameron",
+    "Cameron"
+   ]
+  },
+  {
+   "id": "add-2351",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "equipe",
+   "texte": "Quel plombier moustachu à casquette rouge est la mascotte de Nintendo ?",
+   "anecdote": "Créé par Shigeru Miyamoto, Mario est apparu en 1981 dans « Donkey Kong » sous le nom de « Jumpman ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mario",
+    "https://en.wikipedia.org/wiki/Mario"
+   ],
+   "reponses_acceptees": [
+    "Mario",
+    "Super Mario"
+   ]
+  },
+  {
+   "id": "add-2352",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Dans quelle série Netflix croise-t-on Eleven, le Demogorgon et le « monde à l'envers » ?",
+   "anecdote": "Créée par les frères Duffer, la série plonge dans les années 1980, entre jeux de rôle, walkies-talkies et synthétiseurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Stranger_Things",
+    "https://en.wikipedia.org/wiki/Stranger_Things"
+   ],
+   "reponses_acceptees": [
+    "Stranger Things"
+   ]
+  },
+  {
+   "id": "add-2353",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "equipe",
+   "texte": "Quel manga raconte les aventures du pirate Monkey D. Luffy à la recherche d'un trésor légendaire ?",
+   "anecdote": "« One Piece », d'Eiichirō Oda, est le manga le plus vendu de l'histoire, avec plus de 500 millions d'exemplaires.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/One_Piece",
+    "https://en.wikipedia.org/wiki/One_Piece"
+   ],
+   "reponses_acceptees": [
+    "One Piece"
+   ]
+  },
+  {
+   "id": "add-2354",
+   "categorie": "Gastronomie",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "equipe",
+   "texte": "Quel fruit est l'ingrédient principal du guacamole ?",
+   "anecdote": "Le mot « guacamole » vient du nahuatl, la langue des Aztèques : « ahuacamolli » signifie sauce à l'avocat.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guacamole",
+    "https://en.wikipedia.org/wiki/Guacamole"
+   ],
+   "reponses_acceptees": [
+    "L'avocat",
+    "Avocat"
+   ]
+  },
+  {
+   "id": "add-2355",
+   "categorie": "Gastronomie",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Quel fromage à pâte persillée est affiné dans des caves naturelles de l'Aveyron ?",
+   "anecdote": "Le roquefort doit ses veines bleues au champignon Penicillium roqueforti ; il fut le premier fromage à obtenir une AOC, en 1925.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Roquefort_(fromage)",
+    "https://en.wikipedia.org/wiki/Roquefort"
+   ],
+   "reponses_acceptees": [
+    "Le roquefort",
+    "Roquefort"
+   ]
+  },
+  {
+   "id": "add-2356",
+   "categorie": "Littérature",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "equipe",
+   "texte": "Quel écrivain français a publié « L'Étranger » en 1942 ?",
+   "anecdote": "Albert Camus a reçu le prix Nobel de littérature en 1957, à seulement 44 ans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/L%27%C3%89tranger",
+    "https://www.britannica.com/biography/Albert-Camus"
+   ],
+   "reponses_acceptees": [
+    "Albert Camus",
+    "Camus"
+   ]
+  },
+  {
+   "id": "add-2357",
+   "categorie": "Arts",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Quel peintre impressionniste est célèbre pour sa série des « Nymphéas » ?",
+   "anecdote": "Monet a peint environ 250 tableaux de nymphéas, inspirés du bassin de son jardin de Giverny.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Claude_Monet",
+    "https://www.britannica.com/biography/Claude-Monet"
+   ],
+   "reponses_acceptees": [
+    "Claude Monet",
+    "Monet"
+   ]
+  },
+  {
+   "id": "add-2358",
+   "categorie": "Musique",
+   "niveau_age": "adulte",
+   "difficulte": 2,
+   "format": "equipe",
+   "texte": "Quel groupe de rock britannique interprète « Bohemian Rhapsody » ?",
+   "anecdote": "Sortie en 1975, cette chanson de près de six minutes sans refrain classique était jugée trop longue pour la radio... avant de devenir culte.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Queen",
+    "https://www.britannica.com/topic/Queen-British-rock-group"
+   ],
+   "reponses_acceptees": [
+    "Queen"
+   ]
+  },
+  {
+   "id": "add-2359",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "equipe",
+   "texte": "Dans les albums d'Astérix, comment s'appelle le petit chien blanc d'Obélix ?",
+   "anecdote": "Idéfix est apparu pour la première fois dans « Le Tour de Gaule d'Astérix », en suivant discrètement les deux héros.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Id%C3%A9fix",
+    "https://www.asterix.com/"
+   ],
+   "reponses_acceptees": [
+    "Idéfix",
+    "Idefix"
+   ]
+  },
+  {
+   "id": "add-2360",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le koala peut dormir plus de 18 heures par jour.",
+   "anecdote": "Les feuilles d'eucalyptus qu'il mange donnent très peu d'énergie : dormir presque toute la journée lui permet d'économiser ses forces.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Koala",
+    "https://www.britannica.com/animal/koala"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2361",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les bébés flamants roses naissent gris.",
+   "anecdote": "Les flamants deviennent roses en grandissant, grâce aux pigments des petites crevettes et des algues qu'ils mangent.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Flamant_rose",
+    "https://www.britannica.com/animal/flamingo"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2362",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Les manchots vivent au pôle Nord, avec les ours polaires.",
+   "anecdote": "Les manchots vivent dans l'hémisphère Sud : ils ne croisent donc jamais d'ours polaires, qui habitent l'Arctique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Manchot",
+    "https://www.britannica.com/animal/penguin"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2363",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Bien conservé, le miel peut se garder pendant des milliers d'années sans se périmer.",
+   "anecdote": "Des pots de miel encore comestibles ont été retrouvés dans des tombes égyptiennes vieilles d'environ 3 000 ans !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Miel",
+    "https://en.wikipedia.org/wiki/Honey"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2364",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La pieuvre possède trois cœurs.",
+   "anecdote": "Deux cœurs envoient le sang vers les branchies et le troisième vers le reste du corps ; en plus, son sang est bleu !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pieuvre",
+    "https://en.wikipedia.org/wiki/Octopus"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2365",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Quand elle a peur, l'autruche enfouit sa tête dans le sable.",
+   "anecdote": "C'est un mythe : face au danger, l'autruche s'enfuit ou se plaque au sol. Elle possède d'ailleurs les plus grands yeux des animaux terrestres.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Autruche",
+    "https://www.britannica.com/animal/ostrich"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2366",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La tour Eiffel grandit en été.",
+   "anecdote": "Avec la chaleur, le métal se dilate : la tour peut gagner une quinzaine de centimètres pendant l'été.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_Eiffel",
+    "https://www.toureiffel.paris/fr"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2367",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Manger beaucoup de carottes permet de voir dans le noir.",
+   "anecdote": "Ce mythe vient de la propagande britannique de la Seconde Guerre mondiale, inventée pour cacher l'existence du radar aux ennemis.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Carotte",
+    "https://en.wikipedia.org/wiki/Carrot"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2368",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les dauphins dorment avec une moitié du cerveau éveillée.",
+   "anecdote": "Ce sommeil « unihémisphérique » leur permet de continuer à remonter respirer à la surface et de garder un œil ouvert.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dauphin",
+    "https://en.wikipedia.org/wiki/Dolphin"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2369",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La tour de Pise penchait déjà pendant sa construction.",
+   "anecdote": "Commencée en 1173, la tour a commencé à s'incliner dès les premiers étages à cause du sol trop meuble, et n'a jamais été droite.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_de_Pise",
+    "https://www.britannica.com/topic/Leaning-Tower-of-Pisa"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2370",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Sous sa fourrure, l'ours polaire a la peau noire.",
+   "anecdote": "Sa peau noire capte mieux la chaleur du soleil, et ses poils ne sont pas blancs mais translucides, comme de petits tubes creux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ours_blanc",
+    "https://www.britannica.com/animal/polar-bear"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2371",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Il a déjà neigé dans le désert du Sahara.",
+   "anecdote": "La neige a recouvert les dunes près de la ville algérienne d'Aïn Séfra à plusieurs reprises, notamment en 2016, 2018 et 2021.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sahara",
+    "https://www.britannica.com/place/Sahara-desert-Africa"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2372",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Tous les mille-pattes ont exactement 1 000 pattes.",
+   "anecdote": "La plupart en ont bien moins ! Le record appartient à une espèce découverte en Australie en 2021, avec 1 306 pattes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Myriapoda",
+    "https://en.wikipedia.org/wiki/Millipede"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2373",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Un éclair peut être plus chaud que la surface du Soleil.",
+   "anecdote": "L'air traversé par la foudre peut atteindre près de 30 000 °C, soit environ cinq fois la température de la surface du Soleil.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Foudre",
+    "https://en.wikipedia.org/wiki/Lightning"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2374",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Sur Vénus, une journée dure plus longtemps qu'une année.",
+   "anecdote": "Vénus met environ 243 jours terrestres pour tourner sur elle-même, mais seulement 225 pour faire le tour du Soleil. Elle tourne en plus à l'envers !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/V%C3%A9nus_(plan%C3%A8te)",
+    "https://science.nasa.gov/venus/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2375",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La girafe a le même nombre de vertèbres dans le cou qu'un être humain.",
+   "anecdote": "Comme presque tous les mammifères, elle en a sept... mais chacune peut mesurer environ 25 centimètres de long !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Girafe",
+    "https://www.britannica.com/animal/giraffe"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2376",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Les guerriers vikings portaient des casques à cornes au combat.",
+   "anecdote": "Aucun casque à cornes viking n'a été retrouvé : l'image vient surtout des costumes d'opéra du XIXe siècle, notamment pour Wagner.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vikings",
+    "https://www.britannica.com/topic/Viking-people"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2377",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Les chats ne sentent pas le goût sucré.",
+   "anecdote": "Chez le chat, le gène du récepteur du sucré est inactif : votre chat n'a que faire de votre gâteau, il vise plutôt le beurre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chat",
+    "https://en.wikipedia.org/wiki/Cat"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2378",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Louis XIV a régné 72 ans, l'un des règnes les plus longs de l'histoire.",
+   "anecdote": "Devenu roi à 4 ans en 1643, le Roi-Soleil a régné jusqu'en 1715 : même Élisabeth II, avec 70 ans, n'a pas battu ce record.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Louis_XIV",
+    "https://www.britannica.com/biography/Louis-XIV-king-of-France"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2379",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "L'animal national de l'Écosse est la licorne.",
+   "anecdote": "La licorne figure dans les armoiries royales écossaises depuis des siècles : symbole de pureté et de puissance... indomptable.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Licorne",
+    "https://en.wikipedia.org/wiki/Unicorn"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2380",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le plus haut volcan du Système solaire, sur Mars, est presque trois fois plus haut que l'Everest.",
+   "anecdote": "Olympus Mons culmine à environ 22 kilomètres d'altitude, et sa base est si large qu'on ne verrait même pas sa silhouette depuis le sol.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Olympus_Mons",
+    "https://science.nasa.gov/mars/"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2381",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Napoléon Bonaparte était minuscule, avec moins d'un mètre soixante.",
+   "anecdote": "Napoléon mesurait environ 1,68 m, une taille normale pour l'époque : le mythe vient de la propagande anglaise et d'une confusion d'unités de mesure.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Napol%C3%A9on_Ier",
+    "https://www.britannica.com/biography/Napoleon-I"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2382",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "En 1932, l'armée australienne a mené une « guerre » contre des émeus... et l'a perdue.",
+   "anecdote": "Armés de mitrailleuses, les soldats n'ont pas réussi à venir à bout de ces grands oiseaux trop rapides : la presse a parlé de « guerre des émeus ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guerre_des_%C3%A9meus",
+    "https://en.wikipedia.org/wiki/Emu_War"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2383",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "vrai_faux",
+   "texte": "L'université d'Oxford est plus ancienne que l'Empire aztèque.",
+   "anecdote": "On enseignait déjà à Oxford vers 1096, alors que Tenochtitlan, cœur de l'Empire aztèque, n'a été fondée qu'en 1325.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Universit%C3%A9_d%27Oxford",
+    "https://www.britannica.com/topic/University-of-Oxford"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2384",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Cléopâtre a vécu plus près dans le temps du premier pas sur la Lune que de la construction de la grande pyramide de Gizeh.",
+   "anecdote": "Environ 2 500 ans séparent Cléopâtre de la pyramide de Khéops, mais seulement 2 000 ans la séparent de la mission Apollo 11.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cl%C3%A9op%C3%A2tre_VII",
+    "https://www.britannica.com/biography/Cleopatra-queen-of-Egypt"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2385",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "La France est le pays qui compte le plus de fuseaux horaires au monde.",
+   "anecdote": "Grâce à ses territoires d'outre-mer, de la Polynésie à Wallis-et-Futuna, la France s'étend sur douze fuseaux horaires, devant la Russie et les États-Unis.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fuseau_horaire",
+    "https://en.wikipedia.org/wiki/Time_in_France"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2386",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Au XIXe siècle, le ketchup a été vendu comme médicament.",
+   "anecdote": "Dans les années 1830, un médecin américain, John Cook Bennett, vantait la tomate contre les troubles digestifs et vendait même des pilules de ketchup.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ketchup",
+    "https://en.wikipedia.org/wiki/Ketchup"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2387",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Sur les cartes du monde classiques, le Groenland paraît aussi grand que l'Afrique, alors que l'Afrique est environ 14 fois plus vaste.",
+   "anecdote": "La projection de Mercator, très utilisée pour la navigation, gonfle énormément les surfaces proches des pôles : le Groenland en profite bien.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Projection_de_Mercator",
+    "https://www.britannica.com/science/Mercator-projection"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2388",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le chien fait « meuh ».",
+   "anecdote": "C'est la vache qui fait « meuh » ! Le chien, lui, aboie : « ouaf ouaf ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chien",
+    "https://fr.vikidia.org/wiki/Chien"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2389",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel animal fait « meuh » ?",
+   "anecdote": "La vache passe de longues heures à brouter l'herbe dans les prés.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vache",
+    "https://fr.vikidia.org/wiki/Vache"
+   ],
+   "choix": [
+    "La vache",
+    "Le canard"
+   ],
+   "bonne_reponse": "La vache"
+  },
+  {
+   "id": "add-2390",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment s'appelle le bébé du chat ?",
+   "anecdote": "Les chatons naissent avec les yeux fermés et les ouvrent au bout de quelques jours.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chat",
+    "https://fr.vikidia.org/wiki/Chat"
+   ],
+   "choix": [
+    "Le chaton",
+    "Le veau"
+   ],
+   "bonne_reponse": "Le chaton"
+  },
+  {
+   "id": "add-2391",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment s'appelle le bébé du chien ?",
+   "anecdote": "Le chiot dort beaucoup : cela l'aide à bien grandir.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chiot",
+    "https://fr.vikidia.org/wiki/Chien"
+   ],
+   "choix": [
+    "Le chiot",
+    "Le poussin"
+   ],
+   "bonne_reponse": "Le chiot"
+  },
+  {
+   "id": "add-2392",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment s'appelle le bébé de la poule ?",
+   "anecdote": "Pour sortir de l'œuf, le poussin casse la coquille tout seul avec son petit bec.",
+   "sources": [
+    "https://fr.vikidia.org/wiki/Poule",
+    "https://www.britannica.com/animal/chicken"
+   ],
+   "choix": [
+    "Le poussin",
+    "Le lapereau"
+   ],
+   "bonne_reponse": "Le poussin"
+  },
+  {
+   "id": "add-2393",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment s'appelle le bébé du cheval ?",
+   "anecdote": "Quelques heures après sa naissance, le poulain tient déjà debout sur ses longues pattes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Poulain",
+    "https://fr.vikidia.org/wiki/Cheval"
+   ],
+   "choix": [
+    "Le poulain",
+    "Le porcelet"
+   ],
+   "bonne_reponse": "Le poulain"
+  },
+  {
+   "id": "add-2394",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment s'appelle le bébé du mouton ?",
+   "anecdote": "L'agneau reconnaît le bêlement de sa maman au milieu du troupeau.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Agneau",
+    "https://fr.vikidia.org/wiki/Mouton"
+   ],
+   "choix": [
+    "L'agneau",
+    "Le caneton"
+   ],
+   "bonne_reponse": "L'agneau"
+  },
+  {
+   "id": "add-2395",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les oiseaux ont des plumes.",
+   "anecdote": "Les plumes gardent les oiseaux bien au chaud, comme un manteau tout doux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Oiseau",
+    "https://fr.vikidia.org/wiki/Oiseau"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2396",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Où vivent les poissons ?",
+   "anecdote": "Les poissons respirent dans l'eau grâce à leurs branchies.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Poisson",
+    "https://fr.vikidia.org/wiki/Poisson"
+   ],
+   "choix": [
+    "Dans l'eau",
+    "Dans les arbres"
+   ],
+   "bonne_reponse": "Dans l'eau"
+  },
+  {
+   "id": "add-2397",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qu'est-ce que la girafe a de très long ?",
+   "anecdote": "À sa naissance, le bébé girafe mesure déjà presque deux mètres !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Girafe",
+    "https://fr.vikidia.org/wiki/Girafe"
+   ],
+   "choix": [
+    "Le cou",
+    "Les oreilles"
+   ],
+   "bonne_reponse": "Le cou"
+  },
+  {
+   "id": "add-2398",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment s'appelle le long nez de l'éléphant ?",
+   "anecdote": "Avec sa trompe, l'éléphant peut attraper sa nourriture, sentir et s'asperger d'eau.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Éléphant",
+    "https://fr.vikidia.org/wiki/Éléphant"
+   ],
+   "choix": [
+    "La trompe",
+    "La moustache"
+   ],
+   "bonne_reponse": "La trompe"
+  },
+  {
+   "id": "add-2399",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le zèbre a des rayures noires et blanches.",
+   "anecdote": "Chaque zèbre a des rayures un peu différentes, comme un dessin rien qu'à lui.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Zèbre",
+    "https://fr.vikidia.org/wiki/Zèbre"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2400",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que porte l'escargot sur son dos ?",
+   "anecdote": "En avançant, l'escargot laisse derrière lui un petit chemin tout brillant.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Escargot",
+    "https://fr.vikidia.org/wiki/Escargot"
+   ],
+   "choix": [
+    "Sa coquille",
+    "Un chapeau"
+   ],
+   "bonne_reponse": "Sa coquille"
+  },
+  {
+   "id": "add-2401",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que devient la chenille en grandissant ?",
+   "anecdote": "Avant de devenir papillon, la chenille se cache dans une petite enveloppe appelée chrysalide.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Papillon",
+    "https://fr.vikidia.org/wiki/Papillon"
+   ],
+   "choix": [
+    "Un papillon",
+    "Un poisson"
+   ],
+   "bonne_reponse": "Un papillon"
+  },
+  {
+   "id": "add-2402",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La tortue porte une carapace sur son dos.",
+   "anecdote": "La tortue ne peut pas enlever sa carapace : elle fait partie de son corps.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tortue",
+    "https://fr.vikidia.org/wiki/Tortue"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2403",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Où l'abeille va-t-elle chercher le nectar ?",
+   "anecdote": "Pour montrer aux autres où sont les fleurs, l'abeille fait une petite danse.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Abeille",
+    "https://fr.vikidia.org/wiki/Abeille"
+   ],
+   "choix": [
+    "Sur les fleurs",
+    "Sous l'eau"
+   ],
+   "bonne_reponse": "Sur les fleurs"
+  },
+  {
+   "id": "add-2404",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est la coccinelle ?",
+   "anecdote": "On surnomme la coccinelle la « bête à bon Dieu ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Coccinelle",
+    "https://fr.vikidia.org/wiki/Coccinelle"
+   ],
+   "choix": [
+    "Rouge à points noirs",
+    "Bleue à rayures"
+   ],
+   "bonne_reponse": "Rouge à points noirs"
+  },
+  {
+   "id": "add-2405",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La neige est chaude.",
+   "anecdote": "La neige est toute froide : c'est de l'eau gelée qui tombe du ciel en flocons.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Neige",
+    "https://fr.vikidia.org/wiki/Neige"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2406",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Après la pluie, quand le soleil revient, que peut-on parfois voir dans le ciel ?",
+   "anecdote": "On dit souvent que l'arc-en-ciel a sept couleurs, comme le rouge, le jaune et le violet.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Arc-en-ciel",
+    "https://fr.vikidia.org/wiki/Arc-en-ciel"
+   ],
+   "choix": [
+    "Un arc-en-ciel",
+    "Un sous-marin"
+   ],
+   "bonne_reponse": "Un arc-en-ciel"
+  },
+  {
+   "id": "add-2407",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le soleil brille dans le ciel pendant la nuit.",
+   "anecdote": "Quand il fait nuit chez nous, il fait jour de l'autre côté de la Terre !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Soleil",
+    "https://fr.vikidia.org/wiki/Soleil"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2408",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "En automne, que font les feuilles des arbres ?",
+   "anecdote": "Avant de tomber, les feuilles deviennent jaunes, orange et rouges : c'est très joli !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Automne",
+    "https://fr.vikidia.org/wiki/Automne"
+   ],
+   "choix": [
+    "Elles tombent",
+    "Elles chantent"
+   ],
+   "bonne_reponse": "Elles tombent"
+  },
+  {
+   "id": "add-2409",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au printemps, que se passe-t-il dans les jardins ?",
+   "anecdote": "Au printemps, beaucoup de bébés animaux naissent dans les fermes et les forêts.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Printemps",
+    "https://fr.vikidia.org/wiki/Printemps"
+   ],
+   "choix": [
+    "Les fleurs poussent",
+    "Il neige tous les jours"
+   ],
+   "bonne_reponse": "Les fleurs poussent"
+  },
+  {
+   "id": "add-2410",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "L'ours polaire a une fourrure blanche.",
+   "anecdote": "Sous sa fourrure blanche, la peau de l'ours polaire est toute noire !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ours_blanc",
+    "https://fr.vikidia.org/wiki/Ours_blanc"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2411",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Où vit le dauphin ?",
+   "anecdote": "Les dauphins se parlent avec des petits sifflements.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dauphin",
+    "https://fr.vikidia.org/wiki/Dauphin"
+   ],
+   "choix": [
+    "Dans la mer",
+    "Dans la forêt"
+   ],
+   "bonne_reponse": "Dans la mer"
+  },
+  {
+   "id": "add-2412",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien avons-nous d'yeux ?",
+   "anecdote": "On cligne des yeux sans y penser : cela les garde propres et humides.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Œil",
+    "https://fr.vikidia.org/wiki/Œil"
+   ],
+   "choix": [
+    "Deux",
+    "Cinq"
+   ],
+   "bonne_reponse": "Deux"
+  },
+  {
+   "id": "add-2413",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Se brosser les dents aide à les garder en bonne santé.",
+   "anecdote": "Les dents de lait tombent pour laisser la place aux dents de grand.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dent",
+    "https://fr.vikidia.org/wiki/Dent"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2414",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment s'appelle le bébé de la grenouille ?",
+   "anecdote": "Le têtard a d'abord une queue, puis ses petites pattes poussent peu à peu.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Têtard",
+    "https://fr.vikidia.org/wiki/Grenouille"
+   ],
+   "choix": [
+    "Le têtard",
+    "Le chaton"
+   ],
+   "bonne_reponse": "Le têtard"
+  },
+  {
+   "id": "add-2415",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quand la chouette part-elle chasser ?",
+   "anecdote": "La chouette voit très bien dans le noir, même quand il fait tout sombre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chouette",
+    "https://fr.vikidia.org/wiki/Chouette"
+   ],
+   "choix": [
+    "La nuit",
+    "À midi"
+   ],
+   "bonne_reponse": "La nuit"
+  },
+  {
+   "id": "add-2416",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est la banane mûre ?",
+   "anecdote": "Les bananes poussent en grosses grappes qu'on appelle des régimes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Banane",
+    "https://fr.vikidia.org/wiki/Banane"
+   ],
+   "choix": [
+    "Jaune",
+    "Bleue"
+   ],
+   "bonne_reponse": "Jaune"
+  },
+  {
+   "id": "add-2417",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est la fraise bien mûre ?",
+   "anecdote": "Les petits grains sur la fraise sont ses graines.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fraise",
+    "https://fr.vikidia.org/wiki/Fraise"
+   ],
+   "choix": [
+    "Rouge",
+    "Bleue"
+   ],
+   "bonne_reponse": "Rouge"
+  },
+  {
+   "id": "add-2418",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel animal nous donne le lait que nous buvons le plus souvent ?",
+   "anecdote": "La chèvre et la brebis nous donnent du lait aussi.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Lait",
+    "https://fr.vikidia.org/wiki/Lait"
+   ],
+   "choix": [
+    "La vache",
+    "Le poisson"
+   ],
+   "bonne_reponse": "La vache"
+  },
+  {
+   "id": "add-2419",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le fromage est fabriqué avec du lait.",
+   "anecdote": "En France, il existe des centaines de fromages différents !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fromage",
+    "https://fr.vikidia.org/wiki/Fromage"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2420",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qui fait cuire le pain ?",
+   "anecdote": "Le boulanger se lève très tôt le matin pour que le pain soit tout chaud.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pain",
+    "https://fr.vikidia.org/wiki/Pain"
+   ],
+   "choix": [
+    "Le boulanger",
+    "Le facteur"
+   ],
+   "bonne_reponse": "Le boulanger"
+  },
+  {
+   "id": "add-2421",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Avec quoi fabrique-t-on le chocolat ?",
+   "anecdote": "Le cacaoyer est un arbre qui pousse dans les pays chauds.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chocolat",
+    "https://fr.vikidia.org/wiki/Chocolat"
+   ],
+   "choix": [
+    "Avec les graines du cacaoyer",
+    "Avec des cailloux"
+   ],
+   "bonne_reponse": "Avec les graines du cacaoyer"
+  },
+  {
+   "id": "add-2422",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le citron a un goût acide qui fait parfois faire des grimaces.",
+   "anecdote": "Le citron est plein de vitamine C, très bonne pour la santé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Citron",
+    "https://fr.vikidia.org/wiki/Citron"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2423",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est la tomate bien mûre ?",
+   "anecdote": "Il existe aussi des tomates jaunes, orange et même presque noires !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tomate",
+    "https://fr.vikidia.org/wiki/Tomate"
+   ],
+   "choix": [
+    "Rouge",
+    "Bleue"
+   ],
+   "bonne_reponse": "Rouge"
+  },
+  {
+   "id": "add-2424",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi fait-on les frites ?",
+   "anecdote": "Les pommes de terre poussent sous la terre, dans le potager.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Frite",
+    "https://fr.vikidia.org/wiki/Pomme_de_terre"
+   ],
+   "choix": [
+    "Avec des pommes de terre",
+    "Avec des fraises"
+   ],
+   "bonne_reponse": "Avec des pommes de terre"
+  },
+  {
+   "id": "add-2425",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La glace se mange brûlante.",
+   "anecdote": "La glace se mange bien froide, et il existe plein de parfums : vanille, fraise, chocolat…",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Crème_glacée",
+    "https://www.britannica.com/topic/ice-cream"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2426",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que nous donne la poule ?",
+   "anecdote": "La coquille des œufs peut être blanche ou marron : à l'intérieur, c'est pareil !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Œuf_(aliment)",
+    "https://fr.vikidia.org/wiki/Poule"
+   ],
+   "choix": [
+    "Des œufs",
+    "Du chocolat"
+   ],
+   "bonne_reponse": "Des œufs"
+  },
+  {
+   "id": "add-2427",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Sur quelle plante pousse le raisin ?",
+   "anecdote": "Le raisin pousse en grappes et peut être vert ou noir.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Raisin",
+    "https://www.britannica.com/plant/grape"
+   ],
+   "choix": [
+    "Sur la vigne",
+    "Sur le sapin"
+   ],
+   "bonne_reponse": "Sur la vigne"
+  },
+  {
+   "id": "add-2428",
+   "categorie": "Gastronomie",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le beurre est fabriqué avec la crème du lait.",
+   "anecdote": "On remue la crème très longtemps pour qu'elle se transforme en beurre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Beurre",
+    "https://www.britannica.com/topic/butter"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2429",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quand il fait beau, de quelle couleur est le ciel ?",
+   "anecdote": "Le soir, quand le soleil se couche, le ciel devient souvent orange et rose.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bleu",
+    "https://fr.vikidia.org/wiki/Bleu"
+   ],
+   "choix": [
+    "Bleu",
+    "Vert"
+   ],
+   "bonne_reponse": "Bleu"
+  },
+  {
+   "id": "add-2430",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quand on mélange de la peinture bleue et de la peinture jaune, quelle couleur obtient-on ?",
+   "anecdote": "Avec du rouge et du jaune, on fabrique de l'orange !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vert",
+    "https://fr.vikidia.org/wiki/Vert"
+   ],
+   "choix": [
+    "Du vert",
+    "Du noir"
+   ],
+   "bonne_reponse": "Du vert"
+  },
+  {
+   "id": "add-2431",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que font les pompiers ?",
+   "anecdote": "En France, les camions des pompiers sont rouges.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pompier",
+    "https://fr.vikidia.org/wiki/Pompier"
+   ],
+   "choix": [
+    "Ils éteignent les feux",
+    "Ils vendent des gâteaux"
+   ],
+   "bonne_reponse": "Ils éteignent les feux"
+  },
+  {
+   "id": "add-2432",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "L'avion vole dans le ciel.",
+   "anecdote": "En avion, on peut voler au-dessus des nuages !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Avion",
+    "https://fr.vikidia.org/wiki/Avion"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2433",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Où se déplace le bateau ?",
+   "anecdote": "Les voiliers avancent grâce au vent qui pousse leurs voiles.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bateau",
+    "https://fr.vikidia.org/wiki/Bateau"
+   ],
+   "choix": [
+    "Sur l'eau",
+    "Sur la route"
+   ],
+   "bonne_reponse": "Sur l'eau"
+  },
+  {
+   "id": "add-2434",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Au feu rouge, que doivent faire les voitures ?",
+   "anecdote": "Quand le feu passe au vert, les voitures peuvent repartir.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Feu_de_circulation",
+    "https://fr.wiktionary.org/wiki/feu_rouge"
+   ],
+   "choix": [
+    "S'arrêter",
+    "Aller plus vite"
+   ],
+   "bonne_reponse": "S'arrêter"
+  },
+  {
+   "id": "add-2435",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qui soigne les enfants malades ?",
+   "anecdote": "Avec son stéthoscope, le docteur écoute le cœur qui fait boum boum.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Médecin",
+    "https://fr.vikidia.org/wiki/Médecin"
+   ],
+   "choix": [
+    "Le docteur",
+    "Le boulanger"
+   ],
+   "bonne_reponse": "Le docteur"
+  },
+  {
+   "id": "add-2436",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La nuit, on peut voir la lune et les étoiles dans le ciel.",
+   "anecdote": "La lune change de forme au fil des nuits : parfois toute ronde, parfois toute fine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Lune",
+    "https://fr.vikidia.org/wiki/Lune"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2437",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Combien y a-t-il de jours dans une semaine ?",
+   "anecdote": "Le samedi et le dimanche, c'est le week-end !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Semaine",
+    "https://www.britannica.com/science/week"
+   ],
+   "choix": [
+    "Sept",
+    "Deux"
+   ],
+   "bonne_reponse": "Sept"
+  },
+  {
+   "id": "add-2438",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien y a-t-il de saisons dans l'année ?",
+   "anecdote": "Les quatre saisons sont le printemps, l'été, l'automne et l'hiver.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Saison",
+    "https://fr.vikidia.org/wiki/Saison"
+   ],
+   "choix": [
+    "Quatre",
+    "Neuf"
+   ],
+   "bonne_reponse": "Quatre"
+  },
+  {
+   "id": "add-2439",
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Où travaille le tracteur ?",
+   "anecdote": "Le tracteur a de très grandes roues pour rouler dans la boue des champs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tracteur_agricole",
+    "https://www.britannica.com/technology/tractor"
+   ],
+   "choix": [
+    "À la ferme",
+    "À la piscine"
+   ],
+   "bonne_reponse": "À la ferme"
+  },
+  {
+   "id": "add-2440",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est le chaperon du Petit Chaperon rouge ?",
+   "anecdote": "C'est sa grand-mère qui lui a offert ce joli chaperon rouge.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Petit_Chaperon_rouge",
+    "https://fr.vikidia.org/wiki/Le_Petit_Chaperon_rouge"
+   ],
+   "choix": [
+    "Rouge",
+    "Vert"
+   ],
+   "bonne_reponse": "Rouge"
+  },
+  {
+   "id": "add-2441",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qui le Petit Chaperon rouge rencontre-t-il dans la forêt ?",
+   "anecdote": "Dans le conte, le loup fait ensuite semblant d'être la grand-mère.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Petit_Chaperon_rouge",
+    "https://www.britannica.com/topic/Little-Red-Riding-Hood"
+   ],
+   "choix": [
+    "Le loup",
+    "Un pingouin"
+   ],
+   "bonne_reponse": "Le loup"
+  },
+  {
+   "id": "add-2442",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le Petit Chaperon rouge va rendre visite à sa grand-mère.",
+   "anecdote": "Elle lui apporte une galette bien rangée dans son petit panier.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Petit_Chaperon_rouge",
+    "https://fr.vikidia.org/wiki/Le_Petit_Chaperon_rouge"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2443",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans « Les Trois Petits Cochons », le loup souffle sur les maisons.",
+   "anecdote": "Il souffle si fort que la maison de paille s'envole !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Trois_Petits_Cochons",
+    "https://fr.vikidia.org/wiki/Les_Trois_Petits_Cochons"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2444",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quelle maison des trois petits cochons résiste au loup ?",
+   "anecdote": "Le petit cochon a pris son temps pour bien construire sa maison de briques.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Trois_Petits_Cochons",
+    "https://fr.vikidia.org/wiki/Les_Trois_Petits_Cochons"
+   ],
+   "choix": [
+    "La maison de briques",
+    "La maison de paille"
+   ],
+   "bonne_reponse": "La maison de briques"
+  },
+  {
+   "id": "add-2445",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que perd Cendrillon en partant du bal ?",
+   "anecdote": "Dans le conte de Charles Perrault, la pantoufle de Cendrillon est en verre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cendrillon",
+    "https://fr.vikidia.org/wiki/Cendrillon"
+   ],
+   "choix": [
+    "Une pantoufle",
+    "Un parapluie"
+   ],
+   "bonne_reponse": "Une pantoufle"
+  },
+  {
+   "id": "add-2446",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Cendrillon doit quitter le bal à minuit.",
+   "anecdote": "À minuit, sa belle robe de bal disparaît d'un coup !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cendrillon",
+    "https://fr.vikidia.org/wiki/Cendrillon"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2447",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quoi la citrouille de Cendrillon est-elle transformée ?",
+   "anecdote": "C'est sa marraine la fée qui la transforme d'un coup de baguette magique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cendrillon",
+    "https://fr.vikidia.org/wiki/Cendrillon"
+   ],
+   "choix": [
+    "En carrosse",
+    "En vélo"
+   ],
+   "bonne_reponse": "En carrosse"
+  },
+  {
+   "id": "add-2448",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien y a-t-il de nains dans « Blanche-Neige » ?",
+   "anecdote": "Les sept nains habitent une petite maison dans la forêt.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Blanche-Neige",
+    "https://fr.vikidia.org/wiki/Blanche-Neige"
+   ],
+   "choix": [
+    "Sept",
+    "Trois"
+   ],
+   "bonne_reponse": "Sept"
+  },
+  {
+   "id": "add-2449",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel fruit Blanche-Neige croque-t-elle ?",
+   "anecdote": "Heureusement, l'histoire finit bien et Blanche-Neige se réveille !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Blanche-Neige",
+    "https://fr.vikidia.org/wiki/Blanche-Neige"
+   ],
+   "choix": [
+    "Une pomme",
+    "Une banane"
+   ],
+   "bonne_reponse": "Une pomme"
+  },
+  {
+   "id": "add-2450",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le nez de Pinocchio s'allonge quand il dit un mensonge.",
+   "anecdote": "Pinocchio a été fabriqué par un gentil menuisier qui s'appelle Geppetto.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Aventures_de_Pinocchio",
+    "https://fr.vikidia.org/wiki/Pinocchio"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2451",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "En quoi est fabriqué Pinocchio ?",
+   "anecdote": "À la fin de l'histoire, Pinocchio devient un vrai petit garçon.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Aventures_de_Pinocchio",
+    "https://fr.vikidia.org/wiki/Pinocchio"
+   ],
+   "choix": [
+    "En bois",
+    "En pierre"
+   ],
+   "bonne_reponse": "En bois"
+  },
+  {
+   "id": "add-2452",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans le conte, la Belle au bois dormant dort pendant très longtemps.",
+   "anecdote": "Dans le conte, tout le château s'endort en même temps qu'elle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Belle_au_bois_dormant",
+    "https://fr.vikidia.org/wiki/La_Belle_au_bois_dormant"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2453",
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que porte le Chat botté à ses pattes ?",
+   "anecdote": "Grâce à ses ruses, le Chat botté aide son maître à devenir riche.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Maître_chat_ou_le_Chat_botté",
+    "https://fr.vikidia.org/wiki/Le_Chat_botté"
+   ],
+   "choix": [
+    "Des bottes",
+    "Des chaussons roses"
+   ],
+   "bonne_reponse": "Des bottes"
+  },
+  {
+   "id": "add-2454",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le piano a des touches rouges et vertes.",
+   "anecdote": "Les touches du piano sont noires et blanches, et un grand piano en a 88 !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Piano",
+    "https://fr.vikidia.org/wiki/Piano"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2455",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment joue-t-on de la guitare ?",
+   "anecdote": "La guitare classique a six cordes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guitare",
+    "https://fr.vikidia.org/wiki/Guitare"
+   ],
+   "choix": [
+    "On pince les cordes",
+    "On souffle dedans"
+   ],
+   "bonne_reponse": "On pince les cordes"
+  },
+  {
+   "id": "add-2456",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi joue-t-on du violon ?",
+   "anecdote": "L'archet du violon est garni de crins, comme les poils de la queue des chevaux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Violon",
+    "https://fr.vikidia.org/wiki/Violon"
+   ],
+   "choix": [
+    "Avec un archet",
+    "Avec une cuillère"
+   ],
+   "bonne_reponse": "Avec un archet"
+  },
+  {
+   "id": "add-2457",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que fait-on pour jouer de la trompette ?",
+   "anecdote": "La trompette est en métal et brille souvent comme de l'or.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Trompette",
+    "https://www.britannica.com/art/trumpet"
+   ],
+   "choix": [
+    "On souffle dedans",
+    "On la secoue"
+   ],
+   "bonne_reponse": "On souffle dedans"
+  },
+  {
+   "id": "add-2458",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Pour jouer de la flûte, on souffle dedans.",
+   "anecdote": "Il y a très très longtemps, on fabriquait déjà des flûtes dans des os !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Flûte",
+    "https://www.britannica.com/art/flute"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2459",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que fait-on avec des maracas ?",
+   "anecdote": "À l'intérieur des maracas, des petites graines font le son quand on secoue.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Maracas",
+    "https://www.britannica.com/art/maraca"
+   ],
+   "choix": [
+    "On les secoue",
+    "On les mange"
+   ],
+   "bonne_reponse": "On les secoue"
+  },
+  {
+   "id": "add-2460",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Une berceuse est une chanson douce pour endormir les bébés.",
+   "anecdote": "Partout dans le monde, les parents chantent des berceuses à leurs bébés.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Berceuse",
+    "https://www.britannica.com/art/lullaby"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2461",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qu'est-ce que la harpe a en très grand nombre ?",
+   "anecdote": "La grande harpe de concert a environ quarante-sept cordes !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Harpe",
+    "https://www.britannica.com/art/harp"
+   ],
+   "choix": [
+    "Des cordes",
+    "Des touches"
+   ],
+   "bonne_reponse": "Des cordes"
+  },
+  {
+   "id": "add-2462",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Avec quoi frappe-t-on les lames du xylophone ?",
+   "anecdote": "Les petites lames font des sons aigus et les grandes lames des sons graves.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Xylophone",
+    "https://www.britannica.com/art/xylophone"
+   ],
+   "choix": [
+    "Avec des petites baguettes",
+    "Avec les pieds"
+   ],
+   "bonne_reponse": "Avec des petites baguettes"
+  },
+  {
+   "id": "add-2463",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Pour jouer de l'accordéon, on l'étire et on le replie.",
+   "anecdote": "La partie de l'accordéon qui se plie au milieu s'appelle le soufflet.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Accordéon",
+    "https://www.britannica.com/art/accordion"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2464",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment s'appelle la personne qui dirige l'orchestre ?",
+   "anecdote": "Le chef d'orchestre bat la mesure avec une petite baguette.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chef_d'orchestre",
+    "https://www.britannica.com/art/conducting"
+   ],
+   "choix": [
+    "Le chef d'orchestre",
+    "Le jardinier"
+   ],
+   "bonne_reponse": "Le chef d'orchestre"
+  },
+  {
+   "id": "add-2465",
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "On peut faire de la musique en chantant avec sa voix.",
+   "anecdote": "Quand on chante, de toutes petites cordes vibrent dans notre gorge : les cordes vocales.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chant",
+    "https://www.britannica.com/art/singing"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2466",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La baleine doit remonter à la surface de l'eau pour respirer.",
+   "anecdote": "Quand la baleine souffle, on voit un grand jet au-dessus de sa tête !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Baleine",
+    "https://fr.vikidia.org/wiki/Baleine"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2467",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le flamant rose devient rose grâce à ce qu'il mange.",
+   "anecdote": "Le flamant rose dort souvent debout, en équilibre sur une seule patte !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Flamant_rose",
+    "https://www.britannica.com/animal/flamingo"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2468",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que sait faire le caméléon ?",
+   "anecdote": "Le caméléon attrape les insectes avec sa très longue langue collante.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Caméléon",
+    "https://www.britannica.com/animal/chameleon"
+   ],
+   "choix": [
+    "Changer de couleur",
+    "Chanter des chansons"
+   ],
+   "bonne_reponse": "Changer de couleur"
+  },
+  {
+   "id": "add-2469",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La chauve-souris dort la tête en bas.",
+   "anecdote": "La chauve-souris est le seul mammifère qui sait vraiment voler.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chauve-souris",
+    "https://fr.vikidia.org/wiki/Chauve-souris"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2470",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Où la maman kangourou porte-t-elle son bébé ?",
+   "anecdote": "Pour se déplacer, le kangourou fait de grands bonds avec ses pattes arrière.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kangourou",
+    "https://fr.vikidia.org/wiki/Kangourou"
+   ],
+   "choix": [
+    "Dans une poche sur son ventre",
+    "Dans un sac à dos"
+   ],
+   "bonne_reponse": "Dans une poche sur son ventre"
+  },
+  {
+   "id": "add-2471",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que ne sait pas faire l'autruche, ce très grand oiseau ?",
+   "anecdote": "L'autruche ne vole pas, mais elle court très très vite !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Autruche",
+    "https://www.britannica.com/animal/ostrich"
+   ],
+   "choix": [
+    "Voler",
+    "Courir"
+   ],
+   "bonne_reponse": "Voler"
+  },
+  {
+   "id": "add-2472",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi l'éléphant aime-t-il se couvrir pour protéger sa peau ?",
+   "anecdote": "La boue protège la peau de l'éléphant du soleil et des piqûres d'insectes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Éléphant",
+    "https://fr.vikidia.org/wiki/Éléphant"
+   ],
+   "choix": [
+    "De la boue",
+    "De la confiture"
+   ],
+   "bonne_reponse": "De la boue"
+  },
+  {
+   "id": "add-2473",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Chez le manchot empereur, c'est le papa qui garde l'œuf bien au chaud.",
+   "anecdote": "Le papa manchot garde l'œuf posé sur ses pattes, sous un repli tout chaud de son ventre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Manchot_empereur",
+    "https://www.britannica.com/animal/emperor-penguin"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2474",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Que mange le panda géant presque toute la journée ?",
+   "anecdote": "Le panda passe plus de dix heures par jour à manger du bambou !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Panda_géant",
+    "https://www.britannica.com/animal/giant-panda"
+   ],
+   "choix": [
+    "Du bambou",
+    "Du fromage"
+   ],
+   "bonne_reponse": "Du bambou"
+  },
+  {
+   "id": "add-2475",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Que sait faire le colibri, un tout petit oiseau ?",
+   "anecdote": "Le colibri bat des ailes si vite qu'on entend un petit bourdonnement.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Colibri",
+    "https://www.britannica.com/animal/hummingbird"
+   ],
+   "choix": [
+    "Voler sur place",
+    "Nager sous la glace"
+   ],
+   "bonne_reponse": "Voler sur place"
+  },
+  {
+   "id": "add-2476",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La luciole peut faire de la lumière avec son corps.",
+   "anecdote": "La nuit, les lucioles s'allument pour se faire des petits signes lumineux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Luciole",
+    "https://www.britannica.com/animal/firefly"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2477",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le hibou peut tourner la tête très loin derrière lui, sans bouger son corps.",
+   "anecdote": "Les plumes du hibou sont si douces qu'il vole sans faire de bruit.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Strigiformes",
+    "https://www.britannica.com/animal/owl"
    ],
    "choix": [
     "Vrai",
