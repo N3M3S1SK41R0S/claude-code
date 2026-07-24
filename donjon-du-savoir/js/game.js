@@ -279,6 +279,14 @@ function boardLen() {
 function render() {
   const state = getState();
   const boardEl = document.getElementById("board");
+  // Le donjon VIT avec la partie : la lumière baisse doucement vers la fin
+  // (les torches prennent le relais) — simple filtre, respecté en 2D et 3D.
+  const prog = isEtoiles()
+    ? (state.tour - 1) / Math.max(1, (state.rounds ?? 10) - 1)
+    : Math.max(...state.pions.map((p) => p.position)) / Math.max(1, boardLen() - 1);
+  const heure = `brightness(${(1 - 0.2 * Math.min(1, prog)).toFixed(3)}) saturate(${(1 + 0.08 * prog).toFixed(3)})`;
+  boardEl.style.filter = heure;
+  document.querySelector(".board3d-canvas")?.style.setProperty("filter", heure);
   const pv = state.pions.map(pionView);
   const def = boardById(state.boardId);
   // Rendu 3D si disponible/activé ; sinon plateau 2D (repli garanti). Si la 3D
@@ -317,7 +325,7 @@ function renderPlayersStrip() {
     const bouclier = p.bouclier ? " · 🛡️" : "";
     const etoiles = isEtoiles() ? `⭐${p.etoiles ?? 0} · ` : "";
     strip.append(
-      el("div", { class: "player-chip" + (p.id === currentPion().id ? " player-chip-actif" : "") },
+      el("div", { class: "player-chip" + (p.id === currentPion().id ? " player-chip-actif" : ""), "data-pion": String(p.id) },
         portraitEl(p.characterId, 34),
         el("div", { class: "player-info" },
           el("strong", { text: p.nom }),
@@ -604,10 +612,20 @@ function rollDie() {
   const value = 1 + Math.floor(Math.random() * 6);
   sfx("dice");
   // Short tumble animation — pure spectacle, the player is never rushed.
+  // Mouvements réduits OU tests automatisés : résultat direct, sans culbute.
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduced) return showDieResult(value, { rerollAvailable: true });
-  setPanel(el("div", { class: "die die-rolling", "aria-hidden": "true" }, "🎲"));
-  window.setTimeout(() => showDieResult(value, { rerollAvailable: true }), 600);
+  if (reduced || testFlag("__DONJON_TEST")) return showDieResult(value, { rerollAvailable: true });
+  // Dé 3D : un cube CSS culbute (plusieurs tours) puis SE POSE sur la face
+  // tirée — le geste iconique, sans moteur physique ni chronomètre.
+  const FACES = { 1: [0, 0], 2: [-90, 0], 3: [0, -90], 4: [0, 90], 5: [90, 0], 6: [0, 180] };
+  const cube = el("div", { class: "die3d", "aria-hidden": "true" },
+    ...[1, 2, 3, 4, 5, 6].map((n) => el("div", { class: `die3d-face die3d-f${n}`, text: String(n) })));
+  setPanel(el("div", { class: "die3d-scene", "aria-label": "Le dé roule…" }, cube));
+  requestAnimationFrame(() => {
+    const [fx, fy] = FACES[value];
+    cube.style.transform = `rotateX(${fx + 720}deg) rotateY(${fy + 1080}deg)`;
+  });
+  window.setTimeout(() => showDieResult(value, { rerollAvailable: true }), 1050);
 }
 
 function showDieResult(value, { rerollAvailable }) {
@@ -1259,7 +1277,7 @@ function npcQuiz(pion, npc) {
       if (correct) pion.stats.bonnes += 1;
       bumpNiveau(pion, correct);
       sfx(correct ? "good" : "bad");
-      react3D(pion.id, correct);
+      react3D(pion.id, correct); chipPulse(pion.id, correct);
       const won = correct && npc.reward.apply(pion) === true;
       save();
       render();
@@ -1308,7 +1326,7 @@ function malusQuiz(pion, effect) {
       bumpNiveau(pion, correct);
       setPendingCase("resolu");
       if (correct) { sfx("good"); } else { effect.apply(pion); pion.malusSubis = (pion.malusSubis ?? 0) + 1; sfx("malus"); }
-      react3D(pion.id, correct);
+      react3D(pion.id, correct); chipPulse(pion.id, correct);
       save();
       render();
       showAnecdote(q, {
@@ -2022,7 +2040,7 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   }
   save();
   sfx(correct ? "good" : "bad");
-  react3D(pion.id, correct);
+  react3D(pion.id, correct); chipPulse(pion.id, correct);
   heraldSays((correct ? herald.bonne() : herald.mauvaise()) + gagFor(pion, q, correct));
   charSays(pion, correct ? "bonne" : "mauvaise");
   showAnecdote(q, {
@@ -2034,6 +2052,18 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
       finishTurn();
     },
   });
+}
+
+/** Micro-vie du bandeau joueurs : le jeton du joueur bondit (joie) ou tremble
+ *  (aïe) au verdict — trois classes CSS, retirées après l'animation. */
+function chipPulse(pionId, ok) {
+  const chip = document.querySelector(`.player-chip[data-pion="${pionId}"]`);
+  if (!chip) return;
+  const cls = ok ? "chip-joy" : "chip-ouch";
+  chip.classList.remove("chip-joy", "chip-ouch");
+  void chip.offsetWidth; // relance l'animation même si la classe revient
+  chip.classList.add(cls);
+  window.setTimeout(() => chip.classList.remove(cls), 1200);
 }
 
 /** Pique bienveillante du Héraut selon la mémoire de la partie (running gags).
@@ -2119,7 +2149,7 @@ function doTrouNoir(pion) {
     pion.stats.questions += 1;
     if (correct) pion.stats.bonnes += 1;
     save();
-    react3D(pion.id, correct);
+    react3D(pion.id, correct); chipPulse(pion.id, correct);
     heraldSays(correct ? herald.bonne() : herald.mauvaise());
     showAnecdote(q, {
       verdictHtml: correct
@@ -2211,7 +2241,7 @@ function fourchetteFlow(pion, q) {
     pion.stats.questions += 1;
     if (dedans) { pion.stats.bonnes += 1; addCoins(pion, 1); }
     bumpNiveau(pion, dedans);
-    react3D(pion.id, dedans);
+    react3D(pion.id, dedans); chipPulse(pion.id, dedans);
     heraldSays(dedans ? herald.bonne() : herald.mauvaise());
     showAnecdote(q, {
       verdictHtml: dedans
@@ -2343,7 +2373,7 @@ function gambitReveal(pion, q, guess, bets) {
   if (advance > 0) pion.stats.bonnes += 1;
   bumpNiveau(pion, advance > 0);
   save();
-  react3D(pion.id, advance > 0);
+  react3D(pion.id, advance > 0); chipPulse(pion.id, advance > 0);
   heraldSays(advance > 0 ? herald.bonne() : herald.mauvaise());
   setPanel(
     el("div", { class: "question-block" },
@@ -2395,7 +2425,7 @@ function doEvent() {
         return el("p", { class: "bet-result", text: `🚫 ${p.nom} (absent)` });
       }
       const good = answers.get(p.id) === q.bonne_reponse;
-      react3D(p.id, good);
+      react3D(p.id, good); chipPulse(p.id, good);
       // addCoins routes through Bonus Comptable for the pion whose turn it is.
       if (good) {
         if (p.id === current.id) addCoins(p, 2);
@@ -2628,7 +2658,7 @@ function revealTableBonus(q, onDone) {
     let any = false;
     for (const p of getState().pions) {
       const good = found.has(p.id);
-      react3D(p.id, good);
+      react3D(p.id, good); chipPulse(p.id, good);
       if (good) { addCoins(p, REWARD); any = true; }
     }
     if (any) heraldSays(`+${REWARD} 🪙 pour chaque bonne réponse ! Le savoir paie, sans se presser.`);
@@ -2685,7 +2715,13 @@ function endStarGame() {
   sfx("win");
   heraldSays(`Rideau ! ${winner.nom} règne sur le Donjon avec ${winner.etoiles ?? 0} étoile${(winner.etoiles ?? 0) > 1 ? "s" : ""} !${primes}`);
   charSays(winner, "victoire");
-  if (onVictory) onVictory(winner, state.ranking, { bonusStars: bonus });
+  if (onVictory) {
+    // Tour d'honneur : la scène 3D célèbre le vainqueur avant l'écran final.
+    if (use3D() && !testFlag("__DONJON_TEST")) {
+      react3D(winner.id, true); chipPulse(winner.id, true);
+      window.setTimeout(() => onVictory(winner, state.ranking, { bonusStars: bonus }), 2000);
+    } else onVictory(winner, state.ranking, { bonusStars: bonus });
+  }
 }
 
 function finishGame(winner) {
@@ -2709,6 +2745,11 @@ function finishGame(winner) {
   sfx("win");
   heraldSays(herald.victoire(winner.nom));
   charSays(winner, "victoire");
-  if (onVictory) onVictory(winner, state.ranking);
+  if (onVictory) {
+    if (use3D() && !testFlag("__DONJON_TEST")) {
+      react3D(winner.id, true); chipPulse(winner.id, true);
+      window.setTimeout(() => onVictory(winner, state.ranking), 2000);
+    } else onVictory(winner, state.ranking);
+  }
   return true;
 }

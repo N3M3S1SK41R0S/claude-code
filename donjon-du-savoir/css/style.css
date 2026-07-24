@@ -942,3 +942,29 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 /* Karaoké : le mot lu par l'animateur s'illumine. */
 .karaoke .kw { border-radius: 4px; transition: background 0.12s ease; }
 .karaoke .kw-on { background: color-mix(in srgb, var(--gold) 45%, transparent); color: #fff; }
+
+/* ---------- dé 3D (cube CSS qui culbute puis se pose) ---------- */
+.die3d-scene { display: flex; justify-content: center; padding: 1.4rem 0; perspective: 480px; }
+.die3d {
+  position: relative; width: 84px; height: 84px; transform-style: preserve-3d;
+  transform: rotateX(-12deg) rotateY(18deg);
+  transition: transform 1s cubic-bezier(0.22, 0.72, 0.28, 1.04);
+}
+.die3d-face {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(160deg, #f6efdb, #e6d9b8); color: #221a10;
+  border: 2px solid #b39b62; border-radius: 14px; font-size: 2.4rem; font-weight: bold;
+  backface-visibility: hidden;
+}
+.die3d-f1 { transform: translateZ(42px); }
+.die3d-f6 { transform: rotateY(180deg) translateZ(42px); }
+.die3d-f3 { transform: rotateY(90deg) translateZ(42px); }
+.die3d-f4 { transform: rotateY(-90deg) translateZ(42px); }
+.die3d-f2 { transform: rotateX(90deg) translateZ(42px); }
+.die3d-f5 { transform: rotateX(-90deg) translateZ(42px); }
+
+/* Portraits réactifs : joie (bond) / aïe (tremblement) sur le jeton joueur. */
+.chip-joy { animation: chip-joy 0.9s ease; }
+.chip-ouch { animation: chip-ouch 0.6s ease; }
+@keyframes chip-joy { 0%,100% { transform: none; } 30% { transform: translateY(-7px) scale(1.06); } 55% { transform: translateY(0) scale(1); } 75% { transform: translateY(-3px); } }
+@keyframes chip-ouch { 0%,100% { transform: none; } 20% { transform: translateX(-4px) rotate(-2deg); } 40% { transform: translateX(4px) rotate(2deg); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }

@@ -415,7 +415,10 @@ function buildBoard(layout, boardDef) {
   const dist = Math.max(spanX * 0.62, spanZ * 0.95) + 12;
   overPos.set(cx, dist * 0.92, cz + dist * 0.82);
   overLook.set(cx, 0, cz + 1);
-  camPos.copy(overPos); camLook.copy(overLook); // départ en vue d'ensemble
+  // Cinématique d'ouverture : la caméra part au ras du village et S'ÉLÈVE vers
+  // la vue d'ensemble — le lissage de la boucle fait le travelling tout seul.
+  camPos.set(cx - spanX * 0.55, 3.2, cz + spanZ * 0.85);
+  camLook.set(cx, 1.2, cz);
 }
 
 const warnedModels = new Set();
