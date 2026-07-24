@@ -47,7 +47,8 @@ function valid(q) {
   if (src.length < 2) return reject(q, "moins de 2 sources https"), false;
   if (new Set(src.map(host)).size < 2) return reject(q, "sources non indépendantes (même domaine)"), false;
   if (q.format === "qcm") {
-    if (!Array.isArray(q.choix) || q.choix.length < 3 || q.choix.length > 4) return reject(q, "qcm : 3-4 choix requis"), false;
+    // 2 à 4 choix (2 = utile pour les tout-petits : « miaou ou coin-coin ? »).
+    if (!Array.isArray(q.choix) || q.choix.length < 2 || q.choix.length > 4) return reject(q, "qcm : 2-4 choix requis"), false;
     if (new Set(q.choix.map(norm)).size !== q.choix.length) return reject(q, "qcm : choix en double"), false;
     if (!q.choix.includes(q.bonne_reponse)) return reject(q, "qcm : bonne_reponse absente des choix"), false;
   } else if (q.format === "vrai_faux") {
