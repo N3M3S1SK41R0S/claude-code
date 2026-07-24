@@ -408,6 +408,31 @@ function buildBoard(layout, boardDef) {
   }
   for (const d of DECOR) boardGroup.add(standee(d.art, worldUV(d.u, d.v, length), d.s * 0.05 + 1.2));
 
+  // Les PNJ PEINTS (GEN 2) habitent le village 3D : chacun se poste près de
+  // « sa » case-repère — l'échoppier devant la boutique, Piquot au savoir
+  // insolite, Zébulon au Trou Noir… et six flâneurs aux abords. Les objets
+  // peints (coffre, tonneau, torche…) parsèment les bords. L'art original
+  // cohabite ainsi avec les volumes low-poly au lieu d'être remplacé.
+  const PNJ_CASE = {
+    boutique: "assets/pnj-gerard.png",
+    insolite: "assets/pnj-piquot.png",
+    expression: "assets/pnj-turbo.png",
+    gambit: "assets/pnj-roquefort.png",
+    evenement: "assets/pnj-fee-bricole.png",
+    trounoir: "assets/pnj-zebulon.png",
+    arrivee: "assets/pnj-merlinouche.png",
+  };
+  for (let i = 0; i < length; i++) {
+    const art = PNJ_CASE[layout[i]];
+    if (!art) continue;
+    const p = worldOf(i, length);
+    boardGroup.add(standee(art, p.clone().add(new THREE.Vector3(1.9, 0, 0.7)), 2.7));
+  }
+  const FLANEURS = ["assets/pnj-boubou.png", "assets/pnj-groumf.png", "assets/pnj-sylvette.png", "assets/pnj-coassin.png", "assets/pnj-barnabe.png", "assets/pnj-ratichon.png"];
+  FLANEURS.forEach((art, i) => boardGroup.add(standee(art, worldUV(0.12 + 0.15 * i, i % 2 ? 0.035 : 0.975, length), 2.4)));
+  const PROPS = ["assets/objet-coffre.png", "assets/objet-tonneau.png", "assets/objet-torche.png", "assets/objet-cristal.png", "assets/objet-potion.png"];
+  PROPS.forEach((art, i) => boardGroup.add(standee(art, worldUV(0.05 + 0.225 * i, i % 2 ? 0.07 : 0.93, length), 1.35)));
+
   // Vue d'ensemble : recule assez pour cadrer TOUT le plateau (le joueur voit
   // le plateau global au repos ; la caméra ne se rapproche que pendant un trajet).
   const cx = (minX + maxX) / 2, cz = (minZ + maxZ) / 2;
