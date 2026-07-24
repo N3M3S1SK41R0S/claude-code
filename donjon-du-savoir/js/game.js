@@ -11,7 +11,7 @@ import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } from "./ui.js";
-import { say, sayHost } from "./tts.js";
+import { onSpeechBoundary, say, sayHost } from "./tts.js";
 import { heroLine, voiceOf } from "./voices.js";
 import { botNumericGuess, botWantsCorrect } from "./bots.js";
 import { playScene } from "./scene.js";
@@ -1622,6 +1622,34 @@ function posePicked(pion, q) {
   questionFlow(pion, q);
 }
 
+/** Texte de question découpé en mots surlignables : quand le Héraut vocal lit
+ *  la question, le mot prononcé s'illumine (karaoké) — les enfants qui ne
+ *  lisent pas encore peuvent suivre du doigt. Sans voix : texte normal. */
+function karaokeText(texte) {
+  const p = el("p", { class: "question-texte karaoke" });
+  const mots = String(texte).split(/(\s+)/);
+  const spans = [];
+  let pos = 0;
+  for (const m of mots) {
+    if (/^\s+$/.test(m)) { p.append(m); pos += m.length; continue; }
+    const sp = el("span", { class: "kw", text: m });
+    sp.dataset.pos = String(pos);
+    spans.push(sp);
+    p.append(sp);
+    pos += m.length;
+  }
+  onSpeechBoundary((charIndex, utterText) => {
+    // L'utterance peut préfixer une accroche : on recale sur notre texte.
+    const off = utterText.indexOf(texte);
+    const idx = charIndex - (off === -1 ? 0 : off);
+    if (idx < 0 || !p.isConnected) return;
+    let actif = null;
+    for (const sp of spans) { if (Number(sp.dataset.pos) <= idx) actif = sp; }
+    for (const sp of spans) sp.classList.toggle("kw-on", sp === actif);
+  });
+  return p;
+}
+
 /** La bonne réponse d'un QCM convient-elle à un anagramme/pendu ? On veut un
  *  terme ni trop court (trivial) ni trop long (fastidieux), en peu de mots. */
 function miniGameAnswer(q) {
@@ -1748,7 +1776,7 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
   }
 
   const container = el("div", { class: "question-block" });
-  container.append(questionHeader(q), regleBanner(cashMode ?? q.format), el("p", { class: "question-texte", text: q.texte }));
+  container.append(questionHeader(q), regleBanner(cashMode ?? q.format), karaokeText(q.texte));
   const hintZone = el("div", { class: "hint-zone" });
   container.append(hintZone);
 

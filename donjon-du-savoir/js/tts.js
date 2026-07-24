@@ -35,6 +35,11 @@ export function stop() {
 /** Dit un texte. Un profil { pitch, rate, v } donne une voix propre au
  *  personnage (défaut : le timbre du Héraut). `queue:true` n'annule pas ce qui
  *  parle déjà (pour enchaîner Héraut puis réplique de héros). */
+// Karaoké : un abonné unique reçoit (charIndex, texteDeLUtterance) à chaque
+// frontière de mot — le panneau de question surligne le mot lu.
+let boundaryCb = null;
+export function onSpeechBoundary(cb) { boundaryCb = cb; }
+
 export function say(text, {
   pitch = 1.05,
   rate = 0.95,
@@ -54,6 +59,7 @@ export function say(text, {
   utter.volume = volume;
   const fr = frenchVoices(synth);
   if (fr.length > 0) utter.voice = preferredVoice(fr, preferredVoiceHints, v);
+  utter.onboundary = (e) => { try { boundaryCb?.(e.charIndex ?? 0, text); } catch { /* jamais bloquant */ } };
   synth.speak(utter);
 }
 

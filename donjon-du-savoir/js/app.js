@@ -5,7 +5,7 @@ import { loadWordgames } from "./wordgames.js";
 import { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } from "./custom.js";
 import { BOARDS, boardById, generateBoard } from "./board.js";
 import { openReference, resumeGame, startGame } from "./game.js";
-import { AGE_BRACKETS, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, getState, loadSave, newGame, youngestBracket } from "./state.js";
+import { AGE_BRACKETS, archiveCurrent, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, deleteArchive, getState, listArchives, loadSave, newGame, restoreArchive, youngestBracket } from "./state.js";
 import { portraitEl } from "./portraits.js";
 import { POWERS } from "./powers.js";
 import { setVoice, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
@@ -44,6 +44,17 @@ function renderHome() {
         },
       }, "▶️ Reprendre la partie en cours"),
     );
+  }
+  // Parties en pause NOMMÉES : reprise en un clic (la reprise redevient la
+  // partie active), suppression possible.
+  for (const [i, arc] of listArchives().entries()) {
+    zone.append(el("div", { class: "setup-row" },
+      el("button", {
+        class: "btn", style: "flex:1", type: "button",
+        onclick: () => { if (restoreArchive(i)) { show("game"); resumeGame(showVictory); } },
+      }, `⏸ ${arc.nom} — ${arc.resume}`),
+      el("button", { class: "btn btn-x", type: "button", "aria-label": `Supprimer ${arc.nom}`, onclick: () => { deleteArchive(i); renderHome(); } }, "✕"),
+    ));
   }
   const newBtn = el("button", { class: "btn btn-big btn-gold", type: "button", onclick: () => { renderSetup(); show("setup"); } }, "⚔️ Nouvelle partie");
   if (!bankOk) newBtn.disabled = true;
@@ -565,12 +576,68 @@ function launchGame() {
   }
   clearSave();
   const def = boardById(selectedBoardId);
+  // Mémorise la configuration (pour « manche suivante » du mode tournoi).
+  try { localStorage.setItem("donjon-lastconfig", JSON.stringify({ mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte, trouNoir: houseTrouNoir })); } catch { /* mode privé */ }
   newGame(
     { mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte },
     generateBoard(def, { trouNoir: houseTrouNoir }),
   );
   show("game");
   startGame(showVictory);
+}
+
+/* ---------- tournoi (3 manches, cumul des points) ---------- */
+
+const TOURNOI_KEY = "donjon-tournoi";
+
+function tournoiState() {
+  try { return JSON.parse(localStorage.getItem(TOURNOI_KEY)); } catch { return null; }
+}
+
+/** Relance une partie IDENTIQUE (même tablée, même plateau, mêmes règles). */
+function relaunchSameConfig() {
+  let cfg = null;
+  try { cfg = JSON.parse(localStorage.getItem("donjon-lastconfig")); } catch { /* rien */ }
+  if (!cfg) { renderSetup(); show("setup"); return; }
+  clearSave();
+  const def = boardById(cfg.boardId);
+  newGame(cfg, generateBoard(def, { trouNoir: cfg.trouNoir !== false }));
+  show("game");
+  startGame(showVictory);
+}
+
+/** Bloc tournoi de l'écran de victoire : cumul, manche suivante, podium final. */
+function tournoiBlock(rankingData) {
+  const pts = {};
+  rankingData.forEach((p, i) => { pts[p.nom] = rankingData.length - i; });
+  let t = tournoiState();
+  if (t) {
+    for (const [nom, v] of Object.entries(pts)) t.total[nom] = (t.total[nom] ?? 0) + v;
+    t.joue += 1;
+    if (t.joue >= 3) {
+      try { localStorage.removeItem(TOURNOI_KEY); } catch { /* rien */ }
+      const classement = Object.entries(t.total).sort((a, b) => b[1] - a[1]);
+      return el("div", { class: "succes-unlock" },
+        el("h3", { class: "succes-unlock-title", text: "🏆 PODIUM FINAL DU TOURNOI (3 manches)" }),
+        ...classement.map(([nom, v], i) => el("p", { class: "succes-unlock-line", text: `${["🥇", "🥈", "🥉"][i] ?? "🎓"} ${nom} — ${v} points` })),
+      );
+    }
+    try { localStorage.setItem(TOURNOI_KEY, JSON.stringify(t)); } catch { /* rien */ }
+    const classement = Object.entries(t.total).sort((a, b) => b[1] - a[1]);
+    return el("div", { class: "succes-unlock" },
+      el("h3", { class: "succes-unlock-title", text: `🏁 Tournoi — après la manche ${t.joue}/3` }),
+      ...classement.map(([nom, v]) => el("p", { class: "succes-unlock-line", text: `${nom} — ${v} points` })),
+      el("button", { class: "btn btn-big btn-gold", type: "button", onclick: relaunchSameConfig }, `🏁 Manche ${t.joue + 1}/3 — même tablée !`),
+    );
+  }
+  // Pas de tournoi actif : proposer d'enchaîner (cette partie devient la manche 1).
+  return el("button", {
+    class: "btn btn-big", type: "button",
+    onclick: () => {
+      try { localStorage.setItem(TOURNOI_KEY, JSON.stringify({ joue: 1, total: pts })); } catch { /* rien */ }
+      relaunchSameConfig();
+    },
+  }, "🏁 Enchaîner en TOURNOI (3 manches, cumul des points)");
 }
 
 /* ---------- victory ---------- */
@@ -660,6 +727,7 @@ function showVictory(winner, rankingData, extras = {}) {
       ),
     ),
     statsTable(rankingData, etoilesMode),
+    tournoiBlock(rankingData),
     el("button", { class: "btn btn-big btn-gold", type: "button", onclick: () => { clearSave(); renderSetup(); show("setup"); } }, "⚔️ Revanche"),
     el("button", { class: "btn", type: "button", onclick: () => { clearSave(); renderHome(); show("home"); } }, "🏠 Accueil"),
   );
@@ -948,6 +1016,10 @@ function wireHeader() {
       return;
     }
     if (window.confirm("Quitter la partie ? Elle reste sauvegardée pour être reprise plus tard.")) {
+      // Pause NOMMÉE facultative : la partie rejoint la liste de l'accueil et
+      // libère la sauvegarde active pour une autre tablée.
+      const nom = window.prompt("Donner un nom à cette partie en pause ? (laisser vide pour la garder simplement en cours)", "");
+      if (nom && nom.trim()) archiveCurrent(nom.trim());
       renderHome();
       show("home");
     }

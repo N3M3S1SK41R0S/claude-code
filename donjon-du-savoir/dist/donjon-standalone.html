@@ -954,6 +954,10 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .grimoire-q { color: var(--soft); font-style: italic; font-size: 0.9rem; margin: 0.15rem 0; }
 .grimoire-anec { line-height: 1.45; }
 
+/* Karaoké : le mot lu par l'animateur s'illumine. */
+.karaoke .kw { border-radius: 4px; transition: background 0.12s ease; }
+.karaoke .kw-on { background: color-mix(in srgb, var(--gold) 45%, transparent); color: #fff; }
+
 </style>
 
   <header class="topbar">
@@ -5458,6 +5462,11 @@ function stop() {
 /** Dit un texte. Un profil { pitch, rate, v } donne une voix propre au
  *  personnage (défaut : le timbre du Héraut). `queue:true` n'annule pas ce qui
  *  parle déjà (pour enchaîner Héraut puis réplique de héros). */
+// Karaoké : un abonné unique reçoit (charIndex, texteDeLUtterance) à chaque
+// frontière de mot — le panneau de question surligne le mot lu.
+let boundaryCb = null;
+function onSpeechBoundary(cb) { boundaryCb = cb; }
+
 function say(text, {
   pitch = 1.05,
   rate = 0.95,
@@ -5477,6 +5486,7 @@ function say(text, {
   utter.volume = volume;
   const fr = frenchVoices(synth);
   if (fr.length > 0) utter.voice = preferredVoice(fr, preferredVoiceHints, v);
+  utter.onboundary = (e) => { try { boundaryCb?.(e.charIndex ?? 0, text); } catch { /* jamais bloquant */ } };
   synth.speak(utter);
 }
 
@@ -5565,7 +5575,7 @@ function warmVoices() {
   window.speechSynthesis.onvoiceschanged = () => frenchVoices(window.speechSynthesis);
 }
 
-;Object.assign(module.exports, {setVoice, voiceEnabled, voiceAvailable, stop, say, sayHost, warmVoices});
+;Object.assign(module.exports, {setVoice, voiceEnabled, voiceAvailable, stop, onSpeechBoundary, say, sayHost, warmVoices});
 };
 __modules["./sfx.js"] = function(module, exports, require) {
 // Effets sonores SYNTHÉTISÉS (Web Audio) — aucun fichier, hors-ligne, muetables.
@@ -7442,6 +7452,48 @@ function save() {
   }
 }
 
+/* Parties en pause NOMMÉES : on peut garder plusieurs parties (cap 5) et les
+   reprendre plus tard — « la partie du dimanche chez Mamie » attend son tour. */
+const ARCHIVE_KEY = "donjon-archives";
+
+function listArchives() {
+  try { const a = JSON.parse(localStorage.getItem(ARCHIVE_KEY)); return Array.isArray(a) ? a : []; } catch { return []; }
+}
+
+function writeArchives(a) {
+  try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(a)); } catch { /* mode privé */ }
+}
+
+/** Met la partie EN COURS en pause sous un nom ; libère la sauvegarde active. */
+function archiveCurrent(nom) {
+  const data = loadSave();
+  if (!data || data.finished) return false;
+  const a = listArchives();
+  a.unshift({ nom: (nom || "Partie en pause").slice(0, 30), ts: Date.now(),
+    resume: `${data.pions.length} joueur${data.pions.length > 1 ? "s" : ""} · ${data.variant === "etoiles" ? "Étoiles" : "Course"} · tour ${data.tour}`,
+    data });
+  writeArchives(a.slice(0, 5));
+  clearSave();
+  return true;
+}
+
+/** Reprend une partie archivée (elle redevient LA partie en cours). */
+function restoreArchive(i) {
+  const a = listArchives();
+  const entry = a[i];
+  if (!entry) return false;
+  a.splice(i, 1);
+  writeArchives(a);
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(entry.data)); } catch { return false; }
+  return true;
+}
+
+function deleteArchive(i) {
+  const a = listArchives();
+  a.splice(i, 1);
+  writeArchives(a);
+}
+
 function loadSave() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
@@ -7473,7 +7525,7 @@ function clearSave() {
   }
 }
 
-;Object.assign(module.exports, {characterById, bracketById, bracketIndex, bracketProfil, youngestBracket, getState, newGame, isEtoiles, starPrice, moveStar, computeBonusStars, setPendingCase, clearPendingCase, currentPion, ranking, rankOf, isLast, isLeader, nextTurn, porteParole, markAsked, bumpNiveau, resetAskedIfNeeded, save, loadSave, clearSave, SAVE_KEY, CHARACTERS, AGE_BRACKETS, STAR_BASE_PRICE, STAR_STEP, LAP_BONUS, LAST_ROUND_BONUS, BONUS_STAR_POOL});
+;Object.assign(module.exports, {characterById, bracketById, bracketIndex, bracketProfil, youngestBracket, getState, newGame, isEtoiles, starPrice, moveStar, computeBonusStars, setPendingCase, clearPendingCase, currentPion, ranking, rankOf, isLast, isLeader, nextTurn, porteParole, markAsked, bumpNiveau, resetAskedIfNeeded, save, listArchives, archiveCurrent, restoreArchive, deleteArchive, loadSave, clearSave, SAVE_KEY, CHARACTERS, AGE_BRACKETS, STAR_BASE_PRICE, STAR_STEP, LAP_BONUS, LAST_ROUND_BONUS, BONUS_STAR_POOL});
 };
 __modules["./board.js"] = function(module, exports, require) {
 // Boards — Mario-Party-style winding maps, now PLURAL: five dungeons with
@@ -9430,7 +9482,7 @@ const { herald } = require("./herald.js");
 const { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } = require("./powers.js");
 const { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } = require("./state.js");
 const { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } = require("./ui.js");
-const { say, sayHost } = require("./tts.js");
+const { onSpeechBoundary, say, sayHost } = require("./tts.js");
 const { heroLine, voiceOf } = require("./voices.js");
 const { botNumericGuess, botWantsCorrect } = require("./bots.js");
 const { playScene } = require("./scene.js");
@@ -11041,6 +11093,34 @@ function posePicked(pion, q) {
   questionFlow(pion, q);
 }
 
+/** Texte de question découpé en mots surlignables : quand le Héraut vocal lit
+ *  la question, le mot prononcé s'illumine (karaoké) — les enfants qui ne
+ *  lisent pas encore peuvent suivre du doigt. Sans voix : texte normal. */
+function karaokeText(texte) {
+  const p = el("p", { class: "question-texte karaoke" });
+  const mots = String(texte).split(/(\s+)/);
+  const spans = [];
+  let pos = 0;
+  for (const m of mots) {
+    if (/^\s+$/.test(m)) { p.append(m); pos += m.length; continue; }
+    const sp = el("span", { class: "kw", text: m });
+    sp.dataset.pos = String(pos);
+    spans.push(sp);
+    p.append(sp);
+    pos += m.length;
+  }
+  onSpeechBoundary((charIndex, utterText) => {
+    // L'utterance peut préfixer une accroche : on recale sur notre texte.
+    const off = utterText.indexOf(texte);
+    const idx = charIndex - (off === -1 ? 0 : off);
+    if (idx < 0 || !p.isConnected) return;
+    let actif = null;
+    for (const sp of spans) { if (Number(sp.dataset.pos) <= idx) actif = sp; }
+    for (const sp of spans) sp.classList.toggle("kw-on", sp === actif);
+  });
+  return p;
+}
+
 /** La bonne réponse d'un QCM convient-elle à un anagramme/pendu ? On veut un
  *  terme ni trop court (trivial) ni trop long (fastidieux), en peu de mots. */
 function miniGameAnswer(q) {
@@ -11167,7 +11247,7 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
   }
 
   const container = el("div", { class: "question-block" });
-  container.append(questionHeader(q), regleBanner(cashMode ?? q.format), el("p", { class: "question-texte", text: q.texte }));
+  container.append(questionHeader(q), regleBanner(cashMode ?? q.format), karaokeText(q.texte));
   const hintZone = el("div", { class: "hint-zone" });
   container.append(hintZone);
 
@@ -12114,7 +12194,7 @@ const { loadWordgames } = require("./wordgames.js");
 const { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } = require("./custom.js");
 const { BOARDS, boardById, generateBoard } = require("./board.js");
 const { openReference, resumeGame, startGame } = require("./game.js");
-const { AGE_BRACKETS, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, getState, loadSave, newGame, youngestBracket } = require("./state.js");
+const { AGE_BRACKETS, archiveCurrent, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, deleteArchive, getState, listArchives, loadSave, newGame, restoreArchive, youngestBracket } = require("./state.js");
 const { portraitEl } = require("./portraits.js");
 const { POWERS } = require("./powers.js");
 const { setVoice, voiceAvailable, voiceEnabled, warmVoices } = require("./tts.js");
@@ -12153,6 +12233,17 @@ function renderHome() {
         },
       }, "▶️ Reprendre la partie en cours"),
     );
+  }
+  // Parties en pause NOMMÉES : reprise en un clic (la reprise redevient la
+  // partie active), suppression possible.
+  for (const [i, arc] of listArchives().entries()) {
+    zone.append(el("div", { class: "setup-row" },
+      el("button", {
+        class: "btn", style: "flex:1", type: "button",
+        onclick: () => { if (restoreArchive(i)) { show("game"); resumeGame(showVictory); } },
+      }, `⏸ ${arc.nom} — ${arc.resume}`),
+      el("button", { class: "btn btn-x", type: "button", "aria-label": `Supprimer ${arc.nom}`, onclick: () => { deleteArchive(i); renderHome(); } }, "✕"),
+    ));
   }
   const newBtn = el("button", { class: "btn btn-big btn-gold", type: "button", onclick: () => { renderSetup(); show("setup"); } }, "⚔️ Nouvelle partie");
   if (!bankOk) newBtn.disabled = true;
@@ -12674,12 +12765,68 @@ function launchGame() {
   }
   clearSave();
   const def = boardById(selectedBoardId);
+  // Mémorise la configuration (pour « manche suivante » du mode tournoi).
+  try { localStorage.setItem("donjon-lastconfig", JSON.stringify({ mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte, trouNoir: houseTrouNoir })); } catch { /* mode privé */ }
   newGame(
     { mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte },
     generateBoard(def, { trouNoir: houseTrouNoir }),
   );
   show("game");
   startGame(showVictory);
+}
+
+/* ---------- tournoi (3 manches, cumul des points) ---------- */
+
+const TOURNOI_KEY = "donjon-tournoi";
+
+function tournoiState() {
+  try { return JSON.parse(localStorage.getItem(TOURNOI_KEY)); } catch { return null; }
+}
+
+/** Relance une partie IDENTIQUE (même tablée, même plateau, mêmes règles). */
+function relaunchSameConfig() {
+  let cfg = null;
+  try { cfg = JSON.parse(localStorage.getItem("donjon-lastconfig")); } catch { /* rien */ }
+  if (!cfg) { renderSetup(); show("setup"); return; }
+  clearSave();
+  const def = boardById(cfg.boardId);
+  newGame(cfg, generateBoard(def, { trouNoir: cfg.trouNoir !== false }));
+  show("game");
+  startGame(showVictory);
+}
+
+/** Bloc tournoi de l'écran de victoire : cumul, manche suivante, podium final. */
+function tournoiBlock(rankingData) {
+  const pts = {};
+  rankingData.forEach((p, i) => { pts[p.nom] = rankingData.length - i; });
+  let t = tournoiState();
+  if (t) {
+    for (const [nom, v] of Object.entries(pts)) t.total[nom] = (t.total[nom] ?? 0) + v;
+    t.joue += 1;
+    if (t.joue >= 3) {
+      try { localStorage.removeItem(TOURNOI_KEY); } catch { /* rien */ }
+      const classement = Object.entries(t.total).sort((a, b) => b[1] - a[1]);
+      return el("div", { class: "succes-unlock" },
+        el("h3", { class: "succes-unlock-title", text: "🏆 PODIUM FINAL DU TOURNOI (3 manches)" }),
+        ...classement.map(([nom, v], i) => el("p", { class: "succes-unlock-line", text: `${["🥇", "🥈", "🥉"][i] ?? "🎓"} ${nom} — ${v} points` })),
+      );
+    }
+    try { localStorage.setItem(TOURNOI_KEY, JSON.stringify(t)); } catch { /* rien */ }
+    const classement = Object.entries(t.total).sort((a, b) => b[1] - a[1]);
+    return el("div", { class: "succes-unlock" },
+      el("h3", { class: "succes-unlock-title", text: `🏁 Tournoi — après la manche ${t.joue}/3` }),
+      ...classement.map(([nom, v]) => el("p", { class: "succes-unlock-line", text: `${nom} — ${v} points` })),
+      el("button", { class: "btn btn-big btn-gold", type: "button", onclick: relaunchSameConfig }, `🏁 Manche ${t.joue + 1}/3 — même tablée !`),
+    );
+  }
+  // Pas de tournoi actif : proposer d'enchaîner (cette partie devient la manche 1).
+  return el("button", {
+    class: "btn btn-big", type: "button",
+    onclick: () => {
+      try { localStorage.setItem(TOURNOI_KEY, JSON.stringify({ joue: 1, total: pts })); } catch { /* rien */ }
+      relaunchSameConfig();
+    },
+  }, "🏁 Enchaîner en TOURNOI (3 manches, cumul des points)");
 }
 
 /* ---------- victory ---------- */
@@ -12769,6 +12916,7 @@ function showVictory(winner, rankingData, extras = {}) {
       ),
     ),
     statsTable(rankingData, etoilesMode),
+    tournoiBlock(rankingData),
     el("button", { class: "btn btn-big btn-gold", type: "button", onclick: () => { clearSave(); renderSetup(); show("setup"); } }, "⚔️ Revanche"),
     el("button", { class: "btn", type: "button", onclick: () => { clearSave(); renderHome(); show("home"); } }, "🏠 Accueil"),
   );
@@ -13057,6 +13205,10 @@ function wireHeader() {
       return;
     }
     if (window.confirm("Quitter la partie ? Elle reste sauvegardée pour être reprise plus tard.")) {
+      // Pause NOMMÉE facultative : la partie rejoint la liste de l'accueil et
+      // libère la sauvegarde active pour une autre tablée.
+      const nom = window.prompt("Donner un nom à cette partie en pause ? (laisser vide pour la garder simplement en cours)", "");
+      if (nom && nom.trim()) archiveCurrent(nom.trim());
       renderHome();
       show("home");
     }

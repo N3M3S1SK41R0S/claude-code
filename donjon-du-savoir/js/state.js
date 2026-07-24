@@ -330,6 +330,48 @@ export function save() {
   }
 }
 
+/* Parties en pause NOMMÉES : on peut garder plusieurs parties (cap 5) et les
+   reprendre plus tard — « la partie du dimanche chez Mamie » attend son tour. */
+const ARCHIVE_KEY = "donjon-archives";
+
+export function listArchives() {
+  try { const a = JSON.parse(localStorage.getItem(ARCHIVE_KEY)); return Array.isArray(a) ? a : []; } catch { return []; }
+}
+
+function writeArchives(a) {
+  try { localStorage.setItem(ARCHIVE_KEY, JSON.stringify(a)); } catch { /* mode privé */ }
+}
+
+/** Met la partie EN COURS en pause sous un nom ; libère la sauvegarde active. */
+export function archiveCurrent(nom) {
+  const data = loadSave();
+  if (!data || data.finished) return false;
+  const a = listArchives();
+  a.unshift({ nom: (nom || "Partie en pause").slice(0, 30), ts: Date.now(),
+    resume: `${data.pions.length} joueur${data.pions.length > 1 ? "s" : ""} · ${data.variant === "etoiles" ? "Étoiles" : "Course"} · tour ${data.tour}`,
+    data });
+  writeArchives(a.slice(0, 5));
+  clearSave();
+  return true;
+}
+
+/** Reprend une partie archivée (elle redevient LA partie en cours). */
+export function restoreArchive(i) {
+  const a = listArchives();
+  const entry = a[i];
+  if (!entry) return false;
+  a.splice(i, 1);
+  writeArchives(a);
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(entry.data)); } catch { return false; }
+  return true;
+}
+
+export function deleteArchive(i) {
+  const a = listArchives();
+  a.splice(i, 1);
+  writeArchives(a);
+}
+
 export function loadSave() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);

@@ -938,3 +938,7 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .grimoire-cat { color: var(--gold); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
 .grimoire-q { color: var(--soft); font-style: italic; font-size: 0.9rem; margin: 0.15rem 0; }
 .grimoire-anec { line-height: 1.45; }
+
+/* Karaoké : le mot lu par l'animateur s'illumine. */
+.karaoke .kw { border-radius: 4px; transition: background 0.12s ease; }
+.karaoke .kw-on { background: color-mix(in srgb, var(--gold) 45%, transparent); color: #fff; }
