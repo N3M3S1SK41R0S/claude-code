@@ -6,7 +6,7 @@
 //  - anecdote after EVERY question, no exception.
 import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawHardest, drawInsolite, drawQuestion } from "./data.js";
 import { boardById, renderBoard, walkPion } from "./board.js";
-import { react3D, render3D, show3D, use3D, walk3D } from "./board3d.js";
+import { react3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
 import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
@@ -29,6 +29,12 @@ function testFlag(name) {
 }
 
 let onVictory = null;
+
+// Si le garde-fou de performance abandonne la 3D en cours de partie, le moteur
+// repeint immédiatement le plateau 2D sans modifier l'état ni le tour.
+globalThis.addEventListener?.("donjon-3d-fallback", () => {
+  if (getState()) render();
+});
 
 /* ---------- pilote de bots : joue automatiquement le tour d'un joueur bot ---------- */
 
@@ -724,6 +730,7 @@ function moveAndResolve(steps) {
 /* ---------- étoile : l'acheter au marchand itinérant (au passage) ---------- */
 
 function doStar(pion, onDone = null) {
+  stageCase3D("arrivee", pion.id);
   const done = onDone ?? (() => finishTurn());
   setPendingCase("resolu");
   if (!pion.bot) playScene("etoile", pion.characterId); // saynète du marchand d'étoiles
@@ -759,6 +766,7 @@ function doStar(pion, onDone = null) {
 
 function resolveCase(type) {
   const pion = currentPion();
+  if (type !== "boutique") stageCase3D(type, pion.id);
   switch (type) {
     case "question":
       return doQuestion();
@@ -799,6 +807,7 @@ function resolveCase(type) {
 /* ---------- boutique : dépenser son or en objets ---------- */
 
 function doBoutique(pion, onDone = null) {
+  stageCase3D("boutique", pion.id);
   const done = onDone ?? (() => finishTurn());
   setPendingCase("resolu");
   // Bot : il ne fait pas ses courses, il salue le marchand et repart.

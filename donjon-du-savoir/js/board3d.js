@@ -19,6 +19,7 @@ const THREE = globalThis.THREE;
 /* ---------- disponibilité & choix du renderer ---------- */
 
 let webglCache = null;
+let runtime3DDisabled = false;
 export function webglAvailable() {
   if (webglCache !== null) return webglCache;
   if (!THREE) return (webglCache = false);
@@ -33,6 +34,7 @@ export function webglAvailable() {
  *  mouvements réduits ou appareil très contraint gardent le plateau 2D. */
 export function use3D() {
   if (globalThis.__DONJON_TEST) return false;
+  if (runtime3DDisabled) return false;
   const prefs = getPrefs();
   if (prefs.immersion === false || prefs.animations === "reduites") return false;
   if (globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return false;
@@ -46,9 +48,11 @@ export function use3D() {
 const SPAN = 26; // largeur du plateau en unités-monde
 let R = null; // renderer
 let scene = null, camera = null, raf = null;
-let boardGroup = null, pionGroup = null, starMesh = null;
+let boardGroup = null, pionGroup = null, effectGroup = null, starMesh = null;
 let builtSig = null;
 const pionObjs = new Map(); // id -> { obj, target:THREE.Vector3, walk:[Vector3]|null, wi:0 }
+const caseEffects = [];
+const animatedTiles = [];
 let sceneEpoch = 0; // invalide les chargements async d'un ancien plateau
 let focusId = null; // pion suivi par la caméra
 const camPos = THREE ? new THREE.Vector3(0, 24, 30) : null;
@@ -57,6 +61,7 @@ const camLook = THREE ? new THREE.Vector3(0, 0, 0) : null;
 const overPos = THREE ? new THREE.Vector3(0, 24, 30) : null;
 const overLook = THREE ? new THREE.Vector3(0, 0, 0) : null;
 let mounted = null; // conteneur canvas
+let qualityReduced = false, perfStarted = 0, perfFrames = 0, lowFpsWindows = 0;
 
 /* ---------- utilitaires de coordonnées ---------- */
 
@@ -105,6 +110,64 @@ const THEME_FOND = {
   labyrinthe: "assets/fond-labyrinthe.webp",
   catacombes: "assets/fond-catacombes.webp",
 };
+
+const SKYBOX_PALETTE = {
+  donjon: ["#463065", "#130d25", "#e0b04a"],
+  crypte: ["#365541", "#091710", "#7fd39a"],
+  tour: ["#713744", "#190c1b", "#e57962"],
+  labyrinthe: ["#786526", "#1b1608", "#f2cf62"],
+  catacombes: ["#27636a", "#08171b", "#69d4d4"],
+};
+const skyboxCache = new Map();
+
+function seededRandom(seed) {
+  let value = seed >>> 0;
+  return () => {
+    value = (value * 1664525 + 1013904223) >>> 0;
+    return value / 4294967296;
+  };
+}
+
+/** Cubemap originale et légère : six petits canevas peints localement par
+ *  thème. Aucun panorama externe, aucune requête, et une vraie profondeur de
+ *  ciel autour de la caméra. */
+function themeSkybox(theme) {
+  const id = SKYBOX_PALETTE[theme] ? theme : "donjon";
+  if (skyboxCache.has(id)) return skyboxCache.get(id);
+  const [haut, bas, accent] = SKYBOX_PALETTE[id];
+  const faces = Array.from({ length: 6 }, (_, face) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 192;
+    const ctx = canvas.getContext("2d");
+    const gradient = ctx.createLinearGradient(0, 0, 0, 192);
+    gradient.addColorStop(0, face === 2 ? haut : bas);
+    gradient.addColorStop(1, face === 3 ? "#08060e" : haut);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 192, 192);
+    const random = seededRandom([...id].reduce((sum, char) => sum + char.charCodeAt(0), face * 997 + 31));
+    for (let i = 0; i < 34; i++) {
+      const radius = 0.6 + random() * 2.2;
+      ctx.globalAlpha = 0.16 + random() * 0.5;
+      ctx.fillStyle = i % 5 === 0 ? accent : "#fff4d6";
+      ctx.beginPath();
+      ctx.arc(random() * 192, random() * 154, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 0.2;
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(96, 198, 76 + face * 3, Math.PI, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    return canvas;
+  });
+  const texture = new THREE.CubeTexture(faces);
+  texture.encoding = THREE.sRGBEncoding;
+  texture.needsUpdate = true;
+  skyboxCache.set(id, texture);
+  return texture;
+}
 
 // Bâtiment « repère » posé sur certaines cases (on reconnaît l'échoppe, etc.).
 const CASE_BUILDING = {
@@ -185,7 +248,10 @@ export function init3D(hostBoard) {
 
     boardGroup = new THREE.Group();
     pionGroup = new THREE.Group();
-    scene.add(boardGroup, pionGroup);
+    effectGroup = new THREE.Group();
+    scene.add(boardGroup, pionGroup, effectGroup);
+    qualityReduced = false;
+    perfStarted = perfFrames = lowFpsWindows = 0;
 
     resize();
     window.addEventListener("resize", resize);
@@ -215,9 +281,11 @@ export function dispose3D() {
   try { R?.dispose?.(); } catch { /* ignore */ }
   mounted?.canvas?.remove();
   minimapEl?.remove();
+  while (caseEffects.length) removeCaseEffect(caseEffects.pop());
   for (const rec of pionObjs.values()) disposePion(rec);
+  animatedTiles.length = 0;
   sceneEpoch += 1;
-  R = scene = camera = boardGroup = pionGroup = starMesh = null;
+  R = scene = camera = boardGroup = pionGroup = effectGroup = starMesh = null;
   builtSig = null; focusId = null; mounted = null; minimapEl = null;
   pionObjs.clear();
 }
@@ -255,9 +323,14 @@ function buildBoard(layout, boardDef) {
   const sig = `${boardDef.id}:${layout.length}`;
   if (builtSig === sig) return;
   builtSig = sig;
-  // Toile de fond peinte selon le thème du donjon (ambiance).
-  try { scene.background = loadTex(THEME_FOND[boardDef.theme] ?? THEME_FOND.donjon); } catch { /* repli : fond uni */ }
+  // Vraie cubemap par thème ; l'illustration WebP locale reste le dernier repli.
+  try { scene.background = themeSkybox(boardDef.theme); }
+  catch {
+    try { scene.background = loadTex(THEME_FOND[boardDef.theme] ?? THEME_FOND.donjon); } catch { /* fond uni */ }
+  }
   while (boardGroup.children.length) boardGroup.remove(boardGroup.children[0]);
+  while (caseEffects.length) removeCaseEffect(caseEffects.shift());
+  animatedTiles.length = 0;
   // Nouveau plateau : on repart de pions neufs (personnages potentiellement
   // différents) pour ne pas réutiliser une figurine périmée.
   for (const rec of pionObjs.values()) { pionGroup.remove(rec.obj); disposePion(rec); }
@@ -311,6 +384,9 @@ function buildBoard(layout, boardDef) {
     const special = type === "depart" || type === "arrivee";
     if (special) anchor.scale.set(1.3, 1.3, 1.3);
     boardGroup.add(anchor);
+    if (["chance", "evenement", "joker", "gambit", "trounoir"].includes(type)) {
+      animatedTiles.push({ anchor, type, phase: i * 0.73 });
+    }
     upgradeStatic(anchor, tile, createTileModel(type), epoch, `socle ${type}`);
     // Bâtiment posé DERRIÈRE la case-repère (le héros se tient devant).
     const bat = CASE_BUILDING[type];
@@ -365,6 +441,83 @@ function addBuilding(id, art, position, height, epoch) {
   anchor.add(fallback);
   boardGroup.add(anchor);
   upgradeStatic(anchor, fallback, createBuildingModel(id, height), epoch, `bâtiment ${id}`);
+}
+
+/* ---------- mises en scène courtes des cases ---------- */
+
+const CASE_EFFECT_COLOR = {
+  question: 0x4f8de0,
+  chance: 0x4fd18a,
+  evenement: 0xe3a44c,
+  malus: 0xdb5656,
+  pieces: 0xf0c84d,
+  joker: 0xa66ce0,
+  gambit: 0x55d0d8,
+  trounoir: 0x5d3a86,
+  boutique: 0xdc72b3,
+  insolite: 0xf06b9f,
+  expression: 0xdd7845,
+  arrivee: 0xf0c84d,
+  depart: 0x67c36b,
+};
+
+function effectGeometry(type) {
+  if (type === "pieces") return new THREE.CylinderGeometry(0.16, 0.16, 0.055, 10);
+  if (type === "joker") return new THREE.BoxGeometry(0.25, 0.38, 0.045);
+  if (type === "gambit") return new THREE.BoxGeometry(0.24, 0.24, 0.24);
+  if (type === "trounoir") return new THREE.TorusGeometry(0.34, 0.055, 6, 18);
+  if (type === "malus") return new THREE.ConeGeometry(0.15, 0.42, 7);
+  if (type === "expression") return new THREE.TorusGeometry(0.14, 0.035, 5, 12);
+  return new THREE.OctahedronGeometry(0.16, 0);
+}
+
+function removeCaseEffect(effect) {
+  if (!effect) return;
+  effectGroup?.remove(effect.group);
+  effect.geometry?.dispose?.();
+  effect.material?.dispose?.();
+}
+
+/** Déclenche une pluie, un vortex ou un éclat coloré à l'emplacement du pion.
+ *  Purement visuel : aucun délai de jeu, aucun impact sur la logique. */
+export function stageCase3D(type, pionId) {
+  const rec = pionObjs.get(pionId);
+  if (!effectGroup || !rec?.obj) return;
+  while (caseEffects.length >= 3) removeCaseEffect(caseEffects.shift());
+
+  const color = CASE_EFFECT_COLOR[type] ?? CASE_EFFECT_COLOR.question;
+  const geometry = effectGeometry(type);
+  const material = new THREE.MeshStandardMaterial({
+    color,
+    emissive: color,
+    emissiveIntensity: 0.32,
+    metalness: type === "pieces" ? 0.55 : 0.08,
+    roughness: 0.42,
+    transparent: true,
+  });
+  const group = new THREE.Group();
+  group.position.copy(rec.obj.position);
+  const count = Number(navigator.deviceMemory || 4) <= 4 ? 12 : 18;
+  const particles = [];
+  for (let i = 0; i < count; i++) {
+    const object = new THREE.Mesh(geometry, material);
+    const angle = (i / count) * Math.PI * 2 + Math.random() * 0.25;
+    const radius = type === "trounoir" ? 0.08 : 0.2 + Math.random() * 0.5;
+    object.position.set(Math.cos(angle) * radius, Math.random() * 0.35, Math.sin(angle) * radius);
+    object.rotation.set(Math.random() * Math.PI, angle, Math.random() * Math.PI);
+    object.castShadow = true;
+    group.add(object);
+    particles.push({
+      object,
+      velocity: new THREE.Vector3(Math.cos(angle) * (0.7 + Math.random()), 1.3 + Math.random() * 1.4, Math.sin(angle) * (0.7 + Math.random())),
+      spin: (Math.random() - 0.5) * 5,
+    });
+  }
+  const light = new THREE.PointLight(color, 1.15, 6);
+  light.position.y = 1.2;
+  group.add(light);
+  effectGroup.add(group);
+  caseEffects.push({ type, group, particles, light, geometry, material, age: 0, ttl: type === "trounoir" ? 2.8 : 2.25 });
 }
 
 /* ---------- pions ---------- */
@@ -513,14 +666,43 @@ export function react3D(pionId, success) {
 /* ---------- boucle de rendu ---------- */
 
 let lastFrame = 0;
+function watchPerformance(now) {
+  if (!perfStarted) perfStarted = now;
+  perfFrames += 1;
+  const elapsed = now - perfStarted;
+  if (elapsed < 2500) return;
+  const fps = (perfFrames * 1000) / elapsed;
+  perfStarted = now;
+  perfFrames = 0;
+  if (fps >= 24) { lowFpsWindows = 0; return; }
+  if (!qualityReduced) {
+    qualityReduced = true;
+    R.setPixelRatio(1);
+    R.shadowMap.enabled = false;
+    resize();
+    return;
+  }
+  if (fps >= 20) { lowFpsWindows = 0; return; }
+  lowFpsWindows += 1;
+  if (lowFpsWindows < 2 || runtime3DDisabled) return;
+  runtime3DDisabled = true;
+  show3D(false);
+  globalThis.dispatchEvent?.(new CustomEvent("donjon-3d-fallback"));
+}
+
 function loop(now = performance.now()) {
   raf = requestAnimationFrame(loop);
   if (!R) return;
   // Canvas non affiché (écran caché, ou vue 2D active) : offsetParent est null,
   // on ne rend rien pour épargner le GPU/la batterie ; la boucle reste programmée.
-  if (mounted && mounted.canvas.offsetParent === null) { lastFrame = now; return; }
+  if (document.hidden || (mounted && mounted.canvas.offsetParent === null)) {
+    lastFrame = now;
+    perfStarted = perfFrames = 0;
+    return;
+  }
   const dt = lastFrame ? Math.min(0.05, Math.max(0.001, (now - lastFrame) / 1000)) : 1 / 60;
   lastFrame = now;
+  watchPerformance(now);
 
   // Avance les pions en trajet (vitesse ~ 7 unités/s).
   for (const rec of pionObjs.values()) {
@@ -550,6 +732,40 @@ function loop(now = performance.now()) {
     }
     // Petit sautillement du pion actif.
     if (rec.obj.isSprite) rec.obj.position.y = 0.55;
+  }
+
+  // Les cases spéciales respirent très légèrement au repos ; ce mouvement
+  // n'existe jamais lorsque le réglage « mouvements réduits » impose la 2D.
+  const time = now / 1000;
+  for (const tile of animatedTiles) {
+    tile.anchor.position.y = Math.sin(time * 1.4 + tile.phase) * 0.025;
+    if (tile.type === "trounoir") tile.anchor.rotation.y += dt * 0.22;
+  }
+
+  for (let i = caseEffects.length - 1; i >= 0; i--) {
+    const effect = caseEffects[i];
+    effect.age += dt;
+    const fade = Math.max(0, 1 - effect.age / effect.ttl);
+    effect.material.opacity = fade;
+    effect.light.intensity = fade * 1.15;
+    effect.group.rotation.y += dt * (effect.type === "trounoir" ? 1.8 : 0.45);
+    for (let j = 0; j < effect.particles.length; j++) {
+      const particle = effect.particles[j];
+      if (effect.type === "trounoir") {
+        const pulse = 0.7 + Math.sin(effect.age * 5 + j) * 0.18;
+        particle.object.scale.setScalar(pulse);
+        particle.object.rotation.z += dt * (1 + j * 0.04);
+      } else {
+        particle.object.position.addScaledVector(particle.velocity, dt);
+        particle.velocity.y -= dt * 1.8;
+        particle.object.rotation.x += dt * particle.spin;
+        particle.object.rotation.z -= dt * particle.spin * 0.7;
+      }
+    }
+    if (effect.age >= effect.ttl) {
+      caseEffects.splice(i, 1);
+      removeCaseEffect(effect);
+    }
   }
 
   // Caméra : au REPOS, vue d'ensemble (tout le plateau visible). Pendant un

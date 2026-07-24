@@ -44,7 +44,7 @@ for (const [collection, entries] of Object.entries(manifest.collections)) {
 }
 
 assert(total < 500 * 1024, `budget décors dépassé : ${Math.round(total / 1024)} Ko`);
-assert(worker.includes('const VERSION = "donjon-v68"'));
+assert(worker.includes('const VERSION = "donjon-v69"'));
 assert(board.includes("THREE.PCFSoftShadowMap"));
 assert(board.includes("key.castShadow = true"));
 assert(board.includes("addBuilding("));
