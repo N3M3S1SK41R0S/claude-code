@@ -51,6 +51,10 @@ let scene = null, camera = null, raf = null;
 let boardGroup = null, pionGroup = null, effectGroup = null, starMesh = null;
 let builtSig = null;
 const pionObjs = new Map(); // id -> { obj, target:THREE.Vector3, walk:[Vector3]|null, wi:0 }
+const braseroLights = []; // flammes de braseros : lumière qui tremble dans la boucle
+let dustCloud = null; // poussière dorée d'ambiance (un seul THREE.Points)
+let camFocus = null; // gros plan bref quand un héros atterrit sur une case marquante
+const swayPos = THREE ? new THREE.Vector3() : null; // cible du tilt doux au repos
 const caseEffects = [];
 const animatedTiles = [];
 let sceneEpoch = 0; // invalide les chargements async d'un ancien plateau
@@ -200,6 +204,8 @@ const DUNGEON_LAYOUT = [
   { id: "colonne", u: 0.985, v: 0.47, h: 3.2, ry: 0 },
   { id: "brasero", u: 0.17, v: 0.035, h: 2.2, ry: 0 },
   { id: "brasero", u: 0.83, v: 0.035, h: 2.2, ry: 0 },
+  { id: "brasero", u: 0.02, v: 0.78, h: 2.2, ry: 0 },
+  { id: "brasero", u: 0.985, v: 0.78, h: 2.2, ry: 0 },
 ];
 
 /* ---------- init / dispose ---------- */
@@ -235,7 +241,8 @@ export function init3D(hostBoard) {
     const key = new THREE.DirectionalLight(0xfff0d8, 1.1);
     key.position.set(-14, 26, 12);
     key.castShadow = true;
-    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.mapSize.set(...(Number(navigator.deviceMemory || 4) <= 4 ? [1024, 1024] : [2048, 2048]));
+    key.shadow.radius = 4;
     key.shadow.camera.left = -28; key.shadow.camera.right = 28;
     key.shadow.camera.top = 28; key.shadow.camera.bottom = -28;
     key.shadow.camera.near = 1; key.shadow.camera.far = 70;
@@ -331,6 +338,9 @@ function buildBoard(layout, boardDef) {
   while (boardGroup.children.length) boardGroup.remove(boardGroup.children[0]);
   while (caseEffects.length) removeCaseEffect(caseEffects.shift());
   animatedTiles.length = 0;
+  braseroLights.length = 0;
+  dustCloud = null;
+  camFocus = null;
   // Nouveau plateau : on repart de pions neufs (personnages potentiellement
   // différents) pour ne pas réutiliser une figurine périmée.
   for (const rec of pionObjs.values()) { pionGroup.remove(rec.obj); disposePion(rec); }
@@ -405,6 +415,19 @@ function buildBoard(layout, boardDef) {
     anchor.rotation.y = module.ry;
     boardGroup.add(anchor);
     upgradeStatic(anchor, null, createDungeonModule(module.id, module.h), epoch, `module ${module.id}`);
+    // Braseros VIVANTS : flamme émissive qui danse + lueur qui tremble.
+    if (module.id === "brasero") {
+      const flame = new THREE.Mesh(
+        new THREE.ConeGeometry(0.34, 0.9, 7),
+        new THREE.MeshStandardMaterial({ color: 0xffb347, emissive: 0xff8c1a, emissiveIntensity: 1.4, transparent: true, opacity: 0.92 }),
+      );
+      flame.position.y = module.h + 0.35;
+      anchor.add(flame);
+      const light = new THREE.PointLight(0xff9a3c, 1.0, 10, 2);
+      light.position.y = module.h + 0.55;
+      anchor.add(light);
+      braseroLights.push({ flame, light, phase: anchor.position.x * 1.7 });
+    }
   }
   for (const d of DECOR) boardGroup.add(standee(d.art, worldUV(d.u, d.v, length), d.s * 0.05 + 1.2));
 
@@ -444,6 +467,22 @@ function buildBoard(layout, boardDef) {
   // la vue d'ensemble — le lissage de la boucle fait le travelling tout seul.
   camPos.set(cx - spanX * 0.55, 3.2, cz + spanZ * 0.85);
   camLook.set(cx, 1.2, cz);
+
+  // Poussière dorée d'ambiance : un nuage de points qui dérive en bloc
+  // au-dessus du donjon (zéro coût CPU par particule).
+  const dustCount = Number(navigator.deviceMemory || 4) <= 4 ? 70 : 130;
+  const dustPos = new Float32Array(dustCount * 3);
+  for (let i = 0; i < dustCount; i++) {
+    dustPos[i * 3] = cx + (Math.random() - 0.5) * spanX * 1.25;
+    dustPos[i * 3 + 1] = 1 + Math.random() * 7;
+    dustPos[i * 3 + 2] = cz + (Math.random() - 0.5) * spanZ * 1.25;
+  }
+  const dustGeo = new THREE.BufferGeometry();
+  dustGeo.setAttribute("position", new THREE.BufferAttribute(dustPos, 3));
+  dustCloud = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+    color: 0xe8c876, size: 0.14, transparent: true, opacity: 0.5, depthWrite: false, sizeAttenuation: true,
+  }));
+  boardGroup.add(dustCloud);
 }
 
 const warnedModels = new Set();
@@ -513,6 +552,10 @@ export function stageCase3D(type, pionId) {
   if (!effectGroup || !rec?.obj) return;
   while (caseEffects.length >= 3) removeCaseEffect(caseEffects.shift());
 
+  // Transition caméra : bref gros plan quand la case vaut le détour.
+  if (["gambit", "trounoir", "boutique", "arrivee", "evenement", "insolite"].includes(type)) {
+    camFocus = { target: rec.obj.position.clone(), until: performance.now() + 1600 };
+  }
   const color = CASE_EFFECT_COLOR[type] ?? CASE_EFFECT_COLOR.question;
   const geometry = effectGeometry(type);
   const material = new THREE.MeshStandardMaterial({
@@ -620,7 +663,7 @@ function makePion(p) {
     rec.obj.material?.dispose?.();
     rec.obj = hero.object;
     rec.hero = hero;
-    rec.obj.scale.setScalar(rec.active ? 1.08 : 1);
+    rec.obj.scale.setScalar(rec.active ? 1.35 : 1.2);
     if (rec.walk) playHeroAnimation(hero, "walk");
     else if (rec.reactionUntil > performance.now()) {
       playHeroAnimation(hero, rec.pendingReaction);
@@ -677,7 +720,7 @@ export function render3D(hostBoard, layout, pions, currentPionId, boardDef, star
       // Halo du pion actif (léger agrandissement).
       const activeScale = p.id === currentPionId ? 3.2 : 2.8;
       if (rec.obj.isSprite) rec.obj.scale.set(activeScale, activeScale, 1);
-      else rec.obj.scale.setScalar(p.id === currentPionId ? 1.08 : 1);
+      else rec.obj.scale.setScalar(p.id === currentPionId ? 1.35 : 1.2);
       rec.active = p.id === currentPionId;
     });
   }
@@ -793,6 +836,19 @@ function loop(now = performance.now()) {
     if (tile.type === "trounoir") tile.anchor.rotation.y += dt * 0.22;
   }
 
+  // Braseros : la flamme danse et la lueur tremble (déterministe, sans RNG).
+  for (const b of braseroLights) {
+    const f = Math.sin(time * 9 + b.phase) * 0.5 + Math.sin(time * 23 + b.phase * 2.3) * 0.5;
+    b.light.intensity = 0.95 + f * 0.3;
+    b.flame.scale.set(1 + f * 0.12, 1 + f * 0.22, 1 + f * 0.12);
+    b.flame.rotation.y += dt * 2.4;
+  }
+  // La poussière dorée dérive en bloc, très lentement.
+  if (dustCloud) {
+    dustCloud.rotation.y += dt * 0.012;
+    dustCloud.position.y = Math.sin(time * 0.22) * 0.5;
+  }
+
   for (let i = caseEffects.length - 1; i >= 0; i--) {
     const effect = caseEffects[i];
     effect.age += dt;
@@ -827,8 +883,18 @@ function loop(now = performance.now()) {
     const t = walker.obj.position;
     camPos.lerp(new THREE.Vector3(t.x * 0.55, 13, overLook.z * 0.2 + t.z + 14), 0.05);
     camLook.lerp(new THREE.Vector3(t.x * 0.6, 1.6, t.z - 2), 0.07);
+  } else if (camFocus && now < camFocus.until) {
+    // Gros plan bref sur la case marquante où le héros vient d'atterrir.
+    camPos.lerp(swayPos.set(camFocus.target.x, 8.5, camFocus.target.z + 10.5), 0.06);
+    camLook.lerp(camFocus.target, 0.08);
   } else {
-    camPos.lerp(overPos, 0.045);
+    // Vue d'ensemble avec un TILT très doux : le plateau respire (parallaxe).
+    swayPos.set(
+      overPos.x + Math.sin(time * 0.12) * 1.1,
+      overPos.y + Math.sin(time * 0.09) * 0.45,
+      overPos.z + Math.cos(time * 0.1) * 1.1,
+    );
+    camPos.lerp(swayPos, 0.045);
     camLook.lerp(overLook, 0.045);
   }
   camera.position.copy(camPos);
