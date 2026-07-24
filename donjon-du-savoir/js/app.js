@@ -877,6 +877,8 @@ function renderReglages() {
       seg(oui_non, p.daltonien, (v) => setPref("daltonien", v))),
     row("🎬 Vue immersive (3D)", "Plateau en 3D avec caméra qui suit le pion + saynètes animées (façon Mario Party). Décochez pour le plateau 2D classique. Repli 2D automatique si l'appareil ne gère pas la 3D.",
       seg(oui_non, p.immersion !== false, (v) => setPref("immersion", v))),
+    row("🎧 Partie à l'oreille", "Le maître du jeu lit aussi les propositions, le dé et les bonnes réponses : la partie peut se jouer sans regarder l'écran.",
+      seg(oui_non, p.oreilles, (v) => setPref("oreilles", v))),
     row("🎬 Animations", "Réduisez les mouvements à l'écran si vous préférez le calme.",
       seg([{ val: "completes", label: "Complètes" }, { val: "reduites", label: "Réduites" }], p.animations, (v) => setPref("animations", v))),
     row("📖 Revoir le tutoriel", "Le petit guide de démarrage du Donjon.",

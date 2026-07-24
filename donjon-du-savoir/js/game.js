@@ -22,6 +22,7 @@ import { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } from "./minig
 import { drawDefi } from "./wordgames.js";
 import { chipStyle, softStyle, THEME_META, THEME_ORDER, themeMeta, TYPE_META, TYPE_ORDER, typeMeta } from "./themes.js";
 import { sfx } from "./sfx.js";
+import { getPrefs } from "./prefs.js";
 
 /** Seam de test déterministe (jamais posé en jeu réel) : force un mini-jeu
  *  précis, ou une question bonus, pour couvrir ces panneaux en E2E. */
@@ -630,6 +631,8 @@ function rollDie() {
 
 function showDieResult(value, { rerollAvailable }) {
   const pion = currentPion();
+  // Partie à l'oreille : le résultat du dé est annoncé.
+  if (getPrefs().oreilles) say(`Le dé donne ${value} ! ${pion.nom} peut avancer de ${value} case${value > 1 ? "s" : ""}.`, { queue: true });
   const power = powerOf(pion);
   const actions = [bigButton(`Avancer de ${value}`, () => moveAndResolve(value))];
   if (rerollAvailable && power && !pion.pouvoirUtilise && power.quand === "de") {
@@ -1479,6 +1482,13 @@ function narrateAnecdote(q) {
   if (q?.anecdote) sayHost(q.anecdote, "anecdote");
 }
 
+/** Mode « partie à l'oreille » : les propositions affichées sont lues à voix
+ *  haute, pour jouer sans regarder l'écran (voiture, canapé, malvoyance). */
+function narrateChoices(choices) {
+  if (!getPrefs().oreilles || !Array.isArray(choices) || choices.length < 2) return;
+  say(`Les propositions sont : ${choices.map((c) => String(c)).join(". ")}.`, { queue: true });
+}
+
 // Règle affichée clairement en tête de CHAQUE type de question : comment on
 // répond, et ce qu'on gagne. (Format → texte explicite.)
 const REGLES = {
@@ -1809,6 +1819,7 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
     }
     grid.append(btn);
   });
+  narrateChoices(choices.filter((c) => c !== struck));
   container.append(grid);
   if (struck) container.append(el("p", { class: "help-note", text: "🤝 Coup de pouce du Donjon : une mauvaise réponse a été éliminée pour le dernier du classement." }));
 
@@ -2043,6 +2054,10 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   react3D(pion.id, correct); chipPulse(pion.id, correct);
   heraldSays((correct ? herald.bonne() : herald.mauvaise()) + gagFor(pion, q, correct));
   charSays(pion, correct ? "bonne" : "mauvaise");
+  // Partie à l'oreille : en cas d'échec, la bonne réponse est lue précisément.
+  if (!correct && getPrefs().oreilles) {
+    say(`La bonne réponse était : ${q.bonne_reponse ?? q.reponse_numerique ?? (q.reponses_acceptees ?? []).join(", ")}.`, { queue: true });
+  }
   showAnecdote(q, {
     verdictHtml: correct
       ? `✅ <strong>Bonne réponse !</strong> ${q.bonne_reponse ? `(${q.bonne_reponse})` : ""} +${advance} case${advance > 1 ? "s" : ""}${coinGain ? ` · +${coinGain} 🪙` : ""}`
@@ -2269,6 +2284,7 @@ function doTrouNoir(pion) {
     choices.forEach((choice) => {
       grid.append(choiceButton(choice, () => resolveTrouNoir(choice === q.bonne_reponse)));
     });
+    narrateChoices(choices);
     markGood(grid, q.bonne_reponse);
     container.append(grid);
   }
