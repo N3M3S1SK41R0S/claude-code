@@ -6,7 +6,7 @@
 //  - anecdote after EVERY question, no exception.
 import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawHardest, drawInsolite, drawQuestion } from "./data.js";
 import { boardById, renderBoard, walkPion } from "./board.js";
-import { render3D, show3D, use3D, walk3D } from "./board3d.js";
+import { react3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
 import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
@@ -29,6 +29,12 @@ function testFlag(name) {
 }
 
 let onVictory = null;
+
+// Si le garde-fou de performance abandonne la 3D en cours de partie, le moteur
+// repeint immédiatement le plateau 2D sans modifier l'état ni le tour.
+globalThis.addEventListener?.("donjon-3d-fallback", () => {
+  if (getState()) render();
+});
 
 /* ---------- pilote de bots : joue automatiquement le tour d'un joueur bot ---------- */
 
@@ -724,6 +730,7 @@ function moveAndResolve(steps) {
 /* ---------- étoile : l'acheter au marchand itinérant (au passage) ---------- */
 
 function doStar(pion, onDone = null) {
+  stageCase3D("arrivee", pion.id);
   const done = onDone ?? (() => finishTurn());
   setPendingCase("resolu");
   if (!pion.bot) playScene("etoile", pion.characterId); // saynète du marchand d'étoiles
@@ -759,6 +766,7 @@ function doStar(pion, onDone = null) {
 
 function resolveCase(type) {
   const pion = currentPion();
+  if (type !== "boutique") stageCase3D(type, pion.id);
   switch (type) {
     case "question":
       return doQuestion();
@@ -799,6 +807,7 @@ function resolveCase(type) {
 /* ---------- boutique : dépenser son or en objets ---------- */
 
 function doBoutique(pion, onDone = null) {
+  stageCase3D("boutique", pion.id);
   const done = onDone ?? (() => finishTurn());
   setPendingCase("resolu");
   // Bot : il ne fait pas ses courses, il salue le marchand et repart.
@@ -1245,6 +1254,7 @@ function npcQuiz(pion, npc) {
       if (correct) pion.stats.bonnes += 1;
       bumpNiveau(pion, correct);
       sfx(correct ? "good" : "bad");
+      react3D(pion.id, correct);
       const won = correct && npc.reward.apply(pion) === true;
       save();
       render();
@@ -1268,6 +1278,7 @@ function npcQuiz(pion, npc) {
       grid,
     ),
   );
+  narrateQuestion(q);
 }
 
 /** Coup dur « à esquiver » : répondez juste pour éviter le malus. */
@@ -1292,6 +1303,7 @@ function malusQuiz(pion, effect) {
       bumpNiveau(pion, correct);
       setPendingCase("resolu");
       if (correct) { sfx("good"); } else { effect.apply(pion); pion.malusSubis = (pion.malusSubis ?? 0) + 1; sfx("malus"); }
+      react3D(pion.id, correct);
       save();
       render();
       showAnecdote(q, {
@@ -1313,6 +1325,7 @@ function malusQuiz(pion, effect) {
       grid,
     ),
   );
+  narrateQuestion(q);
 }
 
 /* ---------- turn-timed powers ---------- */
@@ -1432,6 +1445,16 @@ function useTurnPower(pion) {
 /* ---------- questions (all formats, never timed) ---------- */
 
 const ADVANCE = { qcm: 2, vrai_faux: 1, equipe: 2, duo: 1, carre: 2, cash: 4 };
+
+/** Point d'entrée unique de la lecture : tous les formats de question passent
+ *  par ces deux fonctions afin de garantir l'ordre question puis anecdote. */
+function narrateQuestion(q) {
+  if (q?.texte) sayHost(q.texte, "question");
+}
+
+function narrateAnecdote(q) {
+  if (q?.anecdote) sayHost(q.anecdote, "anecdote");
+}
 
 // Règle affichée clairement en tête de CHAQUE type de question : comment on
 // répond, et ce qu'on gagne. (Format → texte explicite.)
@@ -1600,6 +1623,7 @@ function anagramFlow(pion, q) {
     )),
   );
   setPanel(container);
+  narrateQuestion(q);
 }
 
 /** Pendu (façon Motus) : on devine les lettres de la réponse, 6 erreurs max.
@@ -1660,6 +1684,7 @@ function hangmanFlow(pion, q) {
     setPanel(container);
   };
   rerender();
+  narrateQuestion(q);
 }
 
 function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {}) {
@@ -1708,7 +1733,7 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
 
   appendQuestionPowers(container, hintZone, pion, q, { cashMode });
   setPanel(container);
-  sayHost(q.texte, "question"); // l'animateur lit la question (si Héraut vocal actif)
+  narrateQuestion(q);
 }
 
 function questionHeader(q, pion = null) {
@@ -1875,6 +1900,7 @@ function openAnswerFlow(pion, q, { advance, accepted, onResolve = null, kind = "
   );
   appendQuestionPowers(container, hintZone, pion, q, { cashMode: null });
   setPanel(container);
+  narrateQuestion(q);
 }
 
 /** Confidence bet on a classic QCM: self-evaluate 1-10 BEFORE seeing it. */
@@ -1923,6 +1949,7 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   }
   save();
   sfx(correct ? "good" : "bad");
+  react3D(pion.id, correct);
   heraldSays(correct ? herald.bonne() : herald.mauvaise());
   charSays(pion, correct ? "bonne" : "mauvaise");
   showAnecdote(q, {
@@ -1945,7 +1972,7 @@ function showAnecdote(q, { verdictHtml, onContinue }) {
       bigButton("Continuer", onContinue),
     ),
   );
-  sayHost(q.anecdote, "anecdote"); // l'animateur lit l'anecdote (si Héraut vocal actif)
+  narrateAnecdote(q);
 }
 
 /* ---------- special cases ---------- */
@@ -1960,6 +1987,7 @@ function doTrouNoir(pion) {
     pion.stats.questions += 1;
     if (correct) pion.stats.bonnes += 1;
     save();
+    react3D(pion.id, correct);
     heraldSays(correct ? herald.bonne() : herald.mauvaise());
     showAnecdote(q, {
       verdictHtml: correct
@@ -2015,6 +2043,7 @@ function doTrouNoir(pion) {
   // Hints allowed, but no power may rewrite the Trou Noir's stakes.
   appendQuestionPowers(container, hintZone, pion, q, { cashMode: null, blockCageot: true });
   setPanel(container);
+  narrateQuestion(q);
 }
 
 /** Gambit: numeric answer + the other pions bet "trop haut / trop bas / juste". */
@@ -2063,6 +2092,7 @@ function doGambit(pion) {
   });
   setPanel(form);
   input.focus();
+  narrateQuestion(q);
 }
 
 function gambitBets(pion, q, guess, others) {
@@ -2121,6 +2151,7 @@ function gambitReveal(pion, q, guess, bets) {
   if (advance > 0) pion.stats.bonnes += 1;
   bumpNiveau(pion, advance > 0);
   save();
+  react3D(pion.id, advance > 0);
   heraldSays(advance > 0 ? herald.bonne() : herald.mauvaise());
   setPanel(
     el("div", { class: "question-block" },
@@ -2133,6 +2164,7 @@ function gambitReveal(pion, q, guess, bets) {
       }),
     ),
   );
+  narrateAnecdote(q);
 }
 
 /** Événement: everyone answers the same Vrai/Faux; each correct pion +2 🪙. */
@@ -2171,6 +2203,7 @@ function doEvent() {
         return el("p", { class: "bet-result", text: `🚫 ${p.nom} (absent)` });
       }
       const good = answers.get(p.id) === q.bonne_reponse;
+      react3D(p.id, good);
       // addCoins routes through Bonus Comptable for the pion whose turn it is.
       if (good) {
         if (p.id === current.id) addCoins(p, 2);
@@ -2203,6 +2236,7 @@ function doEvent() {
       bigButton("Tout le monde a écrit ✍️", () => setPanel(entryPanel)),
     ),
   );
+  narrateQuestion(q);
 }
 
 function showAnecdoteEvent(q, lines) {
@@ -2214,6 +2248,7 @@ function showAnecdoteEvent(q, lines) {
       bigButton("Continuer", () => finishTurn()),
     ),
   );
+  narrateAnecdote(q);
 }
 
 /* ---------- turn end & victory ---------- */
@@ -2310,7 +2345,7 @@ function poseTableQuestion(q, label, next) {
       bigButton("Tout le monde a écrit → Révéler la réponse", () => revealTableBonus(q, next)),
     ),
   );
-  sayHost(q.texte, "question"); // l'animateur lit la question bonus
+  narrateQuestion(q);
 }
 
 function revealTableBonus(q, onDone) {
@@ -2329,7 +2364,11 @@ function revealTableBonus(q, onDone) {
   }
   const done = () => {
     let any = false;
-    for (const p of getState().pions) if (found.has(p.id)) { addCoins(p, REWARD); any = true; }
+    for (const p of getState().pions) {
+      const good = found.has(p.id);
+      react3D(p.id, good);
+      if (good) { addCoins(p, REWARD); any = true; }
+    }
     if (any) heraldSays(`+${REWARD} 🪙 pour chaque bonne réponse ! Le savoir paie, sans se presser.`);
     onDone();
   };
@@ -2346,7 +2385,7 @@ function revealTableBonus(q, onDone) {
       bigButton("Personne n'a trouvé", onDone),
     ),
   );
-  sayHost(q.anecdote, "anecdote"); // l'animateur lit l'anecdote à la révélation
+  narrateAnecdote(q);
 }
 
 function endStarGame() {
