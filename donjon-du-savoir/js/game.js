@@ -4,7 +4,7 @@
 //    pion without re-triggering, so a turn always terminates;
 //  - nothing is ever timed (non-negotiable rule of the cahier des charges);
 //  - anecdote after EVERY question, no exception.
-import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawHardest, drawInsolite, drawQuestion } from "./data.js";
+import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawGambitTable, drawHardest, drawInsolite, drawQuestion } from "./data.js";
 import { boardById, renderBoard, walkPion } from "./board.js";
 import { react3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
 import { herald } from "./herald.js";
@@ -765,6 +765,10 @@ function doStar(pion, onDone = null) {
 /* ---------- case effects ---------- */
 
 function resolveCase(type) {
+  // Couture de test : forcer le type de case résolu (ex. __DONJON_CASE="gambit"
+  // pour vérifier la Fourchette de façon déterministe). Jamais en jeu réel.
+  const forcedCase = testFlag("__DONJON_CASE");
+  if (forcedCase) type = forcedCase;
   const pion = currentPion();
   if (type !== "boutique") stageCase3D(type, pion.id);
   switch (type) {
@@ -1469,6 +1473,8 @@ const REGLES = {
   gambit: "Gambit — annoncez le nombre le plus proche de la vraie réponse. Exact : +4 cases ; proche : +2 ou +1. Les autres parient Plus / Égal / Moins (la vraie réponse par rapport à votre nombre — bon pari : +2 🪙).",
   anagram: "Anagramme — retrouvez la réponse en réarrangeant les lettres, à voix haute. Trouvé : +2 cases.",
   hangman: "Pendu — devinez les lettres une à une (6 erreurs maximum). Mot reconstitué : +2 cases.",
+  fourchette: "La Fourchette — annoncez une fourchette [min ; max]. Si la vraie réponse est dedans : fourchette serrée +4 cases, moyenne +2, large +1. À côté : rien (aucun recul).",
+  ordre: "Ordre ! — la tablée classe 3 faits numériques du plus petit au plus grand. Classement exact : +3 🪙 chacun. Aucune course, on discute !",
 };
 
 /** Bandeau « règle » clair en tête d'une question. Renvoie toujours un nœud
@@ -2047,6 +2053,60 @@ function doTrouNoir(pion) {
 }
 
 /** Gambit: numeric answer + the other pions bet "trop haut / trop bas / juste". */
+/**
+ * Mini-jeu « La Fourchette » (variante du Gambit) : le joueur annonce une
+ * fourchette [min ; max]. Si la vraie réponse est dedans, il avance d'autant
+ * plus que la fourchette est serrée (+4 / +2 / +1) ; sinon rien — jamais de
+ * recul, esprit du cahier. Réutilise la banque numérique vérifiée.
+ */
+function fourchetteFlow(pion, q) {
+  commitQuestion(q);
+  markQuestionPosed();
+  const intro = speakerIntro(pion);
+  if (intro) heraldSays(intro);
+  heraldSays("🎯 La Fourchette ! Encadrez la réponse : plus c'est serré, plus ça paie.");
+  const mkInput = (label) => el("input", {
+    class: "num-input", type: "text", inputmode: "decimal", autocomplete: "off",
+    "aria-label": label, placeholder: label,
+  });
+  const minIn = mkInput("Minimum");
+  const maxIn = mkInput("Maximum");
+  const parse = (s) => { const v = parseFloat(String(s).replace(",", ".").replace(/\s/g, "")); return Number.isFinite(v) ? v : null; };
+  const valider = bigButton("Valider ma fourchette", () => {
+    const lo = parse(minIn.value), hi = parse(maxIn.value);
+    if (lo === null || hi === null || hi < lo) { heraldSays("Il me faut deux nombres, minimum PUIS maximum !"); return; }
+    setPendingCase("resolu");
+    const vrai = q.reponse_numerique;
+    const dedans = vrai >= lo && vrai <= hi;
+    // Largeur relative de la fourchette : serrée ≤ 10 %, moyenne ≤ 50 % de la
+    // valeur vraie (bornée à 1 pour éviter la division par zéro).
+    const largeur = (hi - lo) / Math.max(1, Math.abs(vrai));
+    const advance = dedans ? (largeur <= 0.1 ? 4 : largeur <= 0.5 ? 2 : 1) : 0;
+    pion.stats.questions += 1;
+    if (dedans) { pion.stats.bonnes += 1; addCoins(pion, 1); }
+    bumpNiveau(pion, dedans);
+    react3D(pion.id, dedans);
+    heraldSays(dedans ? herald.bonne() : herald.mauvaise());
+    showAnecdote(q, {
+      verdictHtml: dedans
+        ? `✅ <strong>Dans la fourchette !</strong> Réponse : <strong>${vrai}</strong> · [${lo} ; ${hi}] → +${advance} case${advance > 1 ? "s" : ""} · +1 🪙`
+        : `❌ <strong>À côté…</strong> Réponse : <strong>${vrai}</strong> (votre fourchette : [${lo} ; ${hi}]) — aucun recul.`,
+      onContinue: () => { if (advance > 0 && shift(pion, advance)) return; finishTurn(); },
+    });
+  });
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "🎯 La Fourchette" }),
+      questionHeader(q),
+      regleBanner("fourchette"),
+      el("p", { class: "question-texte", text: q.texte }),
+      el("div", { class: "fourchette-inputs" }, minIn, maxIn),
+      valider,
+    ),
+  );
+  sayHost(q.texte, "question");
+}
+
 function doGambit(pion) {
   if (!pion.bot) playScene("gambit", pion.characterId); // saynète de la table des paris
   const q = drawGambit(pion);
@@ -2055,6 +2115,12 @@ function doGambit(pion) {
     // to a classic question rather than serving an adult one to a child.
     heraldSays("Le Gambit se transforme… en question classique ! Le Donjon a ses mystères.");
     return doQuestion();
+  }
+  // Variante « La Fourchette » (~1 gambit sur 2, humains hors tests) : au lieu
+  // d'un nombre sec, on annonce une fourchette — plus elle est serrée, plus on
+  // avance. Les bots et les tests gardent le gambit classique (déterministe).
+  if (!pion.bot && !testFlag("__DONJON_TEST") && (testFlag("__DONJON_FOURCHETTE") || Math.random() < 0.5)) {
+    return fourchetteFlow(pion, q);
   }
   markQuestionPosed(); // le Gambit est la question numérique du tour
   const others = getState().pions.filter((p) => p.id !== pion.id);
@@ -2317,7 +2383,70 @@ function finishTurn() {
  *  haute, SANS course — la table désigne TOUS ceux qui avaient bon. Si la table
  *  réunit des enfants ET des adultes, on enchaîne DEUX niveaux (enfants puis
  *  adultes) pour que chacun brille au sien. */
+/**
+ * Mini-jeu collectif « Ordre ! » : trois faits numériques (adaptés au plus
+ * jeune de la table), la tablée discute et les classe du plus petit au plus
+ * grand. Classement exact : +3 🪙 chacun ; sinon on révèle le bon ordre, sans
+ * pénalité. Zéro course, zéro chronomètre.
+ */
+function ordreFlow(set, onDone) {
+  heraldSays("🔢 ORDRE ! Trois faits, un seul bon classement — la tablée débat, du plus petit au plus grand !");
+  for (const q of set) commitQuestion(q);
+  const picked = []; // indices dans l'ordre choisi par la table
+  const btns = [];
+  const refresh = () => {
+    btns.forEach((b, i) => {
+      const rank = picked.indexOf(i);
+      b.classList.toggle("bet-selected", rank !== -1);
+      b.querySelector(".ordre-rang").textContent = rank === -1 ? "•" : `${rank + 1}.`;
+    });
+    valider.disabled = picked.length !== set.length;
+  };
+  set.forEach((q, i) => {
+    const b = el("button", { class: "btn btn-choice", type: "button", onclick: () => {
+      const at = picked.indexOf(i);
+      if (at !== -1) picked.splice(at, 1); else picked.push(i);
+      refresh();
+    } }, el("strong", { class: "ordre-rang", text: "•" }), el("span", { text: ` ${q.texte}` }));
+    btns.push(b);
+  });
+  const valider = bigButton("Valider le classement", () => {
+    const bonOrdre = [...set.keys()].sort((a, b) => set[a].reponse_numerique - set[b].reponse_numerique);
+    const exact = bonOrdre.every((idx, r) => picked[r] === idx);
+    const current = currentPion();
+    if (exact) for (const p of getState().pions) { if (p.id === current.id) addCoins(p, 3); else p.pieces += 3; }
+    save();
+    renderPlayersStrip();
+    heraldSays(exact ? "🎉 Classement PARFAIT ! +3 🪙 pour toute la tablée !" : "Pas tout à fait ! Voici le bon ordre — on repart moins bête.");
+    setPanel(
+      el("div", { class: "question-block" },
+        el("h2", { class: "panel-title", text: exact ? "🎉 Ordre parfait !" : "🔢 Le bon ordre était…" }),
+        ...bonOrdre.map((idx, r) => el("p", { class: "bet-result", text: `${r + 1}. ${set[idx].texte} → ${set[idx].reponse_numerique}` })),
+        bigButton("Continuer", onDone),
+      ),
+    );
+  });
+  valider.disabled = true;
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "🔢 Ordre ! — toute la tablée" }),
+      regleBanner("ordre"),
+      el("p", { class: "help-note", text: "Touchez les faits DU PLUS PETIT AU PLUS GRAND (retouchez pour annuler). Discutez-en, rien ne presse !" }),
+      ...btns,
+      valider,
+    ),
+  );
+}
+
 function teamBonusFlow(onDone) {
+  // Variante « Ordre ! » (~1 bonus sur 3, hors tests, et jamais en partie
+  // 100 % bots : c'est la tablée humaine qui classe). __DONJON_ORDRE la force.
+  const forceOrdre = testFlag("__DONJON_ORDRE");
+  if ((forceOrdre || (!testFlag("__DONJON_TEST") && !testFlag("__DONJON_BONUS") && Math.random() < 0.33))
+    && !getState().pions.every((p) => p.bot)) {
+    const set = drawGambitTable(3);
+    if (set) return ordreFlow(set, onDone);
+  }
   const pair = drawEventPair(); // deux difficultés si l'écart d'âge le justifie
   if (pair) {
     heraldSays("🔔 QUESTION BONUS à deux niveaux ! Une manche pour les plus jeunes, une pour les adultes.");

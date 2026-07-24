@@ -201,6 +201,27 @@ export function drawGambit(pion) {
 }
 
 /**
+ * Mini-jeu « Ordre ! » : n faits numériques adaptés au PLUS JEUNE de la table,
+ * à valeurs toutes DISTINCTES (sinon impossible à classer). Sélectionne sans
+ * consommer — l'appelant committe les questions réellement posées. Renvoie
+ * null s'il n'y a pas assez de faits jouables.
+ */
+export function drawGambitTable(n = 3) {
+  const b = bracketById(youngestBracket(tableBrackets()));
+  const pool = drawableFrom(b, ["gambit_numerique"]);
+  const set = [];
+  const seenVals = new Set();
+  for (const q of pool.sort(() => Math.random() - 0.5)) {
+    const v = q.reponse_numerique;
+    if (typeof v !== "number" || seenVals.has(v)) continue;
+    seenVals.add(v);
+    set.push(q);
+    if (set.length === n) return set;
+  }
+  return null;
+}
+
+/**
  * Savoir insolite (case 🦩) : une VRAIE question, de préférence de la catégorie
  * « Insolite », dans les paliers d'âge autorisés. Sélectionne SANS consommer
  * (l'appelant la pose et la commit). Renvoie null si rien n'est jouable.

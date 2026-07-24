@@ -924,3 +924,8 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 
 /* Rappel de la question au moment de la révélation (collectif/bonus). */
 .question-rappel { color: var(--soft); font-style: italic; line-height: 1.4; margin-bottom: 0.2rem; }
+
+/* ---------- mini-jeux « La Fourchette » et « Ordre ! » ---------- */
+.fourchette-inputs { display: flex; gap: 0.6rem; justify-content: center; }
+.fourchette-inputs .num-input { width: 8.5rem; }
+.ordre-rang { color: var(--gold); min-width: 1.4rem; display: inline-block; }
