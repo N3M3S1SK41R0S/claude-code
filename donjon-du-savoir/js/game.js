@@ -147,7 +147,7 @@ function markQuestionPosed() { qPosedThisTurn = true; }
 /** Réplique de personnage : petite bulle (portrait + texte) sous le Héraut, et
  *  voix propre au héros si le Héraut vocal est activé. Silencieux pour un
  *  personnage sans répliques (repli discret). */
-function charSays(pion, moment) {
+function charSays(pion, moment, { speak = true } = {}) {
   const txt = heroLine(pion?.characterId, moment);
   if (!txt) return;
   const zone = document.getElementById("herald-zone");
@@ -159,7 +159,7 @@ function charSays(pion, moment) {
       ),
     );
   }
-  say(txt, { ...voiceOf(pion.characterId), queue: true });
+  if (speak) say(txt, { ...voiceOf(pion.characterId), queue: true });
 }
 
 export function startGame(victoryCallback) {
@@ -1264,6 +1264,7 @@ function npcQuiz(pion, npc) {
           ? `✅ Bien vu ! ${npc.emoji} ${npc.reward.texte}`
           : `❌ Raté — la réponse était « ${q.bonne_reponse} ». ${npc.rate}`,
         onContinue: () => finishTurn(),
+        reaction: correct ? "bonne" : "mauvaise",
       });
     }));
   });
@@ -1311,6 +1312,7 @@ function malusQuiz(pion, effect) {
           ? `✅ Esquive réussie ! Vous évitez : « ${effect.texte} »`
           : `❌ Raté — la réponse était « ${q.bonne_reponse} ». Vous subissez : ${effect.texte}`,
         onContinue: () => finishTurn(),
+        reaction: correct ? "bonne" : "mauvaise",
       });
     }));
   });
@@ -1452,8 +1454,8 @@ function narrateQuestion(q) {
   if (q?.texte) sayHost(q.texte, "question");
 }
 
-function narrateAnecdote(q) {
-  if (q?.anecdote) sayHost(q.anecdote, "anecdote");
+function narrateAnecdote(q, reaction = null) {
+  if (q?.anecdote) sayHost(q.anecdote, "anecdote", { reaction });
 }
 
 // Règle affichée clairement en tête de CHAQUE type de question : comment on
@@ -1950,8 +1952,6 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   save();
   sfx(correct ? "good" : "bad");
   react3D(pion.id, correct);
-  heraldSays(correct ? herald.bonne() : herald.mauvaise());
-  charSays(pion, correct ? "bonne" : "mauvaise");
   showAnecdote(q, {
     verdictHtml: correct
       ? `✅ <strong>Bonne réponse !</strong> ${q.bonne_reponse ? `(${q.bonne_reponse})` : ""} +${advance} case${advance > 1 ? "s" : ""}${coinGain ? ` · +${coinGain} 🪙` : ""}`
@@ -1960,10 +1960,14 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
       if (moveDelta !== 0 && shift(pion, moveDelta)) return;
       finishTurn();
     },
+    reaction: correct ? "bonne" : "mauvaise",
   });
+  // La bulle du héros reste visible pendant l'anecdote, mais ne concurrence
+  // pas la séquence vocale réaction → lancement → lecture du Héraut.
+  charSays(pion, correct ? "bonne" : "mauvaise", { speak: false });
 }
 
-function showAnecdote(q, { verdictHtml, onContinue }) {
+function showAnecdote(q, { verdictHtml, onContinue, reaction = null }) {
   heraldSays(`${herald.anecdote()} ${q.anecdote}`, { speak: false });
   setPanel(
     el("div", { class: "question-block" },
@@ -1972,7 +1976,7 @@ function showAnecdote(q, { verdictHtml, onContinue }) {
       bigButton("Continuer", onContinue),
     ),
   );
-  narrateAnecdote(q);
+  narrateAnecdote(q, reaction);
 }
 
 /* ---------- special cases ---------- */
@@ -1988,7 +1992,6 @@ function doTrouNoir(pion) {
     if (correct) pion.stats.bonnes += 1;
     save();
     react3D(pion.id, correct);
-    heraldSays(correct ? herald.bonne() : herald.mauvaise());
     showAnecdote(q, {
       verdictHtml: correct
         ? `✅ <strong>Le Trou Noir s'incline !</strong> +${advance} cases`
@@ -1997,6 +2000,7 @@ function doTrouNoir(pion) {
         if (shift(pion, correct ? advance : recul)) return;
         finishTurn();
       },
+      reaction: correct ? "bonne" : "mauvaise",
     });
   };
   if (!q) {
@@ -2152,7 +2156,6 @@ function gambitReveal(pion, q, guess, bets) {
   bumpNiveau(pion, advance > 0);
   save();
   react3D(pion.id, advance > 0);
-  heraldSays(advance > 0 ? herald.bonne() : herald.mauvaise());
   setPanel(
     el("div", { class: "question-block" },
       el("p", { class: "verdict", html: `La vraie réponse était <strong>${answer}</strong> — ${pion.nom} annonçait ${guess}. ${advance > 0 ? `<strong>+${advance} case${advance > 1 ? "s" : ""} !</strong>` : "<strong>Trop loin, pas de bonus.</strong>"}` }),
@@ -2164,7 +2167,7 @@ function gambitReveal(pion, q, guess, bets) {
       }),
     ),
   );
-  narrateAnecdote(q);
+  narrateAnecdote(q, advance > 0 ? "bonne" : "mauvaise");
 }
 
 /** Événement: everyone answers the same Vrai/Faux; each correct pion +2 🪙. */

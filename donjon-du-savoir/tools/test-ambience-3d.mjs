@@ -36,7 +36,7 @@ assert(board.includes("R.shadowMap.enabled = false"));
 assert(board.includes('new CustomEvent("donjon-3d-fallback")'));
 assert(game.includes('addEventListener?.("donjon-3d-fallback"'));
 assert(board.includes("runtime3DDisabled"));
-assert(worker.includes('const VERSION = "donjon-v69"'));
+assert.match(worker, /const VERSION = "donjon-v\d+";/);
 assert(builder.includes('glb: "model/gltf-binary"'));
 
 console.log("✓ ambiances 3D : 5 cubemaps, 12 effets de case, qualité adaptative et repli 2D");

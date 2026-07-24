@@ -64,6 +64,11 @@ export function pickHostCue(kind) {
   const pool = HOST_CUES[kind];
   if (!pool?.length) return null;
   const previous = lastByKind.get(kind);
+  if (!Number.isInteger(previous)) {
+    const index = Math.floor(Math.random() * pool.length);
+    lastByKind.set(kind, index);
+    return pool[index];
+  }
   const offset = Math.floor(Math.random() * Math.max(1, pool.length - 1));
   const index = pool.length > 1 && offset >= previous ? offset + 1 : offset;
   lastByKind.set(kind, index);

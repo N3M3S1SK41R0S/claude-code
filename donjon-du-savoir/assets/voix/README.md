@@ -10,8 +10,11 @@ positives et 6 réactions bienveillantes après une erreur.
 - Poids total : environ 280 Ko.
 - Manifeste éditorial : `data/voix.json`.
 - Manifeste exécutable à chemins littéraux : `js/host-voice.js`.
-- Lecture : une accroche locale est jouée, puis Web Speech lit le texte variable
-  de la question ou de l'anecdote.
+- Lecture d'une question : accroche locale, puis Web Speech lit le texte
+  variable.
+- Lecture d'une réponse : réaction locale positive/bienveillante, lancement
+  local de l'anecdote, puis Web Speech lit l'anecdote. Les 36 clips participent
+  donc réellement à la partie.
 - Repli : si Opus/WebM ou la lecture audio sont indisponibles, Web Speech dit
   l'accroche et le texte. Si Web Speech manque, le bouton vocal est masqué et le
   jeu reste entièrement jouable.
