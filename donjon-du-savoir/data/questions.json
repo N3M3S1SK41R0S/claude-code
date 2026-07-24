@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 3981,
+ "count": 4082,
  "questions": [
   {
    "id": "arts-001",
@@ -76197,6 +76197,1891 @@
     "« Des flots elle tire sa force »"
    ],
    "bonne_reponse": "« Il est battu par les flots mais ne sombre pas »"
+  },
+  {
+   "id": "add-2573",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans quel pays peut-on admirer les grandes pyramides de Gizeh ?",
+   "anecdote": "La grande pyramide de Khéops est la seule des Sept Merveilles du monde antique encore debout aujourd'hui.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pyramide_de_Khéops",
+    "https://fr.vikidia.org/wiki/Égypte_antique"
+   ],
+   "choix": [
+    "En Égypte",
+    "Au Mexique",
+    "En Chine"
+   ],
+   "bonne_reponse": "En Égypte"
+  },
+  {
+   "id": "add-2574",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment s'appelle la grande maison fortifiée où vivaient les seigneurs au Moyen Âge ?",
+   "anecdote": "Pour entrer dans un château fort, il fallait souvent passer sur un pont-levis, qui pouvait se relever pour bloquer les ennemis.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Château_fort",
+    "https://fr.vikidia.org/wiki/Château_fort"
+   ],
+   "choix": [
+    "Un château fort",
+    "Une pyramide",
+    "Un igloo"
+   ],
+   "bonne_reponse": "Un château fort"
+  },
+  {
+   "id": "add-2575",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel était le surnom du roi Louis XIV ?",
+   "anecdote": "Louis XIV a fait construire l'immense château de Versailles, avec sa célèbre galerie des Glaces.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Louis_XIV",
+    "https://fr.vikidia.org/wiki/Louis_XIV"
+   ],
+   "choix": [
+    "Le Roi-Soleil",
+    "Le Roi-Lune",
+    "Le Roi-Étoile"
+   ],
+   "bonne_reponse": "Le Roi-Soleil"
+  },
+  {
+   "id": "add-2576",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année les Parisiens ont-ils pris la Bastille ?",
+   "anecdote": "En souvenir de cet événement, le 14 juillet est devenu le jour de la fête nationale française.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Prise_de_la_Bastille",
+    "https://fr.vikidia.org/wiki/Révolution_française"
+   ],
+   "choix": [
+    "1789",
+    "1889",
+    "1689"
+   ],
+   "bonne_reponse": "1789"
+  },
+  {
+   "id": "add-2577",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel animal de la Préhistoire ressemblait à un éléphant couvert de longs poils ?",
+   "anecdote": "On a retrouvé en Sibérie des bébés mammouths entiers, conservés dans le sol gelé depuis des milliers d'années.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mammouth_laineux",
+    "https://fr.vikidia.org/wiki/Mammouth"
+   ],
+   "choix": [
+    "Le mammouth",
+    "Le dodo",
+    "Le tigre à dents de sabre"
+   ],
+   "bonne_reponse": "Le mammouth"
+  },
+  {
+   "id": "add-2578",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel navigateur a traversé l'océan Atlantique en 1492 et atteint l'Amérique ?",
+   "anecdote": "Ses trois navires s'appelaient la Niña, la Pinta et la Santa María.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Christophe_Colomb",
+    "https://fr.vikidia.org/wiki/Christophe_Colomb"
+   ],
+   "choix": [
+    "Christophe Colomb",
+    "Marco Polo",
+    "Jules César"
+   ],
+   "bonne_reponse": "Christophe Colomb"
+  },
+  {
+   "id": "add-2579",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment s'appelle le costume de métal qui protégeait les chevaliers pendant les combats ?",
+   "anecdote": "Une armure complète pouvait peser plus de 20 kilos : comme porter un très gros sac de voyage sur soi !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Armure_(équipement)",
+    "https://fr.vikidia.org/wiki/Chevalier"
+   ],
+   "choix": [
+    "Une armure",
+    "Une toge",
+    "Un kimono"
+   ],
+   "bonne_reponse": "Une armure"
+  },
+  {
+   "id": "add-2580",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel peuple de l'Antiquité a construit le Colisée de Rome ?",
+   "anecdote": "Le Colisée pouvait accueillir environ 50 000 spectateurs, venus surtout regarder les combats de gladiateurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Colisée",
+    "https://www.britannica.com/topic/Colosseum"
+   ],
+   "choix": [
+    "Les Romains",
+    "Les Vikings",
+    "Les Gaulois"
+   ],
+   "bonne_reponse": "Les Romains"
+  },
+  {
+   "id": "add-2581",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les hommes préhistoriques vivaient en même temps que les dinosaures.",
+   "anecdote": "Les dinosaures ont disparu il y a environ 66 millions d'années, très longtemps avant l'apparition des premiers êtres humains.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Extinction_Crétacé-Paléogène",
+    "https://fr.vikidia.org/wiki/Dinosaure"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2582",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Il y a environ 2 000 ans, des peuples appelés les Gaulois vivaient sur le territoire de la France actuelle.",
+   "anecdote": "Vercingétorix est le plus célèbre des chefs gaulois : il a affronté le Romain Jules César.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Gaulois_(peuples)",
+    "https://fr.vikidia.org/wiki/Gaulois"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2583",
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Charlemagne a été couronné empereur en l'an 800.",
+   "anecdote": "Charlemagne a été couronné empereur à Rome le jour de Noël de l'an 800.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Charlemagne",
+    "https://fr.vikidia.org/wiki/Charlemagne"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2584",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Sur quel continent se trouve l'Égypte ?",
+   "anecdote": "L'Égypte est traversée par le Nil, l'un des plus longs fleuves du monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Égypte",
+    "https://fr.vikidia.org/wiki/Égypte"
+   ],
+   "choix": [
+    "En Afrique",
+    "En Europe",
+    "En Océanie"
+   ],
+   "bonne_reponse": "En Afrique"
+  },
+  {
+   "id": "add-2585",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle est la capitale du Japon ?",
+   "anecdote": "L'agglomération de Tokyo est la plus peuplée du monde, avec plus de 35 millions d'habitants.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tokyo",
+    "https://fr.vikidia.org/wiki/Tokyo"
+   ],
+   "choix": [
+    "Tokyo",
+    "Pékin",
+    "Séoul"
+   ],
+   "bonne_reponse": "Tokyo"
+  },
+  {
+   "id": "add-2586",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans quel pays se trouve la statue de la Liberté ?",
+   "anecdote": "La statue de la Liberté a été offerte par la France aux États-Unis et inaugurée en 1886.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Statue_de_la_Liberté",
+    "https://fr.vikidia.org/wiki/Statue_de_la_Liberté"
+   ],
+   "choix": [
+    "Aux États-Unis",
+    "En Angleterre",
+    "En Australie"
+   ],
+   "bonne_reponse": "Aux États-Unis"
+  },
+  {
+   "id": "add-2587",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La mer Méditerranée borde le sud de la France.",
+   "anecdote": "Marseille, la plus grande ville française au bord de la Méditerranée, a été fondée il y a environ 2 600 ans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mer_Méditerranée",
+    "https://fr.vikidia.org/wiki/Mer_Méditerranée"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2588",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "On surnomme la France « l'Hexagone » parce que sa forme rappelle une figure à six côtés.",
+   "anecdote": "Sur une carte, la France métropolitaine a en effet une forme à six côtés, comme un hexagone en géométrie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/France",
+    "https://fr.vikidia.org/wiki/France"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2589",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le Nil est un fleuve d'Amérique.",
+   "anecdote": "Le Nil coule en Afrique sur plus de 6 500 kilomètres avant de se jeter dans la mer Méditerranée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Nil",
+    "https://fr.vikidia.org/wiki/Nil"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2590",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La Grande Muraille de Chine s'étend sur plusieurs milliers de kilomètres.",
+   "anecdote": "La Grande Muraille a été bâtie sur plusieurs siècles pour protéger la Chine des invasions venues du nord.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Grande_Muraille",
+    "https://www.britannica.com/topic/Great-Wall-of-China"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2591",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel est le plus grand animal vivant sur Terre ?",
+   "anecdote": "La langue d'une baleine bleue peut peser aussi lourd qu'un éléphant !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Baleine_bleue",
+    "https://fr.vikidia.org/wiki/Baleine_bleue"
+   ],
+   "choix": [
+    "La baleine bleue",
+    "L'éléphant d'Afrique",
+    "La girafe"
+   ],
+   "bonne_reponse": "La baleine bleue"
+  },
+  {
+   "id": "add-2592",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que mangent principalement les pandas géants ?",
+   "anecdote": "Un panda géant peut passer plus de dix heures par jour à mâcher du bambou.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Panda_géant",
+    "https://fr.vikidia.org/wiki/Panda_géant"
+   ],
+   "choix": [
+    "Du bambou",
+    "Du poisson",
+    "Des insectes"
+   ],
+   "bonne_reponse": "Du bambou"
+  },
+  {
+   "id": "add-2593",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel animal terrestre est le plus rapide du monde à la course ?",
+   "anecdote": "Sur une courte distance, un guépard peut dépasser 100 km/h, comme une voiture sur l'autoroute !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guépard",
+    "https://fr.vikidia.org/wiki/Guépard"
+   ],
+   "choix": [
+    "Le guépard",
+    "Le lion",
+    "Le cheval"
+   ],
+   "bonne_reponse": "Le guépard"
+  },
+  {
+   "id": "add-2594",
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans quel pays les kangourous vivent-ils à l'état sauvage ?",
+   "anecdote": "À la naissance, un bébé kangourou est minuscule : il grandit ensuite bien au chaud dans la poche de sa mère.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kangourou",
+    "https://fr.vikidia.org/wiki/Kangourou"
+   ],
+   "choix": [
+    "En Australie",
+    "En Afrique",
+    "Au Canada"
+   ],
+   "bonne_reponse": "En Australie"
+  },
+  {
+   "id": "add-2595",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien de joueurs de chaque équipe sont sur le terrain pendant un match de football ?",
+   "anecdote": "Seul le gardien de but a le droit de toucher le ballon avec les mains, et uniquement dans sa surface.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Football",
+    "https://fr.vikidia.org/wiki/Football"
+   ],
+   "choix": [
+    "Onze",
+    "Cinq",
+    "Quinze"
+   ],
+   "bonne_reponse": "Onze"
+  },
+  {
+   "id": "add-2596",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans quel sport utilise-t-on une raquette et une petite balle jaune ?",
+   "anecdote": "Le plus célèbre tournoi de tennis français, Roland-Garros, se joue à Paris sur des terrains de terre battue orange.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tennis",
+    "https://fr.vikidia.org/wiki/Tennis"
+   ],
+   "choix": [
+    "Le tennis",
+    "Le judo",
+    "La natation"
+   ],
+   "bonne_reponse": "Le tennis"
+  },
+  {
+   "id": "add-2597",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans quel sport marque-t-on des paniers ?",
+   "anecdote": "Le basket a été inventé en 1891 par James Naismith, qui accrochait au mur de vrais paniers à pêches !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Basket-ball",
+    "https://fr.vikidia.org/wiki/Basket-ball"
+   ],
+   "choix": [
+    "Le basket-ball",
+    "Le rugby",
+    "Le ski"
+   ],
+   "bonne_reponse": "Le basket-ball"
+  },
+  {
+   "id": "add-2598",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Combien d'anneaux y a-t-il sur le drapeau olympique ?",
+   "anecdote": "Les cinq anneaux entrelacés représentent les cinq continents unis par le sport.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_olympique",
+    "https://fr.vikidia.org/wiki/Jeux_olympiques"
+   ],
+   "choix": [
+    "Cinq",
+    "Quatre",
+    "Six"
+   ],
+   "bonne_reponse": "Cinq"
+  },
+  {
+   "id": "add-2599",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel pays vient le judo ?",
+   "anecdote": "En japonais, « judo » signifie « la voie de la souplesse ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Judo",
+    "https://fr.vikidia.org/wiki/Judo"
+   ],
+   "choix": [
+    "Du Japon",
+    "Du Brésil",
+    "De l'Espagne"
+   ],
+   "bonne_reponse": "Du Japon"
+  },
+  {
+   "id": "add-2600",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment s'appelle la célèbre course à pied longue d'environ 42 kilomètres ?",
+   "anecdote": "Selon la légende grecque, un messager aurait couru de la ville de Marathon jusqu'à Athènes pour annoncer une victoire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marathon_(sport)",
+    "https://www.britannica.com/sports/marathon"
+   ],
+   "choix": [
+    "Le marathon",
+    "Le sprint",
+    "Le relais"
+   ],
+   "bonne_reponse": "Le marathon"
+  },
+  {
+   "id": "add-2601",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Avec quel objet à plumes joue-t-on au badminton ?",
+   "anecdote": "Lors d'un smash, le volant de badminton peut dépasser 300 km/h : bien plus vite qu'une voiture sur l'autoroute !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Badminton",
+    "https://fr.vikidia.org/wiki/Badminton"
+   ],
+   "choix": [
+    "Un volant",
+    "Un palet",
+    "Une quille"
+   ],
+   "bonne_reponse": "Un volant"
+  },
+  {
+   "id": "add-2602",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel sport pratique-t-on dans une piscine ?",
+   "anecdote": "Il existe quatre nages principales : le crawl, la brasse, le dos crawlé et le papillon.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Natation",
+    "https://fr.vikidia.org/wiki/Natation"
+   ],
+   "choix": [
+    "La natation",
+    "L'équitation",
+    "L'escalade"
+   ],
+   "bonne_reponse": "La natation"
+  },
+  {
+   "id": "add-2603",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Au rugby, le ballon est ovale.",
+   "anecdote": "Avec sa forme ovale, le ballon de rugby fait des rebonds surprenants, même pour les champions !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rugby_à_XV",
+    "https://fr.vikidia.org/wiki/Rugby"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2604",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les Jeux olympiques d'été ont lieu tous les quatre ans.",
+   "anecdote": "Les Jeux d'été et les Jeux d'hiver ont chacun lieu tous les quatre ans, en alternance tous les deux ans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques",
+    "https://fr.vikidia.org/wiki/Jeux_olympiques"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2605",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Au football, le gardien de but peut prendre le ballon avec les mains partout sur le terrain.",
+   "anecdote": "En dehors de sa surface de réparation, le gardien doit jouer avec les pieds, comme tous les autres joueurs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Gardien_de_but_(football)",
+    "https://fr.vikidia.org/wiki/Football"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2606",
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "L'escrime est un sport de combat où l'on touche l'adversaire avec une arme comme le fleuret ou l'épée.",
+   "anecdote": "L'escrime fait partie des rares sports présents à tous les Jeux olympiques modernes depuis 1896.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Escrime",
+    "https://fr.vikidia.org/wiki/Escrime"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2607",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel mot est le contraire de « grand » ?",
+   "anecdote": "Deux mots de sens opposé, comme « grand » et « petit », s'appellent des antonymes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Antonymie",
+    "https://fr.wiktionary.org/wiki/petit"
+   ],
+   "choix": [
+    "Petit",
+    "Large",
+    "Haut"
+   ],
+   "bonne_reponse": "Petit"
+  },
+  {
+   "id": "add-2608",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quelle est la première lettre de l'alphabet français ?",
+   "anecdote": "La lettre la plus utilisée en français est le « e » : impossible d'écrire longtemps sans elle !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/A_(lettre)",
+    "https://fr.vikidia.org/wiki/Alphabet"
+   ],
+   "choix": [
+    "A",
+    "B",
+    "Z"
+   ],
+   "bonne_reponse": "A"
+  },
+  {
+   "id": "add-2609",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Que représente l'onomatopée « cocorico » ?",
+   "anecdote": "En anglais, le coq ne fait pas « cocorico » mais « cock-a-doodle-doo » !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Onomatopée",
+    "https://fr.wiktionary.org/wiki/cocorico"
+   ],
+   "choix": [
+    "Le chant du coq",
+    "Le bruit de la pluie",
+    "Le miaulement du chat"
+   ],
+   "bonne_reponse": "Le chant du coq"
+  },
+  {
+   "id": "add-2610",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on deux mots qui veulent dire presque la même chose ?",
+   "anecdote": "« Joli » et « beau » sont des synonymes : on peut souvent remplacer l'un par l'autre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Synonymie",
+    "https://fr.wiktionary.org/wiki/synonyme"
+   ],
+   "choix": [
+    "Des synonymes",
+    "Des contraires",
+    "Des rimes"
+   ],
+   "bonne_reponse": "Des synonymes"
+  },
+  {
+   "id": "add-2611",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Combien y a-t-il de voyelles dans l'alphabet français ?",
+   "anecdote": "Les six voyelles sont a, e, i, o, u et y ; le « y » s'appelle aussi « i grec ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Voyelle",
+    "https://fr.wiktionary.org/wiki/voyelle"
+   ],
+   "choix": [
+    "Six",
+    "Cinq",
+    "Huit"
+   ],
+   "bonne_reponse": "Six"
+  },
+  {
+   "id": "add-2612",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment s'appelle le signe « ? » placé à la fin d'une question ?",
+   "anecdote": "Le point d'exclamation « ! » sert, lui, à montrer la surprise ou la joie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Point_d'interrogation",
+    "https://fr.wiktionary.org/wiki/point_d'interrogation"
+   ],
+   "choix": [
+    "Le point d'interrogation",
+    "Le point d'exclamation",
+    "La virgule"
+   ],
+   "bonne_reponse": "Le point d'interrogation"
+  },
+  {
+   "id": "add-2613",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Pourquoi le mot « anticonstitutionnellement » est-il célèbre ?",
+   "anecdote": "Ce mot géant compte 25 lettres : un vrai défi à écrire sans faute !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Anticonstitutionnellement",
+    "https://fr.wiktionary.org/wiki/anticonstitutionnellement"
+   ],
+   "choix": [
+    "C'est l'un des mots les plus longs de la langue française",
+    "C'est le mot le plus court du dictionnaire",
+    "C'est un mot magique inventé par un sorcier"
+   ],
+   "bonne_reponse": "C'est l'un des mots les plus longs de la langue française"
+  },
+  {
+   "id": "add-2614",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Une phrase se termine le plus souvent par un point.",
+   "anecdote": "Trois points à la suite s'appellent des points de suspension : ils laissent la phrase en suspens...",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ponctuation",
+    "https://fr.wiktionary.org/wiki/point"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2615",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "En français, on lit et on écrit de gauche à droite.",
+   "anecdote": "D'autres langues, comme l'arabe, s'écrivent de droite à gauche.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Écriture",
+    "https://fr.vikidia.org/wiki/Écriture"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2616",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Dans le mot « hibou », la lettre « h » ne se prononce pas.",
+   "anecdote": "Même muet, ce « h » est dit « aspiré » : on dit « le hibou » et pas « l'hibou ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/H_aspiré",
+    "https://fr.wiktionary.org/wiki/hibou"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2617",
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le français est parlé uniquement en France.",
+   "anecdote": "On parle français en Belgique, en Suisse, au Canada, dans de nombreux pays d'Afrique... soit plus de 300 millions de personnes dans le monde !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Francophonie",
+    "https://fr.vikidia.org/wiki/Francophonie"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2618",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "À partir de quoi fabrique-t-on le chocolat ?",
+   "anecdote": "Les fèves de cacao poussent dans de gros fruits appelés cabosses, sur un arbre des pays chauds : le cacaoyer.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chocolat",
+    "https://fr.vikidia.org/wiki/Chocolat"
+   ],
+   "choix": [
+    "Des fèves de cacao",
+    "Des noisettes grillées",
+    "Des cerises écrasées"
+   ],
+   "bonne_reponse": "Des fèves de cacao"
+  },
+  {
+   "id": "add-2619",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel plat est une fine galette que l'on fait sauter dans la poêle ?",
+   "anecdote": "Le 2 février, jour de la Chandeleur, la tradition est de faire sauter les crêpes dans la poêle !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Crêpe",
+    "https://fr.vikidia.org/wiki/Crêpe"
+   ],
+   "choix": [
+    "La crêpe",
+    "La quiche",
+    "La ratatouille"
+   ],
+   "bonne_reponse": "La crêpe"
+  },
+  {
+   "id": "add-2620",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel légume orange et croquant les lapins adorent-ils grignoter dans les histoires ?",
+   "anecdote": "La carotte doit sa couleur orange au carotène, qui est aussi bon pour notre peau et nos yeux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Carotte",
+    "https://fr.vikidia.org/wiki/Carotte"
+   ],
+   "choix": [
+    "La carotte",
+    "La tomate",
+    "L'aubergine"
+   ],
+   "bonne_reponse": "La carotte"
+  },
+  {
+   "id": "add-2621",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel pays viennent les sushis ?",
+   "anecdote": "Les sushis se préparent avec du riz légèrement vinaigré, souvent accompagné de poisson.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sushi",
+    "https://fr.vikidia.org/wiki/Sushi"
+   ],
+   "choix": [
+    "Du Japon",
+    "De la Chine",
+    "De l'Italie"
+   ],
+   "bonne_reponse": "Du Japon"
+  },
+  {
+   "id": "add-2622",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quel ingrédient principal prépare-t-on les frites ?",
+   "anecdote": "La Belgique et la France se disputent depuis longtemps l'invention des frites !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Frite",
+    "https://fr.vikidia.org/wiki/Frite"
+   ],
+   "choix": [
+    "Des pommes de terre",
+    "Du maïs",
+    "Des navets"
+   ],
+   "bonne_reponse": "Des pommes de terre"
+  },
+  {
+   "id": "add-2623",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment s'appelle le pain long et croustillant typique de la France ?",
+   "anecdote": "Le savoir-faire de la baguette est inscrit au patrimoine culturel immatériel de l'humanité de l'UNESCO depuis 2022.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Baguette_(pain)",
+    "https://fr.vikidia.org/wiki/Pain"
+   ],
+   "choix": [
+    "La baguette",
+    "Le bretzel",
+    "Le bagel"
+   ],
+   "bonne_reponse": "La baguette"
+  },
+  {
+   "id": "add-2624",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Avec le lait de quel animal fabrique-t-on le camembert ?",
+   "anecdote": "La France est célèbre pour ses fromages : il en existe plusieurs centaines de sortes différentes !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Camembert",
+    "https://fr.vikidia.org/wiki/Fromage"
+   ],
+   "choix": [
+    "La vache",
+    "La chèvre",
+    "La brebis"
+   ],
+   "bonne_reponse": "La vache"
+  },
+  {
+   "id": "add-2625",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quelle région du monde vient le couscous ?",
+   "anecdote": "Le couscous se prépare avec de la semoule, des légumes et souvent de la viande : c'est l'un des plats préférés des Français !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Couscous",
+    "https://fr.vikidia.org/wiki/Couscous"
+   ],
+   "choix": [
+    "Du Maghreb, en Afrique du Nord",
+    "Du Japon",
+    "De la Norvège"
+   ],
+   "bonne_reponse": "Du Maghreb, en Afrique du Nord"
+  },
+  {
+   "id": "add-2626",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le miel est fabriqué par les abeilles.",
+   "anecdote": "Pour remplir un seul pot de miel, les abeilles doivent visiter des centaines de milliers de fleurs !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Miel",
+    "https://fr.vikidia.org/wiki/Miel"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2627",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les tomates poussent sur de grands arbres.",
+   "anecdote": "La tomate pousse sur une petite plante... et surprise : pour les scientifiques, la tomate est un fruit !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tomate",
+    "https://fr.vikidia.org/wiki/Tomate"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2628",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "L'ancêtre du croissant vient d'Autriche.",
+   "anecdote": "Le croissant descend du « kipferl » autrichien : c'est pour cela qu'on parle de « viennoiseries », comme la ville de Vienne !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Croissant_(viennoiserie)",
+    "https://en.wikipedia.org/wiki/Croissant"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2629",
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "On peut fabriquer du sucre à partir d'un légume : la betterave.",
+   "anecdote": "La France est l'un des plus grands producteurs mondiaux de sucre de betterave.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Betterave_sucrière",
+    "https://fr.vikidia.org/wiki/Sucre"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2630",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel célèbre studio américain a créé Mickey Mouse ?",
+   "anecdote": "Mickey est apparu pour la première fois en 1928, dans un dessin animé intitulé « Steamboat Willie ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mickey_Mouse",
+    "https://fr.vikidia.org/wiki/Mickey_Mouse"
+   ],
+   "choix": [
+    "Disney",
+    "Pixar",
+    "Le studio Ghibli"
+   ],
+   "bonne_reponse": "Disney"
+  },
+  {
+   "id": "add-2631",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans quel pays le personnage d'Astérix a-t-il été créé ?",
+   "anecdote": "Astérix a été inventé en 1959 par le scénariste René Goscinny et le dessinateur Albert Uderzo.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Astérix",
+    "https://fr.vikidia.org/wiki/Astérix"
+   ],
+   "choix": [
+    "En France",
+    "Au Japon",
+    "Aux États-Unis"
+   ],
+   "bonne_reponse": "En France"
+  },
+  {
+   "id": "add-2632",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel dessinateur a créé le personnage de Titeuf ?",
+   "anecdote": "Zep est un dessinateur suisse : Titeuf est né en 1992 dans ses carnets de dessins.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Titeuf",
+    "https://fr.vikidia.org/wiki/Titeuf"
+   ],
+   "choix": [
+    "Zep",
+    "Hergé",
+    "Walt Disney"
+   ],
+   "bonne_reponse": "Zep"
+  },
+  {
+   "id": "add-2633",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans quel pays le personnage de Tintin a-t-il été créé ?",
+   "anecdote": "Tintin a été imaginé en 1929 par le dessinateur belge Hergé, avec son fidèle chien Milou.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Aventures_de_Tintin",
+    "https://fr.vikidia.org/wiki/Tintin"
+   ],
+   "choix": [
+    "En Belgique",
+    "En France",
+    "Au Canada"
+   ],
+   "bonne_reponse": "En Belgique"
+  },
+  {
+   "id": "add-2634",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel animal est Simba dans « Le Roi lion » ?",
+   "anecdote": "Le dessin animé « Le Roi lion » des studios Disney est sorti au cinéma en 1994.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Roi_lion",
+    "https://www.britannica.com/topic/The-Lion-King"
+   ],
+   "choix": [
+    "Un lion",
+    "Un tigre",
+    "Un zèbre"
+   ],
+   "bonne_reponse": "Un lion"
+  },
+  {
+   "id": "add-2635",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année est sorti le tout premier film « Toy Story » ?",
+   "anecdote": "« Toy Story » est le premier long-métrage de cinéma entièrement réalisé en images de synthèse par ordinateur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Toy_Story",
+    "https://www.britannica.com/topic/Toy-Story"
+   ],
+   "choix": [
+    "1995",
+    "2005",
+    "1985"
+   ],
+   "bonne_reponse": "1995"
+  },
+  {
+   "id": "add-2636",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel studio japonais a réalisé le film « Mon voisin Totoro » ?",
+   "anecdote": "« Mon voisin Totoro » a été réalisé par le Japonais Hayao Miyazaki et est sorti en 1988.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mon_voisin_Totoro",
+    "https://fr.vikidia.org/wiki/Hayao_Miyazaki"
+   ],
+   "choix": [
+    "Le studio Ghibli",
+    "Pixar",
+    "DreamWorks"
+   ],
+   "bonne_reponse": "Le studio Ghibli"
+  },
+  {
+   "id": "add-2637",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment s'appelle la reine aux pouvoirs de glace dans « La Reine des neiges » de Disney ?",
+   "anecdote": "Le film, sorti en 2013, s'inspire d'un conte écrit en 1844 par le Danois Hans Christian Andersen.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Reine_des_neiges_(film,_2013)",
+    "https://fr.vikidia.org/wiki/La_Reine_des_neiges"
+   ],
+   "choix": [
+    "Elsa",
+    "Anna",
+    "Vaiana"
+   ],
+   "bonne_reponse": "Elsa"
+  },
+  {
+   "id": "add-2638",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel personnage jaune et rectangulaire habite dans un ananas au fond de la mer ?",
+   "anecdote": "Son créateur, Stephen Hillenburg, était un vrai professeur de biologie marine avant de faire des dessins animés !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bob_l'éponge",
+    "https://fr.vikidia.org/wiki/Bob_l'éponge"
+   ],
+   "choix": [
+    "Bob l'éponge",
+    "Dora",
+    "Scooby-Doo"
+   ],
+   "bonne_reponse": "Bob l'éponge"
+  },
+  {
+   "id": "add-2639",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les Schtroumpfs sont des petits personnages bleus.",
+   "anecdote": "Les Schtroumpfs ont été inventés en 1958 par Peyo, un dessinateur belge.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Les_Schtroumpfs",
+    "https://fr.vikidia.org/wiki/Les_Schtroumpfs"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2640",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le film d'animation « Ratatouille » raconte l'histoire d'un rat qui rêve de devenir cuisinier à Paris.",
+   "anecdote": "« Ratatouille », sorti en 2007, a remporté l'Oscar du meilleur film d'animation.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ratatouille_(film)",
+    "https://en.wikipedia.org/wiki/Ratatouille_(film)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2641",
+   "categorie": "Dessin animé",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "« Blanche-Neige et les Sept Nains », le premier long-métrage d'animation de Walt Disney, est sorti dans les années 1930.",
+   "anecdote": "Sorti en 1937, c'était le tout premier long-métrage d'animation du studio Disney : un pari fou pour l'époque !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Blanche-Neige_et_les_Sept_Nains",
+    "https://en.wikipedia.org/wiki/Snow_White_and_the_Seven_Dwarfs_(1937_film)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2642",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quelle entreprise japonaise a créé le personnage de Mario ?",
+   "anecdote": "Mario a été imaginé par le Japonais Shigeru Miyamoto et est apparu pour la première fois en 1981, dans le jeu « Donkey Kong ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mario",
+    "https://fr.vikidia.org/wiki/Mario"
+   ],
+   "choix": [
+    "Nintendo",
+    "Sony",
+    "Sega"
+   ],
+   "bonne_reponse": "Nintendo"
+  },
+  {
+   "id": "add-2643",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans quel jeu vidéo construit-on des maisons et des mondes entiers avec des blocs en forme de cubes ?",
+   "anecdote": "Minecraft, créé en Suède, est le jeu vidéo le plus vendu de toute l'histoire !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Minecraft",
+    "https://fr.vikidia.org/wiki/Minecraft"
+   ],
+   "choix": [
+    "Minecraft",
+    "Tetris",
+    "Pac-Man"
+   ],
+   "bonne_reponse": "Minecraft"
+  },
+  {
+   "id": "add-2644",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quel animal Pikachu, le célèbre Pokémon jaune, est-il inspiré ?",
+   "anecdote": "Son nom vient du japonais : « pika » pour le bruit de l'étincelle et « chū » pour le cri de la souris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pikachu",
+    "https://fr.vikidia.org/wiki/Pikachu"
+   ],
+   "choix": [
+    "D'une souris",
+    "D'un chien",
+    "D'une grenouille"
+   ],
+   "bonne_reponse": "D'une souris"
+  },
+  {
+   "id": "add-2645",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans quel pays le jeu Tetris a-t-il été inventé ?",
+   "anecdote": "Tetris a été créé en 1984 à Moscou par l'informaticien Alexeï Pajitnov.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tetris",
+    "https://www.britannica.com/topic/Tetris"
+   ],
+   "choix": [
+    "En Russie (Union soviétique)",
+    "Au Japon",
+    "En Espagne"
+   ],
+   "bonne_reponse": "En Russie (Union soviétique)"
+  },
+  {
+   "id": "add-2646",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que fait-on principalement dans les jeux Pokémon ?",
+   "anecdote": "Le mot « Pokémon » est la contraction de « Pocket Monsters », qui signifie « monstres de poche » en anglais.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pokémon",
+    "https://fr.vikidia.org/wiki/Pokémon"
+   ],
+   "choix": [
+    "On attrape et on entraîne des créatures",
+    "On construit des maisons",
+    "On fait la cuisine"
+   ],
+   "bonne_reponse": "On attrape et on entraîne des créatures"
+  },
+  {
+   "id": "add-2647",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel personnage de jeu vidéo est un hérisson bleu très rapide ?",
+   "anecdote": "Sonic a été créé en 1991 par la société japonaise Sega pour rivaliser avec Mario.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sonic_the_Hedgehog",
+    "https://fr.vikidia.org/wiki/Sonic"
+   ],
+   "choix": [
+    "Sonic",
+    "Kirby",
+    "Pac-Man"
+   ],
+   "bonne_reponse": "Sonic"
+  },
+  {
+   "id": "add-2648",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Que doit avaler Pac-Man dans son labyrinthe ?",
+   "anecdote": "Le nom Pac-Man vient de « paku-paku », une expression japonaise qui imite le bruit d'une bouche qui mange !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pac-Man",
+    "https://www.britannica.com/topic/Pac-Man"
+   ],
+   "choix": [
+    "Des petites pastilles",
+    "Des hamburgers",
+    "Des carottes"
+   ],
+   "bonne_reponse": "Des petites pastilles"
+  },
+  {
+   "id": "add-2649",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Mario, le héros de Nintendo, porte une casquette rouge.",
+   "anecdote": "On lui a dessiné une casquette à l'origine car les cheveux étaient trop difficiles à animer sur les écrans de l'époque !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mario",
+    "https://fr.vikidia.org/wiki/Mario"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2650",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Kirby est un petit personnage rose et tout rond.",
+   "anecdote": "Kirby peut aspirer ses ennemis et copier leurs pouvoirs !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kirby_(personnage)",
+    "https://en.wikipedia.org/wiki/Kirby_(character)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2651",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La console Nintendo Switch peut se brancher sur la télévision mais aussi se jouer comme une console portable.",
+   "anecdote": "Son nom vient du verbe anglais « to switch », qui veut dire « changer », car on passe de la télé au mode portable en un clin d'œil.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Nintendo_Switch",
+    "https://fr.vikidia.org/wiki/Nintendo_Switch"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2652",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le jeu Fortnite a été créé au Japon.",
+   "anecdote": "Fortnite a été développé par Epic Games, une société américaine, et est sorti en 2017.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fortnite",
+    "https://fr.vikidia.org/wiki/Fortnite"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2653",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Combien de couleurs compte-t-on traditionnellement dans un arc-en-ciel ?",
+   "anecdote": "Dans l'ordre : rouge, orange, jaune, vert, bleu, indigo et violet.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Arc-en-ciel",
+    "https://fr.vikidia.org/wiki/Arc-en-ciel"
+   ],
+   "choix": [
+    "Sept",
+    "Trois",
+    "Douze"
+   ],
+   "bonne_reponse": "Sept"
+  },
+  {
+   "id": "add-2654",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quelles sont les couleurs du drapeau de la France ?",
+   "anecdote": "Le bleu et le rouge sont les couleurs de la ville de Paris, et le blanc était la couleur du roi.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_de_la_France",
+    "https://fr.vikidia.org/wiki/Drapeau_de_la_France"
+   ],
+   "choix": [
+    "Bleu, blanc, rouge",
+    "Vert, blanc, rouge",
+    "Bleu, jaune, rouge"
+   ],
+   "bonne_reponse": "Bleu, blanc, rouge"
+  },
+  {
+   "id": "add-2655",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Combien y a-t-il d'objets dans une douzaine ?",
+   "anecdote": "Au marché, les œufs se vendent souvent par douzaines ou par demi-douzaines.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Douzaine",
+    "https://fr.wiktionary.org/wiki/douzaine"
+   ],
+   "choix": [
+    "Douze",
+    "Dix",
+    "Vingt"
+   ],
+   "bonne_reponse": "Douze"
+  },
+  {
+   "id": "add-2656",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Que célèbre-t-on en France le 14 juillet ?",
+   "anecdote": "Ce jour-là, un grand défilé descend les Champs-Élysées et des feux d'artifice illuminent le ciel le soir.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fête_nationale_française",
+    "https://www.britannica.com/topic/Bastille-Day"
+   ],
+   "choix": [
+    "La fête nationale française",
+    "Noël",
+    "Pâques"
+   ],
+   "bonne_reponse": "La fête nationale française"
+  },
+  {
+   "id": "add-2657",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment s'appelle la personne dont le métier est de soigner les dents ?",
+   "anecdote": "Pour garder de bonnes dents, il est conseillé de les brosser au moins deux fois par jour.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chirurgien-dentiste",
+    "https://fr.vikidia.org/wiki/Dent"
+   ],
+   "choix": [
+    "Le dentiste",
+    "Le vétérinaire",
+    "Le boulanger"
+   ],
+   "bonne_reponse": "Le dentiste"
+  },
+  {
+   "id": "add-2658",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel véhicule vole grâce à de grandes pales qui tournent au-dessus de lui ?",
+   "anecdote": "Grâce à ses pales, l'hélicoptère peut rester immobile en plein ciel : c'est le vol stationnaire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Hélicoptère",
+    "https://fr.vikidia.org/wiki/Hélicoptère"
+   ],
+   "choix": [
+    "L'hélicoptère",
+    "Le voilier",
+    "Le tramway"
+   ],
+   "bonne_reponse": "L'hélicoptère"
+  },
+  {
+   "id": "add-2659",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Une journée entière dure 24 heures.",
+   "anecdote": "C'est environ le temps que met la Terre pour faire un tour complet sur elle-même.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jour",
+    "https://fr.vikidia.org/wiki/Jour"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2660",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Quand le feu de circulation est rouge, les voitures ont le droit de passer.",
+   "anecdote": "C'est le feu vert qui autorise le passage ; les premiers feux électriques sont apparus il y a environ un siècle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Feu_de_circulation",
+    "https://en.wikipedia.org/wiki/Traffic_light"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2661",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Une année bissextile compte 366 jours au lieu de 365.",
+   "anecdote": "Presque tous les quatre ans, on ajoute un jour au calendrier : le 29 février.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Année_bissextile",
+    "https://fr.vikidia.org/wiki/Année_bissextile"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2662",
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Pour jouer du violon, on frotte les cordes avec un archet.",
+   "anecdote": "La baguette de l'archet est garnie de crins, traditionnellement pris dans la queue des chevaux !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Violon",
+    "https://fr.vikidia.org/wiki/Violon"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2663",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel grand animal peut dormir debout ?",
+   "anecdote": "Le cheval verrouille ses pattes pour sommeiller debout, mais il doit se coucher pour dormir profondément.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cheval",
+    "https://fr.vikidia.org/wiki/Cheval"
+   ],
+   "choix": [
+    "Le cheval",
+    "Le poisson rouge",
+    "La grenouille"
+   ],
+   "bonne_reponse": "Le cheval"
+  },
+  {
+   "id": "add-2664",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel animal peut changer de couleur pour se camoufler ?",
+   "anecdote": "Le caméléon peut aussi bouger ses deux yeux dans des directions différentes en même temps !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Caméléon",
+    "https://fr.vikidia.org/wiki/Caméléon"
+   ],
+   "choix": [
+    "Le caméléon",
+    "La vache",
+    "Le mouton"
+   ],
+   "bonne_reponse": "Le caméléon"
+  },
+  {
+   "id": "add-2665",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle partie de son corps le lézard peut-il faire repousser s'il la perd ?",
+   "anecdote": "Perdre sa queue pour échapper à un prédateur s'appelle l'autotomie ; une nouvelle queue repousse ensuite.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Autotomie",
+    "https://fr.vikidia.org/wiki/Lézard"
+   ],
+   "choix": [
+    "Sa queue",
+    "Sa tête",
+    "Son ventre"
+   ],
+   "bonne_reponse": "Sa queue"
+  },
+  {
+   "id": "add-2666",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Combien de compartiments possède l'estomac de la vache ?",
+   "anecdote": "Grâce à eux, la vache rumine : elle fait remonter l'herbe dans sa bouche pour la mâcher plusieurs fois !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ruminant",
+    "https://fr.vikidia.org/wiki/Vache"
+   ],
+   "choix": [
+    "Quatre",
+    "Un",
+    "Deux"
+   ],
+   "bonne_reponse": "Quatre"
+  },
+  {
+   "id": "add-2667",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel grand oiseau ne sait pas voler mais court très vite ?",
+   "anecdote": "L'autruche est le plus grand oiseau du monde et peut courir à environ 70 km/h !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Autruche",
+    "https://fr.vikidia.org/wiki/Autruche"
+   ],
+   "choix": [
+    "L'autruche",
+    "Le pigeon",
+    "Le moineau"
+   ],
+   "bonne_reponse": "L'autruche"
+  },
+  {
+   "id": "add-2668",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle planète du Système solaire tourne « couchée sur le côté » ?",
+   "anecdote": "L'axe d'Uranus est tellement incliné que la planète semble rouler comme un tonneau autour du Soleil !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Uranus_(planète)",
+    "https://fr.vikidia.org/wiki/Uranus"
+   ],
+   "choix": [
+    "Uranus",
+    "Mars",
+    "Mercure"
+   ],
+   "bonne_reponse": "Uranus"
+  },
+  {
+   "id": "add-2669",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que se passe-t-il quand une étoile de mer perd un de ses bras ?",
+   "anecdote": "Certaines étoiles de mer peuvent même refaire presque tout leur corps à partir d'un seul bras !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Étoile_de_mer",
+    "https://fr.vikidia.org/wiki/Étoile_de_mer"
+   ],
+   "choix": [
+    "Un nouveau bras repousse",
+    "Elle se transforme en poisson",
+    "Elle devient invisible"
+   ],
+   "bonne_reponse": "Un nouveau bras repousse"
+  },
+  {
+   "id": "add-2670",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les bébés flamants roses naissent avec des plumes grises.",
+   "anecdote": "Les flamants deviennent roses grâce à leur nourriture, remplie de petites crevettes et d'algues.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Flamant_rose",
+    "https://fr.vikidia.org/wiki/Flamant_rose"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2671",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Les escargots ont des dents.",
+   "anecdote": "L'escargot râpe sa nourriture avec une langue couverte de milliers de dents minuscules, appelée radula.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Radula",
+    "https://fr.vikidia.org/wiki/Escargot"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2672",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Bien conservé, le miel peut rester bon à manger pendant très, très longtemps.",
+   "anecdote": "Des archéologues ont retrouvé dans des tombes d'Égypte du miel vieux de milliers d'années... encore comestible !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Miel",
+    "https://en.wikipedia.org/wiki/Honey"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2673",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Les éléphants sont incapables de sauter.",
+   "anecdote": "Trop lourd pour sauter, l'éléphant est pourtant un excellent nageur !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Éléphant",
+    "https://fr.vikidia.org/wiki/Éléphant"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
   }
  ]
 }
