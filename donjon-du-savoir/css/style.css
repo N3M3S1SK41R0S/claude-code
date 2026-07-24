@@ -1026,3 +1026,32 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .portrait-skin-royal .portrait-art, .portrait-skin-royal svg { filter: hue-rotate(-50deg) saturate(1.3); }
 .portrait-skin-cosmique { box-shadow: 0 0 12px 3px rgba(122, 106, 208, 0.8); }
 .portrait-skin-cosmique .portrait-art, .portrait-skin-cosmique svg { filter: hue-rotate(160deg) saturate(1.25) brightness(1.05); }
+
+/* ---------- éditeur de plateau maison ---------- */
+.editor-card {
+  max-width: 470px;
+  text-align: left;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.editor-counter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
+}
+.editor-counter-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.editor-counter-val {
+  min-width: 1.6em;
+  text-align: center;
+  color: var(--gold, #e0b04a);
+}
+.editor-range {
+  flex: 1;
+  accent-color: var(--gold, #e0b04a);
+}

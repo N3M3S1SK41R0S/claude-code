@@ -90,7 +90,58 @@ export const BOARDS = [
 ];
 
 export function boardById(id) {
-  return BOARDS.find((b) => b.id === id) ?? BOARDS[1];
+  return BOARDS.find((b) => b.id === id) ?? loadCustomBoards().find((b) => b.id === id) ?? BOARDS[1];
+}
+
+/* ---------- plateaux maison (éditeur) ---------- */
+
+const CUSTOM_BOARDS_KEY = "donjon-plateaux";
+const MAX_CUSTOM_BOARDS = 6;
+
+/** Plateaux créés sur cet appareil (validés à la relecture, mode privé toléré). */
+export function loadCustomBoards() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(CUSTOM_BOARDS_KEY)) ?? [];
+    return Array.isArray(raw)
+      ? raw.filter((b) => b && b.id && b.nom && b.length >= 20 && b.dist && Array.isArray(b.gambits) && Array.isArray(b.trounoirs))
+      : [];
+  } catch { return []; }
+}
+
+export function saveCustomBoard(def) {
+  const list = loadCustomBoards().filter((b) => b.id !== def.id);
+  list.push(def);
+  try { localStorage.setItem(CUSTOM_BOARDS_KEY, JSON.stringify(list.slice(-MAX_CUSTOM_BOARDS))); } catch { /* mode privé */ }
+}
+
+export function deleteCustomBoard(id) {
+  try { localStorage.setItem(CUSTOM_BOARDS_KEY, JSON.stringify(loadCustomBoards().filter((b) => b.id !== id))); } catch { /* mode privé */ }
+}
+
+const THEME_ROADS = { crypte: "#3f6b46", donjon: "#4a3a78", tour: "#6e3a3a", catacombes: "#2e5f63", labyrinthe: "#7a6428" };
+
+/**
+ * Définition complète d'un plateau maison depuis les réglages de l'éditeur :
+ * gambits répartis régulièrement au cœur du parcours, trous noirs vers la fin,
+ * le reste des cases libres en Questions (generateBoard ajuste si besoin).
+ */
+export function makeCustomBoard({ id = null, nom, length, theme, chance, evenement, malus, pieces, joker, nbGambits, nbTrousNoirs }) {
+  const L = Math.max(24, Math.min(64, Math.round(length) || 36));
+  const gambits = Array.from({ length: nbGambits }, (_, i) => Math.round(((i + 1) / (nbGambits + 1)) * (L - 8)) + 3);
+  const trounoirs = Array.from({ length: nbTrousNoirs }, (_, i) => L - 6 - i * 4);
+  const free = L - 2 - gambits.length - trounoirs.length;
+  const bonus = chance + evenement + malus + pieces + joker;
+  const dist = { question: Math.max(4, free - bonus), chance, evenement, malus, pieces, joker };
+  return {
+    id: id ?? `maison-${Date.now().toString(36)}`,
+    nom: (nom || "Mon donjon").slice(0, 40),
+    emoji: "🛠️",
+    desc: "Plateau maison, façonné par la famille.",
+    length: L, gambits, trounoirs, dist,
+    road: THEME_ROADS[theme] ?? THEME_ROADS.donjon,
+    theme: THEME_ROADS[theme] ? theme : "donjon",
+    maison: true,
+  };
 }
 
 /**

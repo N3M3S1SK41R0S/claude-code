@@ -3,7 +3,7 @@
 import { dailyPool, loadBank, bankSize, refreshCustom } from "./data.js";
 import { loadWordgames } from "./wordgames.js";
 import { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } from "./custom.js";
-import { BOARDS, boardById, generateBoard } from "./board.js";
+import { BOARDS, boardById, deleteCustomBoard, generateBoard, loadCustomBoards, makeCustomBoard, saveCustomBoard } from "./board.js";
 import { openReference, resumeGame, startGame } from "./game.js";
 import { AGE_BRACKETS, archiveCurrent, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, deleteArchive, getState, listArchives, loadSave, newGame, restoreArchive, youngestBracket } from "./state.js";
 import { portraitEl } from "./portraits.js";
@@ -493,7 +493,7 @@ function renderSetup() {
   zone.append(
     el("h2", { class: "setup-subtitle", text: "Choisissez votre donjon" }),
     el("div", { class: "board-picker", role: "radiogroup", "aria-label": "Choix du plateau" },
-      ...BOARDS.map((b) =>
+      ...[...BOARDS, ...loadCustomBoards()].map((b) =>
         el("button", {
           class: "board-card" + (selectedBoardId === b.id ? " board-card-on" : ""),
           type: "button", role: "radio", "aria-checked": String(selectedBoardId === b.id),
@@ -507,6 +507,25 @@ function renderSetup() {
       ),
     ),
   );
+
+  // Éditeur de plateau maison : créer, modifier ou supprimer ses donjons.
+  const editorRow = el("div", { class: "setup-add-row" },
+    el("button", { class: "btn", type: "button", onclick: () => showBoardEditor(null) }, "🛠️ Créer votre plateau maison"),
+  );
+  for (const b of loadCustomBoards()) {
+    editorRow.append(
+      el("button", { class: "btn btn-small", type: "button", onclick: () => showBoardEditor(b) }, `✏️ ${b.nom}`),
+      el("button", {
+        class: "btn btn-x", type: "button", "aria-label": `Supprimer le plateau ${b.nom}`,
+        onclick: () => {
+          deleteCustomBoard(b.id);
+          if (selectedBoardId === b.id) selectedBoardId = "grand-donjon";
+          renderSetup();
+        },
+      }, "✕"),
+    );
+  }
+  zone.append(editorRow);
 
   // Variante de jeu : Course (arriver 1er) ou Étoiles (façon Mario Party).
   zone.append(
@@ -1018,6 +1037,88 @@ function showTutorial(onClose) {
           el("button", { class: "btn btn-gold", type: "button", onclick: () => { if (last) close(); else { i++; render(); } } }, last ? "C'est parti !" : "Suivant →"),
         ),
         el("button", { class: "btn btn-small", type: "button", onclick: close }, "Passer le tutoriel"),
+      ),
+    );
+  };
+  render();
+  document.body.append(overlay);
+}
+
+/* ---------- éditeur de plateau maison ---------- */
+
+const EDITOR_THEMES = [
+  { id: "crypte", label: "🕯️ Crypte" },
+  { id: "donjon", label: "🏰 Donjon" },
+  { id: "tour", label: "🗼 Tour" },
+  { id: "catacombes", label: "💀 Catacombes" },
+  { id: "labyrinthe", label: "💰 Labyrinthe" },
+];
+
+/** Composez votre donjon : nom, longueur, ambiance et dosage des cases. Les
+ *  cases restantes deviennent des Questions ; gambits et trous noirs sont
+ *  placés automatiquement (cœur / fin de parcours). */
+function showBoardEditor(existing) {
+  const d = existing ? {
+    id: existing.id, nom: existing.nom, length: existing.length, theme: existing.theme,
+    chance: existing.dist.chance ?? 0, evenement: existing.dist.evenement ?? 0,
+    malus: existing.dist.malus ?? 0, pieces: existing.dist.pieces ?? 0, joker: existing.dist.joker ?? 0,
+    nbGambits: existing.gambits.length, nbTrousNoirs: existing.trounoirs.length,
+  } : { id: null, nom: "", length: 36, theme: "donjon", chance: 4, evenement: 3, malus: 3, pieces: 3, joker: 2, nbGambits: 1, nbTrousNoirs: 0 };
+  const overlay = el("div", { class: "tuto-overlay", role: "dialog", "aria-modal": "true", "aria-label": "Éditeur de plateau maison" });
+  const render = () => {
+    overlay.innerHTML = "";
+    const apercu = makeCustomBoard(d);
+    const counter = (emoji, label, key, min, max) => el("div", { class: "editor-counter" },
+      el("span", { class: "editor-counter-label", text: `${emoji} ${label}` }),
+      el("div", { class: "editor-counter-controls" },
+        el("button", { class: "btn btn-small", type: "button", "aria-label": `Moins : ${label}`, onclick: () => { d[key] = Math.max(min, d[key] - 1); render(); } }, "−"),
+        el("strong", { class: "editor-counter-val", text: String(d[key]) }),
+        el("button", { class: "btn btn-small", type: "button", "aria-label": `Plus : ${label}`, onclick: () => { d[key] = Math.min(max, d[key] + 1); render(); } }, "+"),
+      ),
+    );
+    const lenLabel = el("span", { class: "editor-counter-label", text: `📏 Longueur : ${d.length} cases` });
+    overlay.append(
+      el("div", { class: "tuto-card editor-card" },
+        el("h2", { class: "tuto-titre", text: existing ? "🛠️ Modifier le plateau" : "🛠️ Votre plateau maison" }),
+        el("input", {
+          class: "name-input", placeholder: "Nom du donjon (ex. Le Donjon de Mamie)", maxlength: "40",
+          value: d.nom, "aria-label": "Nom du plateau", oninput: (e) => { d.nom = e.target.value; },
+        }),
+        el("div", { class: "editor-counter" },
+          lenLabel,
+          el("input", {
+            class: "editor-range", type: "range", min: "24", max: "64", step: "2", value: String(d.length),
+            "aria-label": "Longueur du parcours",
+            oninput: (e) => { d.length = parseInt(e.target.value, 10); lenLabel.textContent = `📏 Longueur : ${d.length} cases`; },
+            onchange: () => render(),
+          }),
+        ),
+        el("div", { class: "mode-switch", role: "radiogroup", "aria-label": "Ambiance du donjon" },
+          ...EDITOR_THEMES.map((t) => el("button", {
+            class: "seg-btn" + (d.theme === t.id ? " seg-on" : ""), type: "button",
+            "aria-pressed": String(d.theme === t.id), onclick: () => { d.theme = t.id; render(); },
+          }, t.label))),
+        counter("🍀", "Cases Chance", "chance", 0, 8),
+        counter("🎪", "Événements collectifs", "evenement", 0, 8),
+        counter("💀", "Coups durs", "malus", 0, 8),
+        counter("🪙", "Cases Pièces", "pieces", 0, 8),
+        counter("🃏", "Jokers", "joker", 0, 4),
+        counter("🎲", "Gambits", "nbGambits", 0, 3),
+        counter("🕳️", "Trous noirs", "nbTrousNoirs", 0, 2),
+        el("p", { class: "help-note", text: `Le reste du parcours sera des cases Question (≈ ${apercu.dist.question}) — plus une boutique, du savoir insolite et des défis d'expression semés automatiquement.` }),
+        el("div", { class: "tuto-actions" },
+          el("button", { class: "btn", type: "button", onclick: () => overlay.remove() }, "Annuler"),
+          el("button", {
+            class: "btn btn-gold", type: "button",
+            onclick: () => {
+              const def = makeCustomBoard(d);
+              saveCustomBoard(def);
+              selectedBoardId = def.id;
+              overlay.remove();
+              renderSetup();
+            },
+          }, "💾 Garder ce plateau"),
+        ),
       ),
     );
   };
