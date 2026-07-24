@@ -265,6 +265,44 @@ const DUNGEON_LAYOUT = [
   { id: "brasero", u: 0.985, v: 0.78, h: 2.2, ry: 0 },
 ];
 
+/* ---------- sol dallé procédural ---------- */
+
+/** Assombrit/éclaircit une couleur hexadécimale (#rrggbb) d'un facteur v. */
+function shadeHex(hex6, v) {
+  const n = parseInt(hex6.slice(1), 16);
+  const ch = (x) => Math.max(0, Math.min(255, Math.round(x * v)));
+  return `rgb(${ch((n >> 16) & 255)}, ${ch((n >> 8) & 255)}, ${ch(n & 255)})`;
+}
+
+const groundTexCache = new Map();
+/** Texture de dallage dessinée en canvas (une par thème, mise en cache). */
+function themeGroundTexture(theme, road) {
+  if (groundTexCache.has(theme)) return groundTexCache.get(theme);
+  const c = document.createElement("canvas");
+  c.width = c.height = 256;
+  const g = c.getContext("2d");
+  g.fillStyle = "#17102a"; // joints sombres
+  g.fillRect(0, 0, 256, 256);
+  const T = 32;
+  for (let y = 0; y < 8; y++) {
+    for (let x = 0; x < 8; x++) {
+      // Dalles : la couleur de la route du thème, assombrie, avec variation.
+      g.fillStyle = shadeHex(road || "#4a3a78", 0.5 + Math.random() * 0.22);
+      g.fillRect(x * T + 1.5, y * T + 1.5, T - 3, T - 3);
+      // Éclat discret en coin de dalle (usure).
+      if (Math.random() < 0.3) {
+        g.fillStyle = "rgba(244, 236, 216, 0.05)";
+        g.fillRect(x * T + 3, y * T + 3, 7, 3);
+      }
+    }
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(11, 10);
+  groundTexCache.set(theme, tex);
+  return tex;
+}
+
 /* ---------- init / dispose ---------- */
 
 /** Crée (une fois) le canvas 3D dans le conteneur du plateau et démarre la
@@ -436,10 +474,11 @@ function buildBoard(layout, boardDef) {
   const s = SPAN / VIEW_W;
   const { coords, viewH } = boardGeometry(length);
 
-  // Sol du donjon.
+  // Sol du donjon : dallage peint à la volée (canvas) aux couleurs du thème —
+  // bien plus riche qu'un aplat, sans le moindre asset supplémentaire.
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(SPAN * 2.4, (SPAN * viewH) / VIEW_W * 2.2),
-    new THREE.MeshStandardMaterial({ color: 0x241a45, roughness: 1, metalness: 0 }),
+    new THREE.MeshStandardMaterial({ map: themeGroundTexture(boardDef.theme, boardDef.road), roughness: 1, metalness: 0 }),
   );
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.6;
