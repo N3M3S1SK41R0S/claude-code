@@ -318,6 +318,66 @@ function themeGroundTexture(theme, road) {
   return tex;
 }
 
+/* ---------- sols et ciels peints (GEN 2) ---------- */
+
+// Chemins LITTÉRAUX (inlinés en data-URI dans le fichier unique).
+const THEME_SOL = {
+  crypte: "assets/3d/textures/sol-crypte.webp",
+  donjon: "assets/3d/textures/sol-donjon.webp",
+  tour: "assets/3d/textures/sol-tour.webp",
+  catacombes: "assets/3d/textures/sol-catacombes.webp",
+  labyrinthe: "assets/3d/textures/sol-labyrinthe.webp",
+};
+const THEME_CIEL = {
+  crypte: "assets/ciel-crypte.webp",
+  donjon: "assets/ciel-donjon.webp",
+  tour: "assets/ciel-tour.webp",
+  catacombes: "assets/ciel-catacombes.webp",
+  labyrinthe: "assets/ciel-labyrinthe.webp",
+};
+
+const solTexCache = new Map();
+/** Remplace le dallage procédural par la texture PEINTE dès qu'elle est
+ *  décodée (repli garanti : le dallage canvas reste si l'image manque). */
+function upgradeGroundTexture(mat, theme) {
+  const src = THEME_SOL[theme];
+  if (!src) return;
+  if (solTexCache.has(theme)) { mat.map = solTexCache.get(theme); mat.needsUpdate = true; return; }
+  new THREE.TextureLoader().load(src, (tex) => {
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(11, 10);
+    tex.encoding = THREE.sRGBEncoding;
+    solTexCache.set(theme, tex);
+    mat.map = tex;
+    mat.needsUpdate = true;
+  }, undefined, () => { /* repli : dallage peint à la volée déjà en place */ });
+}
+
+let skySphere = null;
+const cielTexCache = new Map();
+/** Dôme de ciel peint (panorama 360° équirectangulaire) posé par-dessus la
+ *  cubemap procédurale dès que l'image est prête. Hors brume : il EST l'horizon. */
+function upgradeSky(theme, epoch) {
+  if (skySphere) { scene.remove(skySphere); skySphere.geometry.dispose(); skySphere.material.dispose(); skySphere = null; }
+  const src = THEME_CIEL[theme];
+  if (!src) return;
+  const attach = (tex) => {
+    if (epoch !== sceneEpoch || !scene) return;
+    skySphere = new THREE.Mesh(
+      new THREE.SphereGeometry(140, 32, 20),
+      new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false, depthWrite: false }),
+    );
+    skySphere.renderOrder = -1000;
+    scene.add(skySphere);
+  };
+  if (cielTexCache.has(theme)) return attach(cielTexCache.get(theme));
+  new THREE.TextureLoader().load(src, (tex) => {
+    tex.encoding = THREE.sRGBEncoding;
+    cielTexCache.set(theme, tex);
+    attach(tex);
+  }, undefined, () => { /* repli : cubemap procédurale conservée */ });
+}
+
 /* ---------- init / dispose ---------- */
 
 /** Crée (une fois) le canvas 3D dans le conteneur du plateau et démarre la
@@ -427,7 +487,7 @@ export function dispose3D() {
   for (const rec of pionObjs.values()) disposePion(rec);
   animatedTiles.length = 0;
   sceneEpoch += 1;
-  camBtn?.remove(); camBtn = null; heroSpot = null;
+  camBtn?.remove(); camBtn = null; heroSpot = null; skySphere = null;
   R = scene = camera = boardGroup = pionGroup = effectGroup = starMesh = null;
   builtSig = null; focusId = null; mounted = null; minimapEl = null;
   pionObjs.clear();
@@ -492,6 +552,7 @@ function buildBoard(layout, boardDef) {
   pionObjs.clear();
   sceneEpoch += 1;
   const epoch = sceneEpoch;
+  upgradeSky(boardDef.theme, epoch); // dôme de ciel peint GEN 2 (repli : cubemap)
 
   const length = layout.length;
   const s = SPAN / VIEW_W;
@@ -499,9 +560,11 @@ function buildBoard(layout, boardDef) {
 
   // Sol du donjon : dallage peint à la volée (canvas) aux couleurs du thème —
   // bien plus riche qu'un aplat, sans le moindre asset supplémentaire.
+  const groundMat = new THREE.MeshStandardMaterial({ map: themeGroundTexture(boardDef.theme, boardDef.road), roughness: 1, metalness: 0 });
+  upgradeGroundTexture(groundMat, boardDef.theme); // texture peinte GEN 2 dès que prête
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(SPAN * 2.4, (SPAN * viewH) / VIEW_W * 2.2),
-    new THREE.MeshStandardMaterial({ map: themeGroundTexture(boardDef.theme, boardDef.road), roughness: 1, metalness: 0 }),
+    groundMat,
   );
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.6;

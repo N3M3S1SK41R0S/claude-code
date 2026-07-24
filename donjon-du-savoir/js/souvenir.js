@@ -72,6 +72,8 @@ async function drawCard(canvas, { winner, rankingData, etoilesMode }) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   const serif = "Georgia, 'Times New Roman', serif";
+  // Cadre parchemin peint (GEN 2, centre transparent) — repli : cadre doré dessiné.
+  const cadre = await loadImage("assets/souvenir-cadre.png");
 
   // Fond : dégradé de donjon + vignette dorée.
   const bg = ctx.createLinearGradient(0, 0, 0, H);
@@ -86,15 +88,17 @@ async function drawCard(canvas, { winner, rankingData, etoilesMode }) {
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, W, H);
 
-  // Cadre doré double.
-  ctx.strokeStyle = "#e0b04a";
-  ctx.lineWidth = 6;
-  roundedRect(ctx, 24, 24, W - 48, H - 48, 28);
-  ctx.stroke();
-  ctx.strokeStyle = "rgba(224,176,74,0.35)";
-  ctx.lineWidth = 2;
-  roundedRect(ctx, 40, 40, W - 80, H - 80, 20);
-  ctx.stroke();
+  // Cadre doré double (uniquement si le cadre peint n'est pas disponible).
+  if (!cadre) {
+    ctx.strokeStyle = "#e0b04a";
+    ctx.lineWidth = 6;
+    roundedRect(ctx, 24, 24, W - 48, H - 48, 28);
+    ctx.stroke();
+    ctx.strokeStyle = "rgba(224,176,74,0.35)";
+    ctx.lineWidth = 2;
+    roundedRect(ctx, 40, 40, W - 80, H - 80, 20);
+    ctx.stroke();
+  }
 
   // Titre.
   ctx.textAlign = "center";
@@ -230,6 +234,9 @@ async function drawCard(canvas, { winner, rankingData, etoilesMode }) {
   ctx.font = `italic 24px ${serif}`;
   const nQuestions = rankingData.reduce((s, p) => s + (p.questions ?? 0), 0);
   ctx.fillText(`${nQuestions} questions posées · jouée en famille, sans chrono ✨`, W / 2, H - 66);
+
+  // Le cadre peint par-dessus tout (son centre est transparent).
+  if (cadre) ctx.drawImage(cadre, 0, 0, W, H);
 }
 
 /** Nom de fichier du souvenir (date locale, sans caractères exotiques). */

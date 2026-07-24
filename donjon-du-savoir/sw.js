@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v88";
+const VERSION = "donjon-v89";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -181,6 +181,30 @@ const SHELL = [
   "./assets/fond-tour.webp",
   "./assets/fond-catacombes.webp",
   "./assets/fond-labyrinthe.webp",
+  "./assets/3d/textures/sol-crypte.webp",
+  "./assets/3d/textures/sol-donjon.webp",
+  "./assets/3d/textures/sol-tour.webp",
+  "./assets/3d/textures/sol-catacombes.webp",
+  "./assets/3d/textures/sol-labyrinthe.webp",
+  "./assets/ciel-crypte.webp",
+  "./assets/ciel-donjon.webp",
+  "./assets/ciel-tour.webp",
+  "./assets/ciel-catacombes.webp",
+  "./assets/ciel-labyrinthe.webp",
+  "./assets/fond-victoire.webp",
+  "./assets/micro-heraut.png",
+  "./assets/parchemin-sponsor.png",
+  "./assets/medaille-argentier.png",
+  "./assets/medaille-sangfroid.png",
+  "./assets/medaille-espoir.png",
+  "./assets/medaille-constance.png",
+  "./assets/tenue-classique.png",
+  "./assets/tenue-doree.png",
+  "./assets/tenue-emeraude.png",
+  "./assets/tenue-flamboyante.png",
+  "./assets/tenue-royale.png",
+  "./assets/tenue-cosmique.png",
+  "./assets/souvenir-cadre.png",
   "./assets/voix/question-01.webm",
   "./assets/voix/question-02.webm",
   "./assets/voix/question-03.webm",

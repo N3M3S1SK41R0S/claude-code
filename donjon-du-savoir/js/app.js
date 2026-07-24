@@ -69,11 +69,24 @@ function renderHome() {
   if (bankOk) zone.append(questionDuJour());
   // 🎩 La perle du Héraut : un faux conseil très sérieux, qui change chaque jour.
   if (bankOk && (getPrefs().humour ?? "complice") !== "sobre") {
-    zone.append(el("p", { class: "perle-note", text: `🎩 ${perleDuJour()}` }));
+    const perle = el("p", { class: "perle-note" });
+    perle.append(artImg("perle-parchemin", "assets/parchemin-sponsor.png"), document.createTextNode(` ${perleDuJour()}`));
+    zone.append(perle);
   }
   document.getElementById("bank-info").textContent = bankOk
     ? `${bankSize()} questions vérifiées et sourcées · 18 catégories · zéro chronomètre`
     : "⚠️ Impossible de charger les questions (data/questions.json). Rechargez la page une fois en ligne.";
+}
+
+/** Image décorative avec repli : l'élément se retire si l'asset manque. */
+function artImg(className, src) {
+  const im = document.createElement("img");
+  im.className = className;
+  im.src = src;
+  im.alt = "";
+  im.setAttribute("aria-hidden", "true");
+  im.onerror = () => im.remove();
+  return im;
 }
 
 /* ---------- humour d'accueil et de victoire ---------- */
@@ -118,7 +131,8 @@ const INTERVIEW_R = [
 function interviewBlock(winner) {
   const q = INTERVIEW_Q[Math.floor(Math.random() * INTERVIEW_Q.length)];
   const r = INTERVIEW_R[Math.floor(Math.random() * INTERVIEW_R.length)];
-  return el("div", { class: "succes-unlock" },
+  return el("div", { class: "succes-unlock itw-block" },
+    artImg("itw-micro", "assets/micro-heraut.png"),
     el("h3", { class: "succes-unlock-title", text: "🎤 L'interview d'après-match" }),
     el("p", { class: "succes-unlock-line", text: `Le Héraut : « ${q} »` }),
     el("p", { class: "succes-unlock-line", text: `👑 ${winner.nom} : « ${r} »` }),
@@ -132,18 +146,18 @@ function prixDecernes(rankingData) {
   const humains = rankingData.filter((p) => !p.bot);
   const source = humains.length ? humains : rankingData;
   const orMax = [...source].sort((a, b) => (b.orGagne ?? 0) - (a.orGagne ?? 0))[0];
-  if ((orMax?.orGagne ?? 0) >= 10) prix.push(`🪙 Grand Argentier du Donjon : ${orMax.nom} — ${orMax.orGagne} pièces amassées, comptées deux fois.`);
+  if ((orMax?.orGagne ?? 0) >= 10) prix.push({ art: "assets/medaille-argentier.png", texte: `Grand Argentier du Donjon : ${orMax.nom} — ${orMax.orGagne} pièces amassées, comptées deux fois.` });
   const dur = [...source].sort((a, b) => (b.malusSubis ?? 0) - (a.malusSubis ?? 0))[0];
-  if ((dur?.malusSubis ?? 0) >= 2) prix.push(`🛡️ Prix du Sang-Froid : ${dur.nom} — ${dur.malusSubis} coups durs encaissés avec une dignité remarquée.`);
+  if ((dur?.malusSubis ?? 0) >= 2) prix.push({ art: "assets/medaille-sangfroid.png", texte: `Prix du Sang-Froid : ${dur.nom} — ${dur.malusSubis} coups durs encaissés avec une dignité remarquée.` });
   let bestTheme = null;
   for (const p of source) {
     for (const [cat, n] of Object.entries(p.bonnesParTheme ?? {})) {
       if (n >= 3 && (!bestTheme || n > bestTheme.n)) bestTheme = { nom: p.nom, cat, n };
     }
   }
-  if (bestTheme) prix.push(`🧀 Meilleur Espoir catégorie ${bestTheme.cat} : ${bestTheme.nom} — ${bestTheme.n} bonnes réponses, le Comité s'incline.`);
+  if (bestTheme) prix.push({ art: "assets/medaille-espoir.png", texte: `Meilleur Espoir catégorie ${bestTheme.cat} : ${bestTheme.nom} — ${bestTheme.n} bonnes réponses, le Comité s'incline.` });
   const erreurs = [...source].sort((a, b) => ((b.questions ?? 0) - (b.bonnes ?? 0)) - ((a.questions ?? 0) - (a.bonnes ?? 0)))[0];
-  if (erreurs && (erreurs.questions ?? 0) - (erreurs.bonnes ?? 0) >= 4) prix.push(`🎓 Prix de la Constance dans l'Erreur : ${erreurs.nom} — l'important, c'est la régularité.`);
+  if (erreurs && (erreurs.questions ?? 0) - (erreurs.bonnes ?? 0) >= 4) prix.push({ art: "assets/medaille-constance.png", texte: `Prix de la Constance dans l'Erreur : ${erreurs.nom} — l'important, c'est la régularité.` });
   return prix.slice(0, 3);
 }
 
@@ -850,6 +864,8 @@ function showVictory(winner, rankingData, extras = {}) {
   spawnConfetti();
   const zone = document.getElementById("victory-zone");
   zone.innerHTML = "";
+  // Fond de fête peint (GEN 2), discret derrière le contenu — repli : rien.
+  zone.append(artImg("victory-bg", "assets/fond-victoire.webp"));
   const etoilesMode = rankingData.some((p) => p.etoiles !== undefined);
   const bonusStars = extras.bonusStars ?? [];
   // Enregistre la partie au palmarès et récupère les succès nouvellement débloqués.
@@ -894,7 +910,10 @@ function showVictory(winner, rankingData, extras = {}) {
     if (prix.length > 0) {
       zone.append(el("div", { class: "succes-unlock" },
         el("h3", { class: "succes-unlock-title", text: "🏆 Les prix du Donjon" }),
-        ...prix.map((t) => el("p", { class: "succes-unlock-line", text: t })),
+        ...prix.map((t) => el("p", { class: "succes-unlock-line prix-line" },
+          artImg("prix-medaille", t.art),
+          el("span", { text: t.texte }),
+        )),
       ));
     }
   }
@@ -1055,13 +1074,30 @@ function renderPalmares() {
   zone.append(grid);
   // Galerie des tenues : ce que chaque succès débloque pour les héros.
   zone.append(el("h2", { class: "palm-succes-titre", text: `✨ Tenues de héros — ${SKINS.filter((s) => skinUnlocked(s)).length} / ${SKINS.length}` }));
+  // Pastilles de tenues peintes (GEN 2) — repli : l'emoji de la tenue.
+  const SKIN_ART = {
+    classique: "assets/tenue-classique.png",
+    dore: "assets/tenue-doree.png",
+    emeraude: "assets/tenue-emeraude.png",
+    flamboyant: "assets/tenue-flamboyante.png",
+    royal: "assets/tenue-royale.png",
+    cosmique: "assets/tenue-cosmique.png",
+  };
   const skinsGrid = el("div", { class: "palm-succes-grid" });
   for (const s of SKINS) {
     const got = skinUnlocked(s);
     const cond = s.succes ? SUCCES.find((x) => x.id === s.succes) : null;
+    const badge = el("span", { class: "palm-succes-emoji", "aria-hidden": "true" });
+    if (got && SKIN_ART[s.id]) {
+      const im = artImg("tenue-art", SKIN_ART[s.id]);
+      im.onerror = () => { im.remove(); badge.textContent = s.emoji; };
+      badge.append(im);
+    } else {
+      badge.textContent = got ? s.emoji : "🔒";
+    }
     skinsGrid.append(
       el("div", { class: "palm-succes" + (got ? " palm-succes-on" : "") },
-        el("span", { class: "palm-succes-emoji", "aria-hidden": "true", text: got ? s.emoji : "🔒" }),
+        badge,
         el("div", { class: "palm-succes-txt" },
           el("span", { class: "palm-succes-nom", text: `Tenue ${s.nom}` }),
           el("span", { class: "palm-succes-desc", text: cond ? `Débloquée par le succès « ${cond.titre} ».` : "Offerte d'emblée." }),
