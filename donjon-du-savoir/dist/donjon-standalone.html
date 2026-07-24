@@ -9236,7 +9236,7 @@ function fadeMesh(mesh) {
     mesh.userData.fadeOrig = mesh.material;
     const ghost = mesh.material.clone();
     ghost.transparent = true;
-    ghost.opacity = 0.22;
+    ghost.opacity = 0.15; // quasi invisible : la vue du héros prime toujours
     ghost.depthWrite = false;
     mesh.userData.fadeGhost = ghost;
   }
@@ -9258,15 +9258,27 @@ function buildingRoot(obj) {
 function updateOccluders(heroPos) {
   fadedNow.clear();
   if (heroPos && occluderRay) {
-    rayDir.copy(heroPos).setY(heroPos.y + 1.2).sub(camPos);
-    const dist = rayDir.length();
-    occluderRay.set(camPos, rayDir.normalize());
-    occluderRay.camera = camera; // requis par le raycast des sprites (r128)
-    occluderRay.far = Math.max(0.1, dist - 1.2);
-    for (const hit of occluderRay.intersectObject(boardGroup, true)) {
-      const root = buildingRoot(hit.object);
-      if (!root || root === dustCloud) continue;
-      root.traverse((child) => fadeMesh(child));
+    // TROIS rayons (tête, buste, pieds) : un bâtiment ne peut pas se glisser
+    // entre deux rayons — le héros reste visible en entier, jamais à moitié.
+    for (const hy of [2.3, 1.2, 0.3]) {
+      rayDir.copy(heroPos).setY(heroPos.y + hy).sub(camPos);
+      const dist = rayDir.length();
+      occluderRay.set(camPos, rayDir.normalize());
+      occluderRay.camera = camera; // requis par le raycast des sprites (r128)
+      occluderRay.far = Math.max(0.1, dist - 1.2);
+      for (const hit of occluderRay.intersectObject(boardGroup, true)) {
+        const root = buildingRoot(hit.object);
+        if (!root || root === dustCloud) continue;
+        root.traverse((child) => fadeMesh(child));
+      }
+    }
+    // Règle de PROXIMITÉ : tout bâtiment collé à la case du héros s'efface
+    // aussi, même situé derrière lui — rien n'encombre jamais son décor proche.
+    for (const child of boardGroup.children) {
+      if (!child.userData?.isBatiment) continue;
+      const dx = child.position.x - heroPos.x;
+      const dz = child.position.z - heroPos.z;
+      if (dx * dx + dz * dz < 4.6 * 4.6) child.traverse((m) => fadeMesh(m));
     }
   }
   for (const mesh of fadedPrev) if (!fadedNow.has(mesh)) unfadeMesh(mesh);
@@ -9859,6 +9871,7 @@ function upgradeStatic(anchor, fallback, promise, epoch, label) {
 function addBuilding(id, art, position, height, epoch) {
   const anchor = new THREE.Group();
   anchor.position.copy(position);
+  anchor.userData.isBatiment = true; // ciblé par les règles anti-occlusion
   const fallback = standee(art, new THREE.Vector3(), height);
   ghostify(fallback, 0.55); // on voit toujours le plateau à travers
   anchor.add(fallback);
