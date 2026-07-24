@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v91";
+const VERSION = "donjon-v92";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -135,6 +135,23 @@ const SHELL = [
   "./assets/3d/dungeon/module-arche.glb",
   "./assets/3d/dungeon/module-colonne.glb",
   "./assets/3d/dungeon/module-brasero.glb",
+  "./assets/3d/dungeon/rempart-droit.glb",
+  "./assets/3d/dungeon/rempart-angle.glb",
+  "./assets/3d/dungeon/rempart-porte.glb",
+  "./assets/3d/decors/lampadaire-lucioles.glb",
+  "./assets/3d/decors/banniere-donjon.glb",
+  "./assets/3d/decors/arbre-rond.glb",
+  "./assets/3d/decors/puits.glb",
+  "./assets/3d/decors/gargouille-baillante.glb",
+  "./assets/3d/decors/moulin-a-vent.glb",
+  "./assets/3d/pnj/gerard.glb",
+  "./assets/3d/pnj/merlinouche.glb",
+  "./assets/3d/pnj/zebulon.glb",
+  "./assets/fx/etincelles.png",
+  "./assets/fx/fumee-douce.png",
+  "./assets/fx/confettis.png",
+  "./assets/fx/halo-etoile.png",
+  "./assets/fx/plouf-piece.png",
   "./assets/objet-coffre.png",
   "./assets/objet-pieces.png",
   "./assets/objet-etoile.png",

@@ -171,6 +171,52 @@ export async function createTileModel(type) {
   return prepareStaticModel(gltf, `Socle_${id}`, { tile: true });
 }
 
+// Décors vivants, remparts et PNJ 3D (GEN 2 v3) — chemins littéraux (inliner).
+export const DECOR_MODEL_URLS = {
+  "lampadaire-lucioles": "assets/3d/decors/lampadaire-lucioles.glb",
+  "banniere-donjon": "assets/3d/decors/banniere-donjon.glb",
+  "arbre-rond": "assets/3d/decors/arbre-rond.glb",
+  "puits": "assets/3d/decors/puits.glb",
+  "gargouille-baillante": "assets/3d/decors/gargouille-baillante.glb",
+  "moulin-a-vent": "assets/3d/decors/moulin-a-vent.glb",
+  "rempart-droit": "assets/3d/dungeon/rempart-droit.glb",
+  "rempart-angle": "assets/3d/dungeon/rempart-angle.glb",
+  "rempart-porte": "assets/3d/dungeon/rempart-porte.glb",
+};
+export const PNJ_MODEL_URLS = {
+  gerard: "assets/3d/pnj/gerard.glb",
+  merlinouche: "assets/3d/pnj/merlinouche.glb",
+  zebulon: "assets/3d/pnj/zebulon.glb",
+};
+
+/** Décor ou rempart (le nœud « anim » éventuel est conservé pour la boucle). */
+export async function createDecorModel(id, height = 2.2) {
+  const gltf = await loadTemplate(`decor:${id}`, DECOR_MODEL_URLS[id]);
+  return prepareStaticModel(gltf, id, { height });
+}
+
+/** PNJ animé (idle + animation signature), un peu plus petit qu'un héros. */
+export async function createAnimatedPnj(slug) {
+  const gltf = await loadTemplate(`pnj:${slug}`, PNJ_MODEL_URLS[slug]);
+  const model = gltf.scene.clone(true);
+  model.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+  const bounds = new THREE.Box3().setFromObject(model);
+  const size = bounds.getSize(new THREE.Vector3());
+  const scale = 2.5 / Math.max(0.1, size.y);
+  model.scale.setScalar(scale);
+  const scaled = new THREE.Box3().setFromObject(model);
+  model.position.y -= scaled.min.y;
+  const object = new THREE.Group();
+  object.name = `PNJ_${slug}`;
+  object.add(model);
+  const mixer = new THREE.AnimationMixer(model);
+  const actions = new Map();
+  for (const clip of gltf.animations ?? []) actions.set(clip.name, mixer.clipAction(clip));
+  const idle = actions.get("idle");
+  if (idle) idle.play();
+  return { slug, object, mixer, actions };
+}
+
 export async function createDungeonModule(id, height = 3) {
   const gltf = await loadTemplate(`dungeon:${id}`, DUNGEON_MODEL_URLS[id]);
   return prepareStaticModel(gltf, `Module_${id}`, { height });

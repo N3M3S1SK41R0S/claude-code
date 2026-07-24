@@ -6,7 +6,7 @@
 //  - anecdote after EVERY question, no exception.
 import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawGambitTable, drawHardest, drawInsolite, drawQuestion } from "./data.js";
 import { boardById, renderBoard, walkPion } from "./board.js";
-import { react3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
+import { heroMoment3D, react3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
 import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } from "./state.js";
@@ -382,7 +382,7 @@ function startTurn({ silent = false, prefix = "" } = {}) {
   qPosedThisTurn = false; // nouveau tour : la question du tour reste à poser
   const pion = currentPion();
   render();
-  if (!silent) { heraldSays(`${prefix}${herald.debutTour(pion.nom)}`); charSays(pion, "tour"); }
+  if (!silent) { heraldSays(`${prefix}${herald.debutTour(pion.nom)}`); charSays(pion, "tour"); heroMoment3D(pion.id, "salute"); }
 
   const actions = [bigButton("🎲 Lancer le dé", () => rollDie())];
 
@@ -1536,6 +1536,7 @@ function speakerIntro(pion) {
 const QUESTION_FORMATS = ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_confiance"];
 
 function doQuestion() {
+  heroMoment3D(currentPion().id, "think"); // le héros réfléchit (clip v3)
   if (testFlag("__DONJON_EXPRESSION")) return doExpression(currentPion());
   const pion = currentPion();
   // Bot : question à choix (jouable en automatique), sans choix de thème.

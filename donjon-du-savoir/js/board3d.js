@@ -7,6 +7,8 @@ import { BUILDINGS, CASE_TYPES, DECOR, boardGeometry, VIEW_W, heroArt } from "./
 import {
   createAnimatedHero,
   createBuildingModel,
+  createAnimatedPnj,
+  createDecorModel,
   createDungeonModule,
   createTileModel,
   disposeAnimatedHero,
@@ -52,6 +54,10 @@ let boardGroup = null, pionGroup = null, effectGroup = null, starMesh = null;
 let builtSig = null;
 const pionObjs = new Map(); // id -> { obj, target:THREE.Vector3, walk:[Vector3]|null, wi:0 }
 const braseroLights = []; // flammes de braseros : lumière qui tremble dans la boucle
+const animatedDecors = []; // nœuds « anim » des décors v3 (ailes, bannières, seaux)
+const pnj3d = []; // PNJ GLB animés : idle + signature de temps en temps
+const activeFx = []; // sprites d'effets (feuilles 4×4) en cours de lecture
+let lastStarPos = null; // pour saluer l'achat d'étoile d'un halo
 let dustCloud = null; // poussière dorée d'ambiance (un seul THREE.Points)
 let camFocus = null; // gros plan bref quand un héros atterrit sur une case marquante
 // Mode caméra au repos : « heros » (zoom sur le joueur actif, toujours visible)
@@ -556,6 +562,10 @@ function buildBoard(layout, boardDef) {
   while (caseEffects.length) removeCaseEffect(caseEffects.shift());
   animatedTiles.length = 0;
   braseroLights.length = 0;
+  animatedDecors.length = 0;
+  pnj3d.length = 0;
+  while (activeFx.length) { const fx = activeFx.pop(); effectGroup?.remove(fx.spr); fx.mat.map?.dispose?.(); fx.mat.dispose(); }
+  lastStarPos = null;
   dustCloud = null;
   camFocus = null;
   // Nouveau plateau : on repart de pions neufs (personnages potentiellement
@@ -652,19 +662,80 @@ function buildBoard(layout, boardDef) {
   }
   for (const d of DECOR) boardGroup.add(standee(d.art, worldUV(d.u, d.v, length), d.s * 0.05 + 1.2));
 
+  // Décors VIVANTS v3 (GEN 2) : moulin, bannières, lampadaires, puits, arbres,
+  // gargouille — leurs nœuds « anim » sont animés dans la boucle de rendu.
+  const DECOR3D_LAYOUT = [
+    { id: "moulin-a-vent", u: 0.055, v: 0.07, h: 4.4, anim: "spin" },
+    { id: "puits", u: 0.945, v: 0.5, h: 2.6, anim: "bob" },
+    { id: "lampadaire-lucioles", u: 0.3, v: 0.03, h: 3.2, anim: "sway" },
+    { id: "lampadaire-lucioles", u: 0.7, v: 0.968, h: 3.2, anim: "sway" },
+    { id: "banniere-donjon", u: 0.5, v: 0.028, h: 3.4, anim: "sway" },
+    { id: "banniere-donjon", u: 0.055, v: 0.5, h: 3.4, anim: "sway" },
+    { id: "arbre-rond", u: 0.15, v: 0.945, h: 2.8 },
+    { id: "arbre-rond", u: 0.86, v: 0.055, h: 2.8 },
+    { id: "gargouille-baillante", u: 0.945, v: 0.945, h: 1.9 },
+  ];
+  for (const d of DECOR3D_LAYOUT) {
+    const anchor = new THREE.Group();
+    anchor.position.copy(worldUV(d.u, d.v, length));
+    boardGroup.add(anchor);
+    upgradeStatic(anchor, null, Promise.resolve(createDecorModel(d.id, d.h)).then((m) => {
+      if (m && d.anim && epoch === sceneEpoch) {
+        const node = m.getObjectByName("anim");
+        if (node) animatedDecors.push({ node, kind: d.anim, phase: d.u * 9 });
+      }
+      return m;
+    }), epoch, `décor ${d.id}`);
+  }
+
+  // Remparts modulaires : bordent le plateau, translucides comme les bâtiments.
+  const REMPARTS = [
+    { id: "rempart-angle", u: 0.015, v: 0.99 }, { id: "rempart-droit", u: 0.35, v: 0.995 },
+    { id: "rempart-porte", u: 0.5, v: 0.997 }, { id: "rempart-droit", u: 0.65, v: 0.995 },
+    { id: "rempart-angle", u: 0.985, v: 0.99 },
+    { id: "rempart-droit", u: 0.2, v: 0.005 }, { id: "rempart-droit", u: 0.8, v: 0.005 },
+  ];
+  for (const r of REMPARTS) {
+    const anchor = new THREE.Group();
+    anchor.userData.isBatiment = true; // translucide + règles anti-occlusion
+    anchor.position.copy(worldUV(r.u, r.v, length));
+    boardGroup.add(anchor);
+    upgradeStatic(anchor, null, Promise.resolve(createDecorModel(r.id, 1.6)).then((m) => {
+      if (m) ghostify(m, 0.55);
+      return m;
+    }), epoch, `rempart ${r.id}`);
+  }
+
+  // PNJ 3D animés : chacun posté près de « sa » case (repli : case libre).
+  const PNJ3D_CASE = [
+    { slug: "gerard", type: "boutique", sig: "bow" },
+    { slug: "zebulon", type: "trounoir", sig: "lose-thread" },
+    { slug: "merlinouche", type: "arrivee", sig: "spell-fail" },
+  ];
+  for (const pdef of PNJ3D_CASE) {
+    const idx = layout.indexOf(pdef.type);
+    if (idx === -1) continue;
+    const pos = worldOf(idx, length).add(new THREE.Vector3(1.9, 0, 0.7));
+    createAnimatedPnj(pdef.slug).then((pnj) => {
+      if (!pnj || epoch !== sceneEpoch || !boardGroup) return;
+      pnj.object.position.copy(pos);
+      boardGroup.add(pnj.object);
+      pnj3d.push({ pnj, sig: pdef.sig, next: 5 + Math.random() * 9 });
+    }).catch(() => { /* PNJ 3D optionnel */ });
+  }
+
   // Les PNJ PEINTS (GEN 2) habitent le village 3D : chacun se poste près de
   // « sa » case-repère — l'échoppier devant la boutique, Piquot au savoir
   // insolite, Zébulon au Trou Noir… et six flâneurs aux abords. Les objets
   // peints (coffre, tonneau, torche…) parsèment les bords. L'art original
   // cohabite ainsi avec les volumes low-poly au lieu d'être remplacé.
+  // (Gérard, Zébulon et Merlinouche existent désormais en GLB animé : leurs
+  // standees peints laissent la place — repli : la case reste simplement libre.)
   const PNJ_CASE = {
-    boutique: "assets/pnj-gerard.png",
     insolite: "assets/pnj-piquot.png",
     expression: "assets/pnj-turbo.png",
     gambit: "assets/pnj-roquefort.png",
     evenement: "assets/pnj-fee-bricole.png",
-    trounoir: "assets/pnj-zebulon.png",
-    arrivee: "assets/pnj-merlinouche.png",
   };
   for (let i = 0; i < length; i++) {
     const art = PNJ_CASE[layout[i]];
@@ -781,6 +852,15 @@ export function stageCase3D(type, pionId) {
   if (["gambit", "trounoir", "boutique", "arrivee", "evenement", "insolite"].includes(type)) {
     camFocus = { target: rec.obj.position.clone(), until: performance.now() + 1600 };
   }
+  // Effets peints v3 : pluie de pièces, fumée du Trou Noir, confettis du Trésor.
+  const FX_BY_CASE = { pieces: "plouf-piece", trounoir: "fumee-douce", arrivee: "confettis", tresor: "confettis" };
+  if (FX_BY_CASE[type]) spawnFx(FX_BY_CASE[type], rec.obj.position);
+  // À l'arrivée : la danse de la victoire (clip v3, repli : joy).
+  if (type === "arrivee" && rec.hero) {
+    if (!playHeroAnimation(rec.hero, "dance")) playHeroAnimation(rec.hero, "joy");
+    rec.pendingReaction = "dance";
+    rec.reactionUntil = performance.now() + 2600;
+  }
   const color = CASE_EFFECT_COLOR[type] ?? CASE_EFFECT_COLOR.question;
   const geometry = effectGeometry(type);
   const material = new THREE.MeshStandardMaterial({
@@ -814,6 +894,42 @@ export function stageCase3D(type, pionId) {
   group.add(light);
   effectGroup.add(group);
   caseEffects.push({ type, group, particles, light, geometry, material, age: 0, ttl: type === "trounoir" ? 2.8 : 2.25 });
+}
+
+/* ---------- effets peints (feuilles de sprites 4×4, GEN 2 v3) ---------- */
+
+const FX_URLS = {
+  etincelles: "assets/fx/etincelles.png",
+  "fumee-douce": "assets/fx/fumee-douce.png",
+  confettis: "assets/fx/confettis.png",
+  "halo-etoile": "assets/fx/halo-etoile.png",
+  "plouf-piece": "assets/fx/plouf-piece.png",
+};
+const fxTexCache = new Map();
+
+/** Joue une feuille d'effet (16 images) au-dessus d'une position du plateau. */
+function spawnFx(kind, position) {
+  const src = FX_URLS[kind];
+  if (!src || !effectGroup) return;
+  const play = (tex) => {
+    if (!effectGroup) return;
+    const map = tex.clone();
+    map.needsUpdate = true;
+    map.repeat.set(0.25, 0.25);
+    map.offset.set(0, 0.75);
+    const mat = new THREE.SpriteMaterial({ map, transparent: true, depthWrite: false });
+    const spr = new THREE.Sprite(mat);
+    spr.scale.set(2.7, 2.7, 1);
+    spr.position.copy(position).add(new THREE.Vector3(0, 1.7, 0));
+    effectGroup.add(spr);
+    activeFx.push({ spr, mat, age: 0, dur: 0.95 });
+  };
+  if (fxTexCache.has(kind)) return play(fxTexCache.get(kind));
+  new THREE.TextureLoader().load(src, (tex) => {
+    tex.encoding = THREE.sRGBEncoding;
+    fxTexCache.set(kind, tex);
+    play(tex);
+  }, undefined, () => { /* effet optionnel */ });
 }
 
 /* ---------- pions ---------- */
@@ -922,6 +1038,10 @@ export function render3D(hostBoard, layout, pions, currentPionId, boardDef, star
       scene.add(starMesh);
     }
     const sp = worldOf(starPos, layout.length);
+    if (lastStarPos != null && lastStarPos !== starPos) {
+      spawnFx("halo-etoile", worldOf(lastStarPos, layout.length)); // étoile achetée ici
+    }
+    lastStarPos = starPos;
     starMesh.position.set(sp.x, 1.9, sp.z);
   } else if (starMesh) { scene.remove(starMesh); starMesh = null; }
 
@@ -975,6 +1095,19 @@ export function react3D(pionId, success) {
   rec.pendingReaction = success ? "joy" : "disappointment";
   rec.reactionUntil = performance.now() + 1500;
   playHeroAnimation(rec.hero, rec.pendingReaction);
+  if (success) spawnFx("etincelles", rec.obj.position); // gerbe peinte v3
+}
+
+/** Petites scènes de héros (clips v3) : « salute » au début du tour, « think »
+ *  pendant la question, « dance » à l'arrivée. No-op sans 3D ou en marche. */
+export function heroMoment3D(pionId, moment) {
+  const rec = pionObjs.get(pionId);
+  if (!rec?.hero || rec.walk) return;
+  if (!playHeroAnimation(rec.hero, moment)) return;
+  if (moment === "salute") {
+    rec.pendingReaction = "salute";
+    rec.reactionUntil = performance.now() + 1700;
+  }
 }
 
 /* ---------- boucle de rendu ---------- */
@@ -1072,6 +1205,47 @@ function loop(now = performance.now()) {
   if (dustCloud) {
     dustCloud.rotation.y += dt * 0.012;
     dustCloud.position.y = Math.sin(time * 0.22) * 0.5;
+  }
+
+  // Décors vivants v3 : ailes qui tournent, bannières qui ondulent, seau qui danse.
+  for (const d of animatedDecors) {
+    if (d.kind === "spin") d.node.rotation.z += dt * 1.5;
+    else if (d.kind === "sway") d.node.rotation.y = Math.sin(time * 1.1 + d.phase) * 0.18;
+    else if (d.kind === "bob") d.node.position.y = Math.sin(time * 1.3 + d.phase) * 0.12;
+  }
+  // PNJ 3D : idle en continu, et de temps en temps leur signature (une fois).
+  for (const rec of pnj3d) {
+    rec.pnj.mixer.update(dt);
+    rec.next -= dt;
+    if (rec.next <= 0) {
+      rec.next = 11 + Math.random() * 15;
+      const sig = rec.pnj.actions.get(rec.sig);
+      const idle = rec.pnj.actions.get("idle");
+      if (sig && idle) {
+        sig.reset();
+        sig.setLoop(THREE.LoopOnce, 1);
+        idle.fadeOut(0.2);
+        sig.fadeIn(0.2).play();
+        const retour = Math.max(0.4, sig.getClip().duration - 0.15) * 1000;
+        window.setTimeout(() => {
+          try { sig.fadeOut(0.25); idle.reset().fadeIn(0.25).play(); } catch { /* scène rebâtie */ }
+        }, retour);
+      }
+    }
+  }
+  // Sprites d'effets : avance des 16 images puis retrait propre.
+  for (let i = activeFx.length - 1; i >= 0; i--) {
+    const fx = activeFx[i];
+    fx.age += dt;
+    const frame = Math.min(15, Math.floor((fx.age / fx.dur) * 16));
+    fx.mat.map.offset.set((frame % 4) * 0.25, 0.75 - Math.floor(frame / 4) * 0.25);
+    fx.mat.opacity = fx.age > fx.dur * 0.7 ? Math.max(0, 1 - (fx.age - fx.dur * 0.7) / (fx.dur * 0.3)) : 1;
+    if (fx.age >= fx.dur) {
+      effectGroup.remove(fx.spr);
+      fx.mat.map.dispose();
+      fx.mat.dispose();
+      activeFx.splice(i, 1);
+    }
   }
 
   for (let i = caseEffects.length - 1; i >= 0; i--) {
