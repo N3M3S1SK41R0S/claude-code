@@ -4,6 +4,7 @@
 // visuel : les règles ne connaissent que des positions. Repli 2D garanti si
 // WebGL est indisponible, l'immersion coupée, ou en test (voir use3D()).
 import { BUILDINGS, CASE_TYPES, DECOR, boardGeometry, VIEW_W, heroArt } from "./board.js";
+import { createAnimatedHero, disposeAnimatedHero, playHeroAnimation } from "./models3d.js";
 import { getPrefs } from "./prefs.js";
 
 const THREE = globalThis.THREE;
@@ -21,10 +22,15 @@ export function webglAvailable() {
   return webglCache;
 }
 
-/** Faut-il rendre en 3D ? Immersion activée + WebGL dispo + hors tests. */
+/** Faut-il rendre en 3D ? Le confort et l'autonomie passent avant l'effet :
+ *  mouvements réduits ou appareil très contraint gardent le plateau 2D. */
 export function use3D() {
   if (globalThis.__DONJON_TEST) return false;
-  if (getPrefs().immersion === false) return false;
+  const prefs = getPrefs();
+  if (prefs.immersion === false || prefs.animations === "reduites") return false;
+  if (globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return false;
+  if (Number(navigator.deviceMemory || 4) <= 2) return false;
+  if (Number(navigator.hardwareConcurrency || 4) <= 2) return false;
   return webglAvailable();
 }
 
@@ -36,6 +42,7 @@ let scene = null, camera = null, raf = null;
 let boardGroup = null, pionGroup = null, starMesh = null;
 let builtSig = null;
 const pionObjs = new Map(); // id -> { obj, target:THREE.Vector3, walk:[Vector3]|null, wi:0 }
+let sceneEpoch = 0; // invalide les chargements async d'un ancien plateau
 let focusId = null; // pion suivi par la caméra
 const camPos = THREE ? new THREE.Vector3(0, 24, 30) : null;
 const camLook = THREE ? new THREE.Vector3(0, 0, 0) : null;
@@ -168,6 +175,8 @@ export function dispose3D() {
   try { R?.dispose?.(); } catch { /* ignore */ }
   mounted?.canvas?.remove();
   minimapEl?.remove();
+  for (const rec of pionObjs.values()) disposePion(rec);
+  sceneEpoch += 1;
   R = scene = camera = boardGroup = pionGroup = starMesh = null;
   builtSig = null; focusId = null; mounted = null; minimapEl = null;
   pionObjs.clear();
@@ -211,8 +220,9 @@ function buildBoard(layout, boardDef) {
   while (boardGroup.children.length) boardGroup.remove(boardGroup.children[0]);
   // Nouveau plateau : on repart de pions neufs (personnages potentiellement
   // différents) pour ne pas réutiliser une figurine périmée.
-  for (const rec of pionObjs.values()) pionGroup.remove(rec.obj);
+  for (const rec of pionObjs.values()) { pionGroup.remove(rec.obj); disposePion(rec); }
   pionObjs.clear();
+  sceneEpoch += 1;
 
   const length = layout.length;
   const s = SPAN / VIEW_W;
@@ -274,7 +284,7 @@ function buildBoard(layout, boardDef) {
 
 /* ---------- pions ---------- */
 
-function makePion(p) {
+function makePionSprite(p) {
   const art = heroArt(p.characterId);
   let obj;
   if (art) {
@@ -290,6 +300,54 @@ function makePion(p) {
   }
   pionGroup.add(obj);
   return obj;
+}
+
+function disposePion(rec) {
+  disposeAnimatedHero(rec?.hero);
+  if (rec?.obj?.isSprite) rec.obj.material?.dispose?.();
+}
+
+function markLoadedModels() {
+  if (!mounted?.canvas) return;
+  mounted.canvas.dataset.heroModels = String([...pionObjs.values()].filter((rec) => rec.hero).length);
+}
+
+/** Affiche immédiatement le sprite 2D, puis le remplace par le GLB lorsque le
+ *  décodeur a fini. Un modèle manquant ne bloque donc jamais la partie. */
+function makePion(p) {
+  const rec = {
+    obj: makePionSprite(p),
+    hero: null,
+    walk: null,
+    wi: 0,
+    target: null,
+    active: false,
+    reactionUntil: 0,
+    epoch: sceneEpoch,
+  };
+  createAnimatedHero(p.characterId).then((hero) => {
+    if (rec.epoch !== sceneEpoch || pionObjs.get(p.id) !== rec || !pionGroup) {
+      disposeAnimatedHero(hero);
+      return;
+    }
+    hero.object.position.copy(rec.obj.position);
+    hero.object.rotation.copy(rec.obj.rotation);
+    pionGroup.remove(rec.obj);
+    rec.obj.material?.dispose?.();
+    rec.obj = hero.object;
+    rec.hero = hero;
+    rec.obj.scale.setScalar(rec.active ? 1.08 : 1);
+    if (rec.walk) playHeroAnimation(hero, "walk");
+    else if (rec.reactionUntil > performance.now()) {
+      playHeroAnimation(hero, rec.pendingReaction);
+    }
+    pionGroup.add(rec.obj);
+    markLoadedModels();
+  }).catch((error) => {
+    // Le sprite reste jouable : le journal suffit pour diagnostiquer l'asset.
+    console.warn(`Figurine 3D ${p.characterId} indisponible, sprite conservé :`, error);
+  });
+  return rec;
 }
 
 /* ---------- API de rendu (appelée par le moteur) ---------- */
@@ -323,7 +381,7 @@ export function render3D(hostBoard, layout, pions, currentPionId, boardDef, star
     group.forEach((p, i) => {
       seen.add(p.id);
       let rec = pionObjs.get(p.id);
-      if (!rec) { rec = { obj: makePion(p), walk: null, wi: 0 }; pionObjs.set(p.id, rec); }
+      if (!rec) { rec = makePion(p); pionObjs.set(p.id, rec); }
       const base = worldOf(pos, layout.length);
       const spread = group.length > 1 ? 1.4 : 0;
       const ang = (i / Math.max(1, group.length)) * Math.PI * 2;
@@ -334,11 +392,13 @@ export function render3D(hostBoard, layout, pions, currentPionId, boardDef, star
       // Halo du pion actif (léger agrandissement).
       const activeScale = p.id === currentPionId ? 3.2 : 2.8;
       if (rec.obj.isSprite) rec.obj.scale.set(activeScale, activeScale, 1);
+      else rec.obj.scale.setScalar(p.id === currentPionId ? 1.08 : 1);
+      rec.active = p.id === currentPionId;
     });
   }
   // Retire les pions disparus.
   for (const [id, rec] of pionObjs) {
-    if (!seen.has(id)) { pionGroup.remove(rec.obj); pionObjs.delete(id); }
+    if (!seen.has(id)) { pionGroup.remove(rec.obj); disposePion(rec); pionObjs.delete(id); markLoadedModels(); }
   }
   updateMinimap(hostBoard, layout, pions, currentPionId, starPos);
   return true;
@@ -351,20 +411,34 @@ export function walk3D(pionId, path, length) {
   rec.walk = path.map((pos) => worldOf(pos, length).setY(0.35));
   rec.wi = 0;
   focusId = pionId;
+  playHeroAnimation(rec.hero, "walk");
+}
+
+/** Réaction visuelle à une réponse. Sans 3D ou pendant un repli, c'est un
+ *  no-op : le moteur de jeu reste entièrement indépendant du rendu. */
+export function react3D(pionId, success) {
+  const rec = pionObjs.get(pionId);
+  if (!rec) return;
+  rec.pendingReaction = success ? "joy" : "disappointment";
+  rec.reactionUntil = performance.now() + 1500;
+  playHeroAnimation(rec.hero, rec.pendingReaction);
 }
 
 /* ---------- boucle de rendu ---------- */
 
-function loop() {
+let lastFrame = 0;
+function loop(now = performance.now()) {
   raf = requestAnimationFrame(loop);
   if (!R) return;
   // Canvas non affiché (écran caché, ou vue 2D active) : offsetParent est null,
   // on ne rend rien pour épargner le GPU/la batterie ; la boucle reste programmée.
-  if (mounted && mounted.canvas.offsetParent === null) return;
-  const dt = 1 / 60;
+  if (mounted && mounted.canvas.offsetParent === null) { lastFrame = now; return; }
+  const dt = lastFrame ? Math.min(0.05, Math.max(0.001, (now - lastFrame) / 1000)) : 1 / 60;
+  lastFrame = now;
 
   // Avance les pions en trajet (vitesse ~ 7 unités/s).
   for (const rec of pionObjs.values()) {
+    rec.hero?.mixer.update(dt);
     if (rec.walk) {
       const next = rec.walk[rec.wi];
       const d = next.clone().sub(rec.obj.position);
@@ -372,12 +446,21 @@ function loop() {
       if (d.length() <= step) {
         rec.obj.position.copy(next);
         rec.wi += 1;
-        if (rec.wi >= rec.walk.length) { rec.walk = null; if (rec.target) rec.obj.position.copy(rec.target); }
+        if (rec.wi >= rec.walk.length) {
+          rec.walk = null;
+          if (rec.target) rec.obj.position.copy(rec.target);
+          playHeroAnimation(rec.hero, "idle");
+        }
       } else {
+        if (!rec.obj.isSprite) rec.obj.rotation.y = Math.atan2(d.x, d.z);
         rec.obj.position.add(d.normalize().multiplyScalar(step));
       }
     } else if (rec.target) {
       rec.obj.position.lerp(rec.target, 0.18);
+    }
+    if (!rec.walk && rec.reactionUntil && now >= rec.reactionUntil) {
+      rec.reactionUntil = 0;
+      playHeroAnimation(rec.hero, "idle");
     }
     // Petit sautillement du pion actif.
     if (rec.obj.isSprite) rec.obj.position.y = 0.35;

@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v66";
+const VERSION = "donjon-v67";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -30,10 +30,18 @@ const SHELL = [
   "./js/prefs.js",
   "./js/palmares.js",
   "./js/scene.js",
+  "./js/models3d.js",
   "./js/board3d.js",
   "./js/ui.js",
   "./vendor/three.min.js",
+  "./vendor/DRACOLoader.js",
+  "./vendor/GLTFLoader.js",
+  "./vendor/draco/draco_wasm_wrapper.js",
+  "./vendor/draco/draco_decoder.wasm",
+  "./vendor/draco/LICENSE.txt",
+  "./vendor/three-r128.LICENSE.txt",
   "./data/questions.json",
+  "./data/modeles-3d.json",
   "./data/voix.json",
   "./data/wordgames.json",
   "./manifest.webmanifest",
@@ -83,6 +91,18 @@ const SHELL = [
   "./assets/hero-hibou.png",
   "./assets/hero-kribouille.png",
   "./assets/hero-plomberoy.png",
+  "./assets/3d/heroes/hero-cageot.glb",
+  "./assets/3d/heroes/hero-etincelle.glb",
+  "./assets/3d/heroes/hero-gobelin.glb",
+  "./assets/3d/heroes/hero-nebulia.glb",
+  "./assets/3d/heroes/hero-boumbastien.glb",
+  "./assets/3d/heroes/hero-duchesse.glb",
+  "./assets/3d/heroes/hero-flaque.glb",
+  "./assets/3d/heroes/hero-pelote.glb",
+  "./assets/3d/heroes/hero-hibou.glb",
+  "./assets/3d/heroes/hero-kribouille.glb",
+  "./assets/3d/heroes/hero-plomberoy.glb",
+  "./assets/3d/heroes/README.md",
   "./assets/objet-coffre.png",
   "./assets/objet-pieces.png",
   "./assets/objet-etoile.png",
