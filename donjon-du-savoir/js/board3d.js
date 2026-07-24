@@ -54,7 +54,64 @@ const pionObjs = new Map(); // id -> { obj, target:THREE.Vector3, walk:[Vector3]
 const braseroLights = []; // flammes de braseros : lumière qui tremble dans la boucle
 let dustCloud = null; // poussière dorée d'ambiance (un seul THREE.Points)
 let camFocus = null; // gros plan bref quand un héros atterrit sur une case marquante
+// Mode caméra au repos : « heros » (zoom sur le joueur actif, toujours visible)
+// ou « ensemble » (tout le plateau). Persisté sur l'appareil.
+let camMode = "heros";
+try { if (localStorage.getItem("donjon-cam") === "ensemble") camMode = "ensemble"; } catch { /* privé */ }
+let camBtn = null; // bouton de bascule posé sur le plateau 3D
+let heroSpot = null; // projecteur doux qui suit le joueur actif
 const swayPos = THREE ? new THREE.Vector3() : null; // cible du tilt doux au repos
+const lookTmp = THREE ? new THREE.Vector3() : null; // regard temporaire (zéro alloc/frame)
+// « On voit TOUJOURS son héros » : ce qui s'interpose entre la caméra et le
+// joueur actif devient translucide (matériaux clonés, jamais partagés).
+const occluderRay = THREE ? new THREE.Raycaster() : null;
+const rayDir = THREE ? new THREE.Vector3() : null;
+const fadedNow = new Set();
+let fadedPrev = new Set();
+
+function fadeMesh(mesh) {
+  if (!mesh.isMesh || !mesh.material) return;
+  if (!mesh.userData.fadeOrig) {
+    mesh.userData.fadeOrig = mesh.material;
+    const ghost = mesh.material.clone();
+    ghost.transparent = true;
+    ghost.opacity = 0.22;
+    ghost.depthWrite = false;
+    mesh.userData.fadeGhost = ghost;
+  }
+  mesh.material = mesh.userData.fadeGhost;
+  fadedNow.add(mesh);
+}
+
+function unfadeMesh(mesh) {
+  if (mesh.userData.fadeOrig) mesh.material = mesh.userData.fadeOrig;
+}
+
+/** Racine « bâtiment » d'un objet touché : l'ancre enfant direct de boardGroup. */
+function buildingRoot(obj) {
+  let node = obj;
+  while (node && node.parent && node.parent !== boardGroup) node = node.parent;
+  return node && node.parent === boardGroup ? node : null;
+}
+
+function updateOccluders(heroPos) {
+  fadedNow.clear();
+  if (heroPos && occluderRay) {
+    rayDir.copy(heroPos).setY(heroPos.y + 1.2).sub(camPos);
+    const dist = rayDir.length();
+    occluderRay.set(camPos, rayDir.normalize());
+    occluderRay.camera = camera; // requis par le raycast des sprites (r128)
+    occluderRay.far = Math.max(0.1, dist - 1.2);
+    for (const hit of occluderRay.intersectObject(boardGroup, true)) {
+      const root = buildingRoot(hit.object);
+      if (!root || root === dustCloud) continue;
+      root.traverse((child) => fadeMesh(child));
+    }
+  }
+  for (const mesh of fadedPrev) if (!fadedNow.has(mesh)) unfadeMesh(mesh);
+  const swap = fadedPrev;
+  fadedPrev = fadedNow.size ? new Set(fadedNow) : (swap.clear(), swap);
+}
 const caseEffects = [];
 const animatedTiles = [];
 let sceneEpoch = 0; // invalide les chargements async d'un ancien plateau
@@ -257,6 +314,31 @@ export function init3D(hostBoard) {
     pionGroup = new THREE.Group();
     effectGroup = new THREE.Group();
     scene.add(boardGroup, pionGroup, effectGroup);
+
+    // Projecteur doux braqué sur le joueur actif : où que soit la caméra, on
+    // repère TOUJOURS son héros d'un coup d'œil.
+    heroSpot = new THREE.SpotLight(0xffe2a8, 0.85, 26, Math.PI / 7, 0.55, 1.2);
+    heroSpot.position.set(0, 14, 2);
+    scene.add(heroSpot, heroSpot.target);
+
+    // Bascule de caméra : zoom héros (défaut) ↔ vue d'ensemble.
+    camBtn = document.createElement("button");
+    camBtn.type = "button";
+    camBtn.className = "cam-toggle";
+    const camLabel = () => {
+      camBtn.textContent = camMode === "heros" ? "🎥 Héros" : "🗺️ Vue d'ensemble";
+      camBtn.setAttribute("aria-label", camMode === "heros"
+        ? "Caméra : zoom sur le joueur (appuyez pour la vue d'ensemble)"
+        : "Caméra : vue d'ensemble (appuyez pour zoomer sur le joueur)");
+    };
+    camLabel();
+    camBtn.addEventListener("click", () => {
+      camMode = camMode === "heros" ? "ensemble" : "heros";
+      try { localStorage.setItem("donjon-cam", camMode); } catch { /* privé */ }
+      camLabel();
+    });
+    host.style.position = host.style.position || "relative";
+    host.appendChild(camBtn);
     qualityReduced = false;
     perfStarted = perfFrames = lowFpsWindows = 0;
 
@@ -292,6 +374,7 @@ export function dispose3D() {
   for (const rec of pionObjs.values()) disposePion(rec);
   animatedTiles.length = 0;
   sceneEpoch += 1;
+  camBtn?.remove(); camBtn = null; heroSpot = null;
   R = scene = camera = boardGroup = pionGroup = effectGroup = starMesh = null;
   builtSig = null; focusId = null; mounted = null; minimapEl = null;
   pionObjs.clear();
@@ -303,6 +386,7 @@ export function show3D(on) {
     mounted.canvas.style.display = on ? "block" : "none";
     mounted.hostBoard.style.display = on ? "none" : "";
     if (minimapEl) minimapEl.style.display = on ? "block" : "none";
+    if (camBtn) camBtn.style.display = on ? "block" : "none";
   }
 }
 
@@ -879,14 +963,31 @@ function loop(now = performance.now()) {
   // TRAJET, elle se rapproche et suit le pion qui marche, puis revient.
   let walker = null;
   for (const rec of pionObjs.values()) { if (rec.walk) { walker = rec; break; } }
+  // Amorti indépendant du framerate : sur un appareil lent, la caméra rejoint
+  // sa cible aussi vite (en secondes) que sur un appareil rapide.
+  const damp = (k) => 1 - Math.pow(1 - k, dt * 60);
   if (walker) {
     const t = walker.obj.position;
-    camPos.lerp(new THREE.Vector3(t.x * 0.55, 13, overLook.z * 0.2 + t.z + 14), 0.05);
-    camLook.lerp(new THREE.Vector3(t.x * 0.6, 1.6, t.z - 2), 0.07);
+    camPos.lerp(new THREE.Vector3(t.x * 0.55, 13, overLook.z * 0.2 + t.z + 14), damp(0.05));
+    camLook.lerp(new THREE.Vector3(t.x * 0.6, 1.6, t.z - 2), damp(0.07));
   } else if (camFocus && now < camFocus.until) {
     // Gros plan bref sur la case marquante où le héros vient d'atterrir.
-    camPos.lerp(swayPos.set(camFocus.target.x, 8.5, camFocus.target.z + 10.5), 0.06);
-    camLook.lerp(camFocus.target, 0.08);
+    camPos.lerp(swayPos.set(camFocus.target.x, 8.5, camFocus.target.z + 10.5), damp(0.06));
+    camLook.lerp(camFocus.target, damp(0.08));
+  } else if (camMode === "heros" && focusId != null && pionObjs.get(focusId)) {
+    // ZOOM HÉROS (défaut) : la caméra cadre le joueur actif d'assez près pour
+    // qu'on le voie TOUJOURS bien, avec un léger balancement de vie. La
+    // mini-carte garde la vue d'ensemble en permanence.
+    const hero = pionObjs.get(focusId).obj.position;
+    // Assez haut pour plonger PAR-DESSUS les toits du village : rien ne peut
+    // s'interposer entre la caméra et le héros.
+    swayPos.set(
+      hero.x + Math.sin(time * 0.14) * 0.6,
+      15.5 + Math.sin(time * 0.1) * 0.4,
+      hero.z + 5.5 + Math.cos(time * 0.11) * 0.5,
+    );
+    camPos.lerp(swayPos, damp(0.05));
+    camLook.lerp(lookTmp.set(hero.x, 0.8, hero.z - 1.2), damp(0.07));
   } else {
     // Vue d'ensemble avec un TILT très doux : le plateau respire (parallaxe).
     swayPos.set(
@@ -894,11 +995,40 @@ function loop(now = performance.now()) {
       overPos.y + Math.sin(time * 0.09) * 0.45,
       overPos.z + Math.cos(time * 0.1) * 1.1,
     );
-    camPos.lerp(swayPos, 0.045);
-    camLook.lerp(overLook, 0.045);
+    camPos.lerp(swayPos, damp(0.045));
+    camLook.lerp(overLook, damp(0.045));
+  }
+  // Rien ne cache jamais le héros actif : les obstacles deviennent translucides.
+  const focusRec = focusId != null ? pionObjs.get(focusId) : null;
+  updateOccluders(focusRec ? focusRec.obj.position : null);
+
+  // Le projecteur suit le joueur actif (ou s'éteint s'il n'y en a pas).
+  if (heroSpot) {
+    const active = focusId != null ? pionObjs.get(focusId) : null;
+    if (active) {
+      heroSpot.intensity = 0.85;
+      const p = active.obj.position;
+      heroSpot.position.set(p.x + 1.5, 13, p.z + 3);
+      heroSpot.target.position.set(p.x, 0.5, p.z);
+    } else {
+      heroSpot.intensity = 0;
+    }
   }
   camera.position.copy(camPos);
   camera.lookAt(camLook);
+
+  // Sonde de debug (tests uniquement) : positions caméra / héros actif.
+  if (!window.__DONJON_DBG3D) {
+    window.__DONJON_DBG3D = () => {
+      const rec = focusId != null ? pionObjs.get(focusId) : null;
+      return {
+        cam: camPos.toArray().map((v) => +v.toFixed(1)),
+        look: camLook.toArray().map((v) => +v.toFixed(1)),
+        hero: rec ? rec.obj.position.toArray().map((v) => +v.toFixed(1)) : null,
+        focusId, mode: camMode, walk: !!(rec && rec.walk), heroIsGlb: !!rec?.hero,
+      };
+    };
+  }
 
   R.render(scene, camera);
 }

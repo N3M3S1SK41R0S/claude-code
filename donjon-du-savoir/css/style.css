@@ -1055,3 +1055,21 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   flex: 1;
   accent-color: var(--gold, #e0b04a);
 }
+
+/* ---------- bascule de caméra 3D ---------- */
+.cam-toggle {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+  background: rgba(26, 18, 48, 0.82);
+  color: var(--ink, #f4ecd8);
+  border: 1px solid rgba(224, 176, 74, 0.5);
+  border-radius: 10px;
+  padding: 0.35rem 0.6rem;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  min-height: 40px;
+}
+.cam-toggle:hover { border-color: var(--gold, #e0b04a); }
