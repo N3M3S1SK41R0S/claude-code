@@ -120,6 +120,7 @@ export function newGame(config, boardLayout) {
     mode: config.mode,
     variant,
     difficulte,
+    plaidoirie: !!config.plaidoirie, // règle maison : plaider sa mauvaise foi
     // Manches : de 5 à 200 (bornées ici quelle que soit l'entrée).
     rounds: variant === "etoiles" ? Math.max(5, Math.min(200, Math.round(config.rounds ?? 10))) : null,
     starPos,

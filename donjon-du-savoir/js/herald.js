@@ -14,6 +14,9 @@ const ouverture = [
 
 const debutTour = [
   "{nom}, à vous l'honneur ! Le dé n'attend que votre poignet légendaire.",
+  "{nom}, le Donjon vous observe. Il a d'excellents avis sur vous — il attend juste une confirmation.",
+  "C'est à {nom}. Protocole royal : on respire, on lance, on triomphe. Le deuxième point est le plus sûr.",
+  "{nom}, en piste ! L'Histoire retiendra ce tour. Enfin, si quelqu'un prend des notes.",
   "Place à {nom} ! Le Donjon retient son souffle. Enfin, ses courants d'air.",
   "{nom} s'avance ! Les dalles grincent d'impatience.",
   "Au tour de {nom} ! Que la chance soit vaguement de votre côté.",
@@ -59,6 +62,9 @@ const caseComment = {
 
 const bonneReponse = [
   "Exact ! Le Donjon applaudit des deux créneaux.",
+  "Bonne réponse. Le Donjon applaudirait des deux mains s'il en avait.",
+  "Exact. Je n'en attendais pas moins, et j'attendais beaucoup.",
+  "C'est juste ! Le comité d'experts que je suis à moi tout seul valide.",
   "Bonne réponse ! Quelque part, un parchemin verse une larme de joie.",
   "Bravo ! Votre cervelle mérite une statue. Petite, mais une statue.",
   "Correct ! Même les gargouilles sont impressionnées.",
@@ -66,6 +72,9 @@ const bonneReponse = [
 
 const mauvaiseReponse = [
   "Raté ! Mais quel panache dans l'erreur.",
+  "Raté. Mais dit avec une conviction remarquable, c'est déjà ça.",
+  "Non. Réponse incorrecte, aplomb impeccable : moyenne honorable.",
+  "Perdu ! Le Donjon efface tout et ne retient que le panache.",
   "Hélas ! Le Donjon note l'audace, à défaut de la réponse.",
   "Non ! Mais rassurez-vous : ici, on apprend même en se trompant.",
   "Perdu ! Les plus grands héros ont commencé par se cogner aux murs.",
@@ -82,6 +91,34 @@ const victoire = [
   "Victoire de {nom} ! Le Donjon s'incline. Les autres aussi, mais de fatigue.",
 ];
 
+// 🎬 « Documentaire animalier » du Trou Noir : le Héraut chuchote (humour).
+const docTrouNoir = [
+  "Chut… Observons l'aventurier s'approcher du Trou Noir. Il ne se doute de rien. Enfin si : il y a un panneau.",
+  "Le Trou Noir, milieu hostile s'il en est. L'aventurier avance. La science reste sans voix ; moi, je chuchote.",
+  "Notez la démarche assurée de l'espèce. C'est précisément ainsi que commencent les grandes anecdotes.",
+];
+
+// 🎲 Le dé, commenté avec la plus grande retenue.
+const dePetit = [
+  "Le dé a parlé. Le dé est parfois laconique.",
+  "Un. C'est un début. Techniquement.",
+  "Le dé vous offre un 1. Il précise que c'est pour votre humilité.",
+];
+const deTriple = [
+  "Trois 6 d'affilée. Je ne dis rien. Je note.",
+  "Encore un 6. Le dé et vous, on en reparlera.",
+];
+
+// 📜 « Une page de nos sponsors » : réclames absurdes du royaume (rarissimes).
+const sponsors = [
+  "La Taverne du Gobelin — certifiée sans dragon depuis mardi.",
+  "Les Potions de la Fée Bricole : effets garantis, effets non précisés.",
+  "Boucliers Groumf & Fils. Solides. Comme l'argument.",
+  "L'Auberge du Trou Noir : personne n'est jamais revenu se plaindre.",
+  "Parchemins Merlinouche — l'orthographe est comprise, l'ordre des mots en option.",
+  "Les cours du soir de Maître Hibou : hou hou, mais avec mention.",
+];
+
 const pouvoirUtilise = [
   "Pouvoir activé ! La magie opère, réglementairement.",
   "Et hop ! Un pouvoir de moins, un moment de gloire de plus.",
@@ -96,4 +133,8 @@ export const herald = {
   anecdote: () => pick(anecdoteIntro),
   victoire: (nom) => pick(victoire).replace("{nom}", nom),
   pouvoir: () => pick(pouvoirUtilise),
+  docTrouNoir: () => pick(docTrouNoir),
+  dePetit: () => pick(dePetit),
+  deTriple: () => pick(deTriple),
+  sponsor: () => pick(sponsors),
 };

@@ -1075,6 +1075,21 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 .cam-toggle:hover { border-color: var(--gold, #e0b04a); }
 
+/* ---------- humour : perle du jour et précision inutile ---------- */
+.perle-note {
+  color: var(--soft);
+  font-style: italic;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 0.2rem;
+}
+.anecdote-quip {
+  color: var(--soft);
+  font-style: italic;
+  font-size: 0.85rem;
+  margin-top: 0.35rem;
+}
+
 </style>
 
   <header class="topbar">
@@ -6148,6 +6163,7 @@ const DEFAULTS = {
   animations: "completes", // "completes" | "reduites" — coupe les animations au choix
   gros: false, // texte plus grand pour le confort de lecture
   immersion: true, // saynètes 2.5D + caméra qui suit le pion (façon Mario Party)
+  humour: "complice", // « sobre » | « complice » | « cabaret » — dose de second degré du Héraut
   langue: "fr-FR", // pack de langue actif (voir data/langues.json)
   oreilles: false, // « partie à l'oreille » : propositions, dé et réponses lus à voix haute
   tutoVu: false, // le tutoriel du 1er lancement a déjà été vu
@@ -6386,6 +6402,9 @@ const ouverture = [
 
 const debutTour = [
   "{nom}, à vous l'honneur ! Le dé n'attend que votre poignet légendaire.",
+  "{nom}, le Donjon vous observe. Il a d'excellents avis sur vous — il attend juste une confirmation.",
+  "C'est à {nom}. Protocole royal : on respire, on lance, on triomphe. Le deuxième point est le plus sûr.",
+  "{nom}, en piste ! L'Histoire retiendra ce tour. Enfin, si quelqu'un prend des notes.",
   "Place à {nom} ! Le Donjon retient son souffle. Enfin, ses courants d'air.",
   "{nom} s'avance ! Les dalles grincent d'impatience.",
   "Au tour de {nom} ! Que la chance soit vaguement de votre côté.",
@@ -6431,6 +6450,9 @@ const caseComment = {
 
 const bonneReponse = [
   "Exact ! Le Donjon applaudit des deux créneaux.",
+  "Bonne réponse. Le Donjon applaudirait des deux mains s'il en avait.",
+  "Exact. Je n'en attendais pas moins, et j'attendais beaucoup.",
+  "C'est juste ! Le comité d'experts que je suis à moi tout seul valide.",
   "Bonne réponse ! Quelque part, un parchemin verse une larme de joie.",
   "Bravo ! Votre cervelle mérite une statue. Petite, mais une statue.",
   "Correct ! Même les gargouilles sont impressionnées.",
@@ -6438,6 +6460,9 @@ const bonneReponse = [
 
 const mauvaiseReponse = [
   "Raté ! Mais quel panache dans l'erreur.",
+  "Raté. Mais dit avec une conviction remarquable, c'est déjà ça.",
+  "Non. Réponse incorrecte, aplomb impeccable : moyenne honorable.",
+  "Perdu ! Le Donjon efface tout et ne retient que le panache.",
   "Hélas ! Le Donjon note l'audace, à défaut de la réponse.",
   "Non ! Mais rassurez-vous : ici, on apprend même en se trompant.",
   "Perdu ! Les plus grands héros ont commencé par se cogner aux murs.",
@@ -6454,6 +6479,34 @@ const victoire = [
   "Victoire de {nom} ! Le Donjon s'incline. Les autres aussi, mais de fatigue.",
 ];
 
+// 🎬 « Documentaire animalier » du Trou Noir : le Héraut chuchote (humour).
+const docTrouNoir = [
+  "Chut… Observons l'aventurier s'approcher du Trou Noir. Il ne se doute de rien. Enfin si : il y a un panneau.",
+  "Le Trou Noir, milieu hostile s'il en est. L'aventurier avance. La science reste sans voix ; moi, je chuchote.",
+  "Notez la démarche assurée de l'espèce. C'est précisément ainsi que commencent les grandes anecdotes.",
+];
+
+// 🎲 Le dé, commenté avec la plus grande retenue.
+const dePetit = [
+  "Le dé a parlé. Le dé est parfois laconique.",
+  "Un. C'est un début. Techniquement.",
+  "Le dé vous offre un 1. Il précise que c'est pour votre humilité.",
+];
+const deTriple = [
+  "Trois 6 d'affilée. Je ne dis rien. Je note.",
+  "Encore un 6. Le dé et vous, on en reparlera.",
+];
+
+// 📜 « Une page de nos sponsors » : réclames absurdes du royaume (rarissimes).
+const sponsors = [
+  "La Taverne du Gobelin — certifiée sans dragon depuis mardi.",
+  "Les Potions de la Fée Bricole : effets garantis, effets non précisés.",
+  "Boucliers Groumf & Fils. Solides. Comme l'argument.",
+  "L'Auberge du Trou Noir : personne n'est jamais revenu se plaindre.",
+  "Parchemins Merlinouche — l'orthographe est comprise, l'ordre des mots en option.",
+  "Les cours du soir de Maître Hibou : hou hou, mais avec mention.",
+];
+
 const pouvoirUtilise = [
   "Pouvoir activé ! La magie opère, réglementairement.",
   "Et hop ! Un pouvoir de moins, un moment de gloire de plus.",
@@ -6468,6 +6521,10 @@ const herald = {
   anecdote: () => pick(anecdoteIntro),
   victoire: (nom) => pick(victoire).replace("{nom}", nom),
   pouvoir: () => pick(pouvoirUtilise),
+  docTrouNoir: () => pick(docTrouNoir),
+  dePetit: () => pick(dePetit),
+  deTriple: () => pick(deTriple),
+  sponsor: () => pick(sponsors),
 };
 
 ;Object.assign(module.exports, {herald});
@@ -7453,6 +7510,7 @@ function newGame(config, boardLayout) {
     mode: config.mode,
     variant,
     difficulte,
+    plaidoirie: !!config.plaidoirie, // règle maison : plaider sa mauvaise foi
     // Manches : de 5 à 200 (bornées ici quelle que soit l'entrée).
     rounds: variant === "etoiles" ? Math.max(5, Math.min(200, Math.round(config.rounds ?? 10))) : null,
     starPos,
@@ -10918,10 +10976,18 @@ function rollDie() {
   window.setTimeout(() => showDieResult(value, { rerollAvailable: true }), 1050);
 }
 
+let sixStreak = 0; // suspicion théâtrale du Héraut sur les séries de 6
+
 function showDieResult(value, { rerollAvailable }) {
   const pion = currentPion();
   // Partie à l'oreille : le résultat du dé est annoncé.
   if (getPrefs().oreilles) say(`Le dé donne ${value} ! ${pion.nom} peut avancer de ${value} case${value > 1 ? "s" : ""}.`, { queue: true });
+  // 🎲 Le dé est commenté avec la plus grande retenue (humour ≥ complice).
+  sixStreak = value === 6 ? sixStreak + 1 : 0;
+  if (!testFlag("__DONJON_TEST") && humourLevel() >= 1) {
+    if (value === 1 && Math.random() < 0.55) heraldSays(herald.dePetit());
+    else if (sixStreak >= 3) { heraldSays(herald.deTriple()); sixStreak = 0; }
+  }
   const power = powerOf(pion);
   const actions = [bigButton(`Avancer de ${value}`, () => moveAndResolve(value))];
   if (rerollAvailable && power && !pion.pouvoirUtilise && power.quand === "de") {
@@ -11129,6 +11195,8 @@ function doBoutique(pion, onDone = null) {
   if (pion.bot) { heraldSays(`🛒 ${pion.nom} jette un œil à la boutique et poursuit sa route.`); return done(); }
   sfx("chest");
   playScene("boutique", pion.characterId); // saynète d'arrivée à l'échoppe
+  // 🛒 Téléachat du donjon : Gérard vend avec des arguments irréfutables.
+  if (humourLevel() >= 1) heraldSays(`🧟 Gérard : « ${aleaHumour(SHOP_PITCH)} »`);
 
   // Le Sceptre du Larcin (vol d'étoile) n'a de sens qu'en mode Étoiles : on ne
   // le propose donc qu'ici, tout en bas et hors de prix, comme un coup d'éclat.
@@ -11541,6 +11609,10 @@ function doNPC(pion) {
   const npc = pool[Math.floor(Math.random() * pool.length)] ?? NPCS[0];
   heraldSays(`✨ Une rencontre ! ${npc.emoji} ${npc.nom} surgit sur le chemin.`); sfx("npc");
   say(npc.intro, { ...voiceOf(npc.slug), queue: true }); // le PNJ parle de sa propre voix
+  // 🃏 Aplomb du PNJ : une seconde réplique qui assume tout (humour ≥ complice).
+  if (humourLevel() >= 1 && NPC_GAGS[npc.slug] && Math.random() < 0.45) {
+    heraldSays(`${npc.emoji} ${npc.nom} : « ${aleaHumour(NPC_GAGS[npc.slug])} »`);
+  }
   if (npc.quiz) return npcQuiz(pion, npc);
   const won = npc.effet.apply(pion) === true; // shift() peut déclencher la victoire
   save();
@@ -12158,6 +12230,7 @@ function anecdoteCardEl(q) {
   return el("div", { class: "anecdote-card" },
     el("p", { class: "anecdote-title", text: "📜 L'anecdote du Héraut" }),
     el("p", { class: "anecdote-texte", text: q.anecdote }),
+    anecdoteQuip(),
     sources.length > 0 ? el("div", { class: "sources" }, ...sources) : null,
   );
 }
@@ -12343,6 +12416,11 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   react3D(pion.id, correct); chipPulse(pion.id, correct);
   heraldSays((correct ? herald.bonne() : herald.mauvaise()) + gagFor(pion, q, correct));
   charSays(pion, correct ? "bonne" : "mauvaise");
+  // 🤖 L'ego des bots : le Facile est très sûr de lui, le Génie doute poliment.
+  if (pion.bot && humourLevel() >= 1 && !testFlag("__DONJON_TEST") && Math.random() < 0.22) {
+    const ego = BOT_EGO[pion.botLevel]?.[correct ? "bonne" : "mauvaise"];
+    if (ego) heraldSays(`🤖 ${pion.nom} : « ${aleaHumour(ego)} »`);
+  }
   // Partie à l'oreille : en cas d'échec, la bonne réponse est lue précisément.
   if (!correct && getPrefs().oreilles) {
     say(`La bonne réponse était : ${q.bonne_reponse ?? q.reponse_numerique ?? (q.reponses_acceptees ?? []).join(", ")}.`, { queue: true });
@@ -12352,8 +12430,15 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
       ? `✅ <strong>Bonne réponse !</strong> ${q.bonne_reponse ? `(${q.bonne_reponse})` : ""} +${advance} case${advance > 1 ? "s" : ""}${coinGain ? ` · +${coinGain} 🪙` : ""}`
       : `❌ <strong>Raté.</strong> La bonne réponse était : <strong>${q.bonne_reponse ?? q.reponse_numerique ?? (q.reponses_acceptees ?? []).join(" · ")}</strong>${penalty ? ` · recul de ${-penalty} case` : ""}`,
     onContinue: () => {
-      if (moveDelta !== 0 && shift(pion, moveDelta)) return;
-      finishTurn();
+      const suite = () => {
+        if (moveDelta !== 0 && shift(pion, moveDelta)) return;
+        finishTurn();
+      };
+      // 🎭 Plaidoirie (règle maison) : défendre sa mauvaise foi devant la table.
+      if (!correct && getState().plaidoirie && !pion.bot && !testFlag("__DONJON_TEST") && Math.random() < 0.5) {
+        return doPlaidoirie(pion, suite);
+      }
+      suite();
     },
   });
 }
@@ -12370,13 +12455,81 @@ function chipPulse(pionId, ok) {
   window.setTimeout(() => chip.classList.remove(cls), 1200);
 }
 
+/* ---------- humour pince-sans-rire (réglage : sobre / complice / cabaret) ---------- */
+
+/** 0 = sobre (aucun clin d'œil), 1 = complice (défaut), 2 = grand cabaret. */
+function humourLevel() {
+  const h = getPrefs().humour;
+  return h === "sobre" ? 0 : h === "cabaret" ? 2 : 1;
+}
+
+const aleaHumour = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+// 🎩 « Précision inutile » : commentaire de pure forme — JAMAIS un fait nouveau
+// (la règle zéro-invention s'applique aux faits, pas aux révérences).
+const ANECDOTE_QUIPS = [
+  "Le Héraut certifie cette information à la fois vraie et parfaitement dispensable.",
+  "À replacer au dîner. Effet garanti, gratitude non incluse.",
+  "Soit, en unités utiles à votre vie quotidienne : aucune.",
+  "Information vérifiée deux fois. La deuxième fois par fierté.",
+  "Le Donjon range ce savoir dans le tiroir « précieux mais inutile ».",
+  "Aucun dragon n'a été consulté pour établir ce fait.",
+];
+function anecdoteQuip() {
+  if (humourLevel() < 1 || Math.random() >= (humourLevel() >= 2 ? 0.3 : 0.15)) return document.createTextNode("");
+  return el("p", { class: "anecdote-quip", text: `🎩 ${aleaHumour(ANECDOTE_QUIPS)}` });
+}
+
+// 🤖 L'ego des bots : inversement proportionnel à leur niveau.
+const BOT_EGO = {
+  facile: {
+    bonne: ["Je la connaissais depuis toujours.", "Facile. Comme moi."],
+    mauvaise: ["Je la connaissais. J'ai choisi de me tromper.", "C'était pour laisser une chance aux autres."],
+  },
+  intermediaire: {
+    bonne: ["Logique, appliquée avec brio."],
+    mauvaise: ["Erreur d'inattention. Catégorie : totale."],
+  },
+  difficile: {
+    bonne: ["Le raisonnement était limpide."],
+    mauvaise: ["Intéressant. Je révise mes modèles."],
+  },
+  genie: {
+    bonne: ["Il me semblait, en effet.", "La probabilité était de mon côté. Pour une fois."],
+    mauvaise: ["Voilà qui est instructif. Sincèrement.", "Je doutais. J'avais raison de douter."],
+  },
+};
+
+// 🃏 Aplomb des PNJ : une seconde réplique qui assume tout (humour ≥ complice).
+const NPC_GAGS = {
+  merlinouche: ["Comme je le dis toujours : c'est en forgeant qu'on devient… on va dire forgeron.", "J'ai un diplôme. Il est quelque part."],
+  turbo: ["Le secret de la vitesse, c'est la régularité. Surtout la régularité."],
+  gerard: ["Je dis toujours : la politesse ne coûte rien. Deux pièces, en l'occurrence."],
+  roquefort: ["Ce raccourci ? Je l'ai découvert moi-même. Deux fois."],
+  zebulon: ["Trois vœux, c'est la théorie. Retenez surtout que je suis passé.", "Mon lampadaire ? Une longue histoire. Courte, en fait, mais je la raconte longue."],
+  barnabe: ["Ce tour a ébloui trois rois. Enfin, des rois de la région."],
+};
+
+// 🛒 Le téléachat du donjon : arguments de vente irréfutables.
+const SHOP_PITCH = [
+  "Ce bouclier a arrêté 100 % des coups durs qu'il a arrêtés.",
+  "Potion garantie sans effet secondaire connu de nous.",
+  "Nos prix défient toute concurrence. Il n'y a pas de concurrence, mais ils la défient.",
+  "Article testé par mes soins. Je suis toujours là : concluez.",
+  "La besace est d'occasion. L'occasion : une excellente affaire.",
+];
+
 /** Pique bienveillante du Héraut selon la mémoire de la partie (running gags).
  *  Renvoie "" la plupart du temps — la rareté fait le sel. Jamais en test. */
 function gagFor(pion, q, correct) {
-  if (testFlag("__DONJON_TEST") || Math.random() > 0.5) return "";
+  const lvl = humourLevel();
+  if (testFlag("__DONJON_TEST") || lvl === 0 || Math.random() > (lvl >= 2 ? 0.7 : 0.5)) return "";
   if (correct && (pion.serie ?? 0) >= 3) return ` ${pion.serie} d'affilée pour ${pion.nom} — fouillez ses manches !`;
   if (!correct && (pion.serie ?? 0) <= -3) return ` Courage ${pion.nom} : statistiquement, ça DOIT finir par rentrer !`;
   if (((pion.compteurThemes ?? {})[q.categorie] ?? 0) >= 3) return ` Encore ${q.categorie} ?! On appelle ça une zone de confort, ${pion.nom}.`;
+  if (humourLevel() >= 2 && (pion.stats?.questions ?? 0) >= 6 && Math.random() < 0.35) {
+    return ` Statistique officielle : ${pion.stats.bonnes} bonnes sur ${pion.stats.questions}. Le Donjon n'ajoute rien.`;
+  }
   return "";
 }
 
@@ -12386,6 +12539,32 @@ function faveTheme(pion) {
   let best = null;
   for (const [c, v] of Object.entries(t)) if (v >= 2 && (best === null || v > t[best])) best = c;
   return best;
+}
+
+/** 🎭 PLAIDOIRIE (règle maison) : après une mauvaise réponse, le joueur a le
+ *  temps d'UN argument pour défendre sa mauvaise foi. La table vote à main
+ *  levée — si elle est convaincue, 1 pièce de consolation. Aucun chronomètre :
+ *  c'est la table qui fait le spectacle, pas l'écran. */
+function doPlaidoirie(pion, onDone) {
+  heraldSays(`🎭 PLAIDOIRIE ! ${pion.nom} a droit à UN argument pour défendre sa réponse. La table écoute.`);
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "🎭 Plaidoirie" }),
+      el("p", { class: "panel-text", text: `${pion.nom}, défendez votre réponse en un argument — la mauvaise foi est autorisée, l'aplomb est recommandé. Puis la table vote.` }),
+      el("div", { class: "choices choices-2" },
+        choiceButton("👏 La table est convaincue (+1 🪙)", () => {
+          addCoins(pion, 1);
+          save();
+          heraldSays("Convaincant ! Faux, mais convaincant. Une pièce pour l'éloquence.");
+          onDone();
+        }),
+        choiceButton("🙅 Pas convaincue", () => {
+          heraldSays("La table reste de marbre. Le marbre est une pierre très digne.");
+          onDone();
+        }),
+      ),
+    ),
+  );
 }
 
 /** DUEL AMICAL : le meneur choisit un adversaire ; même question pour les
@@ -12515,6 +12694,8 @@ function showAnecdote(q, { verdictHtml, onContinue }) {
 
 function doTrouNoir(pion) {
   if (!pion.bot) playScene("trounoir", pion.characterId); // saynète du Trou Noir
+  // 🎬 Documentaire animalier : le Héraut chuchote (humour ≥ complice).
+  if (humourLevel() >= 1 && !pion.bot) heraldSays(herald.docTrouNoir());
   const q = drawHardest(pion);
   const advance = 3;
   const recul = -6;
@@ -12900,6 +13081,15 @@ function finishTurn() {
     prefix = `🔔 DERNIÈRE MANCHE ! Chacun reçoit +${LAST_ROUND_BONUS} 🪙 pour un ultime coup d'éclat. ${prefix}`;
   }
 
+  // 📜 Page de nos sponsors : une réclame absurde d'une ligne, rarissime,
+  // jamais bloquante (2 max par partie, 3 en Grand Cabaret).
+  if (humourLevel() >= 1 && !testFlag("__DONJON_TEST") && (state.pubs ?? 0) < (humourLevel() >= 2 ? 3 : 2)
+    && state.tour >= 3 && Math.random() < 0.05) {
+    state.pubs = (state.pubs ?? 0) + 1;
+    save();
+    heraldSays(`📜 Une page de nos sponsors : ${herald.sponsor()}`);
+  }
+
   // Duel amical (2 max par partie, meneur humain, dès le tour 2, hors tests) :
   // le joueur qui commence son tour peut défier un adversaire sur UNE question.
   if ((state.duels ?? 0) < 2 && !testFlag("__DONJON_TEST") && state.tour >= 2
@@ -13092,6 +13282,7 @@ function endStarGame() {
     botLevel: p.botLevel ?? null,
     defiInfo: evalDefi(p),
     skin: p.skin,
+    bonnesParTheme: p.bonnesParTheme,
   }));
   save();
   const winner = classement[0];
@@ -13128,6 +13319,7 @@ function finishGame(winner) {
     botLevel: p.botLevel ?? null,
     defiInfo: evalDefi(p),
     skin: p.skin,
+    bonnesParTheme: p.bonnesParTheme,
   }));
   save();
   sfx("win");
@@ -13214,9 +13406,84 @@ function renderHome() {
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderGrimoire(); show("grimoire"); } }, `📖 Le Grimoire (${grimoireSize()} anecdotes)`));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderReglages(); show("reglages"); } }, "⚙️ Réglages & accessibilité"));
   if (bankOk) zone.append(questionDuJour());
+  // 🎩 La perle du Héraut : un faux conseil très sérieux, qui change chaque jour.
+  if (bankOk && (getPrefs().humour ?? "complice") !== "sobre") {
+    zone.append(el("p", { class: "perle-note", text: `🎩 ${perleDuJour()}` }));
+  }
   document.getElementById("bank-info").textContent = bankOk
     ? `${bankSize()} questions vérifiées et sourcées · 18 catégories · zéro chronomètre`
     : "⚠️ Impossible de charger les questions (data/questions.json). Rechargez la page une fois en ligne.";
+}
+
+/* ---------- humour d'accueil et de victoire ---------- */
+
+// Faux conseils très sérieux du Héraut (une perle par jour, au premier degré assumé).
+const PERLES = [
+  "Astuce : les bonnes réponses rapportent plus que les mauvaises.",
+  "Ce jeu ne contient aucun chronomètre. Prenez le temps de vérifier.",
+  "Le Trou Noir n'aspire que les joueurs qui marchent dessus. Statistiquement prouvé.",
+  "En cas de doute, réfléchissez. En cas de certitude, aussi.",
+  "Le Héraut ne se trompe jamais. Voir l'article 12 des conditions générales.",
+  "Rappel : le dé ne vous en veut pas personnellement. Il improvise.",
+  "Jouer en famille augmente de 100 % le nombre de joueurs.",
+  "Les anecdotes de ce jeu sont vraies. Les excuses de vos adversaires, moins.",
+  "Aucune gargouille n'a été blessée pendant la fabrication de ce donjon.",
+  "Conseil du Héraut : visez la case Arrivée. Les autres cases sont des étapes.",
+  "La chance sourit aux audacieux. Elle sourit aussi aux autres, par politesse.",
+  "Les pièces d'or ne font pas le bonheur. Elles font des étoiles, c'est mieux.",
+];
+
+function perleDuJour() {
+  const iso = new Date().toISOString().slice(0, 10);
+  let h = 0;
+  for (const ch of iso) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return PERLES[h % PERLES.length];
+}
+
+// 🎤 Interview d'après-match : le Héraut tend un micro imaginaire au champion.
+const INTERVIEW_Q = [
+  "Alors, ce triomphe ?",
+  "Un mot pour vos adversaires ?",
+  "Comment aviez-vous préparé cette partie ?",
+];
+const INTERVIEW_R = [
+  "Case après case.",
+  "Je remercie mon dé. On n'a pas toujours été d'accord, mais on a su se parler.",
+  "Le talent, l'humilité. Surtout le talent.",
+  "J'aimerais dire que c'était dur. J'aimerais.",
+  "Mes adversaires ont été formidables. La preuve : je gagne.",
+];
+
+function interviewBlock(winner) {
+  const q = INTERVIEW_Q[Math.floor(Math.random() * INTERVIEW_Q.length)];
+  const r = INTERVIEW_R[Math.floor(Math.random() * INTERVIEW_R.length)];
+  return el("div", { class: "succes-unlock" },
+    el("h3", { class: "succes-unlock-title", text: "🎤 L'interview d'après-match" }),
+    el("p", { class: "succes-unlock-line", text: `Le Héraut : « ${q} »` }),
+    el("p", { class: "succes-unlock-line", text: `👑 ${winner.nom} : « ${r} »` }),
+  );
+}
+
+/** Prix absurdes mais calculés sur les VRAIES statistiques de la partie —
+ *  toujours bienveillants, 3 maximum pour rester légers. */
+function prixDecernes(rankingData) {
+  const prix = [];
+  const humains = rankingData.filter((p) => !p.bot);
+  const source = humains.length ? humains : rankingData;
+  const orMax = [...source].sort((a, b) => (b.orGagne ?? 0) - (a.orGagne ?? 0))[0];
+  if ((orMax?.orGagne ?? 0) >= 10) prix.push(`🪙 Grand Argentier du Donjon : ${orMax.nom} — ${orMax.orGagne} pièces amassées, comptées deux fois.`);
+  const dur = [...source].sort((a, b) => (b.malusSubis ?? 0) - (a.malusSubis ?? 0))[0];
+  if ((dur?.malusSubis ?? 0) >= 2) prix.push(`🛡️ Prix du Sang-Froid : ${dur.nom} — ${dur.malusSubis} coups durs encaissés avec une dignité remarquée.`);
+  let bestTheme = null;
+  for (const p of source) {
+    for (const [cat, n] of Object.entries(p.bonnesParTheme ?? {})) {
+      if (n >= 3 && (!bestTheme || n > bestTheme.n)) bestTheme = { nom: p.nom, cat, n };
+    }
+  }
+  if (bestTheme) prix.push(`🧀 Meilleur Espoir catégorie ${bestTheme.cat} : ${bestTheme.nom} — ${bestTheme.n} bonnes réponses, le Comité s'incline.`);
+  const erreurs = [...source].sort((a, b) => ((b.questions ?? 0) - (b.bonnes ?? 0)) - ((a.questions ?? 0) - (a.bonnes ?? 0)))[0];
+  if (erreurs && (erreurs.questions ?? 0) - (erreurs.bonnes ?? 0) >= 4) prix.push(`🎓 Prix de la Constance dans l'Erreur : ${erreurs.nom} — l'important, c'est la régularité.`);
+  return prix.slice(0, 3);
 }
 
 /* ---------- question du jour ---------- */
@@ -13283,6 +13550,21 @@ function renderRules() {
         ),
       ),
     );
+  }
+  // 📜 Conditions générales parodiques : easter egg d'un sérieux notarial.
+  if ((getPrefs().humour ?? "complice") !== "sobre") {
+    cast.append(el("details", { class: "house-rules" },
+      el("summary", { text: "📜 Conditions générales du Donjon (personne ne les lit, elles le savent)" }),
+      ...[
+        "Article 1 — Le savoir est gratuit. Les anecdotes sont offertes par la maison.",
+        "Article 2 — Toute victoire est définitive jusqu'à la revanche.",
+        "Article 7 — Le dé est réputé équitable, y compris quand il fait un 1. Surtout quand il fait un 1.",
+        "Article 9 — Les réponses données « à voix haute mais dans sa tête » ne sont pas recevables.",
+        "Article 12 — Le Héraut a toujours raison. Voir article 12.",
+        "Article 13 — En cas de litige, la table tranche. En cas d'égalité, le goûter tranche.",
+        "Article 42 — La lecture des présentes vaut anecdote.",
+      ].map((t) => el("p", { class: "rules-power", text: t })),
+    ));
   }
 }
 
@@ -13415,6 +13697,7 @@ let rounds = 10;
 // Règles maison : Trou Noir activable et difficulté (adaptative par défaut).
 let houseTrouNoir = true;
 let houseDifficulte = "adaptative";
+let housePlaidoirie = false; // 🎭 plaider sa mauvaise foi après une erreur
 const DEFAULT_BRACKET = "18+";
 let players = [{ nom: "", bracket: DEFAULT_BRACKET, characterId: "cageot" }, { nom: "", bracket: DEFAULT_BRACKET, characterId: "etincelle" }];
 let teams = [
@@ -13751,6 +14034,8 @@ function renderSetup() {
           houseSeg([{ val: true, label: "Activé" }, { val: false, label: "Désactivé" }], () => houseTrouNoir, (v) => { houseTrouNoir = v; })),
         houseRow("🎚️ Difficulté", "Adaptative : facile puis se durcit. Douce : toujours accessible. Corsée : questions ardues.",
           houseSeg([{ val: "adaptative", label: "Adaptative" }, { val: "douce", label: "Douce" }, { val: "corsee", label: "Corsée" }], () => houseDifficulte, (v) => { houseDifficulte = v; })),
+        houseRow("🎭 Plaidoirie", "Après une mauvaise réponse, le joueur peut plaider sa mauvaise foi en UN argument ; si la table est convaincue, 1 🪙 de consolation.",
+          houseSeg([{ val: false, label: "Non" }, { val: true, label: "Oui" }], () => housePlaidoirie, (v) => { housePlaidoirie = v; })),
       ),
     ),
   );
@@ -13817,9 +14102,9 @@ function launchGame() {
   clearSave();
   const def = boardById(selectedBoardId);
   // Mémorise la configuration (pour « manche suivante » du mode tournoi).
-  try { localStorage.setItem("donjon-lastconfig", JSON.stringify({ mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte, trouNoir: houseTrouNoir })); } catch { /* mode privé */ }
+  try { localStorage.setItem("donjon-lastconfig", JSON.stringify({ mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte, trouNoir: houseTrouNoir, plaidoirie: housePlaidoirie })); } catch { /* mode privé */ }
   newGame(
-    { mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte },
+    { mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte, plaidoirie: housePlaidoirie },
     generateBoard(def, { trouNoir: houseTrouNoir }),
   );
   show("game");
@@ -13941,6 +14226,17 @@ function showVictory(winner, rankingData, extras = {}) {
       ...defis.map((p) => el("p", { class: "succes-unlock-line", text: `${p.nom} — « ${p.defiInfo.texte} » : ${p.defiInfo.ok ? "✅ réussi !" : "❌ manqué"}` })),
     ));
   }
+  // 🎤 Interview d'après-match + 🏆 prix décernés (humour ≥ complice).
+  if ((getPrefs().humour ?? "complice") !== "sobre") {
+    zone.append(interviewBlock(winner));
+    const prix = prixDecernes(rankingData);
+    if (prix.length > 0) {
+      zone.append(el("div", { class: "succes-unlock" },
+        el("h3", { class: "succes-unlock-title", text: "🏆 Les prix du Donjon" }),
+        ...prix.map((t) => el("p", { class: "succes-unlock-line", text: t })),
+      ));
+    }
+  }
 
   // Podium festif : le top 3 sur des marches, le gagnant surélevé et couronné.
   const top = rankingData.slice(0, 3);
@@ -14051,6 +14347,8 @@ function renderReglages() {
     ] : []),
     row("🎧 Partie à l'oreille", "Le maître du jeu lit aussi les propositions, le dé et les bonnes réponses : la partie peut se jouer sans regarder l'écran.",
       seg(oui_non, p.oreilles, (v) => setPref("oreilles", v))),
+    row("🎩 Humour du Héraut", "Sobre : les faits, rien que les faits. Complice : clins d'œil pince-sans-rire (défaut). Grand Cabaret : le Héraut se croit en tournée.",
+      seg([{ val: "sobre", label: "Sobre" }, { val: "complice", label: "Complice" }, { val: "cabaret", label: "Grand Cabaret" }], p.humour ?? "complice", (v) => setPref("humour", v))),
     row("🎬 Animations", "Réduisez les mouvements à l'écran si vous préférez le calme.",
       seg([{ val: "completes", label: "Complètes" }, { val: "reduites", label: "Réduites" }], p.animations, (v) => setPref("animations", v))),
     row("📖 Revoir le tutoriel", "Le petit guide de démarrage du Donjon.",

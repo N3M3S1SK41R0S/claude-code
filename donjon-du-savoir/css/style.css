@@ -1073,3 +1073,18 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   min-height: 40px;
 }
 .cam-toggle:hover { border-color: var(--gold, #e0b04a); }
+
+/* ---------- humour : perle du jour et précision inutile ---------- */
+.perle-note {
+  color: var(--soft);
+  font-style: italic;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 0.2rem;
+}
+.anecdote-quip {
+  color: var(--soft);
+  font-style: italic;
+  font-size: 0.85rem;
+  margin-top: 0.35rem;
+}

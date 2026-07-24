@@ -67,9 +67,84 @@ function renderHome() {
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderGrimoire(); show("grimoire"); } }, `📖 Le Grimoire (${grimoireSize()} anecdotes)`));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderReglages(); show("reglages"); } }, "⚙️ Réglages & accessibilité"));
   if (bankOk) zone.append(questionDuJour());
+  // 🎩 La perle du Héraut : un faux conseil très sérieux, qui change chaque jour.
+  if (bankOk && (getPrefs().humour ?? "complice") !== "sobre") {
+    zone.append(el("p", { class: "perle-note", text: `🎩 ${perleDuJour()}` }));
+  }
   document.getElementById("bank-info").textContent = bankOk
     ? `${bankSize()} questions vérifiées et sourcées · 18 catégories · zéro chronomètre`
     : "⚠️ Impossible de charger les questions (data/questions.json). Rechargez la page une fois en ligne.";
+}
+
+/* ---------- humour d'accueil et de victoire ---------- */
+
+// Faux conseils très sérieux du Héraut (une perle par jour, au premier degré assumé).
+const PERLES = [
+  "Astuce : les bonnes réponses rapportent plus que les mauvaises.",
+  "Ce jeu ne contient aucun chronomètre. Prenez le temps de vérifier.",
+  "Le Trou Noir n'aspire que les joueurs qui marchent dessus. Statistiquement prouvé.",
+  "En cas de doute, réfléchissez. En cas de certitude, aussi.",
+  "Le Héraut ne se trompe jamais. Voir l'article 12 des conditions générales.",
+  "Rappel : le dé ne vous en veut pas personnellement. Il improvise.",
+  "Jouer en famille augmente de 100 % le nombre de joueurs.",
+  "Les anecdotes de ce jeu sont vraies. Les excuses de vos adversaires, moins.",
+  "Aucune gargouille n'a été blessée pendant la fabrication de ce donjon.",
+  "Conseil du Héraut : visez la case Arrivée. Les autres cases sont des étapes.",
+  "La chance sourit aux audacieux. Elle sourit aussi aux autres, par politesse.",
+  "Les pièces d'or ne font pas le bonheur. Elles font des étoiles, c'est mieux.",
+];
+
+function perleDuJour() {
+  const iso = new Date().toISOString().slice(0, 10);
+  let h = 0;
+  for (const ch of iso) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return PERLES[h % PERLES.length];
+}
+
+// 🎤 Interview d'après-match : le Héraut tend un micro imaginaire au champion.
+const INTERVIEW_Q = [
+  "Alors, ce triomphe ?",
+  "Un mot pour vos adversaires ?",
+  "Comment aviez-vous préparé cette partie ?",
+];
+const INTERVIEW_R = [
+  "Case après case.",
+  "Je remercie mon dé. On n'a pas toujours été d'accord, mais on a su se parler.",
+  "Le talent, l'humilité. Surtout le talent.",
+  "J'aimerais dire que c'était dur. J'aimerais.",
+  "Mes adversaires ont été formidables. La preuve : je gagne.",
+];
+
+function interviewBlock(winner) {
+  const q = INTERVIEW_Q[Math.floor(Math.random() * INTERVIEW_Q.length)];
+  const r = INTERVIEW_R[Math.floor(Math.random() * INTERVIEW_R.length)];
+  return el("div", { class: "succes-unlock" },
+    el("h3", { class: "succes-unlock-title", text: "🎤 L'interview d'après-match" }),
+    el("p", { class: "succes-unlock-line", text: `Le Héraut : « ${q} »` }),
+    el("p", { class: "succes-unlock-line", text: `👑 ${winner.nom} : « ${r} »` }),
+  );
+}
+
+/** Prix absurdes mais calculés sur les VRAIES statistiques de la partie —
+ *  toujours bienveillants, 3 maximum pour rester légers. */
+function prixDecernes(rankingData) {
+  const prix = [];
+  const humains = rankingData.filter((p) => !p.bot);
+  const source = humains.length ? humains : rankingData;
+  const orMax = [...source].sort((a, b) => (b.orGagne ?? 0) - (a.orGagne ?? 0))[0];
+  if ((orMax?.orGagne ?? 0) >= 10) prix.push(`🪙 Grand Argentier du Donjon : ${orMax.nom} — ${orMax.orGagne} pièces amassées, comptées deux fois.`);
+  const dur = [...source].sort((a, b) => (b.malusSubis ?? 0) - (a.malusSubis ?? 0))[0];
+  if ((dur?.malusSubis ?? 0) >= 2) prix.push(`🛡️ Prix du Sang-Froid : ${dur.nom} — ${dur.malusSubis} coups durs encaissés avec une dignité remarquée.`);
+  let bestTheme = null;
+  for (const p of source) {
+    for (const [cat, n] of Object.entries(p.bonnesParTheme ?? {})) {
+      if (n >= 3 && (!bestTheme || n > bestTheme.n)) bestTheme = { nom: p.nom, cat, n };
+    }
+  }
+  if (bestTheme) prix.push(`🧀 Meilleur Espoir catégorie ${bestTheme.cat} : ${bestTheme.nom} — ${bestTheme.n} bonnes réponses, le Comité s'incline.`);
+  const erreurs = [...source].sort((a, b) => ((b.questions ?? 0) - (b.bonnes ?? 0)) - ((a.questions ?? 0) - (a.bonnes ?? 0)))[0];
+  if (erreurs && (erreurs.questions ?? 0) - (erreurs.bonnes ?? 0) >= 4) prix.push(`🎓 Prix de la Constance dans l'Erreur : ${erreurs.nom} — l'important, c'est la régularité.`);
+  return prix.slice(0, 3);
 }
 
 /* ---------- question du jour ---------- */
@@ -136,6 +211,21 @@ function renderRules() {
         ),
       ),
     );
+  }
+  // 📜 Conditions générales parodiques : easter egg d'un sérieux notarial.
+  if ((getPrefs().humour ?? "complice") !== "sobre") {
+    cast.append(el("details", { class: "house-rules" },
+      el("summary", { text: "📜 Conditions générales du Donjon (personne ne les lit, elles le savent)" }),
+      ...[
+        "Article 1 — Le savoir est gratuit. Les anecdotes sont offertes par la maison.",
+        "Article 2 — Toute victoire est définitive jusqu'à la revanche.",
+        "Article 7 — Le dé est réputé équitable, y compris quand il fait un 1. Surtout quand il fait un 1.",
+        "Article 9 — Les réponses données « à voix haute mais dans sa tête » ne sont pas recevables.",
+        "Article 12 — Le Héraut a toujours raison. Voir article 12.",
+        "Article 13 — En cas de litige, la table tranche. En cas d'égalité, le goûter tranche.",
+        "Article 42 — La lecture des présentes vaut anecdote.",
+      ].map((t) => el("p", { class: "rules-power", text: t })),
+    ));
   }
 }
 
@@ -268,6 +358,7 @@ let rounds = 10;
 // Règles maison : Trou Noir activable et difficulté (adaptative par défaut).
 let houseTrouNoir = true;
 let houseDifficulte = "adaptative";
+let housePlaidoirie = false; // 🎭 plaider sa mauvaise foi après une erreur
 const DEFAULT_BRACKET = "18+";
 let players = [{ nom: "", bracket: DEFAULT_BRACKET, characterId: "cageot" }, { nom: "", bracket: DEFAULT_BRACKET, characterId: "etincelle" }];
 let teams = [
@@ -604,6 +695,8 @@ function renderSetup() {
           houseSeg([{ val: true, label: "Activé" }, { val: false, label: "Désactivé" }], () => houseTrouNoir, (v) => { houseTrouNoir = v; })),
         houseRow("🎚️ Difficulté", "Adaptative : facile puis se durcit. Douce : toujours accessible. Corsée : questions ardues.",
           houseSeg([{ val: "adaptative", label: "Adaptative" }, { val: "douce", label: "Douce" }, { val: "corsee", label: "Corsée" }], () => houseDifficulte, (v) => { houseDifficulte = v; })),
+        houseRow("🎭 Plaidoirie", "Après une mauvaise réponse, le joueur peut plaider sa mauvaise foi en UN argument ; si la table est convaincue, 1 🪙 de consolation.",
+          houseSeg([{ val: false, label: "Non" }, { val: true, label: "Oui" }], () => housePlaidoirie, (v) => { housePlaidoirie = v; })),
       ),
     ),
   );
@@ -670,9 +763,9 @@ function launchGame() {
   clearSave();
   const def = boardById(selectedBoardId);
   // Mémorise la configuration (pour « manche suivante » du mode tournoi).
-  try { localStorage.setItem("donjon-lastconfig", JSON.stringify({ mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte, trouNoir: houseTrouNoir })); } catch { /* mode privé */ }
+  try { localStorage.setItem("donjon-lastconfig", JSON.stringify({ mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte, trouNoir: houseTrouNoir, plaidoirie: housePlaidoirie })); } catch { /* mode privé */ }
   newGame(
-    { mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte },
+    { mode: setupMode, pions, boardId: def.id, variant, rounds, difficulte: houseDifficulte, plaidoirie: housePlaidoirie },
     generateBoard(def, { trouNoir: houseTrouNoir }),
   );
   show("game");
@@ -794,6 +887,17 @@ function showVictory(winner, rankingData, extras = {}) {
       ...defis.map((p) => el("p", { class: "succes-unlock-line", text: `${p.nom} — « ${p.defiInfo.texte} » : ${p.defiInfo.ok ? "✅ réussi !" : "❌ manqué"}` })),
     ));
   }
+  // 🎤 Interview d'après-match + 🏆 prix décernés (humour ≥ complice).
+  if ((getPrefs().humour ?? "complice") !== "sobre") {
+    zone.append(interviewBlock(winner));
+    const prix = prixDecernes(rankingData);
+    if (prix.length > 0) {
+      zone.append(el("div", { class: "succes-unlock" },
+        el("h3", { class: "succes-unlock-title", text: "🏆 Les prix du Donjon" }),
+        ...prix.map((t) => el("p", { class: "succes-unlock-line", text: t })),
+      ));
+    }
+  }
 
   // Podium festif : le top 3 sur des marches, le gagnant surélevé et couronné.
   const top = rankingData.slice(0, 3);
@@ -904,6 +1008,8 @@ function renderReglages() {
     ] : []),
     row("🎧 Partie à l'oreille", "Le maître du jeu lit aussi les propositions, le dé et les bonnes réponses : la partie peut se jouer sans regarder l'écran.",
       seg(oui_non, p.oreilles, (v) => setPref("oreilles", v))),
+    row("🎩 Humour du Héraut", "Sobre : les faits, rien que les faits. Complice : clins d'œil pince-sans-rire (défaut). Grand Cabaret : le Héraut se croit en tournée.",
+      seg([{ val: "sobre", label: "Sobre" }, { val: "complice", label: "Complice" }, { val: "cabaret", label: "Grand Cabaret" }], p.humour ?? "complice", (v) => setPref("humour", v))),
     row("🎬 Animations", "Réduisez les mouvements à l'écran si vous préférez le calme.",
       seg([{ val: "completes", label: "Complètes" }, { val: "reduites", label: "Réduites" }], p.animations, (v) => setPref("animations", v))),
     row("📖 Revoir le tutoriel", "Le petit guide de démarrage du Donjon.",
