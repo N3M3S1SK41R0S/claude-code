@@ -15,7 +15,7 @@ const R = (p) => readFileSync(join(root, p), "utf8");
 // Dependency-agnostic: the CommonJS shim resolves lazily, so order only needs
 // the entry last. We register every module, then require("./app.js").
 const MODULES = [
-  "host-voice", "tts", "sfx", "music", "voices", "bots", "prefs", "palmares", "herald", "powers", "portraits", "custom", "items", "minigames",
+  "host-voice", "tts", "sfx", "music", "voices", "bots", "prefs", "grimoire", "palmares", "herald", "powers", "portraits", "custom", "items", "minigames",
   "wordgames", "themes", "state", "board", "data", "ui", "scene", "models3d", "board3d", "game", "app",
 ];
 

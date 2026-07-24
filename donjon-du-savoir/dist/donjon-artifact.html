@@ -931,6 +931,15 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .fourchette-inputs .num-input { width: 8.5rem; }
 .ordre-rang { color: var(--gold); min-width: 1.4rem; display: inline-block; }
 
+/* ---------- le Grimoire des anecdotes ---------- */
+#grimoire-zone { display: flex; flex-direction: column; gap: 0.8rem; max-width: 44rem; margin: 0 auto; width: 100%; }
+.grimoire-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; }
+.grimoire-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.grimoire-card { background: var(--stone); border: 1px solid var(--line); border-left: 4px solid var(--gold); border-radius: 0.8rem; padding: 0.7rem 0.9rem; }
+.grimoire-cat { color: var(--gold); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.grimoire-q { color: var(--soft); font-style: italic; font-size: 0.9rem; margin: 0.15rem 0; }
+.grimoire-anec { line-height: 1.45; }
+
 </style>
 
   <header class="topbar">
@@ -1007,6 +1016,14 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
       <p class="help-note" style="text-align:center">Écrites par la table, mélangées à la banque du Donjon (sur cet appareil uniquement). Marquées 🏠 en jeu — idéal pour piéger les parents.</p>
       <div id="custom-zone"></div>
       <button id="custom-back" class="btn btn-big" type="button">← Retour</button>
+    </section>
+
+    <!-- Grimoire des anecdotes -->
+    <section id="screen-grimoire" class="screen" hidden>
+      <h1 class="screen-title">📖 Le Grimoire</h1>
+      <p class="help-note" style="text-align:center">Toutes les anecdotes découvertes en jeu, gardées précieusement sur cet appareil.</p>
+      <div id="grimoire-zone"></div>
+      <button id="grimoire-back" class="btn btn-big" type="button" style="max-width:44rem;margin:0 auto;width:100%">← Retour</button>
     </section>
 
     <!-- Palmarès & succès -->
@@ -6024,6 +6041,56 @@ function applyPrefs() {
 
 ;Object.assign(module.exports, {loadPrefs, getPrefs, setPref, applyPrefs});
 };
+__modules["./grimoire.js"] = function(module, exports, require) {
+// Le Grimoire : carnet PERSISTANT des anecdotes découvertes en jeu. Chaque
+// anecdote affichée s'y range (avec sa question, sa catégorie et ses sources) ;
+// on le consulte depuis l'accueil, filtrable par thème. Capé aux 400 plus
+// récentes ; résilient au mode privé.
+
+const KEY = "donjon-grimoire";
+const CAP = 400;
+
+let entries = null;
+
+function load() {
+  if (entries) return entries;
+  try { entries = JSON.parse(localStorage.getItem(KEY)) ?? []; } catch { entries = []; }
+  if (!Array.isArray(entries)) entries = [];
+  return entries;
+}
+
+function persist() {
+  try { localStorage.setItem(KEY, JSON.stringify(entries)); } catch { /* mode privé */ }
+}
+
+/** Range une anecdote découverte (déduplication par id de question). */
+function addToGrimoire(q) {
+  if (!q || !q.anecdote || q.maison) return; // les questions maison ne sont pas vérifiées
+  load();
+  if (entries.some((e) => e.id === q.id)) return;
+  entries.push({
+    id: q.id,
+    categorie: q.categorie ?? "Général",
+    texte: q.texte ?? "",
+    anecdote: q.anecdote,
+    sources: (q.sources ?? []).slice(0, 3),
+    ts: Date.now(),
+  });
+  if (entries.length > CAP) entries = entries.slice(entries.length - CAP);
+  persist();
+}
+
+/** Toutes les entrées, des plus récentes aux plus anciennes. */
+function grimoireEntries() {
+  return [...load()].reverse();
+}
+
+function grimoireSize() {
+  return load().length;
+}
+
+;Object.assign(module.exports, {addToGrimoire, grimoireEntries, grimoireSize});
+};
 __modules["./palmares.js"] = function(module, exports, require) {
 // Palmarès persistant entre les parties (localStorage) : compteurs cumulés,
 // records et succès débloqués. Agrège les exploits des joueurs HUMAINS de cet
@@ -9353,6 +9420,7 @@ const { say, sayHost } = require("./tts.js");
 const { heroLine, voiceOf } = require("./voices.js");
 const { botNumericGuess, botWantsCorrect } = require("./bots.js");
 const { playScene } = require("./scene.js");
+const { addToGrimoire } = require("./grimoire.js");
 const { npcPortraitEl, portraitEl } = require("./portraits.js");
 const { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } = require("./items.js");
 const { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } = require("./minigames.js");
@@ -10839,6 +10907,26 @@ function doQuestion() {
     if (!bq) return endPanel("La banque de questions est épuisée. Le Donjon est impressionné.");
     return posePicked(pion, bq);
   }
+  // 📸 PHOTO FINISH : en toute fin de partie, le DERNIER du classement reçoit
+  // une question dans son thème FORT (détecté sur ses bonnes réponses) — la
+  // remontada est possible, et annoncée avec emphase.
+  if (!testFlag("__DONJON_TEST") && isLast(pion)) {
+    const st = getState();
+    const finale = isEtoiles() ? st.tour === st.rounds : st.pions.some((p) => p.position >= boardLen() - 8);
+    const fave = faveTheme(pion);
+    if (finale && fave) {
+      const vus = new Set();
+      for (let i = 0; i < 6; i++) {
+        const cand = drawQuestion(pion, { formats: QUESTION_FORMATS, commit: false, exclude: vus });
+        if (!cand) break;
+        if (cand.categorie === fave) {
+          heraldSays(`📸 PHOTO FINISH ! ${pion.nom}, une question dans TON domaine (${fave}) — tout est encore possible !`);
+          return themeRevealGate(pion, cand);
+        }
+        vus.add(cand.id);
+      }
+    }
+  }
   // On SÉLECTIONNE sans consommer : seule la question réellement posée sera
   // marquée « vue » (sinon le choix de thème brûlerait 2 questions par tour et
   // les redites reviendraient vite).
@@ -10913,7 +11001,15 @@ function themeChoiceGate(pion, qA, qB) {
 function posePicked(pion, q) {
   commitQuestion(q); // la question RÉELLEMENT posée est marquée vue/posée ici
   markQuestionPosed(); // le tour a eu sa question individuelle
+  // Mémoire du Héraut : quels thèmes ce joueur fréquente-t-il ?
+  pion.compteurThemes = pion.compteurThemes ?? {};
+  pion.compteurThemes[q.categorie] = (pion.compteurThemes[q.categorie] ?? 0) + 1;
   if (pion.bot) return questionFlow(pion, q); // bot : QCM simple, joué en automatique
+  // 🃏 Carte piège annoncée avec malice : un Vrai/Faux insolite est souvent
+  // contre-intuitif — le Héraut met en scène le danger (présentation pure).
+  if (!testFlag("__DONJON_TEST") && q.format === "vrai_faux" && q.categorie === "Insolite" && (q.difficulte ?? 0) >= 2 && Math.random() < 0.6) {
+    heraldSays("🃏 Carte PIÈGE du Héraut ! Celle-là a fait pleurer des champions… méfiez-vous de l'évidence !");
+  }
   if (q.format === "qcm") {
     const forced = testFlag("__DONJON_MINIGAME");
     const eligible = miniGameAnswer(q); // réponse convenant à un anagramme/pendu
@@ -11101,6 +11197,7 @@ function questionHeader(q, pion = null) {
 /** Anecdote block with its source links — served after EVERY question.
  *  Home-made questions show a 🏠 tag instead of sources. */
 function anecdoteCardEl(q) {
+  addToGrimoire(q); // toute anecdote affichée rejoint le Grimoire du joueur
   if (q.maison) {
     return el("div", { class: "anecdote-card" },
       el("p", { class: "anecdote-title", text: "📜 L'anecdote du Héraut" }),
@@ -11291,10 +11388,19 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   } else {
     moveDelta = penalty;
   }
+  // Mémoire du Héraut : séries en cours et thèmes fétiches (running gags,
+  // et « photo finish » de fin de partie).
+  pion.serie = correct
+    ? ((pion.serie ?? 0) > 0 ? pion.serie + 1 : 1)
+    : ((pion.serie ?? 0) < 0 ? pion.serie - 1 : -1);
+  if (correct && q.categorie) {
+    pion.bonnesParTheme = pion.bonnesParTheme ?? {};
+    pion.bonnesParTheme[q.categorie] = (pion.bonnesParTheme[q.categorie] ?? 0) + 1;
+  }
   save();
   sfx(correct ? "good" : "bad");
   react3D(pion.id, correct);
-  heraldSays(correct ? herald.bonne() : herald.mauvaise());
+  heraldSays((correct ? herald.bonne() : herald.mauvaise()) + gagFor(pion, q, correct));
   charSays(pion, correct ? "bonne" : "mauvaise");
   showAnecdote(q, {
     verdictHtml: correct
@@ -11305,6 +11411,65 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
       finishTurn();
     },
   });
+}
+
+/** Pique bienveillante du Héraut selon la mémoire de la partie (running gags).
+ *  Renvoie "" la plupart du temps — la rareté fait le sel. Jamais en test. */
+function gagFor(pion, q, correct) {
+  if (testFlag("__DONJON_TEST") || Math.random() > 0.5) return "";
+  if (correct && (pion.serie ?? 0) >= 3) return ` ${pion.serie} d'affilée pour ${pion.nom} — fouillez ses manches !`;
+  if (!correct && (pion.serie ?? 0) <= -3) return ` Courage ${pion.nom} : statistiquement, ça DOIT finir par rentrer !`;
+  if (((pion.compteurThemes ?? {})[q.categorie] ?? 0) >= 3) return ` Encore ${q.categorie} ?! On appelle ça une zone de confort, ${pion.nom}.`;
+  return "";
+}
+
+/** Thème FORT d'un joueur (≥ 2 bonnes réponses) — nourrit le photo finish. */
+function faveTheme(pion) {
+  const t = pion.bonnesParTheme ?? {};
+  let best = null;
+  for (const [c, v] of Object.entries(t)) if (v >= 2 && (best === null || v > t[best])) best = c;
+  return best;
+}
+
+/** COUP DE THÉÂTRE : UN grand chamboulement par partie, rare donc mémorable.
+ *  Toujours favorable au dernier (jamais cruel), façon Mario Party dosé. */
+function coupDeTheatre(onDone) {
+  const state = getState();
+  const pions = [...state.pions];
+  const score = (p) => (isEtoiles() ? (p.etoiles ?? 0) * 1000 + p.pieces : p.position);
+  const leader = pions.reduce((a, b) => (score(b) > score(a) ? b : a));
+  const dernier = pions.reduce((a, b) => (score(b) < score(a) ? b : a));
+  const lignes = [];
+  sfx("chest");
+  if (Math.random() < 0.5 && leader.id !== dernier.id) {
+    if (isEtoiles()) {
+      const don = Math.min(8, leader.pieces);
+      leader.pieces -= don; dernier.pieces += don;
+      lignes.push(`💸 L'Impôt du Donjon ! ${leader.nom} offre ${don} 🪙 à ${dernier.nom}. La fortune tourne !`);
+    } else {
+      const a = leader.position; leader.position = dernier.position; dernier.position = a;
+      lignes.push(`🌀 Échange vertigineux ! ${leader.nom} et ${dernier.nom} ÉCHANGENT leurs places sur le plateau !`);
+    }
+  } else {
+    if (isEtoiles()) {
+      for (const p of pions) if (p.id !== dernier.id) p.pieces = Math.max(0, p.pieces - 4);
+      lignes.push(`🌪️ Bourrasque au trésor ! Tout le monde perd 4 🪙… sauf ${dernier.nom}, à l'abri derrière une colonne !`);
+    } else {
+      for (const p of pions) if (p.id !== dernier.id) p.position = Math.max(0, p.position - 2);
+      lignes.push(`🌪️ Tempête dans le Donjon ! Tout le monde recule de 2 cases… sauf ${dernier.nom}, bien accroché !`);
+    }
+  }
+  save();
+  render();
+  heraldSays("🎭 COUP DE THÉÂTRE ! Le Donjon retourne la table !");
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "🎭 COUP DE THÉÂTRE !" }),
+      ...lignes.map((t) => el("p", { class: "panel-text", text: t })),
+      el("p", { class: "help-note", text: "Une seule fois par partie — le Donjon aime les rebondissements, pas l'acharnement." }),
+      bigButton("Continuer", onDone),
+    ),
+  );
 }
 
 function showAnecdote(q, { verdictHtml, onContinue }) {
@@ -11707,6 +11872,13 @@ function finishTurn() {
     prefix = `🔔 DERNIÈRE MANCHE ! Chacun reçoit +${LAST_ROUND_BONUS} 🪙 pour un ultime coup d'éclat. ${prefix}`;
   }
 
+  // Coup de théâtre (UNE fois par partie, dès le tour 3, jamais en test).
+  if (!state.coupTheatre && !testFlag("__DONJON_TEST") && state.tour >= 3 && state.pions.length >= 2 && Math.random() < 0.05) {
+    state.coupTheatre = true;
+    save();
+    return coupDeTheatre(() => startTurn({ prefix }));
+  }
+
   // Question bonus de la tablée (~1 tour sur 7, jamais au tout premier) : tout
   // le monde réfléchit SANS course — chacun qui a trouvé empoche l'or. Zéro
   // chronomètre, aucune notion de rapidité (règle du cahier).
@@ -11937,11 +12109,12 @@ const { setMusic, musicAvailable, musicEnabled } = require("./music.js");
 const { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } = require("./bots.js");
 const { getPrefs, loadPrefs, setPref } = require("./prefs.js");
 const { getPalmares, loadPalmares, recordGame, SUCCES } = require("./palmares.js");
+const { grimoireEntries, grimoireSize } = require("./grimoire.js");
 const { el } = require("./ui.js");
 
 const MAX_PLAYERS = 20;
 
-const screens = ["home", "rules", "custom", "palmares", "reglages", "setup", "game", "victory"];
+const screens = ["home", "rules", "custom", "grimoire", "palmares", "reglages", "setup", "game", "victory"];
 function show(name) {
   for (const s of screens) {
     document.getElementById(`screen-${s}`).hidden = s !== name;
@@ -11973,6 +12146,7 @@ function renderHome() {
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderRules(); show("rules"); } }, "📖 Les règles"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderCustom(); show("custom"); } }, "✍️ Vos questions maison"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderPalmares(); show("palmares"); } }, "🏅 Palmarès & succès"));
+  zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderGrimoire(); show("grimoire"); } }, `📖 Le Grimoire (${grimoireSize()} anecdotes)`));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderReglages(); show("reglages"); } }, "⚙️ Réglages & accessibilité"));
   document.getElementById("bank-info").textContent = bankOk
     ? `${bankSize()} questions vérifiées et sourcées · 18 catégories · zéro chronomètre`
@@ -12695,6 +12869,49 @@ function renderPalmares() {
   }
 }
 
+/* ---------- grimoire des anecdotes ---------- */
+
+let grimoireFiltre = null; // catégorie active (null = toutes)
+
+function renderGrimoire() {
+  const zone = document.getElementById("grimoire-zone");
+  zone.innerHTML = "";
+  const all = grimoireEntries();
+  if (all.length === 0) {
+    zone.append(el("p", { class: "help-note", style: "text-align:center", text: "Le Grimoire est vide — jouez, et chaque anecdote découverte viendra s'y ranger !" }));
+    return;
+  }
+  // Puces de filtre par catégorie (comptées), « Toutes » en tête.
+  const cats = {};
+  for (const e of all) cats[e.categorie] = (cats[e.categorie] ?? 0) + 1;
+  const chips = el("div", { class: "grimoire-chips" },
+    el("button", {
+      class: "seg-btn" + (grimoireFiltre === null ? " seg-on" : ""), type: "button",
+      onclick: () => { grimoireFiltre = null; renderGrimoire(); },
+    }, `Toutes (${all.length})`),
+    ...Object.keys(cats).sort().map((c) => el("button", {
+      class: "seg-btn" + (grimoireFiltre === c ? " seg-on" : ""), type: "button",
+      onclick: () => { grimoireFiltre = c; renderGrimoire(); },
+    }, `${c} (${cats[c]})`)),
+  );
+  zone.append(chips);
+  const list = el("div", { class: "grimoire-list" });
+  for (const e of all.filter((x) => grimoireFiltre === null || x.categorie === grimoireFiltre).slice(0, 120)) {
+    const sources = (e.sources ?? []).map((src) => {
+      let label = "source";
+      try { label = new URL(src).hostname.replace(/^www\./, ""); } catch { /* libellé par défaut */ }
+      return el("a", { class: "source-link", href: src, target: "_blank", rel: "noopener noreferrer", text: label });
+    });
+    list.append(el("div", { class: "grimoire-card" },
+      el("p", { class: "grimoire-cat", text: e.categorie }),
+      el("p", { class: "grimoire-q", text: e.texte }),
+      el("p", { class: "grimoire-anec", text: e.anecdote }),
+      sources.length ? el("div", { class: "sources" }, ...sources) : null,
+    ));
+  }
+  zone.append(list);
+}
+
 /* ---------- tutoriel du premier lancement ---------- */
 
 const TUTO_STEPS = [
@@ -12807,6 +13024,11 @@ function wireHeader() {
   });
 
   document.getElementById("palmares-back").addEventListener("click", () => {
+    renderHome();
+    show("home");
+  });
+
+  document.getElementById("grimoire-back").addEventListener("click", () => {
     renderHome();
     show("home");
   });

@@ -929,3 +929,12 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .fourchette-inputs { display: flex; gap: 0.6rem; justify-content: center; }
 .fourchette-inputs .num-input { width: 8.5rem; }
 .ordre-rang { color: var(--gold); min-width: 1.4rem; display: inline-block; }
+
+/* ---------- le Grimoire des anecdotes ---------- */
+#grimoire-zone { display: flex; flex-direction: column; gap: 0.8rem; max-width: 44rem; margin: 0 auto; width: 100%; }
+.grimoire-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; }
+.grimoire-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.grimoire-card { background: var(--stone); border: 1px solid var(--line); border-left: 4px solid var(--gold); border-radius: 0.8rem; padding: 0.7rem 0.9rem; }
+.grimoire-cat { color: var(--gold); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.grimoire-q { color: var(--soft); font-style: italic; font-size: 0.9rem; margin: 0.15rem 0; }
+.grimoire-anec { line-height: 1.45; }

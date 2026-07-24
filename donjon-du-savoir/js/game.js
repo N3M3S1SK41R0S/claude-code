@@ -15,6 +15,7 @@ import { say, sayHost } from "./tts.js";
 import { heroLine, voiceOf } from "./voices.js";
 import { botNumericGuess, botWantsCorrect } from "./bots.js";
 import { playScene } from "./scene.js";
+import { addToGrimoire } from "./grimoire.js";
 import { npcPortraitEl, portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
 import { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } from "./minigames.js";
@@ -1501,6 +1502,26 @@ function doQuestion() {
     if (!bq) return endPanel("La banque de questions est épuisée. Le Donjon est impressionné.");
     return posePicked(pion, bq);
   }
+  // 📸 PHOTO FINISH : en toute fin de partie, le DERNIER du classement reçoit
+  // une question dans son thème FORT (détecté sur ses bonnes réponses) — la
+  // remontada est possible, et annoncée avec emphase.
+  if (!testFlag("__DONJON_TEST") && isLast(pion)) {
+    const st = getState();
+    const finale = isEtoiles() ? st.tour === st.rounds : st.pions.some((p) => p.position >= boardLen() - 8);
+    const fave = faveTheme(pion);
+    if (finale && fave) {
+      const vus = new Set();
+      for (let i = 0; i < 6; i++) {
+        const cand = drawQuestion(pion, { formats: QUESTION_FORMATS, commit: false, exclude: vus });
+        if (!cand) break;
+        if (cand.categorie === fave) {
+          heraldSays(`📸 PHOTO FINISH ! ${pion.nom}, une question dans TON domaine (${fave}) — tout est encore possible !`);
+          return themeRevealGate(pion, cand);
+        }
+        vus.add(cand.id);
+      }
+    }
+  }
   // On SÉLECTIONNE sans consommer : seule la question réellement posée sera
   // marquée « vue » (sinon le choix de thème brûlerait 2 questions par tour et
   // les redites reviendraient vite).
@@ -1575,7 +1596,15 @@ function themeChoiceGate(pion, qA, qB) {
 function posePicked(pion, q) {
   commitQuestion(q); // la question RÉELLEMENT posée est marquée vue/posée ici
   markQuestionPosed(); // le tour a eu sa question individuelle
+  // Mémoire du Héraut : quels thèmes ce joueur fréquente-t-il ?
+  pion.compteurThemes = pion.compteurThemes ?? {};
+  pion.compteurThemes[q.categorie] = (pion.compteurThemes[q.categorie] ?? 0) + 1;
   if (pion.bot) return questionFlow(pion, q); // bot : QCM simple, joué en automatique
+  // 🃏 Carte piège annoncée avec malice : un Vrai/Faux insolite est souvent
+  // contre-intuitif — le Héraut met en scène le danger (présentation pure).
+  if (!testFlag("__DONJON_TEST") && q.format === "vrai_faux" && q.categorie === "Insolite" && (q.difficulte ?? 0) >= 2 && Math.random() < 0.6) {
+    heraldSays("🃏 Carte PIÈGE du Héraut ! Celle-là a fait pleurer des champions… méfiez-vous de l'évidence !");
+  }
   if (q.format === "qcm") {
     const forced = testFlag("__DONJON_MINIGAME");
     const eligible = miniGameAnswer(q); // réponse convenant à un anagramme/pendu
@@ -1763,6 +1792,7 @@ function questionHeader(q, pion = null) {
 /** Anecdote block with its source links — served after EVERY question.
  *  Home-made questions show a 🏠 tag instead of sources. */
 function anecdoteCardEl(q) {
+  addToGrimoire(q); // toute anecdote affichée rejoint le Grimoire du joueur
   if (q.maison) {
     return el("div", { class: "anecdote-card" },
       el("p", { class: "anecdote-title", text: "📜 L'anecdote du Héraut" }),
@@ -1953,10 +1983,19 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   } else {
     moveDelta = penalty;
   }
+  // Mémoire du Héraut : séries en cours et thèmes fétiches (running gags,
+  // et « photo finish » de fin de partie).
+  pion.serie = correct
+    ? ((pion.serie ?? 0) > 0 ? pion.serie + 1 : 1)
+    : ((pion.serie ?? 0) < 0 ? pion.serie - 1 : -1);
+  if (correct && q.categorie) {
+    pion.bonnesParTheme = pion.bonnesParTheme ?? {};
+    pion.bonnesParTheme[q.categorie] = (pion.bonnesParTheme[q.categorie] ?? 0) + 1;
+  }
   save();
   sfx(correct ? "good" : "bad");
   react3D(pion.id, correct);
-  heraldSays(correct ? herald.bonne() : herald.mauvaise());
+  heraldSays((correct ? herald.bonne() : herald.mauvaise()) + gagFor(pion, q, correct));
   charSays(pion, correct ? "bonne" : "mauvaise");
   showAnecdote(q, {
     verdictHtml: correct
@@ -1967,6 +2006,65 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
       finishTurn();
     },
   });
+}
+
+/** Pique bienveillante du Héraut selon la mémoire de la partie (running gags).
+ *  Renvoie "" la plupart du temps — la rareté fait le sel. Jamais en test. */
+function gagFor(pion, q, correct) {
+  if (testFlag("__DONJON_TEST") || Math.random() > 0.5) return "";
+  if (correct && (pion.serie ?? 0) >= 3) return ` ${pion.serie} d'affilée pour ${pion.nom} — fouillez ses manches !`;
+  if (!correct && (pion.serie ?? 0) <= -3) return ` Courage ${pion.nom} : statistiquement, ça DOIT finir par rentrer !`;
+  if (((pion.compteurThemes ?? {})[q.categorie] ?? 0) >= 3) return ` Encore ${q.categorie} ?! On appelle ça une zone de confort, ${pion.nom}.`;
+  return "";
+}
+
+/** Thème FORT d'un joueur (≥ 2 bonnes réponses) — nourrit le photo finish. */
+function faveTheme(pion) {
+  const t = pion.bonnesParTheme ?? {};
+  let best = null;
+  for (const [c, v] of Object.entries(t)) if (v >= 2 && (best === null || v > t[best])) best = c;
+  return best;
+}
+
+/** COUP DE THÉÂTRE : UN grand chamboulement par partie, rare donc mémorable.
+ *  Toujours favorable au dernier (jamais cruel), façon Mario Party dosé. */
+function coupDeTheatre(onDone) {
+  const state = getState();
+  const pions = [...state.pions];
+  const score = (p) => (isEtoiles() ? (p.etoiles ?? 0) * 1000 + p.pieces : p.position);
+  const leader = pions.reduce((a, b) => (score(b) > score(a) ? b : a));
+  const dernier = pions.reduce((a, b) => (score(b) < score(a) ? b : a));
+  const lignes = [];
+  sfx("chest");
+  if (Math.random() < 0.5 && leader.id !== dernier.id) {
+    if (isEtoiles()) {
+      const don = Math.min(8, leader.pieces);
+      leader.pieces -= don; dernier.pieces += don;
+      lignes.push(`💸 L'Impôt du Donjon ! ${leader.nom} offre ${don} 🪙 à ${dernier.nom}. La fortune tourne !`);
+    } else {
+      const a = leader.position; leader.position = dernier.position; dernier.position = a;
+      lignes.push(`🌀 Échange vertigineux ! ${leader.nom} et ${dernier.nom} ÉCHANGENT leurs places sur le plateau !`);
+    }
+  } else {
+    if (isEtoiles()) {
+      for (const p of pions) if (p.id !== dernier.id) p.pieces = Math.max(0, p.pieces - 4);
+      lignes.push(`🌪️ Bourrasque au trésor ! Tout le monde perd 4 🪙… sauf ${dernier.nom}, à l'abri derrière une colonne !`);
+    } else {
+      for (const p of pions) if (p.id !== dernier.id) p.position = Math.max(0, p.position - 2);
+      lignes.push(`🌪️ Tempête dans le Donjon ! Tout le monde recule de 2 cases… sauf ${dernier.nom}, bien accroché !`);
+    }
+  }
+  save();
+  render();
+  heraldSays("🎭 COUP DE THÉÂTRE ! Le Donjon retourne la table !");
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "🎭 COUP DE THÉÂTRE !" }),
+      ...lignes.map((t) => el("p", { class: "panel-text", text: t })),
+      el("p", { class: "help-note", text: "Une seule fois par partie — le Donjon aime les rebondissements, pas l'acharnement." }),
+      bigButton("Continuer", onDone),
+    ),
+  );
 }
 
 function showAnecdote(q, { verdictHtml, onContinue }) {
@@ -2367,6 +2465,13 @@ function finishTurn() {
     for (const p of state.pions) p.pieces += LAST_ROUND_BONUS;
     save();
     prefix = `🔔 DERNIÈRE MANCHE ! Chacun reçoit +${LAST_ROUND_BONUS} 🪙 pour un ultime coup d'éclat. ${prefix}`;
+  }
+
+  // Coup de théâtre (UNE fois par partie, dès le tour 3, jamais en test).
+  if (!state.coupTheatre && !testFlag("__DONJON_TEST") && state.tour >= 3 && state.pions.length >= 2 && Math.random() < 0.05) {
+    state.coupTheatre = true;
+    save();
+    return coupDeTheatre(() => startTurn({ prefix }));
   }
 
   // Question bonus de la tablée (~1 tour sur 7, jamais au tout premier) : tout

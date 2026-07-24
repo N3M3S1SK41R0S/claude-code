@@ -14,11 +14,12 @@ import { setMusic, musicAvailable, musicEnabled } from "./music.js";
 import { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } from "./bots.js";
 import { getPrefs, loadPrefs, setPref } from "./prefs.js";
 import { getPalmares, loadPalmares, recordGame, SUCCES } from "./palmares.js";
+import { grimoireEntries, grimoireSize } from "./grimoire.js";
 import { el } from "./ui.js";
 
 const MAX_PLAYERS = 20;
 
-const screens = ["home", "rules", "custom", "palmares", "reglages", "setup", "game", "victory"];
+const screens = ["home", "rules", "custom", "grimoire", "palmares", "reglages", "setup", "game", "victory"];
 function show(name) {
   for (const s of screens) {
     document.getElementById(`screen-${s}`).hidden = s !== name;
@@ -50,6 +51,7 @@ function renderHome() {
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderRules(); show("rules"); } }, "📖 Les règles"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderCustom(); show("custom"); } }, "✍️ Vos questions maison"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderPalmares(); show("palmares"); } }, "🏅 Palmarès & succès"));
+  zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderGrimoire(); show("grimoire"); } }, `📖 Le Grimoire (${grimoireSize()} anecdotes)`));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderReglages(); show("reglages"); } }, "⚙️ Réglages & accessibilité"));
   document.getElementById("bank-info").textContent = bankOk
     ? `${bankSize()} questions vérifiées et sourcées · 18 catégories · zéro chronomètre`
@@ -772,6 +774,49 @@ function renderPalmares() {
   }
 }
 
+/* ---------- grimoire des anecdotes ---------- */
+
+let grimoireFiltre = null; // catégorie active (null = toutes)
+
+function renderGrimoire() {
+  const zone = document.getElementById("grimoire-zone");
+  zone.innerHTML = "";
+  const all = grimoireEntries();
+  if (all.length === 0) {
+    zone.append(el("p", { class: "help-note", style: "text-align:center", text: "Le Grimoire est vide — jouez, et chaque anecdote découverte viendra s'y ranger !" }));
+    return;
+  }
+  // Puces de filtre par catégorie (comptées), « Toutes » en tête.
+  const cats = {};
+  for (const e of all) cats[e.categorie] = (cats[e.categorie] ?? 0) + 1;
+  const chips = el("div", { class: "grimoire-chips" },
+    el("button", {
+      class: "seg-btn" + (grimoireFiltre === null ? " seg-on" : ""), type: "button",
+      onclick: () => { grimoireFiltre = null; renderGrimoire(); },
+    }, `Toutes (${all.length})`),
+    ...Object.keys(cats).sort().map((c) => el("button", {
+      class: "seg-btn" + (grimoireFiltre === c ? " seg-on" : ""), type: "button",
+      onclick: () => { grimoireFiltre = c; renderGrimoire(); },
+    }, `${c} (${cats[c]})`)),
+  );
+  zone.append(chips);
+  const list = el("div", { class: "grimoire-list" });
+  for (const e of all.filter((x) => grimoireFiltre === null || x.categorie === grimoireFiltre).slice(0, 120)) {
+    const sources = (e.sources ?? []).map((src) => {
+      let label = "source";
+      try { label = new URL(src).hostname.replace(/^www\./, ""); } catch { /* libellé par défaut */ }
+      return el("a", { class: "source-link", href: src, target: "_blank", rel: "noopener noreferrer", text: label });
+    });
+    list.append(el("div", { class: "grimoire-card" },
+      el("p", { class: "grimoire-cat", text: e.categorie }),
+      el("p", { class: "grimoire-q", text: e.texte }),
+      el("p", { class: "grimoire-anec", text: e.anecdote }),
+      sources.length ? el("div", { class: "sources" }, ...sources) : null,
+    ));
+  }
+  zone.append(list);
+}
+
 /* ---------- tutoriel du premier lancement ---------- */
 
 const TUTO_STEPS = [
@@ -884,6 +929,11 @@ function wireHeader() {
   });
 
   document.getElementById("palmares-back").addEventListener("click", () => {
+    renderHome();
+    show("home");
+  });
+
+  document.getElementById("grimoire-back").addEventListener("click", () => {
     renderHome();
     show("home");
   });
