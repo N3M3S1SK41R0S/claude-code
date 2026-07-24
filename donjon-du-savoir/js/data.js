@@ -59,6 +59,11 @@ export function refreshCustom() {
   bank = bank.filter((q) => !q.maison).concat(loadCustom());
 }
 
+/** Pool stable pour la « question du jour » : QCM tous publics (palier ado). */
+export function dailyPool() {
+  return bank.filter((q) => q.format === "qcm" && q.niveau_age === "ado" && Array.isArray(q.choix));
+}
+
 export function bankSize() {
   return bank.length;
 }

@@ -968,3 +968,9 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .chip-ouch { animation: chip-ouch 0.6s ease; }
 @keyframes chip-joy { 0%,100% { transform: none; } 30% { transform: translateY(-7px) scale(1.06); } 55% { transform: translateY(0) scale(1); } 75% { transform: translateY(-3px); } }
 @keyframes chip-ouch { 0%,100% { transform: none; } 20% { transform: translateX(-4px) rotate(-2deg); } 40% { transform: translateX(4px) rotate(2deg); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
+
+/* Question du jour (accueil). */
+.qdj { text-align: left; }
+.qdj-titre { color: var(--gold); font-weight: bold; }
+.qdj-choices { display: flex; flex-direction: column; gap: 0.4rem; }
+.qdj-btn { text-align: left; }

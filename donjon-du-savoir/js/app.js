@@ -1,6 +1,6 @@
 // Screens and wiring: home → setup → game → victory. Pass-and-play, 1-20
 // players (individual) or teams sharing a pion with rotating spokesperson.
-import { loadBank, bankSize, refreshCustom } from "./data.js";
+import { dailyPool, loadBank, bankSize, refreshCustom } from "./data.js";
 import { loadWordgames } from "./wordgames.js";
 import { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } from "./custom.js";
 import { BOARDS, boardById, generateBoard } from "./board.js";
@@ -64,9 +64,57 @@ function renderHome() {
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderPalmares(); show("palmares"); } }, "🏅 Palmarès & succès"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderGrimoire(); show("grimoire"); } }, `📖 Le Grimoire (${grimoireSize()} anecdotes)`));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderReglages(); show("reglages"); } }, "⚙️ Réglages & accessibilité"));
+  if (bankOk) zone.append(questionDuJour());
   document.getElementById("bank-info").textContent = bankOk
     ? `${bankSize()} questions vérifiées et sourcées · 18 catégories · zéro chronomètre`
     : "⚠️ Impossible de charger les questions (data/questions.json). Rechargez la page une fois en ligne.";
+}
+
+/* ---------- question du jour ---------- */
+
+/** Une question inédite chaque jour (choisie par un hachage de la date dans la
+ *  banque — même question pour tous, sans réseau) + série de jours réussis. */
+function questionDuJour() {
+  const today = new Date().toISOString().slice(0, 10);
+  let dj = {};
+  try { dj = JSON.parse(localStorage.getItem("donjon-qdj")) ?? {}; } catch { /* mode privé */ }
+  const wrap = el("div", { class: "team-block qdj" });
+  if (dj.date === today && dj.repondu) {
+    wrap.append(el("p", { class: "help-note", text: `📅 Question du jour : ${dj.gagne ? "réussie ✅" : "ratée ❌"} — série : ${dj.serie ?? 0} 🔥. À demain !` }));
+    return wrap;
+  }
+  const bank = getDailyQuestion(today);
+  if (!bank) return wrap;
+  wrap.append(
+    el("p", { class: "qdj-titre", text: `📅 Question du jour — série : ${dj.serie ?? 0} 🔥` }),
+    el("p", { class: "panel-text", text: bank.texte }),
+    el("div", { class: "qdj-choices" }, ...(bank.choix ?? []).map((c) =>
+      el("button", { class: "btn qdj-btn", type: "button", onclick: () => {
+        const gagne = c === bank.bonne_reponse;
+        const serie = gagne ? (dj.date === prevDay(today) || dj.serie ? (dj.gagne ? (dj.serie ?? 0) : 0) : 0) + 1 : 0;
+        try { localStorage.setItem("donjon-qdj", JSON.stringify({ date: today, repondu: true, gagne, serie })); } catch { /* privé */ }
+        wrap.innerHTML = "";
+        wrap.append(
+          el("p", { class: "help-note", text: gagne ? `✅ Bien joué ! Série : ${serie} 🔥` : `❌ C'était « ${bank.bonne_reponse} ». La série repart à zéro !` }),
+          el("p", { class: "help-note", text: `💡 ${bank.anecdote}` }),
+        );
+      } }, c))),
+  );
+  return wrap;
+}
+
+function prevDay(iso) {
+  const d = new Date(iso); d.setDate(d.getDate() - 1);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Hachage stable de la date → une question QCM « ado » de la banque. */
+function getDailyQuestion(iso) {
+  const pool = dailyPool();
+  if (!pool.length) return null;
+  let h = 0;
+  for (const ch of iso) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return pool[h % pool.length];
 }
 
 /* ---------- rules ---------- */
