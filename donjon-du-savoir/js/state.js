@@ -161,6 +161,7 @@ export function newGame(config, boardLayout) {
       // Défi secret (humains) + coup de pouce discret choisi à la configuration.
       defi: p.bot ? null : DEFIS[Math.floor(Math.random() * DEFIS.length)].id,
       boost: p.boost ?? false,
+      skin: p.skin ?? null, // tenue choisie (débloquée via les succès du palmarès)
     })),
     currentIndex: 0,
     tour: 1,

@@ -1027,6 +1027,21 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   gap: 10px;
 }
 
+/* ---------- tenues (skins) de héros ---------- */
+.portrait-skin {
+  border-radius: 50%;
+}
+.portrait-skin-dore { box-shadow: 0 0 10px 2px rgba(224, 176, 74, 0.75); }
+.portrait-skin-dore .portrait-art, .portrait-skin-dore svg { filter: sepia(0.35) saturate(1.5) brightness(1.08); }
+.portrait-skin-emeraude { box-shadow: 0 0 10px 2px rgba(62, 194, 122, 0.7); }
+.portrait-skin-emeraude .portrait-art, .portrait-skin-emeraude svg { filter: hue-rotate(60deg) saturate(1.2); }
+.portrait-skin-flamboyant { box-shadow: 0 0 10px 2px rgba(224, 90, 60, 0.75); }
+.portrait-skin-flamboyant .portrait-art, .portrait-skin-flamboyant svg { filter: hue-rotate(-25deg) saturate(1.55) brightness(1.05); }
+.portrait-skin-royal { box-shadow: 0 0 10px 2px rgba(194, 62, 107, 0.75); }
+.portrait-skin-royal .portrait-art, .portrait-skin-royal svg { filter: hue-rotate(-50deg) saturate(1.3); }
+.portrait-skin-cosmique { box-shadow: 0 0 12px 3px rgba(122, 106, 208, 0.8); }
+.portrait-skin-cosmique .portrait-art, .portrait-skin-cosmique svg { filter: hue-rotate(160deg) saturate(1.25) brightness(1.05); }
+
 </style>
 
   <header class="topbar">
@@ -6287,7 +6302,33 @@ function recordGame({ pions = [], winner = null, mode = "individuel", etoilesMod
   return newly;
 }
 
-;Object.assign(module.exports, {loadPalmares, getPalmares, recordGame, SUCCES});
+/* ---------- tenues (skins) de héros ---------- */
+
+// Tenues débloquées par les succès : liseré coloré sur le portrait en 2D,
+// anneau lumineux sous la figurine en 3D. `succes: null` = offerte d'emblée.
+const SKINS = [
+  { id: "classique", nom: "Classique", emoji: "🎨", couleur: null, succes: null },
+  { id: "dore", nom: "Dorée", emoji: "✨", couleur: "#e0b04a", succes: "premiere" },
+  { id: "emeraude", nom: "Émeraude", emoji: "🌿", couleur: "#3ec27a", succes: "erudit" },
+  { id: "flamboyant", nom: "Flamboyante", emoji: "🔥", couleur: "#e05a3c", succes: "sansfaute" },
+  { id: "royal", nom: "Royale", emoji: "👑", couleur: "#c23e6b", succes: "marathon" },
+  { id: "cosmique", nom: "Cosmique", emoji: "🌌", couleur: "#7a6ad0", succes: "etoiles" },
+];
+
+function skinById(id) {
+  return SKINS.find((s) => s.id === id) ?? SKINS[0];
+}
+
+function skinUnlocked(s) {
+  return !s.succes || data.succes.includes(s.succes);
+}
+
+/** Tenues jouables sur cet appareil (chaque succès listé en ouvre une). */
+function unlockedSkins() {
+  return SKINS.filter((s) => skinUnlocked(s));
+}
+
+;Object.assign(module.exports, {loadPalmares, getPalmares, recordGame, skinById, skinUnlocked, unlockedSkins, SUCCES, SKINS});
 };
 __modules["./herald.js"] = function(module, exports, require) {
 // LE GRAND HÉRAUT DU DONJON — original mascot narrator (option B of §9).
@@ -6800,9 +6841,9 @@ function portraitArtSrc(characterId) {
 }
 
 /** DOM element for a character medallion (decorative; name is given elsewhere). */
-function portraitEl(characterId, size = 56) {
+function portraitEl(characterId, size = 56, skinId = null) {
   const div = document.createElement("div");
-  div.className = "portrait";
+  div.className = "portrait" + (skinId && skinId !== "classique" ? ` portrait-skin portrait-skin-${skinId}` : "");
   div.style.width = `${size}px`;
   div.style.height = `${size}px`;
   div.setAttribute("aria-hidden", "true");
@@ -7358,6 +7399,7 @@ function newGame(config, boardLayout) {
       // Défi secret (humains) + coup de pouce discret choisi à la configuration.
       defi: p.bot ? null : DEFIS[Math.floor(Math.random() * DEFIS.length)].id,
       boost: p.boost ?? false,
+      skin: p.skin ?? null, // tenue choisie (débloquée via les succès du palmarès)
     })),
     currentIndex: 0,
     tour: 1,
@@ -9350,6 +9392,12 @@ function makePionSprite(p) {
 function disposePion(rec) {
   disposeAnimatedHero(rec?.hero);
   if (rec?.obj?.isSprite) rec.obj.material?.dispose?.();
+  if (rec?.ring) {
+    pionGroup?.remove(rec.ring);
+    rec.ring.geometry.dispose();
+    rec.ring.material.dispose();
+    rec.ring = null;
+  }
 }
 
 function markLoadedModels() {
@@ -9370,6 +9418,18 @@ function makePion(p) {
     reactionUntil: 0,
     epoch: sceneEpoch,
   };
+  // Anneau de tenue (skin débloqué via les succès) : halo coloré sous le héros.
+  const skin = p.skin ? skinById(p.skin) : null;
+  if (skin?.couleur) {
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(1.05, 0.08, 10, 36),
+      new THREE.MeshStandardMaterial({ color: hex(skin.couleur), emissive: hex(skin.couleur), emissiveIntensity: 0.75, roughness: 0.35 }),
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 0.08;
+    pionGroup.add(ring);
+    rec.ring = ring;
+  }
   createAnimatedHero(p.characterId).then((hero) => {
     if (rec.epoch !== sceneEpoch || pionObjs.get(p.id) !== rec || !pionGroup) {
       disposeAnimatedHero(hero);
@@ -9539,6 +9599,11 @@ function loop(now = performance.now()) {
     }
     // Petit sautillement du pion actif.
     if (rec.obj.isSprite) rec.obj.position.y = 0.55;
+    // L'anneau de tenue suit la figurine et pulse doucement.
+    if (rec.ring) {
+      rec.ring.position.set(rec.obj.position.x, 0.08, rec.obj.position.z);
+      rec.ring.scale.setScalar(1 + Math.sin(now * 0.004) * 0.07);
+    }
   }
 
   // Les cases spéciales respirent très légèrement au repos ; ce mouvement
@@ -10033,7 +10098,7 @@ function charSays(pion, moment) {
   if (zone) {
     zone.append(
       el("div", { class: "char-bubble", role: "status", "aria-live": "polite" },
-        portraitEl(pion.characterId, 40),
+        portraitEl(pion.characterId, 40, pion.skin),
         el("p", { class: "char-text", text: `${pion.nom} : « ${txt} »` }),
       ),
     );
@@ -10204,7 +10269,7 @@ function renderPlayersStrip() {
     const etoiles = isEtoiles() ? `⭐${p.etoiles ?? 0} · ` : "";
     strip.append(
       el("div", { class: "player-chip" + (p.id === currentPion().id ? " player-chip-actif" : ""), "data-pion": String(p.id) },
-        portraitEl(p.characterId, 34),
+        portraitEl(p.characterId, 34, p.skin),
         el("div", { class: "player-info" },
           el("strong", { text: p.nom }),
           el("span", {
@@ -12664,6 +12729,7 @@ function endStarGame() {
     bot: p.bot ?? false,
     botLevel: p.botLevel ?? null,
     defiInfo: evalDefi(p),
+    skin: p.skin,
   }));
   save();
   const winner = classement[0];
@@ -12699,6 +12765,7 @@ function finishGame(winner) {
     bot: p.bot ?? false,
     botLevel: p.botLevel ?? null,
     defiInfo: evalDefi(p),
+    skin: p.skin,
   }));
   save();
   sfx("win");
@@ -12731,7 +12798,7 @@ const { setSfx, sfx, sfxAvailable, sfxEnabled } = require("./sfx.js");
 const { setMusic, musicAvailable, musicEnabled } = require("./music.js");
 const { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } = require("./bots.js");
 const { getPrefs, loadPrefs, setPref } = require("./prefs.js");
-const { getPalmares, loadPalmares, recordGame, SUCCES } = require("./palmares.js");
+const { getPalmares, loadPalmares, recordGame, SKINS, skinById, skinUnlocked, SUCCES, unlockedSkins } = require("./palmares.js");
 const { grimoireEntries, grimoireSize } = require("./grimoire.js");
 const { souvenirSection } = require("./souvenir.js");
 const { el } = require("./ui.js");
@@ -13090,6 +13157,22 @@ function renderSetup() {
             "aria-pressed": String(!!p.boost),
             onclick: () => { p.boost = !p.boost; renderSetup(); },
           }, "🍀"),
+          // ✨ Tenue du héros : les succès du palmarès en débloquent ; le bouton
+          // fait défiler les tenues disponibles (masqué tant que rien n'est ouvert).
+          p.bot ? null : (() => {
+            const libres = unlockedSkins();
+            if (libres.length <= 1) return null;
+            const cur = skinById(p.skin);
+            return el("button", {
+              class: "btn btn-toggle" + (cur.succes ? " btn-toggle-on" : ""),
+              type: "button", title: `Tenue : ${cur.nom} (appuyez pour changer)`,
+              onclick: () => {
+                const i = libres.findIndex((s) => s.id === cur.id);
+                p.skin = libres[(i + 1) % libres.length].id;
+                renderSetup();
+              },
+            }, cur.emoji);
+          })(),
           characterButton(p, renderSetup),
           players.length > 1
             ? el("button", { class: "btn btn-x", type: "button", "aria-label": `Retirer ${p.bot ? "le bot" : "le joueur"} ${i + 1}`, onclick: () => { players.splice(i, 1); renderSetup(); } }, "✕")
@@ -13487,7 +13570,7 @@ function showVictory(winner, rankingData, extras = {}) {
           const p = top[idx];
           return el("div", { class: `podium-col podium-rank-${idx + 1}` },
             el("span", { class: "podium-crown", text: idx === 0 ? "👑" : idx === 1 ? "🥈" : "🥉" }),
-            portraitEl(p.characterId, idx === 0 ? 84 : 60),
+            portraitEl(p.characterId, idx === 0 ? 84 : 60, p.skin),
             el("span", { class: "podium-name", text: p.nom }),
             el("span", { class: "podium-stand", text: String(idx + 1) }),
           );
@@ -13501,7 +13584,7 @@ function showVictory(winner, rankingData, extras = {}) {
         el("li", { class: "victory-item" + (i === 0 ? " victory-item-first" : "") },
           el("span", { class: "victory-who" },
             el("span", { "aria-hidden": "true", text: i === 0 ? "👑" : i === 1 ? "🥈" : i === 2 ? "🥉" : "🎓" }),
-            portraitEl(p.characterId, 40),
+            portraitEl(p.characterId, 40, p.skin),
             el("span", { text: p.nom + (p.bot ? " 🤖" : "") }),
           ),
           el("span", { class: "victory-meta", text: etoilesMode
@@ -13622,6 +13705,23 @@ function renderPalmares() {
     );
   }
   zone.append(grid);
+  // Galerie des tenues : ce que chaque succès débloque pour les héros.
+  zone.append(el("h2", { class: "palm-succes-titre", text: `✨ Tenues de héros — ${SKINS.filter((s) => skinUnlocked(s)).length} / ${SKINS.length}` }));
+  const skinsGrid = el("div", { class: "palm-succes-grid" });
+  for (const s of SKINS) {
+    const got = skinUnlocked(s);
+    const cond = s.succes ? SUCCES.find((x) => x.id === s.succes) : null;
+    skinsGrid.append(
+      el("div", { class: "palm-succes" + (got ? " palm-succes-on" : "") },
+        el("span", { class: "palm-succes-emoji", "aria-hidden": "true", text: got ? s.emoji : "🔒" }),
+        el("div", { class: "palm-succes-txt" },
+          el("span", { class: "palm-succes-nom", text: `Tenue ${s.nom}` }),
+          el("span", { class: "palm-succes-desc", text: cond ? `Débloquée par le succès « ${cond.titre} ».` : "Offerte d'emblée." }),
+        ),
+      ),
+    );
+  }
+  zone.append(skinsGrid);
   if (d.parties === 0) {
     zone.append(el("p", { class: "help-note", style: "text-align:center", text: "Jouez une partie pour commencer à garnir votre palmarès !" }));
   }

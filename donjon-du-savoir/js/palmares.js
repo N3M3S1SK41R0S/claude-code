@@ -99,3 +99,29 @@ export function recordGame({ pions = [], winner = null, mode = "individuel", eto
   persist();
   return newly;
 }
+
+/* ---------- tenues (skins) de héros ---------- */
+
+// Tenues débloquées par les succès : liseré coloré sur le portrait en 2D,
+// anneau lumineux sous la figurine en 3D. `succes: null` = offerte d'emblée.
+export const SKINS = [
+  { id: "classique", nom: "Classique", emoji: "🎨", couleur: null, succes: null },
+  { id: "dore", nom: "Dorée", emoji: "✨", couleur: "#e0b04a", succes: "premiere" },
+  { id: "emeraude", nom: "Émeraude", emoji: "🌿", couleur: "#3ec27a", succes: "erudit" },
+  { id: "flamboyant", nom: "Flamboyante", emoji: "🔥", couleur: "#e05a3c", succes: "sansfaute" },
+  { id: "royal", nom: "Royale", emoji: "👑", couleur: "#c23e6b", succes: "marathon" },
+  { id: "cosmique", nom: "Cosmique", emoji: "🌌", couleur: "#7a6ad0", succes: "etoiles" },
+];
+
+export function skinById(id) {
+  return SKINS.find((s) => s.id === id) ?? SKINS[0];
+}
+
+export function skinUnlocked(s) {
+  return !s.succes || data.succes.includes(s.succes);
+}
+
+/** Tenues jouables sur cet appareil (chaque succès listé en ouvre une). */
+export function unlockedSkins() {
+  return SKINS.filter((s) => skinUnlocked(s));
+}

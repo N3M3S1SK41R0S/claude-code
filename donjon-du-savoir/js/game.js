@@ -155,7 +155,7 @@ function charSays(pion, moment) {
   if (zone) {
     zone.append(
       el("div", { class: "char-bubble", role: "status", "aria-live": "polite" },
-        portraitEl(pion.characterId, 40),
+        portraitEl(pion.characterId, 40, pion.skin),
         el("p", { class: "char-text", text: `${pion.nom} : « ${txt} »` }),
       ),
     );
@@ -326,7 +326,7 @@ function renderPlayersStrip() {
     const etoiles = isEtoiles() ? `⭐${p.etoiles ?? 0} · ` : "";
     strip.append(
       el("div", { class: "player-chip" + (p.id === currentPion().id ? " player-chip-actif" : ""), "data-pion": String(p.id) },
-        portraitEl(p.characterId, 34),
+        portraitEl(p.characterId, 34, p.skin),
         el("div", { class: "player-info" },
           el("strong", { text: p.nom }),
           el("span", {
@@ -2786,6 +2786,7 @@ function endStarGame() {
     bot: p.bot ?? false,
     botLevel: p.botLevel ?? null,
     defiInfo: evalDefi(p),
+    skin: p.skin,
   }));
   save();
   const winner = classement[0];
@@ -2821,6 +2822,7 @@ function finishGame(winner) {
     bot: p.bot ?? false,
     botLevel: p.botLevel ?? null,
     defiInfo: evalDefi(p),
+    skin: p.skin,
   }));
   save();
   sfx("win");

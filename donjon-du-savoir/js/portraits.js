@@ -238,9 +238,9 @@ export function portraitArtSrc(characterId) {
 }
 
 /** DOM element for a character medallion (decorative; name is given elsewhere). */
-export function portraitEl(characterId, size = 56) {
+export function portraitEl(characterId, size = 56, skinId = null) {
   const div = document.createElement("div");
-  div.className = "portrait";
+  div.className = "portrait" + (skinId && skinId !== "classique" ? ` portrait-skin portrait-skin-${skinId}` : "");
   div.style.width = `${size}px`;
   div.style.height = `${size}px`;
   div.setAttribute("aria-hidden", "true");

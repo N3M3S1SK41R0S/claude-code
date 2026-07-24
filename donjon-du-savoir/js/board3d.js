@@ -571,6 +571,12 @@ function makePionSprite(p) {
 function disposePion(rec) {
   disposeAnimatedHero(rec?.hero);
   if (rec?.obj?.isSprite) rec.obj.material?.dispose?.();
+  if (rec?.ring) {
+    pionGroup?.remove(rec.ring);
+    rec.ring.geometry.dispose();
+    rec.ring.material.dispose();
+    rec.ring = null;
+  }
 }
 
 function markLoadedModels() {
@@ -591,6 +597,18 @@ function makePion(p) {
     reactionUntil: 0,
     epoch: sceneEpoch,
   };
+  // Anneau de tenue (skin débloqué via les succès) : halo coloré sous le héros.
+  const skin = p.skin ? skinById(p.skin) : null;
+  if (skin?.couleur) {
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(1.05, 0.08, 10, 36),
+      new THREE.MeshStandardMaterial({ color: hex(skin.couleur), emissive: hex(skin.couleur), emissiveIntensity: 0.75, roughness: 0.35 }),
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 0.08;
+    pionGroup.add(ring);
+    rec.ring = ring;
+  }
   createAnimatedHero(p.characterId).then((hero) => {
     if (rec.epoch !== sceneEpoch || pionObjs.get(p.id) !== rec || !pionGroup) {
       disposeAnimatedHero(hero);
@@ -760,6 +778,11 @@ function loop(now = performance.now()) {
     }
     // Petit sautillement du pion actif.
     if (rec.obj.isSprite) rec.obj.position.y = 0.55;
+    // L'anneau de tenue suit la figurine et pulse doucement.
+    if (rec.ring) {
+      rec.ring.position.set(rec.obj.position.x, 0.08, rec.obj.position.z);
+      rec.ring.scale.setScalar(1 + Math.sin(now * 0.004) * 0.07);
+    }
   }
 
   // Les cases spéciales respirent très légèrement au repos ; ce mouvement

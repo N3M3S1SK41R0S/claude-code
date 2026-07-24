@@ -1011,3 +1011,18 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   justify-content: center;
   gap: 10px;
 }
+
+/* ---------- tenues (skins) de héros ---------- */
+.portrait-skin {
+  border-radius: 50%;
+}
+.portrait-skin-dore { box-shadow: 0 0 10px 2px rgba(224, 176, 74, 0.75); }
+.portrait-skin-dore .portrait-art, .portrait-skin-dore svg { filter: sepia(0.35) saturate(1.5) brightness(1.08); }
+.portrait-skin-emeraude { box-shadow: 0 0 10px 2px rgba(62, 194, 122, 0.7); }
+.portrait-skin-emeraude .portrait-art, .portrait-skin-emeraude svg { filter: hue-rotate(60deg) saturate(1.2); }
+.portrait-skin-flamboyant { box-shadow: 0 0 10px 2px rgba(224, 90, 60, 0.75); }
+.portrait-skin-flamboyant .portrait-art, .portrait-skin-flamboyant svg { filter: hue-rotate(-25deg) saturate(1.55) brightness(1.05); }
+.portrait-skin-royal { box-shadow: 0 0 10px 2px rgba(194, 62, 107, 0.75); }
+.portrait-skin-royal .portrait-art, .portrait-skin-royal svg { filter: hue-rotate(-50deg) saturate(1.3); }
+.portrait-skin-cosmique { box-shadow: 0 0 12px 3px rgba(122, 106, 208, 0.8); }
+.portrait-skin-cosmique .portrait-art, .portrait-skin-cosmique svg { filter: hue-rotate(160deg) saturate(1.25) brightness(1.05); }

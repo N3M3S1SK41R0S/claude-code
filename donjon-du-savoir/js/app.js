@@ -13,7 +13,7 @@ import { setSfx, sfx, sfxAvailable, sfxEnabled } from "./sfx.js";
 import { setMusic, musicAvailable, musicEnabled } from "./music.js";
 import { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } from "./bots.js";
 import { getPrefs, loadPrefs, setPref } from "./prefs.js";
-import { getPalmares, loadPalmares, recordGame, SUCCES } from "./palmares.js";
+import { getPalmares, loadPalmares, recordGame, SKINS, skinById, skinUnlocked, SUCCES, unlockedSkins } from "./palmares.js";
 import { grimoireEntries, grimoireSize } from "./grimoire.js";
 import { souvenirSection } from "./souvenir.js";
 import { el } from "./ui.js";
@@ -372,6 +372,22 @@ function renderSetup() {
             "aria-pressed": String(!!p.boost),
             onclick: () => { p.boost = !p.boost; renderSetup(); },
           }, "🍀"),
+          // ✨ Tenue du héros : les succès du palmarès en débloquent ; le bouton
+          // fait défiler les tenues disponibles (masqué tant que rien n'est ouvert).
+          p.bot ? null : (() => {
+            const libres = unlockedSkins();
+            if (libres.length <= 1) return null;
+            const cur = skinById(p.skin);
+            return el("button", {
+              class: "btn btn-toggle" + (cur.succes ? " btn-toggle-on" : ""),
+              type: "button", title: `Tenue : ${cur.nom} (appuyez pour changer)`,
+              onclick: () => {
+                const i = libres.findIndex((s) => s.id === cur.id);
+                p.skin = libres[(i + 1) % libres.length].id;
+                renderSetup();
+              },
+            }, cur.emoji);
+          })(),
           characterButton(p, renderSetup),
           players.length > 1
             ? el("button", { class: "btn btn-x", type: "button", "aria-label": `Retirer ${p.bot ? "le bot" : "le joueur"} ${i + 1}`, onclick: () => { players.splice(i, 1); renderSetup(); } }, "✕")
@@ -769,7 +785,7 @@ function showVictory(winner, rankingData, extras = {}) {
           const p = top[idx];
           return el("div", { class: `podium-col podium-rank-${idx + 1}` },
             el("span", { class: "podium-crown", text: idx === 0 ? "👑" : idx === 1 ? "🥈" : "🥉" }),
-            portraitEl(p.characterId, idx === 0 ? 84 : 60),
+            portraitEl(p.characterId, idx === 0 ? 84 : 60, p.skin),
             el("span", { class: "podium-name", text: p.nom }),
             el("span", { class: "podium-stand", text: String(idx + 1) }),
           );
@@ -783,7 +799,7 @@ function showVictory(winner, rankingData, extras = {}) {
         el("li", { class: "victory-item" + (i === 0 ? " victory-item-first" : "") },
           el("span", { class: "victory-who" },
             el("span", { "aria-hidden": "true", text: i === 0 ? "👑" : i === 1 ? "🥈" : i === 2 ? "🥉" : "🎓" }),
-            portraitEl(p.characterId, 40),
+            portraitEl(p.characterId, 40, p.skin),
             el("span", { text: p.nom + (p.bot ? " 🤖" : "") }),
           ),
           el("span", { class: "victory-meta", text: etoilesMode
@@ -904,6 +920,23 @@ function renderPalmares() {
     );
   }
   zone.append(grid);
+  // Galerie des tenues : ce que chaque succès débloque pour les héros.
+  zone.append(el("h2", { class: "palm-succes-titre", text: `✨ Tenues de héros — ${SKINS.filter((s) => skinUnlocked(s)).length} / ${SKINS.length}` }));
+  const skinsGrid = el("div", { class: "palm-succes-grid" });
+  for (const s of SKINS) {
+    const got = skinUnlocked(s);
+    const cond = s.succes ? SUCCES.find((x) => x.id === s.succes) : null;
+    skinsGrid.append(
+      el("div", { class: "palm-succes" + (got ? " palm-succes-on" : "") },
+        el("span", { class: "palm-succes-emoji", "aria-hidden": "true", text: got ? s.emoji : "🔒" }),
+        el("div", { class: "palm-succes-txt" },
+          el("span", { class: "palm-succes-nom", text: `Tenue ${s.nom}` }),
+          el("span", { class: "palm-succes-desc", text: cond ? `Débloquée par le succès « ${cond.titre} ».` : "Offerte d'emblée." }),
+        ),
+      ),
+    );
+  }
+  zone.append(skinsGrid);
   if (d.parties === 0) {
     zone.append(el("p", { class: "help-note", style: "text-align:center", text: "Jouez une partie pour commencer à garnir votre palmarès !" }));
   }
