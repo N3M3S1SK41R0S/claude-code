@@ -47,7 +47,7 @@ for (const clip of manifest.clips) {
 assert(totalBytes < 400 * 1024, `budget voix dépassé : ${Math.round(totalBytes / 1024)} Ko`);
 assert(builder.includes('webm: "audio/webm;codecs=opus"'));
 assert(builder.includes('"host-voice", "tts"'));
-assert(worker.includes('const VERSION = "donjon-v66"'));
+assert(worker.includes('const VERSION = "donjon-v67"'));
 assert(game.includes('sayHost(q.texte, "question")'));
 assert(game.includes('sayHost(q.anecdote, "anecdote")'));
 assert((game.match(/narrateQuestion\(q\);/g) ?? []).length >= 9);

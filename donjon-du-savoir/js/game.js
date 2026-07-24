@@ -6,7 +6,7 @@
 //  - anecdote after EVERY question, no exception.
 import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawHardest, drawInsolite, drawQuestion } from "./data.js";
 import { boardById, renderBoard, walkPion } from "./board.js";
-import { render3D, show3D, use3D, walk3D } from "./board3d.js";
+import { react3D, render3D, show3D, use3D, walk3D } from "./board3d.js";
 import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
@@ -1245,6 +1245,7 @@ function npcQuiz(pion, npc) {
       if (correct) pion.stats.bonnes += 1;
       bumpNiveau(pion, correct);
       sfx(correct ? "good" : "bad");
+      react3D(pion.id, correct);
       const won = correct && npc.reward.apply(pion) === true;
       save();
       render();
@@ -1293,6 +1294,7 @@ function malusQuiz(pion, effect) {
       bumpNiveau(pion, correct);
       setPendingCase("resolu");
       if (correct) { sfx("good"); } else { effect.apply(pion); pion.malusSubis = (pion.malusSubis ?? 0) + 1; sfx("malus"); }
+      react3D(pion.id, correct);
       save();
       render();
       showAnecdote(q, {
@@ -1938,6 +1940,7 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   }
   save();
   sfx(correct ? "good" : "bad");
+  react3D(pion.id, correct);
   heraldSays(correct ? herald.bonne() : herald.mauvaise());
   charSays(pion, correct ? "bonne" : "mauvaise");
   showAnecdote(q, {
@@ -1975,6 +1978,7 @@ function doTrouNoir(pion) {
     pion.stats.questions += 1;
     if (correct) pion.stats.bonnes += 1;
     save();
+    react3D(pion.id, correct);
     heraldSays(correct ? herald.bonne() : herald.mauvaise());
     showAnecdote(q, {
       verdictHtml: correct
@@ -2138,6 +2142,7 @@ function gambitReveal(pion, q, guess, bets) {
   if (advance > 0) pion.stats.bonnes += 1;
   bumpNiveau(pion, advance > 0);
   save();
+  react3D(pion.id, advance > 0);
   heraldSays(advance > 0 ? herald.bonne() : herald.mauvaise());
   setPanel(
     el("div", { class: "question-block" },
@@ -2189,6 +2194,7 @@ function doEvent() {
         return el("p", { class: "bet-result", text: `🚫 ${p.nom} (absent)` });
       }
       const good = answers.get(p.id) === q.bonne_reponse;
+      react3D(p.id, good);
       // addCoins routes through Bonus Comptable for the pion whose turn it is.
       if (good) {
         if (p.id === current.id) addCoins(p, 2);
@@ -2349,7 +2355,11 @@ function revealTableBonus(q, onDone) {
   }
   const done = () => {
     let any = false;
-    for (const p of getState().pions) if (found.has(p.id)) { addCoins(p, REWARD); any = true; }
+    for (const p of getState().pions) {
+      const good = found.has(p.id);
+      react3D(p.id, good);
+      if (good) { addCoins(p, REWARD); any = true; }
+    }
     if (any) heraldSays(`+${REWARD} 🪙 pour chaque bonne réponse ! Le savoir paie, sans se presser.`);
     onDone();
   };

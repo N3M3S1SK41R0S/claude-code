@@ -16,7 +16,7 @@ const R = (p) => readFileSync(join(root, p), "utf8");
 // the entry last. We register every module, then require("./app.js").
 const MODULES = [
   "host-voice", "tts", "sfx", "music", "voices", "bots", "prefs", "palmares", "herald", "powers", "portraits", "custom", "items", "minigames",
-  "wordgames", "themes", "state", "board", "data", "ui", "scene", "board3d", "game", "app",
+  "wordgames", "themes", "state", "board", "data", "ui", "scene", "models3d", "board3d", "game", "app",
 ];
 
 function collectExports(src) {
@@ -99,6 +99,9 @@ ${bundleParts.join("\n")}
 const indexHtml = R("index.html");
 let body = indexHtml.replace(/^[\s\S]*?<body[^>]*>/, "").replace(/<\/body>[\s\S]*$/, "");
 body = body.replace(/<script[^>]*type="module"[^>]*><\/script>/, "");
+// Les scripts vendorés seront injectés ci-dessous : aucun src résiduel ne doit
+// provoquer de requête en file:// dans le fichier autonome.
+body = body.replace(/<script[^>]*src="vendor\/[^"]+"[^>]*><\/script>\s*/g, "");
 
 const css = R("css/style.css");
 
@@ -121,6 +124,7 @@ function inlineAssets(text) {
     png: "image/png",
     webp: "image/webp",
     webm: "audio/webm;codecs=opus",
+    glb: "model/gltf-binary",
   };
   for (const file of files) {
     const extension = file.split(".").pop().toLowerCase();
@@ -140,8 +144,16 @@ let assetCount = 0;
 // three.js (MIT) embarqué : la vue 3D fonctionne hors-ligne, sans aucun CDN.
 // Il expose le global THREE, utilisé par board3d.js ; repli 2D si absent.
 const three = R("vendor/three.min.js");
+const dracoLoader = R("vendor/DRACOLoader.js");
+const gltfLoader = R("vendor/GLTFLoader.js");
+const dracoWrapper = R("vendor/draco/draco_wasm_wrapper.js");
+const dracoWasm = readFileSync(join(root, "vendor", "draco", "draco_decoder.wasm")).toString("base64");
+const dracoResources = `globalThis.__DONJON_DRACO={
+  wrapper:${JSON.stringify(dracoWrapper)},
+  wasm:Uint8Array.from(atob("${dracoWasm}"),c=>c.charCodeAt(0)).buffer
+};`;
 
-const artifactContent = inlineAssets(`<style>\n${css}\n</style>\n${body}\n<script>${three}</script>\n<script>${runtime}</script>\n`);
+const artifactContent = inlineAssets(`<style>\n${css}\n</style>\n${body}\n<script>${three}</script>\n<script>${dracoLoader}</script>\n<script>${gltfLoader}</script>\n<script>${dracoResources}</script>\n<script>${runtime}</script>\n`);
 
 // Icône embarquée : le fichier standalone montre une vraie icône du jeu dans
 // l'onglet du navigateur et sur l'écran d'accueil (« Ajouter à l'écran »),
