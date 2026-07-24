@@ -916,7 +916,7 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 /* ---------- mini-carte (vue d'ensemble en mode 3D) ---------- */
 .board-scroll { position: relative; } /* ancre la mini-carte */
 .minimap {
-  position: absolute; top: 10px; right: 10px; width: 94px; z-index: 4;
+  position: absolute; top: 10px; right: 10px; width: 148px; z-index: 4;
   background: rgba(20, 14, 40, 0.74); border: 1px solid var(--line);
   border-radius: 9px; padding: 5px; pointer-events: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
@@ -9098,6 +9098,21 @@ const rayDir = THREE ? new THREE.Vector3() : null;
 const fadedNow = new Set();
 let fadedPrev = new Set();
 
+/** Rend un objet (et tout son sous-arbre) translucide de façon PERMANENTE :
+ *  on voit le plateau et les cases À TRAVERS les bâtiments. Idempotent. */
+function ghostify(root, opacity) {
+  root.traverse((child) => {
+    if (!child.isMesh && !child.isSprite) return;
+    const mats = Array.isArray(child.material) ? child.material : [child.material];
+    for (const m of mats) {
+      if (!m) continue;
+      m.transparent = true;
+      m.opacity = Math.min(m.opacity ?? 1, opacity);
+      m.depthWrite = false;
+    }
+  });
+}
+
 function fadeMesh(mesh) {
   if (!mesh.isMesh || !mesh.material) return;
   if (!mesh.userData.fadeOrig) {
@@ -9470,9 +9485,17 @@ function updateMinimap(hostBoard, layout, pions, currentId, starPos) {
   const ny = (y) => ((y / viewH) * H).toFixed(1);
   const cl = (p) => coords[Math.max(0, Math.min(length - 1, p))];
   const pathD = coords.map((c, i) => `${i ? "L" : "M"}${nx(c.x)} ${ny(c.y)}`).join(" ");
+  // La carte GLOBALE : chaque case dans sa couleur (départ/arrivée plus gros),
+  // l'étoile du marchand et les pions par-dessus — l'état du plateau d'un œil.
+  const cases = layout.map((type, i) => {
+    const c = coords[i];
+    const def = CASE_TYPES[type] ?? CASE_TYPES.question;
+    const big = type === "depart" || type === "arrivee";
+    return `<circle cx="${nx(c.x)}" cy="${ny(c.y)}" r="${big ? 2.6 : 1.7}" fill="${def.couleur}" stroke="#0e0a1c" stroke-width="0.45"/>`;
+  }).join("");
   const star = starPos != null ? `<circle cx="${nx(cl(starPos).x)}" cy="${ny(cl(starPos).y)}" r="3.4" fill="#e0b04a" stroke="#1a1230" stroke-width="0.6"/>` : "";
   const dots = pions.map((p) => { const c = cl(p.position); return `<circle cx="${nx(c.x)}" cy="${ny(c.y)}" r="${p.id === currentId ? 4 : 2.6}" fill="${p.couleur || "#e0b04a"}" stroke="#fff" stroke-width="0.7"/>`; }).join("");
-  minimapEl.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><path d="${pathD}" fill="none" stroke="#8e6cff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>${star}${dots}</svg>`;
+  minimapEl.innerHTML = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><path d="${pathD}" fill="none" stroke="#8e6cff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>${cases}${star}${dots}</svg>`;
 }
 
 /* ---------- construction du plateau ---------- */
@@ -9657,9 +9680,12 @@ function addBuilding(id, art, position, height, epoch) {
   const anchor = new THREE.Group();
   anchor.position.copy(position);
   const fallback = standee(art, new THREE.Vector3(), height);
+  ghostify(fallback, 0.55); // on voit toujours le plateau à travers
   anchor.add(fallback);
   boardGroup.add(anchor);
-  upgradeStatic(anchor, fallback, createBuildingModel(id, height), epoch, `bâtiment ${id}`);
+  upgradeStatic(anchor, fallback,
+    Promise.resolve(createBuildingModel(id, height)).then((m) => { if (m) ghostify(m, 0.55); return m; }),
+    epoch, `bâtiment ${id}`);
 }
 
 /* ---------- mises en scène courtes des cases ---------- */
