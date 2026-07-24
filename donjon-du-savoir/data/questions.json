@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 4082,
+ "count": 4195,
  "questions": [
   {
    "id": "arts-001",
@@ -78076,6 +78076,2200 @@
    "sources": [
     "https://fr.wikipedia.org/wiki/Éléphant",
     "https://fr.vikidia.org/wiki/Éléphant"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2674",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel studio a créé le jeu vidéo Minecraft ?",
+   "anecdote": "Minecraft a été imaginé par le Suédois Markus Persson, surnommé « Notch », et sa première version publique est sortie en 2009.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Minecraft",
+    "https://en.wikipedia.org/wiki/Minecraft"
+   ],
+   "choix": [
+    "Epic Games",
+    "Mojang Studios",
+    "Ubisoft",
+    "Electronic Arts"
+   ],
+   "bonne_reponse": "Mojang Studios"
+  },
+  {
+   "id": "add-2675",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel créateur japonais est à l'origine du personnage de Mario ?",
+   "anecdote": "Shigeru Miyamoto a aussi créé Donkey Kong et The Legend of Zelda ; Mario est d'ailleurs apparu pour la première fois en 1981 dans le jeu Donkey Kong.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Shigeru_Miyamoto",
+    "https://en.wikipedia.org/wiki/Shigeru_Miyamoto"
+   ],
+   "choix": [
+    "Shigeru Miyamoto",
+    "Hideo Kojima",
+    "Satoshi Tajiri",
+    "Masahiro Sakurai"
+   ],
+   "bonne_reponse": "Shigeru Miyamoto"
+  },
+  {
+   "id": "add-2676",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quelle société développe le jeu Fortnite ?",
+   "anecdote": "Epic Games développe aussi l'Unreal Engine, un moteur de jeu utilisé par de très nombreux studios dans le monde entier.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fortnite",
+    "https://en.wikipedia.org/wiki/Fortnite"
+   ],
+   "choix": [
+    "Activision",
+    "Valve",
+    "Epic Games",
+    "Riot Games"
+   ],
+   "bonne_reponse": "Epic Games"
+  },
+  {
+   "id": "add-2677",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle entreprise le hérisson Sonic est-il la mascotte ?",
+   "anecdote": "Sonic est apparu en 1991 sur la console Mega Drive : il avait été conçu pour concurrencer directement Mario, la star de Nintendo.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sonic",
+    "https://en.wikipedia.org/wiki/Sonic_the_Hedgehog"
+   ],
+   "choix": [
+    "Nintendo",
+    "Sega",
+    "Sony",
+    "Atari"
+   ],
+   "bonne_reponse": "Sega"
+  },
+  {
+   "id": "add-2678",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La série de jeux Animal Crossing est développée par Sega.",
+   "anecdote": "Animal Crossing est une série de Nintendo : le tout premier épisode est sorti en 2001 au Japon, sur Nintendo 64.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Animal_Crossing",
+    "https://en.wikipedia.org/wiki/Animal_Crossing"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2679",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel studio japonais développe les jeux Pokémon depuis 1996 ?",
+   "anecdote": "Game Freak a été cofondé par Satoshi Tajiri, qui a imaginé Pokémon en repensant à sa passion d'enfance : la chasse aux insectes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Game_Freak",
+    "https://en.wikipedia.org/wiki/Game_Freak"
+   ],
+   "choix": [
+    "HAL Laboratory",
+    "Capcom",
+    "Square Enix",
+    "Game Freak"
+   ],
+   "bonne_reponse": "Game Freak"
+  },
+  {
+   "id": "add-2680",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans quel pays le jeu Tetris a-t-il été créé en 1984 ?",
+   "anecdote": "Tetris a été inventé par Alexeï Pajitnov, un informaticien de Moscou : le nom mélange « tétromino » et « tennis », son sport préféré.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tetris",
+    "https://en.wikipedia.org/wiki/Tetris"
+   ],
+   "choix": [
+    "Au Japon",
+    "En Union soviétique",
+    "Aux États-Unis",
+    "En France"
+   ],
+   "bonne_reponse": "En Union soviétique"
+  },
+  {
+   "id": "add-2681",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "The Legend of Zelda: Breath of the Wild est sorti en 2017.",
+   "anecdote": "Le jeu est sorti le 3 mars 2017, le même jour que la console Nintendo Switch, dont il a accompagné le lancement.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/The_Legend_of_Zelda:_Breath_of_the_Wild",
+    "https://en.wikipedia.org/wiki/The_Legend_of_Zelda:_Breath_of_the_Wild"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2682",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année le jeu Super Mario Bros. est-il sorti sur la console NES ?",
+   "anecdote": "Ce jeu de Nintendo a contribué à relancer toute l'industrie du jeu vidéo après le grand krach du secteur survenu en 1983.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Super_Mario_Bros.",
+    "https://en.wikipedia.org/wiki/Super_Mario_Bros."
+   ],
+   "choix": [
+    "1979",
+    "1983",
+    "1985",
+    "1990"
+   ],
+   "bonne_reponse": "1985"
+  },
+  {
+   "id": "add-2683",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel studio a créé le jeu League of Legends ?",
+   "anecdote": "Sorti en 2009, League of Legends possède un championnat du monde, les « Worlds », dont les finales remplissent de véritables stades.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/League_of_Legends",
+    "https://en.wikipedia.org/wiki/League_of_Legends"
+   ],
+   "choix": [
+    "Riot Games",
+    "Blizzard Entertainment",
+    "Epic Games",
+    "Ubisoft"
+   ],
+   "bonne_reponse": "Riot Games"
+  },
+  {
+   "id": "add-2684",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel petit studio américain a développé Among Us, sorti en 2018 ?",
+   "anecdote": "Among Us n'est devenu un phénomène mondial qu'en 2020, deux ans après sa sortie, grâce aux vidéos de streamers très suivis.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Among_Us",
+    "https://en.wikipedia.org/wiki/Among_Us"
+   ],
+   "choix": [
+    "Rockstar Games",
+    "InnerSloth",
+    "Mojang Studios",
+    "Supercell"
+   ],
+   "bonne_reponse": "InnerSloth"
+  },
+  {
+   "id": "add-2685",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle entreprise a lancé la première console PlayStation en 1994 ?",
+   "anecdote": "La PlayStation est née après l'échec d'un projet de console commune entre Sony et Nintendo au début des années 1990.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/PlayStation",
+    "https://en.wikipedia.org/wiki/PlayStation_(console)"
+   ],
+   "choix": [
+    "Sega",
+    "Nintendo",
+    "Microsoft",
+    "Sony"
+   ],
+   "bonne_reponse": "Sony"
+  },
+  {
+   "id": "add-2686",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année le jeu d'arcade Pac-Man est-il sorti au Japon ?",
+   "anecdote": "Son créateur Toru Iwatani raconte avoir eu l'idée de la forme de Pac-Man en regardant une pizza à laquelle il manquait une part.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pac-Man",
+    "https://en.wikipedia.org/wiki/Pac-Man"
+   ],
+   "choix": [
+    "1975",
+    "1980",
+    "1985",
+    "1990"
+   ],
+   "bonne_reponse": "1980"
+  },
+  {
+   "id": "add-2687",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui a créé le personnage de Kirby ?",
+   "anecdote": "Masahiro Sakurai a créé Kirby à seulement 19 ans ; il dirige aussi la célèbre série de jeux de combat Super Smash Bros.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Masahiro_Sakurai",
+    "https://en.wikipedia.org/wiki/Kirby_(series)"
+   ],
+   "choix": [
+    "Shigeru Miyamoto",
+    "Eiji Aonuma",
+    "Masahiro Sakurai",
+    "Hironobu Sakaguchi"
+   ],
+   "bonne_reponse": "Masahiro Sakurai"
+  },
+  {
+   "id": "add-2688",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle société japonaise a créé le jeu Space Invaders en 1978 ?",
+   "anecdote": "Le succès de Space Invaders fut tel au Japon qu'une légende tenace affirme qu'il aurait provoqué une pénurie de pièces de 100 yens.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Space_Invaders",
+    "https://en.wikipedia.org/wiki/Space_Invaders"
+   ],
+   "choix": [
+    "Namco",
+    "Taito",
+    "Sega",
+    "Konami"
+   ],
+   "bonne_reponse": "Taito"
+  },
+  {
+   "id": "add-2689",
+   "categorie": "Jeux vidéo",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le premier jeu Splatoon est sorti sur Nintendo Switch.",
+   "anecdote": "Le premier Splatoon est sorti en 2015 sur Wii U : la Nintendo Switch n'existait pas encore, elle n'est arrivée qu'en 2017.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Splatoon",
+    "https://en.wikipedia.org/wiki/Splatoon"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2690",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un manga au format japonais traditionnel se lit de droite à gauche.",
+   "anecdote": "C'est le sens de lecture du japonais ; la plupart des éditions françaises de mangas conservent aujourd'hui ce sens d'origine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Manga",
+    "https://en.wikipedia.org/wiki/Manga"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2691",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui est l'auteur du manga Naruto ?",
+   "anecdote": "Masashi Kishimoto a un frère jumeau, Seishi, qui est lui aussi auteur de mangas.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Masashi_Kishimoto",
+    "https://en.wikipedia.org/wiki/Masashi_Kishimoto"
+   ],
+   "choix": [
+    "Eiichiro Oda",
+    "Hajime Isayama",
+    "Kohei Horikoshi",
+    "Masashi Kishimoto"
+   ],
+   "bonne_reponse": "Masashi Kishimoto"
+  },
+  {
+   "id": "add-2692",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "One Piece est la série de manga la plus vendue de l'histoire.",
+   "anecdote": "One Piece a dépassé les 500 millions d'exemplaires en circulation dans le monde, un record pour une série de manga.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/One_Piece",
+    "https://en.wikipedia.org/wiki/One_Piece"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2693",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui dessine le manga My Hero Academia ?",
+   "anecdote": "My Hero Academia a été prépublié dans le célèbre magazine japonais Weekly Shonen Jump de 2014 à 2024.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/My_Hero_Academia",
+    "https://en.wikipedia.org/wiki/My_Hero_Academia"
+   ],
+   "choix": [
+    "Kohei Horikoshi",
+    "Koyoharu Gotouge",
+    "Tsugumi Ohba",
+    "Hiromu Arakawa"
+   ],
+   "bonne_reponse": "Kohei Horikoshi"
+  },
+  {
+   "id": "add-2694",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui a créé le manga Demon Slayer (Kimetsu no Yaiba) ?",
+   "anecdote": "Le film Demon Slayer : Le Train de l'Infini est devenu en 2020 le plus gros succès de l'histoire du box-office japonais.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Demon_Slayer",
+    "https://en.wikipedia.org/wiki/Demon_Slayer:_Kimetsu_no_Yaiba"
+   ],
+   "choix": [
+    "Kohei Horikoshi",
+    "Eiichiro Oda",
+    "Koyoharu Gotouge",
+    "Hajime Isayama"
+   ],
+   "bonne_reponse": "Koyoharu Gotouge"
+  },
+  {
+   "id": "add-2695",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel duo est à l'origine du manga Death Note ?",
+   "anecdote": "Tsugumi Ohba est un pseudonyme : la véritable identité du scénariste de Death Note reste officiellement secrète.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Death_Note",
+    "https://en.wikipedia.org/wiki/Death_Note"
+   ],
+   "choix": [
+    "Tsugumi Ohba et Takeshi Obata",
+    "Akira Toriyama et Osamu Tezuka",
+    "Tsugumi Ohba et Eiichiro Oda",
+    "Takeshi Obata et Masashi Kishimoto"
+   ],
+   "bonne_reponse": "Tsugumi Ohba et Takeshi Obata"
+  },
+  {
+   "id": "add-2696",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pionnier surnommé « le dieu du manga » a créé Astro Boy ?",
+   "anecdote": "Osamu Tezuka était médecin de formation : il a obtenu son diplôme tout en dessinant des centaines de volumes de mangas.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Osamu_Tezuka",
+    "https://en.wikipedia.org/wiki/Astro_Boy"
+   ],
+   "choix": [
+    "Akira Toriyama",
+    "Osamu Tezuka",
+    "Hayao Miyazaki",
+    "Eiichiro Oda"
+   ],
+   "bonne_reponse": "Osamu Tezuka"
+  },
+  {
+   "id": "add-2697",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le manga Naruto a commencé sa publication dans les années 1980.",
+   "anecdote": "Naruto a été prépublié dans le magazine Weekly Shonen Jump de 1999 à 2014, soit quinze ans de publication.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Naruto",
+    "https://en.wikipedia.org/wiki/Naruto"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2698",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "L'auteur du manga Fullmetal Alchemist, Hiromu Arakawa, est une femme.",
+   "anecdote": "Hiromu Arakawa se représente en vache à lunettes dans ses autoportraits, un clin d'œil à son enfance dans une ferme d'Hokkaido.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Hiromu_Arakawa",
+    "https://en.wikipedia.org/wiki/Hiromu_Arakawa"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2699",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui a créé le manga Sailor Moon ?",
+   "anecdote": "Naoko Takeuchi est mariée à Yoshihiro Togashi, l'auteur des mangas Yu Yu Hakusho et Hunter x Hunter.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Naoko_Takeuchi",
+    "https://en.wikipedia.org/wiki/Naoko_Takeuchi"
+   ],
+   "choix": [
+    "Rumiko Takahashi",
+    "Hiromu Arakawa",
+    "Koyoharu Gotouge",
+    "Naoko Takeuchi"
+   ],
+   "bonne_reponse": "Naoko Takeuchi"
+  },
+  {
+   "id": "add-2700",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Dragon Ball s'inspire du roman chinois classique La Pérégrination vers l'Ouest.",
+   "anecdote": "Son Goku est directement inspiré de Sun Wukong, le roi des singes, héros de ce grand récit de la littérature chinoise.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Dragon_Ball",
+    "https://en.wikipedia.org/wiki/Dragon_Ball"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2701",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "En quelle année le manga One Piece a-t-il commencé sa publication ?",
+   "anecdote": "Avant One Piece, Eiichiro Oda avait testé son univers de pirates dans deux histoires courtes intitulées Romance Dawn.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/One_Piece",
+    "https://en.wikipedia.org/wiki/One_Piece"
+   ],
+   "choix": [
+    "1989",
+    "1997",
+    "2002",
+    "2007"
+   ],
+   "bonne_reponse": "1997"
+  },
+  {
+   "id": "add-2702",
+   "categorie": "Manga",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui est l'auteur du manga Détective Conan ?",
+   "anecdote": "Publié depuis 1994, Détective Conan dépasse les 100 tomes, ce qui en fait l'une des séries de mangas les plus longues.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/D%C3%A9tective_Conan",
+    "https://en.wikipedia.org/wiki/Case_Closed"
+   ],
+   "choix": [
+    "Gosho Aoyama",
+    "Osamu Tezuka",
+    "Tsugumi Ohba",
+    "Hajime Isayama"
+   ],
+   "bonne_reponse": "Gosho Aoyama"
+  },
+  {
+   "id": "add-2703",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel réalisateur a signé à la fois Titanic et Avatar ?",
+   "anecdote": "Passionné d'océans, James Cameron a plongé en solitaire jusqu'au fond de la fosse des Mariannes en 2012.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/James_Cameron",
+    "https://en.wikipedia.org/wiki/James_Cameron"
+   ],
+   "choix": [
+    "Steven Spielberg",
+    "Peter Jackson",
+    "James Cameron",
+    "Christopher Nolan"
+   ],
+   "bonne_reponse": "James Cameron"
+  },
+  {
+   "id": "add-2704",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qui a créé la saga Star Wars ?",
+   "anecdote": "Le premier film est sorti en 1977 ; George Lucas a vendu sa société Lucasfilm à Disney en 2012 pour environ quatre milliards de dollars.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/George_Lucas",
+    "https://en.wikipedia.org/wiki/George_Lucas"
+   ],
+   "choix": [
+    "George Lucas",
+    "James Cameron",
+    "Ridley Scott",
+    "J.J. Abrams"
+   ],
+   "bonne_reponse": "George Lucas"
+  },
+  {
+   "id": "add-2705",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quelle actrice incarne Katniss Everdeen dans les films Hunger Games ?",
+   "anecdote": "Jennifer Lawrence a remporté l'Oscar de la meilleure actrice en 2013 pour le film Happiness Therapy.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jennifer_Lawrence",
+    "https://en.wikipedia.org/wiki/The_Hunger_Games_(film)"
+   ],
+   "choix": [
+    "Emma Watson",
+    "Zendaya",
+    "Shailene Woodley",
+    "Jennifer Lawrence"
+   ],
+   "bonne_reponse": "Jennifer Lawrence"
+  },
+  {
+   "id": "add-2706",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année le film Titanic de James Cameron est-il sorti ?",
+   "anecdote": "Titanic est resté plus de dix ans en tête du box-office mondial, avant d'être dépassé par Avatar, du même réalisateur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Titanic_(film,_1997)",
+    "https://en.wikipedia.org/wiki/Titanic_(1997_film)"
+   ],
+   "choix": [
+    "1994",
+    "1997",
+    "2000",
+    "1991"
+   ],
+   "bonne_reponse": "1997"
+  },
+  {
+   "id": "add-2707",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année est sorti le film Harry Potter à l'école des sorciers ?",
+   "anecdote": "Le film a été réalisé par Chris Columbus ; Daniel Radcliffe n'avait que onze ans lorsqu'il a décroché le rôle de Harry.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Harry_Potter_%C3%A0_l'%C3%A9cole_des_sorciers_(film)",
+    "https://en.wikipedia.org/wiki/Harry_Potter_and_the_Philosopher's_Stone_(film)"
+   ],
+   "choix": [
+    "1997",
+    "1999",
+    "2001",
+    "2005"
+   ],
+   "bonne_reponse": "2001"
+  },
+  {
+   "id": "add-2708",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a réalisé le film Jurassic Park, sorti en 1993 ?",
+   "anecdote": "La même année, Steven Spielberg a aussi réalisé La Liste de Schindler, qui lui a valu l'Oscar du meilleur réalisateur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jurassic_Park_(film)",
+    "https://www.britannica.com/biography/Steven-Spielberg"
+   ],
+   "choix": [
+    "James Cameron",
+    "Steven Spielberg",
+    "George Lucas",
+    "Tim Burton"
+   ],
+   "bonne_reponse": "Steven Spielberg"
+  },
+  {
+   "id": "add-2709",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année est sorti le film Avengers: Endgame ?",
+   "anecdote": "À sa sortie, Endgame a brièvement dépassé Avatar au box-office mondial, avant qu'Avatar ne reprenne la tête grâce à une ressortie en Chine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Avengers:_Endgame",
+    "https://en.wikipedia.org/wiki/Avengers:_Endgame"
+   ],
+   "choix": [
+    "2015",
+    "2017",
+    "2019",
+    "2021"
+   ],
+   "bonne_reponse": "2019"
+  },
+  {
+   "id": "add-2710",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel acteur incarne Driss dans le film Intouchables (2011) ?",
+   "anecdote": "Pour ce rôle, Omar Sy a remporté le César du meilleur acteur en 2012, devançant notamment Jean Dujardin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Intouchables",
+    "https://en.wikipedia.org/wiki/The_Intouchables"
+   ],
+   "choix": [
+    "Omar Sy",
+    "Jamel Debbouze",
+    "Gad Elmaleh",
+    "Dany Boon"
+   ],
+   "bonne_reponse": "Omar Sy"
+  },
+  {
+   "id": "add-2711",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a réalisé Retour vers le futur, sorti en 1985 ?",
+   "anecdote": "Le film, produit par Steven Spielberg, a transformé une voiture DeLorean en machine à voyager dans le temps devenue culte.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Retour_vers_le_futur",
+    "https://en.wikipedia.org/wiki/Back_to_the_Future"
+   ],
+   "choix": [
+    "Steven Spielberg",
+    "Robert Zemeckis",
+    "John Hughes",
+    "Ron Howard"
+   ],
+   "bonne_reponse": "Robert Zemeckis"
+  },
+  {
+   "id": "add-2712",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "E.T., l'extra-terrestre a été réalisé par Steven Spielberg.",
+   "anecdote": "Sorti en 1982, E.T. est resté pendant onze ans le plus gros succès du box-office mondial, jusqu'à Jurassic Park en 1993.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Steven_Spielberg",
+    "https://en.wikipedia.org/wiki/E.T._the_Extra-Terrestrial"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2713",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le film Spider-Man: No Way Home est sorti au cinéma en 2021.",
+   "anecdote": "Spider-Man: No Way Home a été le plus gros succès mondial du box-office de l'année 2021.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Spider-Man:_No_Way_Home",
+    "https://en.wikipedia.org/wiki/Spider-Man:_No_Way_Home"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2714",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel film sud-coréen a remporté l'Oscar du meilleur film en 2020 ?",
+   "anecdote": "Parasite, de Bong Joon-ho, est le premier film en langue non anglaise à gagner l'Oscar du meilleur film ; il avait aussi reçu la Palme d'or en 2019.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Parasite_(film,_2019)",
+    "https://en.wikipedia.org/wiki/Parasite_(2019_film)"
+   ],
+   "choix": [
+    "Parasite",
+    "Old Boy",
+    "Snowpiercer",
+    "Memories of Murder"
+   ],
+   "bonne_reponse": "Parasite"
+  },
+  {
+   "id": "add-2715",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Combien d'Oscars le film Le Seigneur des anneaux : Le Retour du roi a-t-il remportés en 2004 ?",
+   "anecdote": "Le film de Peter Jackson a gagné dans toutes les catégories où il était nommé, égalant le record de Ben-Hur et de Titanic.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Peter_Jackson",
+    "https://en.wikipedia.org/wiki/The_Lord_of_the_Rings:_The_Return_of_the_King"
+   ],
+   "choix": [
+    "7",
+    "9",
+    "11",
+    "13"
+   ],
+   "bonne_reponse": "11"
+  },
+  {
+   "id": "add-2716",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "James Cameron, le réalisateur de Titanic, est canadien.",
+   "anecdote": "James Cameron est né en 1954 à Kapuskasing, dans la province de l'Ontario, au Canada.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/James_Cameron",
+    "https://www.britannica.com/biography/James-Cameron"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2717",
+   "categorie": "Cinéma",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le Cinquième Élément a été réalisé par Steven Spielberg.",
+   "anecdote": "Le Cinquième Élément est un film de Luc Besson sorti en 1997, l'un des plus gros succès du cinéma français à l'international.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Cinqui%C3%A8me_%C3%89l%C3%A9ment",
+    "https://en.wikipedia.org/wiki/The_Fifth_Element"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2718",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel studio a produit le film La Reine des neiges (2013) ?",
+   "anecdote": "La chanson « Libérée, délivrée » (« Let It Go » en anglais) a remporté l'Oscar de la meilleure chanson originale.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Reine_des_neiges_(film,_2013)",
+    "https://en.wikipedia.org/wiki/Frozen_(2013_film)"
+   ],
+   "choix": [
+    "Pixar",
+    "DreamWorks",
+    "Walt Disney Animation Studios",
+    "Illumination"
+   ],
+   "bonne_reponse": "Walt Disney Animation Studios"
+  },
+  {
+   "id": "add-2719",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année le dessin animé Le Roi lion de Disney est-il sorti ?",
+   "anecdote": "La musique d'Hans Zimmer a été récompensée d'un Oscar, et les chansons du film sont cosignées par Elton John.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Roi_lion",
+    "https://en.wikipedia.org/wiki/The_Lion_King"
+   ],
+   "choix": [
+    "1989",
+    "1994",
+    "1999",
+    "2003"
+   ],
+   "bonne_reponse": "1994"
+  },
+  {
+   "id": "add-2720",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a réalisé le film d'animation Le Voyage de Chihiro ?",
+   "anecdote": "C'est le premier film d'animation japonais à avoir remporté l'Oscar du meilleur film d'animation, en 2003.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Voyage_de_Chihiro",
+    "https://en.wikipedia.org/wiki/Spirited_Away"
+   ],
+   "choix": [
+    "Hayao Miyazaki",
+    "Isao Takahata",
+    "Makoto Shinkai",
+    "Mamoru Hosoda"
+   ],
+   "bonne_reponse": "Hayao Miyazaki"
+  },
+  {
+   "id": "add-2721",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Le studio Ghibli est un studio d'animation américain.",
+   "anecdote": "Le studio Ghibli est japonais : il a été fondé en 1985, notamment par les réalisateurs Hayao Miyazaki et Isao Takahata.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Studio_Ghibli",
+    "https://en.wikipedia.org/wiki/Studio_Ghibli"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2722",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans Tom et Jerry, Tom est le chat et Jerry la souris.",
+   "anecdote": "Créé en 1940 par William Hanna et Joseph Barbera, le duo a remporté sept Oscars du meilleur court métrage d'animation.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tom_et_Jerry",
+    "https://en.wikipedia.org/wiki/Tom_and_Jerry"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2723",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel court métrage sonore de 1928 a rendu Mickey Mouse célèbre ?",
+   "anecdote": "À ses débuts, c'est Walt Disney en personne qui prêtait sa voix à Mickey Mouse.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Steamboat_Willie",
+    "https://en.wikipedia.org/wiki/Steamboat_Willie"
+   ],
+   "choix": [
+    "Fantasia",
+    "Steamboat Willie",
+    "Silly Symphonies",
+    "Le Roi lion"
+   ],
+   "bonne_reponse": "Steamboat Willie"
+  },
+  {
+   "id": "add-2724",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle est la race du chien Scooby-Doo ?",
+   "anecdote": "Son nom vient du « doo-be-doo-be-doo » que chante Frank Sinatra à la fin de sa chanson Strangers in the Night.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Scooby-Doo",
+    "https://en.wikipedia.org/wiki/Scooby-Doo"
+   ],
+   "choix": [
+    "Labrador",
+    "Dogue allemand",
+    "Saint-bernard",
+    "Dalmatien"
+   ],
+   "bonne_reponse": "Dogue allemand"
+  },
+  {
+   "id": "add-2725",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Vice-Versa (2015), qui met en scène les émotions d'une petite fille, est un film des studios Pixar.",
+   "anecdote": "Vice-Versa a remporté l'Oscar du meilleur film d'animation en 2016.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pixar_Animation_Studios",
+    "https://en.wikipedia.org/wiki/Inside_Out_(2015_film)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2726",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle technique d'animation le studio Aardman utilise-t-il pour Wallace et Gromit ?",
+   "anecdote": "Nick Park, le créateur de Wallace et Gromit, a remporté quatre Oscars avec ses films d'animation image par image.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Wallace_et_Gromit",
+    "https://en.wikipedia.org/wiki/Wallace_and_Gromit"
+   ],
+   "choix": [
+    "L'animation 3D par ordinateur",
+    "Le dessin traditionnel sur papier",
+    "L'animation en pâte à modeler (stop motion)",
+    "La capture de mouvement"
+   ],
+   "bonne_reponse": "L'animation en pâte à modeler (stop motion)"
+  },
+  {
+   "id": "add-2727",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Avatar, le dernier maître de l'air est une série d'animation japonaise.",
+   "anecdote": "C'est en réalité une série américaine créée pour Nickelodeon en 2005, même si son style s'inspire beaucoup des animes japonais.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Avatar,_le_dernier_ma%C3%AEtre_de_l'air",
+    "https://en.wikipedia.org/wiki/Avatar:_The_Last_Airbender"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2728",
+   "categorie": "Dessin animé",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "En quelle année la série animée Pokémon a-t-elle débuté au Japon ?",
+   "anecdote": "En version japonaise, Sacha s'appelle Satoshi, en hommage à Satoshi Tajiri, le créateur des jeux Pokémon.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pok%C3%A9mon",
+    "https://en.wikipedia.org/wiki/Pok%C3%A9mon_(TV_series)"
+   ],
+   "choix": [
+    "1993",
+    "1997",
+    "2000",
+    "2004"
+   ],
+   "bonne_reponse": "1997"
+  },
+  {
+   "id": "add-2729",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quel pays vient la série Squid Game ?",
+   "anecdote": "Son créateur Hwang Dong-hyuk portait ce projet depuis plus de dix ans avant que Netflix ne l'accepte enfin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Squid_Game",
+    "https://en.wikipedia.org/wiki/Squid_Game"
+   ],
+   "choix": [
+    "Japon",
+    "Chine",
+    "Corée du Sud",
+    "Thaïlande"
+   ],
+   "bonne_reponse": "Corée du Sud"
+  },
+  {
+   "id": "add-2730",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "La Casa de Papel est une série américaine.",
+   "anecdote": "C'est une série espagnole créée par Álex Pina, devenue un phénomène mondial après son arrivée sur Netflix.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_casa_de_papel",
+    "https://en.wikipedia.org/wiki/Money_Heist"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2731",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel acteur incarne Assane Diop dans la série française Lupin ?",
+   "anecdote": "La série s'inspire des aventures d'Arsène Lupin, le gentleman cambrioleur imaginé par l'écrivain Maurice Leblanc.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Omar_Sy",
+    "https://en.wikipedia.org/wiki/Lupin_(French_TV_series)"
+   ],
+   "choix": [
+    "Tahar Rahim",
+    "Omar Sy",
+    "Kad Merad",
+    "Ahmed Sylla"
+   ],
+   "bonne_reponse": "Omar Sy"
+  },
+  {
+   "id": "add-2732",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui joue Sherlock Holmes dans la série britannique Sherlock ?",
+   "anecdote": "Martin Freeman y joue le docteur Watson ; les deux acteurs se retrouvent dans Le Hobbit, en Bilbo et en dragon Smaug.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sherlock_(s%C3%A9rie_t%C3%A9l%C3%A9vis%C3%A9e)",
+    "https://en.wikipedia.org/wiki/Sherlock_(TV_series)"
+   ],
+   "choix": [
+    "Benedict Cumberbatch",
+    "Martin Freeman",
+    "Tom Hiddleston",
+    "David Tennant"
+   ],
+   "bonne_reponse": "Benedict Cumberbatch"
+  },
+  {
+   "id": "add-2733",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "The Mandalorian est une série de l'univers Star Wars diffusée sur Disney+.",
+   "anecdote": "Le personnage de Grogu, surnommé « bébé Yoda » par les fans, est devenu un phénomène mondial dès le lancement de la série en 2019.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/The_Mandalorian",
+    "https://en.wikipedia.org/wiki/The_Mandalorian"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2734",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel écrivain la série Game of Thrones est-elle adaptée ?",
+   "anecdote": "La saga littéraire d'origine s'intitule Le Trône de fer (A Song of Ice and Fire en anglais).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Game_of_Thrones",
+    "https://en.wikipedia.org/wiki/George_R._R._Martin"
+   ],
+   "choix": [
+    "J.R.R. Tolkien",
+    "Stephen King",
+    "George R. R. Martin",
+    "Rick Riordan"
+   ],
+   "bonne_reponse": "George R. R. Martin"
+  },
+  {
+   "id": "add-2735",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a créé et incarne le roi Arthur dans la série française Kaamelott ?",
+   "anecdote": "Alexandre Astier écrit, réalise et compose même la musique de Kaamelott, diffusée à partir de 2005 sur M6.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kaamelott",
+    "https://en.wikipedia.org/wiki/Kaamelott"
+   ],
+   "choix": [
+    "Kad Merad",
+    "Alexandre Astier",
+    "Édouard Baer",
+    "Jamel Debbouze"
+   ],
+   "bonne_reponse": "Alexandre Astier"
+  },
+  {
+   "id": "add-2736",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La série The Big Bang Theory compte douze saisons.",
+   "anecdote": "Diffusée de 2007 à 2019, la série a valu quatre Emmy Awards à Jim Parsons pour son rôle de Sheldon Cooper.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/The_Big_Bang_Theory",
+    "https://en.wikipedia.org/wiki/The_Big_Bang_Theory"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2737",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "La série The Crown retrace le règne de la reine Élisabeth II.",
+   "anecdote": "Plusieurs actrices se succèdent dans le rôle de la reine au fil des saisons, dont Claire Foy et Olivia Colman.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/The_Crown_(s%C3%A9rie_t%C3%A9l%C3%A9vis%C3%A9e)",
+    "https://en.wikipedia.org/wiki/The_Crown_(TV_series)"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2738",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Depuis quelle année la série britannique Doctor Who est-elle diffusée ?",
+   "anecdote": "Doctor Who détient un record Guinness : c'est la série de science-fiction la plus longue de l'histoire de la télévision.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Doctor_Who",
+    "https://en.wikipedia.org/wiki/Doctor_Who"
+   ],
+   "choix": [
+    "1963",
+    "1975",
+    "1985",
+    "1996"
+   ],
+   "bonne_reponse": "1963"
+  },
+  {
+   "id": "add-2739",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "La série Riverdale est adaptée des personnages des comics Archie.",
+   "anecdote": "Les personnages d'Archie, Betty et Veronica existent en bande dessinée américaine depuis le début des années 1940.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Riverdale_(s%C3%A9rie_t%C3%A9l%C3%A9vis%C3%A9e)",
+    "https://en.wikipedia.org/wiki/Archie_Comics"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2740",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "En 2022, quel acteur de Squid Game est devenu le premier interprète d'une série non anglophone à remporter l'Emmy du meilleur acteur dans une série dramatique ?",
+   "anecdote": "La même année, le créateur de la série, Hwang Dong-hyuk, a remporté l'Emmy de la meilleure réalisation pour une série dramatique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Lee_Jung-jae",
+    "https://en.wikipedia.org/wiki/Lee_Jung-jae"
+   ],
+   "choix": [
+    "Gong Yoo",
+    "Lee Jung-jae",
+    "Song Kang-ho",
+    "Ma Dong-seok"
+   ],
+   "bonne_reponse": "Lee Jung-jae"
+  },
+  {
+   "id": "add-2741",
+   "categorie": "Séries",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Dans quel État américain se trouve Hawkins, la ville fictive de Stranger Things ?",
+   "anecdote": "Même si l'histoire se déroule dans l'Indiana, la série est principalement tournée en Géorgie, autour d'Atlanta.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Stranger_Things",
+    "https://en.wikipedia.org/wiki/Stranger_Things"
+   ],
+   "choix": [
+    "Californie",
+    "Texas",
+    "Indiana",
+    "Ohio"
+   ],
+   "bonne_reponse": "Indiana"
+  },
+  {
+   "id": "add-2742",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quel pays est originaire le groupe BTS ?",
+   "anecdote": "En 2020, leur single « Dynamite », premier titre du groupe entièrement en anglais, s'est classé numéro un du Billboard Hot 100.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/BTS_(groupe)",
+    "https://en.wikipedia.org/wiki/BTS"
+   ],
+   "choix": [
+    "Japon",
+    "Corée du Sud",
+    "Chine",
+    "États-Unis"
+   ],
+   "bonne_reponse": "Corée du Sud"
+  },
+  {
+   "id": "add-2743",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quel groupe Freddie Mercury était-il le chanteur ?",
+   "anecdote": "Freddie Mercury est né Farrokh Bulsara sur l'île de Zanzibar, au large de l'Afrique de l'Est.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Freddie_Mercury",
+    "https://en.wikipedia.org/wiki/Freddie_Mercury"
+   ],
+   "choix": [
+    "The Rolling Stones",
+    "Led Zeppelin",
+    "Pink Floyd",
+    "Queen"
+   ],
+   "bonne_reponse": "Queen"
+  },
+  {
+   "id": "add-2744",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quel pays vient le chanteur Stromae ?",
+   "anecdote": "Son nom de scène est le verlan de « maestro » ; son vrai nom est Paul Van Haver.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Stromae",
+    "https://en.wikipedia.org/wiki/Stromae"
+   ],
+   "choix": [
+    "France",
+    "Belgique",
+    "Suisse",
+    "Canada"
+   ],
+   "bonne_reponse": "Belgique"
+  },
+  {
+   "id": "add-2745",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Daft Punk était un duo français de musique électronique.",
+   "anecdote": "Thomas Bangalter et Guy-Manuel de Homem-Christo se produisaient toujours casqués en robots ; ils se sont séparés en 2021.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Daft_Punk",
+    "https://en.wikipedia.org/wiki/Daft_Punk"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2746",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel album de Michael Jackson est l'album le plus vendu de l'histoire ?",
+   "anecdote": "Sorti en 1982 et produit avec Quincy Jones, Thriller a fait de Michael Jackson le « Roi de la pop ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Thriller_(album)",
+    "https://en.wikipedia.org/wiki/Thriller_(album)"
+   ],
+   "choix": [
+    "Bad",
+    "Thriller",
+    "Dangerous",
+    "Off the Wall"
+   ],
+   "bonne_reponse": "Thriller"
+  },
+  {
+   "id": "add-2747",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quelle ville anglaise viennent les Beatles ?",
+   "anecdote": "Avant de conquérir le monde, le groupe s'est longuement produit dans les clubs de Hambourg, en Allemagne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/The_Beatles",
+    "https://en.wikipedia.org/wiki/The_Beatles"
+   ],
+   "choix": [
+    "Londres",
+    "Manchester",
+    "Liverpool",
+    "Birmingham"
+   ],
+   "bonne_reponse": "Liverpool"
+  },
+  {
+   "id": "add-2748",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel clip est devenu en 2012 la première vidéo YouTube à dépasser le milliard de vues ?",
+   "anecdote": "Le succès de Gangnam Style a même obligé YouTube à modifier son compteur, qui ne pouvait pas afficher plus d'environ 2,1 milliards de vues.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Gangnam_Style",
+    "https://en.wikipedia.org/wiki/Gangnam_Style"
+   ],
+   "choix": [
+    "Gangnam Style",
+    "Baby",
+    "Despacito",
+    "Waka Waka"
+   ],
+   "bonne_reponse": "Gangnam Style"
+  },
+  {
+   "id": "add-2749",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Ed Sheeran est un chanteur américain.",
+   "anecdote": "Ed Sheeran est britannique ; son titre « Shape of You » est l'une des chansons les plus écoutées de l'histoire de Spotify.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ed_Sheeran",
+    "https://en.wikipedia.org/wiki/Ed_Sheeran"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2750",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel pays vient la chanteuse Angèle ?",
+   "anecdote": "Angèle est la sœur du rappeur Roméo Elvis et la fille du chanteur Marka : toute une famille d'artistes belges.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ang%C3%A8le_(chanteuse)",
+    "https://en.wikipedia.org/wiki/Ang%C3%A8le_(singer)"
+   ],
+   "choix": [
+    "France",
+    "Suisse",
+    "Canada",
+    "Belgique"
+   ],
+   "bonne_reponse": "Belgique"
+  },
+  {
+   "id": "add-2751",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans quel pays la chanteuse Aya Nakamura est-elle née ?",
+   "anecdote": "Née à Bamako, elle a choisi son nom de scène en hommage à Hiro Nakamura, un personnage de la série Heroes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Aya_Nakamura",
+    "https://en.wikipedia.org/wiki/Aya_Nakamura"
+   ],
+   "choix": [
+    "Sénégal",
+    "Mali",
+    "Côte d'Ivoire",
+    "Cameroun"
+   ],
+   "bonne_reponse": "Mali"
+  },
+  {
+   "id": "add-2752",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Rihanna est originaire de la Barbade.",
+   "anecdote": "En 2021, la Barbade a officiellement déclaré Rihanna héroïne nationale de l'île.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rihanna",
+    "https://en.wikipedia.org/wiki/Rihanna"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2753",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Mozart était un compositeur allemand.",
+   "anecdote": "Wolfgang Amadeus Mozart est né en 1756 à Salzbourg, en Autriche, et composait déjà de petites pièces à cinq ans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Wolfgang_Amadeus_Mozart",
+    "https://en.wikipedia.org/wiki/Wolfgang_Amadeus_Mozart"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2754",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel groupe suédois a remporté l'Eurovision en 1974 avec la chanson Waterloo ?",
+   "anecdote": "Cette victoire au concours, organisé cette année-là à Brighton, a lancé la carrière internationale d'ABBA.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/ABBA",
+    "https://en.wikipedia.org/wiki/ABBA"
+   ],
+   "choix": [
+    "Roxette",
+    "ABBA",
+    "Ace of Base",
+    "Europe"
+   ],
+   "bonne_reponse": "ABBA"
+  },
+  {
+   "id": "add-2755",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "En 2020, Billie Eilish a remporté la même année les quatre catégories principales des Grammy Awards.",
+   "anecdote": "Elle est la plus jeune artiste à réussir ce grand chelem, un exploit accompli avant elle uniquement par Christopher Cross en 1981.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Billie_Eilish",
+    "https://en.wikipedia.org/wiki/Billie_Eilish"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2756",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Dans quelle ville normande le rappeur Orelsan a-t-il grandi ?",
+   "anecdote": "Son nom de scène vient tout simplement de son prénom : il s'appelle Aurélien Cotentin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Orelsan",
+    "https://en.wikipedia.org/wiki/Orelsan"
+   ],
+   "choix": [
+    "Rouen",
+    "Le Havre",
+    "Caen",
+    "Cherbourg"
+   ],
+   "bonne_reponse": "Caen"
+  },
+  {
+   "id": "add-2757",
+   "categorie": "Musique",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle artiste est devenue en 2024 la première à remporter quatre fois le Grammy de l'album de l'année ?",
+   "anecdote": "Taylor Swift a été sacrée pour les albums Fearless, 1989, Folklore et Midnights.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Taylor_Swift",
+    "https://en.wikipedia.org/wiki/Taylor_Swift"
+   ],
+   "choix": [
+    "Beyoncé",
+    "Adele",
+    "Taylor Swift",
+    "Ariana Grande"
+   ],
+   "bonne_reponse": "Taylor Swift"
+  },
+  {
+   "id": "add-2758",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Sur quelle surface se joue le tournoi de tennis de Roland-Garros ?",
+   "anecdote": "Le tournoi doit son nom à un aviateur français, premier pilote à avoir traversé la mer Méditerranée en avion, en 1913.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Internationaux_de_France_de_tennis",
+    "https://en.wikipedia.org/wiki/French_Open"
+   ],
+   "choix": [
+    "Le gazon",
+    "La terre battue",
+    "Le ciment",
+    "La moquette"
+   ],
+   "bonne_reponse": "La terre battue"
+  },
+  {
+   "id": "add-2759",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est le maillot du leader du Tour de France ?",
+   "anecdote": "Apparu en 1919, le maillot est jaune car les pages du journal L'Auto, organisateur de la course, étaient jaunes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_de_France",
+    "https://en.wikipedia.org/wiki/Yellow_jersey"
+   ],
+   "choix": [
+    "Vert",
+    "Blanc à pois rouges",
+    "Jaune",
+    "Arc-en-ciel"
+   ],
+   "bonne_reponse": "Jaune"
+  },
+  {
+   "id": "add-2760",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Un match de football dure réglementairement 90 minutes, en deux mi-temps de 45 minutes.",
+   "anecdote": "En cas d'égalité dans un match à élimination directe, une prolongation de deux fois quinze minutes peut être jouée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Football",
+    "https://en.wikipedia.org/wiki/Association_football"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2761",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quel temps Usain Bolt a-t-il établi le record du monde du 100 mètres en 2009 ?",
+   "anecdote": "Établi aux championnats du monde de Berlin, ce record s'accompagne de celui du 200 mètres, couru en 19 s 19.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Usain_Bolt",
+    "https://en.wikipedia.org/wiki/Usain_Bolt"
+   ],
+   "choix": [
+    "9 s 48",
+    "9 s 58",
+    "9 s 69",
+    "9 s 72"
+   ],
+   "bonne_reponse": "9 s 58"
+  },
+  {
+   "id": "add-2762",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Kylian Mbappé a été champion du monde de football en 2018 à l'âge de 19 ans.",
+   "anecdote": "En marquant en finale, il est devenu le deuxième joueur de moins de 20 ans à inscrire un but en finale de Coupe du monde, après Pelé en 1958.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kylian_Mbapp%C3%A9",
+    "https://en.wikipedia.org/wiki/Kylian_Mbapp%C3%A9"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2763",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans quel sport Teddy Riner s'est-il illustré ?",
+   "anecdote": "Le judoka français est resté invaincu pendant près de dix ans, enchaînant plus de 150 victoires d'affilée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Teddy_Riner",
+    "https://en.wikipedia.org/wiki/Teddy_Riner"
+   ],
+   "choix": [
+    "La boxe",
+    "Le judo",
+    "La lutte",
+    "L'escrime"
+   ],
+   "bonne_reponse": "Le judo"
+  },
+  {
+   "id": "add-2764",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Lors de quels Jeux olympiques le skateboard a-t-il fait son entrée au programme ?",
+   "anecdote": "Lors de ces Jeux disputés en 2021 à cause de la pandémie, la Japonaise Momiji Nishiya est devenue championne olympique à seulement 13 ans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Skateboard",
+    "https://en.wikipedia.org/wiki/Skateboarding_at_the_2020_Summer_Olympics"
+   ],
+   "choix": [
+    "Pékin 2008",
+    "Londres 2012",
+    "Rio 2016",
+    "Tokyo 2020"
+   ],
+   "bonne_reponse": "Tokyo 2020"
+  },
+  {
+   "id": "add-2765",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans quelle discipline l'Américaine Simone Biles s'est-elle illustrée ?",
+   "anecdote": "Simone Biles est la gymnaste la plus médaillée de l'histoire des championnats du monde, et plusieurs figures portent officiellement son nom.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Simone_Biles",
+    "https://en.wikipedia.org/wiki/Simone_Biles"
+   ],
+   "choix": [
+    "La natation",
+    "La gymnastique artistique",
+    "L'athlétisme",
+    "Le patinage artistique"
+   ],
+   "bonne_reponse": "La gymnastique artistique"
+  },
+  {
+   "id": "add-2766",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Zinédine Zidane a marqué deux buts lors de la finale de la Coupe du monde 1998.",
+   "anecdote": "Ses deux buts contre le Brésil ont été inscrits de la tête, sur deux corners, en première mi-temps.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Zin%C3%A9dine_Zidane",
+    "https://en.wikipedia.org/wiki/Zinedine_Zidane"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2767",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Combien de fois Rafael Nadal a-t-il remporté le tournoi de Roland-Garros ?",
+   "anecdote": "C'est un record absolu de titres dans un même tournoi du Grand Chelem ; une statue du « Roi de la terre battue » trône à Roland-Garros.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rafael_Nadal",
+    "https://en.wikipedia.org/wiki/Rafael_Nadal"
+   ],
+   "choix": [
+    "10",
+    "12",
+    "14",
+    "16"
+   ],
+   "bonne_reponse": "14"
+  },
+  {
+   "id": "add-2768",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Combien de titres NBA le Français Tony Parker a-t-il remportés avec les San Antonio Spurs ?",
+   "anecdote": "En 2007, Tony Parker est devenu le premier Européen élu meilleur joueur (MVP) des finales NBA.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tony_Parker",
+    "https://en.wikipedia.org/wiki/Tony_Parker"
+   ],
+   "choix": [
+    "2",
+    "3",
+    "4",
+    "5"
+   ],
+   "bonne_reponse": "4"
+  },
+  {
+   "id": "add-2769",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Le basket-ball a été inventé en 1891 par James Naismith.",
+   "anecdote": "Ce professeur d'éducation physique canadien utilisait au départ de simples paniers de pêches cloués en hauteur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/James_Naismith",
+    "https://en.wikipedia.org/wiki/James_Naismith"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2770",
+   "categorie": "Sport",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Avant 2024, en quelles années Paris avait-il déjà accueilli les Jeux olympiques d'été ?",
+   "anecdote": "Paris est la deuxième ville, après Londres, à avoir organisé trois fois les Jeux olympiques d'été.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques_d'%C3%A9t%C3%A9_de_2024",
+    "https://en.wikipedia.org/wiki/2024_Summer_Olympics"
+   ],
+   "choix": [
+    "1900 et 1924",
+    "1912 et 1936",
+    "1904 et 1948",
+    "1896 et 1920"
+   ],
+   "bonne_reponse": "1900 et 1924"
+  },
+  {
+   "id": "add-2771",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel dessinateur belge a créé Tintin ?",
+   "anecdote": "Le pseudonyme « Hergé » vient des initiales inversées de son vrai nom, Georges Remi (R.G.).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Herg%C3%A9",
+    "https://en.wikipedia.org/wiki/The_Adventures_of_Tintin"
+   ],
+   "choix": [
+    "Hergé",
+    "Albert Uderzo",
+    "Peyo",
+    "Franquin"
+   ],
+   "bonne_reponse": "Hergé"
+  },
+  {
+   "id": "add-2772",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qui a écrit la saga Harry Potter ?",
+   "anecdote": "Le manuscrit du premier tome a été refusé par une douzaine d'éditeurs avant d'être accepté par Bloomsbury.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Harry_Potter",
+    "https://www.britannica.com/biography/J-K-Rowling"
+   ],
+   "choix": [
+    "Stephenie Meyer",
+    "J.K. Rowling",
+    "Suzanne Collins",
+    "Roald Dahl"
+   ],
+   "bonne_reponse": "J.K. Rowling"
+  },
+  {
+   "id": "add-2773",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel scénariste légendaire de Marvel a co-créé Spider-Man, Hulk et les X-Men ?",
+   "anecdote": "Stan Lee faisait de petits caméos dans la plupart des films Marvel, un jeu de piste adoré des fans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Stan_Lee",
+    "https://en.wikipedia.org/wiki/Stan_Lee"
+   ],
+   "choix": [
+    "Jack Kirby",
+    "Bob Kane",
+    "Stan Lee",
+    "Frank Miller"
+   ],
+   "bonne_reponse": "Stan Lee"
+  },
+  {
+   "id": "add-2774",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel pays vient la marque de jouets Lego ?",
+   "anecdote": "Le nom « Lego » vient du danois « leg godt », qui signifie « joue bien ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Lego",
+    "https://en.wikipedia.org/wiki/Lego"
+   ],
+   "choix": [
+    "Suède",
+    "Danemark",
+    "Allemagne",
+    "Pays-Bas"
+   ],
+   "bonne_reponse": "Danemark"
+  },
+  {
+   "id": "add-2775",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Qui a écrit Le Seigneur des anneaux ?",
+   "anecdote": "Professeur à Oxford, J.R.R. Tolkien a inventé des langues elfiques complètes avant même d'écrire ses romans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Seigneur_des_anneaux",
+    "https://en.wikipedia.org/wiki/J._R._R._Tolkien"
+   ],
+   "choix": [
+    "C.S. Lewis",
+    "George R. R. Martin",
+    "J.R.R. Tolkien",
+    "Philip Pullman"
+   ],
+   "bonne_reponse": "J.R.R. Tolkien"
+  },
+  {
+   "id": "add-2776",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année le site YouTube a-t-il été créé ?",
+   "anecdote": "La toute première vidéo publiée, « Me at the zoo », montre l'un des cofondateurs du site devant des éléphants.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/YouTube",
+    "https://en.wikipedia.org/wiki/YouTube"
+   ],
+   "choix": [
+    "2001",
+    "2005",
+    "2008",
+    "2010"
+   ],
+   "bonne_reponse": "2005"
+  },
+  {
+   "id": "add-2777",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel pays vient Ernő Rubik, l'inventeur du Rubik's Cube ?",
+   "anecdote": "Ce professeur d'architecture a mis plus d'un mois à résoudre son propre cube après l'avoir inventé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rubik's_Cube",
+    "https://en.wikipedia.org/wiki/Rubik's_Cube"
+   ],
+   "choix": [
+    "Pologne",
+    "Russie",
+    "Hongrie",
+    "Autriche"
+   ],
+   "bonne_reponse": "Hongrie"
+  },
+  {
+   "id": "add-2778",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel duo a créé Astérix en 1959 ?",
+   "anecdote": "Astérix est apparu pour la première fois dans le tout premier numéro du journal Pilote, en octobre 1959.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ast%C3%A9rix",
+    "https://en.wikipedia.org/wiki/Asterix"
+   ],
+   "choix": [
+    "René Goscinny et Albert Uderzo",
+    "Hergé et Edgar P. Jacobs",
+    "Peyo et Franquin",
+    "Morris et Goscinny"
+   ],
+   "bonne_reponse": "René Goscinny et Albert Uderzo"
+  },
+  {
+   "id": "add-2779",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le mot « emoji » vient du japonais.",
+   "anecdote": "Il combine « e » (image) et « moji » (caractère) ; sa ressemblance avec le mot « émotion » est une pure coïncidence.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Emoji",
+    "https://en.wikipedia.org/wiki/Emoji"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai"
+  },
+  {
+   "id": "add-2780",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "En quelle année le parc Disneyland Paris a-t-il ouvert ses portes ?",
+   "anecdote": "À son ouverture, le parc s'appelait « Euro Disney » ; il a été rebaptisé Disneyland Paris quelques années plus tard.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Disneyland_Paris",
+    "https://en.wikipedia.org/wiki/Disneyland_Paris"
+   ],
+   "choix": [
+    "1985",
+    "1992",
+    "1998",
+    "2002"
+   ],
+   "bonne_reponse": "1992"
+  },
+  {
+   "id": "add-2781",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Qui a créé la poupée Barbie en 1959 ?",
+   "anecdote": "Ruth Handler l'a baptisée d'après sa fille Barbara ; le nom complet du personnage est Barbara Millicent Roberts.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Barbie",
+    "https://en.wikipedia.org/wiki/Barbie"
+   ],
+   "choix": [
+    "Coco Chanel",
+    "Ruth Handler",
+    "Mary Quant",
+    "Walt Disney"
+   ],
+   "bonne_reponse": "Ruth Handler"
+  },
+  {
+   "id": "add-2782",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "À quelle entreprise appartient l'application TikTok ?",
+   "anecdote": "En Chine, l'application existe sous une version distincte appelée Douyin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/TikTok",
+    "https://en.wikipedia.org/wiki/TikTok"
+   ],
+   "choix": [
+    "Meta",
+    "Tencent",
+    "ByteDance",
+    "Google"
+   ],
+   "bonne_reponse": "ByteDance"
+  },
+  {
+   "id": "add-2783",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Instagram a été lancé en 2005.",
+   "anecdote": "L'application est sortie en octobre 2010 et a été rachetée par Facebook en 2012 pour environ un milliard de dollars.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Instagram",
+    "https://en.wikipedia.org/wiki/Instagram"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux"
+  },
+  {
+   "id": "add-2784",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel écrivain a créé le personnage de James Bond ?",
+   "anecdote": "Ian Fleming a emprunté le nom « James Bond » à un ornithologue, auteur d'un guide sur les oiseaux des Caraïbes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ian_Fleming",
+    "https://en.wikipedia.org/wiki/Ian_Fleming"
+   ],
+   "choix": [
+    "Arthur Conan Doyle",
+    "Ian Fleming",
+    "Agatha Christie",
+    "John le Carré"
+   ],
+   "bonne_reponse": "Ian Fleming"
+  },
+  {
+   "id": "add-2785",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Dans quelle revue Batman est-il apparu pour la première fois en 1939 ?",
+   "anecdote": "Batman a été créé par Bob Kane et Bill Finger ; Superman, lui, était apparu un an plus tôt dans Action Comics.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Batman",
+    "https://en.wikipedia.org/wiki/Batman"
+   ],
+   "choix": [
+    "Action Comics",
+    "Detective Comics",
+    "Amazing Fantasy",
+    "Marvel Comics"
+   ],
+   "bonne_reponse": "Detective Comics"
+  },
+  {
+   "id": "add-2786",
+   "categorie": "Pop Culture",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "vrai_faux",
+   "texte": "Wikipédia a été lancée en 2001.",
+   "anecdote": "Fondée par Jimmy Wales et Larry Sanger, l'encyclopédie doit son nom au mot hawaïen « wiki », qui signifie « rapide ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Wikip%C3%A9dia",
+    "https://en.wikipedia.org/wiki/Wikipedia"
    ],
    "choix": [
     "Vrai",
