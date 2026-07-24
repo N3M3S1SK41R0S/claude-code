@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "defaut": "fr-FR",
+  "langues": [
+    {
+      "id": "fr-FR",
+      "nom": "Français",
+      "drapeau": "🇫🇷",
+      "banque": "data/questions.json",
+      "wordgames": "data/wordgames.json"
+    }
+  ]
+}

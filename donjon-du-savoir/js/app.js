@@ -13,6 +13,7 @@ import { setSfx, sfx, sfxAvailable, sfxEnabled } from "./sfx.js";
 import { setMusic, musicAvailable, musicEnabled } from "./music.js";
 import { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } from "./bots.js";
 import { getPrefs, loadPrefs, setPref } from "./prefs.js";
+import { langueList } from "./langues.js";
 import { getPalmares, loadPalmares, recordGame, SKINS, skinById, skinUnlocked, SUCCES, unlockedSkins } from "./palmares.js";
 import { grimoireEntries, grimoireSize } from "./grimoire.js";
 import { souvenirSection } from "./souvenir.js";
@@ -896,6 +897,11 @@ function renderReglages() {
       seg(oui_non, p.daltonien, (v) => setPref("daltonien", v))),
     row("🎬 Vue immersive (3D)", "Plateau en 3D avec caméra qui suit le pion + saynètes animées (façon Mario Party). Décochez pour le plateau 2D classique. Repli 2D automatique si l'appareil ne gère pas la 3D.",
       seg(oui_non, p.immersion !== false, (v) => setPref("immersion", v))),
+    ...(langueList().length > 1 ? [
+      row("🌍 Langue", "La langue du jeu et de sa banque de questions (rechargement immédiat).",
+        seg(langueList().map((l) => ({ val: l.id, label: `${l.drapeau ?? "🌍"} ${l.nom}` })), p.langue ?? "fr-FR",
+          (v) => { setPref("langue", v); location.reload(); })),
+    ] : []),
     row("🎧 Partie à l'oreille", "Le maître du jeu lit aussi les propositions, le dé et les bonnes réponses : la partie peut se jouer sans regarder l'écran.",
       seg(oui_non, p.oreilles, (v) => setPref("oreilles", v))),
     row("🎬 Animations", "Réduisez les mouvements à l'écran si vous préférez le calme.",

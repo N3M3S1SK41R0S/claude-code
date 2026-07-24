@@ -7,6 +7,7 @@
 // escalating the difficulty.
 import { bracketById, getState, markAsked, youngestBracket } from "./state.js";
 import { loadCustom } from "./custom.js";
+import { applyLangue, banquePath, loadLangues } from "./langues.js";
 
 let bank = [];
 
@@ -44,7 +45,10 @@ function preferUnseen(candidates) {
 }
 
 export async function loadBank() {
-  const res = await fetch("data/questions.json");
+  // Pack de langues : le manifeste choisit la banque (français par défaut).
+  await loadLangues();
+  applyLangue();
+  const res = await fetch(banquePath());
   if (!res.ok) throw new Error(`questions.json ${res.status}`);
   const data = await res.json();
   bank = (data.questions ?? []).filter(

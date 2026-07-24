@@ -11,6 +11,7 @@ const DEFAULTS = {
   animations: "completes", // "completes" | "reduites" — coupe les animations au choix
   gros: false, // texte plus grand pour le confort de lecture
   immersion: true, // saynètes 2.5D + caméra qui suit le pion (façon Mario Party)
+  langue: "fr-FR", // pack de langue actif (voir data/langues.json)
   oreilles: false, // « partie à l'oreille » : propositions, dé et réponses lus à voix haute
   tutoVu: false, // le tutoriel du 1er lancement a déjà été vu
 };
