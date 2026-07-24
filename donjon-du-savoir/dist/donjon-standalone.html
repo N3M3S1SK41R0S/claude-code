@@ -7224,6 +7224,22 @@ function profilToBracket(profil) {
   return profil === "enfant" ? "5-8" : "18+";
 }
 
+/* Défis personnels SECRETS : tirés au sort en début de partie (humains
+   seulement), révélés et évalués à l'écran de victoire — façon objectifs
+   cachés des Aventuriers du Rail. Tous vérifiables sur les compteurs. */
+const DEFIS = [
+  { id: "erudit5", texte: "Réussir au moins 5 questions", test: (p) => (p.stats?.bonnes ?? 0) >= 5 },
+  { id: "or25", texte: "Amasser au moins 25 🪙 de gains", test: (p) => (p.orGagne ?? 0) >= 25 },
+  { id: "marcheur", texte: "Parcourir au moins 25 cases", test: (p) => (p.casesParcourues ?? 0) >= 25 },
+  { id: "blinde", texte: "Ne subir aucun coup dur", test: (p) => (p.malusSubis ?? 0) === 0 },
+  { id: "pouvoir", texte: "Utiliser son pouvoir de compagnon", test: (p) => !!p.pouvoirUtilise },
+];
+
+function evalDefi(p) {
+  const d = DEFIS.find((x) => x.id === p.defi);
+  return d ? { texte: d.texte, ok: !!d.test(p) } : null;
+}
+
 let state = null;
 
 function getState() {
@@ -7296,6 +7312,9 @@ function newGame(config, boardLayout) {
       malusSubis: 0,
       orGagne: 0,
       casesParcourues: 0,
+      // Défi secret (humains) + coup de pouce discret choisi à la configuration.
+      defi: p.bot ? null : DEFIS[Math.floor(Math.random() * DEFIS.length)].id,
+      boost: p.boost ?? false,
     })),
     currentIndex: 0,
     tour: 1,
@@ -7557,7 +7576,7 @@ function clearSave() {
   }
 }
 
-;Object.assign(module.exports, {characterById, bracketById, bracketIndex, bracketProfil, youngestBracket, getState, newGame, isEtoiles, starPrice, moveStar, computeBonusStars, setPendingCase, clearPendingCase, currentPion, ranking, rankOf, isLast, isLeader, nextTurn, porteParole, markAsked, bumpNiveau, resetAskedIfNeeded, save, listArchives, archiveCurrent, restoreArchive, deleteArchive, loadSave, clearSave, SAVE_KEY, CHARACTERS, AGE_BRACKETS, STAR_BASE_PRICE, STAR_STEP, LAP_BONUS, LAST_ROUND_BONUS, BONUS_STAR_POOL});
+;Object.assign(module.exports, {characterById, bracketById, bracketIndex, bracketProfil, youngestBracket, evalDefi, getState, newGame, isEtoiles, starPrice, moveStar, computeBonusStars, setPendingCase, clearPendingCase, currentPion, ranking, rankOf, isLast, isLeader, nextTurn, porteParole, markAsked, bumpNiveau, resetAskedIfNeeded, save, listArchives, archiveCurrent, restoreArchive, deleteArchive, loadSave, clearSave, SAVE_KEY, CHARACTERS, AGE_BRACKETS, DEFIS, STAR_BASE_PRICE, STAR_STEP, LAP_BONUS, LAST_ROUND_BONUS, BONUS_STAR_POOL});
 };
 __modules["./board.js"] = function(module, exports, require) {
 // Boards — Mario-Party-style winding maps, now PLURAL: five dungeons with
@@ -9545,7 +9564,7 @@ const { boardById, renderBoard, walkPion } = require("./board.js");
 const { react3D, render3D, show3D, stageCase3D, use3D, walk3D } = require("./board3d.js");
 const { herald } = require("./herald.js");
 const { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } = require("./powers.js");
-const { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } = require("./state.js");
+const { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } = require("./state.js");
 const { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } = require("./ui.js");
 const { onSpeechBoundary, say, sayHost } = require("./tts.js");
 const { heroLine, voiceOf } = require("./voices.js");
@@ -11560,7 +11579,7 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   let coinGain = 0;
   if (correct) {
     pion.stats.bonnes += 1;
-    moveDelta = advance;
+    moveDelta = advance + (pion.boost ? 1 : 0); // 🍀 coup de pouce discret
     coinGain = addCoins(pion, 3);
   } else {
     moveDelta = penalty;
@@ -11618,6 +11637,76 @@ function faveTheme(pion) {
   let best = null;
   for (const [c, v] of Object.entries(t)) if (v >= 2 && (best === null || v > t[best])) best = c;
   return best;
+}
+
+/** DUEL AMICAL : le meneur choisit un adversaire ; même question pour les
+ *  deux (au niveau du PLUS JEUNE des deux), chacun écrit sa réponse sur sa
+ *  feuille, la table juge. Le perdant offre 5 🪙 au gagnant — jamais plus. */
+function doDuel(pion, onDone) {
+  const others = getState().pions.filter((p) => p.id !== pion.id);
+  heraldSays(`⚔️ DUEL ! ${pion.nom}, choisis ton adversaire — une question, deux feuilles, un gagnant !`);
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "⚔️ Duel amical" }),
+      el("p", { class: "panel-text", text: `${pion.nom}, qui défies-tu ? (le perdant offre 5 🪙 au gagnant)` }),
+      ...others.map((adv) => choiceButton(`${characterById(adv.characterId).emoji} ${adv.nom}`, () => duelQuestion(pion, adv, onDone))),
+      bigButton("Pas de duel aujourd'hui", onDone),
+    ),
+  );
+}
+
+function duelQuestion(a, b, onDone) {
+  // Question au niveau du plus jeune des deux duellistes (jamais au-dessus).
+  const jeune = { bracket: youngestBracket([a.bracket, b.bracket]), niveau: 2.5 };
+  const q = drawQuestion(jeune, { formats: ["qcm", "vrai_faux"], commit: true });
+  if (!q) return onDone();
+  const reveal = () => {
+    const marks = new Map();
+    const mkBtn = (p) => {
+      const btn = choiceButton(`${characterById(p.characterId).emoji} ${p.nom} a trouvé`, () => {
+        marks.set(p.id, !marks.get(p.id));
+        btn.classList.toggle("bet-selected", marks.get(p.id));
+      }, "btn-bet");
+      if (p.bot && botWantsCorrect(p.botLevel)) { marks.set(p.id, true); btn.classList.add("bet-selected"); }
+      return btn;
+    };
+    setPanel(
+      el("div", { class: "question-block" },
+        el("p", { class: "question-rappel", text: `❓ ${q.texte}` }),
+        el("p", { class: "reveal-answer", html: `✅ Réponse : <strong>${q.bonne_reponse}</strong>` }),
+        anecdoteCardEl(q),
+        el("p", { class: "panel-text", text: "Qui avait bon ? La table est juge." }),
+        el("div", { class: "bet-buttons", role: "group" }, mkBtn(a), mkBtn(b)),
+        bigButton("Trancher le duel", () => {
+          const okA = !!marks.get(a.id), okB = !!marks.get(b.id);
+          let msg = "Égalité — l'honneur est sauf des deux côtés !";
+          if (okA !== okB) {
+            const [gagnant, perdant] = okA ? [a, b] : [b, a];
+            const don = Math.min(5, perdant.pieces);
+            perdant.pieces -= don;
+            gagnant.pieces += don;
+            msg = `🏆 ${gagnant.nom} remporte le duel ! ${perdant.nom} lui offre ${don} 🪙.`;
+            react3D(gagnant.id, true); chipPulse(gagnant.id, true);
+          }
+          save();
+          renderPlayersStrip();
+          heraldSays(msg);
+          onDone();
+        }),
+      ),
+    );
+    sayHost(q.anecdote, "anecdote");
+  };
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: `⚔️ ${a.nom} contre ${b.nom} !` }),
+      questionHeader(q, a),
+      el("p", { class: "question-texte", text: q.texte }),
+      el("p", { class: "help-note paper-note", text: "✍️ Les DEUX duellistes écrivent leur réponse sur leur feuille, en secret. On révèle ensuite !" }),
+      bigButton("Les deux ont écrit → Révéler", reveal),
+    ),
+  );
+  sayHost(q.texte, "question");
 }
 
 /** COUP DE THÉÂTRE : UN grand chamboulement par partie, rare donc mémorable.
@@ -12061,6 +12150,15 @@ function finishTurn() {
     prefix = `🔔 DERNIÈRE MANCHE ! Chacun reçoit +${LAST_ROUND_BONUS} 🪙 pour un ultime coup d'éclat. ${prefix}`;
   }
 
+  // Duel amical (2 max par partie, meneur humain, dès le tour 2, hors tests) :
+  // le joueur qui commence son tour peut défier un adversaire sur UNE question.
+  if ((state.duels ?? 0) < 2 && !testFlag("__DONJON_TEST") && state.tour >= 2
+    && !currentPion().bot && state.pions.length >= 2 && Math.random() < 0.07) {
+    state.duels = (state.duels ?? 0) + 1;
+    save();
+    return doDuel(currentPion(), () => startTurn({ prefix }));
+  }
+
   // Coup de théâtre (UNE fois par partie, dès le tour 3, jamais en test).
   if (!state.coupTheatre && !testFlag("__DONJON_TEST") && state.tour >= 3 && state.pions.length >= 2 && Math.random() < 0.05) {
     state.coupTheatre = true;
@@ -12242,6 +12340,7 @@ function endStarGame() {
     casesParcourues: p.casesParcourues ?? 0,
     bot: p.bot ?? false,
     botLevel: p.botLevel ?? null,
+    defiInfo: evalDefi(p),
   }));
   save();
   const winner = classement[0];
@@ -12276,6 +12375,7 @@ function finishGame(winner) {
     casesParcourues: p.casesParcourues ?? 0,
     bot: p.bot ?? false,
     botLevel: p.botLevel ?? null,
+    defiInfo: evalDefi(p),
   }));
   save();
   sfx("win");
@@ -12658,6 +12758,14 @@ function renderSetup() {
           // Un bot montre son niveau (probabilité de bonne réponse) ; un humain,
           // sa tranche d'âge (difficulté des questions).
           p.bot ? botLevelSelect(p, renderSetup) : ageSelect(p, renderSetup),
+          // 🍀 Coup de pouce discret : +1 case par bonne réponse (équilibre
+          // 7 ans / 47 ans sans que ça se voie en jeu).
+          p.bot ? null : el("button", {
+            class: "btn btn-toggle" + (p.boost ? " btn-toggle-on" : ""),
+            type: "button", title: "Coup de pouce discret : +1 case par bonne réponse",
+            "aria-pressed": String(!!p.boost),
+            onclick: () => { p.boost = !p.boost; renderSetup(); },
+          }, "🍀"),
           characterButton(p, renderSetup),
           players.length > 1
             ? el("button", { class: "btn btn-x", type: "button", "aria-label": `Retirer ${p.bot ? "le bot" : "le joueur"} ${i + 1}`, onclick: () => { players.splice(i, 1); renderSetup(); } }, "✕")
@@ -13036,6 +13144,15 @@ function showVictory(winner, rankingData, extras = {}) {
       ),
     );
   }
+  // 🎯 Défis secrets révélés : chacun découvre l'objectif caché des autres.
+  const defis = rankingData.filter((p) => p.defiInfo);
+  if (defis.length > 0) {
+    zone.append(el("div", { class: "succes-unlock" },
+      el("h3", { class: "succes-unlock-title", text: "🎯 Défis secrets révélés !" }),
+      ...defis.map((p) => el("p", { class: "succes-unlock-line", text: `${p.nom} — « ${p.defiInfo.texte} » : ${p.defiInfo.ok ? "✅ réussi !" : "❌ manqué"}` })),
+    ));
+  }
+
   // Podium festif : le top 3 sur des marches, le gagnant surélevé et couronné.
   const top = rankingData.slice(0, 3);
   if (top.length >= 2) {

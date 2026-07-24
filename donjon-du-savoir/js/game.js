@@ -9,7 +9,7 @@ import { boardById, renderBoard, walkPion } from "./board.js";
 import { react3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
 import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
-import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice } from "./state.js";
+import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } from "./ui.js";
 import { onSpeechBoundary, say, sayHost } from "./tts.js";
 import { heroLine, voiceOf } from "./voices.js";
@@ -2024,7 +2024,7 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
   let coinGain = 0;
   if (correct) {
     pion.stats.bonnes += 1;
-    moveDelta = advance;
+    moveDelta = advance + (pion.boost ? 1 : 0); // 🍀 coup de pouce discret
     coinGain = addCoins(pion, 3);
   } else {
     moveDelta = penalty;
@@ -2082,6 +2082,76 @@ function faveTheme(pion) {
   let best = null;
   for (const [c, v] of Object.entries(t)) if (v >= 2 && (best === null || v > t[best])) best = c;
   return best;
+}
+
+/** DUEL AMICAL : le meneur choisit un adversaire ; même question pour les
+ *  deux (au niveau du PLUS JEUNE des deux), chacun écrit sa réponse sur sa
+ *  feuille, la table juge. Le perdant offre 5 🪙 au gagnant — jamais plus. */
+function doDuel(pion, onDone) {
+  const others = getState().pions.filter((p) => p.id !== pion.id);
+  heraldSays(`⚔️ DUEL ! ${pion.nom}, choisis ton adversaire — une question, deux feuilles, un gagnant !`);
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "⚔️ Duel amical" }),
+      el("p", { class: "panel-text", text: `${pion.nom}, qui défies-tu ? (le perdant offre 5 🪙 au gagnant)` }),
+      ...others.map((adv) => choiceButton(`${characterById(adv.characterId).emoji} ${adv.nom}`, () => duelQuestion(pion, adv, onDone))),
+      bigButton("Pas de duel aujourd'hui", onDone),
+    ),
+  );
+}
+
+function duelQuestion(a, b, onDone) {
+  // Question au niveau du plus jeune des deux duellistes (jamais au-dessus).
+  const jeune = { bracket: youngestBracket([a.bracket, b.bracket]), niveau: 2.5 };
+  const q = drawQuestion(jeune, { formats: ["qcm", "vrai_faux"], commit: true });
+  if (!q) return onDone();
+  const reveal = () => {
+    const marks = new Map();
+    const mkBtn = (p) => {
+      const btn = choiceButton(`${characterById(p.characterId).emoji} ${p.nom} a trouvé`, () => {
+        marks.set(p.id, !marks.get(p.id));
+        btn.classList.toggle("bet-selected", marks.get(p.id));
+      }, "btn-bet");
+      if (p.bot && botWantsCorrect(p.botLevel)) { marks.set(p.id, true); btn.classList.add("bet-selected"); }
+      return btn;
+    };
+    setPanel(
+      el("div", { class: "question-block" },
+        el("p", { class: "question-rappel", text: `❓ ${q.texte}` }),
+        el("p", { class: "reveal-answer", html: `✅ Réponse : <strong>${q.bonne_reponse}</strong>` }),
+        anecdoteCardEl(q),
+        el("p", { class: "panel-text", text: "Qui avait bon ? La table est juge." }),
+        el("div", { class: "bet-buttons", role: "group" }, mkBtn(a), mkBtn(b)),
+        bigButton("Trancher le duel", () => {
+          const okA = !!marks.get(a.id), okB = !!marks.get(b.id);
+          let msg = "Égalité — l'honneur est sauf des deux côtés !";
+          if (okA !== okB) {
+            const [gagnant, perdant] = okA ? [a, b] : [b, a];
+            const don = Math.min(5, perdant.pieces);
+            perdant.pieces -= don;
+            gagnant.pieces += don;
+            msg = `🏆 ${gagnant.nom} remporte le duel ! ${perdant.nom} lui offre ${don} 🪙.`;
+            react3D(gagnant.id, true); chipPulse(gagnant.id, true);
+          }
+          save();
+          renderPlayersStrip();
+          heraldSays(msg);
+          onDone();
+        }),
+      ),
+    );
+    sayHost(q.anecdote, "anecdote");
+  };
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: `⚔️ ${a.nom} contre ${b.nom} !` }),
+      questionHeader(q, a),
+      el("p", { class: "question-texte", text: q.texte }),
+      el("p", { class: "help-note paper-note", text: "✍️ Les DEUX duellistes écrivent leur réponse sur leur feuille, en secret. On révèle ensuite !" }),
+      bigButton("Les deux ont écrit → Révéler", reveal),
+    ),
+  );
+  sayHost(q.texte, "question");
 }
 
 /** COUP DE THÉÂTRE : UN grand chamboulement par partie, rare donc mémorable.
@@ -2525,6 +2595,15 @@ function finishTurn() {
     prefix = `🔔 DERNIÈRE MANCHE ! Chacun reçoit +${LAST_ROUND_BONUS} 🪙 pour un ultime coup d'éclat. ${prefix}`;
   }
 
+  // Duel amical (2 max par partie, meneur humain, dès le tour 2, hors tests) :
+  // le joueur qui commence son tour peut défier un adversaire sur UNE question.
+  if ((state.duels ?? 0) < 2 && !testFlag("__DONJON_TEST") && state.tour >= 2
+    && !currentPion().bot && state.pions.length >= 2 && Math.random() < 0.07) {
+    state.duels = (state.duels ?? 0) + 1;
+    save();
+    return doDuel(currentPion(), () => startTurn({ prefix }));
+  }
+
   // Coup de théâtre (UNE fois par partie, dès le tour 3, jamais en test).
   if (!state.coupTheatre && !testFlag("__DONJON_TEST") && state.tour >= 3 && state.pions.length >= 2 && Math.random() < 0.05) {
     state.coupTheatre = true;
@@ -2706,6 +2785,7 @@ function endStarGame() {
     casesParcourues: p.casesParcourues ?? 0,
     bot: p.bot ?? false,
     botLevel: p.botLevel ?? null,
+    defiInfo: evalDefi(p),
   }));
   save();
   const winner = classement[0];
@@ -2740,6 +2820,7 @@ function finishGame(winner) {
     casesParcourues: p.casesParcourues ?? 0,
     bot: p.bot ?? false,
     botLevel: p.botLevel ?? null,
+    defiInfo: evalDefi(p),
   }));
   save();
   sfx("win");

@@ -70,6 +70,22 @@ function profilToBracket(profil) {
   return profil === "enfant" ? "5-8" : "18+";
 }
 
+/* Défis personnels SECRETS : tirés au sort en début de partie (humains
+   seulement), révélés et évalués à l'écran de victoire — façon objectifs
+   cachés des Aventuriers du Rail. Tous vérifiables sur les compteurs. */
+export const DEFIS = [
+  { id: "erudit5", texte: "Réussir au moins 5 questions", test: (p) => (p.stats?.bonnes ?? 0) >= 5 },
+  { id: "or25", texte: "Amasser au moins 25 🪙 de gains", test: (p) => (p.orGagne ?? 0) >= 25 },
+  { id: "marcheur", texte: "Parcourir au moins 25 cases", test: (p) => (p.casesParcourues ?? 0) >= 25 },
+  { id: "blinde", texte: "Ne subir aucun coup dur", test: (p) => (p.malusSubis ?? 0) === 0 },
+  { id: "pouvoir", texte: "Utiliser son pouvoir de compagnon", test: (p) => !!p.pouvoirUtilise },
+];
+
+export function evalDefi(p) {
+  const d = DEFIS.find((x) => x.id === p.defi);
+  return d ? { texte: d.texte, ok: !!d.test(p) } : null;
+}
+
 let state = null;
 
 export function getState() {
@@ -142,6 +158,9 @@ export function newGame(config, boardLayout) {
       malusSubis: 0,
       orGagne: 0,
       casesParcourues: 0,
+      // Défi secret (humains) + coup de pouce discret choisi à la configuration.
+      defi: p.bot ? null : DEFIS[Math.floor(Math.random() * DEFIS.length)].id,
+      boost: p.boost ?? false,
     })),
     currentIndex: 0,
     tour: 1,

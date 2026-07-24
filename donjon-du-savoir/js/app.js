@@ -363,6 +363,14 @@ function renderSetup() {
           // Un bot montre son niveau (probabilité de bonne réponse) ; un humain,
           // sa tranche d'âge (difficulté des questions).
           p.bot ? botLevelSelect(p, renderSetup) : ageSelect(p, renderSetup),
+          // 🍀 Coup de pouce discret : +1 case par bonne réponse (équilibre
+          // 7 ans / 47 ans sans que ça se voie en jeu).
+          p.bot ? null : el("button", {
+            class: "btn btn-toggle" + (p.boost ? " btn-toggle-on" : ""),
+            type: "button", title: "Coup de pouce discret : +1 case par bonne réponse",
+            "aria-pressed": String(!!p.boost),
+            onclick: () => { p.boost = !p.boost; renderSetup(); },
+          }, "🍀"),
           characterButton(p, renderSetup),
           players.length > 1
             ? el("button", { class: "btn btn-x", type: "button", "aria-label": `Retirer ${p.bot ? "le bot" : "le joueur"} ${i + 1}`, onclick: () => { players.splice(i, 1); renderSetup(); } }, "✕")
@@ -741,6 +749,15 @@ function showVictory(winner, rankingData, extras = {}) {
       ),
     );
   }
+  // 🎯 Défis secrets révélés : chacun découvre l'objectif caché des autres.
+  const defis = rankingData.filter((p) => p.defiInfo);
+  if (defis.length > 0) {
+    zone.append(el("div", { class: "succes-unlock" },
+      el("h3", { class: "succes-unlock-title", text: "🎯 Défis secrets révélés !" }),
+      ...defis.map((p) => el("p", { class: "succes-unlock-line", text: `${p.nom} — « ${p.defiInfo.texte} » : ${p.defiInfo.ok ? "✅ réussi !" : "❌ manqué"}` })),
+    ));
+  }
+
   // Podium festif : le top 3 sur des marches, le gagnant surélevé et couronné.
   const top = rankingData.slice(0, 3);
   if (top.length >= 2) {
