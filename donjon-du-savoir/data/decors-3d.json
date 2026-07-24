@@ -1,0 +1,169 @@
+{
+  "version": 1,
+  "format": "GLB 2.0 + KHR_draco_mesh_compression",
+  "origine": "Modèles low-poly originaux créés pour Le Donjon du Savoir",
+  "collections": {
+    "buildings": [
+      {
+        "id": "chateau",
+        "fichier": "assets/3d/buildings/batiment-chateau.glb",
+        "triangles": 456,
+        "octets": 22976
+      },
+      {
+        "id": "etoile",
+        "fichier": "assets/3d/buildings/batiment-etoile.glb",
+        "triangles": 437,
+        "octets": 24496
+      },
+      {
+        "id": "tour-mage",
+        "fichier": "assets/3d/buildings/batiment-tour-mage.glb",
+        "triangles": 643,
+        "octets": 21072
+      },
+      {
+        "id": "bibliotheque",
+        "fichier": "assets/3d/buildings/batiment-bibliotheque.glb",
+        "triangles": 352,
+        "octets": 21320
+      },
+      {
+        "id": "taverne",
+        "fichier": "assets/3d/buildings/batiment-taverne.glb",
+        "triangles": 436,
+        "octets": 14440
+      },
+      {
+        "id": "portail",
+        "fichier": "assets/3d/buildings/batiment-portail.glb",
+        "triangles": 640,
+        "octets": 13688
+      },
+      {
+        "id": "boutique",
+        "fichier": "assets/3d/buildings/batiment-boutique.glb",
+        "triangles": 316,
+        "octets": 18128
+      },
+      {
+        "id": "fontaine",
+        "fichier": "assets/3d/buildings/batiment-fontaine.glb",
+        "triangles": 1024,
+        "octets": 16400
+      },
+      {
+        "id": "pont",
+        "fichier": "assets/3d/buildings/batiment-pont.glb",
+        "triangles": 560,
+        "octets": 20264
+      },
+      {
+        "id": "champignon",
+        "fichier": "assets/3d/buildings/batiment-champignon.glb",
+        "triangles": 884,
+        "octets": 20128
+      }
+    ],
+    "tiles": [
+      {
+        "id": "question",
+        "fichier": "assets/3d/tiles/socle-question.glb",
+        "triangles": 568,
+        "octets": 10904
+      },
+      {
+        "id": "chance",
+        "fichier": "assets/3d/tiles/socle-chance.glb",
+        "triangles": 800,
+        "octets": 14192
+      },
+      {
+        "id": "evenement",
+        "fichier": "assets/3d/tiles/socle-evenement.glb",
+        "triangles": 356,
+        "octets": 10136
+      },
+      {
+        "id": "malus",
+        "fichier": "assets/3d/tiles/socle-malus.glb",
+        "triangles": 668,
+        "octets": 12576
+      },
+      {
+        "id": "pieces",
+        "fichier": "assets/3d/tiles/socle-pieces.glb",
+        "triangles": 464,
+        "octets": 10584
+      },
+      {
+        "id": "joker",
+        "fichier": "assets/3d/tiles/socle-joker.glb",
+        "triangles": 428,
+        "octets": 9160
+      },
+      {
+        "id": "gambit",
+        "fichier": "assets/3d/tiles/socle-gambit.glb",
+        "triangles": 788,
+        "octets": 14168
+      },
+      {
+        "id": "trounoir",
+        "fichier": "assets/3d/tiles/socle-trounoir.glb",
+        "triangles": 584,
+        "octets": 9808
+      },
+      {
+        "id": "boutique",
+        "fichier": "assets/3d/tiles/socle-boutique.glb",
+        "triangles": 656,
+        "octets": 12448
+      },
+      {
+        "id": "insolite",
+        "fichier": "assets/3d/tiles/socle-insolite.glb",
+        "triangles": 604,
+        "octets": 13408
+      },
+      {
+        "id": "expression",
+        "fichier": "assets/3d/tiles/socle-expression.glb",
+        "triangles": 1352,
+        "octets": 19832
+      },
+      {
+        "id": "tresor",
+        "fichier": "assets/3d/tiles/socle-tresor.glb",
+        "triangles": 360,
+        "octets": 9912
+      }
+    ],
+    "dungeon": [
+      {
+        "id": "mur",
+        "fichier": "assets/3d/dungeon/module-mur.glb",
+        "triangles": 240,
+        "octets": 23672
+      },
+      {
+        "id": "arche",
+        "fichier": "assets/3d/dungeon/module-arche.glb",
+        "triangles": 180,
+        "octets": 18296
+      },
+      {
+        "id": "colonne",
+        "fichier": "assets/3d/dungeon/module-colonne.glb",
+        "triangles": 952,
+        "octets": 14600
+      },
+      {
+        "id": "brasero",
+        "fichier": "assets/3d/dungeon/module-brasero.glb",
+        "triangles": 125,
+        "octets": 6952
+      }
+    ]
+  }
+}

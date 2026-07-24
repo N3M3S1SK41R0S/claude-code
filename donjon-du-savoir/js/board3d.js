@@ -4,7 +4,14 @@
 // visuel : les règles ne connaissent que des positions. Repli 2D garanti si
 // WebGL est indisponible, l'immersion coupée, ou en test (voir use3D()).
 import { BUILDINGS, CASE_TYPES, DECOR, boardGeometry, VIEW_W, heroArt } from "./board.js";
-import { createAnimatedHero, disposeAnimatedHero, playHeroAnimation } from "./models3d.js";
+import {
+  createAnimatedHero,
+  createBuildingModel,
+  createDungeonModule,
+  createTileModel,
+  disposeAnimatedHero,
+  playHeroAnimation,
+} from "./models3d.js";
 import { getPrefs } from "./prefs.js";
 
 const THREE = globalThis.THREE;
@@ -101,15 +108,36 @@ const THEME_FOND = {
 
 // Bâtiment « repère » posé sur certaines cases (on reconnaît l'échoppe, etc.).
 const CASE_BUILDING = {
-  boutique: "assets/batiment-boutique.png",
-  gambit: "assets/batiment-taverne.png",
-  trounoir: "assets/batiment-portail.png",
-  insolite: "assets/batiment-champignon.png",
-  expression: "assets/batiment-taverne.png",
-  evenement: "assets/batiment-fontaine.png",
-  arrivee: "assets/batiment-chateau.png",
-  depart: "assets/batiment-pont.png",
+  boutique: { id: "boutique", art: "assets/batiment-boutique.png" },
+  gambit: { id: "taverne", art: "assets/batiment-taverne.png" },
+  trounoir: { id: "portail", art: "assets/batiment-portail.png" },
+  insolite: { id: "champignon", art: "assets/batiment-champignon.png" },
+  expression: { id: "taverne", art: "assets/batiment-taverne.png" },
+  evenement: { id: "fontaine", art: "assets/batiment-fontaine.png" },
+  arrivee: { id: "chateau", art: "assets/batiment-chateau.png" },
+  depart: { id: "pont", art: "assets/batiment-pont.png" },
 };
+
+const BUILDING_ID = {
+  "assets/batiment-chateau.png": "chateau",
+  "assets/batiment-etoile.png": "etoile",
+  "assets/batiment-tour-mage.png": "tour-mage",
+  "assets/batiment-bibliotheque.png": "bibliotheque",
+  "assets/batiment-taverne.png": "taverne",
+  "assets/batiment-portail.png": "portail",
+  "assets/batiment-boutique.png": "boutique",
+  "assets/batiment-fontaine.png": "fontaine",
+  "assets/batiment-pont.png": "pont",
+  "assets/batiment-champignon.png": "champignon",
+};
+
+const DUNGEON_LAYOUT = [
+  { id: "mur", u: 0.02, v: 0.47, h: 3.1, ry: Math.PI / 2 },
+  { id: "arche", u: 0.51, v: 0.025, h: 3.5, ry: 0 },
+  { id: "colonne", u: 0.985, v: 0.47, h: 3.2, ry: 0 },
+  { id: "brasero", u: 0.17, v: 0.035, h: 2.2, ry: 0 },
+  { id: "brasero", u: 0.83, v: 0.035, h: 2.2, ry: 0 },
+];
 
 /* ---------- init / dispose ---------- */
 
@@ -126,8 +154,13 @@ export function init3D(hostBoard) {
     mounted = { host, canvas, hostBoard };
 
     R = new THREE.WebGLRenderer({ canvas, antialias: true });
-    R.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    const maxRatio = Number(navigator.deviceMemory || 4) <= 4 ? 1.5 : 2;
+    R.setPixelRatio(Math.min(maxRatio, window.devicePixelRatio || 1));
     R.outputEncoding = THREE.sRGBEncoding;
+    R.shadowMap.enabled = true;
+    R.shadowMap.type = THREE.PCFSoftShadowMap;
+    R.toneMapping = THREE.ACESFilmicToneMapping;
+    R.toneMappingExposure = 1.08;
     scene = new THREE.Scene();
     scene.fog = new THREE.Fog(0x1a1230, 34, 74);
 
@@ -135,9 +168,16 @@ export function init3D(hostBoard) {
     camera.position.copy(camPos);
     camera.lookAt(camLook);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.62));
-    const key = new THREE.DirectionalLight(0xfff0d8, 0.95);
+    scene.add(new THREE.HemisphereLight(0xffe8c6, 0x25183e, 0.68));
+    const key = new THREE.DirectionalLight(0xfff0d8, 1.1);
     key.position.set(-14, 26, 12);
+    key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024);
+    key.shadow.camera.left = -28; key.shadow.camera.right = 28;
+    key.shadow.camera.top = 28; key.shadow.camera.bottom = -28;
+    key.shadow.camera.near = 1; key.shadow.camera.far = 70;
+    key.shadow.bias = -0.00035;
+    key.shadow.normalBias = 0.025;
     scene.add(key);
     const rim = new THREE.DirectionalLight(0x8e6cff, 0.4);
     rim.position.set(16, 10, -14);
@@ -223,6 +263,7 @@ function buildBoard(layout, boardDef) {
   for (const rec of pionObjs.values()) { pionGroup.remove(rec.obj); disposePion(rec); }
   pionObjs.clear();
   sceneEpoch += 1;
+  const epoch = sceneEpoch;
 
   const length = layout.length;
   const s = SPAN / VIEW_W;
@@ -235,6 +276,7 @@ function buildBoard(layout, boardDef) {
   );
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.6;
+  ground.receiveShadow = true;
   boardGroup.add(ground);
 
   // Ruban du chemin (tube lissé passant par les centres de case).
@@ -245,6 +287,8 @@ function buildBoard(layout, boardDef) {
       new THREE.TubeGeometry(curve, length * 4, 1.15, 8, false),
       new THREE.MeshStandardMaterial({ color: hex(boardDef.road || "#4a3a78"), roughness: 0.9 }),
     );
+    tube.castShadow = true;
+    tube.receiveShadow = true;
     boardGroup.add(tube);
   }
 
@@ -255,21 +299,37 @@ function buildBoard(layout, boardDef) {
     const type = layout[i];
     const t = CASE_TYPES[type] ?? CASE_TYPES.question;
     const mat = new THREE.MeshStandardMaterial({ color: hex(t.couleur), roughness: 0.6, metalness: 0.05 });
-    const tile = new THREE.Mesh(tileGeo, mat);
     const p = worldOf(i, length);
-    tile.position.set(p.x, 0, p.z);
+    const anchor = new THREE.Group();
+    anchor.position.set(p.x, 0, p.z);
+    const tile = new THREE.Mesh(tileGeo, mat);
+    tile.castShadow = true;
+    tile.receiveShadow = true;
+    anchor.add(tile);
     minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
     minZ = Math.min(minZ, p.z); maxZ = Math.max(maxZ, p.z);
     const special = type === "depart" || type === "arrivee";
-    if (special) tile.scale.set(1.3, 1.6, 1.3);
-    boardGroup.add(tile);
+    if (special) anchor.scale.set(1.3, 1.3, 1.3);
+    boardGroup.add(anchor);
+    upgradeStatic(anchor, tile, createTileModel(type), epoch, `socle ${type}`);
     // Bâtiment posé DERRIÈRE la case-repère (le héros se tient devant).
     const bat = CASE_BUILDING[type];
-    if (bat) boardGroup.add(standee(bat, p.clone().setZ(p.z - 1.6), type === "arrivee" ? 6.5 : 4.6));
+    if (bat) addBuilding(bat.id, bat.art, p.clone().setZ(p.z - 1.6), type === "arrivee" ? 6.5 : 4.6, epoch);
   }
 
   // Bâtiments et décors d'ambiance aux abords du plateau (village de donjon).
-  for (const b of BUILDINGS) boardGroup.add(standee(b.art, worldUV(b.u, b.v, length), b.w * (SPAN / 100) * 1.35));
+  for (const b of BUILDINGS) {
+    addBuilding(BUILDING_ID[b.art], b.art, worldUV(b.u, b.v, length), b.w * (SPAN / 100) * 1.35, epoch);
+  }
+  // Modules de pierre réemployés aux quatre bords : ils composent le donjon
+  // sans multiplier les assets ni charger de grande scène monolithique.
+  for (const module of DUNGEON_LAYOUT) {
+    const anchor = new THREE.Group();
+    anchor.position.copy(worldUV(module.u, module.v, length));
+    anchor.rotation.y = module.ry;
+    boardGroup.add(anchor);
+    upgradeStatic(anchor, null, createDungeonModule(module.id, module.h), epoch, `module ${module.id}`);
+  }
   for (const d of DECOR) boardGroup.add(standee(d.art, worldUV(d.u, d.v, length), d.s * 0.05 + 1.2));
 
   // Vue d'ensemble : recule assez pour cadrer TOUT le plateau (le joueur voit
@@ -280,6 +340,31 @@ function buildBoard(layout, boardDef) {
   overPos.set(cx, dist * 0.92, cz + dist * 0.82);
   overLook.set(cx, 0, cz + 1);
   camPos.copy(overPos); camLook.copy(overLook); // départ en vue d'ensemble
+}
+
+const warnedModels = new Set();
+function upgradeStatic(anchor, fallback, promise, epoch, label) {
+  Promise.resolve(promise).then((model) => {
+    if (!model || epoch !== sceneEpoch || anchor.parent !== boardGroup) return;
+    if (fallback) {
+      anchor.remove(fallback);
+      fallback.material?.dispose?.();
+    }
+    anchor.add(model);
+  }).catch((error) => {
+    if (warnedModels.has(label)) return;
+    warnedModels.add(label);
+    console.warn(`Modèle 3D ${label} indisponible, repli conservé :`, error);
+  });
+}
+
+function addBuilding(id, art, position, height, epoch) {
+  const anchor = new THREE.Group();
+  anchor.position.copy(position);
+  const fallback = standee(art, new THREE.Vector3(), height);
+  anchor.add(fallback);
+  boardGroup.add(anchor);
+  upgradeStatic(anchor, fallback, createBuildingModel(id, height), epoch, `bâtiment ${id}`);
 }
 
 /* ---------- pions ---------- */
@@ -366,6 +451,7 @@ export function render3D(hostBoard, layout, pions, currentPionId, boardDef, star
         new THREE.OctahedronGeometry(0.95),
         new THREE.MeshStandardMaterial({ color: 0xe0b04a, emissive: 0x7a5a12, roughness: 0.3 }),
       );
+      starMesh.castShadow = true;
       scene.add(starMesh);
     }
     const sp = worldOf(starPos, layout.length);
@@ -385,7 +471,7 @@ export function render3D(hostBoard, layout, pions, currentPionId, boardDef, star
       const base = worldOf(pos, layout.length);
       const spread = group.length > 1 ? 1.4 : 0;
       const ang = (i / Math.max(1, group.length)) * Math.PI * 2;
-      const target = new THREE.Vector3(base.x + Math.cos(ang) * spread, 0.35, base.z + Math.sin(ang) * spread);
+      const target = new THREE.Vector3(base.x + Math.cos(ang) * spread, 0.55, base.z + Math.sin(ang) * spread);
       rec.target = target;
       if (!rec.walk) rec.obj.position.lerp(target, 1); // pose directe si pas de trajet en cours
       rec.obj.material && (rec.obj.material.opacity = 1);
@@ -408,7 +494,7 @@ export function render3D(hostBoard, layout, pions, currentPionId, boardDef, star
 export function walk3D(pionId, path, length) {
   const rec = pionObjs.get(pionId);
   if (!rec || !Array.isArray(path) || path.length === 0) return;
-  rec.walk = path.map((pos) => worldOf(pos, length).setY(0.35));
+  rec.walk = path.map((pos) => worldOf(pos, length).setY(0.55));
   rec.wi = 0;
   focusId = pionId;
   playHeroAnimation(rec.hero, "walk");
@@ -463,7 +549,7 @@ function loop(now = performance.now()) {
       playHeroAnimation(rec.hero, "idle");
     }
     // Petit sautillement du pion actif.
-    if (rec.obj.isSprite) rec.obj.position.y = 0.35;
+    if (rec.obj.isSprite) rec.obj.position.y = 0.55;
   }
 
   // Caméra : au REPOS, vue d'ensemble (tout le plateau visible). Pendant un

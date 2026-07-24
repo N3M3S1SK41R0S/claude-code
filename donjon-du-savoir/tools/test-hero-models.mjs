@@ -52,7 +52,7 @@ assert(totalBytes < 500 * 1024, `budget héros dépassé : ${Math.round(totalByt
 assert(builder.includes('glb: "model/gltf-binary"'));
 assert(builder.includes('"models3d", "board3d"'));
 assert(builder.includes("__DONJON_DRACO"));
-assert(worker.includes('const VERSION = "donjon-v67"'));
+assert(worker.includes('const VERSION = "donjon-v68"'));
 assert(worker.includes('"./vendor/draco/LICENSE.txt"'));
 assert(board.includes('prefs.animations === "reduites"'));
 assert(board.includes("prefers-reduced-motion: reduce"));
