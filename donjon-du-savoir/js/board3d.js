@@ -620,6 +620,27 @@ function buildBoard(layout, boardDef) {
     tile.castShadow = true;
     tile.receiveShadow = true;
     anchor.add(tile);
+    // Le JETON PEINT du type posé À PLAT sur le socle + un ANNEAU lumineux de
+    // la couleur du type : chaque case est reconnaissable d'un coup d'œil en
+    // 3D, exactement comme sur le plateau 2D. (Ajoutés à l'ancre : ils
+    // survivent au remplacement du cylindre par le socle GLB.)
+    if (t.art) {
+      const decal = new THREE.Mesh(
+        new THREE.CircleGeometry(0.92, 24),
+        new THREE.MeshBasicMaterial({ map: loadTex(t.art), transparent: true, depthWrite: false }),
+      );
+      decal.rotation.x = -Math.PI / 2;
+      decal.position.y = 0.6;
+      decal.renderOrder = 2;
+      anchor.add(decal);
+    }
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(1.16, 0.055, 8, 28),
+      new THREE.MeshStandardMaterial({ color: hex(t.couleur), emissive: hex(t.couleur), emissiveIntensity: 0.55, roughness: 0.4 }),
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 0.3;
+    anchor.add(ring);
     minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
     minZ = Math.min(minZ, p.z); maxZ = Math.max(maxZ, p.z);
     const special = type === "depart" || type === "arrivee";
@@ -701,7 +722,7 @@ function buildBoard(layout, boardDef) {
     anchor.position.copy(worldUV(r.u, r.v, length));
     boardGroup.add(anchor);
     upgradeStatic(anchor, null, Promise.resolve(createDecorModel(r.id, 1.6)).then((m) => {
-      if (m) ghostify(m, 0.55);
+      if (m) ghostify(m, 0.42);
       return m;
     }), epoch, `rempart ${r.id}`);
   }
@@ -798,11 +819,11 @@ function addBuilding(id, art, position, height, epoch) {
   anchor.position.copy(position);
   anchor.userData.isBatiment = true; // ciblé par les règles anti-occlusion
   const fallback = standee(art, new THREE.Vector3(), height);
-  ghostify(fallback, 0.55); // on voit toujours le plateau à travers
+  ghostify(fallback, 0.42); // on voit toujours le plateau à travers
   anchor.add(fallback);
   boardGroup.add(anchor);
   upgradeStatic(anchor, fallback,
-    Promise.resolve(createBuildingModel(id, height)).then((m) => { if (m) ghostify(m, 0.55); return m; }),
+    Promise.resolve(createBuildingModel(id, height)).then((m) => { if (m) ghostify(m, 0.42); return m; }),
     epoch, `bâtiment ${id}`);
 }
 
@@ -1114,6 +1135,9 @@ export function heroMoment3D(pionId, moment) {
 
 let lastFrame = 0;
 function watchPerformance(now) {
+  // Sonde de test : __DONJON_KEEP3D désactive le repli 2D et la baisse de
+  // qualité (captures d'écran et diagnostics sur rendu logiciel lent).
+  if (globalThis.__DONJON_KEEP3D) return;
   if (!perfStarted) perfStarted = now;
   perfFrames += 1;
   const elapsed = now - perfStarted;
