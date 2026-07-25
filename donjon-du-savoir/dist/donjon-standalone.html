@@ -6284,6 +6284,7 @@ const DEFAULTS = {
   langue: "fr-FR", // pack de langue actif (voir data/langues.json)
   oreilles: false, // « partie à l'oreille » : propositions, dé et réponses lus à voix haute
   tutoVu: false, // le tutoriel du 1er lancement a déjà été vu
+  voixProposee: false, // la proposition « le Héraut lit tout à voix haute » a été faite
 };
 
 let prefs = { ...DEFAULTS };
@@ -14595,6 +14596,12 @@ function launchGame() {
     show("home");
     return;
   }
+  // Première partie : on propose CLAIREMENT la voix du Héraut (questions,
+  // anecdotes et répliques lues à voix haute) — un choix, une fois, mémorisé.
+  if (!getPrefs().voixProposee && voiceAvailable() && !globalThis.__DONJON_TEST) {
+    setPref("voixProposee", true);
+    return showVoicePrompt(() => launchGame());
+  }
   let pions;
   if (setupMode === "individuel") {
     pions = players
@@ -15051,6 +15058,29 @@ function showTutorial(onClose) {
     );
   };
   render();
+  document.body.append(overlay);
+}
+
+/** Proposition unique : le Héraut lit-il tout à voix haute pour la tablée ? */
+function showVoicePrompt(onDone) {
+  const overlay = el("div", { class: "tuto-overlay", role: "dialog", "aria-modal": "true", "aria-label": "Voix du Héraut" });
+  const choisir = (on) => {
+    setVoice(on);
+    try { localStorage.setItem("donjon-voice", on ? "1" : "0"); } catch { /* privé */ }
+    const btn = document.getElementById("voice-toggle");
+    if (btn) { btn.textContent = on ? "🔊 Héraut vocal" : "🔇 Héraut muet"; btn.setAttribute("aria-pressed", String(on)); }
+    overlay.remove();
+    onDone();
+  };
+  overlay.append(el("div", { class: "tuto-card" },
+    el("div", { class: "tuto-emoji", "aria-hidden": "true", text: "🎙️" }),
+    el("h2", { class: "tuto-titre", text: "Le Héraut prend-il le micro ?" }),
+    el("p", { class: "tuto-texte", text: "Il peut TOUT lire à voix haute pour la tablée : les questions, les anecdotes et les répliques des personnages — chacun avec sa propre voix. Vous pourrez changer d'avis à tout moment avec le bouton 🔊 en haut de l'écran." }),
+    el("div", { class: "tuto-actions" },
+      el("button", { class: "btn btn-gold", type: "button", onclick: () => choisir(true) }, "🔊 Oui, à voix haute !"),
+      el("button", { class: "btn", type: "button", onclick: () => choisir(false) }, "🤫 Sans la voix"),
+    ),
+  ));
   document.body.append(overlay);
 }
 

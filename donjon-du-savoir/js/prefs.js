@@ -15,6 +15,7 @@ const DEFAULTS = {
   langue: "fr-FR", // pack de langue actif (voir data/langues.json)
   oreilles: false, // « partie à l'oreille » : propositions, dé et réponses lus à voix haute
   tutoVu: false, // le tutoriel du 1er lancement a déjà été vu
+  voixProposee: false, // la proposition « le Héraut lit tout à voix haute » a été faite
 };
 
 let prefs = { ...DEFAULTS };
