@@ -9839,7 +9839,9 @@ function buildBoard(layout, boardDef) {
     upgradeStatic(anchor, tile, createTileModel(type), epoch, `socle ${type}`);
     // Bâtiment posé DERRIÈRE la case-repère (le héros se tient devant).
     const bat = CASE_BUILDING[type];
-    if (bat) addBuilding(bat.id, bat.art, p.clone().setZ(p.z - 1.6), type === "arrivee" ? 6.5 : 4.6, epoch);
+    // Bâtiment-repère bien EN RETRAIT (3,4 u) : sa silhouette fantôme ne voile
+    // plus jamais le socle, la pastille de couleur ni le jeton de la case.
+    if (bat) addBuilding(bat.id, bat.art, p.clone().setZ(p.z - 3.4), type === "arrivee" ? 6.5 : 4.6, epoch);
   }
 
   // Bâtiments et décors d'ambiance aux abords du plateau (village de donjon).
@@ -10005,13 +10007,15 @@ function addBuilding(id, art, position, height, epoch) {
   const anchor = new THREE.Group();
   anchor.position.copy(position);
   anchor.userData.isBatiment = true; // ciblé par les règles anti-occlusion
-  const fallback = standee(art, new THREE.Vector3(), height);
-  ghostify(fallback, 0.42); // on voit toujours le plateau à travers
-  anchor.add(fallback);
+  // FIDÉLITÉ À L'ART DE GEN 2 : les bâtiments restent ses PEINTURES originales
+  // (standees) — les volumes GLB génériques ne leur ressemblaient pas et sont
+  // retirés de la scène. (createBuildingModel reste disponible pour un futur
+  // lot de GLB fidèles au style peint.)
+  void id; void epoch;
+  const affiche = standee(art, new THREE.Vector3(), height);
+  ghostify(affiche, 0.6); // translucide, mais l'œuvre reste bien lisible
+  anchor.add(affiche);
   boardGroup.add(anchor);
-  upgradeStatic(anchor, fallback,
-    Promise.resolve(createBuildingModel(id, height)).then((m) => { if (m) ghostify(m, 0.42); return m; }),
-    epoch, `bâtiment ${id}`);
 }
 
 /* ---------- mises en scène courtes des cases ---------- */
