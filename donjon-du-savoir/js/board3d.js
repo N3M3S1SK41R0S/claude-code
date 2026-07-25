@@ -53,6 +53,11 @@ let scene = null, camera = null, raf = null;
 let boardGroup = null, pionGroup = null, effectGroup = null, starMesh = null;
 let builtSig = null;
 const pionObjs = new Map(); // id -> { obj, target:THREE.Vector3, walk:[Vector3]|null, wi:0 }
+// FIDÉLITÉ TRAIT POUR TRAIT : les personnages sont les FIGURINES PEINTES de
+// GEN 2 (identiques aux portraits), animées par le code. Les GLB stylisés
+// restent disponibles derrière ces drapeaux s'ils deviennent fidèles un jour.
+const USE_GLB_HEROES = false;
+const USE_GLB_PNJ = false;
 const braseroLights = []; // flammes de braseros : lumière qui tremble dans la boucle
 const animatedDecors = []; // nœuds « anim » des décors v3 (ailes, bannières, seaux)
 const pnj3d = []; // PNJ GLB animés : idle + signature de temps en temps
@@ -744,7 +749,7 @@ function buildBoard(layout, boardDef) {
     { slug: "zebulon", type: "trounoir", sig: "lose-thread" },
     { slug: "merlinouche", type: "arrivee", sig: "spell-fail" },
   ];
-  for (const pdef of PNJ3D_CASE) {
+  for (const pdef of USE_GLB_PNJ ? PNJ3D_CASE : []) {
     const idx = layout.indexOf(pdef.type);
     if (idx === -1) continue;
     const pos = worldOf(idx, length).add(new THREE.Vector3(1.9, 0, 0.7));
@@ -761,13 +766,14 @@ function buildBoard(layout, boardDef) {
   // insolite, Zébulon au Trou Noir… et six flâneurs aux abords. Les objets
   // peints (coffre, tonneau, torche…) parsèment les bords. L'art original
   // cohabite ainsi avec les volumes low-poly au lieu d'être remplacé.
-  // (Gérard, Zébulon et Merlinouche existent désormais en GLB animé : leurs
-  // standees peints laissent la place — repli : la case reste simplement libre.)
   const PNJ_CASE = {
+    boutique: "assets/pnj-gerard.png",
     insolite: "assets/pnj-piquot.png",
     expression: "assets/pnj-turbo.png",
     gambit: "assets/pnj-roquefort.png",
     evenement: "assets/pnj-fee-bricole.png",
+    trounoir: "assets/pnj-zebulon.png",
+    arrivee: "assets/pnj-merlinouche.png",
   };
   for (let i = 0; i < length; i++) {
     const art = PNJ_CASE[layout[i]];
@@ -889,11 +895,15 @@ export function stageCase3D(type, pionId) {
   // Effets peints v3 : pluie de pièces, fumée du Trou Noir, confettis du Trésor.
   const FX_BY_CASE = { pieces: "plouf-piece", trounoir: "fumee-douce", arrivee: "confettis", tresor: "confettis" };
   if (FX_BY_CASE[type]) spawnFx(FX_BY_CASE[type], rec.obj.position);
-  // À l'arrivée : la danse de la victoire (clip v3, repli : joy).
-  if (type === "arrivee" && rec.hero) {
-    if (!playHeroAnimation(rec.hero, "dance")) playHeroAnimation(rec.hero, "joy");
-    rec.pendingReaction = "dance";
-    rec.reactionUntil = performance.now() + 2600;
+  // À l'arrivée : la danse de la victoire (GLB ou figurine peinte).
+  if (type === "arrivee") {
+    if (rec.hero) {
+      if (!playHeroAnimation(rec.hero, "dance")) playHeroAnimation(rec.hero, "joy");
+      rec.pendingReaction = "dance";
+      rec.reactionUntil = performance.now() + 2600;
+    } else {
+      rec.spriteAnim = { kind: "dance", start: performance.now(), until: performance.now() + 2600 };
+    }
   }
   const color = CASE_EFFECT_COLOR[type] ?? CASE_EFFECT_COLOR.question;
   const geometry = effectGeometry(type);
@@ -1027,6 +1037,7 @@ function makePion(p) {
     pionGroup.add(ring);
     rec.ring = ring;
   }
+  if (!USE_GLB_HEROES) return rec; // figurine peinte = fidélité garantie
   createAnimatedHero(p.characterId).then((hero) => {
     if (rec.epoch !== sceneEpoch || pionObjs.get(p.id) !== rec || !pionGroup) {
       disposeAnimatedHero(hero);
@@ -1128,7 +1139,8 @@ export function react3D(pionId, success) {
   if (!rec) return;
   rec.pendingReaction = success ? "joy" : "disappointment";
   rec.reactionUntil = performance.now() + 1500;
-  playHeroAnimation(rec.hero, rec.pendingReaction);
+  if (rec.hero) playHeroAnimation(rec.hero, rec.pendingReaction);
+  else rec.spriteAnim = { kind: success ? "joy" : "sad", start: performance.now(), until: performance.now() + 1500 };
   if (success) spawnFx("etincelles", rec.obj.position); // gerbe peinte v3
 }
 
@@ -1136,12 +1148,17 @@ export function react3D(pionId, success) {
  *  pendant la question, « dance » à l'arrivée. No-op sans 3D ou en marche. */
 export function heroMoment3D(pionId, moment) {
   const rec = pionObjs.get(pionId);
-  if (!rec?.hero || rec.walk) return;
-  if (!playHeroAnimation(rec.hero, moment)) return;
-  if (moment === "salute") {
-    rec.pendingReaction = "salute";
-    rec.reactionUntil = performance.now() + 1700;
+  if (!rec || rec.walk) return;
+  if (rec.hero) {
+    if (!playHeroAnimation(rec.hero, moment)) return;
+    if (moment === "salute") {
+      rec.pendingReaction = "salute";
+      rec.reactionUntil = performance.now() + 1700;
+    }
+    return;
   }
+  // Figurine peinte : petite chorégraphie équivalente pilotée par le code.
+  rec.spriteAnim = { kind: moment, start: performance.now(), until: performance.now() + (moment === "dance" ? 2600 : 1600) };
 }
 
 /* ---------- boucle de rendu ---------- */
@@ -1214,8 +1231,24 @@ function loop(now = performance.now()) {
       rec.reactionUntil = 0;
       playHeroAnimation(rec.hero, "idle");
     }
-    // Petit sautillement du pion actif.
-    if (rec.obj.isSprite) rec.obj.position.y = 0.55;
+    // Vie des figurines peintes : marche sautillante et petites chorégraphies
+    // (joie = bond, déception = affaissement, danse = déhanché, salut = hop).
+    if (rec.obj.isSprite) {
+      let y = 0.55;
+      if (rec.walk) y += Math.abs(Math.sin(now * 0.02)) * 0.3;
+      const a = rec.spriteAnim;
+      if (a && now < a.until) {
+        const t = (now - a.start) / 1000;
+        if (a.kind === "joy" || a.kind === "salute") y += Math.abs(Math.sin(t * 9)) * 0.45;
+        else if (a.kind === "dance") { y += Math.abs(Math.sin(t * 6)) * 0.35; rec.obj.material.rotation = Math.sin(t * 8) * 0.14; }
+        else if (a.kind === "sad") { y -= 0.08; rec.obj.material.rotation = Math.sin(t * 2) * 0.04; }
+        else if (a.kind === "think") rec.obj.material.rotation = Math.sin(t * 1.6) * 0.06;
+      } else if (a) {
+        rec.spriteAnim = null;
+        rec.obj.material.rotation = 0;
+      }
+      rec.obj.position.y = y;
+    }
     // L'anneau de tenue suit la figurine et pulse doucement.
     if (rec.ring) {
       rec.ring.position.set(rec.obj.position.x, 0.08, rec.obj.position.z);
