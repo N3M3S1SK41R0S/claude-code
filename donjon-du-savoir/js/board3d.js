@@ -829,10 +829,10 @@ function addBuilding(id, art, position, height, epoch) {
   const anchor = new THREE.Group();
   anchor.position.copy(position);
   anchor.userData.isBatiment = true; // ciblé par les règles anti-occlusion
-  // FIDÉLITÉ À L'ART DE GEN 2 : les bâtiments restent ses PEINTURES originales
-  // (standees) — les volumes GLB génériques ne leur ressemblaient pas et sont
-  // retirés de la scène. (createBuildingModel reste disponible pour un futur
-  // lot de GLB fidèles au style peint.)
+  // VERDICT DU TEST DE FIDÉLITÉ (lot v4) : à l'écran, les volumes restent en
+  // deçà des peintures — les bâtiments demeurent donc les ŒUVRES PEINTES de
+  // GEN 2. Les GLB v4 restent dans le dépôt ; pour les rebrancher, remettre
+  // l'upgradeStatic(createBuildingModel) ici.
   void id; void epoch;
   const affiche = standee(art, new THREE.Vector3(), height);
   ghostify(affiche, 0.6); // translucide, mais l'œuvre reste bien lisible
