@@ -624,13 +624,22 @@ function buildBoard(layout, boardDef) {
     // la couleur du type : chaque case est reconnaissable d'un coup d'œil en
     // 3D, exactement comme sur le plateau 2D. (Ajoutés à l'ancre : ils
     // survivent au remplacement du cylindre par le socle GLB.)
+    // Pastille de COULEUR opaque (le dessus de la case = la couleur du type,
+    // lisible de loin comme en 2D) + le jeton peint par-dessus.
+    const plate = new THREE.Mesh(
+      new THREE.CircleGeometry(1.02, 24),
+      new THREE.MeshStandardMaterial({ color: hex(t.couleur), emissive: hex(t.couleur), emissiveIntensity: 0.25, roughness: 0.55 }),
+    );
+    plate.rotation.x = -Math.PI / 2;
+    plate.position.y = 0.58;
+    anchor.add(plate);
     if (t.art) {
       const decal = new THREE.Mesh(
-        new THREE.CircleGeometry(0.92, 24),
+        new THREE.CircleGeometry(0.94, 24),
         new THREE.MeshBasicMaterial({ map: loadTex(t.art), transparent: true, depthWrite: false }),
       );
       decal.rotation.x = -Math.PI / 2;
-      decal.position.y = 0.6;
+      decal.position.y = 0.62;
       decal.renderOrder = 2;
       anchor.add(decal);
     }
