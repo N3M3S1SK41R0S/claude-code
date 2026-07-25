@@ -1033,6 +1033,8 @@ function renderReglages() {
     ] : []),
     row("🎧 Partie à l'oreille", "Le maître du jeu lit aussi les propositions, le dé et les bonnes réponses : la partie peut se jouer sans regarder l'écran.",
       seg(oui_non, p.oreilles, (v) => setPref("oreilles", v))),
+    row("⏱️ Tempo de partie", "Tranquille : chaque étape se valide à la main. Vif : le dé s'enchaîne et l'anecdote défile toute seule. Fiesta : tout file — sans JAMAIS chronométrer les réponses.",
+      seg([{ val: "tranquille", label: "Tranquille" }, { val: "vif", label: "Vif" }, { val: "fiesta", label: "Fiesta" }], p.tempo ?? "tranquille", (v) => setPref("tempo", v))),
     row("🎩 Humour du Héraut", "Sobre : les faits, rien que les faits. Complice : clins d'œil pince-sans-rire (défaut). Grand Cabaret : le Héraut se croit en tournée.",
       seg([{ val: "sobre", label: "Sobre" }, { val: "complice", label: "Complice" }, { val: "cabaret", label: "Grand Cabaret" }], p.humour ?? "complice", (v) => setPref("humour", v))),
     row("🎬 Animations", "Réduisez les mouvements à l'écran si vous préférez le calme.",

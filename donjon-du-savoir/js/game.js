@@ -22,6 +22,7 @@ import { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } from "./minig
 import { drawDefi } from "./wordgames.js";
 import { chipStyle, softStyle, THEME_META, THEME_ORDER, themeMeta, TYPE_META, TYPE_ORDER, typeMeta } from "./themes.js";
 import { sfx } from "./sfx.js";
+import { setMusicRush } from "./music.js";
 import { getPrefs } from "./prefs.js";
 
 /** Seam de test déterministe (jamais posé en jeu réel) : force un mini-jeu
@@ -166,6 +167,7 @@ function charSays(pion, moment) {
 
 export function startGame(victoryCallback) {
   onVictory = victoryCallback;
+  setMusicRush(false); // nouvelle partie : le Barde reprend son pas tranquille
   render();
   // Rituel d'ouverture : le Héraut désigne qui commence (toast loufoque).
   openingToast();
@@ -360,6 +362,13 @@ function openingToast() {
     state.currentIndex = idx;
     save();
     render();
+    // 🎺 Présentation des champions : chaque héros salue à l'appel de son nom
+    // (visuel et non bloquant — le premier tour démarre aussitôt).
+    if (!testFlag("__DONJON_TEST") && tempoLevel() < 2) {
+      const noms = state.pions.map((p) => p.nom).join(", ");
+      say(`Veuillez accueillir nos champions : ${noms} !`, { queue: true });
+      state.pions.forEach((p, i) => window.setTimeout(() => heroMoment3D(p.id, "salute"), 600 + i * 700));
+    }
     startTurn();
   };
   const buttons = state.pions.map((p, i) =>
@@ -615,7 +624,7 @@ function rollDie() {
   // Short tumble animation — pure spectacle, the player is never rushed.
   // Mouvements réduits OU tests automatisés : résultat direct, sans culbute.
   const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (reduced || testFlag("__DONJON_TEST")) return showDieResult(value, { rerollAvailable: true });
+  if (reduced || testFlag("__DONJON_TEST") || tempoLevel() >= 2) return showDieResult(value, { rerollAvailable: true });
   // Dé 3D : un cube CSS culbute (plusieurs tours) puis SE POSE sur la face
   // tirée — le geste iconique, sans moteur physique ni chronomètre.
   const FACES = { 1: [0, 0], 2: [-90, 0], 3: [0, -90], 4: [0, 90], 5: [90, 0], 6: [0, 180] };
@@ -626,10 +635,11 @@ function rollDie() {
     const [fx, fy] = FACES[value];
     cube.style.transform = `rotateX(${fx + 720}deg) rotateY(${fy + 1080}deg)`;
   });
-  window.setTimeout(() => showDieResult(value, { rerollAvailable: true }), 1050);
+  window.setTimeout(() => showDieResult(value, { rerollAvailable: true }), tempoLevel() >= 1 ? 650 : 1050);
 }
 
 let sixStreak = 0; // suspicion théâtrale du Héraut sur les séries de 6
+let dieAutoToken = 0; // anti double-avance du « tour en un geste »
 
 function showDieResult(value, { rerollAvailable }) {
   const pion = currentPion();
@@ -642,7 +652,16 @@ function showDieResult(value, { rerollAvailable }) {
     else if (sixStreak >= 3) { heraldSays(herald.deTriple()); sixStreak = 0; }
   }
   const power = powerOf(pion);
-  const actions = [bigButton(`Avancer de ${value}`, () => moveAndResolve(value))];
+  const actions = [bigButton(`Avancer de ${value}`, () => { dieAutoToken++; moveAndResolve(value); })];
+  // ⏱️ LE TOUR EN UN GESTE (vif/fiesta) : le dé lancé, on avance tout seul —
+  // sauf si un pouvoir de relance est disponible (le choix reste au joueur).
+  const powerReroll = rerollAvailable && power && !pion.pouvoirUtilise && power.quand === "de";
+  if (tempoLevel() >= 1 && !powerReroll && !testFlag("__DONJON_TEST")) {
+    const tok = ++dieAutoToken;
+    window.setTimeout(() => {
+      if (tok === dieAutoToken) { dieAutoToken++; moveAndResolve(value); }
+    }, tempoLevel() >= 2 ? 500 : 900);
+  }
   if (rerollAvailable && power && !pion.pouvoirUtilise && power.quand === "de") {
     actions.push(
       choiceButton(`${characterById(pion.characterId).emoji} ${power.nom} — relancer le dé`, () => {
@@ -812,10 +831,11 @@ function resolveCase(type) {
       return doMalus(pion);
     case "pieces": {
       setPendingCase("resolu");
-      const gain = 6 + Math.floor(Math.random() * 5);
+      const rush = !!getState().rushLance;
+      const gain = (6 + Math.floor(Math.random() * 5)) * (rush ? 2 : 1);
       addCoins(pion, gain);
       sfx("coin");
-      return endPanel(`Vous ramassez ${gain} pièces d'or ! 🪙`);
+      return endPanel(`Vous ramassez ${gain} pièces d'or ! 🪙${rush ? " (SPRINT : gains doublés !)" : ""}`);
     }
     case "joker":
       setPendingCase("resolu");
@@ -1537,6 +1557,7 @@ const QUESTION_FORMATS = ["qcm", "vrai_faux", "cash_carre_duo", "equipe", "pari_
 
 function doQuestion() {
   heroMoment3D(currentPion().id, "think"); // le héros réfléchit (clip v3)
+  sfx("drum"); // 🥁 roulement de suspense (jamais un chronomètre)
   if (testFlag("__DONJON_EXPRESSION")) return doExpression(currentPion());
   const pion = currentPion();
   // Bot : question à choix (jouable en automatique), sans choix de thème.
@@ -2065,10 +2086,22 @@ function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
     pion.bonnesParTheme = pion.bonnesParTheme ?? {};
     pion.bonnesParTheme[q.categorie] = (pion.bonnesParTheme[q.categorie] ?? 0) + 1;
   }
+  // 🔥 EN FEU : à chaque palier de trois bonnes réponses d'affilée, fanfare et
+  // +1 case bonus. Jamais en test (déterminisme des parcours).
+  let enFeu = false;
+  if (correct && pion.serie >= 3 && pion.serie % 3 === 0 && !testFlag("__DONJON_TEST")) {
+    enFeu = true;
+    moveDelta += 1;
+    sfx("fanfare");
+    vibrer(80);
+  }
+  // 👏 Une question ardue (difficulté 4-5) réussie mérite la foule.
+  if (correct && (q.difficulte ?? 3) >= 4 && !testFlag("__DONJON_TEST")) sfx("clap");
   save();
   sfx(correct ? "good" : "bad");
   react3D(pion.id, correct); chipPulse(pion.id, correct);
   heraldSays((correct ? herald.bonne() : herald.mauvaise()) + gagFor(pion, q, correct));
+  if (enFeu) heraldSays(`🔥 ${pion.nom} est EN FEU ! ${pion.serie} d'affilée : +1 case bonus !`);
   charSays(pion, correct ? "bonne" : "mauvaise");
   // 🤖 L'ego des bots : le Facile est très sûr de lui, le Génie doute poliment.
   if (pion.bot && humourLevel() >= 1 && !testFlag("__DONJON_TEST") && Math.random() < 0.22) {
@@ -2118,6 +2151,19 @@ function humourLevel() {
 }
 
 const aleaHumour = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+/** ⏱️ Tempo des enchaînements : 0 = tranquille, 1 = vif, 2 = fiesta.
+ *  Le tempo n'impose JAMAIS de chronomètre aux réponses — il n'accélère que
+ *  les transitions (dé, anecdotes, culbutes). */
+function tempoLevel() {
+  const t = getPrefs().tempo;
+  return t === "fiesta" ? 2 : t === "vif" ? 1 : 0;
+}
+
+/** Petite vibration tactile sur mobile ; sans effet ailleurs. */
+function vibrer(ms) {
+  try { navigator.vibrate?.(ms); } catch { /* non supporté */ }
+}
 
 // 🎩 « Précision inutile » : commentaire de pure forme — JAMAIS un fait nouveau
 // (la règle zéro-invention s'applique aux faits, pas aux révérences).
@@ -2193,6 +2239,63 @@ function faveTheme(pion) {
   let best = null;
   for (const [c, v] of Object.entries(t)) if (v >= 2 && (best === null || v > t[best])) best = c;
   return best;
+}
+
+/** ⚡ SALVE ÉCLAIR : la même question pour TOUTE la tablée, en simultané.
+ *  Chacun écrit sa réponse sur sa feuille, on révèle ensemble, la table valide
+ *  joueur par joueur — +2 🪙 par bonne réponse. Aucun chronomètre. */
+function doSalve(onDone) {
+  const q = drawEvent();
+  if (!q) return onDone();
+  heraldSays("⚡ SALVE ÉCLAIR ! La même question pour TOUTE la tablée — chacun écrit sa réponse, on révèle ensemble !");
+  sfx("defi");
+  vibrer(80);
+  narrateQuestion(q);
+  const reveal = () => {
+    const humains = getState().pions.filter((p) => !p.bot);
+    const bots = getState().pions.filter((p) => p.bot);
+    const marks = new Map(humains.map((p) => [p.id, false]));
+    const rows = humains.map((p) => {
+      const b = el("button", {
+        class: "btn btn-toggle", type: "button", "aria-pressed": "false",
+        onclick: () => {
+          marks.set(p.id, !marks.get(p.id));
+          b.classList.toggle("btn-toggle-on", marks.get(p.id));
+          b.setAttribute("aria-pressed", String(marks.get(p.id)));
+        },
+      }, `✅ ${p.nom} a trouvé`);
+      return b;
+    });
+    const botsOk = bots.filter((p) => botWantsCorrect(p));
+    setPanel(
+      el("div", { class: "question-block" },
+        el("h2", { class: "panel-title", text: "⚡ Salve éclair — révélation" }),
+        el("p", { class: "question-rappel", text: q.texte }),
+        el("p", { class: "reveal-answer", html: `✅ Réponse : <strong>${q.bonne_reponse}</strong>` }),
+        ...(botsOk.length ? [el("p", { class: "help-note", text: `🤖 ${botsOk.map((p) => p.nom).join(", ")} ${botsOk.length > 1 ? "ont" : "a"} trouvé.` })] : []),
+        ...rows,
+        bigButton("Distribuer les gains (+2 🪙 par bonne réponse)", () => {
+          for (const p of getState().pions) {
+            const ok = p.bot ? botsOk.includes(p) : marks.get(p.id);
+            if (ok) addCoins(p, 2);
+          }
+          save();
+          sfx("coin");
+          showAnecdote(q, { verdictHtml: "⚡ <strong>Salve terminée !</strong> +2 🪙 par bonne réponse", onContinue: onDone });
+        }),
+      ),
+    );
+  };
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "⚡ Salve éclair !" }),
+      regleBanner(q.format),
+      el("p", { class: "panel-text", text: q.texte }),
+      ...(Array.isArray(q.choix) ? [el("p", { class: "help-note", text: `Propositions : ${q.choix.join(" · ")}` })] : []),
+      el("p", { class: "help-note", text: "📝 Chacun écrit sa réponse sur sa feuille — puis on révèle ensemble." }),
+      bigButton("Tout le monde a écrit → Révéler", reveal),
+    ),
+  );
 }
 
 /** 🎭 PLAIDOIRIE (règle maison) : après une mauvaise réponse, le joueur a le
@@ -2334,11 +2437,22 @@ function coupDeTheatre(onDone) {
 
 function showAnecdote(q, { verdictHtml, onContinue }) {
   heraldSays(`${herald.anecdote()} ${q.anecdote}`, { speak: false });
+  // ⏱️ Tempo vif/fiesta : l'anecdote s'enchaîne toute seule (le bouton reste
+  // là pour aller plus vite) — annulé si la partie a changé entre-temps.
+  let continued = false;
+  const continuer = () => { if (!continued) { continued = true; onContinue(); } };
+  if (tempoLevel() >= 1 && !testFlag("__DONJON_TEST")) {
+    const st = getState();
+    window.setTimeout(() => {
+      if (getState() === st && !st.finished) continuer();
+    }, tempoLevel() >= 2 ? 4500 : 7000);
+  }
   setPanel(
     el("div", { class: "question-block" },
       el("p", { class: "verdict", html: verdictHtml }),
       anecdoteCardEl(q),
-      bigButton("Continuer", onContinue),
+      ...(tempoLevel() >= 1 ? [el("p", { class: "help-note", text: "⏩ Tempo : enchaînement automatique dans quelques secondes." })] : []),
+      bigButton("Continuer", continuer),
     ),
   );
   narrateAnecdote(q);
@@ -2350,6 +2464,8 @@ function doTrouNoir(pion) {
   if (!pion.bot) playScene("trounoir", pion.characterId); // saynète du Trou Noir
   // 🎬 Documentaire animalier : le Héraut chuchote (humour ≥ complice).
   if (humourLevel() >= 1 && !pion.bot) heraldSays(herald.docTrouNoir());
+  sfx("drum");
+  vibrer(60);
   const q = drawHardest(pion);
   const advance = 3;
   const recul = -6;
@@ -2359,6 +2475,8 @@ function doTrouNoir(pion) {
     if (correct) pion.stats.bonnes += 1;
     save();
     react3D(pion.id, correct); chipPulse(pion.id, correct);
+    sfx(correct ? "clap" : "ooh"); // 👏 la foule réagit au moment le plus fort
+    vibrer(correct ? 90 : 60);
     heraldSays(correct ? herald.bonne() : herald.mauvaise());
     showAnecdote(q, {
       verdictHtml: correct
@@ -2735,6 +2853,48 @@ function finishTurn() {
     prefix = `🔔 DERNIÈRE MANCHE ! Chacun reçoit +${LAST_ROUND_BONUS} 🪙 pour un ultime coup d'éclat. ${prefix}`;
   }
 
+  // 🏁 RUSH FINAL (une fois) : quand la fin approche, le Donjon s'embrase —
+  // annonce, Barde plus vif, vibration, et cases Pièces qui valent DOUBLE.
+  if (!state.rushLance && !testFlag("__DONJON_TEST")) {
+    const presque = isEtoiles()
+      ? state.rounds != null && state.tour >= state.rounds - 2
+      : state.pions.some((p) => p.position >= state.board.length - 12);
+    if (presque) {
+      state.rushLance = true;
+      save();
+      setMusicRush(true);
+      heraldSays("🏁 LE SPRINT FINAL ! Le Barde accélère, les cases Pièces valent DOUBLE — tout peut encore basculer !");
+      sfx("fanfare");
+      vibrer(100);
+    }
+  }
+
+  // 📻 FLASH INFO de mi-parcours (une fois) : dix secondes de journalisme
+  // sportif pour relancer toute la table.
+  if (!state.flashFait && !testFlag("__DONJON_TEST")) {
+    const miParcours = isEtoiles()
+      ? state.rounds != null && state.tour === Math.ceil(state.rounds / 2)
+      : state.tour >= 4 && state.pions.some((p) => p.position >= Math.floor(state.board.length / 2));
+    if (miParcours) {
+      state.flashFait = true;
+      save();
+      const cls = ranking();
+      const tete = cls[0];
+      const lanterne = cls[cls.length - 1];
+      heraldSays(`📻 FLASH INFO à mi-parcours ! En tête : ${tete.nom}${isEtoiles() ? ` avec ${tete.etoiles ?? 0} ⭐` : ` (case ${tete.position})`}. Et gardez un œil sur ${lanterne.nom} : les remontadas naissent exactement ici.`);
+      sfx("defi");
+    }
+  }
+
+  // ⚡ SALVE ÉCLAIR (une fois par partie, dès le tour 3, hors tests) : la même
+  // question pour TOUTE la tablée en simultané — le moment le plus bruyant.
+  if (!state.salveFaite && !testFlag("__DONJON_TEST") && state.tour >= 3
+    && state.pions.filter((p) => !p.bot).length >= 2 && Math.random() < 0.06) {
+    state.salveFaite = true;
+    save();
+    return doSalve(() => startTurn({ prefix }));
+  }
+
   // 📜 Page de nos sponsors : une réclame absurde d'une ligne, rarissime,
   // jamais bloquante (2 max par partie, 3 en Grand Cabaret).
   if (humourLevel() >= 1 && !testFlag("__DONJON_TEST") && (state.pubs ?? 0) < (humourLevel() >= 2 ? 3 : 2)
@@ -2943,7 +3103,7 @@ function endStarGame() {
   const primes = bonus.length
     ? ` Étoiles bonus : ${bonus.map((b) => `${b.emoji} ${b.nom}`).join(", ")}.`
     : "";
-  sfx("win");
+  sfx("win"); sfx("clap"); vibrer(200);
   heraldSays(`Rideau ! ${winner.nom} règne sur le Donjon avec ${winner.etoiles ?? 0} étoile${(winner.etoiles ?? 0) > 1 ? "s" : ""} !${primes}`);
   charSays(winner, "victoire");
   if (onVictory) {
@@ -2976,7 +3136,7 @@ function finishGame(winner) {
     bonnesParTheme: p.bonnesParTheme,
   }));
   save();
-  sfx("win");
+  sfx("win"); sfx("clap"); vibrer(200);
   heraldSays(herald.victoire(winner.nom));
   charSays(winner, "victoire");
   if (onVictory) {

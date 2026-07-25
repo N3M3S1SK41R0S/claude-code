@@ -13,6 +13,7 @@ const DEFAULTS = {
   immersion: true, // saynètes 2.5D + caméra qui suit le pion (façon Mario Party)
   humour: "complice", // « sobre » | « complice » | « cabaret » — dose de second degré du Héraut
   langue: "fr-FR", // pack de langue actif (voir data/langues.json)
+  tempo: "tranquille", // rythme des enchaînements : tranquille | vif | fiesta
   oreilles: false, // « partie à l'oreille » : propositions, dé et réponses lus à voix haute
   tutoVu: false, // le tutoriel du 1er lancement a déjà été vu
   voixProposee: false, // la proposition « le Héraut lit tout à voix haute » a été faite

@@ -133,11 +133,18 @@ const SECTION_STEPS = STEPS_PER_BAR * SECTION_BARS;
 
 let section = null;
 let melodyIdx = 3;   // position dans PENTA (marche aléatoire à mémoire)
+let rushMode = false; // 🏁 sprint final : le Barde presse le pas
+
+/** Mode « sprint final » : sections plus vives dès la prochaine mesure. */
+export function setMusicRush(on) {
+  rushMode = !!on;
+  section = null; // recompose immédiatement au nouveau tempo
+}
 let stepDur = 60 / 68 / 2;
 
 /** Compose la prochaine scène : progression, tempo, couches, couleur. */
 function newSection() {
-  const bpm = 62 + Math.floor(Math.random() * 15); // 62-76 : ça respire
+  const bpm = (rushMode ? 84 : 62) + Math.floor(Math.random() * 15); // ça respire (et sprinte en rush)
   stepDur = 60 / bpm / 2;
   section = {
     prog: alea(PROGRESSIONS),

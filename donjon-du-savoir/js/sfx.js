@@ -60,6 +60,13 @@ const SFX = {
   chest: () => { tone(392, 0.09, { type: "triangle", gain: 0.1 }); tone(587, 0.12, { type: "triangle", gain: 0.1, delay: 0.08 }); tone(880, 0.18, { type: "triangle", gain: 0.1, delay: 0.16 }); },
   defi: () => { tone(494, 0.07, { type: "square", gain: 0.06 }); tone(587, 0.07, { type: "square", gain: 0.06, delay: 0.07 }); tone(740, 0.1, { type: "square", gain: 0.06, delay: 0.14 }); },
   npc: () => { tone(523, 0.08, { type: "triangle", gain: 0.1 }); tone(784, 0.14, { type: "triangle", gain: 0.09, delay: 0.07 }); },
+  // Roulement de tambour (suspense d'une question), fanfare de série « EN FEU »,
+  // et réactions de foule synthétiques : applaudissements, « oooh », « wow ».
+  drum: () => { for (let i = 0; i < 10; i++) tone(138 + (i % 2) * 24, 0.045, { type: "square", gain: 0.045, delay: i * 0.09 }); },
+  fanfare: () => { [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, 0.14, { type: "square", gain: 0.085, delay: i * 0.09 })); },
+  clap: () => { for (let i = 0; i < 12; i++) tone(900 + (i * 137) % 850, 0.03, { type: "square", gain: 0.032, delay: i * 0.05 + (i % 3) * 0.012 }); },
+  ooh: () => { tone(392, 0.5, { type: "sawtooth", gain: 0.05, sweep: -160 }); tone(494, 0.5, { type: "sawtooth", gain: 0.04, sweep: -180, delay: 0.03 }); },
+  wow: () => { tone(330, 0.42, { type: "sawtooth", gain: 0.05, sweep: 240 }); tone(415, 0.42, { type: "sawtooth", gain: 0.04, sweep: 260, delay: 0.04 }); },
 };
 
 /** Joue un effet nommé ; silencieux si désactivé ou si l'audio est indisponible. */
