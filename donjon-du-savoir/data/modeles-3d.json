@@ -7,39 +7,51 @@
       "id": "cageot",
       "nom": "Sire Cageot",
       "fichier": "assets/3d/heroes/hero-cageot.glb",
-      "triangles": 1264,
-      "octets": 34976,
+      "triangles": 2182,
+      "octets": 89724,
       "animations": [
         "idle",
         "walk",
         "joy",
-        "disappointment"
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
       ]
     },
     {
       "id": "etincelle",
       "nom": "Dame Étincelle",
       "fichier": "assets/3d/heroes/hero-etincelle.glb",
-      "triangles": 1236,
-      "octets": 38408,
+      "triangles": 1227,
+      "octets": 47980,
       "animations": [
         "idle",
         "walk",
         "joy",
-        "disappointment"
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
       ]
     },
     {
       "id": "gobelin",
       "nom": "Gobelin Comptable",
       "fichier": "assets/3d/heroes/hero-gobelin.glb",
-      "triangles": 1472,
-      "octets": 36776,
+      "triangles": 1462,
+      "octets": 46184,
       "animations": [
         "idle",
         "walk",
         "joy",
-        "disappointment"
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
       ]
     },
     {
@@ -47,38 +59,50 @@
       "nom": "Nébulia",
       "fichier": "assets/3d/heroes/hero-nebulia.glb",
       "triangles": 1716,
-      "octets": 40448,
+      "octets": 49980,
       "animations": [
         "idle",
         "walk",
         "joy",
-        "disappointment"
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
       ]
     },
     {
       "id": "boumbastien",
       "nom": "Boumbastien",
       "fichier": "assets/3d/heroes/hero-boumbastien.glb",
-      "triangles": 1651,
-      "octets": 44184,
+      "triangles": 1623,
+      "octets": 53848,
       "animations": [
         "idle",
         "walk",
         "joy",
-        "disappointment"
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
       ]
     },
     {
       "id": "duchesse",
       "nom": "La Duchesse Anecdote",
       "fichier": "assets/3d/heroes/hero-duchesse.glb",
-      "triangles": 1374,
-      "octets": 40208,
+      "triangles": 1365,
+      "octets": 50096,
       "animations": [
         "idle",
         "walk",
         "joy",
-        "disappointment"
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
       ]
     },
     {
@@ -86,12 +110,16 @@
       "nom": "Capitaine Flaque",
       "fichier": "assets/3d/heroes/hero-flaque.glb",
       "triangles": 1472,
-      "octets": 37072,
+      "octets": 46784,
       "animations": [
         "idle",
         "walk",
         "joy",
-        "disappointment"
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
       ]
     },
     {
@@ -99,38 +127,50 @@
       "nom": "Mémé Pelote",
       "fichier": "assets/3d/heroes/hero-pelote.glb",
       "triangles": 1996,
-      "octets": 42896,
+      "octets": 52216,
       "animations": [
         "idle",
         "walk",
         "joy",
-        "disappointment"
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
       ]
     },
     {
       "id": "hibou",
       "nom": "Professeur Hibou",
       "fichier": "assets/3d/heroes/hero-hibou.glb",
-      "triangles": 1432,
-      "octets": 37880,
+      "triangles": 1421,
+      "octets": 47348,
       "animations": [
         "idle",
         "walk",
         "joy",
-        "disappointment"
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
       ]
     },
     {
       "id": "kribouille",
       "nom": "Kribouille",
       "fichier": "assets/3d/heroes/hero-kribouille.glb",
-      "triangles": 1232,
-      "octets": 35840,
+      "triangles": 1222,
+      "octets": 45560,
       "animations": [
         "idle",
         "walk",
         "joy",
-        "disappointment"
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
       ]
     },
     {
@@ -138,12 +178,16 @@
       "nom": "Sire Plomberoy",
       "fichier": "assets/3d/heroes/hero-plomberoy.glb",
       "triangles": 1468,
-      "octets": 38560,
+      "octets": 48384,
       "animations": [
         "idle",
         "walk",
         "joy",
-        "disappointment"
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
       ]
     }
   ]
