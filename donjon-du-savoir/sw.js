@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v100";
+const VERSION = "donjon-v101";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -67,6 +67,32 @@ const SHELL = [
   "./assets/pnj-roquefort.png",
   "./assets/pnj-fee-bricole.png",
   "./assets/pnj-boubou.png",
+  "./assets/figurines/atlas-cageot.webp",
+  "./assets/figurines/atlas-etincelle.webp",
+  "./assets/figurines/atlas-gobelin.webp",
+  "./assets/figurines/atlas-nebulia.webp",
+  "./assets/figurines/atlas-boumbastien.webp",
+  "./assets/figurines/atlas-duchesse.webp",
+  "./assets/figurines/atlas-flaque.webp",
+  "./assets/figurines/atlas-pelote.webp",
+  "./assets/figurines/atlas-hibou.webp",
+  "./assets/figurines/atlas-kribouille.webp",
+  "./assets/figurines/atlas-plomberoy.webp",
+  "./assets/figurines/pnj-barnabe.webp",
+  "./assets/figurines/pnj-biscornu.webp",
+  "./assets/figurines/pnj-boubou.webp",
+  "./assets/figurines/pnj-coassin.webp",
+  "./assets/figurines/pnj-fee-bricole.webp",
+  "./assets/figurines/pnj-gerard.webp",
+  "./assets/figurines/pnj-groumf.webp",
+  "./assets/figurines/pnj-hibou-passage.webp",
+  "./assets/figurines/pnj-merlinouche.webp",
+  "./assets/figurines/pnj-piquot.webp",
+  "./assets/figurines/pnj-ratichon.webp",
+  "./assets/figurines/pnj-roquefort.webp",
+  "./assets/figurines/pnj-sylvette.webp",
+  "./assets/figurines/pnj-turbo.webp",
+  "./assets/figurines/pnj-zebulon.webp",
   "./assets/pnj-gerard.png",
   "./assets/pnj-turbo.png",
   "./assets/pnj-groumf.png",

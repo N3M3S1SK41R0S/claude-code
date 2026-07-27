@@ -192,6 +192,40 @@ function loadTex(src) {
   return t;
 }
 
+/** Découpe une vue (un tiers) d'un atlas de figurine peinte GEN 2 en texture
+ *  propre. Léger retrait horizontal : aucune vue voisine ne déborde sur la
+ *  tranche. Cache global : une seule découpe par (atlas, vue) pour la session. */
+const figViewCache = new Map();
+function figurineView(src, third, cb) {
+  const key = `${src}#${third}`;
+  if (figViewCache.has(key)) { cb(figViewCache.get(key)); return; }
+  const img = new Image();
+  img.onload = () => {
+    const w = Math.floor(img.width / 3);
+    const inset = Math.round(w * 0.03);
+    const canvas = document.createElement("canvas");
+    canvas.width = w - inset * 2;
+    canvas.height = img.height;
+    canvas.getContext("2d").drawImage(img, third * w + inset, 0, canvas.width, img.height, 0, 0, canvas.width, img.height);
+    const t = new THREE.CanvasTexture(canvas);
+    t.encoding = THREE.sRGBEncoding;
+    figViewCache.set(key, t);
+    cb(t);
+  };
+  img.src = src;
+}
+
+/** Figurine PNJ peinte (vue de face de son atlas) posée debout en `pos`. */
+function figStandee(art, pos, height) {
+  const mat = new THREE.SpriteMaterial({ transparent: true, depthWrite: false });
+  const spr = new THREE.Sprite(mat);
+  spr.center.set(0.5, 0);
+  spr.scale.set(height * 0.34, height, 1);
+  spr.position.copy(pos);
+  figurineView(art, 0, (t) => { mat.map = t; mat.needsUpdate = true; });
+  return spr;
+}
+
 /** Panneau debout (billboard) posé au sol en `pos`, haut de `height` unités. */
 function standee(art, pos, height) {
   const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: loadTex(art), transparent: true, depthWrite: false }));
@@ -767,22 +801,22 @@ function buildBoard(layout, boardDef) {
   // peints (coffre, tonneau, torche…) parsèment les bords. L'art original
   // cohabite ainsi avec les volumes low-poly au lieu d'être remplacé.
   const PNJ_CASE = {
-    boutique: "assets/pnj-gerard.png",
-    insolite: "assets/pnj-piquot.png",
-    expression: "assets/pnj-turbo.png",
-    gambit: "assets/pnj-roquefort.png",
-    evenement: "assets/pnj-fee-bricole.png",
-    trounoir: "assets/pnj-zebulon.png",
-    arrivee: "assets/pnj-merlinouche.png",
+    boutique: "assets/figurines/pnj-gerard.webp",
+    insolite: "assets/figurines/pnj-piquot.webp",
+    expression: "assets/figurines/pnj-turbo.webp",
+    gambit: "assets/figurines/pnj-roquefort.webp",
+    evenement: "assets/figurines/pnj-fee-bricole.webp",
+    trounoir: "assets/figurines/pnj-zebulon.webp",
+    arrivee: "assets/figurines/pnj-merlinouche.webp",
   };
   for (let i = 0; i < length; i++) {
     const art = PNJ_CASE[layout[i]];
     if (!art) continue;
     const p = worldOf(i, length);
-    boardGroup.add(standee(art, p.clone().add(new THREE.Vector3(1.9, 0, 0.7)), 2.7));
+    boardGroup.add(figStandee(art, p.clone().add(new THREE.Vector3(1.9, 0, 0.7)), 3.0));
   }
-  const FLANEURS = ["assets/pnj-boubou.png", "assets/pnj-groumf.png", "assets/pnj-sylvette.png", "assets/pnj-coassin.png", "assets/pnj-barnabe.png", "assets/pnj-ratichon.png"];
-  FLANEURS.forEach((art, i) => boardGroup.add(standee(art, worldUV(0.12 + 0.15 * i, i % 2 ? 0.035 : 0.975, length), 2.4)));
+  const FLANEURS = ["assets/figurines/pnj-boubou.webp", "assets/figurines/pnj-groumf.webp", "assets/figurines/pnj-sylvette.webp", "assets/figurines/pnj-coassin.webp", "assets/figurines/pnj-barnabe.webp", "assets/figurines/pnj-ratichon.webp", "assets/figurines/pnj-biscornu.webp", "assets/figurines/pnj-hibou-passage.webp"];
+  FLANEURS.forEach((art, i) => boardGroup.add(figStandee(art, worldUV(0.08 + 0.115 * i, i % 2 ? 0.035 : 0.975, length), 2.6)));
   const PROPS = ["assets/objet-coffre.png", "assets/objet-tonneau.png", "assets/objet-torche.png", "assets/objet-cristal.png", "assets/objet-potion.png"];
   PROPS.forEach((art, i) => boardGroup.add(standee(art, worldUV(0.05 + 0.225 * i, i % 2 ? 0.07 : 0.93, length), 1.35)));
 
@@ -978,10 +1012,42 @@ function spawnFx(kind, position) {
 
 /* ---------- pions ---------- */
 
+// Figurines en pied peintes par GEN 2 (lot v4.4) — chemins littéraux pour
+// l'inliner. Trois vues par héros (face, trois quarts, dos) dans chaque atlas.
+const FIGURINE_ATLAS = {
+  cageot: "assets/figurines/atlas-cageot.webp",
+  etincelle: "assets/figurines/atlas-etincelle.webp",
+  gobelin: "assets/figurines/atlas-gobelin.webp",
+  nebulia: "assets/figurines/atlas-nebulia.webp",
+  boumbastien: "assets/figurines/atlas-boumbastien.webp",
+  duchesse: "assets/figurines/atlas-duchesse.webp",
+  flaque: "assets/figurines/atlas-flaque.webp",
+  pelote: "assets/figurines/atlas-pelote.webp",
+  hibou: "assets/figurines/atlas-hibou.webp",
+  kribouille: "assets/figurines/atlas-kribouille.webp",
+  plomberoy: "assets/figurines/atlas-plomberoy.webp",
+};
+
 function makePionSprite(p) {
+  const atlas = FIGURINE_ATLAS[p.characterId];
   const art = heroArt(p.characterId);
   let obj;
-  if (art) {
+  if (atlas) {
+    // Figurine en pied : la vue de face s'affiche dès l'atlas décodé ; la
+    // boucle de rendu choisit ensuite la vue selon la direction de marche.
+    const mat = new THREE.SpriteMaterial({ transparent: true });
+    obj = new THREE.Sprite(mat);
+    obj.scale.set(1.06, 3.15, 1);
+    obj.center.set(0.5, 0);
+    const fig = { view: "face", views: {} };
+    obj.userData.figurine = fig;
+    [["face", 0], ["quart", 1], ["dos", 2]].forEach(([view, third]) => {
+      figurineView(atlas, third, (t) => {
+        fig.views[view] = t;
+        if (view === fig.view && !mat.map) { mat.map = t; mat.needsUpdate = true; }
+      });
+    });
+  } else if (art) {
     const mat = new THREE.SpriteMaterial({ map: loadTex(art), transparent: true });
     obj = new THREE.Sprite(mat);
     obj.scale.set(2.8, 2.8, 1);
@@ -1109,7 +1175,8 @@ export function render3D(hostBoard, layout, pions, currentPionId, boardDef, star
       rec.obj.material && (rec.obj.material.opacity = 1);
       // Halo du pion actif (léger agrandissement).
       const activeScale = p.id === currentPionId ? 3.2 : 2.8;
-      if (rec.obj.isSprite) rec.obj.scale.set(activeScale, activeScale, 1);
+      if (rec.obj.userData?.figurine) rec.obj.scale.set(activeScale * 0.38, activeScale * 1.13, 1);
+      else if (rec.obj.isSprite) rec.obj.scale.set(activeScale, activeScale, 1);
       else rec.obj.scale.setScalar(p.id === currentPionId ? 1.35 : 1.2);
       rec.active = p.id === currentPionId;
     });
@@ -1222,7 +1289,9 @@ function loop(now = performance.now()) {
         }
       } else {
         if (!rec.obj.isSprite) rec.obj.rotation.y = Math.atan2(d.x, d.z);
-        rec.obj.position.add(d.normalize().multiplyScalar(step));
+        d.normalize();
+        rec.dir = { x: d.x, z: d.z }; // cap de marche : sert au choix de la vue
+        rec.obj.position.add(d.multiplyScalar(step));
       }
     } else if (rec.target) {
       rec.obj.position.lerp(rec.target, 0.18);
@@ -1234,6 +1303,31 @@ function loop(now = performance.now()) {
     // Vie des figurines peintes : marche sautillante et petites chorégraphies
     // (joie = bond, déception = affaissement, danse = déhanché, salut = hop).
     if (rec.obj.isSprite) {
+      // Figurine directionnelle : dos quand le héros s'éloigne de la caméra,
+      // face quand il approche, trois quarts (miroité à gauche) entre les deux.
+      const fig = rec.obj.userData.figurine;
+      if (fig) {
+        let view = "face", mirror = false;
+        if (rec.walk && rec.dir && camera) {
+          const vx = rec.obj.position.x - camera.position.x;
+          const vz = rec.obj.position.z - camera.position.z;
+          const vlen = Math.hypot(vx, vz) || 1;
+          const dot = (rec.dir.x * vx + rec.dir.z * vz) / vlen;
+          if (dot > 0.55) view = "dos";
+          else if (dot >= -0.55) {
+            view = "quart";
+            mirror = rec.dir.x * vz - rec.dir.z * vx > 0;
+          }
+        }
+        const tex = fig.views[view];
+        if (tex && (fig.view !== view || !rec.obj.material.map)) {
+          fig.view = view;
+          rec.obj.material.map = tex;
+          rec.obj.material.needsUpdate = true;
+        }
+        const sx = Math.abs(rec.obj.scale.x);
+        rec.obj.scale.x = mirror ? -sx : sx;
+      }
       let y = 0.55;
       if (rec.walk) y += Math.abs(Math.sin(now * 0.02)) * 0.3;
       const a = rec.spriteAnim;
