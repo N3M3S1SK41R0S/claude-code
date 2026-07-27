@@ -1109,3 +1109,54 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .itw-micro { position: absolute; top: 6px; right: 8px; width: 40px; height: 40px; object-fit: contain; opacity: 0.9; }
 .perle-parchemin { width: 22px; height: 22px; object-fit: contain; vertical-align: -5px; margin-right: 2px; }
 .tenue-art { width: 34px; height: 34px; object-fit: contain; display: block; }
+
+/* ---------- polish v3 : figurines, confettis, livre d'or, focus ---------- */
+
+/* Le plateau 3D s'estompe pendant une question (focus sur la carte). */
+.board3d-canvas { transition: filter 0.35s ease; }
+.board3d-canvas.q-focus { filter: blur(2px) saturate(0.85) brightness(0.82); }
+
+/* Figurine en pied (vue de face = premier tiers de l'atlas peint). */
+.figurine-pied {
+  display: inline-block;
+  background-size: 300% 100%;
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+}
+
+/* Pluie de confettis de l'écran de victoire. */
+.confetti-zone { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.confetti {
+  position: absolute;
+  top: -4%;
+  width: 10px;
+  height: 14px;
+  border-radius: 3px;
+  opacity: 0.85;
+  animation: confetti-chute 4s linear infinite;
+}
+@keyframes confetti-chute {
+  0% { transform: translateY(-6vh) rotate(0deg); }
+  100% { transform: translateY(108vh) rotate(660deg); }
+}
+
+/* Marchés de PNJ : le portrait parle, deux choix clairs. */
+.pnj-deal .char-bubble { max-width: none; }
+.pnj-deal-portrait { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; }
+
+/* Livre d'or familial (palmarès). */
+.livre-dor { display: flex; flex-direction: column; gap: 0.45rem; }
+.livre-ligne {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  background: var(--stone);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.5rem 0.8rem;
+}
+.livre-nom { font-size: 1.02rem; }
+.livre-titre { color: var(--gold); font-size: 0.88rem; }
+.livre-meta { color: var(--soft); font-size: 0.85rem; margin-left: auto; }

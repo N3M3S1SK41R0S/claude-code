@@ -95,8 +95,25 @@ function ghostify(root, opacity) {
   });
 }
 
+/** Réchauffe un modèle GLB sombre : éclaircit ses couleurs vers l'ivoire —
+ *  les volumes v3 (moulin, puits, arbres…) ne virent plus à la silhouette
+ *  sous l'étalonnage ACES, et s'accordent aux peintures. */
+function rechauffe(root, force = 0.26) {
+  const ivoire = new THREE.Color(0xf4ecd8);
+  root.traverse((child) => {
+    if (!child.isMesh || !child.material) return;
+    const mats = Array.isArray(child.material) ? child.material : [child.material];
+    for (const m of mats) {
+      if (!m?.color || m.userData?.rechauffe) continue;
+      m.color.lerp(ivoire, force);
+      if ("metalness" in m) m.metalness = Math.min(m.metalness ?? 0, 0.25);
+      m.userData.rechauffe = true;
+    }
+  });
+}
+
 function fadeMesh(mesh) {
-  if (!mesh.isMesh || !mesh.material) return;
+  if (!(mesh.isMesh || mesh.isSprite) || !mesh.material) return;
   if (!mesh.userData.fadeOrig) {
     mesh.userData.fadeOrig = mesh.material;
     const ghost = mesh.material.clone();
@@ -217,13 +234,59 @@ function figurineView(src, third, cb) {
 
 /** Figurine PNJ peinte (vue de face de son atlas) posée debout en `pos`. */
 function figStandee(art, pos, height) {
+  const groupe = new THREE.Group();
+  groupe.position.copy(pos);
   const mat = new THREE.SpriteMaterial({ transparent: true, depthWrite: false });
   const spr = new THREE.Sprite(mat);
   spr.center.set(0.5, 0);
   spr.scale.set(height * 0.34, height, 1);
-  spr.position.copy(pos);
+  groupe.add(spr);
+  const ombre = ombrePortee(height * 0.19); // ancre le PNJ au sol
+  ombre.position.y = 0.02;
+  groupe.add(ombre);
   figurineView(art, 0, (t) => { mat.map = t; mat.needsUpdate = true; });
-  return spr;
+  return groupe;
+}
+
+/** Texture radiale douce partagée (ombres portées, bouffées de poussière). */
+const radialTexCache = new Map();
+function radialTexture(rgb, alpha) {
+  const key = `${rgb}/${alpha}`;
+  if (radialTexCache.has(key)) return radialTexCache.get(key);
+  const c = document.createElement("canvas");
+  c.width = c.height = 128;
+  const g = c.getContext("2d");
+  const grad = g.createRadialGradient(64, 64, 6, 64, 64, 62);
+  grad.addColorStop(0, `rgba(${rgb}, ${alpha})`);
+  grad.addColorStop(1, `rgba(${rgb}, 0)`);
+  g.fillStyle = grad;
+  g.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c);
+  radialTexCache.set(key, t);
+  return t;
+}
+
+/** Tache d'ombre douce qui ancre une figurine au sol. */
+function ombrePortee(radius) {
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(radius * 2, radius * 2),
+    new THREE.MeshBasicMaterial({ map: radialTexture("10, 6, 24", 0.45), transparent: true, depthWrite: false }),
+  );
+  m.rotation.x = -Math.PI / 2;
+  return m;
+}
+
+/** Bouffées de poussière sous les pas des figurines en marche. */
+const dustPuffs = [];
+function spawnDustPuff(x, z) {
+  if (!effectGroup || dustPuffs.length > 24) return;
+  const spr = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: radialTexture("244, 236, 216", 0.5), transparent: true, depthWrite: false, opacity: 0.4,
+  }));
+  spr.position.set(x + (Math.random() - 0.5) * 0.3, 0.62, z + (Math.random() - 0.5) * 0.3);
+  spr.scale.setScalar(0.35);
+  effectGroup.add(spr);
+  dustPuffs.push({ spr, age: 0 });
 }
 
 /** Texture-emoji d'un type de case (repli quand il n'a pas de jeton peint). */
@@ -481,9 +544,15 @@ export function init3D(hostBoard) {
     camera.position.copy(camPos);
     camera.lookAt(camLook);
 
-    scene.add(new THREE.HemisphereLight(0xffe8c6, 0x25183e, 0.68));
-    const key = new THREE.DirectionalLight(0xfff0d8, 1.1);
+    // L'heure réelle teinte la lumière du donjon (même esprit que le filtre
+    // horaire du plateau 2D) : matin clair, soirée dorée, nuit bleutée.
+    const heure = new Date().getHours();
+    const nuit = heure >= 21 || heure < 7;
+    const soir = !nuit && heure >= 18;
+    scene.add(new THREE.HemisphereLight(nuit ? 0xbcc8ff : 0xffe8c6, 0x25183e, nuit ? 0.52 : 0.68));
+    const key = new THREE.DirectionalLight(nuit ? 0xa8b8ff : soir ? 0xffd9a0 : 0xfff0d8, nuit ? 0.82 : soir ? 1.2 : 1.1);
     key.position.set(-14, 26, 12);
+    if (soir) key.position.set(-20, 15, 16); // soleil bas et doré du soir
     key.castShadow = true;
     key.shadow.mapSize.set(...(Number(navigator.deviceMemory || 4) <= 4 ? [1024, 1024] : [2048, 2048]));
     key.shadow.radius = 4;
@@ -780,6 +849,7 @@ function buildBoard(layout, boardDef) {
     anchor.position.copy(worldUV(d.u, d.v, length));
     boardGroup.add(anchor);
     upgradeStatic(anchor, null, Promise.resolve(createDecorModel(d.id, d.h)).then((m) => {
+      if (m) rechauffe(m);
       if (m && d.anim && epoch === sceneEpoch) {
         const node = m.getObjectByName("anim");
         if (node) animatedDecors.push({ node, kind: d.anim, phase: d.u * 9 });
@@ -801,7 +871,7 @@ function buildBoard(layout, boardDef) {
     anchor.position.copy(worldUV(r.u, r.v, length));
     boardGroup.add(anchor);
     upgradeStatic(anchor, null, Promise.resolve(createDecorModel(r.id, 1.6)).then((m) => {
-      if (m) ghostify(m, 0.42);
+      if (m) rechauffe(m); // opaques ; le fondu dynamique s'en charge au besoin
       return m;
     }), epoch, `rempart ${r.id}`);
   }
@@ -904,7 +974,9 @@ function addBuilding(id, art, position, height, epoch) {
   // l'upgradeStatic(createBuildingModel) ici.
   void id; void epoch;
   const affiche = standee(art, new THREE.Vector3(), height);
-  ghostify(affiche, 0.6); // translucide, mais l'œuvre reste bien lisible
+  // Pleine opacité : le village est éclatant au repos. Le fondu dynamique
+  // (rayons caméra→héros + proximité) efface un bâtiment SEULEMENT quand il
+  // gêne réellement la vue — fini le village fantôme permanent.
   anchor.add(affiche);
   boardGroup.add(anchor);
 }
@@ -1043,7 +1115,7 @@ function spawnFx(kind, position) {
 
 // Figurines en pied peintes par GEN 2 (lot v4.4) — chemins littéraux pour
 // l'inliner. Trois vues par héros (face, trois quarts, dos) dans chaque atlas.
-const FIGURINE_ATLAS = {
+export const FIGURINE_ATLAS = {
   cageot: "assets/figurines/atlas-cageot.webp",
   etincelle: "assets/figurines/atlas-etincelle.webp",
   gobelin: "assets/figurines/atlas-gobelin.webp",
@@ -1100,6 +1172,12 @@ function disposePion(rec) {
     rec.ring.material.dispose();
     rec.ring = null;
   }
+  if (rec?.ombre) {
+    pionGroup?.remove(rec.ombre);
+    rec.ombre.geometry.dispose();
+    rec.ombre.material.dispose();
+    rec.ombre = null;
+  }
 }
 
 function markLoadedModels() {
@@ -1132,6 +1210,10 @@ function makePion(p) {
     pionGroup.add(ring);
     rec.ring = ring;
   }
+  // Ombre portée : ancre la figurine au sol (suivie dans la boucle de rendu).
+  rec.ombre = ombrePortee(0.95);
+  rec.ombre.position.y = 0.645;
+  pionGroup.add(rec.ombre);
   if (!USE_GLB_HEROES) return rec; // figurine peinte = fidélité garantie
   createAnimatedHero(p.characterId).then((hero) => {
     if (rec.epoch !== sceneEpoch || pionObjs.get(p.id) !== rec || !pionGroup) {
@@ -1321,6 +1403,9 @@ function loop(now = performance.now()) {
         d.normalize();
         rec.dir = { x: d.x, z: d.z }; // cap de marche : sert au choix de la vue
         rec.obj.position.add(d.multiplyScalar(step));
+        // Petites bouffées de poussière sous les pas.
+        rec.dustAt = (rec.dustAt || 0) + dt;
+        if (rec.dustAt > 0.24) { rec.dustAt = 0; spawnDustPuff(rec.obj.position.x, rec.obj.position.z); }
       }
     } else if (rec.target) {
       rec.obj.position.lerp(rec.target, 0.18);
@@ -1371,6 +1456,12 @@ function loop(now = performance.now()) {
         rec.obj.material.rotation = 0;
       }
       rec.obj.position.y = y;
+      if (rec.ombre) {
+        rec.ombre.position.set(rec.obj.position.x, 0.645, rec.obj.position.z);
+        const bond = Math.max(0, y - 0.55);
+        rec.ombre.scale.setScalar(Math.max(0.55, 1 - bond * 0.9));
+        rec.ombre.material.opacity = Math.max(0.35, 1 - bond);
+      }
     }
     // L'anneau de tenue suit la figurine et pulse doucement.
     if (rec.ring) {
@@ -1439,6 +1530,20 @@ function loop(now = performance.now()) {
       fx.mat.dispose();
       activeFx.splice(i, 1);
     }
+  }
+  for (let i = dustPuffs.length - 1; i >= 0; i--) {
+    const puff = dustPuffs[i];
+    puff.age += dt;
+    const t = puff.age / 0.6;
+    if (t >= 1 || !effectGroup) {
+      effectGroup?.remove(puff.spr);
+      puff.spr.material.dispose();
+      dustPuffs.splice(i, 1);
+      continue;
+    }
+    puff.spr.scale.setScalar(0.35 + t * 0.55);
+    puff.spr.material.opacity = 0.38 * (1 - t);
+    puff.spr.position.y = 0.62 + t * 0.25;
   }
 
   for (let i = caseEffects.length - 1; i >= 0; i--) {

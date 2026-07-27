@@ -15,6 +15,7 @@ import { onSpeechBoundary, say, sayHost } from "./tts.js";
 import { heroLine, voiceOf } from "./voices.js";
 import { botNumericGuess, botWantsCorrect } from "./bots.js";
 import { playScene } from "./scene.js";
+import { recordLivreDor } from "./palmares.js";
 import { addToGrimoire } from "./grimoire.js";
 import { npcPortraitEl, portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
@@ -860,6 +861,23 @@ function resolveCase(type) {
 
 /* ---------- boutique : dépenser son or en objets ---------- */
 
+/** Mini-dialogue de PNJ : le personnage propose un marché, deux choix, la
+ *  table décide — chaque rencontre devient une vraie décision de jeu. */
+function pnjDeal({ art, nom, texte, options }) {
+  sfx("npc");
+  setPanel(
+    el("div", { class: "question-block pnj-deal" },
+      el("div", { class: "char-bubble" },
+        el("img", { class: "portrait pnj-deal-portrait", src: art, alt: nom }),
+        el("span", { class: "char-text" }, el("strong", { text: `${nom} : ` }), el("span", { text: texte })),
+      ),
+      el("div", { class: "choices choices-2" },
+        ...options.map((o) => el("button", { class: "btn btn-choice", type: "button", onclick: o.action, text: o.label })),
+      ),
+    ),
+  );
+}
+
 function doBoutique(pion, onDone = null) {
   stageCase3D("boutique", pion.id);
   const done = onDone ?? (() => finishTurn());
@@ -870,7 +888,33 @@ function doBoutique(pion, onDone = null) {
   playScene("boutique", pion.characterId); // saynète d'arrivée à l'échoppe
   // 🛒 Téléachat du donjon : Gérard vend avec des arguments irréfutables.
   if (humourLevel() >= 1) heraldSays(`🧟 Gérard : « ${aleaHumour(SHOP_PITCH)} »`);
+  // 🧟 Le marché de Gérard : un petit jeu d'échoppier avant l'étal.
+  if (!testFlag("__DONJON_TEST") && Math.random() < 0.5) {
+    return pnjDeal({
+      art: "assets/pnj-gerard.png",
+      nom: "Gérard",
+      texte: "Le marché de Gérard : 3 pièces honnêtes tout de suite… ou pile-ou-face pour 8 ? (La maison a une réputation de générosité à ne surtout pas vérifier.)",
+      options: [
+        { label: "🪙 Les 3 pièces sûres", action: () => { addCoins(pion, 3); sfx("coin"); boutiqueEtal(pion, done); } },
+        { label: "🎲 Pile ou face pour 8 !", action: () => {
+          if (Math.random() < 0.5) {
+            addCoins(pion, 8);
+            sfx("win");
+            heraldSays("🧟 Gérard : « Incroyable. Ma ruine. Prends, vandale. » (+8 🪙)");
+          } else {
+            sfx("ooh");
+            heraldSays("🧟 Gérard : « Pile ! Enfin… pour moi. La maison ne perd jamais. »");
+          }
+          boutiqueEtal(pion, done);
+        } },
+      ],
+    });
+  }
+  boutiqueEtal(pion, done);
+}
 
+/** L'étal proprement dit (objets, besasse, sceptre) — après le marché. */
+function boutiqueEtal(pion, done) {
   // Le Sceptre du Larcin (vol d'étoile) n'a de sens qu'en mode Étoiles : on ne
   // le propose donc qu'ici, tout en bas et hors de prix, comme un coup d'éclat.
   const shopIds = isEtoiles() ? [...SHOP_ORDER, "sceptre_larcin"] : SHOP_ORDER;
@@ -1611,6 +1655,36 @@ function drawDistinctTheme(pion, q) {
   return null;
 }
 
+/** 🎭 La galerie parie à main levée sur la réponse du joueur ; si elle a vu
+ *  juste, +1 🪙 pour chaque spectateur — le suspense profite à tous. */
+function pariDuPublic(pion, q, correct, advance, penalty, choix) {
+  sfx("drum");
+  vibrer(40);
+  const suite = (croit) => {
+    const vuJuste = croit === correct;
+    const autres = getState().pions.filter((p) => p.id !== pion.id);
+    if (vuJuste) {
+      for (const p of autres) addCoins(p, 1);
+      sfx("clap");
+      heraldSays("🎭 Le public avait l'œil ! +1 🪙 pour toute la galerie.");
+    } else {
+      sfx("ooh");
+      heraldSays("🎭 Le public s'est fait berner — la maison ne rembourse pas les pronostics.");
+    }
+    resolveAnswer(pion, q, correct, advance, { penalty });
+  };
+  setPanel(
+    el("div", { class: "question-block pari-public" },
+      el("h2", { class: "panel-title", text: "🎭 Le pari du public" }),
+      el("p", { class: "panel-text", html: `${speakerName(pion)} a choisi <strong>« ${choix ?? "sa réponse"} »</strong>. Les autres, à main levée : bonne pioche ou naufrage ?` }),
+      el("div", { class: "choices choices-2" },
+        el("button", { class: "btn btn-choice", type: "button", onclick: () => suite(true), text: "👏 Le public y croit" }),
+        el("button", { class: "btn btn-choice", type: "button", onclick: () => suite(false), text: "🙈 Le public n'y croit pas" }),
+      ),
+    ),
+  );
+}
+
 /** Petit bandeau coloré du thème d'une question (icône + nom + couleur). */
 function themeBanner(q) {
   const t = themeMeta(q.categorie);
@@ -1846,7 +1920,7 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
 
   const grid = el("div", { class: `choices ${choices.length === 2 ? "choices-2" : ""}`, role: "group", "aria-label": "Choix de réponse" });
   choices.forEach((choice) => {
-    const btn = choiceButton(choice, () => resolveAnswer(pion, q, choice === q.bonne_reponse, advance));
+    const btn = choiceButton(choice, () => resolveAnswer(pion, q, choice === q.bonne_reponse, advance, { pariOk: true, choix: choice }));
     btn.dataset.good = choice === q.bonne_reponse ? "1" : "0"; // repère pour le pilote de bots
     if (struck === choice) {
       btn.classList.add("choice-struck");
@@ -2063,7 +2137,13 @@ function confianceFlow(pion, q) {
 
 /* ---------- answer resolution + anecdote (always) ---------- */
 
-function resolveAnswer(pion, q, correct, advance, { penalty = 0 } = {}) {
+function resolveAnswer(pion, q, correct, advance, { penalty = 0, pariOk = false, choix = null } = {}) {
+  // 🎭 Le pari du public : la galerie parie sur la réponse AVANT le verdict —
+  // personne ne décroche entre ses tours. Jamais pour les bots, jamais en
+  // tempo fiesta, jamais dans les tests.
+  if (pariOk && !pion.bot && !testFlag("__DONJON_TEST") && getState().pions.length >= 2 && tempoLevel() < 2 && (testFlag("__DONJON_PARI") || Math.random() < 0.55)) {
+    return pariDuPublic(pion, q, correct, advance, penalty, choix);
+  }
   setPendingCase("resolu");
   pion.stats.questions += 1;
   // Difficulté adaptative : plus dur si le joueur gagne, plus doux sinon.
@@ -2464,6 +2544,29 @@ function doTrouNoir(pion) {
   if (!pion.bot) playScene("trounoir", pion.characterId); // saynète du Trou Noir
   // 🎬 Documentaire animalier : le Héraut chuchote (humour ≥ complice).
   if (humourLevel() >= 1 && !pion.bot) heraldSays(herald.docTrouNoir());
+  // 🧞 Le marché de Zébulon : payer le génie pour esquiver… ou affronter.
+  if (!pion.bot && !testFlag("__DONJON_TEST") && pion.pieces >= 4 && Math.random() < 0.65) {
+    return pnjDeal({
+      art: "assets/pnj-zebulon.png",
+      nom: "Zébulon",
+      texte: "Pssst… 4 pièces et je souffle ce Trou Noir ailleurs. Ou tu affrontes la question redoutable : +3 cases si tu triomphes !",
+      options: [
+        { label: "🪙 Payer 4 pièces (à l'abri)", action: () => {
+          pion.pieces -= 4;
+          save();
+          sfx("coin");
+          setPendingCase("resolu");
+          endPanel("🧞 Zébulon claque des doigts : le Trou Noir part bouder ailleurs. (-4 🪙)");
+        } },
+        { label: "🕳️ Affronter la question !", action: () => trouNoirQuestion(pion) },
+      ],
+    });
+  }
+  trouNoirQuestion(pion);
+}
+
+/** La question redoutable elle-même (+3 cases / recul de 6). */
+function trouNoirQuestion(pion) {
   sfx("drum");
   vibrer(60);
   const q = drawHardest(pion);
@@ -2719,6 +2822,36 @@ function gambitReveal(pion, q, guess, bets) {
 
 /** Événement: everyone answers the same Vrai/Faux; each correct pion +2 🪙. */
 function doEvent() {
+  const pion = currentPion();
+  // 🧚 Le gadget de la Fée Bricole : tenter l'invention mystère, ou la carte.
+  if (!pion.bot && !testFlag("__DONJON_TEST") && Math.random() < 0.45) {
+    return pnjDeal({
+      art: "assets/pnj-fee-bricole.png",
+      nom: "Fée Bricole",
+      texte: "J'ai bricolé un gadget mystère cette nuit ! On le teste ? Sinon je vous laisse la carte événement classique…",
+      options: [
+        { label: "🔧 Le gadget mystère !", action: () => {
+          setPendingCase("resolu");
+          if (Math.random() < 0.55) {
+            addCoins(pion, 4);
+            sfx("power");
+            endPanel("🔧 Le gadget fait pleuvoir des pièces ! +4 🪙 (la Fée est très fière)");
+          } else {
+            pion.pieces = Math.max(0, pion.pieces - 2);
+            save();
+            sfx("ooh");
+            endPanel("💥 BOUM. Le gadget rend l'âme, et 2 pièces avec. La Fée promet de réviser ses plans.");
+          }
+        } },
+        { label: "🎪 La carte événement", action: () => doEventCarte() },
+      ],
+    });
+  }
+  doEventCarte();
+}
+
+/** La carte événement collective classique. */
+function doEventCarte() {
   const q = drawEvent();
   if (!q) {
     setPendingCase("resolu");
@@ -3068,7 +3201,52 @@ function revealTableBonus(q, onDone) {
   narrateAnecdote(q);
 }
 
+/** 🐉 La Question du Dragon : ultime épreuve COLLECTIVE avant le rideau. La
+ *  tablée débat et répond d'une seule voix ; si elle triomphe, le Dragon offre
+ *  un trésor au courageux DERNIER du classement (+5 🪙) — de quoi renverser un
+ *  classement serré, jamais éliminer qui que ce soit. */
+function dragonGate(next) {
+  const st = getState();
+  if (testFlag("__DONJON_TEST") || st.dragonFait || st.pions.length < 2 || st.pions.every((p) => p.bot)) return next();
+  st.dragonFait = true;
+  save();
+  const dernier = ranking().at(-1);
+  const q = drawHardest(dernier);
+  if (!q || !(q.choix ?? []).length) return next();
+  sfx("fanfare");
+  vibrer(120);
+  heraldSays("🐉 LE DRAGON DU SAVOIR SE RÉVEILLE ! Une dernière question, pour TOUTE la tablée — débattez, puis répondez d'une seule voix !");
+  const container = el("div", { class: "question-block dragon-finale" },
+    el("h2", { class: "panel-title", text: "🐉 La Question du Dragon" }),
+    el("p", { class: "panel-text", text: `La tablée répond ENSEMBLE. Victoire : le Dragon offre 5 🪙 à ${dernier.nom}, dernier du classement — tout peut encore basculer !` }),
+    questionHeader(q, dernier),
+    el("p", { class: "question-texte", text: q.texte }),
+  );
+  const grid = el("div", { class: "choices" });
+  for (const choice of q.choix) {
+    grid.append(choiceButton(choice, () => {
+      const correct = choice === q.bonne_reponse;
+      sfx(correct ? "win" : "ooh");
+      vibrer(correct ? 160 : 60);
+      if (correct) addCoins(dernier, 5);
+      showAnecdote(q, {
+        verdictHtml: correct
+          ? `✅ <strong>Le Dragon s'incline devant la tablée !</strong> +5 🪙 pour ${dernier.nom}`
+          : `❌ <strong>Le Dragon garde son trésor.</strong> La bonne réponse était : <strong>${q.bonne_reponse}</strong>`,
+        onContinue: next,
+      });
+    }));
+  }
+  container.append(grid);
+  setPanel(container);
+  narrateQuestion(q);
+}
+
 function endStarGame() {
+  dragonGate(() => endStarGameFinal());
+}
+
+function endStarGameFinal() {
   const state = getState();
   state.finished = true;
   clearPendingCase();
@@ -3099,6 +3277,7 @@ function endStarGame() {
     bonnesParTheme: p.bonnesParTheme,
   }));
   save();
+  recordLivreDor(state.ranking); // 📜 mémoire longue de la famille
   const winner = classement[0];
   const primes = bonus.length
     ? ` Étoiles bonus : ${bonus.map((b) => `${b.emoji} ${b.nom}`).join(", ")}.`
@@ -3116,6 +3295,11 @@ function endStarGame() {
 }
 
 function finishGame(winner) {
+  dragonGate(() => finishGameFinal(winner));
+  return true;
+}
+
+function finishGameFinal(winner) {
   const state = getState();
   clearPendingCase();
   state.finished = true;
@@ -3136,6 +3320,7 @@ function finishGame(winner) {
     bonnesParTheme: p.bonnesParTheme,
   }));
   save();
+  recordLivreDor(state.ranking); // 📜 mémoire longue de la famille
   sfx("win"); sfx("clap"); vibrer(200);
   heraldSays(herald.victoire(winner.nom));
   charSays(winner, "victoire");

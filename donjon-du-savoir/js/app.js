@@ -7,6 +7,7 @@ import { BOARDS, boardById, deleteCustomBoard, generateBoard, loadCustomBoards, 
 import { openReference, resumeGame, startGame } from "./game.js";
 import { AGE_BRACKETS, archiveCurrent, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, deleteArchive, getState, listArchives, loadSave, newGame, restoreArchive, youngestBracket } from "./state.js";
 import { portraitEl } from "./portraits.js";
+import { FIGURINE_ATLAS } from "./board3d.js";
 import { POWERS } from "./powers.js";
 import { setVoice, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
 import { setSfx, sfx, sfxAvailable, sfxEnabled } from "./sfx.js";
@@ -14,7 +15,7 @@ import { setMusic, musicAvailable, musicEnabled } from "./music.js";
 import { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } from "./bots.js";
 import { getPrefs, loadPrefs, setPref } from "./prefs.js";
 import { langueList } from "./langues.js";
-import { getPalmares, loadPalmares, recordGame, SKINS, skinById, skinUnlocked, SUCCES, unlockedSkins } from "./palmares.js";
+import { getPalmares, loadLivreDor, loadPalmares, recordGame, SKINS, skinById, skinUnlocked, SUCCES, titreLivreDor, unlockedSkins } from "./palmares.js";
 import { grimoireEntries, grimoireSize } from "./grimoire.js";
 import { souvenirSection } from "./souvenir.js";
 import { el } from "./ui.js";
@@ -872,6 +873,16 @@ function showVictory(winner, rankingData, extras = {}) {
   zone.innerHTML = "";
   // Fond de fête peint (GEN 2), discret derrière le contenu — repli : rien.
   zone.append(artImg("victory-bg", "assets/fond-victoire.webp"));
+  // 🎊 Pluie de confettis peinte en CSS — sobre, en boucle, jamais bloquante.
+  const confettis = el("div", { class: "confetti-zone", "aria-hidden": "true" });
+  const teintes = ["#e0b04a", "#c23e6b", "#3ec27a", "#4a6fb5", "#8e5cc2", "#e0568f"];
+  for (let i = 0; i < 26; i++) {
+    confettis.append(el("span", {
+      class: "confetti",
+      style: `left:${(i * 41) % 100}%;background:${teintes[i % teintes.length]};animation-delay:${(i % 13) * 0.45}s;animation-duration:${3.2 + (i % 5) * 0.5}s`,
+    }));
+  }
+  zone.append(confettis);
   const etoilesMode = rankingData.some((p) => p.etoiles !== undefined);
   const bonusStars = extras.bonusStars ?? [];
   // Enregistre la partie au palmarès et récupère les succès nouvellement débloqués.
@@ -924,7 +935,19 @@ function showVictory(winner, rankingData, extras = {}) {
     }
   }
 
-  // Podium festif : le top 3 sur des marches, le gagnant surélevé et couronné.
+  /** Figurine en pied d'un héros (découpe CSS de son atlas peint — la table
+ *  des chemins vit dans board3d.js, seule source inlinée). */
+function figurineImg(characterId, height) {
+  const src = FIGURINE_ATLAS[characterId];
+  if (!src) return portraitEl(characterId, Math.round(height * 0.55));
+  return el("span", {
+    class: "figurine-pied",
+    "aria-hidden": "true",
+    style: `height:${height}px;width:${Math.round(height * 0.34)}px;background-image:url(${src})`,
+  });
+}
+
+// Podium festif : le top 3 sur des marches, le gagnant surélevé et couronné.
   const top = rankingData.slice(0, 3);
   if (top.length >= 2) {
     const order = [1, 0, 2].filter((idx) => top[idx]); // 2e · 1er (centre) · 3e
@@ -934,7 +957,7 @@ function showVictory(winner, rankingData, extras = {}) {
           const p = top[idx];
           return el("div", { class: `podium-col podium-rank-${idx + 1}` },
             el("span", { class: "podium-crown", text: idx === 0 ? "👑" : idx === 1 ? "🥈" : "🥉" }),
-            portraitEl(p.characterId, idx === 0 ? 84 : 60, p.skin),
+            figurineImg(p.characterId, idx === 0 ? 148 : 112),
             el("span", { class: "podium-name", text: p.nom }),
             el("span", { class: "podium-stand", text: String(idx + 1) }),
           );
@@ -1065,6 +1088,19 @@ function renderPalmares() {
       stat("🌟", d.meilleuresEtoiles, "record d'étoiles"),
     ),
   );
+  // 📜 Le Livre d'or : la mémoire longue de la famille, prénom par prénom.
+  const livre = Object.values(loadLivreDor())
+    .sort((a, b) => b.victoires - a.victoires || b.etoiles - a.etoiles || b.bonnes - a.bonnes);
+  if (livre.length) {
+    zone.append(el("h3", { class: "succes-unlock-title", text: "📜 Le Livre d'or de la famille" }));
+    zone.append(el("div", { class: "livre-dor" },
+      ...livre.map((e) => el("div", { class: "livre-ligne" },
+        el("strong", { class: "livre-nom", text: e.nom }),
+        el("span", { class: "livre-titre", text: titreLivreDor(e) }),
+        el("span", { class: "livre-meta", text: `${e.parties} partie${e.parties > 1 ? "s" : ""} · 🏆 ${e.victoires} · ⭐ ${e.etoiles} · ✅ ${e.bonnes}` }),
+      )),
+    ));
+  }
   zone.append(el("h2", { class: "palm-succes-titre", text: `🏅 Succès débloqués — ${d.succes.length} / ${SUCCES.length}` }));
   const grid = el("div", { class: "palm-succes-grid" });
   for (const s of SUCCES) {

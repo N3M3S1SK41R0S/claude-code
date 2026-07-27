@@ -125,3 +125,54 @@ export function skinUnlocked(s) {
 export function unlockedSkins() {
   return SKINS.filter((s) => skinUnlocked(s));
 }
+
+/* ---------- Livre d'or familial : mémoire longue par prénom ---------- */
+
+const LIVRE_KEY = "donjon-livredor";
+
+// Titres évolutifs (du plus prestigieux au plus modeste) : le premier seuil
+// atteint devient le titre affiché du joueur dans le Livre d'or.
+const TITRES = [
+  { seuil: (e) => e.victoires >= 10, titre: "🐉 Légende du Donjon" },
+  { seuil: (e) => e.victoires >= 5, titre: "👑 Monarque du Savoir" },
+  { seuil: (e) => e.etoiles >= 40, titre: "🌟 Empereur des étoiles" },
+  { seuil: (e) => e.bonnes >= 200, titre: "🦉 Puits de science" },
+  { seuil: (e) => e.victoires >= 2, titre: "🛡️ Chevalier confirmé" },
+  { seuil: (e) => e.parties >= 10, titre: "🏰 Pilier de la taverne" },
+  { seuil: (e) => e.bonnes >= 50, titre: "📚 Apprenti prometteur" },
+  { seuil: (e) => e.parties >= 3, titre: "🎲 Habitué du plateau" },
+  { seuil: () => true, titre: "🌱 Jeune pousse" },
+];
+
+export function loadLivreDor() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LIVRE_KEY));
+    if (raw && typeof raw === "object") return raw;
+  } catch { /* mode privé */ }
+  return {};
+}
+
+export function titreLivreDor(entry) {
+  return TITRES.find((t) => t.seuil(entry)).titre;
+}
+
+/** Cumule une partie terminée dans le Livre d'or (joueurs humains seulement,
+ *  identifiés par prénom — les surnoms de la famille traversent les parties). */
+export function recordLivreDor(ranking) {
+  const livre = loadLivreDor();
+  ranking.forEach((joueur, i) => {
+    if (joueur.bot) return;
+    const cle = (joueur.nom ?? "").trim().toLowerCase();
+    if (!cle) return;
+    const e = livre[cle] ?? { nom: joueur.nom.trim(), parties: 0, victoires: 0, etoiles: 0, bonnes: 0, or: 0 };
+    e.nom = joueur.nom.trim();
+    e.parties += 1;
+    if (i === 0) e.victoires += 1;
+    e.etoiles += joueur.etoiles ?? 0;
+    e.bonnes += joueur.bonnes ?? 0;
+    e.or += joueur.orGagne ?? 0;
+    livre[cle] = e;
+  });
+  try { localStorage.setItem(LIVRE_KEY, JSON.stringify(livre)); } catch { /* mode privé */ }
+  return livre;
+}

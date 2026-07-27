@@ -31,6 +31,9 @@ export function setPanel(...children) {
   p.innerHTML = "";
   p.append(...children.filter(Boolean));
   p.scrollTop = 0;
+  // Pendant une question, le plateau 3D s'estompe doucement derrière la carte :
+  // tous les regards convergent vers la question, sans jamais quitter le donjon.
+  document.querySelector(".board3d-canvas")?.classList.toggle("q-focus", !!p.querySelector(".question-block"));
   if (panelHook) { try { panelHook(); } catch { /* le pilote de bot ne doit jamais casser le rendu */ } }
 }
 
