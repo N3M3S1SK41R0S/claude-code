@@ -10077,7 +10077,7 @@ function buildBoard(layout, boardDef) {
     // (case Départ) — plus aucune case muette.
     const decal = new THREE.Mesh(
       new THREE.CircleGeometry(1.02, 28),
-      new THREE.MeshBasicMaterial({ map: t.art ? loadTex(t.art) : emojiTexture(t.emoji), transparent: true, depthWrite: false }),
+      new THREE.MeshBasicMaterial({ map: t.art ? loadTex(t.art) : emojiTexture(type === "depart" ? "🏁" : t.emoji), transparent: true, depthWrite: false }),
     );
     decal.rotation.x = -Math.PI / 2;
     decal.position.y = 0.64;
@@ -10117,7 +10117,10 @@ function buildBoard(layout, boardDef) {
     anchor.position.copy(worldUV(module.u, module.v, length));
     anchor.rotation.y = module.ry;
     boardGroup.add(anchor);
-    upgradeStatic(anchor, null, createDungeonModule(module.id, module.h), epoch, `module ${module.id}`);
+    upgradeStatic(anchor, null, Promise.resolve(createDungeonModule(module.id, module.h)).then((m) => {
+      if (m) rechauffe(m, 0.35); // les modules gris ne font plus « débris »
+      return m;
+    }), epoch, `module ${module.id}`);
     // Braseros VIVANTS : flamme émissive qui danse + lueur qui tremble.
     if (module.id === "brasero") {
       const flame = new THREE.Mesh(
@@ -10140,12 +10143,12 @@ function buildBoard(layout, boardDef) {
   // Décors VIVANTS v3 (GEN 2) : moulin, bannières, lampadaires, puits, arbres,
   // gargouille — leurs nœuds « anim » sont animés dans la boucle de rendu.
   const DECOR3D_LAYOUT = [
-    { id: "moulin-a-vent", u: 0.055, v: 0.07, h: 4.4, anim: "spin" },
+    { id: "moulin-a-vent", u: 0.055, v: 0.07, h: 4.4, anim: "spin", force: 0.45 },
     { id: "puits", u: 0.945, v: 0.5, h: 2.6, anim: "bob" },
     { id: "lampadaire-lucioles", u: 0.3, v: 0.03, h: 3.2, anim: "sway" },
     { id: "lampadaire-lucioles", u: 0.7, v: 0.968, h: 3.2, anim: "sway" },
-    { id: "banniere-donjon", u: 0.5, v: 0.028, h: 3.4, anim: "sway" },
-    { id: "banniere-donjon", u: 0.055, v: 0.5, h: 3.4, anim: "sway" },
+    { id: "banniere-donjon", u: 0.5, v: 0.028, h: 3.4, anim: "sway", force: 0.5 },
+    { id: "banniere-donjon", u: 0.055, v: 0.5, h: 3.4, anim: "sway", force: 0.5 },
     { id: "gargouille-baillante", u: 0.945, v: 0.945, h: 1.9, force: 0.4 },
   ];
   for (const d of DECOR3D_LAYOUT) {
@@ -10175,7 +10178,7 @@ function buildBoard(layout, boardDef) {
     anchor.position.copy(worldUV(r.u, r.v, length));
     boardGroup.add(anchor);
     upgradeStatic(anchor, null, Promise.resolve(createDecorModel(r.id, 1.6)).then((m) => {
-      if (m) rechauffe(m); // opaques ; le fondu dynamique s'en charge au besoin
+      if (m) rechauffe(m, 0.4); // opaques ; le fondu dynamique s'en charge au besoin
       return m;
     }), epoch, `rempart ${r.id}`);
   }
