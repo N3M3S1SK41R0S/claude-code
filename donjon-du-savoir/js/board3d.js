@@ -105,7 +105,15 @@ function rechauffe(root, force = 0.26) {
     const mats = Array.isArray(child.material) ? child.material : [child.material];
     for (const m of mats) {
       if (!m?.color || m.userData?.rechauffe) continue;
-      m.color.lerp(ivoire, force);
+      if (m.map && "emissive" in m) {
+        // Texture sombre : le multiplicateur `color` ne peut pas dépasser le
+        // blanc — on auto-illumine le décor par SA PROPRE texture.
+        m.emissiveMap = m.map;
+        m.emissive.set(0xffffff);
+        m.emissiveIntensity = force;
+      } else {
+        m.color.lerp(ivoire, force);
+      }
       if ("metalness" in m) m.metalness = Math.min(m.metalness ?? 0, 0.25);
       m.userData.rechauffe = true;
     }
@@ -384,27 +392,27 @@ function themeSkybox(theme) {
 
 // Bâtiment « repère » posé sur certaines cases (on reconnaît l'échoppe, etc.).
 const CASE_BUILDING = {
-  boutique: { id: "boutique", art: "assets/batiment-boutique.png" },
-  gambit: { id: "taverne", art: "assets/batiment-taverne.png" },
-  trounoir: { id: "portail", art: "assets/batiment-portail.png" },
-  insolite: { id: "champignon", art: "assets/batiment-champignon.png" },
-  expression: { id: "taverne", art: "assets/batiment-taverne.png" },
-  evenement: { id: "fontaine", art: "assets/batiment-fontaine.png" },
-  arrivee: { id: "chateau", art: "assets/batiment-chateau.png" },
-  depart: { id: "pont", art: "assets/batiment-pont.png" },
+  boutique: { id: "boutique", art: "assets/batiment-boutique.webp" },
+  gambit: { id: "taverne", art: "assets/batiment-taverne.webp" },
+  trounoir: { id: "portail", art: "assets/batiment-portail.webp" },
+  insolite: { id: "champignon", art: "assets/batiment-champignon.webp" },
+  expression: { id: "taverne", art: "assets/batiment-taverne.webp" },
+  evenement: { id: "fontaine", art: "assets/batiment-fontaine.webp" },
+  arrivee: { id: "chateau", art: "assets/batiment-chateau.webp" },
+  depart: { id: "pont", art: "assets/batiment-pont.webp" },
 };
 
 const BUILDING_ID = {
-  "assets/batiment-chateau.png": "chateau",
-  "assets/batiment-etoile.png": "etoile",
-  "assets/batiment-tour-mage.png": "tour-mage",
-  "assets/batiment-bibliotheque.png": "bibliotheque",
-  "assets/batiment-taverne.png": "taverne",
-  "assets/batiment-portail.png": "portail",
-  "assets/batiment-boutique.png": "boutique",
-  "assets/batiment-fontaine.png": "fontaine",
-  "assets/batiment-pont.png": "pont",
-  "assets/batiment-champignon.png": "champignon",
+  "assets/batiment-chateau.webp": "chateau",
+  "assets/batiment-etoile.webp": "etoile",
+  "assets/batiment-tour-mage.webp": "tour-mage",
+  "assets/batiment-bibliotheque.webp": "bibliotheque",
+  "assets/batiment-taverne.webp": "taverne",
+  "assets/batiment-portail.webp": "portail",
+  "assets/batiment-boutique.webp": "boutique",
+  "assets/batiment-fontaine.webp": "fontaine",
+  "assets/batiment-pont.webp": "pont",
+  "assets/batiment-champignon.webp": "champignon",
 };
 
 const DUNGEON_LAYOUT = [
@@ -829,7 +837,10 @@ function buildBoard(layout, boardDef) {
       braseroLights.push({ flame, light, phase: anchor.position.x * 1.7 });
     }
   }
-  for (const d of DECOR) boardGroup.add(standee(d.art, worldUV(d.u, d.v, length), d.s * 0.05 + 1.2));
+  // Les petits autocollants « décor » du premier lot (arbre sombre, toile,
+  // statue…) sont retirés de la scène 3D : le village v4.5 (maquettes, PNJ,
+  // objets peints) les a rendus superflus — ils ne survivent qu'en 2D.
+  void DECOR;
 
   // Décors VIVANTS v3 (GEN 2) : moulin, bannières, lampadaires, puits, arbres,
   // gargouille — leurs nœuds « anim » sont animés dans la boucle de rendu.
@@ -840,16 +851,14 @@ function buildBoard(layout, boardDef) {
     { id: "lampadaire-lucioles", u: 0.7, v: 0.968, h: 3.2, anim: "sway" },
     { id: "banniere-donjon", u: 0.5, v: 0.028, h: 3.4, anim: "sway" },
     { id: "banniere-donjon", u: 0.055, v: 0.5, h: 3.4, anim: "sway" },
-    { id: "arbre-rond", u: 0.15, v: 0.945, h: 2.8 },
-    { id: "arbre-rond", u: 0.86, v: 0.055, h: 2.8 },
-    { id: "gargouille-baillante", u: 0.945, v: 0.945, h: 1.9 },
+    { id: "gargouille-baillante", u: 0.945, v: 0.945, h: 1.9, force: 0.4 },
   ];
   for (const d of DECOR3D_LAYOUT) {
     const anchor = new THREE.Group();
     anchor.position.copy(worldUV(d.u, d.v, length));
     boardGroup.add(anchor);
     upgradeStatic(anchor, null, Promise.resolve(createDecorModel(d.id, d.h)).then((m) => {
-      if (m) rechauffe(m);
+      if (m) rechauffe(m, d.force ?? 0.26);
       if (m && d.anim && epoch === sceneEpoch) {
         const node = m.getObjectByName("anim");
         if (node) animatedDecors.push({ node, kind: d.anim, phase: d.u * 9 });

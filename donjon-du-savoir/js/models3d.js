@@ -4,32 +4,15 @@
 
 const THREE = globalThis.THREE;
 
-export const HERO_MODEL_URLS = {
-  cageot: "assets/3d/heroes/hero-cageot.glb",
-  etincelle: "assets/3d/heroes/hero-etincelle.glb",
-  gobelin: "assets/3d/heroes/hero-gobelin.glb",
-  nebulia: "assets/3d/heroes/hero-nebulia.glb",
-  boumbastien: "assets/3d/heroes/hero-boumbastien.glb",
-  duchesse: "assets/3d/heroes/hero-duchesse.glb",
-  flaque: "assets/3d/heroes/hero-flaque.glb",
-  pelote: "assets/3d/heroes/hero-pelote.glb",
-  hibou: "assets/3d/heroes/hero-hibou.glb",
-  kribouille: "assets/3d/heroes/hero-kribouille.glb",
-  plomberoy: "assets/3d/heroes/hero-plomberoy.glb",
-};
+// Les GLB de HERO_MODEL_URLS sont ABANDONNÉS (les peintures GEN 2 sont la
+// représentation officielle — verdicts v4.1/v4.3). Carte vide : plus
+// d'inlining ni de précache. Pour les rebrancher, voir l'historique git.
+export const HERO_MODEL_URLS = {};
 
-export const BUILDING_MODEL_URLS = {
-  chateau: "assets/3d/buildings/batiment-chateau.glb",
-  etoile: "assets/3d/buildings/batiment-etoile.glb",
-  "tour-mage": "assets/3d/buildings/batiment-tour-mage.glb",
-  bibliotheque: "assets/3d/buildings/batiment-bibliotheque.glb",
-  taverne: "assets/3d/buildings/batiment-taverne.glb",
-  portail: "assets/3d/buildings/batiment-portail.glb",
-  boutique: "assets/3d/buildings/batiment-boutique.glb",
-  fontaine: "assets/3d/buildings/batiment-fontaine.glb",
-  pont: "assets/3d/buildings/batiment-pont.glb",
-  champignon: "assets/3d/buildings/batiment-champignon.glb",
-};
+// Les GLB de BUILDING_MODEL_URLS sont ABANDONNÉS (les peintures GEN 2 sont la
+// représentation officielle — verdicts v4.1/v4.3). Carte vide : plus
+// d'inlining ni de précache. Pour les rebrancher, voir l'historique git.
+export const BUILDING_MODEL_URLS = {};
 
 export const TILE_MODEL_URLS = {
   question: "assets/3d/tiles/socle-question.glb",
@@ -183,11 +166,10 @@ export const DECOR_MODEL_URLS = {
   "rempart-angle": "assets/3d/dungeon/rempart-angle.glb",
   "rempart-porte": "assets/3d/dungeon/rempart-porte.glb",
 };
-export const PNJ_MODEL_URLS = {
-  gerard: "assets/3d/pnj/gerard.glb",
-  merlinouche: "assets/3d/pnj/merlinouche.glb",
-  zebulon: "assets/3d/pnj/zebulon.glb",
-};
+// Les GLB de PNJ_MODEL_URLS sont ABANDONNÉS (les peintures GEN 2 sont la
+// représentation officielle — verdicts v4.1/v4.3). Carte vide : plus
+// d'inlining ni de précache. Pour les rebrancher, voir l'historique git.
+export const PNJ_MODEL_URLS = {};
 
 /** Décor ou rempart (le nœud « anim » éventuel est conservé pour la boucle). */
 export async function createDecorModel(id, height = 2.2) {

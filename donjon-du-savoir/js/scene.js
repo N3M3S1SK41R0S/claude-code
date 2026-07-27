@@ -13,13 +13,13 @@ import { getPrefs } from "./prefs.js";
 
 // type de case marquante → décor (bâtiment), PNJ éventuel, emoji et légende.
 const SCENES = {
-  boutique: { bat: "assets/batiment-boutique.png", npc: "assets/pnj-gerard.png", emoji: "🛒", cap: "À l'échoppe !" },
-  etoile: { bat: "assets/batiment-etoile.png", npc: "assets/pnj-merlinouche.png", emoji: "⭐", cap: "Le marchand d'étoiles !" },
-  trounoir: { bat: "assets/batiment-portail.png", npc: null, emoji: "🕳️", cap: "Le Trou Noir s'ouvre…" },
-  gambit: { bat: "assets/batiment-taverne.png", npc: null, emoji: "🎲", cap: "La table des paris !" },
-  evenement: { bat: "assets/batiment-fontaine.png", npc: null, emoji: "🎪", cap: "Toute la tablée joue !" },
-  insolite: { bat: "assets/batiment-champignon.png", npc: "assets/pnj-piquot.png", emoji: "🦩", cap: "Savoir insolite !" },
-  expression: { bat: "assets/batiment-taverne.png", npc: "assets/pnj-turbo.png", emoji: "🎭", cap: "Défi d'expression !" },
+  boutique: { bat: "assets/batiment-boutique.webp", npc: "assets/pnj-gerard.png", emoji: "🛒", cap: "À l'échoppe !" },
+  etoile: { bat: "assets/batiment-etoile.webp", npc: "assets/pnj-merlinouche.png", emoji: "⭐", cap: "Le marchand d'étoiles !" },
+  trounoir: { bat: "assets/batiment-portail.webp", npc: null, emoji: "🕳️", cap: "Le Trou Noir s'ouvre…" },
+  gambit: { bat: "assets/batiment-taverne.webp", npc: null, emoji: "🎲", cap: "La table des paris !" },
+  evenement: { bat: "assets/batiment-fontaine.webp", npc: null, emoji: "🎪", cap: "Toute la tablée joue !" },
+  insolite: { bat: "assets/batiment-champignon.webp", npc: "assets/pnj-piquot.png", emoji: "🦩", cap: "Savoir insolite !" },
+  expression: { bat: "assets/batiment-taverne.webp", npc: "assets/pnj-turbo.png", emoji: "🎭", cap: "Défi d'expression !" },
 };
 
 // thème du donjon → image de fond (parallaxe arrière). Repli : dégradé CSS.

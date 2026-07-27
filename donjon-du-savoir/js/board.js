@@ -274,16 +274,16 @@ export const DECOR = [
  *  largeur en cqw (unités de largeur du plateau). Repli : rien si l'image manque
  *  (aucun emoji sous-jacent — ce sont de purs décors d'ambiance). */
 export const BUILDINGS = [
-  { art: "assets/batiment-chateau.png", u: 0.10, v: 0.86, w: 20 },
-  { art: "assets/batiment-etoile.png", u: 0.11, v: 0.12, w: 14 },
-  { art: "assets/batiment-tour-mage.png", u: 0.065, v: 0.32, w: 13 },
-  { art: "assets/batiment-bibliotheque.png", u: 0.94, v: 0.30, w: 14 },
-  { art: "assets/batiment-taverne.png", u: 0.935, v: 0.64, w: 14 },
-  { art: "assets/batiment-portail.png", u: 0.91, v: 0.11, w: 13 },
-  { art: "assets/batiment-boutique.png", u: 0.27, v: 0.975, w: 14 },
-  { art: "assets/batiment-fontaine.png", u: 0.52, v: 0.98, w: 11 },
-  { art: "assets/batiment-pont.png", u: 0.74, v: 0.975, w: 14 },
-  { art: "assets/batiment-champignon.png", u: 0.955, v: 0.90, w: 12 },
+  { art: "assets/batiment-chateau.webp", u: 0.10, v: 0.86, w: 20 },
+  { art: "assets/batiment-etoile.webp", u: 0.11, v: 0.12, w: 14 },
+  { art: "assets/batiment-tour-mage.webp", u: 0.065, v: 0.32, w: 13 },
+  { art: "assets/batiment-bibliotheque.webp", u: 0.94, v: 0.30, w: 14 },
+  { art: "assets/batiment-taverne.webp", u: 0.935, v: 0.64, w: 14 },
+  { art: "assets/batiment-portail.webp", u: 0.91, v: 0.11, w: 13 },
+  { art: "assets/batiment-boutique.webp", u: 0.27, v: 0.975, w: 14 },
+  { art: "assets/batiment-fontaine.webp", u: 0.52, v: 0.98, w: 11 },
+  { art: "assets/batiment-pont.webp", u: 0.74, v: 0.975, w: 14 },
+  { art: "assets/batiment-champignon.webp", u: 0.955, v: 0.90, w: 12 },
 ];
 
 /** Figurines 3D des héros = pions du plateau. Chemins littéraux (inlinés en
