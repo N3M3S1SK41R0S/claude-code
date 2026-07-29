@@ -667,6 +667,8 @@ function renderSetup() {
       oninput: (e) => {
         const v = parseInt(e.target.value, 10);
         if (Number.isFinite(v)) rounds = Math.max(5, Math.min(200, v));
+        const note = document.getElementById("rounds-duree");
+        if (note) note.textContent = dureeEstimee(rounds, joueursPrevus());
       },
     });
     zone.append(
@@ -681,6 +683,7 @@ function renderSetup() {
             }, String(n)),
           ),
         ),
+        el("p", { class: "help-note rounds-duree", id: "rounds-duree", text: dureeEstimee(rounds, joueursPrevus()) }),
         el("p", { class: "help-note", text: "Sur les petits plateaux, chaque manche passe vite : montez le nombre pour une partie plus longue." }),
       ),
     );
@@ -867,6 +870,33 @@ function spawnConfetti() {
   setTimeout(() => box.remove(), 4200);
 }
 
+/** Figurine en pied d'un héros (découpe CSS de son atlas peint — la table des
+ *  chemins vit dans board3d.js, seule source inlinée). */
+function figurineImg(characterId, height) {
+  const src = FIGURINE_ATLAS[characterId];
+  if (!src) return portraitEl(characterId, Math.round(height * 0.55));
+  return el("span", {
+    class: "figurine-pied",
+    "aria-hidden": "true",
+    style: `height:${height}px;width:${Math.round(height * 0.34)}px;background-image:url(${src})`,
+  });
+}
+
+/** Nombre de joueurs prévus dans l'écran de préparation (pour l'estimation). */
+function joueursPrevus() {
+  return Math.max(1, players.length);
+}
+
+/** Estimation de durée d'une partie en mode Étoiles : un tour de table complet
+ *  (dé + question + anecdote) prend ~50 s par joueur. Annoncer l'ordre de
+ *  grandeur évite de lancer 100 manches sans le savoir. */
+function dureeEstimee(rounds, joueurs) {
+  const minutes = Math.round((rounds * joueurs * 50) / 60);
+  if (minutes < 60) return `⏱️ Durée estimée : environ ${minutes} min à ${joueurs} joueur${joueurs > 1 ? "s" : ""}.`;
+  const h = Math.floor(minutes / 60), m = minutes % 60;
+  return `⏱️ Durée estimée : environ ${h} h${m ? ` ${m} min` : ""} à ${joueurs} joueur${joueurs > 1 ? "s" : ""} — prévoyez large !`;
+}
+
 function showVictory(winner, rankingData, extras = {}) {
   show("victory");
   spawnConfetti();
@@ -936,19 +966,17 @@ function showVictory(winner, rankingData, extras = {}) {
     }
   }
 
-  /** Figurine en pied d'un héros (découpe CSS de son atlas peint — la table
- *  des chemins vit dans board3d.js, seule source inlinée). */
-function figurineImg(characterId, height) {
-  const src = FIGURINE_ATLAS[characterId];
-  if (!src) return portraitEl(characterId, Math.round(height * 0.55));
-  return el("span", {
-    class: "figurine-pied",
-    "aria-hidden": "true",
-    style: `height:${height}px;width:${Math.round(height * 0.34)}px;background-image:url(${src})`,
-  });
-}
+  // 📜 Titres FRANCHIS pendant cette partie : le Livre d'or récompense la
+  // régularité, pas seulement la victoire du jour.
+  const titres = getState()?.titresGagnes ?? [];
+  if (titres.length) {
+    zone.append(el("div", { class: "succes-unlock" },
+      el("h3", { class: "succes-unlock-title", text: "📜 Nouveaux titres au Livre d'or" }),
+      ...titres.map((t) => el("p", { class: "succes-unlock-line", text: `${t.nom} devient ${t.titre}` })),
+    ));
+  }
 
-// Podium festif : le top 3 sur des marches, le gagnant surélevé et couronné.
+  // Podium festif : le top 3 sur des marches, le gagnant surélevé et couronné.
   const top = rankingData.slice(0, 3);
   if (top.length >= 2) {
     const order = [1, 0, 2].filter((idx) => top[idx]); // 2e · 1er (centre) · 3e

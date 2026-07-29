@@ -175,6 +175,7 @@ function updateOccluders(heroPos) {
 }
 const caseEffects = [];
 const animatedTiles = [];
+let aimRing = null; // viseur de destination (anneau pulsant)
 let sceneEpoch = 0; // invalide les chargements async d'un ancien plateau
 let focusId = null; // pion suivi par la caméra
 const camPos = THREE ? new THREE.Vector3(0, 24, 30) : null;
@@ -698,6 +699,7 @@ function buildBoard(layout, boardDef) {
   animatedTiles.length = 0;
   braseroLights.length = 0;
   animatedDecors.length = 0;
+  aimRing = null; // l'ancien plateau emporte son viseur
   pnj3d.length = 0;
   while (activeFx.length) { const fx = activeFx.pop(); effectGroup?.remove(fx.spr); fx.mat.map?.dispose?.(); fx.mat.dispose(); }
   lastStarPos = null;
@@ -1287,8 +1289,35 @@ export function render3D(hostBoard, layout, pions, currentPionId, boardDef, star
   return true;
 }
 
+/** 🎯 Pose un viseur sur la case où le dé va faire atterrir le joueur : on voit
+ *  AVANT d'avancer ce qui l'attend (et un pouvoir de relance devient un vrai
+ *  choix). Un seul viseur à la fois. */
+export function aimTile3D(pos, length) {
+  clearAim3D();
+  if (!boardGroup || !THREE) return;
+  const p = worldOf(pos, length);
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(1.46, 0.1, 8, 36),
+    new THREE.MeshBasicMaterial({ color: 0xf4ecd8, toneMapped: false, transparent: true, opacity: 0.95 }),
+  );
+  ring.rotation.x = Math.PI / 2;
+  ring.position.set(p.x, 0.78, p.z);
+  boardGroup.add(ring);
+  aimRing = ring;
+}
+
+/** Retire le viseur (départ du pion, ou changement de plateau). */
+export function clearAim3D() {
+  if (!aimRing) return;
+  aimRing.parent?.remove(aimRing);
+  aimRing.geometry.dispose();
+  aimRing.material.dispose();
+  aimRing = null;
+}
+
 /** Anime un pion le long du chemin (case par case) et fait suivre la caméra. */
 export function walk3D(pionId, path, length) {
+  clearAim3D(); // le joueur s'élance : le viseur a fait son office
   const rec = pionObjs.get(pionId);
   if (!rec || !Array.isArray(path) || path.length === 0) return;
   rec.walk = path.map((pos) => worldOf(pos, length).setY(0.55));
@@ -1455,6 +1484,13 @@ function loop(now = performance.now()) {
       rec.ring.position.set(rec.obj.position.x, 0.08, rec.obj.position.z);
       rec.ring.scale.setScalar(1 + Math.sin(now * 0.004) * 0.07);
     }
+  }
+
+  // Le viseur de destination respire pour attirer l'œil sans clignoter.
+  if (aimRing) {
+    const p = 1 + Math.sin(now * 0.006) * 0.07;
+    aimRing.scale.set(p, p, 1);
+    aimRing.material.opacity = 0.75 + Math.sin(now * 0.006) * 0.2;
   }
 
   // Les cases spéciales respirent très légèrement au repos ; ce mouvement

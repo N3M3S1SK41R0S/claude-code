@@ -5,8 +5,8 @@
 //  - nothing is ever timed (non-negotiable rule of the cahier des charges);
 //  - anecdote after EVERY question, no exception.
 import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawGambitTable, drawHardest, drawInsolite, drawQuestion } from "./data.js";
-import { boardById, renderBoard, walkPion } from "./board.js";
-import { heroMoment3D, react3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
+import { boardById, CASE_TYPES, renderBoard, walkPion } from "./board.js";
+import { aimTile3D, clearAim3D, heroMoment3D, react3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
 import { herald } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } from "./state.js";
@@ -319,6 +319,18 @@ function renderPlayersStrip() {
         el("div", { class: "player-info" },
           el("strong", { text: `Manche ${Math.min(state.tour, state.rounds)}/${state.rounds}` }),
           el("span", { class: "player-meta", text: "Le plus d'étoiles gagne" }),
+        ),
+      ),
+    );
+  }
+  if (!isEtoiles()) {
+    const reste = Math.max(0, boardLen() - 1 - Math.max(...state.pions.map((p) => p.position)));
+    strip.append(
+      el("div", { class: "player-chip round-chip" },
+        el("span", { class: "player-emoji", "aria-hidden": "true", text: "🏁" }),
+        el("div", { class: "player-info" },
+          el("strong", { text: reste === 0 ? "Le Trésor est atteint !" : `Plus que ${reste} case${reste > 1 ? "s" : ""}` }),
+          el("span", { class: "player-meta", text: "Le premier au Trésor gagne" }),
         ),
       ),
     );
@@ -642,10 +654,23 @@ function rollDie() {
 let sixStreak = 0; // suspicion théâtrale du Héraut sur les séries de 6
 let dieAutoToken = 0; // anti double-avance du « tour en un geste »
 
+/** Case où le dé va faire atterrir le pion (même arithmétique que le
+ *  déplacement réel : boucle en mode Étoiles, borné à l'arrivée en Course). */
+function destinationDe(pion, steps) {
+  const L = boardLen();
+  if (isEtoiles()) return (((pion.position + steps) % L) + L) % L;
+  return Math.max(0, Math.min(L - 1, pion.position + steps));
+}
+
 function showDieResult(value, { rerollAvailable }) {
   const pion = currentPion();
+  // 🎯 On voit où l'on va TOMBER avant d'avancer : le suspense monte, les plus
+  // jeunes comprennent le plateau, et relancer devient une vraie décision.
+  const cible = destinationDe(pion, value);
+  const tCible = CASE_TYPES[getState().board[cible]] ?? CASE_TYPES.question;
+  if (use3D()) aimTile3D(cible, boardLen());
   // Partie à l'oreille : le résultat du dé est annoncé.
-  if (getPrefs().oreilles) say(`Le dé donne ${value} ! ${pion.nom} peut avancer de ${value} case${value > 1 ? "s" : ""}.`, { queue: true });
+  if (getPrefs().oreilles) say(`Le dé donne ${value} ! ${pion.nom} avancerait de ${value} case${value > 1 ? "s" : ""}, jusqu'à la case ${tCible.label}.`, { queue: true });
   // 🎲 Le dé est commenté avec la plus grande retenue (humour ≥ complice).
   sixStreak = value === 6 ? sixStreak + 1 : 0;
   if (!testFlag("__DONJON_TEST") && humourLevel() >= 1) {
@@ -653,7 +678,7 @@ function showDieResult(value, { rerollAvailable }) {
     else if (sixStreak >= 3) { heraldSays(herald.deTriple()); sixStreak = 0; }
   }
   const power = powerOf(pion);
-  const actions = [bigButton(`Avancer de ${value}`, () => { dieAutoToken++; moveAndResolve(value); })];
+  const actions = [bigButton(`Avancer de ${value} → ${tCible.emoji} ${tCible.label}`, () => { dieAutoToken++; moveAndResolve(value); })];
   // ⏱️ LE TOUR EN UN GESTE (vif/fiesta) : le dé lancé, on avance tout seul —
   // sauf si un pouvoir de relance est disponible (le choix reste au joueur).
   const powerReroll = rerollAvailable && power && !pion.pouvoirUtilise && power.quand === "de";
@@ -2986,6 +3011,21 @@ function finishTurn() {
     prefix = `🔔 DERNIÈRE MANCHE ! Chacun reçoit +${LAST_ROUND_BONUS} 🪙 pour un ultime coup d'éclat. ${prefix}`;
   }
 
+  // 📣 LE POINT À MI-PARCOURS (une fois) : le Héraut annonce le classement.
+  // Personne ne décroche faute de savoir où il en est.
+  if (isEtoiles() && !state.pointMiParcours && state.rounds >= 6 && state.tour > Math.ceil(state.rounds / 2) && !testFlag("__DONJON_TEST")) {
+    state.pointMiParcours = true;
+    save();
+    const cl = ranking();
+    const tete = cl[0];
+    const dauphin = cl[1];
+    const score = (p) => `${p.etoiles ?? 0} étoile${(p.etoiles ?? 0) > 1 ? "s" : ""}`;
+    sfx("fanfare");
+    heraldSays(dauphin
+      ? `📣 MI-PARCOURS ! ${tete.nom} mène avec ${score(tete)}, ${dauphin.nom} suit avec ${score(dauphin)}. Tout reste à jouer !`
+      : `📣 MI-PARCOURS ! ${tete.nom} règne avec ${score(tete)}.`);
+  }
+
   // 🏁 RUSH FINAL (une fois) : quand la fin approche, le Donjon s'embrase —
   // annonce, Barde plus vif, vibration, et cases Pièces qui valent DOUBLE.
   if (!state.rushLance && !testFlag("__DONJON_TEST")) {
@@ -3277,7 +3317,7 @@ function endStarGameFinal() {
     bonnesParTheme: p.bonnesParTheme,
   }));
   save();
-  recordLivreDor(state.ranking); // 📜 mémoire longue de la famille
+  state.titresGagnes = recordLivreDor(state.ranking); // 📜 mémoire longue
   const winner = classement[0];
   const primes = bonus.length
     ? ` Étoiles bonus : ${bonus.map((b) => `${b.emoji} ${b.nom}`).join(", ")}.`
@@ -3320,7 +3360,7 @@ function finishGameFinal(winner) {
     bonnesParTheme: p.bonnesParTheme,
   }));
   save();
-  recordLivreDor(state.ranking); // 📜 mémoire longue de la famille
+  state.titresGagnes = recordLivreDor(state.ranking); // 📜 mémoire longue
   sfx("win"); sfx("clap"); vibrer(200);
   heraldSays(herald.victoire(winner.nom));
   charSays(winner, "victoire");

@@ -160,11 +160,13 @@ export function titreLivreDor(entry) {
  *  identifiés par prénom — les surnoms de la famille traversent les parties). */
 export function recordLivreDor(ranking) {
   const livre = loadLivreDor();
+  const gagnes = []; // titres FRANCHIS pendant cette partie
   ranking.forEach((joueur, i) => {
     if (joueur.bot) return;
     const cle = (joueur.nom ?? "").trim().toLowerCase();
     if (!cle) return;
     const e = livre[cle] ?? { nom: joueur.nom.trim(), parties: 0, victoires: 0, etoiles: 0, bonnes: 0, or: 0 };
+    const avant = livre[cle] ? titreLivreDor(e) : null;
     e.nom = joueur.nom.trim();
     e.parties += 1;
     if (i === 0) e.victoires += 1;
@@ -172,7 +174,9 @@ export function recordLivreDor(ranking) {
     e.bonnes += joueur.bonnes ?? 0;
     e.or += joueur.orGagne ?? 0;
     livre[cle] = e;
+    const apres = titreLivreDor(e);
+    if (apres !== avant) gagnes.push({ nom: e.nom, titre: apres });
   });
   try { localStorage.setItem(LIVRE_KEY, JSON.stringify(livre)); } catch { /* mode privé */ }
-  return livre;
+  return gagnes;
 }

@@ -1187,6 +1187,9 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .version-line { color: var(--gold); font-size: 0.95rem; }
 .version-help { color: var(--soft); font-size: 0.82rem; line-height: 1.4; margin-top: 0.3rem; }
 
+/* Estimation de durée sous le sélecteur de manches : information, pas alerte. */
+.rounds-duree { color: var(--gold); font-weight: bold; }
+
 </style>
 
   <header class="topbar">
@@ -6612,11 +6615,13 @@ function titreLivreDor(entry) {
  *  identifiés par prénom — les surnoms de la famille traversent les parties). */
 function recordLivreDor(ranking) {
   const livre = loadLivreDor();
+  const gagnes = []; // titres FRANCHIS pendant cette partie
   ranking.forEach((joueur, i) => {
     if (joueur.bot) return;
     const cle = (joueur.nom ?? "").trim().toLowerCase();
     if (!cle) return;
     const e = livre[cle] ?? { nom: joueur.nom.trim(), parties: 0, victoires: 0, etoiles: 0, bonnes: 0, or: 0 };
+    const avant = livre[cle] ? titreLivreDor(e) : null;
     e.nom = joueur.nom.trim();
     e.parties += 1;
     if (i === 0) e.victoires += 1;
@@ -6624,9 +6629,11 @@ function recordLivreDor(ranking) {
     e.bonnes += joueur.bonnes ?? 0;
     e.or += joueur.orGagne ?? 0;
     livre[cle] = e;
+    const apres = titreLivreDor(e);
+    if (apres !== avant) gagnes.push({ nom: e.nom, titre: apres });
   });
   try { localStorage.setItem(LIVRE_KEY, JSON.stringify(livre)); } catch { /* mode privé */ }
-  return livre;
+  return gagnes;
 }
 
 ;Object.assign(module.exports, {loadPalmares, getPalmares, recordGame, skinById, skinUnlocked, unlockedSkins, loadLivreDor, titreLivreDor, recordLivreDor, SUCCES, SKINS});
@@ -9472,6 +9479,7 @@ function updateOccluders(heroPos) {
 }
 const caseEffects = [];
 const animatedTiles = [];
+let aimRing = null; // viseur de destination (anneau pulsant)
 let sceneEpoch = 0; // invalide les chargements async d'un ancien plateau
 let focusId = null; // pion suivi par la caméra
 const camPos = THREE ? new THREE.Vector3(0, 24, 30) : null;
@@ -9995,6 +10003,7 @@ function buildBoard(layout, boardDef) {
   animatedTiles.length = 0;
   braseroLights.length = 0;
   animatedDecors.length = 0;
+  aimRing = null; // l'ancien plateau emporte son viseur
   pnj3d.length = 0;
   while (activeFx.length) { const fx = activeFx.pop(); effectGroup?.remove(fx.spr); fx.mat.map?.dispose?.(); fx.mat.dispose(); }
   lastStarPos = null;
@@ -10584,8 +10593,35 @@ function render3D(hostBoard, layout, pions, currentPionId, boardDef, starPos) {
   return true;
 }
 
+/** 🎯 Pose un viseur sur la case où le dé va faire atterrir le joueur : on voit
+ *  AVANT d'avancer ce qui l'attend (et un pouvoir de relance devient un vrai
+ *  choix). Un seul viseur à la fois. */
+function aimTile3D(pos, length) {
+  clearAim3D();
+  if (!boardGroup || !THREE) return;
+  const p = worldOf(pos, length);
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(1.46, 0.1, 8, 36),
+    new THREE.MeshBasicMaterial({ color: 0xf4ecd8, toneMapped: false, transparent: true, opacity: 0.95 }),
+  );
+  ring.rotation.x = Math.PI / 2;
+  ring.position.set(p.x, 0.78, p.z);
+  boardGroup.add(ring);
+  aimRing = ring;
+}
+
+/** Retire le viseur (départ du pion, ou changement de plateau). */
+function clearAim3D() {
+  if (!aimRing) return;
+  aimRing.parent?.remove(aimRing);
+  aimRing.geometry.dispose();
+  aimRing.material.dispose();
+  aimRing = null;
+}
+
 /** Anime un pion le long du chemin (case par case) et fait suivre la caméra. */
 function walk3D(pionId, path, length) {
+  clearAim3D(); // le joueur s'élance : le viseur a fait son office
   const rec = pionObjs.get(pionId);
   if (!rec || !Array.isArray(path) || path.length === 0) return;
   rec.walk = path.map((pos) => worldOf(pos, length).setY(0.55));
@@ -10752,6 +10788,13 @@ function loop(now = performance.now()) {
       rec.ring.position.set(rec.obj.position.x, 0.08, rec.obj.position.z);
       rec.ring.scale.setScalar(1 + Math.sin(now * 0.004) * 0.07);
     }
+  }
+
+  // Le viseur de destination respire pour attirer l'œil sans clignoter.
+  if (aimRing) {
+    const p = 1 + Math.sin(now * 0.006) * 0.07;
+    aimRing.scale.set(p, p, 1);
+    aimRing.material.opacity = 0.75 + Math.sin(now * 0.006) * 0.2;
   }
 
   // Les cases spéciales respirent très légèrement au repos ; ce mouvement
@@ -10930,7 +10973,7 @@ function loop(now = performance.now()) {
   R.render(scene, camera);
 }
 
-;Object.assign(module.exports, {webglAvailable, use3D, init3D, dispose3D, show3D, stageCase3D, render3D, walk3D, react3D, heroMoment3D, FIGURINE_ATLAS});
+;Object.assign(module.exports, {webglAvailable, use3D, init3D, dispose3D, show3D, stageCase3D, render3D, aimTile3D, clearAim3D, walk3D, react3D, heroMoment3D, FIGURINE_ATLAS});
 };
 __modules["./souvenir.js"] = function(module, exports, require) {
 // Carte-souvenir de partie : une image générée en canvas à la victoire
@@ -11225,7 +11268,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v106";
+const APP_VERSION = "donjon-v107";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
@@ -11237,8 +11280,8 @@ __modules["./game.js"] = function(module, exports, require) {
 //  - nothing is ever timed (non-negotiable rule of the cahier des charges);
 //  - anecdote after EVERY question, no exception.
 const { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawGambitTable, drawHardest, drawInsolite, drawQuestion } = require("./data.js");
-const { boardById, renderBoard, walkPion } = require("./board.js");
-const { heroMoment3D, react3D, render3D, show3D, stageCase3D, use3D, walk3D } = require("./board3d.js");
+const { boardById, CASE_TYPES, renderBoard, walkPion } = require("./board.js");
+const { aimTile3D, clearAim3D, heroMoment3D, react3D, render3D, show3D, stageCase3D, use3D, walk3D } = require("./board3d.js");
 const { herald } = require("./herald.js");
 const { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } = require("./powers.js");
 const { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } = require("./state.js");
@@ -11551,6 +11594,18 @@ function renderPlayersStrip() {
         el("div", { class: "player-info" },
           el("strong", { text: `Manche ${Math.min(state.tour, state.rounds)}/${state.rounds}` }),
           el("span", { class: "player-meta", text: "Le plus d'étoiles gagne" }),
+        ),
+      ),
+    );
+  }
+  if (!isEtoiles()) {
+    const reste = Math.max(0, boardLen() - 1 - Math.max(...state.pions.map((p) => p.position)));
+    strip.append(
+      el("div", { class: "player-chip round-chip" },
+        el("span", { class: "player-emoji", "aria-hidden": "true", text: "🏁" }),
+        el("div", { class: "player-info" },
+          el("strong", { text: reste === 0 ? "Le Trésor est atteint !" : `Plus que ${reste} case${reste > 1 ? "s" : ""}` }),
+          el("span", { class: "player-meta", text: "Le premier au Trésor gagne" }),
         ),
       ),
     );
@@ -11874,10 +11929,23 @@ function rollDie() {
 let sixStreak = 0; // suspicion théâtrale du Héraut sur les séries de 6
 let dieAutoToken = 0; // anti double-avance du « tour en un geste »
 
+/** Case où le dé va faire atterrir le pion (même arithmétique que le
+ *  déplacement réel : boucle en mode Étoiles, borné à l'arrivée en Course). */
+function destinationDe(pion, steps) {
+  const L = boardLen();
+  if (isEtoiles()) return (((pion.position + steps) % L) + L) % L;
+  return Math.max(0, Math.min(L - 1, pion.position + steps));
+}
+
 function showDieResult(value, { rerollAvailable }) {
   const pion = currentPion();
+  // 🎯 On voit où l'on va TOMBER avant d'avancer : le suspense monte, les plus
+  // jeunes comprennent le plateau, et relancer devient une vraie décision.
+  const cible = destinationDe(pion, value);
+  const tCible = CASE_TYPES[getState().board[cible]] ?? CASE_TYPES.question;
+  if (use3D()) aimTile3D(cible, boardLen());
   // Partie à l'oreille : le résultat du dé est annoncé.
-  if (getPrefs().oreilles) say(`Le dé donne ${value} ! ${pion.nom} peut avancer de ${value} case${value > 1 ? "s" : ""}.`, { queue: true });
+  if (getPrefs().oreilles) say(`Le dé donne ${value} ! ${pion.nom} avancerait de ${value} case${value > 1 ? "s" : ""}, jusqu'à la case ${tCible.label}.`, { queue: true });
   // 🎲 Le dé est commenté avec la plus grande retenue (humour ≥ complice).
   sixStreak = value === 6 ? sixStreak + 1 : 0;
   if (!testFlag("__DONJON_TEST") && humourLevel() >= 1) {
@@ -11885,7 +11953,7 @@ function showDieResult(value, { rerollAvailable }) {
     else if (sixStreak >= 3) { heraldSays(herald.deTriple()); sixStreak = 0; }
   }
   const power = powerOf(pion);
-  const actions = [bigButton(`Avancer de ${value}`, () => { dieAutoToken++; moveAndResolve(value); })];
+  const actions = [bigButton(`Avancer de ${value} → ${tCible.emoji} ${tCible.label}`, () => { dieAutoToken++; moveAndResolve(value); })];
   // ⏱️ LE TOUR EN UN GESTE (vif/fiesta) : le dé lancé, on avance tout seul —
   // sauf si un pouvoir de relance est disponible (le choix reste au joueur).
   const powerReroll = rerollAvailable && power && !pion.pouvoirUtilise && power.quand === "de";
@@ -14218,6 +14286,21 @@ function finishTurn() {
     prefix = `🔔 DERNIÈRE MANCHE ! Chacun reçoit +${LAST_ROUND_BONUS} 🪙 pour un ultime coup d'éclat. ${prefix}`;
   }
 
+  // 📣 LE POINT À MI-PARCOURS (une fois) : le Héraut annonce le classement.
+  // Personne ne décroche faute de savoir où il en est.
+  if (isEtoiles() && !state.pointMiParcours && state.rounds >= 6 && state.tour > Math.ceil(state.rounds / 2) && !testFlag("__DONJON_TEST")) {
+    state.pointMiParcours = true;
+    save();
+    const cl = ranking();
+    const tete = cl[0];
+    const dauphin = cl[1];
+    const score = (p) => `${p.etoiles ?? 0} étoile${(p.etoiles ?? 0) > 1 ? "s" : ""}`;
+    sfx("fanfare");
+    heraldSays(dauphin
+      ? `📣 MI-PARCOURS ! ${tete.nom} mène avec ${score(tete)}, ${dauphin.nom} suit avec ${score(dauphin)}. Tout reste à jouer !`
+      : `📣 MI-PARCOURS ! ${tete.nom} règne avec ${score(tete)}.`);
+  }
+
   // 🏁 RUSH FINAL (une fois) : quand la fin approche, le Donjon s'embrase —
   // annonce, Barde plus vif, vibration, et cases Pièces qui valent DOUBLE.
   if (!state.rushLance && !testFlag("__DONJON_TEST")) {
@@ -14509,7 +14592,7 @@ function endStarGameFinal() {
     bonnesParTheme: p.bonnesParTheme,
   }));
   save();
-  recordLivreDor(state.ranking); // 📜 mémoire longue de la famille
+  state.titresGagnes = recordLivreDor(state.ranking); // 📜 mémoire longue
   const winner = classement[0];
   const primes = bonus.length
     ? ` Étoiles bonus : ${bonus.map((b) => `${b.emoji} ${b.nom}`).join(", ")}.`
@@ -14552,7 +14635,7 @@ function finishGameFinal(winner) {
     bonnesParTheme: p.bonnesParTheme,
   }));
   save();
-  recordLivreDor(state.ranking); // 📜 mémoire longue de la famille
+  state.titresGagnes = recordLivreDor(state.ranking); // 📜 mémoire longue
   sfx("win"); sfx("clap"); vibrer(200);
   heraldSays(herald.victoire(winner.nom));
   charSays(winner, "victoire");
@@ -15237,6 +15320,8 @@ function renderSetup() {
       oninput: (e) => {
         const v = parseInt(e.target.value, 10);
         if (Number.isFinite(v)) rounds = Math.max(5, Math.min(200, v));
+        const note = document.getElementById("rounds-duree");
+        if (note) note.textContent = dureeEstimee(rounds, joueursPrevus());
       },
     });
     zone.append(
@@ -15251,6 +15336,7 @@ function renderSetup() {
             }, String(n)),
           ),
         ),
+        el("p", { class: "help-note rounds-duree", id: "rounds-duree", text: dureeEstimee(rounds, joueursPrevus()) }),
         el("p", { class: "help-note", text: "Sur les petits plateaux, chaque manche passe vite : montez le nombre pour une partie plus longue." }),
       ),
     );
@@ -15437,6 +15523,33 @@ function spawnConfetti() {
   setTimeout(() => box.remove(), 4200);
 }
 
+/** Figurine en pied d'un héros (découpe CSS de son atlas peint — la table des
+ *  chemins vit dans board3d.js, seule source inlinée). */
+function figurineImg(characterId, height) {
+  const src = FIGURINE_ATLAS[characterId];
+  if (!src) return portraitEl(characterId, Math.round(height * 0.55));
+  return el("span", {
+    class: "figurine-pied",
+    "aria-hidden": "true",
+    style: `height:${height}px;width:${Math.round(height * 0.34)}px;background-image:url(${src})`,
+  });
+}
+
+/** Nombre de joueurs prévus dans l'écran de préparation (pour l'estimation). */
+function joueursPrevus() {
+  return Math.max(1, players.length);
+}
+
+/** Estimation de durée d'une partie en mode Étoiles : un tour de table complet
+ *  (dé + question + anecdote) prend ~50 s par joueur. Annoncer l'ordre de
+ *  grandeur évite de lancer 100 manches sans le savoir. */
+function dureeEstimee(rounds, joueurs) {
+  const minutes = Math.round((rounds * joueurs * 50) / 60);
+  if (minutes < 60) return `⏱️ Durée estimée : environ ${minutes} min à ${joueurs} joueur${joueurs > 1 ? "s" : ""}.`;
+  const h = Math.floor(minutes / 60), m = minutes % 60;
+  return `⏱️ Durée estimée : environ ${h} h${m ? ` ${m} min` : ""} à ${joueurs} joueur${joueurs > 1 ? "s" : ""} — prévoyez large !`;
+}
+
 function showVictory(winner, rankingData, extras = {}) {
   show("victory");
   spawnConfetti();
@@ -15506,19 +15619,17 @@ function showVictory(winner, rankingData, extras = {}) {
     }
   }
 
-  /** Figurine en pied d'un héros (découpe CSS de son atlas peint — la table
- *  des chemins vit dans board3d.js, seule source inlinée). */
-function figurineImg(characterId, height) {
-  const src = FIGURINE_ATLAS[characterId];
-  if (!src) return portraitEl(characterId, Math.round(height * 0.55));
-  return el("span", {
-    class: "figurine-pied",
-    "aria-hidden": "true",
-    style: `height:${height}px;width:${Math.round(height * 0.34)}px;background-image:url(${src})`,
-  });
-}
+  // 📜 Titres FRANCHIS pendant cette partie : le Livre d'or récompense la
+  // régularité, pas seulement la victoire du jour.
+  const titres = getState()?.titresGagnes ?? [];
+  if (titres.length) {
+    zone.append(el("div", { class: "succes-unlock" },
+      el("h3", { class: "succes-unlock-title", text: "📜 Nouveaux titres au Livre d'or" }),
+      ...titres.map((t) => el("p", { class: "succes-unlock-line", text: `${t.nom} devient ${t.titre}` })),
+    ));
+  }
 
-// Podium festif : le top 3 sur des marches, le gagnant surélevé et couronné.
+  // Podium festif : le top 3 sur des marches, le gagnant surélevé et couronné.
   const top = rankingData.slice(0, 3);
   if (top.length >= 2) {
     const order = [1, 0, 2].filter((idx) => top[idx]); // 2e · 1er (centre) · 3e

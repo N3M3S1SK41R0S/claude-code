@@ -1171,3 +1171,6 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 .version-line { color: var(--gold); font-size: 0.95rem; }
 .version-help { color: var(--soft); font-size: 0.82rem; line-height: 1.4; margin-top: 0.3rem; }
+
+/* Estimation de durée sous le sélecteur de manches : information, pas alerte. */
+.rounds-duree { color: var(--gold); font-weight: bold; }
