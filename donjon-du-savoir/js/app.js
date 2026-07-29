@@ -8,6 +8,7 @@ import { openReference, resumeGame, startGame } from "./game.js";
 import { AGE_BRACKETS, archiveCurrent, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, deleteArchive, getState, listArchives, loadSave, newGame, restoreArchive, youngestBracket } from "./state.js";
 import { portraitEl } from "./portraits.js";
 import { FIGURINE_ATLAS } from "./board3d.js";
+import { APP_VERSION } from "./version.js";
 import { POWERS } from "./powers.js";
 import { setVoice, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
 import { setSfx, sfx, sfxAvailable, sfxEnabled } from "./sfx.js";
@@ -1018,6 +1019,15 @@ function statsTable(rankingData, etoilesMode) {
 
 /* ---------- réglages (confort & accessibilité) ---------- */
 
+/** Encart de version : permet de vérifier d'un coup d'œil qu'une copie
+ *  hors-ligne (icône de bureau, fichier partagé) est bien à jour. */
+function versionBlock() {
+  return el("div", { class: "version-note" },
+    el("p", { class: "version-line", text: `📦 Version du jeu : ${APP_VERSION}` }),
+    el("p", { class: "version-help", text: "Si vous jouez depuis une icône de bureau ou un fichier reçu, comparez ce numéro à celui de la dernière version : s'il est différent, remplacez votre fichier pour profiter des nouveautés." }),
+  );
+}
+
 function renderReglages() {
   const zone = document.getElementById("reglages-zone");
   zone.innerHTML = "";
@@ -1065,6 +1075,7 @@ function renderReglages() {
     row("📖 Revoir le tutoriel", "Le petit guide de démarrage du Donjon.",
       el("div", { class: "reglage-control" }, el("button", { class: "seg-btn", type: "button", onclick: () => showTutorial() }, "▶️ Revoir"))),
   );
+  zone.append(versionBlock());
 }
 
 /* ---------- palmarès & succès ---------- */

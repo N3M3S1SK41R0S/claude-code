@@ -8,8 +8,6 @@ import {
   createAnimatedHero,
   createBuildingModel,
   createAnimatedPnj,
-  createDecorModel,
-  createDungeonModule,
   createTileModel,
   disposeAnimatedHero,
   playHeroAnimation,
@@ -391,6 +389,12 @@ function themeSkybox(theme) {
 }
 
 // Bâtiment « repère » posé sur certaines cases (on reconnaît l'échoppe, etc.).
+// Deux types ont une couleur 2D trop sombre pour se lire sur le sol du donjon
+// (le Trou Noir est presque noir) : version relevée réservée à la 3D.
+const TEINTE_3D = {
+  trounoir: "#6f4ab8",
+};
+
 const CASE_BUILDING = {
   boutique: { id: "boutique", art: "assets/batiment-boutique.webp" },
   gambit: { id: "taverne", art: "assets/batiment-taverne.webp" },
@@ -415,14 +419,12 @@ const BUILDING_ID = {
   "assets/batiment-champignon.webp": "champignon",
 };
 
+// Torches peintes qui bordent le donjon (leur lueur est animée dans la boucle).
 const DUNGEON_LAYOUT = [
-  { id: "mur", u: 0.02, v: 0.47, h: 3.1, ry: Math.PI / 2 },
-  { id: "arche", u: 0.51, v: 0.025, h: 3.5, ry: 0 },
-  { id: "colonne", u: 0.985, v: 0.47, h: 3.2, ry: 0 },
-  { id: "brasero", u: 0.17, v: 0.035, h: 2.2, ry: 0 },
-  { id: "brasero", u: 0.83, v: 0.035, h: 2.2, ry: 0 },
-  { id: "brasero", u: 0.02, v: 0.78, h: 2.2, ry: 0 },
-  { id: "brasero", u: 0.985, v: 0.78, h: 2.2, ry: 0 },
+  { u: 0.17, v: -0.07 },
+  { u: 0.83, v: -0.07 },
+  { u: -0.07, v: 0.8 },
+  { u: 1.07, v: 0.8 },
 ];
 
 /* ---------- sol dallé procédural ---------- */
@@ -765,15 +767,18 @@ function buildBoard(layout, boardDef) {
     // Liseré sombre : le disque coloré se détache du ruban clair du chemin
     // quel que soit le thème.
     const lisere = new THREE.Mesh(
-      new THREE.CircleGeometry(1.3, 28),
+      new THREE.CircleGeometry(1.16, 28),
       new THREE.MeshBasicMaterial({ color: 0x171028 }),
     );
     lisere.rotation.x = -Math.PI / 2;
     lisere.position.y = 0.55;
     anchor.add(lisere);
+    // Couleur EXACTE du type, comme sur le plateau 2D : matériau non éclairé
+    // ET hors étalonnage cinéma (l'ACES délavait les pastilles en pastel).
+    const teinte = TEINTE_3D[type] ?? t.couleur;
     const plate = new THREE.Mesh(
-      new THREE.CircleGeometry(1.14, 28),
-      new THREE.MeshStandardMaterial({ color: hex(t.couleur), emissive: hex(t.couleur), emissiveIntensity: 0.5, roughness: 0.5 }),
+      new THREE.CircleGeometry(1.02, 28),
+      new THREE.MeshBasicMaterial({ color: hex(teinte), toneMapped: false }),
     );
     plate.rotation.x = -Math.PI / 2;
     plate.position.y = 0.585;
@@ -781,7 +786,7 @@ function buildBoard(layout, boardDef) {
     // Symbole du type : jeton peint, ou l'emoji du type dessiné au canvas
     // (case Départ) — plus aucune case muette.
     const decal = new THREE.Mesh(
-      new THREE.CircleGeometry(1.02, 28),
+      new THREE.CircleGeometry(0.92, 28),
       new THREE.MeshBasicMaterial({ map: t.art ? loadTex(t.art) : emojiTexture(type === "depart" ? "🏁" : t.emoji), transparent: true, depthWrite: false }),
     );
     decal.rotation.x = -Math.PI / 2;
@@ -789,8 +794,8 @@ function buildBoard(layout, boardDef) {
     decal.renderOrder = 2;
     anchor.add(decal);
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(1.34, 0.085, 8, 32),
-      new THREE.MeshStandardMaterial({ color: hex(t.couleur), emissive: hex(t.couleur), emissiveIntensity: 0.85, roughness: 0.35 }),
+      new THREE.TorusGeometry(1.2, 0.075, 8, 32),
+      new THREE.MeshBasicMaterial({ color: hex(teinte), toneMapped: false }),
     );
     ring.rotation.x = Math.PI / 2;
     ring.position.y = 0.5;
@@ -815,78 +820,48 @@ function buildBoard(layout, boardDef) {
   for (const b of BUILDINGS) {
     addBuilding(BUILDING_ID[b.art], b.art, worldUV(b.u, b.v, length), b.w * (SPAN / 100) * 1.35, epoch);
   }
-  // Modules de pierre réemployés aux quatre bords : ils composent le donjon
-  // sans multiplier les assets ni charger de grande scène monolithique.
-  for (const module of DUNGEON_LAYOUT) {
-    const anchor = new THREE.Group();
-    anchor.position.copy(worldUV(module.u, module.v, length));
-    anchor.rotation.y = module.ry;
-    boardGroup.add(anchor);
-    upgradeStatic(anchor, null, Promise.resolve(createDungeonModule(module.id, module.h)).then((m) => {
-      if (m) rechauffe(m, 0.35); // les modules gris ne font plus « débris »
-      return m;
-    }), epoch, `module ${module.id}`);
-    // Braseros VIVANTS : flamme émissive qui danse + lueur qui tremble.
-    if (module.id === "brasero") {
-      const flame = new THREE.Mesh(
-        new THREE.ConeGeometry(0.34, 0.9, 7),
-        new THREE.MeshStandardMaterial({ color: 0xffb347, emissive: 0xff8c1a, emissiveIntensity: 1.4, transparent: true, opacity: 0.92 }),
-      );
-      flame.position.y = module.h + 0.35;
-      anchor.add(flame);
-      const light = new THREE.PointLight(0xff9a3c, 1.0, 10, 2);
-      light.position.y = module.h + 0.55;
-      anchor.add(light);
-      braseroLights.push({ flame, light, phase: anchor.position.x * 1.7 });
-    }
+  // TORCHES PEINTES aux quatre coins : les anciens modules de pierre GLB
+  // (murs, arches, colonnes, braseros) étaient du low-poly gris non texturé
+  // qui jurait avec le village peint. La flamme vit dans l'œuvre ; le moteur
+  // n'ajoute qu'une lueur qui tremble et une vraie lumière chaude.
+  for (const t of DUNGEON_LAYOUT) {
+    const pos = worldUV(t.u, t.v, length);
+    boardGroup.add(standee("assets/objet-torche.png", pos, 2.4));
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: radialTexture("255, 176, 96", 0.62),
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    glow.scale.setScalar(1.25);
+    glow.position.copy(pos).setY(2.1);
+    boardGroup.add(glow);
+    const light = new THREE.PointLight(0xff9a3c, 1.0, 10, 2);
+    light.position.copy(pos).setY(2.3);
+    boardGroup.add(light);
+    braseroLights.push({ flame: glow, light, phase: pos.x * 1.7 });
   }
   // Les petits autocollants « décor » du premier lot (arbre sombre, toile,
   // statue…) sont retirés de la scène 3D : le village v4.5 (maquettes, PNJ,
   // objets peints) les a rendus superflus — ils ne survivent qu'en 2D.
   void DECOR;
 
-  // Décors VIVANTS v3 (GEN 2) : moulin, bannières, lampadaires, puits, arbres,
-  // gargouille — leurs nœuds « anim » sont animés dans la boucle de rendu.
-  const DECOR3D_LAYOUT = [
-    { id: "moulin-a-vent", u: 0.055, v: 0.07, h: 4.4, anim: "spin", force: 0.45 },
-    { id: "puits", u: 0.945, v: 0.5, h: 2.6, anim: "bob" },
-    { id: "lampadaire-lucioles", u: 0.3, v: 0.03, h: 3.2, anim: "sway" },
-    { id: "lampadaire-lucioles", u: 0.7, v: 0.968, h: 3.2, anim: "sway" },
-    { id: "banniere-donjon", u: 0.5, v: 0.028, h: 3.4, anim: "sway", force: 0.5 },
-    { id: "banniere-donjon", u: 0.055, v: 0.5, h: 3.4, anim: "sway", force: 0.5 },
-    { id: "gargouille-baillante", u: 0.945, v: 0.945, h: 1.9, force: 0.4 },
+  // BORDURE PEINTE. Les décors v3 (moulin, bannières, lampadaires, puits,
+  // gargouille) et les remparts modulaires étaient des GLB sombres ou gris qui
+  // se lisaient en silhouettes noires et en « peignes de plastique » à côté des
+  // maquettes peintes. Ils cèdent la place aux objets peints du même monde.
+  const BORDURE = [
+    { art: "assets/objet-tonneau.png", u: 0.04, v: -0.06, h: 1.7 },
+    { art: "assets/objet-coffre.png", u: 0.3, v: -0.07, h: 1.5 },
+    { art: "assets/objet-cristal.png", u: 0.5, v: -0.06, h: 1.3 },
+    { art: "assets/objet-tonneau.png", u: 0.7, v: -0.07, h: 1.7 },
+    { art: "assets/objet-coffre.png", u: 0.96, v: -0.06, h: 1.5 },
+    { art: "assets/objet-cristal.png", u: -0.07, v: 0.42, h: 1.3 },
+    { art: "assets/objet-tonneau.png", u: 1.07, v: 0.42, h: 1.7 },
+    { art: "assets/objet-coffre.png", u: 0.2, v: 1.07, h: 1.5 },
+    { art: "assets/objet-cristal.png", u: 0.5, v: 1.08, h: 1.3 },
+    { art: "assets/objet-tonneau.png", u: 0.8, v: 1.07, h: 1.7 },
+    { art: "assets/objet-coffre.png", u: 1.06, v: 0.9, h: 1.5 },
   ];
-  for (const d of DECOR3D_LAYOUT) {
-    const anchor = new THREE.Group();
-    anchor.position.copy(worldUV(d.u, d.v, length));
-    boardGroup.add(anchor);
-    upgradeStatic(anchor, null, Promise.resolve(createDecorModel(d.id, d.h)).then((m) => {
-      if (m) rechauffe(m, d.force ?? 0.26);
-      if (m && d.anim && epoch === sceneEpoch) {
-        const node = m.getObjectByName("anim");
-        if (node) animatedDecors.push({ node, kind: d.anim, phase: d.u * 9 });
-      }
-      return m;
-    }), epoch, `décor ${d.id}`);
-  }
-
-  // Remparts modulaires : bordent le plateau, translucides comme les bâtiments.
-  const REMPARTS = [
-    { id: "rempart-angle", u: 0.015, v: 0.99 }, { id: "rempart-droit", u: 0.35, v: 0.995 },
-    { id: "rempart-porte", u: 0.5, v: 0.997 }, { id: "rempart-droit", u: 0.65, v: 0.995 },
-    { id: "rempart-angle", u: 0.985, v: 0.99 },
-    { id: "rempart-droit", u: 0.2, v: 0.005 }, { id: "rempart-droit", u: 0.8, v: 0.005 },
-  ];
-  for (const r of REMPARTS) {
-    const anchor = new THREE.Group();
-    anchor.userData.isBatiment = true; // translucide + règles anti-occlusion
-    anchor.position.copy(worldUV(r.u, r.v, length));
-    boardGroup.add(anchor);
-    upgradeStatic(anchor, null, Promise.resolve(createDecorModel(r.id, 1.6)).then((m) => {
-      if (m) rechauffe(m, 0.4); // opaques ; le fondu dynamique s'en charge au besoin
-      return m;
-    }), epoch, `rempart ${r.id}`);
-  }
+  for (const b of BORDURE) boardGroup.add(standee(b.art, worldUV(b.u, b.v, length), b.h));
 
   // PNJ 3D animés : chacun posté près de « sa » case (repli : case libre).
   const PNJ3D_CASE = [

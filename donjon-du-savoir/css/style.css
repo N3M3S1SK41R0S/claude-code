@@ -1160,3 +1160,14 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .livre-nom { font-size: 1.02rem; }
 .livre-titre { color: var(--gold); font-size: 0.88rem; }
 .livre-meta { color: var(--soft); font-size: 0.85rem; margin-left: auto; }
+
+/* Encart de version (Réglages) : vérifier qu'une copie hors-ligne est à jour. */
+.version-note {
+  margin-top: 1rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--stone);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.version-line { color: var(--gold); font-size: 0.95rem; }
+.version-help { color: var(--soft); font-size: 0.82rem; line-height: 1.4; margin-top: 0.3rem; }

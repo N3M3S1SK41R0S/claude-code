@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v105";
+const VERSION = "donjon-v106";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -36,6 +36,7 @@ const SHELL = [
   "./js/models3d.js",
   "./js/board3d.js",
   "./js/ui.js",
+  "./js/version.js",
   "./vendor/three.min.js",
   "./vendor/DRACOLoader.js",
   "./vendor/GLTFLoader.js",
@@ -135,19 +136,6 @@ const SHELL = [
   "./assets/3d/tiles/socle-insolite.glb",
   "./assets/3d/tiles/socle-expression.glb",
   "./assets/3d/tiles/socle-tresor.glb",
-  "./assets/3d/dungeon/module-mur.glb",
-  "./assets/3d/dungeon/module-arche.glb",
-  "./assets/3d/dungeon/module-colonne.glb",
-  "./assets/3d/dungeon/module-brasero.glb",
-  "./assets/3d/dungeon/rempart-droit.glb",
-  "./assets/3d/dungeon/rempart-angle.glb",
-  "./assets/3d/dungeon/rempart-porte.glb",
-  "./assets/3d/decors/lampadaire-lucioles.glb",
-  "./assets/3d/decors/banniere-donjon.glb",
-  "./assets/3d/decors/arbre-rond.glb",
-  "./assets/3d/decors/puits.glb",
-  "./assets/3d/decors/gargouille-baillante.glb",
-  "./assets/3d/decors/moulin-a-vent.glb",
   "./assets/fx/etincelles.png",
   "./assets/fx/fumee-douce.png",
   "./assets/fx/confettis.png",

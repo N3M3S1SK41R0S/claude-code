@@ -12,11 +12,24 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const R = (p) => readFileSync(join(root, p), "utf8");
 
+// La version affichée dans les Réglages est TOUJOURS celle du service worker :
+// on la resynchronise ici, avant toute lecture des modules. Impossible de dériver.
+{
+  const swVersion = R("sw.js").match(/const VERSION = "([^"]+)"/)?.[1];
+  const versionPath = join(root, "js", "version.js");
+  const actuel = readFileSync(versionPath, "utf8");
+  const voulu = actuel.replace(/export const APP_VERSION = "[^"]*";/, `export const APP_VERSION = "${swVersion}";`);
+  if (swVersion && voulu !== actuel) {
+    writeFileSync(versionPath, voulu);
+    console.log(`↻ js/version.js resynchronisé sur ${swVersion}`);
+  }
+}
+
 // Dependency-agnostic: the CommonJS shim resolves lazily, so order only needs
 // the entry last. We register every module, then require("./app.js").
 const MODULES = [
   "host-voice", "tts", "sfx", "music", "voices", "bots", "prefs", "grimoire", "palmares", "herald", "powers", "portraits", "custom", "items", "minigames",
-  "wordgames", "themes", "langues", "state", "board", "data", "ui", "scene", "models3d", "board3d", "souvenir", "game", "app",
+  "wordgames", "themes", "langues", "state", "board", "data", "ui", "scene", "models3d", "board3d", "souvenir", "version", "game", "app",
 ];
 
 function collectExports(src) {

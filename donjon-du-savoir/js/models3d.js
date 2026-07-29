@@ -29,12 +29,10 @@ export const TILE_MODEL_URLS = {
   tresor: "assets/3d/tiles/socle-tresor.glb",
 };
 
-export const DUNGEON_MODEL_URLS = {
-  mur: "assets/3d/dungeon/module-mur.glb",
-  arche: "assets/3d/dungeon/module-arche.glb",
-  colonne: "assets/3d/dungeon/module-colonne.glb",
-  brasero: "assets/3d/dungeon/module-brasero.glb",
-};
+// GLB de DUNGEON_MODEL_URLS ABANDONNÉS : leur low-poly gris/sombre jurait avec
+// les maquettes peintes (verdict v4.5). Carte vide = plus d'inlining ni
+// de précache. Pour les rebrancher, voir l'historique git.
+export const DUNGEON_MODEL_URLS = {};
 
 let loader = null;
 let dracoLoader = null;
@@ -155,17 +153,10 @@ export async function createTileModel(type) {
 }
 
 // Décors vivants, remparts et PNJ 3D (GEN 2 v3) — chemins littéraux (inliner).
-export const DECOR_MODEL_URLS = {
-  "lampadaire-lucioles": "assets/3d/decors/lampadaire-lucioles.glb",
-  "banniere-donjon": "assets/3d/decors/banniere-donjon.glb",
-  "arbre-rond": "assets/3d/decors/arbre-rond.glb",
-  "puits": "assets/3d/decors/puits.glb",
-  "gargouille-baillante": "assets/3d/decors/gargouille-baillante.glb",
-  "moulin-a-vent": "assets/3d/decors/moulin-a-vent.glb",
-  "rempart-droit": "assets/3d/dungeon/rempart-droit.glb",
-  "rempart-angle": "assets/3d/dungeon/rempart-angle.glb",
-  "rempart-porte": "assets/3d/dungeon/rempart-porte.glb",
-};
+// GLB de DECOR_MODEL_URLS ABANDONNÉS : leur low-poly gris/sombre jurait avec
+// les maquettes peintes (verdict v4.5). Carte vide = plus d'inlining ni
+// de précache. Pour les rebrancher, voir l'historique git.
+export const DECOR_MODEL_URLS = {};
 // Les GLB de PNJ_MODEL_URLS sont ABANDONNÉS (les peintures GEN 2 sont la
 // représentation officielle — verdicts v4.1/v4.3). Carte vide : plus
 // d'inlining ni de précache. Pour les rebrancher, voir l'historique git.

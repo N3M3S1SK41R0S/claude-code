@@ -132,9 +132,15 @@ writeFileSync(join(out, "Linux — Installer.sh"),
   "echo 'Icone installee. Cherchez « Le Donjon du Savoir » dans vos applications ou sur le Bureau.'\n", "utf8");
 
 // ---- 7. Instructions ----
+const APP_VERSION = readFileSync(join(root, "sw.js"), "utf8").match(/const VERSION = "([^"]+)"/)?.[1] ?? "inconnue";
 writeFileSync(join(out, "LISEZ-MOI.txt"),
 `LE DONJON DU SAVOIR — icône de bureau
 =====================================
+
+VERSION DE CE KIT : ${APP_VERSION}
+(Dans le jeu : Réglages → tout en bas. Si le numéro affiché est différent de
+celui d'une version plus récente qu'on vous a envoyée, remplacez simplement
+le fichier « Le Donjon du Savoir.html » de ce dossier par le nouveau.)
 
 Ce dossier contient le jeu complet en UN SEUL FICHIER (« Le Donjon du Savoir.html »,
 fonctionne hors-ligne, sans installation) et de quoi créer une belle icône sur
