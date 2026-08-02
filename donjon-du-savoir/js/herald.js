@@ -132,6 +132,13 @@ const pouvoirUtilise = [
   "Et hop ! Un pouvoir de moins, un moment de gloire de plus.",
 ];
 
+// Viviers exportés pour l'outil d'inventaire des voix (tools/export-repliques).
+export const HERALD_POOLS = {
+  ouverture, debutTour, caseComment, bonneReponse, mauvaiseReponse,
+  anecdoteIntro, victoire, docTrouNoir, dePetit, deTriple, sponsors,
+  pouvoirUtilise,
+};
+
 export const herald = {
   ouverture: () => pick(ouverture),
   debutTour: (nom) => pick(debutTour).replace("{nom}", nom),

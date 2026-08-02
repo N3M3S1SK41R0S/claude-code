@@ -1,3 +1,4 @@
+import { playClip, stopClips } from "./voiceclips.js";
 // Narration locale : accroches Opus embarquées + synthèse vocale du navigateur
 // pour le texte variable des questions et anecdotes. Aucun service réseau,
 // aucun clonage et aucune imitation de personne réelle.
@@ -48,10 +49,14 @@ export function say(text, {
   v = 0,
   queue = false,
   preferredVoiceHints = [],
+  perso = null,
 } = {}) {
   if (!enabled || !voiceAvailable() || !text) return;
+  // 🎙️ Voix ENREGISTRÉES : si un clip existe pour cette réplique (et ce
+  // personnage), il prend la parole — la synthèse n'est que le filet.
+  if (perso && playClip(perso, text, { queue })) return;
   const synth = window.speechSynthesis;
-  if (!queue) synth.cancel();
+  if (!queue) { synth.cancel(); stopClips(); }
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = lang;
   utter.pitch = pitch;

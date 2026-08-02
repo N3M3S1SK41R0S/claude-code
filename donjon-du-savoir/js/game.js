@@ -163,7 +163,7 @@ function charSays(pion, moment) {
       ),
     );
   }
-  say(txt, { ...voiceOf(pion.characterId), queue: true });
+  say(txt, { ...voiceOf(pion.characterId), queue: true, perso: pion.characterId });
 }
 
 export function startGame(victoryCallback) {

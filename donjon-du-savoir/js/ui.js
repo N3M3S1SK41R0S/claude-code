@@ -61,7 +61,7 @@ export function heraldSays(text, { speak = true } = {}) {
       ),
     );
   }
-  if (speak) say(text);
+  if (speak) say(text, { perso: "heraut" });
 }
 
 export function bigButton(label, onclick, cls = "") {
