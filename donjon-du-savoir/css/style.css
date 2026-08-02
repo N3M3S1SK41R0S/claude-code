@@ -43,6 +43,7 @@ button { font-family: inherit; }
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap; /* petit écran : les boutons passent à la ligne au lieu de faire déborder la page */
   gap: 0.5rem;
   padding: max(0.6rem, env(safe-area-inset-top)) 1rem 0.6rem;
   border-bottom: 1px solid var(--line);
@@ -50,7 +51,7 @@ button { font-family: inherit; }
 
 .brand { display: flex; align-items: center; gap: 0.5rem; color: var(--gold); letter-spacing: 0.06em; }
 .brand strong { font-size: 0.95rem; }
-.topbar-actions { display: flex; gap: 0.4rem; }
+.topbar-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; }
 
 main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
 
