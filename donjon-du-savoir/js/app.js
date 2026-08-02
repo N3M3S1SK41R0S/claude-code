@@ -674,15 +674,17 @@ function renderSetup() {
     zone.append(
       el("div", { class: "rounds-picker" },
         el("label", { class: "rounds-label", text: "Nombre de manches (de 5 à 200)" }, roundsInput),
-        el("div", { class: "mode-switch", role: "group", "aria-label": "Raccourcis de manches" },
-          ...[5, 10, 20, 50, 100, 200].map((n) =>
-            el("button", {
-              class: "btn btn-toggle btn-small" + (rounds === n ? " btn-toggle-on" : ""),
-              type: "button",
-              onclick: () => { rounds = n; renderSetup(); },
-            }, String(n)),
-          ),
-        ),
+        // Toutes les longueurs de partie, par pas de 5 : de 5 à 200 manches.
+        el("select", {
+          class: "name-input rounds-select",
+          "aria-label": "Choisir le nombre de manches (par pas de 5, de 5 à 200)",
+          onchange: (e) => { rounds = parseInt(e.target.value, 10) || 10; renderSetup(); },
+        }, ...Array.from({ length: 40 }, (_, i) => {
+          const n = (i + 1) * 5;
+          const attrs = { value: String(n), text: `${n} manches` };
+          if (n === rounds) attrs.selected = "selected";
+          return el("option", attrs);
+        })),
         el("p", { class: "help-note rounds-duree", id: "rounds-duree", text: dureeEstimee(rounds, joueursPrevus()) }),
         el("p", { class: "help-note", text: "Sur les petits plateaux, chaque manche passe vite : montez le nombre pour une partie plus longue." }),
       ),

@@ -332,6 +332,11 @@ const THEME_FOND = {
 };
 
 const SKYBOX_PALETTE = {
+  cuisine: ["#8a5a2a", "#241505", "#f2cf62"],
+  plage: ["#3a86b5", "#0a1a2e", "#f2e2a0"],
+  grenier: ["#5a4632", "#170f08", "#e0b04a"],
+  foraine: ["#7a3a6e", "#1a0a1e", "#ff9ad5"],
+  banquise: ["#7ab8d8", "#0a1c26", "#d8f0f8"],
   donjon: ["#463065", "#130d25", "#e0b04a"],
   crypte: ["#365541", "#091710", "#7fd39a"],
   tour: ["#713744", "#190c1b", "#e57962"],
@@ -807,7 +812,7 @@ function buildBoard(layout, boardDef) {
     const special = type === "depart" || type === "arrivee";
     if (special) anchor.scale.set(1.3, 1.3, 1.3);
     boardGroup.add(anchor);
-    if (["chance", "evenement", "joker", "gambit", "trounoir"].includes(type)) {
+    if (["chance", "evenement", "joker", "gambit", "trounoir", "teleporteur"].includes(type)) {
       animatedTiles.push({ anchor, type, phase: i * 0.73 });
     }
     upgradeStatic(anchor, tile, createTileModel(type), epoch, `socle ${type}`);
@@ -980,6 +985,8 @@ const CASE_EFFECT_COLOR = {
   pieces: 0xf0c84d,
   joker: 0xa66ce0,
   gambit: 0x55d0d8,
+  teleporteur: 0x39b8d8,
+  carrefour: 0x8f9e3d,
   trounoir: 0x5d3a86,
   boutique: 0xdc72b3,
   insolite: 0xf06b9f,

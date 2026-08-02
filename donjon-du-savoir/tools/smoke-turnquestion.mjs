@@ -73,7 +73,7 @@ try {
   await page.locator("#bank-info").textContent({ timeout: 8000 });
   await page.getByRole("button", { name: "⚔️ Nouvelle partie" }).click();
   // Mode Étoiles + partie assez longue pour observer beaucoup de tours.
-  await page.locator(".board-card", { hasText: "Étoiles" }).click();
+  await page.getByRole("radio", { name: /Étoiles/ }).click();
   await page.locator(".rounds-input").fill("12");
   await page.getByRole("button", { name: "🏰 Entrer dans le Donjon" }).click();
   await page.getByRole("button", { name: "🎲 Au hasard !" }).click();

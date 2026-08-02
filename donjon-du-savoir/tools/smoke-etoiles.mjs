@@ -34,7 +34,7 @@ try {
   await page.getByRole("button", { name: "⚔️ Nouvelle partie" }).click();
 
   // Pick star mode + a short game via the rounds input (5-200).
-  await page.locator(".board-card", { hasText: "Étoiles" }).click();
+  await page.getByRole("radio", { name: /Étoiles/ }).click();
   const roundsInput = page.locator(".rounds-input");
   check("rounds selector appears", await roundsInput.isVisible());
   await roundsInput.fill("6");

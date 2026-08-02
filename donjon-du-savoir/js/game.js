@@ -632,6 +632,16 @@ function showItemDie(value, label) {
 /* ---------- dice ---------- */
 
 function rollDie() {
+  // 🌀 LE GRAND RETOURNEMENT (plateaux marqués, mode Étoiles seulement) : le
+  // sens de jeu s'inverse — le circuit devient une boucle à double sens.
+  const defR = boardById(getState().boardId);
+  if (isEtoiles() && defR?.retournement && !testFlag("__DONJON_TEST") && Math.random() < 0.09) {
+    getState().sens = (getState().sens ?? 1) * -1;
+    save();
+    sfx("fanfare");
+    vibrer(140);
+    heraldSays(`🌀 LE GRAND RETOURNEMENT ! Le plateau pivote dans un grincement épouvantable : on joue désormais dans l'AUTRE SENS ${getState().sens === -1 ? "⬅️" : "➡️"} !`);
+  }
   const value = 1 + Math.floor(Math.random() * 6);
   sfx("dice");
   // Short tumble animation — pure spectacle, the player is never rushed.
@@ -658,7 +668,7 @@ let dieAutoToken = 0; // anti double-avance du « tour en un geste »
  *  déplacement réel : boucle en mode Étoiles, borné à l'arrivée en Course). */
 function destinationDe(pion, steps) {
   const L = boardLen();
-  if (isEtoiles()) return (((pion.position + steps) % L) + L) % L;
+  if (isEtoiles()) return (((pion.position + steps * (getState().sens ?? 1)) % L) + L) % L;
   return Math.max(0, Math.min(L - 1, pion.position + steps));
 }
 
@@ -738,9 +748,11 @@ function moveAndResolve(steps) {
   const before = pion.position;
 
   // Position d'arrivée (avec boucle + prime de tour en mode Étoiles).
+  // Le Grand Retournement inverse le sens de la marche (Étoiles seulement).
+  const sens = isEtoiles() ? (getState().sens ?? 1) : 1;
   let after, laps = 0;
   if (isEtoiles()) {
-    const raw = before + steps;
+    const raw = before + steps * sens;
     laps = Math.floor(raw / L);
     after = ((raw % L) + L) % L;
     pion.casesParcourues = (pion.casesParcourues ?? 0) + steps;
@@ -755,7 +767,7 @@ function moveAndResolve(steps) {
   // comprise en mode Étoiles). Purement visuel ; sans effet si l'immersion est
   // coupée (le pion se pose alors direct via updatePions).
   const walkPath = [];
-  if (isEtoiles()) for (let k = 1; k <= steps; k++) walkPath.push(((before + k) % L + L) % L);
+  if (isEtoiles()) for (let k = 1; k <= steps; k++) walkPath.push(((before + k * sens) % L + L) % L);
   else for (let c = before + 1; c <= after; c++) walkPath.push(c);
   save();
   // Animation de trajet : en 3D la caméra suit le pion, sinon le jeton 2D marche.
@@ -773,7 +785,7 @@ function moveAndResolve(steps) {
   // boutique et l'étoile, pas besoin de s'arrêter pile dessus.
   const passed = [];
   if (isEtoiles()) {
-    for (let k = 1; k <= steps; k++) passed.push((before + k) % L);
+    for (let k = 1; k <= steps; k++) passed.push(((before + k * sens) % L + L) % L);
   } else {
     for (let p = before + 1; p <= after; p++) passed.push(p);
   }
@@ -786,6 +798,20 @@ function moveAndResolve(steps) {
   }
   const landingType = board[after];
   const landingIsStop = (isEtoiles() && after === getState().starPos) || landingType === "boutique";
+
+  // 🧊 GLISSADE (Banquise) : parfois on dérape à l'atterrissage et on glisse
+  // un peu plus loin — pour le meilleur ou pour le pire.
+  const defG = boardById(getState().boardId);
+  if (defG?.glissades && !testFlag("__DONJON_TEST") && !landingIsStop && landingType !== "arrivee" && Math.random() < 0.3) {
+    const glisse = 1 + Math.floor(Math.random() * 3);
+    sfx("wow");
+    vibrer(80);
+    heraldSays(`🧊 Ça gliiiisse ! ${pion.nom} dérape et glisse ${glisse} case${glisse > 1 ? "s" : ""} plus loin !`);
+    if (shift(pion, glisse * sens)) return;
+    const typeGlisse = getState().board[pion.position];
+    setPendingCase(typeGlisse);
+    return resolveCase(typeGlisse);
+  }
 
   const resolveLanding = () => {
     if (landingIsStop) return finishTurn(); // déjà proposé comme point de passage
@@ -872,6 +898,10 @@ function resolveCase(type) {
       return doGambit(pion);
     case "trounoir":
       return doTrouNoir(pion);
+    case "teleporteur":
+      return doTeleporteur(pion);
+    case "carrefour":
+      return doCarrefour(pion);
     case "boutique":
       return doBoutique(pion);
     case "insolite":
@@ -2564,6 +2594,95 @@ function showAnecdote(q, { verdictHtml, onContinue }) {
 }
 
 /* ---------- special cases ---------- */
+
+/* ---------- tourbillon : téléporteur jumeau ---------- */
+
+/** 🌀 Le tourbillon aspire le héros et le recrache au PROCHAIN tourbillon du
+ *  parcours. Pas de réaction en chaîne : l'arrivée ne se résout pas, la
+ *  question garantie du tour prend le relais. */
+function doTeleporteur(pion) {
+  setPendingCase("resolu");
+  const board = getState().board;
+  const L = board.length;
+  let cible = -1;
+  for (let k = 1; k < L; k++) {
+    const i = (pion.position + k) % L;
+    if (board[i] === "teleporteur") { cible = i; break; }
+  }
+  if (cible === -1) return endPanel("Le tourbillon tousse et vous repose là. Il a ses humeurs.");
+  if (!pion.bot) playScene("trounoir", pion.characterId); // saynète d'aspiration
+  sfx("power");
+  vibrer(120);
+  stageCase3D("teleporteur", pion.id);
+  heraldSays("🌀 Le tourbillon vous aspire dans un bruit de paille géante…");
+  pion.position = cible;
+  save();
+  render();
+  react3D(pion.id, true);
+  return endPanel("🌀 … et vous recrache près de son jumeau, décoiffé mais entier ! Personne n'a le droit de rire. (Si, en fait.)");
+}
+
+/* ---------- carrefour : deux chemins, un vrai choix ---------- */
+
+/** 🛤️ Tunnel éclair (+5 cases mais une question corsée en péage, échec -3) ou
+ *  sentier fleuri (+2 pièces tranquilles). Un choix, jamais un piège. */
+function doCarrefour(pion) {
+  setPendingCase("resolu");
+  if (pion.bot) {
+    addCoins(pion, 2);
+    heraldSays(`🛤️ ${pion.nom} choisit le sentier fleuri sans hésiter. +2 🪙`);
+    return finishTurn();
+  }
+  sfx("npc");
+  const q = drawHardest(pion);
+  const options = [
+    { label: "🐌 Sentier fleuri : +2 🪙 et on souffle", action: () => {
+      addCoins(pion, 2);
+      sfx("coin");
+      endPanel("🐌 Le sentier fleuri : zéro danger, deux pièces et une jolie vue. Parfois, la sagesse paie.");
+    } },
+  ];
+  if (q && (q.choix ?? []).length) {
+    options.unshift({ label: "⚡ Tunnel éclair : +5 cases, mais une question CORSÉE en péage (échec : recul de 3)", action: () => {
+      markQuestionPosed();
+      const container = el("div", { class: "question-block" },
+        el("h2", { class: "panel-title", text: "⚡ Le péage du tunnel" }),
+        questionHeader(q, pion),
+        el("p", { class: "question-texte", text: q.texte }),
+      );
+      const grid = el("div", { class: "choices" });
+      for (const choice of q.choix) {
+        grid.append(choiceButton(choice, () => {
+          const correct = choice === q.bonne_reponse;
+          pion.stats.questions += 1;
+          if (correct) pion.stats.bonnes += 1;
+          save();
+          react3D(pion.id, correct); chipPulse(pion.id, correct);
+          sfx(correct ? "clap" : "ooh");
+          vibrer(correct ? 90 : 60);
+          showAnecdote(q, {
+            verdictHtml: correct
+              ? "✅ <strong>Le tunnel s'illumine !</strong> Bond de +5 cases"
+              : `❌ <strong>Le péagiste ricane…</strong> La bonne réponse était : <strong>${q.bonne_reponse}</strong> · recul de 3 cases`,
+            onContinue: () => {
+              if (shift(pion, correct ? 5 : -3)) return;
+              finishTurn();
+            },
+          });
+        }));
+      }
+      container.append(grid);
+      setPanel(container);
+      narrateQuestion(q);
+    } });
+  }
+  pnjDeal({
+    art: "assets/pnj-piquot.png",
+    nom: "Piquot",
+    texte: "Deux chemins, voyageur ! Le tunnel éclair — rapide, mais le péagiste pose une colle. Ou mon sentier fleuri, pépère et rémunéré.",
+    options,
+  });
+}
 
 function doTrouNoir(pion) {
   if (!pion.bot) playScene("trounoir", pion.characterId); // saynète du Trou Noir

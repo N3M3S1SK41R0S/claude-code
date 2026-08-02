@@ -23,6 +23,14 @@ const debutTour = [
 ];
 
 const caseComment = {
+  teleporteur: [
+    "Un tourbillon ! Accrochez votre chapeau, le voyage est inclus dans le prix.",
+    "Le tourbillon vous regarde avec appétit. C'est flatteur, d'une certaine façon.",
+  ],
+  carrefour: [
+    "Un carrefour ! Deux chemins, zéro GPS. Le Donjon adore vous voir hésiter.",
+    "Carrefour en vue. Petit conseil du Héraut : le chemin le plus court n'est jamais gratuit.",
+  ],
   question: [
     "Une question ! Le Donjon teste votre esprit. Il est joueur, mais jamais pressé.",
     "Halte ! Nul ne passe sans faire travailler sa cervelle.",

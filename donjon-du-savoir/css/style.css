@@ -1175,3 +1175,6 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 
 /* Estimation de durée sous le sélecteur de manches : information, pas alerte. */
 .rounds-duree { color: var(--gold); font-weight: bold; }
+
+/* Sélecteur de manches (pas de 5, jusqu'à 200). */
+.rounds-select { appearance: auto; max-width: 14rem; cursor: pointer; }
