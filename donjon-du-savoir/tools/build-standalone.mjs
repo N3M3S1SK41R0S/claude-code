@@ -75,7 +75,19 @@ const bundleParts = MODULES.map((name) => transform(name, R(`js/${name}.js`)));
 const bank = JSON.parse(R("data/questions.json"));
 const wordgames = JSON.parse(R("data/wordgames.json"));
 const langues = JSON.parse(R("data/langues.json"));
+// Voix enregistrées : le fichier AUTONOME embarque chaque clip en data-URI
+// (hors-ligne total) ; la variante ARTIFACT reste en synthèse — la limite de
+// publication (~16 Mo) ne laisse pas la place aux MP3. Le jeton __VOIX__ est
+// remplacé différemment dans chacune des deux sorties.
 const voixManifest = JSON.parse(R("data/voix-manifest.json"));
+const voixInline = {};
+for (const [perso, clips] of Object.entries(voixManifest)) {
+  voixInline[perso] = {};
+  for (const [id, chemin] of Object.entries(clips)) {
+    voixInline[perso][id] = `data:audio/mpeg;base64,${readFileSync(join(root, chemin)).toString("base64")}`;
+  }
+}
+const VOIX_TOKEN = '"__VOIX_MANIFEST_TOKEN__"';
 
 const runtime = `
 (function () {
@@ -83,7 +95,7 @@ const runtime = `
   const __QUESTIONS = ${JSON.stringify(bank)};
   const __WORDGAMES = ${JSON.stringify(wordgames)};
   const __LANGUES = ${JSON.stringify(langues)};
-  const __VOIXMANIFEST = ${JSON.stringify(voixManifest)};
+  const __VOIXMANIFEST = ${VOIX_TOKEN};
   // Intercept the data fetches; everything else stays real (there is nothing else).
   const __realFetch = typeof window.fetch === "function" ? window.fetch.bind(window) : null;
   window.fetch = function (url, ...rest) {
@@ -205,8 +217,9 @@ ${artifactContent}</body>
 `;
 
 mkdirSync(join(root, "dist"), { recursive: true });
-writeFileSync(join(root, "dist", "donjon-standalone.html"), fullPage, "utf8");
-writeFileSync(join(root, "dist", "donjon-artifact.html"), artifactContent, "utf8");
+const nbClips = Object.values(voixInline).reduce((n, c) => n + Object.keys(c).length, 0);
+writeFileSync(join(root, "dist", "donjon-standalone.html"), fullPage.replace(VOIX_TOKEN, JSON.stringify(voixInline)), "utf8");
+writeFileSync(join(root, "dist", "donjon-artifact.html"), artifactContent.replace(VOIX_TOKEN, "{}"), "utf8");
 const kb = (s) => Math.round(Buffer.byteLength(s) / 1024);
-console.log(`✓ dist/donjon-standalone.html (${kb(fullPage)} Ko, ${bank.questions.length} questions, ${assetCount} assets inline)`);
-console.log(`✓ dist/donjon-artifact.html (${kb(artifactContent)} Ko)`);
+console.log(`✓ dist/donjon-standalone.html (${kb(fullPage.replace(VOIX_TOKEN, JSON.stringify(voixInline)))} Ko, ${bank.questions.length} questions, ${assetCount} assets inline, ${nbClips} clips de voix)`);
+console.log(`✓ dist/donjon-artifact.html (${kb(artifactContent.replace(VOIX_TOKEN, "{}"))} Ko, voix en synthèse)`);
