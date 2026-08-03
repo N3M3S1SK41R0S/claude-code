@@ -52,6 +52,32 @@ const nomDe = (id) => id === "heraut"
   ? "LE GRAND HÉRAUT (narrateur)"
   : (CHARACTERS.find((c) => c.id === id)?.nom ?? id);
 
+// Direction d'acteur par contexte : l'INTENTION à jouer, réplique par réplique.
+const INTENTIONS = {
+  ouverture: "Grandiose, lever de rideau — il ouvre le tournoi du siècle",
+  debutTour: "Vif et complice — il relance le rythme de la table",
+  bonneReponse: "Éclatant — il célèbre le joueur, sourire dans la voix",
+  mauvaiseReponse: "Consolant et taquin — jamais moqueur",
+  anecdoteIntro: "Confidence — il ménage son petit effet",
+  victoire: "Triomphal, feux d'artifice dans la voix",
+  docTrouNoir: "[whispers] Chuchoté, façon documentaire animalier",
+  dePetit: "Compatissant, amusé du sort",
+  deTriple: "Stupéfait, admiratif",
+  sponsors: "Ton publicité radio rétro, second degré assumé",
+  pouvoirUtilise: "Emphase héroïque, roulement de tambour verbal",
+  "caseComment.trounoir": "[whispers] Faussement inquiet, suspense",
+  "caseComment.malus": "Fataliste et drôle",
+  "caseComment.chance": "Gourmand, ravi pour le joueur",
+  "caseComment.teleporteur": "Émerveillé, un rien vertigineux",
+  "caseComment.carrefour": "Curieux, met la pression gentiment",
+  tour: "Le héros s'élance — dans son caractère, énergie de départ",
+  bonne: "Le héros jubile — joie dans SON style",
+  mauvaise: "Le héros encaisse — dépit drôle, jamais abattu",
+  pouvoir: "Le héros dégaine son pouvoir — fierté signature",
+};
+const intentionDe = (contexte) => INTENTIONS[contexte]
+  ?? (contexte.startsWith("caseComment.") ? "Annonce de case, malicieux" : "Dans le caractère du personnage");
+
 let md = `# RÉPLIQUES À ENREGISTRER — Le Donjon du Savoir
 *(générées par tools/export-repliques.mjs — ${entrees.length} répliques ;
 chaque fichier doit porter EXACTEMENT le nom indiqué : l'intégration est
@@ -63,8 +89,8 @@ bruit de fond, silences < 150 ms en début et fin de fichier.
 `;
 for (const [perso, lignes] of parPerso) {
   md += `\n## ${nomDe(perso)} — dossier \`voix/${perso}/\` (${lignes.length} répliques)\n\n`;
-  md += `| Fichier | Réplique à jouer |\n|---|---|\n`;
-  for (const e of lignes) md += `| \`${e.id}.mp3\` | ${e.texte.replace(/\|/g, "—")} |\n`;
+  md += `| Fichier | Intention (jeu d'acteur) | Réplique à jouer |\n|---|---|---|\n`;
+  for (const e of lignes) md += `| \`${e.id}.mp3\` | ${intentionDe(e.contexte)} | ${e.texte.replace(/\|/g, "—")} |\n`;
 }
 writeFileSync(join(root, "docs", "REPLIQUES-A-ENREGISTRER.md"), md);
 
