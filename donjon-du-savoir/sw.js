@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v112";
+const VERSION = "donjon-v113";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -50,6 +50,18 @@ const SHELL = [
   "./data/modeles-3d.json",
   "./data/voix-manifest.json",
   "./voix/heraut/05822e83.mp3",
+  "./voix/heraut/84ff920a.mp3",
+  "./voix/heraut/6b63b641.mp3",
+  "./voix/heraut/97ed0649.mp3",
+  "./voix/heraut/cfc22556.mp3",
+  "./voix/heraut/f904ef2f.mp3",
+  "./voix/heraut/74fe3093.mp3",
+  "./voix/heraut/2944c490.mp3",
+  "./voix/heraut/19dd99c8.mp3",
+  "./voix/heraut/49749ee2.mp3",
+  "./voix/heraut/c49dd46f.mp3",
+  "./voix/heraut/a1280e86.mp3",
+  "./voix/heraut/fb1ed469.mp3",
   "./voix/heraut/07bf039d.mp3",
   "./voix/heraut/0e7fc66e.mp3",
   "./voix/heraut/11827ddc.mp3",
