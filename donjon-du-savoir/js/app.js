@@ -10,7 +10,8 @@ import { portraitEl } from "./portraits.js";
 import { FIGURINE_ATLAS } from "./board3d.js";
 import { APP_VERSION } from "./version.js";
 import { POWERS } from "./powers.js";
-import { setVoice, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
+import { say, setVoice, stop, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
+import { RECIT_REGLES } from "./herald.js";
 import { setSfx, sfx, sfxAvailable, sfxEnabled } from "./sfx.js";
 import { setMusic, musicAvailable, musicEnabled } from "./music.js";
 import { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } from "./bots.js";
@@ -212,9 +213,45 @@ function getDailyQuestion(iso) {
 
 /* ---------- rules ---------- */
 
+/** Le Héraut RACONTE les règles à la demande (bouton 🔊) : il lit chaque
+ *  chapitre de la page, saute la galerie des compagnons (il la résume d'une
+ *  phrase) et les Conditions générales (personne ne les lit, c'est écrit).
+ *  Marche même Héraut muet : appuyer sur le bouton VAUT demande de lecture. */
+function direLesRegles() {
+  stop();
+  const corps = document.querySelector("#screen-rules .rules-body");
+  if (!corps) return;
+  const nettoie = (t) => t
+    .replace(/[\p{Extended_Pictographic}️‍]/gu, "")
+    .replace(/·/g, ". ")
+    .replace(/\s+/g, " ")
+    .trim();
+  say(RECIT_REGLES.intro, { perso: "heraut", force: true });
+  for (const bloc of corps.children) {
+    if (bloc.id === "rules-cast") {
+      say("Chaque compagnon possède un pouvoir unique par partie : leurs portraits et leurs talents s'affichent juste ici, sous vos yeux.", { queue: true, force: true });
+      continue;
+    }
+    if (bloc.tagName === "DETAILS" || bloc.tagName === "BUTTON") continue; // CG parodiques + retour
+    const texte = nettoie(bloc.textContent ?? "");
+    if (!texte) continue;
+    if (bloc.tagName === "H2") say(`Chapitre : ${texte}.`, { queue: true, force: true, rate: 0.92 });
+    else say(texte, { queue: true, force: true });
+  }
+  say(RECIT_REGLES.outro, { queue: true, force: true, perso: "heraut" });
+}
+
 function renderRules() {
   const cast = document.getElementById("rules-cast");
   cast.innerHTML = "";
+  // Barre d'écoute (posée une seule fois, en tête de page) : lire ou se taire.
+  const corps = document.querySelector("#screen-rules .rules-body");
+  if (corps && !corps.querySelector(".rules-ecoute") && voiceAvailable()) {
+    corps.prepend(el("div", { class: "rules-ecoute" },
+      el("button", { class: "btn", type: "button", onclick: direLesRegles }, "🔊 Le Héraut raconte les règles"),
+      el("button", { class: "btn btn-small", type: "button", onclick: () => stop() }, "🤫 Chut"),
+    ));
+  }
   for (const c of CHARACTERS) {
     const p = POWERS[c.id];
     cast.append(
@@ -1441,6 +1478,7 @@ function wireHeader() {
   }
 
   document.getElementById("rules-back").addEventListener("click", () => {
+    stop(); // le conteur se tait quand on referme le livre
     renderHome();
     show("home");
   });

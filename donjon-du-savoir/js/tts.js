@@ -50,8 +50,11 @@ export function say(text, {
   queue = false,
   preferredVoiceHints = [],
   perso = null,
+  force = false,
 } = {}) {
-  if (!enabled || !voiceAvailable() || !text) return;
+  // `force` : lecture DEMANDÉE par un bouton (ex. « écouter les règles ») —
+  // elle passe outre le Héraut muet, sans changer le réglage de la tablée.
+  if ((!enabled && !force) || !voiceAvailable() || !text) return;
   // 🎙️ Voix ENREGISTRÉES : si un clip existe pour cette réplique (et ce
   // personnage), il prend la parole — la synthèse n'est que le filet.
   if (perso && playClip(perso, text, { queue })) return;

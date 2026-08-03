@@ -319,6 +319,15 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
     radial-gradient(circle at 90% 10%, rgba(224, 176, 74, 0.35) 0%, transparent 36%),
     linear-gradient(160deg, #2c2414 0%, #211a10 55%, #17120c 100%);
 }
+/* Barre d'écoute des règles : le conteur à portée de pouce. */
+.rules-ecoute {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 0 0 1rem;
+}
+
 /* Les CINQ NOUVEAUX MONDES (GEN 2 v5) */
 .board-theme-cuisine {
   background:
@@ -5757,8 +5766,11 @@ function say(text, {
   queue = false,
   preferredVoiceHints = [],
   perso = null,
+  force = false,
 } = {}) {
-  if (!enabled || !voiceAvailable() || !text) return;
+  // `force` : lecture DEMANDÉE par un bouton (ex. « écouter les règles ») —
+  // elle passe outre le Héraut muet, sans changer le réglage de la tablée.
+  if ((!enabled && !force) || !voiceAvailable() || !text) return;
   // 🎙️ Voix ENREGISTRÉES : si un clip existe pour cette réplique (et ce
   // personnage), il prend la parole — la synthèse n'est que le filet.
   if (perso && playClip(perso, text, { queue })) return;
@@ -6822,11 +6834,20 @@ const pouvoirUtilise = [
   "Et hop ! Un pouvoir de moins, un moment de gloire de plus.",
 ];
 
+// Le RÉCIT DES RÈGLES (bouton 🔊 de la page Règles) : les deux répliques fixes
+// qui encadrent la lecture — même source pour le jeu ET l'inventaire des voix,
+// afin que leur identifiant de clip ne dérive jamais.
+const RECIT_REGLES = {
+  intro: "Oyez, oyez ! Le Grand Héraut vous raconte les règles du Donjon du Savoir.",
+  outro: "Voilà pour les règles. Le reste s'apprend en jouant, et le Héraut veille. Bonne partie !",
+};
+
 // Viviers exportés pour l'outil d'inventaire des voix (tools/export-repliques).
 const HERALD_POOLS = {
   ouverture, debutTour, caseComment, bonneReponse, mauvaiseReponse,
   anecdoteIntro, victoire, docTrouNoir, dePetit, deTriple, sponsors,
   pouvoirUtilise,
+  recitRegles: [RECIT_REGLES.intro, RECIT_REGLES.outro],
 };
 
 const herald = {
@@ -6844,7 +6865,7 @@ const herald = {
   sponsor: () => pick(sponsors),
 };
 
-;Object.assign(module.exports, {HERALD_POOLS, herald});
+;Object.assign(module.exports, {RECIT_REGLES, HERALD_POOLS, herald});
 };
 __modules["./powers.js"] = function(module, exports, require) {
 // The 6 characters' powers (adult + child variants), per §6 of the cahier.
@@ -11587,7 +11608,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v110";
+const APP_VERSION = "donjon-v111";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
@@ -15101,7 +15122,8 @@ const { portraitEl } = require("./portraits.js");
 const { FIGURINE_ATLAS } = require("./board3d.js");
 const { APP_VERSION } = require("./version.js");
 const { POWERS } = require("./powers.js");
-const { setVoice, voiceAvailable, voiceEnabled, warmVoices } = require("./tts.js");
+const { say, setVoice, stop, voiceAvailable, voiceEnabled, warmVoices } = require("./tts.js");
+const { RECIT_REGLES } = require("./herald.js");
 const { setSfx, sfx, sfxAvailable, sfxEnabled } = require("./sfx.js");
 const { setMusic, musicAvailable, musicEnabled } = require("./music.js");
 const { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } = require("./bots.js");
@@ -15303,9 +15325,45 @@ function getDailyQuestion(iso) {
 
 /* ---------- rules ---------- */
 
+/** Le Héraut RACONTE les règles à la demande (bouton 🔊) : il lit chaque
+ *  chapitre de la page, saute la galerie des compagnons (il la résume d'une
+ *  phrase) et les Conditions générales (personne ne les lit, c'est écrit).
+ *  Marche même Héraut muet : appuyer sur le bouton VAUT demande de lecture. */
+function direLesRegles() {
+  stop();
+  const corps = document.querySelector("#screen-rules .rules-body");
+  if (!corps) return;
+  const nettoie = (t) => t
+    .replace(/[\p{Extended_Pictographic}️‍]/gu, "")
+    .replace(/·/g, ". ")
+    .replace(/\s+/g, " ")
+    .trim();
+  say(RECIT_REGLES.intro, { perso: "heraut", force: true });
+  for (const bloc of corps.children) {
+    if (bloc.id === "rules-cast") {
+      say("Chaque compagnon possède un pouvoir unique par partie : leurs portraits et leurs talents s'affichent juste ici, sous vos yeux.", { queue: true, force: true });
+      continue;
+    }
+    if (bloc.tagName === "DETAILS" || bloc.tagName === "BUTTON") continue; // CG parodiques + retour
+    const texte = nettoie(bloc.textContent ?? "");
+    if (!texte) continue;
+    if (bloc.tagName === "H2") say(`Chapitre : ${texte}.`, { queue: true, force: true, rate: 0.92 });
+    else say(texte, { queue: true, force: true });
+  }
+  say(RECIT_REGLES.outro, { queue: true, force: true, perso: "heraut" });
+}
+
 function renderRules() {
   const cast = document.getElementById("rules-cast");
   cast.innerHTML = "";
+  // Barre d'écoute (posée une seule fois, en tête de page) : lire ou se taire.
+  const corps = document.querySelector("#screen-rules .rules-body");
+  if (corps && !corps.querySelector(".rules-ecoute") && voiceAvailable()) {
+    corps.prepend(el("div", { class: "rules-ecoute" },
+      el("button", { class: "btn", type: "button", onclick: direLesRegles }, "🔊 Le Héraut raconte les règles"),
+      el("button", { class: "btn btn-small", type: "button", onclick: () => stop() }, "🤫 Chut"),
+    ));
+  }
   for (const c of CHARACTERS) {
     const p = POWERS[c.id];
     cast.append(
@@ -16532,6 +16590,7 @@ function wireHeader() {
   }
 
   document.getElementById("rules-back").addEventListener("click", () => {
+    stop(); // le conteur se tait quand on referme le livre
     renderHome();
     show("home");
   });

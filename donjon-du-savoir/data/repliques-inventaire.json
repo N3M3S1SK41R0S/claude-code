@@ -399,6 +399,272 @@
   "texte": "Et hop ! Un pouvoir de moins, un moment de gloire de plus."
  },
  {
+  "perso": "heraut",
+  "id": "49d24bb8",
+  "fichier": "voix/heraut/49d24bb8.mp3",
+  "contexte": "recitRegles",
+  "texte": "Oyez, oyez ! Le Grand Héraut vous raconte les règles du Donjon du Savoir."
+ },
+ {
+  "perso": "heraut",
+  "id": "acbf0703",
+  "fichier": "voix/heraut/acbf0703.mp3",
+  "contexte": "recitRegles",
+  "texte": "Voilà pour les règles. Le reste s'apprend en jouant, et le Héraut veille. Bonne partie !"
+ },
+ {
+  "perso": "heraut",
+  "id": "2fd0df47",
+  "fichier": "voix/heraut/2fd0df47.mp3",
+  "contexte": "accroche.question",
+  "texte": "Attention, les neurones entrent en scène !"
+ },
+ {
+  "perso": "heraut",
+  "id": "9c003bed",
+  "fichier": "voix/heraut/9c003bed.mp3",
+  "contexte": "accroche.question",
+  "texte": "Question en approche. Les sourcils sont autorisés à réfléchir."
+ },
+ {
+  "perso": "heraut",
+  "id": "b86b3d6e",
+  "fichier": "voix/heraut/b86b3d6e.mp3",
+  "contexte": "accroche.question",
+  "texte": "Silence dans le donjon, juste assez pour entendre la question."
+ },
+ {
+  "perso": "heraut",
+  "id": "cd124593",
+  "fichier": "voix/heraut/cd124593.mp3",
+  "contexte": "accroche.question",
+  "texte": "À vos cerveaux, prêts, pensez !"
+ },
+ {
+  "perso": "heraut",
+  "id": "0ed4e365",
+  "fichier": "voix/heraut/0ed4e365.mp3",
+  "contexte": "accroche.question",
+  "texte": "Le donjon pose la question. Prenez tout votre temps."
+ },
+ {
+  "perso": "heraut",
+  "id": "aa69c98b",
+  "fichier": "voix/heraut/aa69c98b.mp3",
+  "contexte": "accroche.question",
+  "texte": "Celle-ci est très sérieuse. Enfin, elle essaie."
+ },
+ {
+  "perso": "heraut",
+  "id": "4e8151ac",
+  "fichier": "voix/heraut/4e8151ac.mp3",
+  "contexte": "accroche.question",
+  "texte": "Ouvrez grand les oreilles et le petit tiroir à savoir."
+ },
+ {
+  "perso": "heraut",
+  "id": "9fd65e6e",
+  "fichier": "voix/heraut/9fd65e6e.mp3",
+  "contexte": "accroche.question",
+  "texte": "Question fraîche, servie sans chronomètre."
+ },
+ {
+  "perso": "heraut",
+  "id": "7500ea68",
+  "fichier": "voix/heraut/7500ea68.mp3",
+  "contexte": "accroche.question",
+  "texte": "Le savoir frappe à la porte. On lui ouvre !"
+ },
+ {
+  "perso": "heraut",
+  "id": "b6bb4e77",
+  "fichier": "voix/heraut/b6bb4e77.mp3",
+  "contexte": "accroche.question",
+  "texte": "Attention, question avec supplément panache."
+ },
+ {
+  "perso": "heraut",
+  "id": "f09377c3",
+  "fichier": "voix/heraut/f09377c3.mp3",
+  "contexte": "accroche.question",
+  "texte": "Le prochain indice est la question elle-même."
+ },
+ {
+  "perso": "heraut",
+  "id": "c133a9e2",
+  "fichier": "voix/heraut/c133a9e2.mp3",
+  "contexte": "accroche.question",
+  "texte": "Concentration royale. Voici la question !"
+ },
+ {
+  "perso": "heraut",
+  "id": "0f54b422",
+  "fichier": "voix/heraut/0f54b422.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Et voici le petit trésor derrière la réponse."
+ },
+ {
+  "perso": "heraut",
+  "id": "4d700c3a",
+  "fichier": "voix/heraut/4d700c3a.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Minute culture. Elle dure le temps qu'il faut."
+ },
+ {
+  "perso": "heraut",
+  "id": "43d841cd",
+  "fichier": "voix/heraut/43d841cd.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "L'anecdote arrive, bien coiffée et presque à l'heure."
+ },
+ {
+  "perso": "heraut",
+  "id": "094bfc12",
+  "fichier": "voix/heraut/094bfc12.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Le saviez-vous ? Le donjon, lui, vient de l'apprendre."
+ },
+ {
+  "perso": "heraut",
+  "id": "2a1083ea",
+  "fichier": "voix/heraut/2a1083ea.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Place au détail qui fait briller les lunettes."
+ },
+ {
+  "perso": "heraut",
+  "id": "ca3a8e18",
+  "fichier": "voix/heraut/ca3a8e18.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Un peu de savoir en plus, ça ne prend aucune place."
+ },
+ {
+  "perso": "heraut",
+  "id": "292ac3af",
+  "fichier": "voix/heraut/292ac3af.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Attention, anecdote à raconter dès demain."
+ },
+ {
+  "perso": "heraut",
+  "id": "060eb7ca",
+  "fichier": "voix/heraut/060eb7ca.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Le rideau se lève sur les coulisses du savoir."
+ },
+ {
+  "perso": "heraut",
+  "id": "81da7b07",
+  "fichier": "voix/heraut/81da7b07.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Bonus de culture, sans supplément de prix."
+ },
+ {
+  "perso": "heraut",
+  "id": "50d8d3c2",
+  "fichier": "voix/heraut/50d8d3c2.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Et maintenant, le pourquoi du comment."
+ },
+ {
+  "perso": "heraut",
+  "id": "a5f1e264",
+  "fichier": "voix/heraut/a5f1e264.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Une réponse, c'est bien. Son histoire, c'est encore mieux."
+ },
+ {
+  "perso": "heraut",
+  "id": "b1b6f271",
+  "fichier": "voix/heraut/b1b6f271.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Le grand héraut ouvre son tiroir à anecdotes."
+ },
+ {
+  "perso": "heraut",
+  "id": "be5cff1a",
+  "fichier": "voix/heraut/be5cff1a.mp3",
+  "contexte": "accroche.bonne",
+  "texte": "Bonne réponse ! Les neurones saluent la performance."
+ },
+ {
+  "perso": "heraut",
+  "id": "1fcd129a",
+  "fichier": "voix/heraut/1fcd129a.mp3",
+  "contexte": "accroche.bonne",
+  "texte": "Exact ! Le donjon applaudit avec ses deux mains."
+ },
+ {
+  "perso": "heraut",
+  "id": "b91316fd",
+  "fichier": "voix/heraut/b91316fd.mp3",
+  "contexte": "accroche.bonne",
+  "texte": "Bien joué ! Une réponse nette, sans miettes."
+ },
+ {
+  "perso": "heraut",
+  "id": "e12ee0ce",
+  "fichier": "voix/heraut/e12ee0ce.mp3",
+  "contexte": "accroche.bonne",
+  "texte": "C'est juste ! Même la pierre avait parié sur vous."
+ },
+ {
+  "perso": "heraut",
+  "id": "958d073e",
+  "fichier": "voix/heraut/958d073e.mp3",
+  "contexte": "accroche.bonne",
+  "texte": "Magnifique ! Le savoir vous va très bien."
+ },
+ {
+  "perso": "heraut",
+  "id": "be6e7e80",
+  "fichier": "voix/heraut/be6e7e80.mp3",
+  "contexte": "accroche.bonne",
+  "texte": "Réponse validée avec panache et petit bruit de trompette."
+ },
+ {
+  "perso": "heraut",
+  "id": "9714e40d",
+  "fichier": "voix/heraut/9714e40d.mp3",
+  "contexte": "accroche.mauvaise",
+  "texte": "Raté, mais avec une élégance remarquable."
+ },
+ {
+  "perso": "heraut",
+  "id": "97370ea9",
+  "fichier": "voix/heraut/97370ea9.mp3",
+  "contexte": "accroche.mauvaise",
+  "texte": "Pas cette fois. Le savoir revient au prochain tour."
+ },
+ {
+  "perso": "heraut",
+  "id": "3d0a9d07",
+  "fichier": "voix/heraut/3d0a9d07.mp3",
+  "contexte": "accroche.mauvaise",
+  "texte": "Presque ! Enfin, à quelques connaissances près."
+ },
+ {
+  "perso": "heraut",
+  "id": "cfa95d82",
+  "fichier": "voix/heraut/cfa95d82.mp3",
+  "contexte": "accroche.mauvaise",
+  "texte": "Le donjon dit non, mais très gentiment."
+ },
+ {
+  "perso": "heraut",
+  "id": "b804c22b",
+  "fichier": "voix/heraut/b804c22b.mp3",
+  "contexte": "accroche.mauvaise",
+  "texte": "Réponse cabossée. Anecdote toute neuve en échange."
+ },
+ {
+  "perso": "heraut",
+  "id": "7298cd00",
+  "fichier": "voix/heraut/7298cd00.mp3",
+  "contexte": "accroche.mauvaise",
+  "texte": "Ce n'est pas juste, mais personne ne perd son goûter."
+ },
+ {
   "perso": "cageot",
   "id": "46068317",
   "fichier": "voix/cageot/46068317.mp3",

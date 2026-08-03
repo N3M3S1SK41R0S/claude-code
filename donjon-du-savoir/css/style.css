@@ -304,6 +304,15 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
     radial-gradient(circle at 90% 10%, rgba(224, 176, 74, 0.35) 0%, transparent 36%),
     linear-gradient(160deg, #2c2414 0%, #211a10 55%, #17120c 100%);
 }
+/* Barre d'écoute des règles : le conteur à portée de pouce. */
+.rules-ecoute {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 0 0 1rem;
+}
+
 /* Les CINQ NOUVEAUX MONDES (GEN 2 v5) */
 .board-theme-cuisine {
   background:

@@ -132,11 +132,20 @@ const pouvoirUtilise = [
   "Et hop ! Un pouvoir de moins, un moment de gloire de plus.",
 ];
 
+// Le RÉCIT DES RÈGLES (bouton 🔊 de la page Règles) : les deux répliques fixes
+// qui encadrent la lecture — même source pour le jeu ET l'inventaire des voix,
+// afin que leur identifiant de clip ne dérive jamais.
+export const RECIT_REGLES = {
+  intro: "Oyez, oyez ! Le Grand Héraut vous raconte les règles du Donjon du Savoir.",
+  outro: "Voilà pour les règles. Le reste s'apprend en jouant, et le Héraut veille. Bonne partie !",
+};
+
 // Viviers exportés pour l'outil d'inventaire des voix (tools/export-repliques).
 export const HERALD_POOLS = {
   ouverture, debutTour, caseComment, bonneReponse, mauvaiseReponse,
   anecdoteIntro, victoire, docTrouNoir, dePetit, deTriple, sponsors,
   pouvoirUtilise,
+  recitRegles: [RECIT_REGLES.intro, RECIT_REGLES.outro],
 };
 
 export const herald = {

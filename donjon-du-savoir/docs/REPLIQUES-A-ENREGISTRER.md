@@ -1,5 +1,5 @@
 # RÉPLIQUES À ENREGISTRER — Le Donjon du Savoir
-*(générées par tools/export-repliques.mjs — 178 répliques ;
+*(générées par tools/export-repliques.mjs — 216 répliques ;
 chaque fichier doit porter EXACTEMENT le nom indiqué : l'intégration est
 automatique, un écart = clip ignoré sans casser le jeu)*
 
@@ -7,7 +7,7 @@ Format : MP3, 44,1 kHz, MONO, ~64 kbps, niveau -16 LUFS, sans musique ni
 bruit de fond, silences < 150 ms en début et fin de fichier.
 
 
-## LE GRAND HÉRAUT (narrateur) — dossier `voix/heraut/` (57 répliques)
+## LE GRAND HÉRAUT (narrateur) — dossier `voix/heraut/` (95 répliques)
 
 | Fichier | Intention (jeu d'acteur) | Réplique à jouer |
 |---|---|---|
@@ -68,6 +68,44 @@ bruit de fond, silences < 150 ms en début et fin de fichier.
 | `c49dd46f.mp3` | Ton publicité radio rétro, second degré assumé | Les cours du soir de Maître Hibou : hou hou, mais avec mention. |
 | `a1280e86.mp3` | Emphase héroïque, roulement de tambour verbal | Pouvoir activé ! La magie opère, réglementairement. |
 | `fb1ed469.mp3` | Emphase héroïque, roulement de tambour verbal | Et hop ! Un pouvoir de moins, un moment de gloire de plus. |
+| `49d24bb8.mp3` | Conteur au coin du feu — il ouvre et referme le livre des règles | Oyez, oyez ! Le Grand Héraut vous raconte les règles du Donjon du Savoir. |
+| `acbf0703.mp3` | Conteur au coin du feu — il ouvre et referme le livre des règles | Voilà pour les règles. Le reste s'apprend en jouant, et le Héraut veille. Bonne partie ! |
+| `2fd0df47.mp3` | Roulement de tambour verbal — il lance la question | Attention, les neurones entrent en scène ! |
+| `9c003bed.mp3` | Roulement de tambour verbal — il lance la question | Question en approche. Les sourcils sont autorisés à réfléchir. |
+| `b86b3d6e.mp3` | Roulement de tambour verbal — il lance la question | Silence dans le donjon, juste assez pour entendre la question. |
+| `cd124593.mp3` | Roulement de tambour verbal — il lance la question | À vos cerveaux, prêts, pensez ! |
+| `0ed4e365.mp3` | Roulement de tambour verbal — il lance la question | Le donjon pose la question. Prenez tout votre temps. |
+| `aa69c98b.mp3` | Roulement de tambour verbal — il lance la question | Celle-ci est très sérieuse. Enfin, elle essaie. |
+| `4e8151ac.mp3` | Roulement de tambour verbal — il lance la question | Ouvrez grand les oreilles et le petit tiroir à savoir. |
+| `9fd65e6e.mp3` | Roulement de tambour verbal — il lance la question | Question fraîche, servie sans chronomètre. |
+| `7500ea68.mp3` | Roulement de tambour verbal — il lance la question | Le savoir frappe à la porte. On lui ouvre ! |
+| `b6bb4e77.mp3` | Roulement de tambour verbal — il lance la question | Attention, question avec supplément panache. |
+| `f09377c3.mp3` | Roulement de tambour verbal — il lance la question | Le prochain indice est la question elle-même. |
+| `c133a9e2.mp3` | Roulement de tambour verbal — il lance la question | Concentration royale. Voici la question ! |
+| `0f54b422.mp3` | Confidence gourmande — il déballe le petit trésor | Et voici le petit trésor derrière la réponse. |
+| `4d700c3a.mp3` | Confidence gourmande — il déballe le petit trésor | Minute culture. Elle dure le temps qu'il faut. |
+| `43d841cd.mp3` | Confidence gourmande — il déballe le petit trésor | L'anecdote arrive, bien coiffée et presque à l'heure. |
+| `094bfc12.mp3` | Confidence gourmande — il déballe le petit trésor | Le saviez-vous ? Le donjon, lui, vient de l'apprendre. |
+| `2a1083ea.mp3` | Confidence gourmande — il déballe le petit trésor | Place au détail qui fait briller les lunettes. |
+| `ca3a8e18.mp3` | Confidence gourmande — il déballe le petit trésor | Un peu de savoir en plus, ça ne prend aucune place. |
+| `292ac3af.mp3` | Confidence gourmande — il déballe le petit trésor | Attention, anecdote à raconter dès demain. |
+| `060eb7ca.mp3` | Confidence gourmande — il déballe le petit trésor | Le rideau se lève sur les coulisses du savoir. |
+| `81da7b07.mp3` | Confidence gourmande — il déballe le petit trésor | Bonus de culture, sans supplément de prix. |
+| `50d8d3c2.mp3` | Confidence gourmande — il déballe le petit trésor | Et maintenant, le pourquoi du comment. |
+| `a5f1e264.mp3` | Confidence gourmande — il déballe le petit trésor | Une réponse, c'est bien. Son histoire, c'est encore mieux. |
+| `b1b6f271.mp3` | Confidence gourmande — il déballe le petit trésor | Le grand héraut ouvre son tiroir à anecdotes. |
+| `be5cff1a.mp3` | Éclatant, trompette dans la voix | Bonne réponse ! Les neurones saluent la performance. |
+| `1fcd129a.mp3` | Éclatant, trompette dans la voix | Exact ! Le donjon applaudit avec ses deux mains. |
+| `b91316fd.mp3` | Éclatant, trompette dans la voix | Bien joué ! Une réponse nette, sans miettes. |
+| `e12ee0ce.mp3` | Éclatant, trompette dans la voix | C'est juste ! Même la pierre avait parié sur vous. |
+| `958d073e.mp3` | Éclatant, trompette dans la voix | Magnifique ! Le savoir vous va très bien. |
+| `be6e7e80.mp3` | Éclatant, trompette dans la voix | Réponse validée avec panache et petit bruit de trompette. |
+| `9714e40d.mp3` | Consolant et taquin — jamais moqueur | Raté, mais avec une élégance remarquable. |
+| `97370ea9.mp3` | Consolant et taquin — jamais moqueur | Pas cette fois. Le savoir revient au prochain tour. |
+| `3d0a9d07.mp3` | Consolant et taquin — jamais moqueur | Presque ! Enfin, à quelques connaissances près. |
+| `cfa95d82.mp3` | Consolant et taquin — jamais moqueur | Le donjon dit non, mais très gentiment. |
+| `b804c22b.mp3` | Consolant et taquin — jamais moqueur | Réponse cabossée. Anecdote toute neuve en échange. |
+| `7298cd00.mp3` | Consolant et taquin — jamais moqueur | Ce n'est pas juste, mais personne ne perd son goûter. |
 
 ## Sire Cageot — dossier `voix/cageot/` (11 répliques)
 

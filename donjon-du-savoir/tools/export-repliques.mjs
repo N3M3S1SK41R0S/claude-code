@@ -7,6 +7,7 @@ import { writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { HERALD_POOLS } from "../js/herald.js";
+import { HOST_CUES } from "../js/host-voice.js";
 import { HERO_LINES } from "../js/voices.js";
 import { CHARACTERS } from "../js/state.js";
 import { idReplique } from "../js/voiceclips.js";
@@ -31,6 +32,13 @@ for (const [nomPool, pool] of Object.entries(HERALD_POOLS)) {
       for (const ligne of lignes) ajoute("heraut", ligne, `${nomPool}.${type}`);
     }
   }
+}
+
+// ---- Les accroches de l'animateur (avant question/anecdote, verdicts) ----
+// Elles vivent aujourd'hui en petits clips WebM de synthèse : les versions
+// jouées par la vraie voix du Héraut les remplaceront.
+for (const [kind, cues] of Object.entries(HOST_CUES)) {
+  for (const cue of cues) ajoute("heraut", cue.text, `accroche.${kind}`);
 }
 
 // ---- Les héros (une voix chacun) ----
@@ -70,6 +78,11 @@ const INTENTIONS = {
   "caseComment.chance": "Gourmand, ravi pour le joueur",
   "caseComment.teleporteur": "Émerveillé, un rien vertigineux",
   "caseComment.carrefour": "Curieux, met la pression gentiment",
+  recitRegles: "Conteur au coin du feu — il ouvre et referme le livre des règles",
+  "accroche.question": "Roulement de tambour verbal — il lance la question",
+  "accroche.anecdote": "Confidence gourmande — il déballe le petit trésor",
+  "accroche.bonne": "Éclatant, trompette dans la voix",
+  "accroche.mauvaise": "Consolant et taquin — jamais moqueur",
   tour: "Le héros s'élance — dans son caractère, énergie de départ",
   bonne: "Le héros jubile — joie dans SON style",
   mauvaise: "Le héros encaisse — dépit drôle, jamais abattu",
