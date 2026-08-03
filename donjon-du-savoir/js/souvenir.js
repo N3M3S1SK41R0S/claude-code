@@ -73,7 +73,7 @@ async function drawCard(canvas, { winner, rankingData, etoilesMode }) {
   if (!ctx) return;
   const serif = "Georgia, 'Times New Roman', serif";
   // Cadre parchemin peint (GEN 2, centre transparent) — repli : cadre doré dessiné.
-  const cadre = await loadImage("assets/souvenir-cadre.png");
+  const cadre = await loadImage("assets/souvenir-cadre.webp");
 
   // Fond : dégradé de donjon + vignette dorée.
   const bg = ctx.createLinearGradient(0, 0, 0, H);

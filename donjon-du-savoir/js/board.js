@@ -15,8 +15,8 @@ export const CASE_TYPES = {
   pieces: { label: "Pièces", emoji: "🪙", couleur: "#c2a93e", art: "assets/case-pieces.png" },
   joker: { label: "Joker", emoji: "🃏", couleur: "#8e5cc2", art: "assets/case-joker.png" },
   gambit: { label: "Gambit", emoji: "🎲", couleur: "#3eb8c2", art: "assets/case-gambit.png" },
-  teleporteur: { label: "Tourbillon", emoji: "🌀", couleur: "#39b8d8" },
-  carrefour: { label: "Carrefour", emoji: "🛤️", couleur: "#8f9e3d" },
+  teleporteur: { label: "Tourbillon", emoji: "🌀", couleur: "#39b8d8", art: "assets/case-teleporteur.png" },
+  carrefour: { label: "Carrefour", emoji: "🛤️", couleur: "#8f9e3d", art: "assets/case-carrefour.png" },
   trounoir: { label: "Trou Noir", emoji: "🕳️", couleur: "#181026", art: "assets/case-trounoir.png" },
   arrivee: { label: "Trésor", emoji: "🏆", couleur: "#e0b04a", art: "assets/case-tresor.png" },
   boutique: { label: "Boutique", emoji: "🛒", couleur: "#c25ea0", art: "assets/case-boutique.png" },
@@ -350,6 +350,70 @@ export const BUILDINGS = [
   { art: "assets/batiment-champignon.webp", u: 0.955, v: 0.90, w: 12 },
 ];
 
+// Les CINQ NOUVEAUX MONDES (GEN 2 v5) ont chacun leurs maquettes d'ambiance :
+// une cuisine a un grille-pain-auberge, pas une taverne médiévale. Les
+// bâtiments-REPÈRES des cases (échoppe, portail…) restent, eux, communs à tous
+// les mondes : c'est la troupe du Donjon qui voyage. Doublé aux quatre coins
+// pour habiller le tour du plateau comme le village d'origine.
+const THEME_BUILDINGS = {
+  cuisine: [
+    { art: "assets/bat-cuisine-gateau.webp", u: 0.10, v: 0.86, w: 17 },
+    { art: "assets/bat-cuisine-theiere.webp", u: 0.11, v: 0.12, w: 14 },
+    { art: "assets/bat-cuisine-grille-pain.webp", u: 0.065, v: 0.32, w: 13 },
+    { art: "assets/bat-cuisine-casserole.webp", u: 0.94, v: 0.30, w: 14 },
+    { art: "assets/bat-cuisine-theiere.webp", u: 0.935, v: 0.64, w: 13 },
+    { art: "assets/bat-cuisine-casserole.webp", u: 0.27, v: 0.975, w: 13 },
+    { art: "assets/bat-cuisine-grille-pain.webp", u: 0.74, v: 0.975, w: 13 },
+    { art: "assets/bat-cuisine-gateau.webp", u: 0.955, v: 0.90, w: 12 },
+  ],
+  plage: [
+    { art: "assets/bat-plage-phare.webp", u: 0.10, v: 0.86, w: 17 },
+    { art: "assets/bat-plage-cabane.webp", u: 0.11, v: 0.12, w: 14 },
+    { art: "assets/bat-plage-coquillage.webp", u: 0.065, v: 0.32, w: 13 },
+    { art: "assets/bat-plage-epave.webp", u: 0.94, v: 0.30, w: 14 },
+    { art: "assets/bat-plage-cabane.webp", u: 0.935, v: 0.64, w: 13 },
+    { art: "assets/bat-plage-coquillage.webp", u: 0.27, v: 0.975, w: 13 },
+    { art: "assets/bat-plage-epave.webp", u: 0.74, v: 0.975, w: 13 },
+    { art: "assets/bat-plage-phare.webp", u: 0.955, v: 0.90, w: 12 },
+  ],
+  grenier: [
+    { art: "assets/bat-grenier-malle.webp", u: 0.10, v: 0.86, w: 17 },
+    { art: "assets/bat-grenier-cheval.webp", u: 0.11, v: 0.12, w: 14 },
+    { art: "assets/bat-grenier-livres.webp", u: 0.065, v: 0.32, w: 13 },
+    { art: "assets/bat-grenier-lanterne.webp", u: 0.94, v: 0.30, w: 14 },
+    { art: "assets/bat-grenier-livres.webp", u: 0.935, v: 0.64, w: 13 },
+    { art: "assets/bat-grenier-lanterne.webp", u: 0.27, v: 0.975, w: 13 },
+    { art: "assets/bat-grenier-cheval.webp", u: 0.74, v: 0.975, w: 13 },
+    { art: "assets/bat-grenier-malle.webp", u: 0.955, v: 0.90, w: 12 },
+  ],
+  foraine: [
+    { art: "assets/bat-foraine-grande-roue.webp", u: 0.10, v: 0.86, w: 18 },
+    { art: "assets/bat-foraine-chapiteau.webp", u: 0.11, v: 0.12, w: 15 },
+    { art: "assets/bat-foraine-barbe-papa.webp", u: 0.065, v: 0.32, w: 13 },
+    { art: "assets/bat-foraine-stand.webp", u: 0.94, v: 0.30, w: 14 },
+    { art: "assets/bat-foraine-chapiteau.webp", u: 0.935, v: 0.64, w: 13 },
+    { art: "assets/bat-foraine-stand.webp", u: 0.27, v: 0.975, w: 13 },
+    { art: "assets/bat-foraine-barbe-papa.webp", u: 0.74, v: 0.975, w: 13 },
+    { art: "assets/bat-foraine-grande-roue.webp", u: 0.955, v: 0.90, w: 13 },
+  ],
+  banquise: [
+    { art: "assets/bat-banquise-igloo.webp", u: 0.10, v: 0.86, w: 17 },
+    { art: "assets/bat-banquise-toboggan.webp", u: 0.11, v: 0.12, w: 15 },
+    { art: "assets/bat-banquise-sapin.webp", u: 0.065, v: 0.32, w: 13 },
+    { art: "assets/bat-banquise-phoque.webp", u: 0.94, v: 0.30, w: 14 },
+    { art: "assets/bat-banquise-sapin.webp", u: 0.935, v: 0.64, w: 12 },
+    { art: "assets/bat-banquise-phoque.webp", u: 0.27, v: 0.975, w: 13 },
+    { art: "assets/bat-banquise-toboggan.webp", u: 0.74, v: 0.975, w: 13 },
+    { art: "assets/bat-banquise-igloo.webp", u: 0.955, v: 0.90, w: 12 },
+  ],
+};
+
+/** Bâtiments d'ambiance du plateau : ceux du monde s'il en a, le village
+ *  médiéval sinon. Partagé 2D/3D. */
+export function buildingsFor(theme) {
+  return THEME_BUILDINGS[theme] ?? BUILDINGS;
+}
+
 /** Figurines 3D des héros = pions du plateau. Chemins littéraux (inlinés en
  *  data-URI dans le fichier unique). Repli : l'emoji du pion si l'image manque. */
 export function heroArt(id) {
@@ -444,7 +508,7 @@ function buildStatic(container, layout, def) {
   container.appendChild(svg);
 
   // Bâtiments 3D : posés d'abord (tout au fond, derrière décors, cases et pions).
-  for (const b of BUILDINGS) {
+  for (const b of buildingsFor(def.theme)) {
     const img = document.createElement("img");
     img.className = "building";
     img.alt = "";

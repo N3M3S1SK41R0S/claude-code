@@ -21,10 +21,11 @@ const server = createServer(async (req, res) => {
     if (path.endsWith("/")) path += "index.html";
     const file = normalize(join(root, path));
     if (!file.startsWith(root)) throw new Error("forbidden");
+    const corps = await readFile(file); // lire AVANT d'envoyer l'en-tête (sinon un 404 tardif tue le serveur)
     res.writeHead(200, { "Content-Type": MIME[extname(file)] ?? "application/octet-stream" });
-    res.end(await readFile(file));
+    res.end(corps);
   } catch {
-    res.writeHead(404);
+    if (!res.headersSent) res.writeHead(404);
     res.end();
   }
 });
@@ -44,6 +45,9 @@ function findChromium() {
 
 const browser = await chromium.launch({ executablePath: findChromium(), args: ["--no-proxy-server"] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+// Joueur qui revient : tutoriel déjà vu (sinon son overlay bloque les clics) ;
+// 2D forcée (le rendu logiciel 3D des captures serait interminable).
+await page.addInitScript(() => { try { localStorage.setItem("donjon-prefs", JSON.stringify({ tutoVu: true, immersion: false, voixProposee: true })); } catch { /* mode privé */ } });
 await page.goto(`http://localhost:${PORT}/`, { waitUntil: "load" });
 await page.getByRole("button", { name: "⚔️ Nouvelle partie" }).click();
 // 4 players for a lively board.
@@ -55,8 +59,10 @@ if (process.env.SELECT_BOARD) {
 }
 await page.getByRole("button", { name: "🏰 Entrer dans le Donjon" }).click();
 await page.waitForSelector(".case");
-// A couple of turns so tokens spread out.
-for (let i = 0; i < 4; i++) {
+// A couple of turns so tokens spread out (TURNS=0 : capture du plateau neuf,
+// idéal pour montrer un monde sans dépendre du déroulé d'un tour).
+const TURNS = process.env.TURNS === undefined ? 4 : Number(process.env.TURNS);
+for (let i = 0; i < TURNS; i++) {
   await page.getByRole("button", { name: "🎲 Lancer le dé" }).click();
   await page.getByRole("button", { name: /Avancer de \d/ }).click({ timeout: 8000 }).catch(() => {});
   for (let s = 0; s < 10; s++) {

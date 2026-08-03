@@ -304,6 +304,42 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
     radial-gradient(circle at 90% 10%, rgba(224, 176, 74, 0.35) 0%, transparent 36%),
     linear-gradient(160deg, #2c2414 0%, #211a10 55%, #17120c 100%);
 }
+/* Les CINQ NOUVEAUX MONDES (GEN 2 v5) */
+.board-theme-cuisine {
+  background:
+    linear-gradient(rgba(36, 21, 5, 0.24), rgba(36, 21, 5, 0.42)),
+    url(assets/fond-cuisine.webp) center/cover no-repeat,
+    radial-gradient(circle at 88% 10%, rgba(242, 207, 98, 0.3) 0%, transparent 36%),
+    linear-gradient(160deg, #4c3115 0%, #362209 55%, #241505 100%);
+}
+.board-theme-plage {
+  background:
+    linear-gradient(rgba(10, 26, 46, 0.2), rgba(10, 26, 46, 0.4)),
+    url(assets/fond-plage.webp) center/cover no-repeat,
+    radial-gradient(circle at 12% 10%, rgba(242, 226, 160, 0.3) 0%, transparent 36%),
+    linear-gradient(160deg, #1d4a6e 0%, #123049 55%, #0a1a2e 100%);
+}
+.board-theme-grenier {
+  background:
+    linear-gradient(rgba(23, 15, 8, 0.24), rgba(23, 15, 8, 0.44)),
+    url(assets/fond-grenier.webp) center/cover no-repeat,
+    radial-gradient(circle at 86% 14%, rgba(224, 176, 74, 0.28) 0%, transparent 34%),
+    linear-gradient(160deg, #3c2f1f 0%, #2a1f12 55%, #170f08 100%);
+}
+.board-theme-foraine {
+  background:
+    linear-gradient(rgba(26, 10, 30, 0.22), rgba(26, 10, 30, 0.42)),
+    url(assets/fond-foraine.webp) center/cover no-repeat,
+    radial-gradient(circle at 88% 8%, rgba(255, 154, 213, 0.3) 0%, transparent 34%),
+    linear-gradient(160deg, #4a2144 0%, #331230 55%, #1a0a1e 100%);
+}
+.board-theme-banquise {
+  background:
+    linear-gradient(rgba(10, 28, 38, 0.2), rgba(10, 28, 38, 0.4)),
+    url(assets/fond-banquise.webp) center/cover no-repeat,
+    radial-gradient(circle at 14% 8%, rgba(216, 240, 248, 0.26) 0%, transparent 36%),
+    linear-gradient(160deg, #2c5a74 0%, #1a3a50 55%, #0a1c26 100%);
+}
 
 .decor {
   position: absolute;

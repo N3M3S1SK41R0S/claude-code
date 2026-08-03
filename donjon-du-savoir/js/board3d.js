@@ -3,7 +3,7 @@
 // posées dessus, et la CAMÉRA SUIT le joueur actif quand il avance. Purement
 // visuel : les règles ne connaissent que des positions. Repli 2D garanti si
 // WebGL est indisponible, l'immersion coupée, ou en test (voir use3D()).
-import { BUILDINGS, CASE_TYPES, DECOR, boardGeometry, VIEW_W, heroArt } from "./board.js";
+import { CASE_TYPES, DECOR, boardGeometry, buildingsFor, VIEW_W, heroArt } from "./board.js";
 import {
   createAnimatedHero,
   createBuildingModel,
@@ -329,6 +329,11 @@ const THEME_FOND = {
   tour: "assets/fond-tour.webp",
   labyrinthe: "assets/fond-labyrinthe.webp",
   catacombes: "assets/fond-catacombes.webp",
+  cuisine: "assets/fond-cuisine.webp",
+  plage: "assets/fond-plage.webp",
+  grenier: "assets/fond-grenier.webp",
+  foraine: "assets/fond-foraine.webp",
+  banquise: "assets/fond-banquise.webp",
 };
 
 const SKYBOX_PALETTE = {
@@ -480,6 +485,11 @@ const THEME_SOL = {
   tour: "assets/3d/textures/sol-tour.webp",
   catacombes: "assets/3d/textures/sol-catacombes.webp",
   labyrinthe: "assets/3d/textures/sol-labyrinthe.webp",
+  cuisine: "assets/3d/textures/sol-cuisine.webp",
+  plage: "assets/3d/textures/sol-plage.webp",
+  grenier: "assets/3d/textures/sol-grenier.webp",
+  foraine: "assets/3d/textures/sol-foraine.webp",
+  banquise: "assets/3d/textures/sol-banquise.webp",
 };
 const THEME_CIEL = {
   crypte: "assets/ciel-crypte.webp",
@@ -487,6 +497,11 @@ const THEME_CIEL = {
   tour: "assets/ciel-tour.webp",
   catacombes: "assets/ciel-catacombes.webp",
   labyrinthe: "assets/ciel-labyrinthe.webp",
+  cuisine: "assets/ciel-cuisine.webp",
+  plage: "assets/ciel-plage.webp",
+  grenier: "assets/ciel-grenier.webp",
+  foraine: "assets/ciel-foraine.webp",
+  banquise: "assets/ciel-banquise.webp",
 };
 
 const solTexCache = new Map();
@@ -823,8 +838,10 @@ function buildBoard(layout, boardDef) {
     if (bat) addBuilding(bat.id, bat.art, p.clone().setZ(p.z - 3.4), type === "arrivee" ? 6.5 : 4.6, epoch);
   }
 
-  // Bâtiments et décors d'ambiance aux abords du plateau (village de donjon).
-  for (const b of BUILDINGS) {
+  // Bâtiments et décors d'ambiance aux abords du plateau : ceux du MONDE
+  // (grille-pain de la cuisine, grande roue de la foraine…) ou le village
+  // de donjon pour les cinq plateaux d'origine.
+  for (const b of buildingsFor(boardDef.theme)) {
     addBuilding(BUILDING_ID[b.art], b.art, worldUV(b.u, b.v, length), b.w * (SPAN / 100) * 1.35, epoch);
   }
   // TORCHES PEINTES aux quatre coins : les anciens modules de pierre GLB
@@ -909,7 +926,18 @@ function buildBoard(layout, boardDef) {
     boardGroup.add(figStandee(art, p.clone().add(new THREE.Vector3(1.9, 0, 0.7)), 3.0));
   }
   const FLANEURS = ["assets/figurines/pnj-boubou.webp", "assets/figurines/pnj-groumf.webp", "assets/figurines/pnj-sylvette.webp", "assets/figurines/pnj-coassin.webp", "assets/figurines/pnj-barnabe.webp", "assets/figurines/pnj-ratichon.webp", "assets/figurines/pnj-biscornu.webp", "assets/figurines/pnj-hibou-passage.webp"];
-  FLANEURS.forEach((art, i) => boardGroup.add(figStandee(art, worldUV(0.08 + 0.115 * i, i % 2 ? 0.035 : 0.975, length), 2.6)));
+  // Les habitants des CINQ NOUVEAUX MONDES (GEN 2 v5) : deux PNJ nés sur place
+  // rejoignent la troupe de flâneurs quand on joue chez eux.
+  const THEME_FLANEURS = {
+    cuisine: ["assets/figurines/pnj-chef-mimolette.webp", "assets/figurines/pnj-tartine.webp"],
+    plage: ["assets/figurines/pnj-capitaine-bigorno.webp", "assets/figurines/pnj-mouette-jackpot.webp"],
+    grenier: ["assets/figurines/pnj-nounours-borgne.webp", "assets/figurines/pnj-poupee-clairvoyante.webp"],
+    foraine: ["assets/figurines/pnj-bonimenteur.webp", "assets/figurines/pnj-barbapapy.webp"],
+    banquise: ["assets/figurines/pnj-pingouin-jongleur.webp", "assets/figurines/pnj-morse-savant.webp"],
+  };
+  const flaneurs = [...(THEME_FLANEURS[boardDef.theme] ?? []), ...FLANEURS];
+  const pasFlaneur = 0.88 / Math.max(1, flaneurs.length - 1);
+  flaneurs.forEach((art, i) => boardGroup.add(figStandee(art, worldUV(0.06 + pasFlaneur * i, i % 2 ? 0.035 : 0.975, length), 2.6)));
   const PROPS = ["assets/objet-coffre.png", "assets/objet-tonneau.png", "assets/objet-torche.png", "assets/objet-cristal.png", "assets/objet-potion.png"];
   PROPS.forEach((art, i) => boardGroup.add(standee(art, worldUV(0.05 + 0.225 * i, i % 2 ? 0.07 : 0.93, length), 1.35)));
 
