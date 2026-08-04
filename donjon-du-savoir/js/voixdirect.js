@@ -94,6 +94,11 @@ export async function tailleCache() {
 
 /* ---------- lecture ---------- */
 
+/** Une lecture ElevenLabs en direct est-elle en cours ? (arbitre de parole) */
+export function directEnCours() {
+  return audioDirect !== null;
+}
+
 export function stopDirect() {
   if (audioDirect) {
     try { audioDirect.pause(); } catch { /* déjà arrêté */ }

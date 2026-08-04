@@ -12,7 +12,7 @@ import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } from "./ui.js";
 import { onSpeechBoundary, say, sayHost } from "./tts.js";
-import { quandLibre } from "./voiceclips.js";
+import { direQuand } from "./tts.js";
 import { heroLine, voiceOf } from "./voices.js";
 import { botNumericGuess, botWantsCorrect } from "./bots.js";
 import { playScene } from "./scene.js";
@@ -73,6 +73,11 @@ function botAct() {
   if (!st || st.finished) return;
   const panel = document.getElementById("panel");
   if (!panel) return;
+  // Panneau de TABLE (désignation des gagnants, classement Ordre!…) : c'est
+  // aux humains de toucher l'écran, jamais au pilote de bots — même quand
+  // c'est le tour d'un bot. (Table 100 % bots : ils se débrouillent, sinon
+  // la partie gèlerait.)
+  if (panel.querySelector(".table-only") && getState().pions.some((p) => !p.bot)) return;
   const btns = [...panel.querySelectorAll("button:not([disabled])")].filter((b) => b.offsetParent !== null || true);
   const byText = (re) => btns.find((b) => re.test(b.textContent || ""));
 
@@ -1604,11 +1609,11 @@ const ADVANCE = { qcm: 2, vrai_faux: 1, equipe: 2, duo: 1, carre: 2, cash: 4 };
 // La réaction ENREGISTRÉE du personnage (clip) se termine d'abord, PUIS le
 // Héraut prend la parole — fini les chevauchements de voix.
 function narrateQuestion(q) {
-  if (q?.texte) quandLibre(() => sayHost(q.texte, "question"), 4000);
+  if (q?.texte) direQuand(() => sayHost(q.texte, "question"));
 }
 
 function narrateAnecdote(q) {
-  if (q?.anecdote) quandLibre(() => sayHost(q.anecdote, "anecdote"), 4000);
+  if (q?.anecdote) direQuand(() => sayHost(q.anecdote, "anecdote"));
 }
 
 /** Mode « partie à l'oreille » : les propositions affichées sont lues à voix
@@ -3273,7 +3278,7 @@ function ordreFlow(set, onDone) {
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: "🔢 Ordre ! — toute la tablée" }),
       regleBanner("ordre"),
-      el("p", { class: "help-note", text: ordreDates ? "Touchez les faits DE LA PLUS ANCIENNE À LA PLUS RÉCENTE date (retouchez pour annuler). Discutez-en, rien ne presse !" : "Touchez les faits DU PLUS PETIT AU PLUS GRAND nombre (retouchez pour annuler). Discutez-en, rien ne presse !" }),
+      el("p", { class: "help-note table-only", text: ordreDates ? "Touchez les faits DE LA PLUS ANCIENNE À LA PLUS RÉCENTE date (retouchez pour annuler). Discutez-en, rien ne presse !" : "Touchez les faits DU PLUS PETIT AU PLUS GRAND nombre (retouchez pour annuler). Discutez-en, rien ne presse !" }),
       ...btns,
       valider,
     ),
@@ -3312,7 +3317,7 @@ function poseTableQuestion(q, label, next) {
         el("span", { class: "badge", text: "★".repeat(q.difficulte ?? 3) }),
       ),
       el("p", { class: "question-texte", text: q.texte }),
-      el("p", { class: "help-note paper-note", text: "✍️ Chacun écrit sa réponse sur SA feuille de papier — en secret, sans se presser. On ne révèle qu'une fois que tout le monde a écrit : impossible de dire « je le savais » après coup !" }),
+      el("p", { class: "help-note paper-note table-only", text: "✍️ Chacun écrit sa réponse sur SA feuille de papier — en secret, sans se presser. On ne révèle qu'une fois que tout le monde a écrit : impossible de dire « je le savais » après coup !" }),
       bigButton("Tout le monde a écrit → Révéler la réponse", () => revealTableBonus(q, next)),
     ),
   );
@@ -3350,7 +3355,7 @@ function revealTableBonus(q, onDone) {
       el("p", { class: "question-rappel", text: `❓ ${q.texte}` }),
       el("p", { class: "reveal-answer", html: `✅ Réponse : <strong>${accepted}</strong>` }),
       anecdoteCardEl(q),
-      el("p", { class: "panel-text", text: `Qui avait la bonne réponse ? Touchez chaque personne (ou équipe) qui a trouvé : chacune empoche +${REWARD} 🪙. La table est juge, aucune course.` }),
+      el("p", { class: "panel-text table-only", text: `Qui avait la bonne réponse ? Touchez chaque personne (ou équipe) qui a trouvé : chacune empoche +${REWARD} 🪙. La table est juge, aucune course.` }),
       grid,
       bigButton("Valider les gagnants", done),
       bigButton("Personne n'a trouvé", onDone),

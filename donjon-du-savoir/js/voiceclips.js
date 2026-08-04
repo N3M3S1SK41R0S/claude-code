@@ -64,17 +64,9 @@ function demarrer(src) {
   }
 }
 
-/** Exécute `cb` quand plus AUCUN clip ne parle (tout de suite si silence),
- *  avec un plafond d'attente : la parole suivante ne reste jamais coincée. */
-export function quandLibre(cb, maxMs = 4000) {
-  if (!courant) { cb(); return; }
-  const debut = Date.now();
-  const guette = setInterval(() => {
-    if (!courant || Date.now() - debut > maxMs) {
-      clearInterval(guette);
-      cb();
-    }
-  }, 120);
+/** Un clip enregistré parle-t-il en ce moment ? (pour l'arbitre de parole) */
+export function clipEnCours() {
+  return courant !== null;
 }
 
 /** Coupe tout clip en cours (miroir du synth.cancel de la synthèse). */

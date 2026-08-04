@@ -1,5 +1,5 @@
-import { clipFor, playClip, stopClips } from "./voiceclips.js";
-import { lireEnDirect, stopDirect, voixDirectActif } from "./voixdirect.js";
+import { clipEnCours, clipFor, playClip, stopClips } from "./voiceclips.js";
+import { directEnCours, lireEnDirect, stopDirect, voixDirectActif } from "./voixdirect.js";
 // Narration locale : accroches Opus embarquées + synthèse vocale du navigateur
 // pour le texte variable des questions et anecdotes. Aucun service réseau,
 // aucun clonage et aucune imitation de personne réelle.
@@ -196,6 +196,30 @@ export function sayHost(text, kind = null) {
   const token = speechToken;
   const cue = kind === "question" || kind === "anecdote" ? pickHostCue(kind) : null;
   cueThenSpeak(cue, text, kind, token);
+}
+
+/** L'ARBITRE DE PAROLE : vrai si QUELQU'UN parle, tous canaux confondus —
+ *  clip enregistré, accroche, lecture en direct ou synthèse. */
+export function parleEnCours() {
+  return activeAudio !== null || clipEnCours() || directEnCours()
+    || (voiceAvailable() && window.speechSynthesis.speaking);
+}
+
+/** Exécute `cb` au prochain SILENCE TOTAL (tout de suite s'il règne déjà),
+ *  avec un plafond : la parole suivante ne reste jamais coincée. Une seule
+ *  attente à la fois — la plus récente gagne (l'écran a déjà tourné). */
+let attenteTimer = null;
+export function direQuand(cb, maxMs = 7000) {
+  if (attenteTimer) { clearInterval(attenteTimer); attenteTimer = null; }
+  if (!parleEnCours()) { cb(); return; }
+  const debut = Date.now();
+  attenteTimer = setInterval(() => {
+    if (!parleEnCours() || Date.now() - debut > maxMs) {
+      clearInterval(attenteTimer);
+      attenteTimer = null;
+      cb();
+    }
+  }, 150);
 }
 
 export function warmVoices() {

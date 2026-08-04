@@ -5817,8 +5817,8 @@ function resetHostCues() {
 ;Object.assign(module.exports, {pickHostCue, resetHostCues, HOST_PROFILE, HOST_CUES});
 };
 __modules["./tts.js"] = function(module, exports, require) {
-const { clipFor, playClip, stopClips } = require("./voiceclips.js");
-const { lireEnDirect, stopDirect, voixDirectActif } = require("./voixdirect.js");
+const { clipEnCours, clipFor, playClip, stopClips } = require("./voiceclips.js");
+const { directEnCours, lireEnDirect, stopDirect, voixDirectActif } = require("./voixdirect.js");
 // Narration locale : accroches Opus embarquées + synthèse vocale du navigateur
 // pour le texte variable des questions et anecdotes. Aucun service réseau,
 // aucun clonage et aucune imitation de personne réelle.
@@ -6017,13 +6017,37 @@ function sayHost(text, kind = null) {
   cueThenSpeak(cue, text, kind, token);
 }
 
+/** L'ARBITRE DE PAROLE : vrai si QUELQU'UN parle, tous canaux confondus —
+ *  clip enregistré, accroche, lecture en direct ou synthèse. */
+function parleEnCours() {
+  return activeAudio !== null || clipEnCours() || directEnCours()
+    || (voiceAvailable() && window.speechSynthesis.speaking);
+}
+
+/** Exécute `cb` au prochain SILENCE TOTAL (tout de suite s'il règne déjà),
+ *  avec un plafond : la parole suivante ne reste jamais coincée. Une seule
+ *  attente à la fois — la plus récente gagne (l'écran a déjà tourné). */
+let attenteTimer = null;
+function direQuand(cb, maxMs = 7000) {
+  if (attenteTimer) { clearInterval(attenteTimer); attenteTimer = null; }
+  if (!parleEnCours()) { cb(); return; }
+  const debut = Date.now();
+  attenteTimer = setInterval(() => {
+    if (!parleEnCours() || Date.now() - debut > maxMs) {
+      clearInterval(attenteTimer);
+      attenteTimer = null;
+      cb();
+    }
+  }, 150);
+}
+
 function warmVoices() {
   if (!voiceAvailable()) return;
   frenchVoices(window.speechSynthesis);
   window.speechSynthesis.onvoiceschanged = () => frenchVoices(window.speechSynthesis);
 }
 
-;Object.assign(module.exports, {setVoice, voiceEnabled, voiceAvailable, stop, onSpeechBoundary, say, sayHost, warmVoices});
+;Object.assign(module.exports, {setVoice, voiceEnabled, voiceAvailable, stop, onSpeechBoundary, say, sayHost, parleEnCours, direQuand, warmVoices});
 };
 __modules["./sfx.js"] = function(module, exports, require) {
 // Effets sonores SYNTHÉTISÉS (Web Audio) — aucun fichier, hors-ligne, muetables.
@@ -9365,17 +9389,9 @@ function demarrer(src) {
   }
 }
 
-/** Exécute `cb` quand plus AUCUN clip ne parle (tout de suite si silence),
- *  avec un plafond d'attente : la parole suivante ne reste jamais coincée. */
-function quandLibre(cb, maxMs = 4000) {
-  if (!courant) { cb(); return; }
-  const debut = Date.now();
-  const guette = setInterval(() => {
-    if (!courant || Date.now() - debut > maxMs) {
-      clearInterval(guette);
-      cb();
-    }
-  }, 120);
+/** Un clip enregistré parle-t-il en ce moment ? (pour l'arbitre de parole) */
+function clipEnCours() {
+  return courant !== null;
 }
 
 /** Coupe tout clip en cours (miroir du synth.cancel de la synthèse). */
@@ -9407,7 +9423,7 @@ function playClip(perso, texte, { queue = false } = {}) {
   return true;
 }
 
-;Object.assign(module.exports, {normaliseReplique, idReplique, quandLibre, stopClips, clipFor, playClip});
+;Object.assign(module.exports, {normaliseReplique, idReplique, clipEnCours, stopClips, clipFor, playClip});
 };
 __modules["./voixdirect.js"] = function(module, exports, require) {
 // VOIX EN DIRECT (option « pour aller plus loin ») : les textes VARIABLES
@@ -9506,6 +9522,11 @@ async function tailleCache() {
 
 /* ---------- lecture ---------- */
 
+/** Une lecture ElevenLabs en direct est-elle en cours ? (arbitre de parole) */
+function directEnCours() {
+  return audioDirect !== null;
+}
+
 function stopDirect() {
   if (audioDirect) {
     try { audioDirect.pause(); } catch { /* déjà arrêté */ }
@@ -9553,7 +9574,7 @@ function lireEnDirect(texte, { onEchec } = {}) {
   return true;
 }
 
-;Object.assign(module.exports, {configurerCle, tailleCache, voixDirectConfigure, voixDirectActif, setVoixDirect, nomVoixDirect, oublierCle, stopDirect, lireEnDirect});
+;Object.assign(module.exports, {configurerCle, tailleCache, voixDirectConfigure, voixDirectActif, setVoixDirect, nomVoixDirect, oublierCle, directEnCours, stopDirect, lireEnDirect});
 };
 __modules["./eclair.js"] = function(module, exports, require) {
 // ⚡ PARTIE ÉCLAIR — le Donjon sans plateau : les questions s'enchaînent, pur
@@ -12330,7 +12351,7 @@ const { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } = require("./pow
 const { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } = require("./state.js");
 const { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } = require("./ui.js");
 const { onSpeechBoundary, say, sayHost } = require("./tts.js");
-const { quandLibre } = require("./voiceclips.js");
+const { direQuand } = require("./tts.js");
 const { heroLine, voiceOf } = require("./voices.js");
 const { botNumericGuess, botWantsCorrect } = require("./bots.js");
 const { playScene } = require("./scene.js");
@@ -12391,6 +12412,11 @@ function botAct() {
   if (!st || st.finished) return;
   const panel = document.getElementById("panel");
   if (!panel) return;
+  // Panneau de TABLE (désignation des gagnants, classement Ordre!…) : c'est
+  // aux humains de toucher l'écran, jamais au pilote de bots — même quand
+  // c'est le tour d'un bot. (Table 100 % bots : ils se débrouillent, sinon
+  // la partie gèlerait.)
+  if (panel.querySelector(".table-only") && getState().pions.some((p) => !p.bot)) return;
   const btns = [...panel.querySelectorAll("button:not([disabled])")].filter((b) => b.offsetParent !== null || true);
   const byText = (re) => btns.find((b) => re.test(b.textContent || ""));
 
@@ -13922,11 +13948,11 @@ const ADVANCE = { qcm: 2, vrai_faux: 1, equipe: 2, duo: 1, carre: 2, cash: 4 };
 // La réaction ENREGISTRÉE du personnage (clip) se termine d'abord, PUIS le
 // Héraut prend la parole — fini les chevauchements de voix.
 function narrateQuestion(q) {
-  if (q?.texte) quandLibre(() => sayHost(q.texte, "question"), 4000);
+  if (q?.texte) direQuand(() => sayHost(q.texte, "question"));
 }
 
 function narrateAnecdote(q) {
-  if (q?.anecdote) quandLibre(() => sayHost(q.anecdote, "anecdote"), 4000);
+  if (q?.anecdote) direQuand(() => sayHost(q.anecdote, "anecdote"));
 }
 
 /** Mode « partie à l'oreille » : les propositions affichées sont lues à voix
@@ -15591,7 +15617,7 @@ function ordreFlow(set, onDone) {
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: "🔢 Ordre ! — toute la tablée" }),
       regleBanner("ordre"),
-      el("p", { class: "help-note", text: ordreDates ? "Touchez les faits DE LA PLUS ANCIENNE À LA PLUS RÉCENTE date (retouchez pour annuler). Discutez-en, rien ne presse !" : "Touchez les faits DU PLUS PETIT AU PLUS GRAND nombre (retouchez pour annuler). Discutez-en, rien ne presse !" }),
+      el("p", { class: "help-note table-only", text: ordreDates ? "Touchez les faits DE LA PLUS ANCIENNE À LA PLUS RÉCENTE date (retouchez pour annuler). Discutez-en, rien ne presse !" : "Touchez les faits DU PLUS PETIT AU PLUS GRAND nombre (retouchez pour annuler). Discutez-en, rien ne presse !" }),
       ...btns,
       valider,
     ),
@@ -15630,7 +15656,7 @@ function poseTableQuestion(q, label, next) {
         el("span", { class: "badge", text: "★".repeat(q.difficulte ?? 3) }),
       ),
       el("p", { class: "question-texte", text: q.texte }),
-      el("p", { class: "help-note paper-note", text: "✍️ Chacun écrit sa réponse sur SA feuille de papier — en secret, sans se presser. On ne révèle qu'une fois que tout le monde a écrit : impossible de dire « je le savais » après coup !" }),
+      el("p", { class: "help-note paper-note table-only", text: "✍️ Chacun écrit sa réponse sur SA feuille de papier — en secret, sans se presser. On ne révèle qu'une fois que tout le monde a écrit : impossible de dire « je le savais » après coup !" }),
       bigButton("Tout le monde a écrit → Révéler la réponse", () => revealTableBonus(q, next)),
     ),
   );
@@ -15668,7 +15694,7 @@ function revealTableBonus(q, onDone) {
       el("p", { class: "question-rappel", text: `❓ ${q.texte}` }),
       el("p", { class: "reveal-answer", html: `✅ Réponse : <strong>${accepted}</strong>` }),
       anecdoteCardEl(q),
-      el("p", { class: "panel-text", text: `Qui avait la bonne réponse ? Touchez chaque personne (ou équipe) qui a trouvé : chacune empoche +${REWARD} 🪙. La table est juge, aucune course.` }),
+      el("p", { class: "panel-text table-only", text: `Qui avait la bonne réponse ? Touchez chaque personne (ou équipe) qui a trouvé : chacune empoche +${REWARD} 🪙. La table est juge, aucune course.` }),
       grid,
       bigButton("Valider les gagnants", done),
       bigButton("Personne n'a trouvé", onDone),
