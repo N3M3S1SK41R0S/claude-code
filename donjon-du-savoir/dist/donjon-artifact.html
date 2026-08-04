@@ -380,6 +380,8 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   .eclair-texte { font-size: 1.28rem; }
 }
 
+.version-accueil { text-align: center; opacity: 0.75; font-size: 0.82rem; }
+
 /* Plusieurs dés d'objet côte à côte : même culbute, départs en cascade. */
 .die3d-multi { display: flex; gap: 1.6rem; justify-content: center; }
 
@@ -904,7 +906,7 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 /* Grand écran : le jeu emplit la PAGE ENTIÈRE — le plateau 3D en majesté,
    la mini-carte À CÔTÉ, grande et lisible (plus jamais superposée). */
 @media (min-width: 1100px) {
-  main:has(#screen-game:not([hidden])) { max-width: none; padding: 1rem 1.4rem; }
+  main:has(#screen-game:not([hidden])), body.plein-jeu main { max-width: none; padding: 1rem 1.4rem; }
   .screen-game {
     grid-template-columns: minmax(0, 2.3fr) minmax(340px, 1fr);
     grid-template-areas: "board herald" "board minimap" "board panel" "players players";
@@ -12354,7 +12356,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v126";
+const APP_VERSION = "donjon-v127";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
@@ -15731,13 +15733,23 @@ function revealTableBonus(q, onDone) {
   const accepted = q.bonne_reponse ?? String(q.reponse_numerique ?? (q.reponses_acceptees ?? []).join(" · "));
   const found = new Set();
   const grid = el("div", { class: "choices" });
+  // Réponse simulée d'un bot : la bonne s'il « sait », une fausse plausible sinon.
+  const reponseFausse = () => {
+    if (q.format === "vrai_faux") return String(accepted) === "Vrai" ? "Faux" : "Vrai";
+    const faux = (q.choix ?? []).filter((c) => String(c) !== String(accepted));
+    return faux.length ? String(faux[Math.floor(Math.random() * faux.length)]) : "…";
+  };
   for (const p of getState().pions) {
-    const btn = choiceButton(`${characterById(p.characterId).emoji} ${p.nom}`, () => {
+    const juste = p.bot ? botWantsCorrect(p.botLevel) : null;
+    const libelle = p.bot
+      ? `🤖 ${p.nom} a répondu « ${juste ? accepted : reponseFausse()} » ${juste ? "✔" : "✘"}`
+      : `${characterById(p.characterId).emoji} ${p.nom}`;
+    const btn = choiceButton(libelle, () => {
       if (found.has(p.id)) { found.delete(p.id); btn.classList.remove("bet-selected"); }
       else { found.add(p.id); btn.classList.add("bet-selected"); }
     });
-    // Bot : pré-sélectionné comme gagnant selon son niveau (l'humain ajuste avant de valider).
-    if (p.bot && botWantsCorrect(p.botLevel)) { found.add(p.id); btn.classList.add("bet-selected"); }
+    // Bot : pré-coché selon SA réponse affichée (l'humain reste juge avant de valider).
+    if (p.bot && juste) { found.add(p.id); btn.classList.add("bet-selected"); }
     grid.append(btn);
   }
   const done = () => {
@@ -15934,6 +15946,8 @@ function show(name) {
   for (const s of screens) {
     document.getElementById(`screen-${s}`).hidden = s !== name;
   }
+  // Plein écran de jeu : la page entière appartient au plateau (grand écran).
+  document.body.classList.toggle("plein-jeu", name === "game");
   if (name === "home") renderHome(); // retour d'Éclair : accueil toujours frais
 }
 // Pont de navigation pour les modules autonomes (Partie Éclair) : évite un
@@ -15979,6 +15993,7 @@ function renderHome() {
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderPalmares(); show("palmares"); } }, "🏅 Palmarès & succès"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderGrimoire(); show("grimoire"); } }, `📖 Le Grimoire (${grimoireSize()} anecdotes)`));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderReglages(); show("reglages"); } }, "⚙️ Réglages & accessibilité"));
+  zone.append(el("p", { class: "version-note version-accueil", text: `📦 Édition ${APP_VERSION} — vérifiez que votre copie est la dernière` }));
   if (bankOk) zone.append(questionDuJour());
   // 🎩 La perle du Héraut : un faux conseil très sérieux, qui change chaque jour.
   if (bankOk && (getPrefs().humour ?? "complice") !== "sobre") {

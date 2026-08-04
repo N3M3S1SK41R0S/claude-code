@@ -379,6 +379,8 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   .eclair-texte { font-size: 1.28rem; }
 }
 
+.version-accueil { text-align: center; opacity: 0.75; font-size: 0.82rem; }
+
 /* Plusieurs dés d'objet côte à côte : même culbute, départs en cascade. */
 .die3d-multi { display: flex; gap: 1.6rem; justify-content: center; }
 
@@ -903,7 +905,7 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 /* Grand écran : le jeu emplit la PAGE ENTIÈRE — le plateau 3D en majesté,
    la mini-carte À CÔTÉ, grande et lisible (plus jamais superposée). */
 @media (min-width: 1100px) {
-  main:has(#screen-game:not([hidden])) { max-width: none; padding: 1rem 1.4rem; }
+  main:has(#screen-game:not([hidden])), body.plein-jeu main { max-width: none; padding: 1rem 1.4rem; }
   .screen-game {
     grid-template-columns: minmax(0, 2.3fr) minmax(340px, 1fr);
     grid-template-areas: "board herald" "board minimap" "board panel" "players players";

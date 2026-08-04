@@ -3370,13 +3370,23 @@ function revealTableBonus(q, onDone) {
   const accepted = q.bonne_reponse ?? String(q.reponse_numerique ?? (q.reponses_acceptees ?? []).join(" · "));
   const found = new Set();
   const grid = el("div", { class: "choices" });
+  // Réponse simulée d'un bot : la bonne s'il « sait », une fausse plausible sinon.
+  const reponseFausse = () => {
+    if (q.format === "vrai_faux") return String(accepted) === "Vrai" ? "Faux" : "Vrai";
+    const faux = (q.choix ?? []).filter((c) => String(c) !== String(accepted));
+    return faux.length ? String(faux[Math.floor(Math.random() * faux.length)]) : "…";
+  };
   for (const p of getState().pions) {
-    const btn = choiceButton(`${characterById(p.characterId).emoji} ${p.nom}`, () => {
+    const juste = p.bot ? botWantsCorrect(p.botLevel) : null;
+    const libelle = p.bot
+      ? `🤖 ${p.nom} a répondu « ${juste ? accepted : reponseFausse()} » ${juste ? "✔" : "✘"}`
+      : `${characterById(p.characterId).emoji} ${p.nom}`;
+    const btn = choiceButton(libelle, () => {
       if (found.has(p.id)) { found.delete(p.id); btn.classList.remove("bet-selected"); }
       else { found.add(p.id); btn.classList.add("bet-selected"); }
     });
-    // Bot : pré-sélectionné comme gagnant selon son niveau (l'humain ajuste avant de valider).
-    if (p.bot && botWantsCorrect(p.botLevel)) { found.add(p.id); btn.classList.add("bet-selected"); }
+    // Bot : pré-coché selon SA réponse affichée (l'humain reste juge avant de valider).
+    if (p.bot && juste) { found.add(p.id); btn.classList.add("bet-selected"); }
     grid.append(btn);
   }
   const done = () => {

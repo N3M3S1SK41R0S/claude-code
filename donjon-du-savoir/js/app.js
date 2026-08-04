@@ -31,6 +31,8 @@ function show(name) {
   for (const s of screens) {
     document.getElementById(`screen-${s}`).hidden = s !== name;
   }
+  // Plein écran de jeu : la page entière appartient au plateau (grand écran).
+  document.body.classList.toggle("plein-jeu", name === "game");
   if (name === "home") renderHome(); // retour d'Éclair : accueil toujours frais
 }
 // Pont de navigation pour les modules autonomes (Partie Éclair) : évite un
@@ -76,6 +78,7 @@ function renderHome() {
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderPalmares(); show("palmares"); } }, "🏅 Palmarès & succès"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderGrimoire(); show("grimoire"); } }, `📖 Le Grimoire (${grimoireSize()} anecdotes)`));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderReglages(); show("reglages"); } }, "⚙️ Réglages & accessibilité"));
+  zone.append(el("p", { class: "version-note version-accueil", text: `📦 Édition ${APP_VERSION} — vérifiez que votre copie est la dernière` }));
   if (bankOk) zone.append(questionDuJour());
   // 🎩 La perle du Héraut : un faux conseil très sérieux, qui change chaque jour.
   if (bankOk && (getPrefs().humour ?? "complice") !== "sobre") {
