@@ -272,17 +272,35 @@ function figurineView(src, third, cb, vues = 3) {
 }
 
 /** Figurine PNJ peinte (vue de face de son atlas) posée debout en `pos`. */
+// TABLE D'ÉCHELLES du village (hauteurs en unités-monde). Le héros est
+// l'étalon : tout le reste se compare à lui. Une œuvre en VUE UNIQUE est
+// presque aussi large que haute, alors qu'une silhouette d'atlas est trois
+// fois plus étroite — sans correction, le même chiffre donne un PNJ deux
+// fois plus imposant qu'un héros. D'où deux colonnes par famille.
+const ECHELLES = {
+  heros: 3.15, //  ← étalon (figurine en pied, atlas 3 vues)
+  pnjCase: { atlas: 2.75, vueUnique: 2.2 },
+  flaneur: { atlas: 2.5, vueUnique: 2.0 },
+  prop: 1.35,
+};
+// Largeur d'un sprite selon sa source : 1/3 de planche, ou œuvre ~carrée.
+const largeurSprite = (height, vues) => height * (vues === 1 ? 0.92 : 0.34);
+// UNE SEULE RÈGLE D'OMBRE pour tout le village : la tache colle à la LARGEUR
+// réelle de l'objet. Avant, chaque famille avait sa constante — l'ombre du
+// héros était deux fois plus large que lui, celle des PNJ v5 deux fois trop
+// petite, et rien ne semblait posé au même endroit.
+const rayonOmbre = (largeur) => largeur * 0.5;
+
 function figStandee(art, pos, height, vues = 3) {
   const groupe = new THREE.Group();
   groupe.position.copy(pos);
   const mat = new THREE.SpriteMaterial({ transparent: true, depthWrite: false });
   const spr = new THREE.Sprite(mat);
   spr.center.set(0.5, 0);
-  // Vue d'atlas : silhouette étroite (1/3 de planche) ; vue unique (PNJ v5) :
-  // œuvre carrée sur socle, on garde ses proportions.
-  spr.scale.set(height * (vues === 1 ? 0.92 : 0.34), height, 1);
+  const largeur = largeurSprite(height, vues);
+  spr.scale.set(largeur, height, 1);
   groupe.add(spr);
-  const ombre = ombrePortee(height * (vues === 1 ? 0.3 : 0.19)); // ancre au sol
+  const ombre = ombrePortee(rayonOmbre(largeur)); // ancre au sol
   ombre.position.y = 0.02;
   groupe.add(ombre);
   figurineView(art, 0, (t, pad) => { mat.map = t; mat.needsUpdate = true; spr.center.set(0.5, pad); }, vues);
@@ -356,9 +374,10 @@ function standee(art, pos, height) {
   const mat = new THREE.SpriteMaterial({ transparent: true, depthWrite: false });
   const spr = new THREE.Sprite(mat);
   spr.center.set(0.5, 0);
-  spr.scale.set(height * 0.92, height, 1);
+  const largeur = largeurSprite(height, 1);
+  spr.scale.set(largeur, height, 1);
   g.add(spr);
-  const ombre = ombrePortee(height * 0.3);
+  const ombre = ombrePortee(rayonOmbre(largeur)); // même règle que les figurines
   ombre.position.y = 0.02;
   g.add(ombre);
   figurineView(art, 0, (t, pad) => { mat.map = t; mat.needsUpdate = true; spr.center.set(0.5, pad); }, 1);
@@ -701,6 +720,16 @@ function resize() {
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
   mounted.canvas.style.height = `${h}px`;
+  // La vignette se cale EXACTEMENT sur le canvas : posée en inset:0 sur le
+  // conteneur, elle débordait sous l'image et dessinait un liseré clair.
+  if (mounted.vignette) {
+    const v = mounted.vignette.style;
+    v.top = `${mounted.canvas.offsetTop}px`;
+    v.left = `${mounted.canvas.offsetLeft}px`;
+    v.width = `${mounted.canvas.offsetWidth}px`;
+    v.height = `${h}px`;
+    v.right = v.bottom = "auto";
+  }
 }
 
 export function dispose3D() {
@@ -915,13 +944,19 @@ function buildBoard(layout, boardDef) {
     }
     return null;
   };
+  // UN SEUL exemplaire de chaque bâtiment-repère par plateau : un parcours
+  // riche en cases Événement plantait autant de fontaines, et le village
+  // finissait en catalogue. La signalétique vraie, c'est la pastille de
+  // couleur et le jeton peint SUR la case ; le bâtiment n'est qu'un décor
+  // qui plante l'ambiance une fois.
+  const batisPoses = new Set();
   for (let i = 0; i < length; i++) {
     const bat = CASE_BUILDING[layout[i]];
-    if (!bat) continue;
+    if (!bat || batisPoses.has(bat.id)) continue;
     const p = positionsCases[i];
     // Derrière d'abord (entre deux rangées), sinon en biais, sinon plus loin.
     const place = placeLibre(p, [[0, -2.05], [2.3, -2.05], [-2.3, -2.05], [0, -4.8], [2.3, -4.8], [-2.3, -4.8]], 1.9);
-    if (place) addBuilding(bat.id, bat.art, place, layout[i] === "arrivee" ? 6.2 : 3.9, epoch);
+    if (place) { addBuilding(bat.id, bat.art, place, layout[i] === "arrivee" ? 6.2 : 3.9, epoch); batisPoses.add(bat.id); }
   }
 
   // Bâtiments et décors d'ambiance aux abords du plateau : ceux du MONDE
@@ -1012,7 +1047,7 @@ function buildBoard(layout, boardDef) {
     // Le PNJ se poste dans un DÉGAGEMENT près de sa case : jamais sur une
     // case ni coincé contre un liseré — sans place libre, il reste en coulisse.
     const place = placeLibre(positionsCases[i], [[1.5, 1.45], [-1.5, 1.45], [1.5, -1.45], [-1.5, -1.45], [0, 1.9]], 1.15);
-    if (place) { boardGroup.add(figStandee(art, place, 2.8)); pnjPostes.add(art); }
+    if (place) { boardGroup.add(figStandee(art, place, ECHELLES.pnjCase.atlas)); pnjPostes.add(art); }
   }
   const FLANEURS = ["assets/figurines/pnj-boubou.webp", "assets/figurines/pnj-groumf.webp", "assets/figurines/pnj-sylvette.webp", "assets/figurines/pnj-coassin.webp", "assets/figurines/pnj-barnabe.webp", "assets/figurines/pnj-ratichon.webp", "assets/figurines/pnj-biscornu.webp", "assets/figurines/pnj-hibou-passage.webp"];
   // Les habitants des CINQ NOUVEAUX MONDES (GEN 2 v5) : deux PNJ nés sur place
@@ -1029,9 +1064,14 @@ function buildBoard(layout, boardDef) {
     ...FLANEURS.map((art) => ({ art, vues: 3 })), // classiques : atlas directionnels
   ];
   const pasFlaneur = 0.88 / Math.max(1, flaneurs.length - 1);
-  flaneurs.forEach((f, i) => boardGroup.add(figStandee(f.art, worldUV(0.06 + pasFlaneur * i, i % 2 ? -0.09 : 1.09, length), 2.6, f.vues)));
+  flaneurs.forEach((f, i) => boardGroup.add(figStandee(
+    f.art,
+    worldUV(0.06 + pasFlaneur * i, i % 2 ? -0.09 : 1.09, length),
+    f.vues === 1 ? ECHELLES.flaneur.vueUnique : ECHELLES.flaneur.atlas,
+    f.vues,
+  )));
   const PROPS = ["assets/objet-coffre.png", "assets/objet-tonneau.png", "assets/objet-torche.png", "assets/objet-cristal.png", "assets/objet-potion.png"];
-  PROPS.forEach((art, i) => boardGroup.add(standee(art, worldUV(0.05 + 0.225 * i, i % 2 ? -0.06 : 1.06, length), 1.35)));
+  PROPS.forEach((art, i) => boardGroup.add(standee(art, worldUV(0.05 + 0.225 * i, i % 2 ? -0.06 : 1.06, length), ECHELLES.prop)));
 
   // Vue d'ensemble : recule assez pour cadrer TOUT le plateau (le joueur voit
   // le plateau global au repos ; la caméra ne se rapproche que pendant un trajet).
@@ -1254,7 +1294,7 @@ function makePionSprite(p) {
     // boucle de rendu choisit ensuite la vue selon la direction de marche.
     const mat = new THREE.SpriteMaterial({ transparent: true });
     obj = new THREE.Sprite(mat);
-    obj.scale.set(1.06, 3.15, 1);
+    obj.scale.set(1.06, ECHELLES.heros, 1); // l'étalon de la table d'échelles
     obj.center.set(0.5, 0);
     const fig = { view: "face", views: {} };
     obj.userData.figurine = fig;
@@ -1328,7 +1368,9 @@ function makePion(p) {
     rec.ring = ring;
   }
   // Ombre portée : ancre la figurine au sol (suivie dans la boucle de rendu).
-  rec.ombre = ombrePortee(0.95);
+  // Même règle que tout le village — collée à la LARGEUR du héros (1,06),
+  // au lieu du rayon fixe 0,95 qui débordait deux fois de la figurine.
+  rec.ombre = ombrePortee(rayonOmbre(1.06));
   rec.ombre.position.y = 0.645;
   pionGroup.add(rec.ombre);
   if (!USE_GLB_HEROES) return rec; // figurine peinte = fidélité garantie
