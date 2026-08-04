@@ -5757,9 +5757,22 @@ function stop() {
 let boundaryCb = null;
 function onSpeechBoundary(cb) { boundaryCb = cb; }
 
+// ANTI-SACCADE : Chrome met la synthèse en pause au milieu des phrases longues
+// (bug connu du moteur) — un resume() périodique pendant la lecture la remet
+// en selle sans effet audible ailleurs. C'est LA cause classique du débit haché.
+let keepAliveTimer = null;
+function keepAlive() {
+  if (keepAliveTimer) return;
+  keepAliveTimer = setInterval(() => {
+    const synth = window.speechSynthesis;
+    if (synth.speaking || synth.pending) synth.resume();
+    else { clearInterval(keepAliveTimer); keepAliveTimer = null; }
+  }, 5000);
+}
+
 function say(text, {
   pitch = 1.05,
-  rate = 0.95,
+  rate = 1.02,
   volume = 1,
   lang = "fr-FR",
   v = 0,
@@ -5778,13 +5791,16 @@ function say(text, {
   if (!queue) { synth.cancel(); stopClips(); }
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = lang;
-  utter.pitch = pitch;
-  utter.rate = rate;
+  // Micro-variations de hauteur et de débit : deux lectures identiques ne
+  // sonnent jamais EXACTEMENT pareil — l'oreille y lit de la vie, pas du robot.
+  utter.pitch = Math.max(0.5, pitch + (Math.random() * 0.05 - 0.025));
+  utter.rate = Math.max(0.5, rate * (0.985 + Math.random() * 0.035));
   utter.volume = volume;
   const fr = frenchVoices(synth);
   if (fr.length > 0) utter.voice = preferredVoice(fr, preferredVoiceHints, v);
   utter.onboundary = (e) => { try { boundaryCb?.(e.charIndex ?? 0, text); } catch { /* jamais bloquant */ } };
   synth.speak(utter);
+  keepAlive();
 }
 
 function frenchVoices(synth) {
@@ -5794,26 +5810,42 @@ function frenchVoices(synth) {
 }
 
 /** Privilégie une voix française locale/naturelle quand le navigateur en offre
- *  plusieurs, avec un index stable comme repli pour les profils de personnages. */
+ *  plusieurs, avec un index stable comme repli pour les profils de personnages.
+ *  Les voix HAUT DE GAMME connues (Siri améliorées, Google, Microsoft) sont
+ *  favorisées nommément ; les moteurs robotiques (eSpeak, variantes
+ *  « compact » iOS) sont pénalisés : c'est le premier levier d'humanisation. */
+const VOIX_SOIGNEES = ["audrey", "amélie", "amelie", "thomas", "marie", "denise", "henri", "vivienne", "eloise", "google français", "google french", "chantal"];
+const VOIX_ROBOTS = ["espeak", "eloquence", "compact", "flo ", "grandma", "grandpa", "albert", "jacques", "zarvox"];
 function preferredVoice(voices, hints, fallbackIndex) {
   const scored = voices.map((voice, index) => {
     const haystack = `${voice.name} ${voice.voiceURI}`.toLowerCase();
     const hintScore = hints.reduce((sum, hint) => sum + (haystack.includes(hint) ? 8 : 0), 0);
+    const soigneeScore = VOIX_SOIGNEES.some((n) => haystack.includes(n)) ? 10 : 0;
+    const robotScore = VOIX_ROBOTS.some((n) => haystack.includes(n)) ? -24 : 0;
+    const premiumScore = /premium|enhanced|améliorée|amelioree|natural|neural/.test(haystack) ? 12 : 0;
     const localScore = voice.localService === false ? -6 : 4;
     const exactFrench = voice.lang.toLowerCase() === "fr-fr" ? 3 : 0;
-    return { voice, index, score: hintScore + localScore + exactFrench };
+    return { voice, index, score: hintScore + soigneeScore + robotScore + premiumScore + localScore + exactFrench };
   });
   scored.sort((a, b) => b.score - a.score || a.index - b.index);
   if (scored[0]?.score > 0) return scored[0].voice;
   return voices[fallbackIndex % voices.length];
 }
 
-/** Rend la ponctuation plus naturelle sans modifier le sens de la question. */
+/** Rend la ponctuation plus naturelle sans modifier le sens de la question :
+ *  les tirets, points-virgules et symboles muets deviennent des respirations
+ *  courtes — moins d'arrêts mécaniques, plus de phrasé. */
 function speechText(text, kind) {
   const clean = String(text)
+    .replace(/[\p{Extended_Pictographic}️‍]/gu, "") // un emoji lu à voix haute casse tout
     .replace(/\s+/g, " ")
     .replace(/\s*\/\s*/g, " ou ")
     .replace(/\(([^)]+)\)/g, ", $1,")
+    .replace(/\s*[—–]\s*/g, ", ")
+    .replace(/\s*;\s*/g, ", ")
+    .replace(/[«»"]/g, "")
+    .replace(/\s*\.{3}\s*/g, "… ")
+    .replace(/,\s*,/g, ",")
     .trim();
   if (kind === "question" && !/[?!.…]$/.test(clean)) return `${clean} ?`;
   return clean;
@@ -5831,9 +5863,11 @@ function audioCueAvailable() {
  *  de synthèse dès qu'elle existe pour ce texte. */
 function cueThenSpeak(cue, text, kind, token) {
   const spokenText = speechText(text, kind);
+  // Tempo VIF demandé à la table : une question se lit d'un trait (1.07),
+  // l'anecdote garde un rien de gourmandise (1.02) — jamais de lenteur.
   const host = kind === "anecdote"
-    ? { ...HOST_PROFILE, pitch: 1.03, rate: 0.96 }
-    : { ...HOST_PROFILE, pitch: 1.08, rate: 0.99 };
+    ? { ...HOST_PROFILE, pitch: 1.03, rate: 1.02 }
+    : { ...HOST_PROFILE, pitch: 1.06, rate: 1.07 };
   const fallback = () => {
     if (token !== speechToken) return;
     activeAudio = null;
@@ -11617,7 +11651,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v114";
+const APP_VERSION = "donjon-v115";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
