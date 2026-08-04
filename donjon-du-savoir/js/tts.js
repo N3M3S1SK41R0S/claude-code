@@ -33,6 +33,7 @@ export function stop() {
   }
   stopClips(); // les répliques enregistrées aussi : le silence est total
   stopDirect();
+  videFileParole(); // les paroles en attente n'ont plus d'objet
   if (voiceAvailable()) window.speechSynthesis.cancel();
 }
 
@@ -205,21 +206,32 @@ export function parleEnCours() {
     || (voiceAvailable() && window.speechSynthesis.speaking);
 }
 
-/** Exécute `cb` au prochain SILENCE TOTAL (tout de suite s'il règne déjà),
- *  avec un plafond : la parole suivante ne reste jamais coincée. Une seule
- *  attente à la fois — la plus récente gagne (l'écran a déjà tourné). */
-let attenteTimer = null;
-export function direQuand(cb, maxMs = 7000) {
-  if (attenteTimer) { clearInterval(attenteTimer); attenteTimer = null; }
-  if (!parleEnCours()) { cb(); return; }
-  const debut = Date.now();
-  attenteTimer = setInterval(() => {
-    if (!parleEnCours() || Date.now() - debut > maxMs) {
-      clearInterval(attenteTimer);
-      attenteTimer = null;
-      cb();
+/** FILE DE PAROLE ordonnée : chaque prise de parole s'exécute au prochain
+ *  silence total, DANS L'ORDRE de dépôt (réaction → question → propositions →
+ *  anecdote), avec un plafond par tour de parole — jamais coincé, jamais
+ *  chevauché. stop() vide la file (l'écran a tourné). */
+let fileParole = [];
+let fileTimer = null;
+let fileDebut = 0;
+function draineFile() {
+  if (fileTimer) return;
+  fileDebut = Date.now();
+  fileTimer = setInterval(() => {
+    if (!fileParole.length) { clearInterval(fileTimer); fileTimer = null; return; }
+    if (!parleEnCours() || Date.now() - fileDebut > 8000) {
+      const cb = fileParole.shift();
+      fileDebut = Date.now();
+      try { cb(); } catch { /* la parole suivante ne meurt jamais d'une erreur */ }
     }
   }, 150);
+}
+export function direQuand(cb) {
+  if (!parleEnCours() && fileParole.length === 0) { cb(); return; }
+  fileParole.push(cb);
+  draineFile();
+}
+export function videFileParole() {
+  fileParole = [];
 }
 
 export function warmVoices() {

@@ -1668,7 +1668,8 @@ function narrateAnecdote(q) {
  *  haute, pour jouer sans regarder l'écran (voiture, canapé, malvoyance). */
 function narrateChoices(choices) {
   if (!getPrefs().oreilles || !Array.isArray(choices) || choices.length < 2) return;
-  say(`Les propositions sont : ${choices.map((c) => String(c)).join(". ")}.`, { queue: true });
+  // Via la FILE DE PAROLE : les propositions attendent la fin de la question.
+  direQuand(() => say(`Les propositions sont : ${choices.map((c) => String(c)).join(". ")}.`, { queue: true }));
 }
 
 // Règle affichée clairement en tête de CHAQUE type de question : comment on

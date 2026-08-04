@@ -5876,6 +5876,7 @@ function stop() {
   }
   stopClips(); // les répliques enregistrées aussi : le silence est total
   stopDirect();
+  videFileParole(); // les paroles en attente n'ont plus d'objet
   if (voiceAvailable()) window.speechSynthesis.cancel();
 }
 
@@ -6048,21 +6049,32 @@ function parleEnCours() {
     || (voiceAvailable() && window.speechSynthesis.speaking);
 }
 
-/** Exécute `cb` au prochain SILENCE TOTAL (tout de suite s'il règne déjà),
- *  avec un plafond : la parole suivante ne reste jamais coincée. Une seule
- *  attente à la fois — la plus récente gagne (l'écran a déjà tourné). */
-let attenteTimer = null;
-function direQuand(cb, maxMs = 7000) {
-  if (attenteTimer) { clearInterval(attenteTimer); attenteTimer = null; }
-  if (!parleEnCours()) { cb(); return; }
-  const debut = Date.now();
-  attenteTimer = setInterval(() => {
-    if (!parleEnCours() || Date.now() - debut > maxMs) {
-      clearInterval(attenteTimer);
-      attenteTimer = null;
-      cb();
+/** FILE DE PAROLE ordonnée : chaque prise de parole s'exécute au prochain
+ *  silence total, DANS L'ORDRE de dépôt (réaction → question → propositions →
+ *  anecdote), avec un plafond par tour de parole — jamais coincé, jamais
+ *  chevauché. stop() vide la file (l'écran a tourné). */
+let fileParole = [];
+let fileTimer = null;
+let fileDebut = 0;
+function draineFile() {
+  if (fileTimer) return;
+  fileDebut = Date.now();
+  fileTimer = setInterval(() => {
+    if (!fileParole.length) { clearInterval(fileTimer); fileTimer = null; return; }
+    if (!parleEnCours() || Date.now() - fileDebut > 8000) {
+      const cb = fileParole.shift();
+      fileDebut = Date.now();
+      try { cb(); } catch { /* la parole suivante ne meurt jamais d'une erreur */ }
     }
   }, 150);
+}
+function direQuand(cb) {
+  if (!parleEnCours() && fileParole.length === 0) { cb(); return; }
+  fileParole.push(cb);
+  draineFile();
+}
+function videFileParole() {
+  fileParole = [];
 }
 
 function warmVoices() {
@@ -6071,7 +6083,7 @@ function warmVoices() {
   window.speechSynthesis.onvoiceschanged = () => frenchVoices(window.speechSynthesis);
 }
 
-;Object.assign(module.exports, {setVoice, voiceEnabled, voiceAvailable, stop, onSpeechBoundary, say, sayHost, parleEnCours, direQuand, warmVoices});
+;Object.assign(module.exports, {setVoice, voiceEnabled, voiceAvailable, stop, onSpeechBoundary, say, sayHost, parleEnCours, direQuand, videFileParole, warmVoices});
 };
 __modules["./sfx.js"] = function(module, exports, require) {
 // Effets sonores SYNTHÉTISÉS (Web Audio) — aucun fichier, hors-ligne, muetables.
@@ -12356,7 +12368,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v128";
+const APP_VERSION = "donjon-v129";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
@@ -14031,7 +14043,8 @@ function narrateAnecdote(q) {
  *  haute, pour jouer sans regarder l'écran (voiture, canapé, malvoyance). */
 function narrateChoices(choices) {
   if (!getPrefs().oreilles || !Array.isArray(choices) || choices.length < 2) return;
-  say(`Les propositions sont : ${choices.map((c) => String(c)).join(". ")}.`, { queue: true });
+  // Via la FILE DE PAROLE : les propositions attendent la fin de la question.
+  direQuand(() => say(`Les propositions sont : ${choices.map((c) => String(c)).join(". ")}.`, { queue: true }));
 }
 
 // Règle affichée clairement en tête de CHAQUE type de question : comment on
