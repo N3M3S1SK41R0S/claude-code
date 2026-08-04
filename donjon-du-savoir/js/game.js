@@ -314,7 +314,20 @@ function render() {
   // Rendu 3D si disponible/activé ; sinon plateau 2D (repli garanti). Si la 3D
   // échoue à l'init, render3D renvoie falsy et on retombe proprement sur le 2D.
   let done3d = false;
-  if (use3D()) { try { done3d = render3D(boardEl, state.board, pv, currentPion().id, def, state.starPos); } catch { done3d = false; } }
+  if (use3D()) {
+    try {
+      done3d = render3D(boardEl, state.board, pv, currentPion().id, def, state.starPos);
+    } catch (e) {
+      // Le repli 2D reste garanti, mais il n'est plus MUET : une panne de la
+      // 3D laisse une trace exploitable (c'est ce silence qui avait masqué
+      // pendant des versions le fait que le fichier autonome restait en 2D).
+      done3d = false;
+      console.warn("Plateau 3D en panne, repli 2D :", e);
+      globalThis.__DONJON_ERREUR_3D = String(e && e.stack ? e.stack : e).slice(0, 400);
+    }
+  } else {
+    globalThis.__DONJON_ERREUR_3D = "use3D() a refusé la 3D (réglage, appareil ou WebGL)";
+  }
   if (!done3d) {
     show3D(false);
     renderBoard(boardEl, state.board, pv, currentPion().id, def, state.starPos);

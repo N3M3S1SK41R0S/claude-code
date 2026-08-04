@@ -11,6 +11,10 @@ const DEFAULTS = {
   animations: "completes", // "completes" | "reduites" — coupe les animations au choix
   gros: false, // texte plus grand pour le confort de lecture
   immersion: true, // saynètes 2.5D + caméra qui suit le pion (façon Mario Party)
+  // Plateau 3D : « toujours » (défaut — c'est le cœur visuel du jeu, aucun
+  // repli automatique), « auto » (le jeu repasse en 2D si l'appareil peine
+  // vraiment), « jamais » (plateau 2D peint, le plus économe).
+  plateau3d: "toujours",
   humour: "complice", // « sobre » | « complice » | « cabaret » — dose de second degré du Héraut
   langue: "fr-FR", // pack de langue actif (voir data/langues.json)
   tempo: "tranquille", // rythme des enchaînements : tranquille | vif | fiesta
@@ -25,7 +29,13 @@ let prefs = { ...DEFAULTS };
 export function loadPrefs() {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY));
-    if (raw && typeof raw === "object") prefs = { ...DEFAULTS, ...raw };
+    if (raw && typeof raw === "object") {
+      prefs = { ...DEFAULTS, ...raw };
+      // MIGRATION : avant, un seul réglage (« Vue immersive ») commandait à la
+      // fois le plateau 3D et les saynètes. Qui l'avait décoché voulait le
+      // plateau 2D : on honore ce choix en le traduisant une fois pour toutes.
+      if (raw.immersion === false && raw.plateau3d === undefined) prefs.plateau3d = "jamais";
+    }
   } catch { /* mode privé : valeurs par défaut */ }
   applyPrefs();
   return prefs;

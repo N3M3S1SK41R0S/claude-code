@@ -7,7 +7,7 @@ import { BOARDS, boardById, deleteCustomBoard, generateBoard, loadCustomBoards, 
 import { openReference, resumeGame, startGame } from "./game.js";
 import { AGE_BRACKETS, archiveCurrent, BONUS_STAR_POOL, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, deleteArchive, getState, listArchives, loadSave, newGame, restoreArchive, youngestBracket } from "./state.js";
 import { portraitEl } from "./portraits.js";
-import { FIGURINE_ATLAS } from "./board3d.js";
+import { FIGURINE_ATLAS, redonneChance3D } from "./board3d.js";
 import { APP_VERSION } from "./version.js";
 import { POWERS } from "./powers.js";
 import { say, setVoice, stop, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
@@ -1303,7 +1303,11 @@ function renderReglages() {
       seg(oui_non, p.gros, (v) => setPref("gros", v))),
     row("🌈 Mode daltonien", "Bonne réponse en bleu, coup dur en orange (au lieu de vert / rouge).",
       seg(oui_non, p.daltonien, (v) => setPref("daltonien", v))),
-    row("🎬 Vue immersive (3D)", "Plateau en 3D avec caméra qui suit le pion + saynètes animées (façon Mario Party). Décochez pour le plateau 2D classique. Repli 2D automatique si l'appareil ne gère pas la 3D.",
+    row("🧊 Plateau 3D", "Toujours : le donjon reste en 3D quoi qu'il arrive (recommandé — le moteur baisse la qualité au lieu d'éteindre). Automatique : repasse en 2D si l'appareil peine vraiment. Jamais : plateau 2D peint, le plus économe.",
+      seg([{ val: "toujours", label: "Toujours" }, { val: "auto", label: "Automatique" }, { val: "jamais", label: "Jamais" }],
+        p.plateau3d ?? "toujours",
+        (v) => { setPref("plateau3d", v); redonneChance3D(); if (getState()) { renderReglages(); show("game"); resumeGame(showVictory); } })),
+    row("🎬 Saynètes immersives", "Petites scènes animées et caméra qui suit le pion (façon Mario Party).",
       seg(oui_non, p.immersion !== false, (v) => setPref("immersion", v))),
     ...(langueList().length > 1 ? [
       row("🌍 Langue", "La langue du jeu et de sa banque de questions (rechargement immédiat).",
@@ -1336,6 +1340,15 @@ function blocVoixDirect() {
   const rendre = async () => {
     bloc.innerHTML = "";
     bloc.append(el("p", { class: "reglage-titre", text: "🎙️ Héraut ElevenLabs en direct (option)" }));
+    // QUI LIT, EN CE MOMENT ? La question la plus utile — et la seule qui
+    // manquait : sans clé branchée, les questions passent par la voix de
+    // synthèse du navigateur, et rien ne le disait.
+    bloc.append(el("p", {
+      class: "voixdirect-etat" + (voixDirectActif() ? " voixdirect-etat-on" : ""),
+      text: voixDirectActif()
+        ? "🎙️ Les questions, anecdotes et annonces sont lues par la VRAIE voix du Héraut."
+        : "🔊 Les questions et anecdotes sont lues par la voix de SYNTHÈSE du navigateur. Les répliques fixes du Héraut (accueil, verdicts, cérémonie) gardent, elles, sa vraie voix enregistrée.",
+    }));
     if (!voixDirectConfigure()) {
       bloc.append(el("p", { class: "reglage-desc", text: "La vraie voix du Héraut peut AUSSI lire les questions et anecdotes : collez votre clé API ElevenLabs (elle reste sur cet appareil). Nécessite internet ; chaque question lue est gardée en cache pour toujours — au fil des parties, tout devient hors-ligne. Consomme vos crédits ElevenLabs." }));
       const saisie = el("input", { class: "name-input", type: "password", placeholder: "Clé API ElevenLabs (xi-…)", "aria-label": "Clé API ElevenLabs" });
@@ -1355,10 +1368,21 @@ function blocVoixDirect() {
     } else {
       const acquis = await tailleCache();
       bloc.append(el("p", { class: "reglage-desc", text: `Voix « ${nomVoixDirect()} » branchée. ${acquis} lecture${acquis > 1 ? "s" : ""} déjà en cache définitif sur cet appareil. Hors-ligne, la synthèse assure sans bruit.` }));
+      // Essai à la demande : le Héraut dit une phrase et l'on SAIT à quoi s'en
+      // tenir — plus besoin de lancer une partie pour découvrir un pépin.
+      const essai = el("p", { class: "reglage-desc" });
       bloc.append(el("div", { class: "reglage-control" },
         el("button", { class: "seg-btn" + (voixDirectActif() ? " seg-on" : ""), type: "button", "aria-pressed": String(voixDirectActif()), onclick: () => { setVoixDirect(!voixDirectActif()); rendre(); } }, voixDirectActif() ? "Activée" : "En pause"),
+        el("button", { class: "seg-btn", type: "button", onclick: () => {
+          if (!voixDirectActif()) { essai.textContent = "Activez d'abord l'option ci-contre."; return; }
+          essai.textContent = "Le Héraut prend sa respiration…";
+          const pris = lireEnDirect("Oyez ! Ma vraie voix lit désormais vos questions. Bonne partie !", {
+            onEchec: () => { essai.textContent = "✗ La vraie voix n'a pas répondu (internet coupé, quota épuisé ou clé refusée). La synthèse prend le relais."; },
+          });
+          if (pris) setTimeout(() => { if (essai.textContent.startsWith("Le Héraut")) essai.textContent = "✓ Vous venez d'entendre la vraie voix du Héraut."; }, 2600);
+        } }, "🔎 Écouter un essai"),
         el("button", { class: "seg-btn", type: "button", onclick: () => { oublierCle(); rendre(); } }, "Oublier la clé"),
-      ));
+      ), essai);
     }
   };
   rendre();

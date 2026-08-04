@@ -1160,6 +1160,17 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 .minimap svg { display: block; width: 100%; height: auto; }
 
+/* Qui lit les questions, en ce moment ? (bloc Réglages de la voix directe) */
+.voixdirect-etat {
+  font-size: 0.9rem; line-height: 1.4; border-radius: 0.7rem;
+  padding: 0.5rem 0.75rem; margin: 0.35rem 0;
+  background: var(--stone); border-left: 4px solid var(--soft);
+}
+.voixdirect-etat-on {
+  background: color-mix(in srgb, var(--gold) 16%, var(--stone));
+  border-left-color: var(--gold);
+}
+
 /* PLEIN ÉCRAN ≥ 1100 px — ce bloc DOIT rester après les règles de base
    ci-dessus (même spécificité : l'ordre décide, et c'est lui qui gagne).
    ⚠ Le plafond de 760 px sur le canvas 3D écrasait l'image : le tampon de

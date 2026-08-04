@@ -1161,6 +1161,17 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 .minimap svg { display: block; width: 100%; height: auto; }
 
+/* Qui lit les questions, en ce moment ? (bloc Réglages de la voix directe) */
+.voixdirect-etat {
+  font-size: 0.9rem; line-height: 1.4; border-radius: 0.7rem;
+  padding: 0.5rem 0.75rem; margin: 0.35rem 0;
+  background: var(--stone); border-left: 4px solid var(--soft);
+}
+.voixdirect-etat-on {
+  background: color-mix(in srgb, var(--gold) 16%, var(--stone));
+  border-left-color: var(--gold);
+}
+
 /* PLEIN ÉCRAN ≥ 1100 px — ce bloc DOIT rester après les règles de base
    ci-dessus (même spécificité : l'ordre décide, et c'est lui qui gagne).
    ⚠ Le plafond de 760 px sur le canvas 3D écrasait l'image : le tampon de
@@ -6734,6 +6745,10 @@ const DEFAULTS = {
   animations: "completes", // "completes" | "reduites" — coupe les animations au choix
   gros: false, // texte plus grand pour le confort de lecture
   immersion: true, // saynètes 2.5D + caméra qui suit le pion (façon Mario Party)
+  // Plateau 3D : « toujours » (défaut — c'est le cœur visuel du jeu, aucun
+  // repli automatique), « auto » (le jeu repasse en 2D si l'appareil peine
+  // vraiment), « jamais » (plateau 2D peint, le plus économe).
+  plateau3d: "toujours",
   humour: "complice", // « sobre » | « complice » | « cabaret » — dose de second degré du Héraut
   langue: "fr-FR", // pack de langue actif (voir data/langues.json)
   tempo: "tranquille", // rythme des enchaînements : tranquille | vif | fiesta
@@ -6748,7 +6763,13 @@ let prefs = { ...DEFAULTS };
 function loadPrefs() {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY));
-    if (raw && typeof raw === "object") prefs = { ...DEFAULTS, ...raw };
+    if (raw && typeof raw === "object") {
+      prefs = { ...DEFAULTS, ...raw };
+      // MIGRATION : avant, un seul réglage (« Vue immersive ») commandait à la
+      // fois le plateau 3D et les saynètes. Qui l'avait décoché voulait le
+      // plateau 2D : on honore ce choix en le traduisant une fois pour toutes.
+      if (raw.immersion === false && raw.plateau3d === undefined) prefs.plateau3d = "jamais";
+    }
   } catch { /* mode privé : valeurs par défaut */ }
   applyPrefs();
   return prefs;
@@ -10510,8 +10531,16 @@ function webglAvailable() {
  *  mouvements réduits ou appareil très contraint gardent le plateau 2D. */
 function use3D() {
   if (globalThis.__DONJON_TEST) return false;
-  if (runtime3DDisabled) return false;
   const prefs = getPrefs();
+  const mode = prefs.plateau3d ?? "toujours";
+  if (mode === "jamais") return false;
+  // Mode TOUJOURS (défaut) : le plateau 3D est le cœur visuel du jeu. Aucun
+  // repli automatique, aucune supposition sur l'appareil — seul WebGL peut
+  // encore dire non. Un plateau au tour par tour reste splendide même à
+  // quinze images par seconde ; le moteur baisse la qualité, il n'éteint pas.
+  if (mode === "toujours") return webglAvailable();
+  // Mode AUTOMATIQUE : le confort et l'autonomie passent devant.
+  if (runtime3DDisabled) return false;
   if (prefs.immersion === false || prefs.animations === "reduites") return false;
   if (globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return false;
   if (Number(navigator.deviceMemory || 4) <= 2) return false;
@@ -12024,6 +12053,10 @@ function watchPerformance(now) {
     resize();
     return;
   }
+  // En mode « toujours » (défaut), le moteur a DÉJÀ fait ce qu'il devait :
+  // baisser la qualité. Il n'éteint jamais la 3D — c'est le choix du joueur,
+  // pas celui d'un compteur d'images.
+  if ((getPrefs().plateau3d ?? "toujours") !== "auto") return;
   if (fps >= 20) { lowFpsWindows = 0; return; }
   lowFpsWindows += 1;
   // 3 fenêtres CONSÉCUTIVES sous 20 FPS (~7,5 s, qualité déjà réduite) avant
@@ -12613,7 +12646,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v138";
+const APP_VERSION = "donjon-v139";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
@@ -12934,7 +12967,20 @@ function render() {
   // Rendu 3D si disponible/activé ; sinon plateau 2D (repli garanti). Si la 3D
   // échoue à l'init, render3D renvoie falsy et on retombe proprement sur le 2D.
   let done3d = false;
-  if (use3D()) { try { done3d = render3D(boardEl, state.board, pv, currentPion().id, def, state.starPos); } catch { done3d = false; } }
+  if (use3D()) {
+    try {
+      done3d = render3D(boardEl, state.board, pv, currentPion().id, def, state.starPos);
+    } catch (e) {
+      // Le repli 2D reste garanti, mais il n'est plus MUET : une panne de la
+      // 3D laisse une trace exploitable (c'est ce silence qui avait masqué
+      // pendant des versions le fait que le fichier autonome restait en 2D).
+      done3d = false;
+      console.warn("Plateau 3D en panne, repli 2D :", e);
+      globalThis.__DONJON_ERREUR_3D = String(e && e.stack ? e.stack : e).slice(0, 400);
+    }
+  } else {
+    globalThis.__DONJON_ERREUR_3D = "use3D() a refusé la 3D (réglage, appareil ou WebGL)";
+  }
   if (!done3d) {
     show3D(false);
     renderBoard(boardEl, state.board, pv, currentPion().id, def, state.starPos);
@@ -16207,7 +16253,7 @@ const { BOARDS, boardById, deleteCustomBoard, generateBoard, loadCustomBoards, m
 const { openReference, resumeGame, startGame } = require("./game.js");
 const { AGE_BRACKETS, archiveCurrent, BONUS_STAR_POOL, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, deleteArchive, getState, listArchives, loadSave, newGame, restoreArchive, youngestBracket } = require("./state.js");
 const { portraitEl } = require("./portraits.js");
-const { FIGURINE_ATLAS } = require("./board3d.js");
+const { FIGURINE_ATLAS, redonneChance3D } = require("./board3d.js");
 const { APP_VERSION } = require("./version.js");
 const { POWERS } = require("./powers.js");
 const { say, setVoice, stop, voiceAvailable, voiceEnabled, warmVoices } = require("./tts.js");
@@ -17503,7 +17549,11 @@ function renderReglages() {
       seg(oui_non, p.gros, (v) => setPref("gros", v))),
     row("🌈 Mode daltonien", "Bonne réponse en bleu, coup dur en orange (au lieu de vert / rouge).",
       seg(oui_non, p.daltonien, (v) => setPref("daltonien", v))),
-    row("🎬 Vue immersive (3D)", "Plateau en 3D avec caméra qui suit le pion + saynètes animées (façon Mario Party). Décochez pour le plateau 2D classique. Repli 2D automatique si l'appareil ne gère pas la 3D.",
+    row("🧊 Plateau 3D", "Toujours : le donjon reste en 3D quoi qu'il arrive (recommandé — le moteur baisse la qualité au lieu d'éteindre). Automatique : repasse en 2D si l'appareil peine vraiment. Jamais : plateau 2D peint, le plus économe.",
+      seg([{ val: "toujours", label: "Toujours" }, { val: "auto", label: "Automatique" }, { val: "jamais", label: "Jamais" }],
+        p.plateau3d ?? "toujours",
+        (v) => { setPref("plateau3d", v); redonneChance3D(); if (getState()) { renderReglages(); show("game"); resumeGame(showVictory); } })),
+    row("🎬 Saynètes immersives", "Petites scènes animées et caméra qui suit le pion (façon Mario Party).",
       seg(oui_non, p.immersion !== false, (v) => setPref("immersion", v))),
     ...(langueList().length > 1 ? [
       row("🌍 Langue", "La langue du jeu et de sa banque de questions (rechargement immédiat).",
@@ -17536,6 +17586,15 @@ function blocVoixDirect() {
   const rendre = async () => {
     bloc.innerHTML = "";
     bloc.append(el("p", { class: "reglage-titre", text: "🎙️ Héraut ElevenLabs en direct (option)" }));
+    // QUI LIT, EN CE MOMENT ? La question la plus utile — et la seule qui
+    // manquait : sans clé branchée, les questions passent par la voix de
+    // synthèse du navigateur, et rien ne le disait.
+    bloc.append(el("p", {
+      class: "voixdirect-etat" + (voixDirectActif() ? " voixdirect-etat-on" : ""),
+      text: voixDirectActif()
+        ? "🎙️ Les questions, anecdotes et annonces sont lues par la VRAIE voix du Héraut."
+        : "🔊 Les questions et anecdotes sont lues par la voix de SYNTHÈSE du navigateur. Les répliques fixes du Héraut (accueil, verdicts, cérémonie) gardent, elles, sa vraie voix enregistrée.",
+    }));
     if (!voixDirectConfigure()) {
       bloc.append(el("p", { class: "reglage-desc", text: "La vraie voix du Héraut peut AUSSI lire les questions et anecdotes : collez votre clé API ElevenLabs (elle reste sur cet appareil). Nécessite internet ; chaque question lue est gardée en cache pour toujours — au fil des parties, tout devient hors-ligne. Consomme vos crédits ElevenLabs." }));
       const saisie = el("input", { class: "name-input", type: "password", placeholder: "Clé API ElevenLabs (xi-…)", "aria-label": "Clé API ElevenLabs" });
@@ -17555,10 +17614,21 @@ function blocVoixDirect() {
     } else {
       const acquis = await tailleCache();
       bloc.append(el("p", { class: "reglage-desc", text: `Voix « ${nomVoixDirect()} » branchée. ${acquis} lecture${acquis > 1 ? "s" : ""} déjà en cache définitif sur cet appareil. Hors-ligne, la synthèse assure sans bruit.` }));
+      // Essai à la demande : le Héraut dit une phrase et l'on SAIT à quoi s'en
+      // tenir — plus besoin de lancer une partie pour découvrir un pépin.
+      const essai = el("p", { class: "reglage-desc" });
       bloc.append(el("div", { class: "reglage-control" },
         el("button", { class: "seg-btn" + (voixDirectActif() ? " seg-on" : ""), type: "button", "aria-pressed": String(voixDirectActif()), onclick: () => { setVoixDirect(!voixDirectActif()); rendre(); } }, voixDirectActif() ? "Activée" : "En pause"),
+        el("button", { class: "seg-btn", type: "button", onclick: () => {
+          if (!voixDirectActif()) { essai.textContent = "Activez d'abord l'option ci-contre."; return; }
+          essai.textContent = "Le Héraut prend sa respiration…";
+          const pris = lireEnDirect("Oyez ! Ma vraie voix lit désormais vos questions. Bonne partie !", {
+            onEchec: () => { essai.textContent = "✗ La vraie voix n'a pas répondu (internet coupé, quota épuisé ou clé refusée). La synthèse prend le relais."; },
+          });
+          if (pris) setTimeout(() => { if (essai.textContent.startsWith("Le Héraut")) essai.textContent = "✓ Vous venez d'entendre la vraie voix du Héraut."; }, 2600);
+        } }, "🔎 Écouter un essai"),
         el("button", { class: "seg-btn", type: "button", onclick: () => { oublierCle(); rendre(); } }, "Oublier la clé"),
-      ));
+      ), essai);
     }
   };
   rendre();

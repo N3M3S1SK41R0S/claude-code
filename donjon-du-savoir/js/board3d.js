@@ -34,8 +34,16 @@ export function webglAvailable() {
  *  mouvements réduits ou appareil très contraint gardent le plateau 2D. */
 export function use3D() {
   if (globalThis.__DONJON_TEST) return false;
-  if (runtime3DDisabled) return false;
   const prefs = getPrefs();
+  const mode = prefs.plateau3d ?? "toujours";
+  if (mode === "jamais") return false;
+  // Mode TOUJOURS (défaut) : le plateau 3D est le cœur visuel du jeu. Aucun
+  // repli automatique, aucune supposition sur l'appareil — seul WebGL peut
+  // encore dire non. Un plateau au tour par tour reste splendide même à
+  // quinze images par seconde ; le moteur baisse la qualité, il n'éteint pas.
+  if (mode === "toujours") return webglAvailable();
+  // Mode AUTOMATIQUE : le confort et l'autonomie passent devant.
+  if (runtime3DDisabled) return false;
   if (prefs.immersion === false || prefs.animations === "reduites") return false;
   if (globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return false;
   if (Number(navigator.deviceMemory || 4) <= 2) return false;
@@ -1548,6 +1556,10 @@ function watchPerformance(now) {
     resize();
     return;
   }
+  // En mode « toujours » (défaut), le moteur a DÉJÀ fait ce qu'il devait :
+  // baisser la qualité. Il n'éteint jamais la 3D — c'est le choix du joueur,
+  // pas celui d'un compteur d'images.
+  if ((getPrefs().plateau3d ?? "toujours") !== "auto") return;
   if (fps >= 20) { lowFpsWindows = 0; return; }
   lowFpsWindows += 1;
   // 3 fenêtres CONSÉCUTIVES sous 20 FPS (~7,5 s, qualité déjà réduite) avant
