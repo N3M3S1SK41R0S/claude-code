@@ -142,8 +142,11 @@ try {
     // Même toilettage que speechText (guillemets et émojis retirés) pour que
     // l'aiguille corresponde au texte réellement envoyé à la voix.
     const debut = question.replace(/[\p{Extended_Pictographic}«»"]/gu, "").replace(/\s+/g, " ").trim().split(" ").slice(0, 3).join(" ");
-    const lue = await attend(() => ttsTexts.some((t) => t.includes(debut)), 45000);
+    // 90 s : la file de parole joue accroches et réactions en temps réel avant
+    // la question — les tirages les plus bavards dépassent 45 s.
+    const lue = await attend(() => ttsTexts.some((t) => t.includes(debut)), 90000);
     check(`la question est LUE par la voix du Héraut en direct (${ttsTexts.length} appels au total)`, lue);
+    if (!lue) for (const t of ttsTexts) console.log("  [tts]", t.slice(0, 90));
   } else {
     check("la question est LUE par la voix du Héraut en direct", false);
   }

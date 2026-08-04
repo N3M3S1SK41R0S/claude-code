@@ -3411,7 +3411,7 @@
    "niveau_age": "adulte",
    "difficulte": 5,
    "format": "qcm",
-   "texte": "Quel pays s'étale sur le plus grand nombre de fuseaux horaires, territoires compris ?",
+   "texte": "Quel pays s'étale sur le plus grand nombre de fuseaux horaires, outre-mer compris ?",
    "anecdote": "Grâce à ses territoires d'outre-mer, la France couvre 12 fuseaux horaires, soit plus qu'aucun autre pays au monde, devant la Russie et les États-Unis.",
    "sources": [
     "https://fr.wikipedia.org/wiki/Heure_en_France",
@@ -6887,7 +6887,7 @@
    "niveau_age": "ado",
    "difficulte": 3,
    "format": "vrai_faux",
-   "texte": "Le Sahara est le plus grand désert du monde.",
+   "texte": "Le Sahara est le plus grand désert du monde, déserts froids compris.",
    "anecdote": "Un désert se définit par l'aridité, pas par la chaleur : l'Antarctique, avec environ 14 millions de km², est le plus grand désert du monde. Le Sahara n'est « que » le plus grand désert chaud.",
    "sources": [
     "https://fr.wikipedia.org/wiki/D%C3%A9sert",
@@ -10676,7 +10676,7 @@
    "niveau_age": "adulte",
    "difficulte": 4,
    "format": "qcm",
-   "texte": "Quel est le plus grand désert du monde ?",
+   "texte": "Quel est le plus grand désert du monde, déserts froids compris ?",
    "anecdote": "Un désert se définit par son manque de précipitations, pas par sa chaleur : le Sahara n'est 'que' le plus grand désert chaud.",
    "sources": [
     "https://fr.wikipedia.org/wiki/Antarctique",
@@ -11297,7 +11297,7 @@
    "niveau_age": "adulte",
    "difficulte": 4,
    "format": "qcm",
-   "texte": "Quel pays a le plus grand nombre de fuseaux horaires sur son territoire ?",
+   "texte": "Quel pays compte le plus grand nombre de fuseaux horaires, en comptant ses territoires d'outre-mer ?",
    "anecdote": "Grâce à ses territoires d'outre-mer, de la Polynésie française (UTC−10) aux îles de l'océan Indien, la France couvre 12 fuseaux horaires (13 en comptant sa base en Antarctique), un record mondial devant la Russie et ses 11 fuseaux.",
    "sources": [
     "https://en.wikipedia.org/wiki/Time_in_France",
@@ -12129,7 +12129,7 @@
    "niveau_age": "adulte",
    "difficulte": 5,
    "format": "qcm",
-   "texte": "Quel pays couvre le plus grand nombre de fuseaux horaires au monde ?",
+   "texte": "Quel pays couvre le plus grand nombre de fuseaux horaires au monde, outre-mer compris ?",
    "anecdote": "Grâce à ses territoires d'outre-mer répartis sur tous les océans, la France s'étend sur 12 fuseaux horaires (de UTC−10 en Polynésie à UTC+12 à Wallis-et-Futuna), devançant la Russie et les États-Unis qui en comptent 11 chacun.",
    "sources": [
     "https://fr.wikipedia.org/wiki/Heure_en_France",
@@ -15458,7 +15458,7 @@
    "niveau_age": "adulte",
    "difficulte": 4,
    "format": "qcm",
-   "texte": "Quel pays s'étend sur le plus grand nombre de fuseaux horaires au monde ?",
+   "texte": "Quel pays s'étend sur le plus grand nombre de fuseaux horaires au monde, grâce à ses territoires d'outre-mer ?",
    "anecdote": "Grâce à ses territoires d'outre-mer, la France couvre 12 fuseaux horaires (de UTC−10 à Tahiti à UTC+12 à Wallis-et-Futuna), soit 13 en comptant sa revendication en Terre Adélie ; la Russie et les États-Unis en comptent 11.",
    "sources": [
     "https://www.guinnessworldrecords.com/world-records/584626-country-with-the-most-time-zones",
@@ -40444,7 +40444,7 @@
    "niveau_age": "adulte",
    "difficulte": 3,
    "format": "qcm",
-   "texte": "Quel est le plus grand lac naturel situé entièrement en France ?",
+   "texte": "Quel est, en superficie, le plus grand lac naturel entièrement situé en France ?",
    "anecdote": "Le Léman est bien plus vaste mais partagé avec la Suisse, et Serre-Ponçon est un lac artificiel de barrage. Le Bourget, en Savoie, reste donc le plus grand lac naturel intégralement français.",
    "sources": [
     "https://fr.wikipedia.org/wiki/Lac_du_Bourget",
@@ -51660,7 +51660,7 @@
    "niveau_age": "adulte",
    "difficulte": 3,
    "format": "qcm",
-   "texte": "Quel pays compte le plus grand nombre de fuseaux horaires au monde, avec douze au total ?",
+   "texte": "Quel pays compte le plus grand nombre de fuseaux horaires au monde — douze au total, outre-mer compris ?",
    "anecdote": "Grâce à ses territoires d'outre-mer, de la Polynésie française à Wallis-et-Futuna, la France s'étend sur douze fuseaux horaires, devant la Russie, qui en compte onze.",
    "sources": [
     "https://en.wikipedia.org/wiki/Time_in_France",
@@ -55504,7 +55504,7 @@
    "niveau_age": "tout_petit",
    "difficulte": 1,
    "format": "vrai_faux",
-   "texte": "Dans un dessin animé, les images ne bougent jamais.",
+   "texte": "Dans un dessin animé, on voit des images qui bougent.",
    "anecdote": "Les images défilent très vite, alors tout semble bouger.",
    "sources": [
     "https://fr.wikipedia.org/wiki/Animation",
@@ -55514,7 +55514,7 @@
     "Vrai",
     "Faux"
    ],
-   "bonne_reponse": "Faux"
+   "bonne_reponse": "Vrai"
   },
   {
    "id": "add-1481",
@@ -68179,7 +68179,7 @@
    "niveau_age": "ado",
    "difficulte": 1,
    "format": "qcm",
-   "texte": "Code Lyoko, diffusée à partir de 2003 dans les programmes jeunesse de France 3, est une série produite dans quel pays ?",
+   "texte": "Code Lyoko, série d'animation pour la jeunesse lancée en 2003, a été produite dans quel pays ?",
    "anecdote": "Mélangeant animation 2D et images de synthèse, la série a connu un grand succès international, notamment sur Cartoon Network aux États-Unis.",
    "sources": [
     "https://fr.wikipedia.org/wiki/Code_Lyoko",
