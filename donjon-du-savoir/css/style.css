@@ -453,10 +453,10 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   object-fit: contain;
   pointer-events: none;
   opacity: 0.96;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(4px 6px 7px rgba(10, 6, 20, 0.5));
 }
 /* Décor peint posé sur l'emoji (repli si l'image manque). */
-.decor-art { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 1.7em; height: 1.7em; object-fit: contain; }
+.decor-art { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 1.7em; height: 1.7em; object-fit: contain; filter: drop-shadow(2px 3px 3px rgba(10, 6, 20, 0.4)); }
 
 .case {
   position: absolute;
@@ -492,7 +492,7 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .case-arrivee { box-shadow: 0 0 18px rgba(224, 176, 74, 0.65), inset 0 -3px 5px rgba(0, 0, 0, 0.3); }
 .case-gambit { box-shadow: 0 0 12px rgba(62, 184, 194, 0.5), inset 0 -3px 5px rgba(0, 0, 0, 0.3); }
 /* Jeton peint posé par-dessus la pastille (emoji en repli si l'image manque). */
-.case-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.case-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(244, 236, 216, 0.22), 2px 3px 5px rgba(10, 6, 20, 0.45); }
 
 .landmark {
   position: absolute;
@@ -554,9 +554,9 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 .pion-fig > * { rotate: none; }
 .pion-fig .pion-emoji { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-.pion-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.55)); }
+.pion-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(3px 4px 4px rgba(10, 6, 20, 0.55)); }
 .pion-fig.pion-actif { box-shadow: none; }
-.pion-fig.pion-actif .pion-art { filter: drop-shadow(0 0 5px var(--gold)) drop-shadow(0 0 9px var(--gold)) drop-shadow(0 3px 4px rgba(0, 0, 0, 0.55)); }
+.pion-fig.pion-actif .pion-art { filter: drop-shadow(0 0 5px var(--gold)) drop-shadow(0 0 9px var(--gold)) drop-shadow(3px 4px 4px rgba(10, 6, 20, 0.55)); }
 .pion-actif {
   box-shadow: 0 0 0 3px var(--gold), 0 4px 10px rgba(0, 0, 0, 0.6);
   z-index: 3;
@@ -778,7 +778,7 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .btn-item-text { flex: 1; }
 .item-icon { position: relative; flex-shrink: 0; width: 46px; height: 46px; display: inline-flex; align-items: center; justify-content: center; }
 .item-emoji { font-size: 1.5rem; }
-.item-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4)); }
+.item-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 3px 3px rgba(10, 6, 20, 0.4)); }
 /* Réglages : ligne d'un bot (fond légèrement teinté), boutons d'ajout côte à côte. */
 .setup-row-bot { background: color-mix(in srgb, var(--gold) 8%, transparent); border-radius: 12px; padding: 0.25rem; }
 .setup-add-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
@@ -1042,6 +1042,18 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   border-radius: 18px; border: 2px solid var(--line);
   background: linear-gradient(160deg, #241a45 0%, #1a1230 55%, #150e28 100%);
   touch-action: pan-y;
+}
+
+/* Vignette du diorama : un léger assombrissement des bords soude la scène 3D
+   (héros, PNJ, maquettes, cases) en UN tableau — même cadre pour tout. */
+.board3d-vignette {
+  position: absolute;
+  inset: 0;
+  margin-inline: auto;
+  max-width: 760px;
+  border-radius: 18px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 42%, transparent 58%, rgba(10, 6, 20, 0.34) 100%);
 }
 
 /* ---------- mini-carte (vue d'ensemble en mode 3D) ---------- */

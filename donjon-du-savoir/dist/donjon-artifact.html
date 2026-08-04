@@ -454,10 +454,10 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   object-fit: contain;
   pointer-events: none;
   opacity: 0.96;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(4px 6px 7px rgba(10, 6, 20, 0.5));
 }
 /* Décor peint posé sur l'emoji (repli si l'image manque). */
-.decor-art { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 1.7em; height: 1.7em; object-fit: contain; }
+.decor-art { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 1.7em; height: 1.7em; object-fit: contain; filter: drop-shadow(2px 3px 3px rgba(10, 6, 20, 0.4)); }
 
 .case {
   position: absolute;
@@ -493,7 +493,7 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .case-arrivee { box-shadow: 0 0 18px rgba(224, 176, 74, 0.65), inset 0 -3px 5px rgba(0, 0, 0, 0.3); }
 .case-gambit { box-shadow: 0 0 12px rgba(62, 184, 194, 0.5), inset 0 -3px 5px rgba(0, 0, 0, 0.3); }
 /* Jeton peint posé par-dessus la pastille (emoji en repli si l'image manque). */
-.case-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.case-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(244, 236, 216, 0.22), 2px 3px 5px rgba(10, 6, 20, 0.45); }
 
 .landmark {
   position: absolute;
@@ -555,9 +555,9 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 .pion-fig > * { rotate: none; }
 .pion-fig .pion-emoji { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
-.pion-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.55)); }
+.pion-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(3px 4px 4px rgba(10, 6, 20, 0.55)); }
 .pion-fig.pion-actif { box-shadow: none; }
-.pion-fig.pion-actif .pion-art { filter: drop-shadow(0 0 5px var(--gold)) drop-shadow(0 0 9px var(--gold)) drop-shadow(0 3px 4px rgba(0, 0, 0, 0.55)); }
+.pion-fig.pion-actif .pion-art { filter: drop-shadow(0 0 5px var(--gold)) drop-shadow(0 0 9px var(--gold)) drop-shadow(3px 4px 4px rgba(10, 6, 20, 0.55)); }
 .pion-actif {
   box-shadow: 0 0 0 3px var(--gold), 0 4px 10px rgba(0, 0, 0, 0.6);
   z-index: 3;
@@ -779,7 +779,7 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .btn-item-text { flex: 1; }
 .item-icon { position: relative; flex-shrink: 0; width: 46px; height: 46px; display: inline-flex; align-items: center; justify-content: center; }
 .item-emoji { font-size: 1.5rem; }
-.item-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.4)); }
+.item-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(2px 3px 3px rgba(10, 6, 20, 0.4)); }
 /* Réglages : ligne d'un bot (fond légèrement teinté), boutons d'ajout côte à côte. */
 .setup-row-bot { background: color-mix(in srgb, var(--gold) 8%, transparent); border-radius: 12px; padding: 0.25rem; }
 .setup-add-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
@@ -1043,6 +1043,18 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   border-radius: 18px; border: 2px solid var(--line);
   background: linear-gradient(160deg, #241a45 0%, #1a1230 55%, #150e28 100%);
   touch-action: pan-y;
+}
+
+/* Vignette du diorama : un léger assombrissement des bords soude la scène 3D
+   (héros, PNJ, maquettes, cases) en UN tableau — même cadre pour tout. */
+.board3d-vignette {
+  position: absolute;
+  inset: 0;
+  margin-inline: auto;
+  max-width: 760px;
+  border-radius: 18px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 42%, transparent 58%, rgba(10, 6, 20, 0.34) 100%);
 }
 
 /* ---------- mini-carte (vue d'ensemble en mode 3D) ---------- */
@@ -10239,6 +10251,7 @@ const SPAN = 26; // largeur du plateau en unités-monde
 let R = null; // renderer
 let scene = null, camera = null, raf = null;
 let boardGroup = null, pionGroup = null, effectGroup = null, starMesh = null;
+let lumHemi = null, lumRim = null; // lumières partagées, reteintées par monde
 let builtSig = null;
 const pionObjs = new Map(); // id -> { obj, target:THREE.Vector3, walk:[Vector3]|null, wi:0 }
 // FIDÉLITÉ TRAIT POUR TRAIT : les personnages sont les FIGURINES PEINTES de
@@ -10505,11 +10518,19 @@ function emojiTexture(emoji) {
 
 /** Panneau debout (billboard) posé au sol en `pos`, haut de `height` unités. */
 function standee(art, pos, height) {
+  // HARMONIE : chaque œuvre peinte (bâtiment, objet, torche) touche le sol par
+  // la MÊME ombre douce que les figurines — plus d'éléments qui « flottent »,
+  // tout le village partage le même contact au sol.
+  const g = new THREE.Group();
   const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: loadTex(art), transparent: true, depthWrite: false }));
   spr.center.set(0.5, 0);
   spr.scale.set(height * 0.92, height, 1);
-  spr.position.copy(pos);
-  return spr;
+  g.add(spr);
+  const ombre = ombrePortee(height * 0.3);
+  ombre.position.y = 0.02;
+  g.add(ombre);
+  g.position.copy(pos);
+  return g;
 }
 
 // Fond peint du donjon (thème) posé en toile de fond de la scène 3D.
@@ -10770,7 +10791,8 @@ function init3D(hostBoard) {
     const heure = new Date().getHours();
     const nuit = heure >= 21 || heure < 7;
     const soir = !nuit && heure >= 18;
-    scene.add(new THREE.HemisphereLight(nuit ? 0xbcc8ff : 0xffe8c6, 0x25183e, nuit ? 0.52 : 0.68));
+    lumHemi = new THREE.HemisphereLight(nuit ? 0xbcc8ff : 0xffe8c6, 0x25183e, nuit ? 0.52 : 0.68);
+    scene.add(lumHemi);
     const key = new THREE.DirectionalLight(nuit ? 0xa8b8ff : soir ? 0xffd9a0 : 0xfff0d8, nuit ? 0.82 : soir ? 1.2 : 1.1);
     key.position.set(-14, 26, 12);
     if (soir) key.position.set(-20, 15, 16); // soleil bas et doré du soir
@@ -10783,9 +10805,15 @@ function init3D(hostBoard) {
     key.shadow.bias = -0.00035;
     key.shadow.normalBias = 0.025;
     scene.add(key);
-    const rim = new THREE.DirectionalLight(0x8e6cff, 0.4);
-    rim.position.set(16, 10, -14);
-    scene.add(rim);
+    lumRim = new THREE.DirectionalLight(0x8e6cff, 0.4);
+    lumRim.position.set(16, 10, -14);
+    scene.add(lumRim);
+    // Vignette douce par-dessus le canvas : cadre l'ensemble comme un diorama.
+    const vignette = document.createElement("div");
+    vignette.className = "board3d-vignette";
+    vignette.style.display = "none";
+    host.insertBefore(vignette, canvas.nextSibling);
+    mounted.vignette = vignette;
 
     boardGroup = new THREE.Group();
     pionGroup = new THREE.Group();
@@ -10861,6 +10889,7 @@ function dispose3D() {
 function show3D(on) {
   if (mounted) {
     mounted.canvas.style.display = on ? "block" : "none";
+    if (mounted.vignette) mounted.vignette.style.display = on ? "block" : "none";
     mounted.hostBoard.style.display = on ? "none" : "";
     if (minimapEl) minimapEl.style.display = on ? "block" : "none";
     if (camBtn) camBtn.style.display = on ? "block" : "none";
@@ -10922,6 +10951,15 @@ function buildBoard(layout, boardDef) {
   sceneEpoch += 1;
   const epoch = sceneEpoch;
   upgradeSky(boardDef.theme, epoch); // dôme de ciel peint GEN 2 (repli : cubemap)
+  // UNE SEULE LUMIÈRE POUR TOUT LE MONDE : brume, lisière lumineuse et sol de
+  // l'hémisphère prennent les couleurs du monde joué — héros, PNJ, maquettes
+  // et cases baignent dans le même bain, l'ensemble se soude.
+  {
+    const [haut, bas, accent] = SKYBOX_PALETTE[SKYBOX_PALETTE[boardDef.theme] ? boardDef.theme : "donjon"];
+    if (scene.fog) scene.fog.color.set(bas);
+    if (lumRim) lumRim.color.set(accent);
+    if (lumHemi) lumHemi.groundColor.set(haut).multiplyScalar(0.35);
+  }
 
   const length = layout.length;
   const s = SPAN / VIEW_W;
@@ -12189,7 +12227,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v121";
+const APP_VERSION = "donjon-v122";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };

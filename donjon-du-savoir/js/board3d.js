@@ -49,6 +49,7 @@ const SPAN = 26; // largeur du plateau en unités-monde
 let R = null; // renderer
 let scene = null, camera = null, raf = null;
 let boardGroup = null, pionGroup = null, effectGroup = null, starMesh = null;
+let lumHemi = null, lumRim = null; // lumières partagées, reteintées par monde
 let builtSig = null;
 const pionObjs = new Map(); // id -> { obj, target:THREE.Vector3, walk:[Vector3]|null, wi:0 }
 // FIDÉLITÉ TRAIT POUR TRAIT : les personnages sont les FIGURINES PEINTES de
@@ -315,11 +316,19 @@ function emojiTexture(emoji) {
 
 /** Panneau debout (billboard) posé au sol en `pos`, haut de `height` unités. */
 function standee(art, pos, height) {
+  // HARMONIE : chaque œuvre peinte (bâtiment, objet, torche) touche le sol par
+  // la MÊME ombre douce que les figurines — plus d'éléments qui « flottent »,
+  // tout le village partage le même contact au sol.
+  const g = new THREE.Group();
   const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: loadTex(art), transparent: true, depthWrite: false }));
   spr.center.set(0.5, 0);
   spr.scale.set(height * 0.92, height, 1);
-  spr.position.copy(pos);
-  return spr;
+  g.add(spr);
+  const ombre = ombrePortee(height * 0.3);
+  ombre.position.y = 0.02;
+  g.add(ombre);
+  g.position.copy(pos);
+  return g;
 }
 
 // Fond peint du donjon (thème) posé en toile de fond de la scène 3D.
@@ -580,7 +589,8 @@ export function init3D(hostBoard) {
     const heure = new Date().getHours();
     const nuit = heure >= 21 || heure < 7;
     const soir = !nuit && heure >= 18;
-    scene.add(new THREE.HemisphereLight(nuit ? 0xbcc8ff : 0xffe8c6, 0x25183e, nuit ? 0.52 : 0.68));
+    lumHemi = new THREE.HemisphereLight(nuit ? 0xbcc8ff : 0xffe8c6, 0x25183e, nuit ? 0.52 : 0.68);
+    scene.add(lumHemi);
     const key = new THREE.DirectionalLight(nuit ? 0xa8b8ff : soir ? 0xffd9a0 : 0xfff0d8, nuit ? 0.82 : soir ? 1.2 : 1.1);
     key.position.set(-14, 26, 12);
     if (soir) key.position.set(-20, 15, 16); // soleil bas et doré du soir
@@ -593,9 +603,15 @@ export function init3D(hostBoard) {
     key.shadow.bias = -0.00035;
     key.shadow.normalBias = 0.025;
     scene.add(key);
-    const rim = new THREE.DirectionalLight(0x8e6cff, 0.4);
-    rim.position.set(16, 10, -14);
-    scene.add(rim);
+    lumRim = new THREE.DirectionalLight(0x8e6cff, 0.4);
+    lumRim.position.set(16, 10, -14);
+    scene.add(lumRim);
+    // Vignette douce par-dessus le canvas : cadre l'ensemble comme un diorama.
+    const vignette = document.createElement("div");
+    vignette.className = "board3d-vignette";
+    vignette.style.display = "none";
+    host.insertBefore(vignette, canvas.nextSibling);
+    mounted.vignette = vignette;
 
     boardGroup = new THREE.Group();
     pionGroup = new THREE.Group();
@@ -671,6 +687,7 @@ export function dispose3D() {
 export function show3D(on) {
   if (mounted) {
     mounted.canvas.style.display = on ? "block" : "none";
+    if (mounted.vignette) mounted.vignette.style.display = on ? "block" : "none";
     mounted.hostBoard.style.display = on ? "none" : "";
     if (minimapEl) minimapEl.style.display = on ? "block" : "none";
     if (camBtn) camBtn.style.display = on ? "block" : "none";
@@ -732,6 +749,15 @@ function buildBoard(layout, boardDef) {
   sceneEpoch += 1;
   const epoch = sceneEpoch;
   upgradeSky(boardDef.theme, epoch); // dôme de ciel peint GEN 2 (repli : cubemap)
+  // UNE SEULE LUMIÈRE POUR TOUT LE MONDE : brume, lisière lumineuse et sol de
+  // l'hémisphère prennent les couleurs du monde joué — héros, PNJ, maquettes
+  // et cases baignent dans le même bain, l'ensemble se soude.
+  {
+    const [haut, bas, accent] = SKYBOX_PALETTE[SKYBOX_PALETTE[boardDef.theme] ? boardDef.theme : "donjon"];
+    if (scene.fog) scene.fog.color.set(bas);
+    if (lumRim) lumRim.color.set(accent);
+    if (lumHemi) lumHemi.groundColor.set(haut).multiplyScalar(0.35);
+  }
 
   const length = layout.length;
   const s = SPAN / VIEW_W;
