@@ -186,6 +186,20 @@ const overPos = THREE ? new THREE.Vector3(0, 24, 30) : null;
 const overLook = THREE ? new THREE.Vector3(0, 0, 0) : null;
 let mounted = null; // conteneur canvas
 let qualityReduced = false, perfStarted = 0, perfFrames = 0, lowFpsWindows = 0;
+// SURSIS DE CHARGEMENT : à chaque (re)construction de scène, la sonde de
+// performance dort quelques secondes — décodage des textures et compilation
+// des shaders plombent les premières frames sans dire quoi que ce soit de la
+// vraie fluidité. Sans ce sursis, la 3D se faisait couper au premier pic.
+let perfGraceUntil = 0;
+
+/** Redonne sa chance à la 3D (appelé à CHAQUE nouvelle partie) : le repli 2D
+ *  n'est plus une condamnation à vie de la session — si l'appareil peine
+ *  vraiment, la sonde re-tranchera en quelques secondes, qualité déjà réduite. */
+export function redonneChance3D() {
+  runtime3DDisabled = false;
+  lowFpsWindows = 0;
+  perfStarted = perfFrames = 0;
+}
 
 /* ---------- utilitaires de coordonnées ---------- */
 
@@ -749,6 +763,9 @@ function buildBoard(layout, boardDef) {
   const sig = `${boardDef.id}:${layout.length}`;
   if (builtSig === sig) return;
   builtSig = sig;
+  perfGraceUntil = performance.now() + 8000; // le chargement n'est pas un verdict
+  perfStarted = perfFrames = 0;
+  lowFpsWindows = 0;
   // Vraie cubemap par thème ; l'illustration WebP locale reste le dernier repli.
   try { scene.background = themeSkybox(boardDef.theme); }
   catch {
@@ -1450,6 +1467,7 @@ function watchPerformance(now) {
   // Sonde de test : __DONJON_KEEP3D désactive le repli 2D et la baisse de
   // qualité (captures d'écran et diagnostics sur rendu logiciel lent).
   if (globalThis.__DONJON_KEEP3D) return;
+  if (now < perfGraceUntil) { perfStarted = now; perfFrames = 0; return; }
   if (!perfStarted) perfStarted = now;
   perfFrames += 1;
   const elapsed = now - perfStarted;
@@ -1467,7 +1485,9 @@ function watchPerformance(now) {
   }
   if (fps >= 20) { lowFpsWindows = 0; return; }
   lowFpsWindows += 1;
-  if (lowFpsWindows < 2 || runtime3DDisabled) return;
+  // 3 fenêtres CONSÉCUTIVES sous 20 FPS (~7,5 s, qualité déjà réduite) avant
+  // de rendre le plateau 2D : un simple à-coup ne prive plus personne de 3D.
+  if (lowFpsWindows < 3 || runtime3DDisabled) return;
   runtime3DDisabled = true;
   show3D(false);
   globalThis.dispatchEvent?.(new CustomEvent("donjon-3d-fallback"));

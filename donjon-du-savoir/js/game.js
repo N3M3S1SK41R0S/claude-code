@@ -6,7 +6,7 @@
 //  - anecdote after EVERY question, no exception.
 import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawGambitTable, drawHardest, drawInsolite, drawQuestion, noteProposee } from "./data.js";
 import { boardById, CASE_TYPES, renderBoard, walkPion } from "./board.js";
-import { aimTile3D, clearAim3D, heroMoment3D, react3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
+import { aimTile3D, clearAim3D, heroMoment3D, react3D, redonneChance3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
 import { herald, RETOURNEMENTS, TOASTS_OUVERTURE } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } from "./state.js";
@@ -36,9 +36,12 @@ function testFlag(name) {
 let onVictory = null;
 
 // Si le garde-fou de performance abandonne la 3D en cours de partie, le moteur
-// repeint immédiatement le plateau 2D sans modifier l'état ni le tour.
+// repeint immédiatement le plateau 2D sans modifier l'état ni le tour — et le
+// joueur est PRÉVENU (bulle muette) : fini le passage en 2D inexpliqué.
 globalThis.addEventListener?.("donjon-3d-fallback", () => {
-  if (getState()) render();
+  if (!getState()) return;
+  render();
+  heraldSays("💤 Le plateau passe en 2D pour préserver la fluidité — la 3D retentera sa chance à la prochaine partie.", { speak: false });
 });
 
 /* ---------- pilote de bots : joue automatiquement le tour d'un joueur bot ---------- */
@@ -181,6 +184,7 @@ function charSays(pion, moment) {
 
 export function startGame(victoryCallback) {
   onVictory = victoryCallback;
+  redonneChance3D(); // un repli 2D passé ne condamne pas la nouvelle partie
   setMusicRush(false); // nouvelle partie : le Barde reprend son pas tranquille
   render();
   // Rituel d'ouverture : le Héraut désigne qui commence (toast loufoque).
@@ -189,6 +193,7 @@ export function startGame(victoryCallback) {
 
 export function resumeGame(victoryCallback) {
   onVictory = victoryCallback;
+  redonneChance3D(); // reprise = nouvelle chance pour le plateau 3D
   render();
   // A reload mid-turn resumes at the unresolved case: no free re-roll, no
   // dodging a malus or the Trou Noir by refreshing the page. A case already
@@ -1668,8 +1673,9 @@ function narrateAnecdote(q) {
  *  haute, pour jouer sans regarder l'écran (voiture, canapé, malvoyance). */
 function narrateChoices(choices) {
   if (!getPrefs().oreilles || !Array.isArray(choices) || choices.length < 2) return;
-  // Via la FILE DE PAROLE : les propositions attendent la fin de la question.
-  direQuand(() => say(`Les propositions sont : ${choices.map((c) => String(c)).join(". ")}.`, { queue: true }));
+  // say({queue:true}) passe DÉJÀ par la file de parole : un direQuand par-dessus
+  // ferait perdre son rang à la réplique (re-dépôt en fin de file).
+  say(`Les propositions sont : ${choices.map((c) => String(c)).join(". ")}.`, { queue: true });
 }
 
 // Règle affichée clairement en tête de CHAQUE type de question : comment on
@@ -2967,6 +2973,9 @@ function gambitBets(pion, q, guess, others) {
   setPanel(
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: "🎲 Les paris sont ouverts !" }),
+      // La question RESTE sous les yeux des parieurs : on parie sur sa vraie
+      // réponse, pas de mémoire — elle ne disparaît plus avec l'écran de saisie.
+      el("p", { class: "question-texte", text: q.texte }),
       el("p", { class: "panel-text", html: `${pion.nom} annonce : <strong>${guess}</strong>. La vraie réponse est-elle <strong>Plus</strong>, <strong>Égale</strong>, ou <strong>Moins</strong> que ce nombre ?` }),
       el("p", { class: "help-note", text: "⬆️ Plus = la vraie réponse est plus grande · 🎯 Égal = pile ce nombre · ⬇️ Moins = plus petite. (🚫 pour un joueur absent.)" }),
       ...rows,
@@ -3002,6 +3011,7 @@ function gambitReveal(pion, q, guess, bets) {
   heraldSays(advance > 0 ? herald.bonne() : herald.mauvaise());
   setPanel(
     el("div", { class: "question-block" },
+      el("p", { class: "question-texte", text: q.texte }), // la question reste lisible au verdict
       el("p", { class: "verdict", html: `La vraie réponse était <strong>${answer}</strong> — ${pion.nom} annonçait ${guess}. ${advance > 0 ? `<strong>+${advance} case${advance > 1 ? "s" : ""} !</strong>` : "<strong>Trop loin, pas de bonus.</strong>"}` }),
       ...betLines,
       anecdoteCardEl(q),
@@ -3501,12 +3511,18 @@ function endStarGameFinal() {
   save();
   state.titresGagnes = recordLivreDor(state.ranking); // 📜 mémoire longue
   const winner = classement[0];
-  const primes = bonus.length
-    ? ` Étoiles bonus : ${bonus.map((b) => `${b.emoji} ${b.nom}`).join(", ")}.`
-    : "";
   sfx("win"); sfx("clap"); vibrer(200);
-  heraldSays(`Rideau ! ${winner.nom} règne sur le Donjon avec ${winner.etoiles ?? 0} étoile${(winner.etoiles ?? 0) > 1 ? "s" : ""} !${primes}`);
-  charSays(winner, "victoire");
+  if (bonus.length > 0 && !testFlag("__DONJON_TEST")) {
+    // La CÉRÉMONIE va remettre les étoiles une à une : le Héraut n'annonce ici
+    // NI les primes NI le vainqueur — tout le suspense se joue à la remise.
+    heraldSays("Rideau sur la partie ! Mais rien n'est joué : place à la Cérémonie des Étoiles Bonus…");
+  } else {
+    const primes = bonus.length
+      ? ` Étoiles bonus : ${bonus.map((b) => `${b.emoji} ${b.nom}`).join(", ")}.`
+      : "";
+    heraldSays(`Rideau ! ${winner.nom} règne sur le Donjon avec ${winner.etoiles ?? 0} étoile${(winner.etoiles ?? 0) > 1 ? "s" : ""} !${primes}`);
+    charSays(winner, "victoire");
+  }
   if (onVictory) {
     // Tour d'honneur : la scène 3D célèbre le vainqueur avant l'écran final.
     if (use3D() && !testFlag("__DONJON_TEST")) {

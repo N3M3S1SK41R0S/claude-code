@@ -61,7 +61,10 @@ export function heraldSays(text, { speak = true } = {}) {
       ),
     );
   }
-  if (speak) say(text, { perso: "heraut" });
+  // File d'attente : l'annonce prend son tour de parole au prochain silence —
+  // l'anecdote en cours se finit toujours, rien ne se chevauche. (Un vrai clic
+  // du joueur sur un grand bouton coupe tout : il « enchaîne », voir app.js.)
+  if (speak) say(text, { perso: "heraut", queue: true });
 }
 
 export function bigButton(label, onclick, cls = "") {

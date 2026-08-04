@@ -23,7 +23,9 @@ export function voiceAvailable() {
   return typeof window !== "undefined" && "speechSynthesis" in window;
 }
 
-export function stop() {
+/** Coupe tous les CANAUX (accroche, clips, voix directe, synthèse) sans
+ *  toucher à la file d'attente — la coupure interne de l'arbitre. */
+function silence() {
   speechToken += 1;
   if (activeAudio) {
     activeAudio.pause();
@@ -33,8 +35,14 @@ export function stop() {
   }
   stopClips(); // les répliques enregistrées aussi : le silence est total
   stopDirect();
-  videFileParole(); // les paroles en attente n'ont plus d'objet
   if (voiceAvailable()) window.speechSynthesis.cancel();
+}
+
+/** La coupure PUBLIQUE : l'écran a tourné, on coupe tout ET les paroles en
+ *  attente n'ont plus d'objet. */
+export function stop() {
+  silence();
+  videFileParole();
 }
 
 /** Dit un texte. Un profil { pitch, rate, v } donne une voix propre au
@@ -72,11 +80,26 @@ export function say(text, {
   // `force` : lecture DEMANDÉE par un bouton (ex. « écouter les règles ») —
   // elle passe outre le Héraut muet, sans changer le réglage de la tablée.
   if ((!enabled && !force) || !voiceAvailable() || !text) return;
-  // 🎙️ Voix ENREGISTRÉES : si un clip existe pour cette réplique (et ce
-  // personnage), il prend la parole — la synthèse n'est que le filet.
-  if (perso && playClip(perso, text, { queue })) return;
+  // UNE seule voie de sortie : la réplique choisit son canal AU MOMENT de
+  // parler — clip enregistré d'abord, voix ElevenLabs en direct pour la voix
+  // du jeu (règles de question, annonces, textes interpolés du Héraut),
+  // synthèse du navigateur en filet. Les héros gardent leur timbre propre.
+  const voixDuJeu = !perso || perso === "heraut";
+  const canal = () => {
+    if (perso && playClip(perso, text)) return;
+    if (voixDuJeu && voixDirectActif()
+      && lireEnDirect(text, { onEchec: () => diseEnSynthese(text, { pitch, rate, volume, lang, v, preferredVoiceHints }) })) return;
+    diseEnSynthese(text, { pitch, rate, volume, lang, v, preferredVoiceHints });
+  };
+  // `queue:true` : la réplique prend sa place dans la FILE et ne démarre qu'au
+  // silence TOTAL (anecdote comprise) — jamais par-dessus quelqu'un.
+  if (queue) { direQuand(canal); return; }
+  stop(); // le jeu enchaîne : on coupe TOUT — une seule bouche à la fois
+  canal();
+}
+
+function diseEnSynthese(text, { pitch = 1.05, rate = 1.02, volume = 1, lang = "fr-FR", v = 0, preferredVoiceHints = [] } = {}) {
   const synth = window.speechSynthesis;
-  if (!queue) { synth.cancel(); stopClips(); }
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = lang;
   // Micro-variations de hauteur et de débit : deux lectures identiques ne
@@ -161,8 +184,10 @@ function cueThenSpeak(cue, text, kind, token) {
   // réseau — la synthèse du navigateur assure, comme toujours.
   const direTexte = (avecAccroche) => {
     const t = `${avecAccroche && cue?.text ? `${cue.text} ` : ""}${spokenText}`;
-    if (voixDirectActif() && lireEnDirect(t, { onEchec: () => { if (token === speechToken) say(t, host); } })) return;
-    say(t, host);
+    // Synthèse DIRECTE (pas say) : les canaux sont déjà à nous, et la file
+    // d'attente (propositions, anecdote…) doit survivre à cette lecture.
+    if (voixDirectActif() && lireEnDirect(t, { onEchec: () => { if (token === speechToken) diseEnSynthese(t, host); } })) return;
+    diseEnSynthese(t, host);
   };
   const fallback = () => {
     if (token !== speechToken) return;
@@ -193,7 +218,9 @@ function cueThenSpeak(cue, text, kind, token) {
  *  ("question" ou "anecdote"). Ne fait rien si le Héraut vocal est coupé. */
 export function sayHost(text, kind = null) {
   if (!enabled || !text || !voiceAvailable()) return;
-  stop();
+  // silence() et non stop() : quand la question arrive PAR la file, les
+  // répliques déjà en attente (propositions, anecdote) gardent leur tour.
+  silence();
   const token = speechToken;
   const cue = kind === "question" || kind === "anecdote" ? pickHostCue(kind) : null;
   cueThenSpeak(cue, text, kind, token);
@@ -208,17 +235,21 @@ export function parleEnCours() {
 
 /** FILE DE PAROLE ordonnée : chaque prise de parole s'exécute au prochain
  *  silence total, DANS L'ORDRE de dépôt (réaction → question → propositions →
- *  anecdote), avec un plafond par tour de parole — jamais coincé, jamais
+ *  anecdote), avec un plafond anti-blocage — jamais coincé, jamais
  *  chevauché. stop() vide la file (l'écran a tourné). */
 let fileParole = [];
 let fileTimer = null;
 let fileDebut = 0;
+// Le plafond couvre la PLUS LONGUE lecture légitime (une anecdote copieuse en
+// synthèse) : il ne sert qu'à débloquer un canal qui se croit occupé à tort.
+const PLAFOND_PAROLE_MS = 30000;
 function draineFile() {
   if (fileTimer) return;
   fileDebut = Date.now();
   fileTimer = setInterval(() => {
     if (!fileParole.length) { clearInterval(fileTimer); fileTimer = null; return; }
-    if (!parleEnCours() || Date.now() - fileDebut > 8000) {
+    if (!parleEnCours() || Date.now() - fileDebut > PLAFOND_PAROLE_MS) {
+      if (parleEnCours()) silence(); // débloqué en COUPANT — jamais par-dessus
       const cb = fileParole.shift();
       fileDebut = Date.now();
       try { cb(); } catch { /* la parole suivante ne meurt jamais d'une erreur */ }

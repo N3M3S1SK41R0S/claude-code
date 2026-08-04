@@ -5,7 +5,7 @@ import { loadWordgames } from "./wordgames.js";
 import { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } from "./custom.js";
 import { BOARDS, boardById, deleteCustomBoard, generateBoard, loadCustomBoards, makeCustomBoard, saveCustomBoard } from "./board.js";
 import { openReference, resumeGame, startGame } from "./game.js";
-import { AGE_BRACKETS, archiveCurrent, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, deleteArchive, getState, listArchives, loadSave, newGame, restoreArchive, youngestBracket } from "./state.js";
+import { AGE_BRACKETS, archiveCurrent, BONUS_STAR_POOL, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, deleteArchive, getState, listArchives, loadSave, newGame, restoreArchive, youngestBracket } from "./state.js";
 import { portraitEl } from "./portraits.js";
 import { FIGURINE_ATLAS } from "./board3d.js";
 import { APP_VERSION } from "./version.js";
@@ -38,6 +38,16 @@ function show(name) {
 // Pont de navigation pour les modules autonomes (Partie Éclair) : évite un
 // import circulaire app ↔ eclair.
 window.__donjonShow = show;
+
+// « LE JOUEUR ENCHAÎNE » : un VRAI clic humain (isTrusted — jamais le pilote
+// de bots ni l'enchaînement automatique du tempo) sur un grand bouton d'action
+// coupe la parole en cours et vide la file. Sans geste du joueur, l'anecdote
+// se finit TOUJOURS avant la réplique suivante — et jamais de superposition.
+document.addEventListener("click", (e) => {
+  // stop() même sans parole audible : la file peut contenir des répliques qui
+  // n'ont pas encore pris le micro — elles aussi sont périmées par le clic.
+  if (e.isTrusted && e.target?.closest?.(".btn-big")) stop();
+}, true);
 
 /* ---------- home ---------- */
 
@@ -644,6 +654,13 @@ function renderSetup() {
     zone.append(el("p", { class: "help-note", text: "🤖 Pas assez de monde ? Ajoutez une équipe de bots : elle joue toute seule, au niveau choisi." }));
   }
 
+  // 🎙️ Invitation : la VRAIE voix du Héraut peut lire questions, anecdotes et
+  // règles — un détour par les Réglages suffit (clé ElevenLabs).
+  if (voiceEnabled() && !voixDirectConfigure() && !/claude\.(ai|site|com)$/.test(location.hostname)) {
+    zone.append(el("button", { class: "btn voixdirect-invite", type: "button", onclick: () => { renderReglages(); show("reglages"); } },
+      "🎙️ Envie que la VRAIE voix du Héraut lise aussi les questions ? Branchez-la dans les Réglages"));
+  }
+
   // Board picker: five dungeons, five moods.
   zone.append(
     el("h2", { class: "setup-subtitle", text: "Choisissez votre donjon" }),
@@ -947,6 +964,153 @@ function dureeEstimee(rounds, joueurs) {
 }
 
 function showVictory(winner, rankingData, extras = {}) {
+  // 🎁 CÉRÉMONIE DES ÉTOILES BONUS : avant le tableau final, chaque étoile est
+  // tirée à la roue puis remise au compte-goutte — joueur nommé, stat comparée
+  // à celles des adversaires, roulement de tambour. Le suspense fait partie du
+  // prix ; les tests et les parties sans étoile bonus vont droit au tableau.
+  if ((extras.bonusStars ?? []).length > 0 && !window.__DONJON_TEST) {
+    return ceremonieEtoiles(winner, rankingData, extras);
+  }
+  renderVictoryFinal(winner, rankingData, extras);
+}
+
+/* ---------- cérémonie des étoiles bonus ---------- */
+
+// La stat de chaque prix, relue depuis le classement : la table VOIT pourquoi
+// le lauréat gagne, chiffres des adversaires à l'appui. (Chouchou : pur hasard.)
+const STAT_PAR_PRIX = {
+  lievre: { val: (p) => p.casesParcourues ?? 0, unite: "cases parcourues" },
+  tortue: { val: (p) => p.casesParcourues ?? 0, unite: "cases parcourues", sens: "min" },
+  roi_questions: { val: (p) => p.bonnes ?? 0, unite: "bonnes réponses" },
+  oeil_de_lynx: { val: (p) => ((p.questions ?? 0) > 0 ? Math.round(((p.bonnes ?? 0) / p.questions) * 100) : 0), unite: "% de réussite" },
+  magnat: { val: (p) => p.orGagne ?? 0, unite: "pièces amassées" },
+  souffre_douleur: { val: (p) => p.malusSubis ?? 0, unite: "coups durs encaissés" },
+};
+
+function ceremonieEtoiles(winner, rankingData, extras) {
+  show("victory");
+  const zone = document.getElementById("victory-zone");
+  zone.innerHTML = "";
+  zone.append(artImg("victory-bg", "assets/fond-victoire.webp"));
+  const bonusStars = extras.bonusStars ?? [];
+  let vivant = true; // « Passer » éteint la cérémonie et tous ses temporisateurs
+  const timers = [];
+  const plusTard = (fn, ms) => { timers.push(window.setTimeout(() => { if (vivant) fn(); }, ms)); };
+  const finir = () => {
+    if (!vivant) return;
+    vivant = false;
+    timers.forEach((t) => window.clearTimeout(t));
+    stop(); // le tableau final repart d'un silence propre
+    renderVictoryFinal(winner, rankingData, extras);
+    // L'annonce du vainqueur arrive ICI — jamais avant la remise des étoiles.
+    say(`${winner.nom} règne sur le Donjon avec ${winner.etoiles ?? 0} étoile${(winner.etoiles ?? 0) > 1 ? "s" : ""} ! Que les trompettes sonnent !`, { perso: "heraut", queue: true });
+  };
+
+  const scene = el("div", { class: "ceremonie" },
+    el("h2", { class: "victory-title", text: "🎁 La Cérémonie des Étoiles Bonus" }),
+    el("p", { class: "ceremonie-enjeu", text: `${bonusStars.length} étoile${bonusStars.length > 1 ? "s" : ""} encore en jeu — le classement peut basculer !` }),
+  );
+  const cadre = el("div", { class: "ceremonie-etape" });
+  scene.append(cadre, el("button", { class: "btn ceremonie-passer", type: "button", onclick: finir }, "⏩ Passer la cérémonie"));
+  zone.append(scene);
+  say("Mesdames et messieurs, la Cérémonie des Étoiles Bonus ! Des prix, des exploits, et peut-être un retournement !", { perso: "heraut", queue: true });
+
+  const etape = (idx) => {
+    if (idx >= bonusStars.length) return finale();
+    const prix = bonusStars[idx];
+    // ① LA ROUE : elle défile sur tous les prix possibles, ralentit cran par
+    // cran (tic sec à chaque passage) puis se bloque sur le prix tiré.
+    cadre.innerHTML = "";
+    const ligne = el("p", { class: "ceremonie-roue-texte", text: "…" });
+    const roue = el("div", { class: "ceremonie-roue" }, el("span", { class: "ceremonie-roue-emoji", "aria-hidden": "true", text: "🎡" }), ligne);
+    cadre.append(el("h3", { class: "ceremonie-sous-titre", text: `Étoile bonus n° ${idx + 1}` }), roue);
+    const defile = BONUS_STAR_POOL.map((a) => `${a.emoji} ${a.titre}`);
+    let cran = Math.floor(Math.random() * defile.length);
+    let delai = 70;
+    const tourne = () => {
+      ligne.textContent = defile[cran % defile.length];
+      cran += 1;
+      sfx("tick");
+      delai = Math.min(340, Math.round(delai * 1.18));
+      if (delai < 330) plusTard(tourne, delai);
+      else plusTard(bloque, 420);
+    };
+    const bloque = () => {
+      ligne.textContent = `${prix.emoji} ${prix.titre}`;
+      roue.classList.add("ceremonie-roue-fixe");
+      sfx("chest");
+      say(`Le prix ${prix.titre} — pour qui ${prix.desc} !`, { perso: "heraut", queue: true });
+      plusTard(tambour, 1500);
+    };
+    // ② ROULEMENT DE TAMBOUR : le suspense avant de nommer le lauréat.
+    const tambour = () => {
+      cadre.append(el("p", { class: "ceremonie-tambour", text: "🥁 Roulement de tambour…" }));
+      sfx("tambour");
+      plusTard(revele, 2000);
+    };
+    // ③ LA RÉVÉLATION : lauréat nommé, +1 ⭐, et sa stat FACE aux adversaires.
+    const revele = () => {
+      const stat = STAT_PAR_PRIX[prix.key];
+      const duLaureat = (p) => p.nom === prix.nom && p.characterId === prix.characterId;
+      const lignes = stat
+        ? [...rankingData]
+            .map((p) => ({ nom: p.nom, v: stat.val(p), gagnant: duLaureat(p) }))
+            .sort((a, b) => (stat.sens === "min" ? a.v - b.v : b.v - a.v))
+        : null;
+      cadre.innerHTML = "";
+      cadre.append(
+        el("h3", { class: "ceremonie-sous-titre", text: `${prix.emoji} ${prix.titre}` }),
+        el("div", { class: "ceremonie-laureat" },
+          portraitEl(prix.characterId, 72),
+          el("div", { class: "ceremonie-laureat-bloc" },
+            el("p", { class: "ceremonie-laureat-nom", text: `${prix.nom} ${prix.desc} !` }),
+            el("p", { class: "ceremonie-laureat-etoile", text: "+1 ⭐" }),
+          ),
+        ),
+        lignes
+          ? el("div", { class: "ceremonie-stats" },
+              ...lignes.map((l) => el("p", { class: "ceremonie-stat-ligne" + (l.gagnant ? " ceremonie-stat-gagnant" : "") },
+                el("span", { text: `${l.gagnant ? "⭐" : "•"} ${l.nom}` }),
+                el("span", { text: `${l.v} ${stat.unite}` }),
+              )))
+          : el("p", { class: "ceremonie-enjeu", text: "🍀 Le hasard des dés a parlé — et il ne se justifie jamais." }),
+      );
+      sfx("star"); sfx("clap");
+      say(`${prix.nom} ${prix.desc} : une étoile bonus !`, { perso: "heraut", queue: true });
+      plusTard(() => etape(idx + 1), 5600);
+    };
+    plusTard(tourne, 700);
+  };
+
+  // ④ Dernier tambour, puis le TABLEAU FINAL (podium, classement, confettis).
+  const finale = () => {
+    cadre.innerHTML = "";
+    cadre.append(el("p", { class: "ceremonie-tambour", text: "🥁 Et maintenant… LE CLASSEMENT FINAL !" }));
+    sfx("tambour");
+    say("Toutes les étoiles sont remises ! Roulement de tambour… voici le classement final !", { perso: "heraut", queue: true });
+    plusTard(finir, 2400);
+  };
+  plusTard(() => etape(0), 900);
+}
+
+// Sonde d'outillage (captures, réglage des tempos) : rejoue la cérémonie avec
+// une tablée de démonstration, sans devoir finir une vraie partie Étoiles.
+window.__donjonCeremonie = () => {
+  const [a, b, c] = CHARACTERS;
+  const demo = [
+    { nom: "Aline", characterId: a.id, etoiles: 3, pieces: 42, bonnes: 9, questions: 12, position: 0, orGagne: 55, malusSubis: 2, casesParcourues: 38, bot: false, skin: null, defiInfo: null, bonnesParTheme: {} },
+    { nom: "Bruno", characterId: b.id, etoiles: 2, pieces: 51, bonnes: 7, questions: 11, position: 0, orGagne: 48, malusSubis: 4, casesParcourues: 45, bot: false, skin: null, defiInfo: null, bonnesParTheme: {} },
+    { nom: "Cléo", characterId: c.id, etoiles: 2, pieces: 30, bonnes: 10, questions: 13, position: 0, orGagne: 61, malusSubis: 1, casesParcourues: 29, bot: true, skin: null, defiInfo: null, bonnesParTheme: {} },
+  ];
+  const bonusStars = [
+    { key: "roi_questions", titre: "Le Roi des Questions", emoji: "🧠", desc: "a donné le plus de bonnes réponses", pionId: 3, nom: "Cléo", characterId: c.id },
+    { key: "magnat", titre: "Le Magnat", emoji: "💰", desc: "a amassé le plus d'or de toute la partie", pionId: 3, nom: "Cléo", characterId: c.id },
+    { key: "chouchou", titre: "Le Chouchou du Destin", emoji: "🍀", desc: "a été désigné par le pur hasard des dés", pionId: 1, nom: "Aline", characterId: a.id },
+  ];
+  ceremonieEtoiles(demo[0], demo, { bonusStars });
+};
+
+function renderVictoryFinal(winner, rankingData, extras = {}) {
   show("victory");
   spawnConfetti();
   const zone = document.getElementById("victory-zone");

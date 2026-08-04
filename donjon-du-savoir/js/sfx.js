@@ -67,6 +67,10 @@ const SFX = {
   clap: () => { for (let i = 0; i < 12; i++) tone(900 + (i * 137) % 850, 0.03, { type: "square", gain: 0.032, delay: i * 0.05 + (i % 3) * 0.012 }); },
   ooh: () => { tone(392, 0.5, { type: "sawtooth", gain: 0.05, sweep: -160 }); tone(494, 0.5, { type: "sawtooth", gain: 0.04, sweep: -180, delay: 0.03 }); },
   wow: () => { tone(330, 0.42, { type: "sawtooth", gain: 0.05, sweep: 240 }); tone(415, 0.42, { type: "sawtooth", gain: 0.04, sweep: 260, delay: 0.04 }); },
+  // Cérémonie des étoiles bonus : « tic » sec de la roue de tirage, et long
+  // roulement de tambour (~1,8 s) avant chaque révélation.
+  tick: () => tone(1200, 0.025, { type: "square", gain: 0.035 }),
+  tambour: () => { for (let i = 0; i < 22; i++) tone(130 + (i % 3) * 18, 0.04, { type: "square", gain: 0.05, delay: i * 0.08 }); },
 };
 
 /** Joue un effet nommé ; silencieux si désactivé ou si l'audio est indisponible. */

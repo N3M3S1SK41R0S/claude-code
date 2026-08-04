@@ -380,6 +380,7 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 
 .version-accueil { text-align: center; opacity: 0.75; font-size: 0.82rem; }
+.voixdirect-invite { border-style: dashed; opacity: 0.92; font-size: 0.92rem; }
 
 /* Plusieurs dés d'objet côte à côte : même culbute, départs en cascade. */
 .die3d-multi { display: flex; gap: 1.6rem; justify-content: center; }
@@ -864,6 +865,52 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 .bonus-stars-title { color: var(--gold); font-size: 1rem; margin: 0; }
 .bonus-star-line { font-size: 0.9rem; margin: 0; }
+
+/* ---------- cérémonie des étoiles bonus (remise au compte-goutte) ---------- */
+
+.ceremonie { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.9rem; width: 100%; }
+.ceremonie-enjeu { color: var(--soft); font-size: 0.95rem; text-align: center; }
+.ceremonie-etape {
+  width: min(32rem, 100%); min-height: 14rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.8rem;
+  background: color-mix(in srgb, var(--gold) 8%, var(--card));
+  border: 1px solid var(--gold); border-radius: 1rem; padding: 1rem 1.2rem;
+}
+.ceremonie-sous-titre { color: var(--gold); font-size: 1.15rem; text-align: center; }
+/* La roue de tirage : un cadre doré où les prix défilent puis se figent. */
+.ceremonie-roue {
+  display: flex; align-items: center; gap: 0.7rem;
+  background: var(--stone); border: 2px solid var(--gold); border-radius: 0.9rem;
+  padding: 0.8rem 1.2rem; min-width: min(24rem, 90%); justify-content: center;
+}
+.ceremonie-roue-emoji { font-size: 1.8rem; animation: ceremonie-tourne 1.1s linear infinite; }
+.ceremonie-roue-fixe .ceremonie-roue-emoji { animation: none; }
+.ceremonie-roue-texte { font-size: 1.15rem; font-weight: bold; text-align: center; min-width: 12ch; }
+.ceremonie-roue-fixe { box-shadow: 0 0 0.9rem color-mix(in srgb, var(--gold) 55%, transparent); }
+.ceremonie-roue-fixe .ceremonie-roue-texte { color: var(--gold); }
+@keyframes ceremonie-tourne { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.ceremonie-tambour { font-size: 1.1rem; font-weight: bold; animation: ceremonie-pouls 0.5s ease-in-out infinite alternate; }
+@keyframes ceremonie-pouls { from { transform: scale(1); opacity: 0.75; } to { transform: scale(1.12); opacity: 1; } }
+.ceremonie-laureat { display: flex; align-items: center; gap: 0.9rem; }
+.ceremonie-laureat-bloc { display: flex; flex-direction: column; gap: 0.15rem; }
+.ceremonie-laureat-nom { font-size: 1.05rem; font-weight: bold; }
+.ceremonie-laureat-etoile { color: var(--gold); font-size: 1.3rem; font-weight: bold; }
+/* La stat du prix, joueur par joueur : le lauréat brille, les autres comparent. */
+.ceremonie-stats { width: 100%; display: flex; flex-direction: column; gap: 0.25rem; }
+.ceremonie-stat-ligne {
+  display: flex; justify-content: space-between; gap: 0.8rem;
+  font-size: 0.9rem; color: var(--soft);
+  background: var(--stone); border-radius: 0.6rem; padding: 0.35rem 0.7rem;
+}
+.ceremonie-stat-gagnant {
+  color: var(--ink); font-weight: bold;
+  background: color-mix(in srgb, var(--gold) 22%, var(--stone));
+  border: 1px solid var(--gold);
+}
+.ceremonie-passer { align-self: center; opacity: 0.85; }
+@media (prefers-reduced-motion: reduce) {
+  .ceremonie-roue-emoji, .ceremonie-tambour { animation: none; }
+}
 
 /* Confettis de victoire (festif, coupé si l'utilisateur réduit les animations). */
 .confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 60; }
