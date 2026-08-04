@@ -379,6 +379,25 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   .eclair-texte { font-size: 1.28rem; }
 }
 
+/* Le pile-ou-face de Gérard : la pièce tournoie puis se pose. */
+.piece-scene { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+.piece-flip {
+  font-size: 4.2rem;
+  line-height: 1;
+  animation: pieceSpin 1.4s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+.piece-flip.piece-posee { animation: piecePose 0.35s ease-out; }
+.piece-verdict { font-size: 1.15rem; font-weight: 700; color: var(--gold); min-height: 1.4em; margin: 0; }
+@keyframes pieceSpin {
+  0% { transform: translateY(0) rotateY(0); }
+  50% { transform: translateY(-46px) rotateY(900deg); }
+  100% { transform: translateY(0) rotateY(1800deg); }
+}
+@keyframes piecePose {
+  0% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
 /* Réglage « Héraut ElevenLabs en direct » : un encart discret, sous les rangées. */
 .voixdirect-bloc {
   margin-top: 1.2rem;

@@ -951,20 +951,39 @@ function doBoutique(pion, onDone = null) {
       options: [
         { label: "🪙 Les 3 pièces sûres", action: () => { addCoins(pion, 3); sfx("coin"); boutiqueEtal(pion, done); } },
         { label: "🎲 Pile ou face pour 8 !", action: () => {
-          if (Math.random() < 0.5) {
-            addCoins(pion, 8);
-            sfx("win");
-            heraldSays("🧟 Gérard : « Incroyable. Ma ruine. Prends, vandale. » (+8 🪙)");
-          } else {
-            sfx("ooh");
-            heraldSays("🧟 Gérard : « Pile ! Enfin… pour moi. La maison ne perd jamais. »");
-          }
-          boutiqueEtal(pion, done);
+          const gagne = Math.random() < 0.5;
+          flipPiece(gagne, () => {
+            if (gagne) {
+              addCoins(pion, 8);
+              heraldSays("🧟 Gérard : « Incroyable. Ma ruine. Prends, vandale. » (+8 🪙)");
+            } else {
+              heraldSays("🧟 Gérard : « Pile ! Enfin… pour moi. La maison ne perd jamais. »");
+            }
+            boutiqueEtal(pion, done);
+          });
         } },
       ],
     });
   }
   boutiqueEtal(pion, done);
+}
+
+/** Petit théâtre du pile-ou-face : la pièce TOURNOIE sous les yeux de la
+ *  table avant le verdict — le sort doit se voir, pas se lire. */
+function flipPiece(gagne, onFini) {
+  if (testFlag("__DONJON_TEST")) return onFini();
+  sfx("drum");
+  const piece = el("div", { class: "piece-flip", "aria-hidden": "true", text: "🪙" });
+  const verdict = el("p", { class: "piece-verdict", text: "\u00a0" });
+  setPanel(el("div", { class: "question-block piece-scene" },
+    el("h2", { class: "panel-title", text: "🪙 Pile ou face…" }), piece, verdict));
+  window.setTimeout(() => {
+    piece.classList.add("piece-posee");
+    verdict.textContent = gagne ? "FACE ! La chance est avec vous !" : "PILE ! La maison gagne…";
+    sfx(gagne ? "win" : "ooh");
+    vibrer(gagne ? 30 : [40, 60, 40]);
+    window.setTimeout(onFini, 1100);
+  }, 1400);
 }
 
 /** L'étal proprement dit (objets, besasse, sceptre) — après le marché. */

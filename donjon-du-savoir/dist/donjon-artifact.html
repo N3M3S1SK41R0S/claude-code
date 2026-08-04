@@ -380,6 +380,25 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   .eclair-texte { font-size: 1.28rem; }
 }
 
+/* Le pile-ou-face de Gérard : la pièce tournoie puis se pose. */
+.piece-scene { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+.piece-flip {
+  font-size: 4.2rem;
+  line-height: 1;
+  animation: pieceSpin 1.4s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+.piece-flip.piece-posee { animation: piecePose 0.35s ease-out; }
+.piece-verdict { font-size: 1.15rem; font-weight: 700; color: var(--gold); min-height: 1.4em; margin: 0; }
+@keyframes pieceSpin {
+  0% { transform: translateY(0) rotateY(0); }
+  50% { transform: translateY(-46px) rotateY(900deg); }
+  100% { transform: translateY(0) rotateY(1800deg); }
+}
+@keyframes piecePose {
+  0% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
 /* Réglage « Héraut ElevenLabs en direct » : un encart discret, sous les rangées. */
 .voixdirect-bloc {
   margin-top: 1.2rem;
@@ -12332,7 +12351,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v124";
+const APP_VERSION = "donjon-v125";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
@@ -13290,20 +13309,39 @@ function doBoutique(pion, onDone = null) {
       options: [
         { label: "🪙 Les 3 pièces sûres", action: () => { addCoins(pion, 3); sfx("coin"); boutiqueEtal(pion, done); } },
         { label: "🎲 Pile ou face pour 8 !", action: () => {
-          if (Math.random() < 0.5) {
-            addCoins(pion, 8);
-            sfx("win");
-            heraldSays("🧟 Gérard : « Incroyable. Ma ruine. Prends, vandale. » (+8 🪙)");
-          } else {
-            sfx("ooh");
-            heraldSays("🧟 Gérard : « Pile ! Enfin… pour moi. La maison ne perd jamais. »");
-          }
-          boutiqueEtal(pion, done);
+          const gagne = Math.random() < 0.5;
+          flipPiece(gagne, () => {
+            if (gagne) {
+              addCoins(pion, 8);
+              heraldSays("🧟 Gérard : « Incroyable. Ma ruine. Prends, vandale. » (+8 🪙)");
+            } else {
+              heraldSays("🧟 Gérard : « Pile ! Enfin… pour moi. La maison ne perd jamais. »");
+            }
+            boutiqueEtal(pion, done);
+          });
         } },
       ],
     });
   }
   boutiqueEtal(pion, done);
+}
+
+/** Petit théâtre du pile-ou-face : la pièce TOURNOIE sous les yeux de la
+ *  table avant le verdict — le sort doit se voir, pas se lire. */
+function flipPiece(gagne, onFini) {
+  if (testFlag("__DONJON_TEST")) return onFini();
+  sfx("drum");
+  const piece = el("div", { class: "piece-flip", "aria-hidden": "true", text: "🪙" });
+  const verdict = el("p", { class: "piece-verdict", text: "\u00a0" });
+  setPanel(el("div", { class: "question-block piece-scene" },
+    el("h2", { class: "panel-title", text: "🪙 Pile ou face…" }), piece, verdict));
+  window.setTimeout(() => {
+    piece.classList.add("piece-posee");
+    verdict.textContent = gagne ? "FACE ! La chance est avec vous !" : "PILE ! La maison gagne…";
+    sfx(gagne ? "win" : "ooh");
+    vibrer(gagne ? 30 : [40, 60, 40]);
+    window.setTimeout(onFini, 1100);
+  }, 1400);
 }
 
 /** L'étal proprement dit (objets, besasse, sceptre) — après le marché. */
