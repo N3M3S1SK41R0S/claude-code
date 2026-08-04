@@ -1,5 +1,5 @@
 # RÉPLIQUES À ENREGISTRER — Le Donjon du Savoir
-*(générées par tools/export-repliques.mjs — 225 répliques ;
+*(générées par tools/export-repliques.mjs — 235 répliques ;
 chaque fichier doit porter EXACTEMENT le nom indiqué : l'intégration est
 automatique, un écart = clip ignoré sans casser le jeu)*
 
@@ -7,7 +7,7 @@ Format : MP3, 44,1 kHz, MONO, ~64 kbps, niveau -16 LUFS, sans musique ni
 bruit de fond, silences < 150 ms en début et fin de fichier.
 
 
-## LE GRAND HÉRAUT (narrateur) — dossier `voix/heraut/` (104 répliques)
+## LE GRAND HÉRAUT (narrateur) — dossier `voix/heraut/` (114 répliques)
 
 | Fichier | Intention (jeu d'acteur) | Réplique à jouer |
 |---|---|---|
@@ -70,15 +70,25 @@ bruit de fond, silences < 150 ms en début et fin de fichier.
 | `fb1ed469.mp3` | Emphase héroïque, roulement de tambour verbal | Et hop ! Un pouvoir de moins, un moment de gloire de plus. |
 | `49d24bb8.mp3` | Conteur au coin du feu — il ouvre et referme le livre des règles | Oyez, oyez ! Le Grand Héraut vous raconte les règles du Donjon du Savoir. |
 | `acbf0703.mp3` | Conteur au coin du feu — il ouvre et referme le livre des règles | Voilà pour les règles. Le reste s'apprend en jouant, et le Héraut veille. Bonne partie ! |
-| `f245abd2.mp3` | Dans le caractère du personnage | Oyez ! Que commence : celui qui a mangé le plus récemment. |
-| `8b9decb1.mp3` | Dans le caractère du personnage | Oyez ! Que ouvre le bal : celui dont l'anniversaire est le plus proche d'aujourd'hui. |
-| `1ce4d71e.mp3` | Dans le caractère du personnage | Oyez ! Que débute : le plus petit de la table. Oui, on se lève pour comparer. |
-| `034b6aec.mp3` | Dans le caractère du personnage | Oyez ! Que s'élance : celui qui a les mains les plus froides. Touchez-vous, c'est réglementaire. |
-| `2318bb21.mp3` | Dans le caractère du personnage | Oyez ! Que commence : le dernier à avoir ri. Ça ne compte pas, ce rire-là. |
-| `0ad11a5b.mp3` | Dans le caractère du personnage | Oyez ! Que ouvre la marche : celui qui vit le plus loin du Donjon. À vol de dragon. |
-| `4b2b53d5.mp3` | Dans le caractère du personnage | Oyez ! Que démarre : celui qui porte le plus de boutons (vêtements, pas d'ascenseur). |
-| `6f8c6c0c.mp3` | Dans le caractère du personnage | LE GRAND RETOURNEMENT ! Le plateau pivote dans un grincement épouvantable : on joue désormais dans l'autre sens, marche arrière toute ! |
-| `9917e221.mp3` | Dans le caractère du personnage | LE GRAND RETOURNEMENT ! Le plateau pivote à nouveau : on repart dans le sens d'origine, en avant toute ! |
+| `f245abd2.mp3` | Crieur public solennel puis chute complice — il désigne qui commence | Oyez ! Que commence : celui qui a mangé le plus récemment. |
+| `8b9decb1.mp3` | Crieur public solennel puis chute complice — il désigne qui commence | Oyez ! Que ouvre le bal : celui dont l'anniversaire est le plus proche d'aujourd'hui. |
+| `1ce4d71e.mp3` | Crieur public solennel puis chute complice — il désigne qui commence | Oyez ! Que débute : le plus petit de la table. Oui, on se lève pour comparer. |
+| `034b6aec.mp3` | Crieur public solennel puis chute complice — il désigne qui commence | Oyez ! Que s'élance : celui qui a les mains les plus froides. Touchez-vous, c'est réglementaire. |
+| `2318bb21.mp3` | Crieur public solennel puis chute complice — il désigne qui commence | Oyez ! Que commence : le dernier à avoir ri. Ça ne compte pas, ce rire-là. |
+| `0ad11a5b.mp3` | Crieur public solennel puis chute complice — il désigne qui commence | Oyez ! Que ouvre la marche : celui qui vit le plus loin du Donjon. À vol de dragon. |
+| `4b2b53d5.mp3` | Crieur public solennel puis chute complice — il désigne qui commence | Oyez ! Que démarre : celui qui porte le plus de boutons (vêtements, pas d'ascenseur). |
+| `6f8c6c0c.mp3` | Cataclysme théâtral — le plateau pivote, stupeur ravie | LE GRAND RETOURNEMENT ! Le plateau pivote dans un grincement épouvantable : on joue désormais dans l'autre sens, marche arrière toute ! |
+| `9917e221.mp3` | Cataclysme théâtral — le plateau pivote, stupeur ravie | LE GRAND RETOURNEMENT ! Le plateau pivote à nouveau : on repart dans le sens d'origine, en avant toute ! |
+| `86e7ca76.mp3` | Maître de cérémonie des grands soirs — paillettes dans la voix | Rideau sur la partie ! Mais rien n'est joué : place à la Cérémonie des Étoiles Bonus… |
+| `5e389bd2.mp3` | Maître de cérémonie des grands soirs — paillettes dans la voix | Mesdames et messieurs, la Cérémonie des Étoiles Bonus ! Des prix, des exploits, et peut-être un retournement ! |
+| `58c3e1ce.mp3` | Maître de cérémonie des grands soirs — paillettes dans la voix | Toutes les étoiles sont remises ! Roulement de tambour… voici le classement final ! |
+| `d2156fbc.mp3` | Annonce de prix, suspense montant — il fait durer le plaisir | Le prix Le Lièvre — pour qui a galopé le plus de cases ! |
+| `88e7df6f.mp3` | Annonce de prix, suspense montant — il fait durer le plaisir | Le prix La Tortue Sage — pour qui a avancé le moins, tout en sagesse ! |
+| `6e62a70a.mp3` | Annonce de prix, suspense montant — il fait durer le plaisir | Le prix Le Roi des Questions — pour qui a donné le plus de bonnes réponses ! |
+| `939b94ab.mp3` | Annonce de prix, suspense montant — il fait durer le plaisir | Le prix L'Œil de Lynx — pour qui a le meilleur taux de réussite ! |
+| `3fe40f61.mp3` | Annonce de prix, suspense montant — il fait durer le plaisir | Le prix Le Magnat — pour qui a amassé le plus d'or de toute la partie ! |
+| `7acf2f7b.mp3` | Annonce de prix, suspense montant — il fait durer le plaisir | Le prix Le Souffre-Douleur — pour qui a vaillamment encaissé le plus de coups durs ! |
+| `fa0f76e6.mp3` | Annonce de prix, suspense montant — il fait durer le plaisir | Le prix Le Chouchou du Destin — pour qui a été désigné par le pur hasard des dés ! |
 | `2fd0df47.mp3` | Roulement de tambour verbal — il lance la question | Attention, les neurones entrent en scène ! |
 | `9c003bed.mp3` | Roulement de tambour verbal — il lance la question | Question en approche. Les sourcils sont autorisés à réfléchir. |
 | `b86b3d6e.mp3` | Roulement de tambour verbal — il lance la question | Silence dans le donjon, juste assez pour entendre la question. |

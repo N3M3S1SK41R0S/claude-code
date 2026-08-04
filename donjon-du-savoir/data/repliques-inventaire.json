@@ -477,6 +477,76 @@
  },
  {
   "perso": "heraut",
+  "id": "86e7ca76",
+  "fichier": "voix/heraut/86e7ca76.mp3",
+  "contexte": "ceremonie",
+  "texte": "Rideau sur la partie ! Mais rien n'est joué : place à la Cérémonie des Étoiles Bonus…"
+ },
+ {
+  "perso": "heraut",
+  "id": "5e389bd2",
+  "fichier": "voix/heraut/5e389bd2.mp3",
+  "contexte": "ceremonie",
+  "texte": "Mesdames et messieurs, la Cérémonie des Étoiles Bonus ! Des prix, des exploits, et peut-être un retournement !"
+ },
+ {
+  "perso": "heraut",
+  "id": "58c3e1ce",
+  "fichier": "voix/heraut/58c3e1ce.mp3",
+  "contexte": "ceremonie",
+  "texte": "Toutes les étoiles sont remises ! Roulement de tambour… voici le classement final !"
+ },
+ {
+  "perso": "heraut",
+  "id": "d2156fbc",
+  "fichier": "voix/heraut/d2156fbc.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix Le Lièvre — pour qui a galopé le plus de cases !"
+ },
+ {
+  "perso": "heraut",
+  "id": "88e7df6f",
+  "fichier": "voix/heraut/88e7df6f.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix La Tortue Sage — pour qui a avancé le moins, tout en sagesse !"
+ },
+ {
+  "perso": "heraut",
+  "id": "6e62a70a",
+  "fichier": "voix/heraut/6e62a70a.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix Le Roi des Questions — pour qui a donné le plus de bonnes réponses !"
+ },
+ {
+  "perso": "heraut",
+  "id": "939b94ab",
+  "fichier": "voix/heraut/939b94ab.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix L'Œil de Lynx — pour qui a le meilleur taux de réussite !"
+ },
+ {
+  "perso": "heraut",
+  "id": "3fe40f61",
+  "fichier": "voix/heraut/3fe40f61.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix Le Magnat — pour qui a amassé le plus d'or de toute la partie !"
+ },
+ {
+  "perso": "heraut",
+  "id": "7acf2f7b",
+  "fichier": "voix/heraut/7acf2f7b.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix Le Souffre-Douleur — pour qui a vaillamment encaissé le plus de coups durs !"
+ },
+ {
+  "perso": "heraut",
+  "id": "fa0f76e6",
+  "fichier": "voix/heraut/fa0f76e6.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix Le Chouchou du Destin — pour qui a été désigné par le pur hasard des dés !"
+ },
+ {
+  "perso": "heraut",
   "id": "2fd0df47",
   "fichier": "voix/heraut/2fd0df47.mp3",
   "contexte": "accroche.question",

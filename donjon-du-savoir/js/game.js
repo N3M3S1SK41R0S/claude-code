@@ -7,7 +7,7 @@
 import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawGambitTable, drawHardest, drawInsolite, drawQuestion, noteProposee } from "./data.js";
 import { boardById, CASE_TYPES, renderBoard, walkPion } from "./board.js";
 import { aimTile3D, clearAim3D, heroMoment3D, react3D, redonneChance3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
-import { herald, RETOURNEMENTS, TOASTS_OUVERTURE } from "./herald.js";
+import { CEREMONIE, herald, RETOURNEMENTS, TOASTS_OUVERTURE } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } from "./ui.js";
@@ -3515,7 +3515,7 @@ function endStarGameFinal() {
   if (bonus.length > 0 && !testFlag("__DONJON_TEST")) {
     // La CÉRÉMONIE va remettre les étoiles une à une : le Héraut n'annonce ici
     // NI les primes NI le vainqueur — tout le suspense se joue à la remise.
-    heraldSays("Rideau sur la partie ! Mais rien n'est joué : place à la Cérémonie des Étoiles Bonus…");
+    heraldSays(CEREMONIE.rideau);
   } else {
     const primes = bonus.length
       ? ` Étoiles bonus : ${bonus.map((b) => `${b.emoji} ${b.nom}`).join(", ")}.`

@@ -7154,6 +7154,21 @@ const RECIT_REGLES = {
   outro: "Voilà pour les règles. Le reste s'apprend en jouant, et le Héraut veille. Bonne partie !",
 };
 
+// La CÉRÉMONIE DES ÉTOILES BONUS : trois répliques fixes (rideau, ouverture,
+// tambour final) — même source pour le jeu ET l'inventaire des voix.
+const CEREMONIE = {
+  rideau: "Rideau sur la partie ! Mais rien n'est joué : place à la Cérémonie des Étoiles Bonus…",
+  intro: "Mesdames et messieurs, la Cérémonie des Étoiles Bonus ! Des prix, des exploits, et peut-être un retournement !",
+  finale: "Toutes les étoiles sont remises ! Roulement de tambour… voici le classement final !",
+};
+
+/** L'annonce d'un prix de la cérémonie : phrase DÉTERMINISTE par prix (7 prix
+ *  fixes au total), donc enregistrable — l'inventaire les génère depuis
+ *  BONUS_STAR_POOL avec exactement ce gabarit. */
+function annoncePrix(prix) {
+  return `Le prix ${prix.titre} — pour qui ${prix.desc} !`;
+}
+
 // Viviers exportés pour l'outil d'inventaire des voix (tools/export-repliques).
 const HERALD_POOLS = {
   ouverture, debutTour, caseComment, bonneReponse, mauvaiseReponse,
@@ -7162,6 +7177,7 @@ const HERALD_POOLS = {
   recitRegles: [RECIT_REGLES.intro, RECIT_REGLES.outro],
   toasts: TOASTS_OUVERTURE,
   retournements: [RETOURNEMENTS.arriere, RETOURNEMENTS.avant],
+  ceremonie: [CEREMONIE.rideau, CEREMONIE.intro, CEREMONIE.finale],
 };
 
 const herald = {
@@ -7179,7 +7195,7 @@ const herald = {
   sponsor: () => pick(sponsors),
 };
 
-;Object.assign(module.exports, {TOASTS_OUVERTURE, RETOURNEMENTS, RECIT_REGLES, HERALD_POOLS, herald});
+;Object.assign(module.exports, {annoncePrix, TOASTS_OUVERTURE, RETOURNEMENTS, RECIT_REGLES, CEREMONIE, HERALD_POOLS, herald});
 };
 __modules["./powers.js"] = function(module, exports, require) {
 // The 6 characters' powers (adult + child variants), per §6 of the cahier.
@@ -12481,7 +12497,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v131";
+const APP_VERSION = "donjon-v132";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
@@ -12495,7 +12511,7 @@ __modules["./game.js"] = function(module, exports, require) {
 const { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawGambitTable, drawHardest, drawInsolite, drawQuestion, noteProposee } = require("./data.js");
 const { boardById, CASE_TYPES, renderBoard, walkPion } = require("./board.js");
 const { aimTile3D, clearAim3D, heroMoment3D, react3D, redonneChance3D, render3D, show3D, stageCase3D, use3D, walk3D } = require("./board3d.js");
-const { herald, RETOURNEMENTS, TOASTS_OUVERTURE } = require("./herald.js");
+const { CEREMONIE, herald, RETOURNEMENTS, TOASTS_OUVERTURE } = require("./herald.js");
 const { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } = require("./powers.js");
 const { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } = require("./state.js");
 const { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } = require("./ui.js");
@@ -16003,7 +16019,7 @@ function endStarGameFinal() {
   if (bonus.length > 0 && !testFlag("__DONJON_TEST")) {
     // La CÉRÉMONIE va remettre les étoiles une à une : le Héraut n'annonce ici
     // NI les primes NI le vainqueur — tout le suspense se joue à la remise.
-    heraldSays("Rideau sur la partie ! Mais rien n'est joué : place à la Cérémonie des Étoiles Bonus…");
+    heraldSays(CEREMONIE.rideau);
   } else {
     const primes = bonus.length
       ? ` Étoiles bonus : ${bonus.map((b) => `${b.emoji} ${b.nom}`).join(", ")}.`
@@ -16075,9 +16091,9 @@ const { FIGURINE_ATLAS } = require("./board3d.js");
 const { APP_VERSION } = require("./version.js");
 const { POWERS } = require("./powers.js");
 const { say, setVoice, stop, voiceAvailable, voiceEnabled, warmVoices } = require("./tts.js");
-const { RECIT_REGLES } = require("./herald.js");
+const { annoncePrix, CEREMONIE, RECIT_REGLES } = require("./herald.js");
 const { renderEclairSetup } = require("./eclair.js");
-const { configurerCle, nomVoixDirect, oublierCle, setVoixDirect, tailleCache, voixDirectActif, voixDirectConfigure } = require("./voixdirect.js");
+const { configurerCle, lireEnDirect, nomVoixDirect, oublierCle, setVoixDirect, tailleCache, voixDirectActif, voixDirectConfigure } = require("./voixdirect.js");
 const { setSfx, sfx, sfxAvailable, sfxEnabled } = require("./sfx.js");
 const { setMusic, musicAvailable, musicEnabled } = require("./music.js");
 const { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } = require("./bots.js");
@@ -17077,7 +17093,7 @@ function ceremonieEtoiles(winner, rankingData, extras) {
   const cadre = el("div", { class: "ceremonie-etape" });
   scene.append(cadre, el("button", { class: "btn ceremonie-passer", type: "button", onclick: finir }, "⏩ Passer la cérémonie"));
   zone.append(scene);
-  say("Mesdames et messieurs, la Cérémonie des Étoiles Bonus ! Des prix, des exploits, et peut-être un retournement !", { perso: "heraut", queue: true });
+  say(CEREMONIE.intro, { perso: "heraut", queue: true });
 
   const etape = (idx) => {
     if (idx >= bonusStars.length) return finale();
@@ -17103,7 +17119,7 @@ function ceremonieEtoiles(winner, rankingData, extras) {
       ligne.textContent = `${prix.emoji} ${prix.titre}`;
       roue.classList.add("ceremonie-roue-fixe");
       sfx("chest");
-      say(`Le prix ${prix.titre} — pour qui ${prix.desc} !`, { perso: "heraut", queue: true });
+      say(annoncePrix(prix), { perso: "heraut", queue: true });
       plusTard(tambour, 1500);
     };
     // ② ROULEMENT DE TAMBOUR : le suspense avant de nommer le lauréat.
@@ -17151,11 +17167,16 @@ function ceremonieEtoiles(winner, rankingData, extras) {
     cadre.innerHTML = "";
     cadre.append(el("p", { class: "ceremonie-tambour", text: "🥁 Et maintenant… LE CLASSEMENT FINAL !" }));
     sfx("tambour");
-    say("Toutes les étoiles sont remises ! Roulement de tambour… voici le classement final !", { perso: "heraut", queue: true });
+    say(CEREMONIE.finale, { perso: "heraut", queue: true });
     plusTard(finir, 2400);
   };
   plusTard(() => etape(0), 900);
 }
+
+// Sonde d'outillage : lecture directe d'un texte par la voix ElevenLabs — les
+// tests interceptent l'API en LOCAL (fausse voix, MP3 de silence), aucune clé
+// réelle n'entre jamais dans un test ni dans le dépôt.
+window.__donjonLireDirect = (t) => lireEnDirect(t, { onEchec: () => {} });
 
 // Sonde d'outillage (captures, réglage des tempos) : rejoue la cérémonie avec
 // une tablée de démonstration, sans devoir finir une vraie partie Étoiles.

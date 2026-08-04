@@ -11,9 +11,9 @@ import { FIGURINE_ATLAS } from "./board3d.js";
 import { APP_VERSION } from "./version.js";
 import { POWERS } from "./powers.js";
 import { say, setVoice, stop, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
-import { RECIT_REGLES } from "./herald.js";
+import { annoncePrix, CEREMONIE, RECIT_REGLES } from "./herald.js";
 import { renderEclairSetup } from "./eclair.js";
-import { configurerCle, nomVoixDirect, oublierCle, setVoixDirect, tailleCache, voixDirectActif, voixDirectConfigure } from "./voixdirect.js";
+import { configurerCle, lireEnDirect, nomVoixDirect, oublierCle, setVoixDirect, tailleCache, voixDirectActif, voixDirectConfigure } from "./voixdirect.js";
 import { setSfx, sfx, sfxAvailable, sfxEnabled } from "./sfx.js";
 import { setMusic, musicAvailable, musicEnabled } from "./music.js";
 import { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } from "./bots.js";
@@ -1013,7 +1013,7 @@ function ceremonieEtoiles(winner, rankingData, extras) {
   const cadre = el("div", { class: "ceremonie-etape" });
   scene.append(cadre, el("button", { class: "btn ceremonie-passer", type: "button", onclick: finir }, "⏩ Passer la cérémonie"));
   zone.append(scene);
-  say("Mesdames et messieurs, la Cérémonie des Étoiles Bonus ! Des prix, des exploits, et peut-être un retournement !", { perso: "heraut", queue: true });
+  say(CEREMONIE.intro, { perso: "heraut", queue: true });
 
   const etape = (idx) => {
     if (idx >= bonusStars.length) return finale();
@@ -1039,7 +1039,7 @@ function ceremonieEtoiles(winner, rankingData, extras) {
       ligne.textContent = `${prix.emoji} ${prix.titre}`;
       roue.classList.add("ceremonie-roue-fixe");
       sfx("chest");
-      say(`Le prix ${prix.titre} — pour qui ${prix.desc} !`, { perso: "heraut", queue: true });
+      say(annoncePrix(prix), { perso: "heraut", queue: true });
       plusTard(tambour, 1500);
     };
     // ② ROULEMENT DE TAMBOUR : le suspense avant de nommer le lauréat.
@@ -1087,11 +1087,16 @@ function ceremonieEtoiles(winner, rankingData, extras) {
     cadre.innerHTML = "";
     cadre.append(el("p", { class: "ceremonie-tambour", text: "🥁 Et maintenant… LE CLASSEMENT FINAL !" }));
     sfx("tambour");
-    say("Toutes les étoiles sont remises ! Roulement de tambour… voici le classement final !", { perso: "heraut", queue: true });
+    say(CEREMONIE.finale, { perso: "heraut", queue: true });
     plusTard(finir, 2400);
   };
   plusTard(() => etape(0), 900);
 }
+
+// Sonde d'outillage : lecture directe d'un texte par la voix ElevenLabs — les
+// tests interceptent l'API en LOCAL (fausse voix, MP3 de silence), aucune clé
+// réelle n'entre jamais dans un test ni dans le dépôt.
+window.__donjonLireDirect = (t) => lireEnDirect(t, { onEchec: () => {} });
 
 // Sonde d'outillage (captures, réglage des tempos) : rejoue la cérémonie avec
 // une tablée de démonstration, sans devoir finir une vraie partie Étoiles.

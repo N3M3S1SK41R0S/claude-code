@@ -159,6 +159,21 @@ export const RECIT_REGLES = {
   outro: "Voilà pour les règles. Le reste s'apprend en jouant, et le Héraut veille. Bonne partie !",
 };
 
+// La CÉRÉMONIE DES ÉTOILES BONUS : trois répliques fixes (rideau, ouverture,
+// tambour final) — même source pour le jeu ET l'inventaire des voix.
+export const CEREMONIE = {
+  rideau: "Rideau sur la partie ! Mais rien n'est joué : place à la Cérémonie des Étoiles Bonus…",
+  intro: "Mesdames et messieurs, la Cérémonie des Étoiles Bonus ! Des prix, des exploits, et peut-être un retournement !",
+  finale: "Toutes les étoiles sont remises ! Roulement de tambour… voici le classement final !",
+};
+
+/** L'annonce d'un prix de la cérémonie : phrase DÉTERMINISTE par prix (7 prix
+ *  fixes au total), donc enregistrable — l'inventaire les génère depuis
+ *  BONUS_STAR_POOL avec exactement ce gabarit. */
+export function annoncePrix(prix) {
+  return `Le prix ${prix.titre} — pour qui ${prix.desc} !`;
+}
+
 // Viviers exportés pour l'outil d'inventaire des voix (tools/export-repliques).
 export const HERALD_POOLS = {
   ouverture, debutTour, caseComment, bonneReponse, mauvaiseReponse,
@@ -167,6 +182,7 @@ export const HERALD_POOLS = {
   recitRegles: [RECIT_REGLES.intro, RECIT_REGLES.outro],
   toasts: TOASTS_OUVERTURE,
   retournements: [RETOURNEMENTS.arriere, RETOURNEMENTS.avant],
+  ceremonie: [CEREMONIE.rideau, CEREMONIE.intro, CEREMONIE.finale],
 };
 
 export const herald = {

@@ -3,4 +3,4 @@
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-export const APP_VERSION = "donjon-v131";
+export const APP_VERSION = "donjon-v132";

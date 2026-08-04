@@ -6,10 +6,10 @@
 import { writeFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { HERALD_POOLS } from "../js/herald.js";
+import { annoncePrix, HERALD_POOLS } from "../js/herald.js";
 import { HOST_CUES } from "../js/host-voice.js";
 import { HERO_LINES } from "../js/voices.js";
-import { CHARACTERS } from "../js/state.js";
+import { BONUS_STAR_POOL, CHARACTERS } from "../js/state.js";
 import { idReplique } from "../js/voiceclips.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -33,6 +33,11 @@ for (const [nomPool, pool] of Object.entries(HERALD_POOLS)) {
     }
   }
 }
+
+// ---- Les annonces de prix de la Cérémonie (7 phrases déterministes) ----
+// Générées avec le MÊME gabarit que le jeu (annoncePrix) : l'identifiant de
+// clip correspond exactement à ce que la cérémonie dira en partie.
+for (const prix of BONUS_STAR_POOL) ajoute("heraut", annoncePrix(prix), "ceremonie.prix");
 
 // ---- Les accroches de l'animateur (avant question/anecdote, verdicts) ----
 // Elles vivent aujourd'hui en petits clips WebM de synthèse : les versions
@@ -79,6 +84,10 @@ const INTENTIONS = {
   "caseComment.teleporteur": "Émerveillé, un rien vertigineux",
   "caseComment.carrefour": "Curieux, met la pression gentiment",
   recitRegles: "Conteur au coin du feu — il ouvre et referme le livre des règles",
+  toasts: "Crieur public solennel puis chute complice — il désigne qui commence",
+  retournements: "Cataclysme théâtral — le plateau pivote, stupeur ravie",
+  ceremonie: "Maître de cérémonie des grands soirs — paillettes dans la voix",
+  "ceremonie.prix": "Annonce de prix, suspense montant — il fait durer le plaisir",
   "accroche.question": "Roulement de tambour verbal — il lance la question",
   "accroche.anecdote": "Confidence gourmande — il déballe le petit trésor",
   "accroche.bonne": "Éclatant, trompette dans la voix",
