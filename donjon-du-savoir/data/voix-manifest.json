@@ -112,7 +112,15 @@
  "cageot": {
   "46068317": "voix/cageot/46068317.mp3",
   "c679b638": "voix/cageot/c679b638.mp3",
-  "2e3514fa": "voix/cageot/2e3514fa.mp3"
+  "2e3514fa": "voix/cageot/2e3514fa.mp3",
+  "a2c78f78": "voix/cageot/a2c78f78.mp3",
+  "6ffd0fea": "voix/cageot/6ffd0fea.mp3",
+  "5915ad97": "voix/cageot/5915ad97.mp3",
+  "6bfa3555": "voix/cageot/6bfa3555.mp3",
+  "8071a8c5": "voix/cageot/8071a8c5.mp3",
+  "476cab90": "voix/cageot/476cab90.mp3",
+  "11a3420e": "voix/cageot/11a3420e.mp3",
+  "ef30f376": "voix/cageot/ef30f376.mp3"
  },
  "etincelle": {
   "223032fc": "voix/etincelle/223032fc.mp3",
@@ -217,5 +225,18 @@
   "aa46a881": "voix/plomberoy/aa46a881.mp3",
   "ca99b9c0": "voix/plomberoy/ca99b9c0.mp3",
   "734e38f6": "voix/plomberoy/734e38f6.mp3"
+ },
+ "boumbastien": {
+  "ed73ee93": "voix/boumbastien/ed73ee93.mp3",
+  "dccb6e8a": "voix/boumbastien/dccb6e8a.mp3",
+  "a958d81c": "voix/boumbastien/a958d81c.mp3",
+  "deec3a65": "voix/boumbastien/deec3a65.mp3",
+  "ca0f381c": "voix/boumbastien/ca0f381c.mp3",
+  "707c24ab": "voix/boumbastien/707c24ab.mp3",
+  "37dcdadd": "voix/boumbastien/37dcdadd.mp3",
+  "74c76d95": "voix/boumbastien/74c76d95.mp3",
+  "0dca4433": "voix/boumbastien/0dca4433.mp3",
+  "51cb13f5": "voix/boumbastien/51cb13f5.mp3",
+  "e7f7014b": "voix/boumbastien/e7f7014b.mp3"
  }
 }

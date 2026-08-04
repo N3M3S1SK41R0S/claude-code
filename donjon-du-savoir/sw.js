@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v116";
+const VERSION = "donjon-v117";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -49,9 +49,28 @@ const SHELL = [
   "./data/decors-3d.json",
   "./data/modeles-3d.json",
   "./data/voix-manifest.json",
+  "./voix/boumbastien/0dca4433.mp3",
+  "./voix/boumbastien/37dcdadd.mp3",
+  "./voix/boumbastien/51cb13f5.mp3",
+  "./voix/boumbastien/707c24ab.mp3",
+  "./voix/boumbastien/74c76d95.mp3",
+  "./voix/boumbastien/a958d81c.mp3",
+  "./voix/boumbastien/ca0f381c.mp3",
+  "./voix/boumbastien/dccb6e8a.mp3",
+  "./voix/boumbastien/deec3a65.mp3",
+  "./voix/boumbastien/e7f7014b.mp3",
+  "./voix/boumbastien/ed73ee93.mp3",
+  "./voix/cageot/11a3420e.mp3",
   "./voix/cageot/2e3514fa.mp3",
   "./voix/cageot/46068317.mp3",
+  "./voix/cageot/476cab90.mp3",
+  "./voix/cageot/5915ad97.mp3",
+  "./voix/cageot/6bfa3555.mp3",
+  "./voix/cageot/6ffd0fea.mp3",
+  "./voix/cageot/8071a8c5.mp3",
+  "./voix/cageot/a2c78f78.mp3",
   "./voix/cageot/c679b638.mp3",
+  "./voix/cageot/ef30f376.mp3",
   "./voix/duchesse/0000d234.mp3",
   "./voix/duchesse/001c90ac.mp3",
   "./voix/duchesse/1de3c70c.mp3",
