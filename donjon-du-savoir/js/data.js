@@ -85,10 +85,21 @@ const diffOf = (q) => q.difficulte ?? 3;
  *  autorisé par la tranche (adulte ne va JAMAIS aux tranches non-adultes). */
 const inTiers = (q, b) => b.tiers.includes(q.niveau_age);
 
+/** FAMILLES DE QUASI-DOUBLONS : « Qui a peint la Joconde ? » existe en huit
+ *  variantes (champ `famille` calculé par tools/familles-questions.mjs) —
+ *  jouer l'une d'elles écarte TOUTES les autres pour la partie, sinon la
+ *  table a l'impression de retomber sans cesse sur la même question. */
+function famillesPosees(asked) {
+  const posees = new Set();
+  for (const q of bank) if (q.famille && asked.has(q.id)) posees.add(q.famille);
+  return posees;
+}
+
 function subset(b, formats, { ignoreAsked = false } = {}) {
   const st = getState(); // nul en Partie Éclair (pas de plateau) : fraîcheur inter-parties seule
   const asked = ignoreAsked || !st ? null : new Set(st.askedIds);
-  let candidates = bank.filter((q) => (!asked || !asked.has(q.id)) && inTiers(q, b));
+  const fam = asked ? famillesPosees(asked) : null;
+  let candidates = bank.filter((q) => (!asked || (!asked.has(q.id) && (!q.famille || !fam.has(q.famille)))) && inTiers(q, b));
   if (formats) candidates = candidates.filter((q) => formats.includes(q.format));
   return candidates;
 }
