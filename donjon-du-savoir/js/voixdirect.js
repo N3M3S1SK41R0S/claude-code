@@ -33,16 +33,16 @@ export function nomVoixDirect() { return (lit(VOIX_STOCKAGE) ?? "").split("|")[1
 export function oublierCle() { pose(CLE_STOCKAGE, null); pose(VOIX_STOCKAGE, null); pose(ACTIF_STOCKAGE, null); }
 
 /** Enregistre la clé après l'avoir validée : cherche la voix du LECTEUR sur le
- *  compte — Alain Chienhaut (l'animateur des questions) en priorité, sinon le
- *  Héraut, sinon la première voix « Donjon-… » du casting. */
+ *  compte — le Héraut d'abord (choix officiel de la table), sinon un éventuel
+ *  animateur « Chienhaut », sinon la première voix « Donjon-… » du casting. */
 export async function configurerCle(cle) {
   const r = await fetch(`${API}/voices`, { headers: { "xi-api-key": cle } });
   if (!r.ok) throw new Error(r.status === 401 ? "Clé refusée par ElevenLabs." : `ElevenLabs répond ${r.status}.`);
   const { voices = [] } = await r.json();
-  const voix = voices.find((v) => /chienhaut/i.test(v.name ?? ""))
-    ?? voices.find((v) => v.name === "Donjon-Heraut")
+  const voix = voices.find((v) => v.name === "Donjon-Heraut")
+    ?? voices.find((v) => /chienhaut/i.test(v.name ?? ""))
     ?? voices.find((v) => v.name?.startsWith("Donjon-"));
-  if (!voix) throw new Error("Aucune voix « Alain Chienhaut » ni « Donjon-… » sur ce compte.");
+  if (!voix) throw new Error("Aucune voix « Donjon-… » sur ce compte.");
   pose(CLE_STOCKAGE, cle);
   pose(VOIX_STOCKAGE, `${voix.voice_id}|${voix.name}`);
   pose(ACTIF_STOCKAGE, "1");
