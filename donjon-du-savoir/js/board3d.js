@@ -884,7 +884,7 @@ function buildBoard(layout, boardDef) {
     const bat = CASE_BUILDING[type];
     // Bâtiment-repère bien EN RETRAIT (3,4 u) : sa silhouette fantôme ne voile
     // plus jamais le socle, la pastille de couleur ni le jeton de la case.
-    if (bat) addBuilding(bat.id, bat.art, p.clone().setZ(p.z - 3.4), type === "arrivee" ? 6.5 : 4.6, epoch);
+    if (bat) addBuilding(bat.id, bat.art, p.clone().setZ(p.z - 4.8), type === "arrivee" ? 6.2 : 3.9, epoch);
   }
 
   // Bâtiments et décors d'ambiance aux abords du plateau : ceux du MONDE
@@ -972,7 +972,7 @@ function buildBoard(layout, boardDef) {
     const art = PNJ_CASE[layout[i]];
     if (!art) continue;
     const p = worldOf(i, length);
-    boardGroup.add(figStandee(art, p.clone().add(new THREE.Vector3(1.9, 0, 0.7)), 3.0));
+    boardGroup.add(figStandee(art, p.clone().add(new THREE.Vector3(2.1, 0, -1.6)), 2.8));
   }
   const FLANEURS = ["assets/figurines/pnj-boubou.webp", "assets/figurines/pnj-groumf.webp", "assets/figurines/pnj-sylvette.webp", "assets/figurines/pnj-coassin.webp", "assets/figurines/pnj-barnabe.webp", "assets/figurines/pnj-ratichon.webp", "assets/figurines/pnj-biscornu.webp", "assets/figurines/pnj-hibou-passage.webp"];
   // Les habitants des CINQ NOUVEAUX MONDES (GEN 2 v5) : deux PNJ nés sur place
@@ -989,9 +989,9 @@ function buildBoard(layout, boardDef) {
     ...FLANEURS.map((art) => ({ art, vues: 3 })), // classiques : atlas directionnels
   ];
   const pasFlaneur = 0.88 / Math.max(1, flaneurs.length - 1);
-  flaneurs.forEach((f, i) => boardGroup.add(figStandee(f.art, worldUV(0.06 + pasFlaneur * i, i % 2 ? 0.035 : 0.975, length), 2.6, f.vues)));
+  flaneurs.forEach((f, i) => boardGroup.add(figStandee(f.art, worldUV(0.06 + pasFlaneur * i, i % 2 ? -0.09 : 1.09, length), 2.6, f.vues)));
   const PROPS = ["assets/objet-coffre.png", "assets/objet-tonneau.png", "assets/objet-torche.png", "assets/objet-cristal.png", "assets/objet-potion.png"];
-  PROPS.forEach((art, i) => boardGroup.add(standee(art, worldUV(0.05 + 0.225 * i, i % 2 ? 0.07 : 0.93, length), 1.35)));
+  PROPS.forEach((art, i) => boardGroup.add(standee(art, worldUV(0.05 + 0.225 * i, i % 2 ? -0.06 : 1.06, length), 1.35)));
 
   // Vue d'ensemble : recule assez pour cadrer TOUT le plateau (le joueur voit
   // le plateau global au repos ; la caméra ne se rapproche que pendant un trajet).
