@@ -103,6 +103,13 @@ function botAct() {
   const pion = currentPion();
   if (!pion || !pion.bot) return; // le reste ne concerne que le tour d'un bot
 
+  // Des HUMAINS ont encore la parole (pari du public, événement collectif,
+  // gambit de table…) : tant qu'un groupe de réponse humain n'a pas voté, le
+  // pilote du bot ATTEND — il ne vole jamais la parole de la table.
+  const humainsEnAttente = [...panel.querySelectorAll(".bet-buttons:not([data-bot='1'])")]
+    .some((gr) => !gr.querySelector(".bet-selected"));
+  if (humainsEnAttente) return;
+
   // (B) Lancer le dé, (C) avancer.
   const roll = byText(/Lancer le dé/); if (roll) return botClick(roll);
   const adv = byText(/Avancer de \d/); if (adv) return botClick(adv);

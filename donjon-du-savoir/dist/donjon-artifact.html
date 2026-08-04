@@ -12356,7 +12356,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v127";
+const APP_VERSION = "donjon-v128";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
@@ -12465,6 +12465,13 @@ function botAct() {
 
   const pion = currentPion();
   if (!pion || !pion.bot) return; // le reste ne concerne que le tour d'un bot
+
+  // Des HUMAINS ont encore la parole (pari du public, événement collectif,
+  // gambit de table…) : tant qu'un groupe de réponse humain n'a pas voté, le
+  // pilote du bot ATTEND — il ne vole jamais la parole de la table.
+  const humainsEnAttente = [...panel.querySelectorAll(".bet-buttons:not([data-bot='1'])")]
+    .some((gr) => !gr.querySelector(".bet-selected"));
+  if (humainsEnAttente) return;
 
   // (B) Lancer le dé, (C) avancer.
   const roll = byText(/Lancer le dé/); if (roll) return botClick(roll);
