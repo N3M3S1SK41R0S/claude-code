@@ -862,6 +862,8 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 
 /* ---------- larger screens: board beside panel ---------- */
 
+.screen-game { position: relative; } /* ancre la minimap en surimpression (mobile) */
+
 @media (min-width: 900px) {
   .screen-game {
     display: grid;
@@ -874,6 +876,18 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   .herald-zone { grid-area: herald; justify-content: flex-start; }
   .panel { grid-area: panel; }
   .players-strip { grid-area: players; }
+}
+
+/* Grand écran : le jeu emplit la PAGE ENTIÈRE — le plateau 3D en majesté,
+   la mini-carte À CÔTÉ, grande et lisible (plus jamais superposée). */
+@media (min-width: 1100px) {
+  main:has(#screen-game:not([hidden])) { max-width: none; padding: 1rem 1.4rem; }
+  .screen-game {
+    grid-template-columns: minmax(0, 2.3fr) minmax(340px, 1fr);
+    grid-template-areas: "board herald" "board minimap" "board panel" "players players";
+  }
+  .minimap { position: static; grid-area: minimap; width: 100%; z-index: auto; }
+  .board3d-canvas, .board3d-vignette { max-width: none; }
 }
 
 /* ============================================================

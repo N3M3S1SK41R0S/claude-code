@@ -4,14 +4,15 @@
 //    pion without re-triggering, so a turn always terminates;
 //  - nothing is ever timed (non-negotiable rule of the cahier des charges);
 //  - anecdote after EVERY question, no exception.
-import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawGambitTable, drawHardest, drawInsolite, drawQuestion } from "./data.js";
+import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawGambitTable, drawHardest, drawInsolite, drawQuestion, noteProposee } from "./data.js";
 import { boardById, CASE_TYPES, renderBoard, walkPion } from "./board.js";
 import { aimTile3D, clearAim3D, heroMoment3D, react3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
-import { herald } from "./herald.js";
+import { herald, TOASTS_OUVERTURE } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } from "./ui.js";
 import { onSpeechBoundary, say, sayHost } from "./tts.js";
+import { quandLibre } from "./voiceclips.js";
 import { heroLine, voiceOf } from "./voices.js";
 import { botNumericGuess, botWantsCorrect } from "./bots.js";
 import { playScene } from "./scene.js";
@@ -357,20 +358,13 @@ function renderPlayersStrip() {
 
 /* ---------- rituel d'ouverture (toast) ---------- */
 
-const TOASTS = [
-  "commence : celui qui a mangé le plus récemment.",
-  "ouvre le bal : celui dont l'anniversaire est le plus proche d'aujourd'hui.",
-  "débute : le plus petit de la table. Oui, on se lève pour comparer.",
-  "s'élance : celui qui a les mains les plus froides. Touchez-vous, c'est réglementaire.",
-  "commence : le dernier à avoir ri. Ça ne compte pas, ce rire-là.",
-  "ouvre la marche : celui qui vit le plus loin du Donjon. À vol de dragon.",
-  "démarre : celui qui porte le plus de boutons (vêtements, pas d'ascenseur).",
-];
-
 function openingToast() {
   const state = getState();
-  const toast = TOASTS[Math.floor(Math.random() * TOASTS.length)];
-  heraldSays(`Oyez ! Que ${toast}`);
+  // Phrase FIXE du répertoire du Héraut : sa vraie voix la portera dès que le
+  // clip existera (mini-lot 4) — plus de bascule sur la synthèse à l'ouverture.
+  const phrase = TOASTS_OUVERTURE[Math.floor(Math.random() * TOASTS_OUVERTURE.length)];
+  const toast = phrase.replace(/^Oyez ! Que /, "");
+  heraldSays(phrase);
   const start = (idx) => {
     state.currentIndex = idx;
     save();
@@ -684,7 +678,7 @@ function showDieResult(value, { rerollAvailable }) {
   // 🎲 Le dé est commenté avec la plus grande retenue (humour ≥ complice).
   sixStreak = value === 6 ? sixStreak + 1 : 0;
   if (!testFlag("__DONJON_TEST") && humourLevel() >= 1) {
-    if (value === 1 && Math.random() < 0.55) heraldSays(herald.dePetit());
+    if (value === 1) heraldSays(herald.dePetit()); // un 1 est un MOMENT : toujours commenté
     else if (sixStreak >= 3) { heraldSays(herald.deTriple()); sixStreak = 0; }
   }
   const power = powerOf(pion);
@@ -1607,12 +1601,14 @@ const ADVANCE = { qcm: 2, vrai_faux: 1, equipe: 2, duo: 1, carre: 2, cash: 4 };
 
 /** Point d'entrée unique de la lecture : tous les formats de question passent
  *  par ces deux fonctions afin de garantir l'ordre question puis anecdote. */
+// La réaction ENREGISTRÉE du personnage (clip) se termine d'abord, PUIS le
+// Héraut prend la parole — fini les chevauchements de voix.
 function narrateQuestion(q) {
-  if (q?.texte) sayHost(q.texte, "question");
+  if (q?.texte) quandLibre(() => sayHost(q.texte, "question"), 4000);
 }
 
 function narrateAnecdote(q) {
-  if (q?.anecdote) sayHost(q.anecdote, "anecdote");
+  if (q?.anecdote) quandLibre(() => sayHost(q.anecdote, "anecdote"), 4000);
 }
 
 /** Mode « partie à l'oreille » : les propositions affichées sont lues à voix
@@ -1769,7 +1765,7 @@ function themeChoiceGate(pion, qA, qB) {
     const t = themeMeta(q.categorie);
     const ty = typeMeta(q.format);
     return el("button", { class: "btn btn-choice theme-choice", type: "button",
-      style: softStyle(t.color), onclick: () => posePicked(pion, q) },
+      style: softStyle(t.color), onclick: () => { noteProposee(q === qA ? qB : qA); posePicked(pion, q); } },
       el("span", { class: "theme-banner-emoji", text: t.emoji }),
       el("span", {}, el("strong", { text: q.categorie }), el("span", { class: "theme-choice-type", text: ` · ${ty.emoji} ${ty.label}` })),
     );
@@ -3233,7 +3229,10 @@ function finishTurn() {
  * pénalité. Zéro course, zéro chronomètre.
  */
 function ordreFlow(set, onDone) {
-  heraldSays("🔢 ORDRE ! Trois faits, un seul bon classement — la tablée débat, du plus petit au plus grand !");
+  const ordreDates = set.nature === "date";
+  heraldSays(ordreDates
+    ? "🔢 ORDRE ! Trois dates, un seul bon classement — la tablée débat, de la plus ancienne à la plus récente !"
+    : "🔢 ORDRE ! Trois nombres, un seul bon classement — la tablée débat, du plus petit au plus grand !");
   for (const q of set) commitQuestion(q);
   const picked = []; // indices dans l'ordre choisi par la table
   const btns = [];
@@ -3274,7 +3273,7 @@ function ordreFlow(set, onDone) {
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: "🔢 Ordre ! — toute la tablée" }),
       regleBanner("ordre"),
-      el("p", { class: "help-note", text: "Touchez les faits DU PLUS PETIT AU PLUS GRAND (retouchez pour annuler). Discutez-en, rien ne presse !" }),
+      el("p", { class: "help-note", text: ordreDates ? "Touchez les faits DE LA PLUS ANCIENNE À LA PLUS RÉCENTE date (retouchez pour annuler). Discutez-en, rien ne presse !" : "Touchez les faits DU PLUS PETIT AU PLUS GRAND nombre (retouchez pour annuler). Discutez-en, rien ne presse !" }),
       ...btns,
       valider,
     ),

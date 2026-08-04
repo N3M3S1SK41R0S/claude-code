@@ -31,6 +31,7 @@ export function stop() {
     activeAudio.load();
     activeAudio = null;
   }
+  stopClips(); // les répliques enregistrées aussi : le silence est total
   stopDirect();
   if (voiceAvailable()) window.speechSynthesis.cancel();
 }

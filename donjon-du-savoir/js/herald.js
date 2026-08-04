@@ -132,6 +132,18 @@ const pouvoirUtilise = [
   "Et hop ! Un pouvoir de moins, un moment de gloire de plus.",
 ];
 
+// Les TOASTS d'ouverture (rituel « qui commence ? ») : des phrases FIXES,
+// donc enregistrables — le Héraut les portera de sa vraie voix (mini-lot 4).
+export const TOASTS_OUVERTURE = [
+  "Oyez ! Que commence : celui qui a mangé le plus récemment.",
+  "Oyez ! Que ouvre le bal : celui dont l'anniversaire est le plus proche d'aujourd'hui.",
+  "Oyez ! Que débute : le plus petit de la table. Oui, on se lève pour comparer.",
+  "Oyez ! Que s'élance : celui qui a les mains les plus froides. Touchez-vous, c'est réglementaire.",
+  "Oyez ! Que commence : le dernier à avoir ri. Ça ne compte pas, ce rire-là.",
+  "Oyez ! Que ouvre la marche : celui qui vit le plus loin du Donjon. À vol de dragon.",
+  "Oyez ! Que démarre : celui qui porte le plus de boutons (vêtements, pas d'ascenseur).",
+];
+
 // Le RÉCIT DES RÈGLES (bouton 🔊 de la page Règles) : les deux répliques fixes
 // qui encadrent la lecture — même source pour le jeu ET l'inventaire des voix,
 // afin que leur identifiant de clip ne dérive jamais.
@@ -146,6 +158,7 @@ export const HERALD_POOLS = {
   anecdoteIntro, victoire, docTrouNoir, dePetit, deTriple, sponsors,
   pouvoirUtilise,
   recitRegles: [RECIT_REGLES.intro, RECIT_REGLES.outro],
+  toasts: TOASTS_OUVERTURE,
 };
 
 export const herald = {

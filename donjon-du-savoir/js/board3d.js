@@ -221,38 +221,57 @@ function loadTex(src) {
  *  propre. Léger retrait horizontal : aucune vue voisine ne déborde sur la
  *  tranche. Cache global : une seule découpe par (atlas, vue) pour la session. */
 const figViewCache = new Map();
-function figurineView(src, third, cb) {
-  const key = `${src}#${third}`;
-  if (figViewCache.has(key)) { cb(figViewCache.get(key)); return; }
+function figurineView(src, third, cb, vues = 3) {
+  // `vues` : 3 pour les atlas directionnels (héros, PNJ v4.4), 1 pour les
+  // œuvres à VUE UNIQUE (PNJ v5 sur socle) — sans quoi le découpeur de tiers
+  // tronquerait la peinture. Le CONTACT AU SOL est mesuré ici même : la marge
+  // transparente sous la peinture devient l'ancrage du sprite, les pieds
+  // touchent le sol et l'ombre tombe juste.
+  const key = `${src}#${third}#${vues}`;
+  if (figViewCache.has(key)) { const v = figViewCache.get(key); cb(v.t, v.pad); return; }
   const img = new Image();
   img.onload = () => {
-    const w = Math.floor(img.width / 3);
-    const inset = Math.round(w * 0.03);
+    const w = Math.floor(img.width / vues);
+    const inset = vues > 1 ? Math.round(w * 0.03) : 0;
     const canvas = document.createElement("canvas");
     canvas.width = w - inset * 2;
     canvas.height = img.height;
-    canvas.getContext("2d").drawImage(img, third * w + inset, 0, canvas.width, img.height, 0, 0, canvas.width, img.height);
+    const g = canvas.getContext("2d", { willReadFrequently: true });
+    g.drawImage(img, Math.min(third, vues - 1) * w + inset, 0, canvas.width, img.height, 0, 0, canvas.width, img.height);
+    let pad = 0;
+    try {
+      const d = g.getImageData(0, 0, canvas.width, canvas.height).data;
+      let bas = canvas.height - 1;
+      boucle: for (let y = canvas.height - 1; y >= 0; y -= 2) {
+        for (let x = 0; x < canvas.width; x += 2) {
+          if (d[(y * canvas.width + x) * 4 + 3] > 40) { bas = y; break boucle; }
+        }
+      }
+      pad = Math.max(0, Math.min(0.3, (canvas.height - 1 - bas) / canvas.height));
+    } catch { /* toile inaccessible : ancrage au bord */ }
     const t = new THREE.CanvasTexture(canvas);
     t.encoding = THREE.sRGBEncoding;
-    figViewCache.set(key, t);
-    cb(t);
+    figViewCache.set(key, { t, pad });
+    cb(t, pad);
   };
   img.src = src;
 }
 
 /** Figurine PNJ peinte (vue de face de son atlas) posée debout en `pos`. */
-function figStandee(art, pos, height) {
+function figStandee(art, pos, height, vues = 3) {
   const groupe = new THREE.Group();
   groupe.position.copy(pos);
   const mat = new THREE.SpriteMaterial({ transparent: true, depthWrite: false });
   const spr = new THREE.Sprite(mat);
   spr.center.set(0.5, 0);
-  spr.scale.set(height * 0.34, height, 1);
+  // Vue d'atlas : silhouette étroite (1/3 de planche) ; vue unique (PNJ v5) :
+  // œuvre carrée sur socle, on garde ses proportions.
+  spr.scale.set(height * (vues === 1 ? 0.92 : 0.34), height, 1);
   groupe.add(spr);
-  const ombre = ombrePortee(height * 0.19); // ancre le PNJ au sol
+  const ombre = ombrePortee(height * (vues === 1 ? 0.3 : 0.19)); // ancre au sol
   ombre.position.y = 0.02;
   groupe.add(ombre);
-  figurineView(art, 0, (t) => { mat.map = t; mat.needsUpdate = true; });
+  figurineView(art, 0, (t, pad) => { mat.map = t; mat.needsUpdate = true; spr.center.set(0.5, pad); }, vues);
   return groupe;
 }
 
@@ -317,16 +336,18 @@ function emojiTexture(emoji) {
 /** Panneau debout (billboard) posé au sol en `pos`, haut de `height` unités. */
 function standee(art, pos, height) {
   // HARMONIE : chaque œuvre peinte (bâtiment, objet, torche) touche le sol par
-  // la MÊME ombre douce que les figurines — plus d'éléments qui « flottent »,
-  // tout le village partage le même contact au sol.
+  // la MÊME ombre douce que les figurines, et son ancrage est MESURÉ (marge
+  // transparente sous la peinture) — plus d'éléments qui « flottent ».
   const g = new THREE.Group();
-  const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: loadTex(art), transparent: true, depthWrite: false }));
+  const mat = new THREE.SpriteMaterial({ transparent: true, depthWrite: false });
+  const spr = new THREE.Sprite(mat);
   spr.center.set(0.5, 0);
   spr.scale.set(height * 0.92, height, 1);
   g.add(spr);
   const ombre = ombrePortee(height * 0.3);
   ombre.position.y = 0.02;
   g.add(ombre);
+  figurineView(art, 0, (t, pad) => { mat.map = t; mat.needsUpdate = true; spr.center.set(0.5, pad); }, 1);
   g.position.copy(pos);
   return g;
 }
@@ -659,7 +680,9 @@ export function init3D(hostBoard) {
 function resize() {
   if (!R || !mounted) return;
   const w = mounted.host.clientWidth || 360;
-  const h = Math.round(w * 0.7); // même proportion que le plateau 2D (10/7)
+  // Proportion du plateau 2D (10/7), PLAFONNÉE à la hauteur de la fenêtre :
+  // sur grand écran le canvas emplit la page sans jamais déborder.
+  const h = Math.min(Math.round(w * 0.7), Math.max(320, Math.round((window.innerHeight || 800) * 0.82)));
   R.setSize(w, h, false);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
@@ -701,7 +724,7 @@ function updateMinimap(hostBoard, layout, pions, currentId, starPos) {
   const host = hostBoard.parentElement || hostBoard;
   const length = layout.length;
   const { coords, viewH } = boardGeometry(length);
-  if (!minimapEl) { minimapEl = document.createElement("div"); minimapEl.className = "minimap"; minimapEl.setAttribute("aria-hidden", "true"); host.appendChild(minimapEl); }
+  if (!minimapEl) { minimapEl = document.createElement("div"); minimapEl.className = "minimap"; minimapEl.setAttribute("aria-hidden", "true"); (document.getElementById("screen-game") ?? host).appendChild(minimapEl); }
   const W = 100, H = Math.round((100 * viewH) / VIEW_W);
   const nx = (x) => ((x / VIEW_W) * W).toFixed(1);
   const ny = (y) => ((y / viewH) * H).toFixed(1);
@@ -961,9 +984,12 @@ function buildBoard(layout, boardDef) {
     foraine: ["assets/figurines/pnj-bonimenteur.webp", "assets/figurines/pnj-barbapapy.webp"],
     banquise: ["assets/figurines/pnj-pingouin-jongleur.webp", "assets/figurines/pnj-morse-savant.webp"],
   };
-  const flaneurs = [...(THEME_FLANEURS[boardDef.theme] ?? []), ...FLANEURS];
+  const flaneurs = [
+    ...(THEME_FLANEURS[boardDef.theme] ?? []).map((art) => ({ art, vues: 1 })), // PNJ v5 : vue unique sur socle
+    ...FLANEURS.map((art) => ({ art, vues: 3 })), // classiques : atlas directionnels
+  ];
   const pasFlaneur = 0.88 / Math.max(1, flaneurs.length - 1);
-  flaneurs.forEach((art, i) => boardGroup.add(figStandee(art, worldUV(0.06 + pasFlaneur * i, i % 2 ? 0.035 : 0.975, length), 2.6)));
+  flaneurs.forEach((f, i) => boardGroup.add(figStandee(f.art, worldUV(0.06 + pasFlaneur * i, i % 2 ? 0.035 : 0.975, length), 2.6, f.vues)));
   const PROPS = ["assets/objet-coffre.png", "assets/objet-tonneau.png", "assets/objet-torche.png", "assets/objet-cristal.png", "assets/objet-potion.png"];
   PROPS.forEach((art, i) => boardGroup.add(standee(art, worldUV(0.05 + 0.225 * i, i % 2 ? 0.07 : 0.93, length), 1.35)));
 
@@ -1193,8 +1219,9 @@ function makePionSprite(p) {
     const fig = { view: "face", views: {} };
     obj.userData.figurine = fig;
     [["face", 0], ["quart", 1], ["dos", 2]].forEach(([view, third]) => {
-      figurineView(atlas, third, (t) => {
+      figurineView(atlas, third, (t, pad) => {
         fig.views[view] = t;
+        if (view === "face") obj.center.set(0.5, pad); // pieds au ras du sol
         if (view === fig.view && !mat.map) { mat.map = t; mat.needsUpdate = true; }
       });
     });

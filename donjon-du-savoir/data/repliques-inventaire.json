@@ -414,6 +414,55 @@
  },
  {
   "perso": "heraut",
+  "id": "f245abd2",
+  "fichier": "voix/heraut/f245abd2.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que commence : celui qui a mangé le plus récemment."
+ },
+ {
+  "perso": "heraut",
+  "id": "8b9decb1",
+  "fichier": "voix/heraut/8b9decb1.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que ouvre le bal : celui dont l'anniversaire est le plus proche d'aujourd'hui."
+ },
+ {
+  "perso": "heraut",
+  "id": "1ce4d71e",
+  "fichier": "voix/heraut/1ce4d71e.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que débute : le plus petit de la table. Oui, on se lève pour comparer."
+ },
+ {
+  "perso": "heraut",
+  "id": "034b6aec",
+  "fichier": "voix/heraut/034b6aec.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que s'élance : celui qui a les mains les plus froides. Touchez-vous, c'est réglementaire."
+ },
+ {
+  "perso": "heraut",
+  "id": "2318bb21",
+  "fichier": "voix/heraut/2318bb21.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que commence : le dernier à avoir ri. Ça ne compte pas, ce rire-là."
+ },
+ {
+  "perso": "heraut",
+  "id": "0ad11a5b",
+  "fichier": "voix/heraut/0ad11a5b.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que ouvre la marche : celui qui vit le plus loin du Donjon. À vol de dragon."
+ },
+ {
+  "perso": "heraut",
+  "id": "4b2b53d5",
+  "fichier": "voix/heraut/4b2b53d5.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que démarre : celui qui porte le plus de boutons (vêtements, pas d'ascenseur)."
+ },
+ {
+  "perso": "heraut",
   "id": "2fd0df47",
   "fichier": "voix/heraut/2fd0df47.mp3",
   "contexte": "accroche.question",

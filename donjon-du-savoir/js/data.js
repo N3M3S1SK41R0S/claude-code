@@ -111,6 +111,14 @@ function select(candidates) {
   return fresh[Math.floor(Math.random() * fresh.length)] ?? null;
 }
 
+/** Une question MONTRÉE au choix de thème mais NON choisie recule dans la
+ *  rotation inter-parties (sans être exclue de la partie) : c'est elle qui
+ *  créait le sentiment de déjà-vu — reproposée en boucle tant qu'on ne la
+ *  choisissait pas. */
+export function noteProposee(q) {
+  if (q) bumpSeen(q.id);
+}
+
 /** Marque une question comme posée (partie) ET vue (registre inter-parties). */
 export function commitQuestion(q) {
   if (!q) return;
@@ -220,14 +228,22 @@ export function drawGambit(pion) {
 export function drawGambitTable(n = 3) {
   const b = bracketById(youngestBracket(tableBrackets()));
   const pool = drawableFrom(b, ["gambit_numerique"]);
-  const set = [];
-  const seenVals = new Set();
-  for (const q of pool.sort(() => Math.random() - 0.5)) {
-    const v = q.reponse_numerique;
-    if (typeof v !== "number" || seenVals.has(v)) continue;
-    seenVals.add(v);
-    set.push(q);
-    if (set.length === n) return set;
+  // COHÉRENCE DU CLASSEMENT : on ne classe jamais des années avec des
+  // quantités — les trois faits partagent la même NATURE (des dates entre
+  // elles, des nombres entre eux), sinon la consigne n'a aucun sens.
+  const natureDe = (q) => (/quelle année|quelle date/i.test(q.texte)
+    || (q.reponse_numerique >= 1000 && q.reponse_numerique <= 2100 && /année|siècle/i.test(q.texte)))
+    ? "date" : "quantite";
+  for (const nature of Math.random() < 0.5 ? ["quantite", "date"] : ["date", "quantite"]) {
+    const set = [];
+    const seenVals = new Set();
+    for (const q of pool.filter((x) => natureDe(x) === nature).sort(() => Math.random() - 0.5)) {
+      const v = q.reponse_numerique;
+      if (typeof v !== "number" || seenVals.has(v)) continue;
+      seenVals.add(v);
+      set.push(q);
+      if (set.length === n) { set.nature = nature; return set; }
+    }
   }
   return null;
 }
