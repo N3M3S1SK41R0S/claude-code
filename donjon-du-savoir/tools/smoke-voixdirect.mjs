@@ -40,6 +40,18 @@ await page.addInitScript(() => {
   localStorage.setItem("donjon-elevenlabs-cle", "cle-de-test-fictive");
   localStorage.setItem("donjon-elevenlabs-voix", "vx-heraut|Donjon-Heraut");
   localStorage.setItem("donjon-voixdirect", "1");
+  // MONITEUR D'ANTI-SUPERPOSITION : toute création d'Audio est enregistrée,
+  // et on échantillonne le nombre de pistes qui JOUENT en même temps — la
+  // règle de la table : une seule bouche à la fois.
+  const pistes = [];
+  const AudioOrig = window.Audio;
+  window.Audio = function (...args) { const a = new AudioOrig(...args); pistes.push(a); return a; };
+  window.Audio.prototype = AudioOrig.prototype;
+  window.__maxSimultane = 0;
+  setInterval(() => {
+    const n = pistes.filter((a) => !a.paused && !a.ended && a.currentTime > 0).length;
+    if (n > window.__maxSimultane) window.__maxSimultane = n;
+  }, 100);
 });
 
 // Interception TOTALE de l'API : rien ne sort de la machine.
@@ -136,20 +148,59 @@ try {
     // Diagnostic : où la partie s'est-elle coincée ?
     console.log("  [panneau]", (await page.locator("#panel, .panel").first().innerText().catch(() => "?")).replace(/\n+/g, " · ").slice(0, 400));
   }
+  // Même toilettage que speechText (guillemets et émojis retirés) pour que
+  // l'aiguille corresponde au texte réellement envoyé à la voix.
+  const aiguille = (t) => t.replace(/[\p{Extended_Pictographic}«»"]/gu, "").replace(/\s+/g, " ").trim().split(" ").slice(0, 3).join(" ");
+  const nbChoix = await page.locator(".choices .btn-choice").count();
   if (question) {
-    // Les premiers mots doivent apparaître dans UN appel TTS (la file de parole
-    // peut mettre quelques secondes : accroches et réactions passent d'abord).
-    // Même toilettage que speechText (guillemets et émojis retirés) pour que
-    // l'aiguille corresponde au texte réellement envoyé à la voix.
-    const debut = question.replace(/[\p{Extended_Pictographic}«»"]/gu, "").replace(/\s+/g, " ").trim().split(" ").slice(0, 3).join(" ");
     // 90 s : la file de parole joue accroches et réactions en temps réel avant
     // la question — les tirages les plus bavards dépassent 45 s.
-    const lue = await attend(() => ttsTexts.some((t) => t.includes(debut)), 90000);
+    const lue = await attend(() => ttsTexts.some((t) => t.includes(aiguille(question))), 90000);
     check(`la question est LUE par la voix du Héraut en direct (${ttsTexts.length} appels au total)`, lue);
     if (!lue) for (const t of ttsTexts) console.log("  [tts]", t.slice(0, 90));
   } else {
     check("la question est LUE par la voix du Héraut en direct", false);
   }
+  // ② LES PROPOSITIONS (QCM à 3+ choix) : énumérées par la même voix.
+  if (nbChoix >= 3) {
+    const propositionsLues = await attend(() => ttsTexts.some((t) => t.startsWith("Les propositions sont")), 90000);
+    check("les propositions sont LUES par la voix du Héraut", propositionsLues);
+  } else {
+    console.log(`  (question à ${nbChoix} choix : pas d'énumération attendue)`);
+  }
+  // ③ L'ANECDOTE : on répond, puis la carte anecdote doit être lue aussi.
+  let anecdote = null;
+  let garde2 = 0;
+  while (garde2++ < 40 && !anecdote) {
+    if (await page.locator(".anecdote-card").count()) {
+      // Le CORPS de l'anecdote = la ligne la PLUS LONGUE de la carte (les
+      // autres sont le titre « 📜 L'ANECDOTE DU HÉRAUT » et les sources).
+      const lignes = ((await page.locator(".anecdote-card").first().innerText()) ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
+      anecdote = lignes.sort((a, b) => b.length - a.length)[0] ?? null;
+      break;
+    }
+    if ((await page.locator(".choices .btn-choice:not([disabled])").count()) > 0) { await page.locator(".choices .btn-choice:not([disabled])").first().click().catch(() => {}); continue; }
+    const next2 = page.getByRole("button", { name: /Révéler|Valider|Continuer/ }).first();
+    if ((await next2.isVisible().catch(() => false)) && (await next2.isEnabled().catch(() => false))) {
+      if ((await next2.textContent().catch(() => "")) === "Valider mon nombre") await page.locator(".num-input").fill("50").catch(() => {});
+      await next2.click().catch(() => {});
+      continue;
+    }
+    await page.waitForTimeout(200);
+  }
+  if (anecdote) {
+    check(`anecdote affichée (« ${anecdote.slice(0, 40)}… »)`, true);
+    const lue = await attend(() => ttsTexts.some((t) => t.includes(aiguille(anecdote))), 90000);
+    check(`l'anecdote est LUE par la voix du Héraut en direct (${ttsTexts.length} appels au total)`, lue);
+    if (!lue) { console.log("  [aiguille]", aiguille(anecdote)); for (const t of ttsTexts.slice(-8)) console.log("  [tts]", t.slice(0, 90)); }
+  } else {
+    // Certains tirages (défi d'expression, mini-jeux) n'ont pas de carte
+    // anecdote : la vérification n'a pas d'objet sur cette partie-là.
+    console.log("  (pas de carte anecdote sur ce tirage : vérification sautée)");
+  }
+  // ④ JAMAIS DE SUPERPOSITION : au plus UNE piste audio active à tout instant.
+  const maxSimultane = await page.evaluate(() => window.__maxSimultane);
+  check(`aucune superposition audio (max simultané : ${maxSimultane})`, maxSimultane <= 1);
   check("aucune erreur de page", errors.length === 0);
   if (errors.length) console.log(errors.join("\n"));
 } finally {

@@ -20,6 +20,14 @@ const ACTIF_STOCKAGE = "donjon-voixdirect";
 const API = "https://api.elevenlabs.io/v1";
 
 let audioDirect = null;
+// RÉSERVATION DE PAROLE : dès que lireEnDirect ACCEPTE un texte, la voix est
+// « en cours » pour l'arbitre — même pendant la lecture du cache ou l'appel
+// réseau (qui peut durer des secondes). Sans elle, la file croyait au silence
+// et lançait la réplique suivante PAR-DESSUS la lecture qui arrivait.
+let attenteDirect = false;
+// Jeton anti-fantôme : si stop() intervient pendant l'appel réseau, la réponse
+// tardive est jetée au lieu de parler par-dessus la suite de la partie.
+let jetonDirect = 0;
 
 /* ---------- réglages persistés ---------- */
 
@@ -94,12 +102,15 @@ export async function tailleCache() {
 
 /* ---------- lecture ---------- */
 
-/** Une lecture ElevenLabs en direct est-elle en cours ? (arbitre de parole) */
+/** Une lecture ElevenLabs en direct est-elle en cours ou RÉSERVÉE ?
+ *  (arbitre de parole — la réservation compte comme une prise de parole) */
 export function directEnCours() {
-  return audioDirect !== null;
+  return attenteDirect || audioDirect !== null;
 }
 
 export function stopDirect() {
+  attenteDirect = false;
+  jetonDirect += 1; // toute lecture en préparation devient caduque
   if (audioDirect) {
     try { audioDirect.pause(); } catch { /* déjà arrêté */ }
     audioDirect = null;
@@ -108,6 +119,7 @@ export function stopDirect() {
 
 function joue(blob, onEchec) {
   const a = new Audio(URL.createObjectURL(blob));
+  attenteDirect = false; // la réservation devient une vraie lecture
   audioDirect = a;
   a.addEventListener("ended", () => { if (audioDirect === a) audioDirect = null; URL.revokeObjectURL(a.src); });
   a.addEventListener("error", () => { if (audioDirect === a) { audioDirect = null; onEchec?.(); } });
@@ -116,15 +128,21 @@ function joue(blob, onEchec) {
 
 /** Lit un texte avec la vraie voix (cache d'abord, API sinon). Renvoie true si
  *  la lecture est prise en charge ; en cas de pépin, onEchec() rend la main à
- *  la synthèse — jamais de silence, jamais de blocage. */
+ *  la synthèse — jamais de silence, jamais de blocage. La parole est RÉSERVÉE
+ *  dès l'acceptation (voir attenteDirect), et une réponse arrivée après un
+ *  stop() est jetée (jetonDirect) au lieu de parler par-dessus la suite. */
 export function lireEnDirect(texte, { onEchec } = {}) {
   if (!voixDirectActif() || !texte) return false;
   const id = idReplique(texte);
   const [voiceId] = (lit(VOIX_STOCKAGE) ?? "").split("|");
+  attenteDirect = true;
+  const jeton = ++jetonDirect + 0; // valeur figée : stopDirect() l'invalide
+  const echec = () => { if (jeton === jetonDirect) { attenteDirect = false; onEchec?.(); } };
   (async () => {
     const enCache = await cacheLit(id);
+    if (jeton !== jetonDirect) return; // stop() est passé par là : on se tait
     if (enCache) return joue(enCache, onEchec);
-    if (!navigator.onLine) return onEchec?.();
+    if (!navigator.onLine) return echec();
     try {
       const r = await fetch(`${API}/text-to-speech/${voiceId}?output_format=mp3_44100_64`, {
         method: "POST",
@@ -137,10 +155,11 @@ export function lireEnDirect(texte, { onEchec } = {}) {
       });
       if (!r.ok) throw new Error(String(r.status));
       const blob = await r.blob();
-      cacheEcrit(id, blob); // acquis pour toujours
+      cacheEcrit(id, blob); // acquis pour toujours — même si cette lecture est caduque
+      if (jeton !== jetonDirect) return; // trop tard pour parler, le cache reste
       joue(blob, onEchec);
     } catch {
-      onEchec?.();
+      echec();
     }
   })();
   return true;

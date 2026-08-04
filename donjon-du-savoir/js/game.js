@@ -11,7 +11,7 @@ import { CEREMONIE, herald, RETOURNEMENTS, TOASTS_OUVERTURE } from "./herald.js"
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } from "./ui.js";
-import { onSpeechBoundary, say, sayHost } from "./tts.js";
+import { onSpeechBoundary, say, sayHost, voiceEnabled } from "./tts.js";
 import { direQuand } from "./tts.js";
 import { heroLine, voiceOf } from "./voices.js";
 import { botNumericGuess, botWantsCorrect } from "./bots.js";
@@ -1672,9 +1672,13 @@ function narrateAnecdote(q) {
 /** Mode « partie à l'oreille » : les propositions affichées sont lues à voix
  *  haute, pour jouer sans regarder l'écran (voiture, canapé, malvoyance). */
 function narrateChoices(choices) {
-  if (!getPrefs().oreilles || !Array.isArray(choices) || choices.length < 2) return;
-  // say({queue:true}) passe DÉJÀ par la file de parole : un direQuand par-dessus
-  // ferait perdre son rang à la réplique (re-dépôt en fin de file).
+  // Dès que le Héraut vocal est actif, il lit AUSSI les propositions (attente
+  // de la table) — le réglage « partie à l'oreille » garde le dé et les
+  // réponses. say({queue:true}) passe DÉJÀ par la file de parole : un direQuand
+  // par-dessus ferait perdre son rang à la réplique (re-dépôt en fin de file).
+  if (!voiceEnabled() || !Array.isArray(choices) || choices.length < 2) return;
+  // « Vrai / Faux » : rien à énumérer, tout le monde connaît les deux choix.
+  if (choices.length === 2 && choices.every((c) => /^(vrai|faux)$/i.test(String(c).trim()))) return;
   say(`Les propositions sont : ${choices.map((c) => String(c)).join(". ")}.`, { queue: true });
 }
 
