@@ -463,6 +463,20 @@
  },
  {
   "perso": "heraut",
+  "id": "6f8c6c0c",
+  "fichier": "voix/heraut/6f8c6c0c.mp3",
+  "contexte": "retournements",
+  "texte": "LE GRAND RETOURNEMENT ! Le plateau pivote dans un grincement épouvantable : on joue désormais dans l'autre sens, marche arrière toute !"
+ },
+ {
+  "perso": "heraut",
+  "id": "9917e221",
+  "fichier": "voix/heraut/9917e221.mp3",
+  "contexte": "retournements",
+  "texte": "LE GRAND RETOURNEMENT ! Le plateau pivote à nouveau : on repart dans le sens d'origine, en avant toute !"
+ },
+ {
+  "perso": "heraut",
   "id": "2fd0df47",
   "fichier": "voix/heraut/2fd0df47.mp3",
   "contexte": "accroche.question",

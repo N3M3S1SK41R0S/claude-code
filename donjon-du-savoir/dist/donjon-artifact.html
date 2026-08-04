@@ -7057,6 +7057,13 @@ const TOASTS_OUVERTURE = [
   "Oyez ! Que démarre : celui qui porte le plus de boutons (vêtements, pas d'ascenseur).",
 ];
 
+// LE GRAND RETOURNEMENT : deux phrases FIXES (une par sens), enregistrables —
+// finie l'interpolation de flèche qui privait l'annonce de la vraie voix.
+const RETOURNEMENTS = {
+  arriere: "LE GRAND RETOURNEMENT ! Le plateau pivote dans un grincement épouvantable : on joue désormais dans l'autre sens, marche arrière toute !",
+  avant: "LE GRAND RETOURNEMENT ! Le plateau pivote à nouveau : on repart dans le sens d'origine, en avant toute !",
+};
+
 // Le RÉCIT DES RÈGLES (bouton 🔊 de la page Règles) : les deux répliques fixes
 // qui encadrent la lecture — même source pour le jeu ET l'inventaire des voix,
 // afin que leur identifiant de clip ne dérive jamais.
@@ -7072,6 +7079,7 @@ const HERALD_POOLS = {
   pouvoirUtilise,
   recitRegles: [RECIT_REGLES.intro, RECIT_REGLES.outro],
   toasts: TOASTS_OUVERTURE,
+  retournements: [RETOURNEMENTS.arriere, RETOURNEMENTS.avant],
 };
 
 const herald = {
@@ -7089,7 +7097,7 @@ const herald = {
   sponsor: () => pick(sponsors),
 };
 
-;Object.assign(module.exports, {TOASTS_OUVERTURE, RECIT_REGLES, HERALD_POOLS, herald});
+;Object.assign(module.exports, {TOASTS_OUVERTURE, RETOURNEMENTS, RECIT_REGLES, HERALD_POOLS, herald});
 };
 __modules["./powers.js"] = function(module, exports, require) {
 // The 6 characters' powers (adult + child variants), per §6 of the cahier.
@@ -12368,7 +12376,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v129";
+const APP_VERSION = "donjon-v130";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
@@ -12382,7 +12390,7 @@ __modules["./game.js"] = function(module, exports, require) {
 const { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawGambitTable, drawHardest, drawInsolite, drawQuestion, noteProposee } = require("./data.js");
 const { boardById, CASE_TYPES, renderBoard, walkPion } = require("./board.js");
 const { aimTile3D, clearAim3D, heroMoment3D, react3D, render3D, show3D, stageCase3D, use3D, walk3D } = require("./board3d.js");
-const { herald, TOASTS_OUVERTURE } = require("./herald.js");
+const { herald, RETOURNEMENTS, TOASTS_OUVERTURE } = require("./herald.js");
 const { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } = require("./powers.js");
 const { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } = require("./state.js");
 const { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } = require("./ui.js");
@@ -13043,7 +13051,7 @@ function rollDie() {
     save();
     sfx("fanfare");
     vibrer(140);
-    heraldSays(`🌀 LE GRAND RETOURNEMENT ! Le plateau pivote dans un grincement épouvantable : on joue désormais dans l'AUTRE SENS ${getState().sens === -1 ? "⬅️" : "➡️"} !`);
+    heraldSays(`🌀 ${getState().sens === -1 ? RETOURNEMENTS.arriere : RETOURNEMENTS.avant}`);
   }
   const value = 1 + Math.floor(Math.random() * 6);
   sfx("dice");

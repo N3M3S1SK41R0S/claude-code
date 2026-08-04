@@ -1,5 +1,5 @@
 # RÉPLIQUES À ENREGISTRER — Le Donjon du Savoir
-*(générées par tools/export-repliques.mjs — 223 répliques ;
+*(générées par tools/export-repliques.mjs — 225 répliques ;
 chaque fichier doit porter EXACTEMENT le nom indiqué : l'intégration est
 automatique, un écart = clip ignoré sans casser le jeu)*
 
@@ -7,7 +7,7 @@ Format : MP3, 44,1 kHz, MONO, ~64 kbps, niveau -16 LUFS, sans musique ni
 bruit de fond, silences < 150 ms en début et fin de fichier.
 
 
-## LE GRAND HÉRAUT (narrateur) — dossier `voix/heraut/` (102 répliques)
+## LE GRAND HÉRAUT (narrateur) — dossier `voix/heraut/` (104 répliques)
 
 | Fichier | Intention (jeu d'acteur) | Réplique à jouer |
 |---|---|---|
@@ -77,6 +77,8 @@ bruit de fond, silences < 150 ms en début et fin de fichier.
 | `2318bb21.mp3` | Dans le caractère du personnage | Oyez ! Que commence : le dernier à avoir ri. Ça ne compte pas, ce rire-là. |
 | `0ad11a5b.mp3` | Dans le caractère du personnage | Oyez ! Que ouvre la marche : celui qui vit le plus loin du Donjon. À vol de dragon. |
 | `4b2b53d5.mp3` | Dans le caractère du personnage | Oyez ! Que démarre : celui qui porte le plus de boutons (vêtements, pas d'ascenseur). |
+| `6f8c6c0c.mp3` | Dans le caractère du personnage | LE GRAND RETOURNEMENT ! Le plateau pivote dans un grincement épouvantable : on joue désormais dans l'autre sens, marche arrière toute ! |
+| `9917e221.mp3` | Dans le caractère du personnage | LE GRAND RETOURNEMENT ! Le plateau pivote à nouveau : on repart dans le sens d'origine, en avant toute ! |
 | `2fd0df47.mp3` | Roulement de tambour verbal — il lance la question | Attention, les neurones entrent en scène ! |
 | `9c003bed.mp3` | Roulement de tambour verbal — il lance la question | Question en approche. Les sourcils sont autorisés à réfléchir. |
 | `b86b3d6e.mp3` | Roulement de tambour verbal — il lance la question | Silence dans le donjon, juste assez pour entendre la question. |

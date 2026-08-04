@@ -144,6 +144,13 @@ export const TOASTS_OUVERTURE = [
   "Oyez ! Que démarre : celui qui porte le plus de boutons (vêtements, pas d'ascenseur).",
 ];
 
+// LE GRAND RETOURNEMENT : deux phrases FIXES (une par sens), enregistrables —
+// finie l'interpolation de flèche qui privait l'annonce de la vraie voix.
+export const RETOURNEMENTS = {
+  arriere: "LE GRAND RETOURNEMENT ! Le plateau pivote dans un grincement épouvantable : on joue désormais dans l'autre sens, marche arrière toute !",
+  avant: "LE GRAND RETOURNEMENT ! Le plateau pivote à nouveau : on repart dans le sens d'origine, en avant toute !",
+};
+
 // Le RÉCIT DES RÈGLES (bouton 🔊 de la page Règles) : les deux répliques fixes
 // qui encadrent la lecture — même source pour le jeu ET l'inventaire des voix,
 // afin que leur identifiant de clip ne dérive jamais.
@@ -159,6 +166,7 @@ export const HERALD_POOLS = {
   pouvoirUtilise,
   recitRegles: [RECIT_REGLES.intro, RECIT_REGLES.outro],
   toasts: TOASTS_OUVERTURE,
+  retournements: [RETOURNEMENTS.arriere, RETOURNEMENTS.avant],
 };
 
 export const herald = {

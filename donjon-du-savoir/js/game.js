@@ -7,7 +7,7 @@
 import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawGambitTable, drawHardest, drawInsolite, drawQuestion, noteProposee } from "./data.js";
 import { boardById, CASE_TYPES, renderBoard, walkPion } from "./board.js";
 import { aimTile3D, clearAim3D, heroMoment3D, react3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
-import { herald, TOASTS_OUVERTURE } from "./herald.js";
+import { herald, RETOURNEMENTS, TOASTS_OUVERTURE } from "./herald.js";
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } from "./ui.js";
@@ -668,7 +668,7 @@ function rollDie() {
     save();
     sfx("fanfare");
     vibrer(140);
-    heraldSays(`🌀 LE GRAND RETOURNEMENT ! Le plateau pivote dans un grincement épouvantable : on joue désormais dans l'AUTRE SENS ${getState().sens === -1 ? "⬅️" : "➡️"} !`);
+    heraldSays(`🌀 ${getState().sens === -1 ? RETOURNEMENTS.arriere : RETOURNEMENTS.avant}`);
   }
   const value = 1 + Math.floor(Math.random() * 6);
   sfx("dice");
