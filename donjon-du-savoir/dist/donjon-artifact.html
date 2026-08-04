@@ -305,6 +305,17 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
     radial-gradient(circle at 90% 10%, rgba(224, 176, 74, 0.35) 0%, transparent 36%),
     linear-gradient(160deg, #2c2414 0%, #211a10 55%, #17120c 100%);
 }
+/* Réglage « Héraut ElevenLabs en direct » : un encart discret, sous les rangées. */
+.voixdirect-bloc {
+  margin-top: 1.2rem;
+  padding: 0.9rem 1rem;
+  border: 1px dashed rgba(224, 176, 74, 0.45);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 /* Barre d'écoute des règles : le conteur à portée de pouce. */
 .rules-ecoute {
   display: flex;
@@ -5701,6 +5712,7 @@ function resetHostCues() {
 };
 __modules["./tts.js"] = function(module, exports, require) {
 const { clipFor, playClip, stopClips } = require("./voiceclips.js");
+const { lireEnDirect, stopDirect, voixDirectActif } = require("./voixdirect.js");
 // Narration locale : accroches Opus embarquées + synthèse vocale du navigateur
 // pour le texte variable des questions et anecdotes. Aucun service réseau,
 // aucun clonage et aucune imitation de personne réelle.
@@ -5732,6 +5744,7 @@ function stop() {
     activeAudio.load();
     activeAudio = null;
   }
+  stopDirect();
   if (voiceAvailable()) window.speechSynthesis.cancel();
 }
 
@@ -5854,10 +5867,18 @@ function cueThenSpeak(cue, text, kind, token) {
   const host = kind === "anecdote"
     ? { ...HOST_PROFILE, pitch: 1.03, rate: 1.02 }
     : { ...HOST_PROFILE, pitch: 1.06, rate: 1.07 };
+  // Le texte VARIABLE part vers la voix ElevenLabs EN DIRECT quand l'option
+  // est armée (cache définitif sur l'appareil) ; sinon — ou au moindre pépin
+  // réseau — la synthèse du navigateur assure, comme toujours.
+  const direTexte = (avecAccroche) => {
+    const t = `${avecAccroche && cue?.text ? `${cue.text} ` : ""}${spokenText}`;
+    if (voixDirectActif() && lireEnDirect(t, { onEchec: () => { if (token === speechToken) say(t, host); } })) return;
+    say(t, host);
+  };
   const fallback = () => {
     if (token !== speechToken) return;
     activeAudio = null;
-    say(`${cue?.text ? `${cue.text} ` : ""}${spokenText}`, host);
+    direTexte(true);
   };
   const clip = cue ? clipFor("heraut", cue.text) : null; // MP3 : lisible partout
   if (!cue || (!clip && !audioCueAvailable())) return fallback();
@@ -5871,7 +5892,7 @@ function cueThenSpeak(cue, text, kind, token) {
     if (handedOff || token !== speechToken) return;
     handedOff = true;
     activeAudio = null;
-    say(`${includeCue ? `${cue.text} ` : ""}${spokenText}`, host);
+    direTexte(includeCue);
   };
   audio.addEventListener("ended", () => handOff(false), { once: true });
   audio.addEventListener("error", () => handOff(true), { once: true });
@@ -9236,6 +9257,149 @@ function playClip(perso, texte, { queue = false } = {}) {
 
 ;Object.assign(module.exports, {normaliseReplique, idReplique, stopClips, clipFor, playClip});
 };
+__modules["./voixdirect.js"] = function(module, exports, require) {
+// VOIX EN DIRECT (option « pour aller plus loin ») : les textes VARIABLES
+// (questions, anecdotes) sont lus par la VRAIE voix ElevenLabs du Héraut,
+// générés à la volée avec la clé API du propriétaire du jeu, puis mis en
+// CACHE DÉFINITIF sur l'appareil (IndexedDB) : une question lue une fois est
+// acquise pour toujours — au fil des parties, toute la banque devient de
+// vrais enregistrements, gratuits et hors-ligne.
+//
+// Règles de sécurité et de sobriété :
+// - la clé reste sur CET appareil (localStorage), jamais dans le fichier
+//   partagé ni dans une sauvegarde de partie ;
+// - AUCUN appel réseau tant que l'option n'est pas activée par son
+//   propriétaire ; hors-ligne ou en cas d'erreur, repli silencieux sur la
+//   synthèse — le jeu ne dépend jamais de ce service ;
+// - voix 100 % originale du projet (Donjon-Heraut), jamais de clonage.
+const { idReplique } = require("./voiceclips.js");
+
+const CLE_STOCKAGE = "donjon-elevenlabs-cle";
+const VOIX_STOCKAGE = "donjon-elevenlabs-voix";
+const ACTIF_STOCKAGE = "donjon-voixdirect";
+const API = "https://api.elevenlabs.io/v1";
+
+let audioDirect = null;
+
+/* ---------- réglages persistés ---------- */
+
+const lit = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+const pose = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch { /* privé */ } };
+
+function voixDirectConfigure() { return Boolean(lit(CLE_STOCKAGE) && lit(VOIX_STOCKAGE)); }
+function voixDirectActif() { return voixDirectConfigure() && lit(ACTIF_STOCKAGE) === "1"; }
+function setVoixDirect(on) { pose(ACTIF_STOCKAGE, on ? "1" : "0"); }
+function nomVoixDirect() { return (lit(VOIX_STOCKAGE) ?? "").split("|")[1] ?? ""; }
+function oublierCle() { pose(CLE_STOCKAGE, null); pose(VOIX_STOCKAGE, null); pose(ACTIF_STOCKAGE, null); }
+
+/** Enregistre la clé après l'avoir validée : cherche la voix du Héraut sur le
+ *  compte (« Donjon-Heraut », sinon la première voix « Donjon-… »). */
+async function configurerCle(cle) {
+  const r = await fetch(`${API}/voices`, { headers: { "xi-api-key": cle } });
+  if (!r.ok) throw new Error(r.status === 401 ? "Clé refusée par ElevenLabs." : `ElevenLabs répond ${r.status}.`);
+  const { voices = [] } = await r.json();
+  const voix = voices.find((v) => v.name === "Donjon-Heraut") ?? voices.find((v) => v.name?.startsWith("Donjon-"));
+  if (!voix) throw new Error("Aucune voix « Donjon-… » sur ce compte.");
+  pose(CLE_STOCKAGE, cle);
+  pose(VOIX_STOCKAGE, `${voix.voice_id}|${voix.name}`);
+  pose(ACTIF_STOCKAGE, "1");
+  return voix.name;
+}
+
+/* ---------- cache définitif (IndexedDB) ---------- */
+
+let dbPromise = null;
+function db() {
+  if (!dbPromise) {
+    dbPromise = new Promise((res, rej) => {
+      const req = indexedDB.open("donjon-voixdirect", 1);
+      req.onupgradeneeded = () => req.result.createObjectStore("clips");
+      req.onsuccess = () => res(req.result);
+      req.onerror = () => rej(req.error);
+    });
+  }
+  return dbPromise;
+}
+async function cacheLit(id) {
+  try {
+    const d = await db();
+    return await new Promise((res) => {
+      const t = d.transaction("clips").objectStore("clips").get(id);
+      t.onsuccess = () => res(t.result ?? null);
+      t.onerror = () => res(null);
+    });
+  } catch { return null; }
+}
+async function cacheEcrit(id, blob) {
+  try {
+    const d = await db();
+    d.transaction("clips", "readwrite").objectStore("clips").put(blob, id);
+  } catch { /* cache plein ou privé : tant pis, on regénérera */ }
+}
+
+/** Nombre de clips acquis (pour l'afficher dans les Réglages). */
+async function tailleCache() {
+  try {
+    const d = await db();
+    return await new Promise((res) => {
+      const t = d.transaction("clips").objectStore("clips").count();
+      t.onsuccess = () => res(t.result);
+      t.onerror = () => res(0);
+    });
+  } catch { return 0; }
+}
+
+/* ---------- lecture ---------- */
+
+function stopDirect() {
+  if (audioDirect) {
+    try { audioDirect.pause(); } catch { /* déjà arrêté */ }
+    audioDirect = null;
+  }
+}
+
+function joue(blob, onEchec) {
+  const a = new Audio(URL.createObjectURL(blob));
+  audioDirect = a;
+  a.addEventListener("ended", () => { if (audioDirect === a) audioDirect = null; URL.revokeObjectURL(a.src); });
+  a.addEventListener("error", () => { if (audioDirect === a) { audioDirect = null; onEchec?.(); } });
+  a.play().catch(() => { if (audioDirect === a) { audioDirect = null; onEchec?.(); } });
+}
+
+/** Lit un texte avec la vraie voix (cache d'abord, API sinon). Renvoie true si
+ *  la lecture est prise en charge ; en cas de pépin, onEchec() rend la main à
+ *  la synthèse — jamais de silence, jamais de blocage. */
+function lireEnDirect(texte, { onEchec } = {}) {
+  if (!voixDirectActif() || !texte) return false;
+  const id = idReplique(texte);
+  const [voiceId] = (lit(VOIX_STOCKAGE) ?? "").split("|");
+  (async () => {
+    const enCache = await cacheLit(id);
+    if (enCache) return joue(enCache, onEchec);
+    if (!navigator.onLine) return onEchec?.();
+    try {
+      const r = await fetch(`${API}/text-to-speech/${voiceId}?output_format=mp3_44100_64`, {
+        method: "POST",
+        headers: { "xi-api-key": lit(CLE_STOCKAGE), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: texte,
+          model_id: "eleven_multilingual_v2",
+          voice_settings: { stability: 0.4, similarity_boost: 0.8, style: 0.45 },
+        }),
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      const blob = await r.blob();
+      cacheEcrit(id, blob); // acquis pour toujours
+      joue(blob, onEchec);
+    } catch {
+      onEchec?.();
+    }
+  })();
+  return true;
+}
+
+;Object.assign(module.exports, {configurerCle, tailleCache, voixDirectConfigure, voixDirectActif, setVoixDirect, nomVoixDirect, oublierCle, stopDirect, lireEnDirect});
+};
 __modules["./ui.js"] = function(module, exports, require) {
 // Small DOM helpers: element factory, modal panel, herald banner.
 const { herald } = require("./herald.js");
@@ -11637,7 +11801,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v117";
+const APP_VERSION = "donjon-v118";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
@@ -15153,6 +15317,7 @@ const { APP_VERSION } = require("./version.js");
 const { POWERS } = require("./powers.js");
 const { say, setVoice, stop, voiceAvailable, voiceEnabled, warmVoices } = require("./tts.js");
 const { RECIT_REGLES } = require("./herald.js");
+const { configurerCle, nomVoixDirect, oublierCle, setVoixDirect, tailleCache, voixDirectActif, voixDirectConfigure } = require("./voixdirect.js");
 const { setSfx, sfx, sfxAvailable, sfxEnabled } = require("./sfx.js");
 const { setMusic, musicAvailable, musicEnabled } = require("./music.js");
 const { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } = require("./bots.js");
@@ -16283,7 +16448,48 @@ function renderReglages() {
     row("📖 Revoir le tutoriel", "Le petit guide de démarrage du Donjon.",
       el("div", { class: "reglage-control" }, el("button", { class: "seg-btn", type: "button", onclick: () => showTutorial() }, "▶️ Revoir"))),
   );
+  zone.append(blocVoixDirect());
   zone.append(versionBlock());
+}
+
+/** Réglage « Héraut ElevenLabs en direct » : la vraie voix lit AUSSI les
+ *  questions et anecdotes, générées à la volée avec la clé du propriétaire et
+ *  gardées à vie dans le cache de l'appareil. Masqué sur la page artifact
+ *  (elle interdit les appels externes) — visible sur le fichier autonome et
+ *  la version installée. */
+function blocVoixDirect() {
+  if (/claude\.(ai|site|com)$/.test(location.hostname)) return el("span", { hidden: true });
+  const bloc = el("div", { class: "voixdirect-bloc" });
+  const rendre = async () => {
+    bloc.innerHTML = "";
+    bloc.append(el("p", { class: "reglage-titre", text: "🎙️ Héraut ElevenLabs en direct (option)" }));
+    if (!voixDirectConfigure()) {
+      bloc.append(el("p", { class: "reglage-desc", text: "La vraie voix du Héraut peut AUSSI lire les questions et anecdotes : collez votre clé API ElevenLabs (elle reste sur cet appareil). Nécessite internet ; chaque question lue est gardée en cache pour toujours — au fil des parties, tout devient hors-ligne. Consomme vos crédits ElevenLabs." }));
+      const saisie = el("input", { class: "name-input", type: "password", placeholder: "Clé API ElevenLabs (xi-…)", "aria-label": "Clé API ElevenLabs" });
+      const etat = el("p", { class: "reglage-desc" });
+      bloc.append(saisie, el("div", { class: "reglage-control" },
+        el("button", { class: "seg-btn", type: "button", onclick: async () => {
+          etat.textContent = "Vérification auprès d'ElevenLabs…";
+          try {
+            const nom = await configurerCle(saisie.value.trim());
+            etat.textContent = `✓ Voix « ${nom} » trouvée — option activée !`;
+            setTimeout(rendre, 900);
+          } catch (e) {
+            etat.textContent = `✗ ${e.message ?? "Impossible de valider la clé."}`;
+          }
+        } }, "Activer"),
+      ), etat);
+    } else {
+      const acquis = await tailleCache();
+      bloc.append(el("p", { class: "reglage-desc", text: `Voix « ${nomVoixDirect()} » branchée. ${acquis} lecture${acquis > 1 ? "s" : ""} déjà en cache définitif sur cet appareil. Hors-ligne, la synthèse assure sans bruit.` }));
+      bloc.append(el("div", { class: "reglage-control" },
+        el("button", { class: "seg-btn" + (voixDirectActif() ? " seg-on" : ""), type: "button", "aria-pressed": String(voixDirectActif()), onclick: () => { setVoixDirect(!voixDirectActif()); rendre(); } }, voixDirectActif() ? "Activée" : "En pause"),
+        el("button", { class: "seg-btn", type: "button", onclick: () => { oublierCle(); rendre(); } }, "Oublier la clé"),
+      ));
+    }
+  };
+  rendre();
+  return bloc;
 }
 
 /* ---------- palmarès & succès ---------- */

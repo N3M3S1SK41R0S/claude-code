@@ -1,4 +1,5 @@
 import { clipFor, playClip, stopClips } from "./voiceclips.js";
+import { lireEnDirect, stopDirect, voixDirectActif } from "./voixdirect.js";
 // Narration locale : accroches Opus embarquées + synthèse vocale du navigateur
 // pour le texte variable des questions et anecdotes. Aucun service réseau,
 // aucun clonage et aucune imitation de personne réelle.
@@ -30,6 +31,7 @@ export function stop() {
     activeAudio.load();
     activeAudio = null;
   }
+  stopDirect();
   if (voiceAvailable()) window.speechSynthesis.cancel();
 }
 
@@ -152,10 +154,18 @@ function cueThenSpeak(cue, text, kind, token) {
   const host = kind === "anecdote"
     ? { ...HOST_PROFILE, pitch: 1.03, rate: 1.02 }
     : { ...HOST_PROFILE, pitch: 1.06, rate: 1.07 };
+  // Le texte VARIABLE part vers la voix ElevenLabs EN DIRECT quand l'option
+  // est armée (cache définitif sur l'appareil) ; sinon — ou au moindre pépin
+  // réseau — la synthèse du navigateur assure, comme toujours.
+  const direTexte = (avecAccroche) => {
+    const t = `${avecAccroche && cue?.text ? `${cue.text} ` : ""}${spokenText}`;
+    if (voixDirectActif() && lireEnDirect(t, { onEchec: () => { if (token === speechToken) say(t, host); } })) return;
+    say(t, host);
+  };
   const fallback = () => {
     if (token !== speechToken) return;
     activeAudio = null;
-    say(`${cue?.text ? `${cue.text} ` : ""}${spokenText}`, host);
+    direTexte(true);
   };
   const clip = cue ? clipFor("heraut", cue.text) : null; // MP3 : lisible partout
   if (!cue || (!clip && !audioCueAvailable())) return fallback();
@@ -169,7 +179,7 @@ function cueThenSpeak(cue, text, kind, token) {
     if (handedOff || token !== speechToken) return;
     handedOff = true;
     activeAudio = null;
-    say(`${includeCue ? `${cue.text} ` : ""}${spokenText}`, host);
+    direTexte(includeCue);
   };
   audio.addEventListener("ended", () => handOff(false), { once: true });
   audio.addEventListener("error", () => handOff(true), { once: true });

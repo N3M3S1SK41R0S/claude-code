@@ -12,6 +12,7 @@ import { APP_VERSION } from "./version.js";
 import { POWERS } from "./powers.js";
 import { say, setVoice, stop, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
 import { RECIT_REGLES } from "./herald.js";
+import { configurerCle, nomVoixDirect, oublierCle, setVoixDirect, tailleCache, voixDirectActif, voixDirectConfigure } from "./voixdirect.js";
 import { setSfx, sfx, sfxAvailable, sfxEnabled } from "./sfx.js";
 import { setMusic, musicAvailable, musicEnabled } from "./music.js";
 import { BOT_LEVELS, BOT_LEVEL_ORDER, botLevelMeta } from "./bots.js";
@@ -1142,7 +1143,48 @@ function renderReglages() {
     row("📖 Revoir le tutoriel", "Le petit guide de démarrage du Donjon.",
       el("div", { class: "reglage-control" }, el("button", { class: "seg-btn", type: "button", onclick: () => showTutorial() }, "▶️ Revoir"))),
   );
+  zone.append(blocVoixDirect());
   zone.append(versionBlock());
+}
+
+/** Réglage « Héraut ElevenLabs en direct » : la vraie voix lit AUSSI les
+ *  questions et anecdotes, générées à la volée avec la clé du propriétaire et
+ *  gardées à vie dans le cache de l'appareil. Masqué sur la page artifact
+ *  (elle interdit les appels externes) — visible sur le fichier autonome et
+ *  la version installée. */
+function blocVoixDirect() {
+  if (/claude\.(ai|site|com)$/.test(location.hostname)) return el("span", { hidden: true });
+  const bloc = el("div", { class: "voixdirect-bloc" });
+  const rendre = async () => {
+    bloc.innerHTML = "";
+    bloc.append(el("p", { class: "reglage-titre", text: "🎙️ Héraut ElevenLabs en direct (option)" }));
+    if (!voixDirectConfigure()) {
+      bloc.append(el("p", { class: "reglage-desc", text: "La vraie voix du Héraut peut AUSSI lire les questions et anecdotes : collez votre clé API ElevenLabs (elle reste sur cet appareil). Nécessite internet ; chaque question lue est gardée en cache pour toujours — au fil des parties, tout devient hors-ligne. Consomme vos crédits ElevenLabs." }));
+      const saisie = el("input", { class: "name-input", type: "password", placeholder: "Clé API ElevenLabs (xi-…)", "aria-label": "Clé API ElevenLabs" });
+      const etat = el("p", { class: "reglage-desc" });
+      bloc.append(saisie, el("div", { class: "reglage-control" },
+        el("button", { class: "seg-btn", type: "button", onclick: async () => {
+          etat.textContent = "Vérification auprès d'ElevenLabs…";
+          try {
+            const nom = await configurerCle(saisie.value.trim());
+            etat.textContent = `✓ Voix « ${nom} » trouvée — option activée !`;
+            setTimeout(rendre, 900);
+          } catch (e) {
+            etat.textContent = `✗ ${e.message ?? "Impossible de valider la clé."}`;
+          }
+        } }, "Activer"),
+      ), etat);
+    } else {
+      const acquis = await tailleCache();
+      bloc.append(el("p", { class: "reglage-desc", text: `Voix « ${nomVoixDirect()} » branchée. ${acquis} lecture${acquis > 1 ? "s" : ""} déjà en cache définitif sur cet appareil. Hors-ligne, la synthèse assure sans bruit.` }));
+      bloc.append(el("div", { class: "reglage-control" },
+        el("button", { class: "seg-btn" + (voixDirectActif() ? " seg-on" : ""), type: "button", "aria-pressed": String(voixDirectActif()), onclick: () => { setVoixDirect(!voixDirectActif()); rendre(); } }, voixDirectActif() ? "Activée" : "En pause"),
+        el("button", { class: "seg-btn", type: "button", onclick: () => { oublierCle(); rendre(); } }, "Oublier la clé"),
+      ));
+    }
+  };
+  rendre();
+  return bloc;
 }
 
 /* ---------- palmarès & succès ---------- */

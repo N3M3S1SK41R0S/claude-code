@@ -304,6 +304,17 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
     radial-gradient(circle at 90% 10%, rgba(224, 176, 74, 0.35) 0%, transparent 36%),
     linear-gradient(160deg, #2c2414 0%, #211a10 55%, #17120c 100%);
 }
+/* Réglage « Héraut ElevenLabs en direct » : un encart discret, sous les rangées. */
+.voixdirect-bloc {
+  margin-top: 1.2rem;
+  padding: 0.9rem 1rem;
+  border: 1px dashed rgba(224, 176, 74, 0.45);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 /* Barre d'écoute des règles : le conteur à portée de pouce. */
 .rules-ecoute {
   display: flex;
