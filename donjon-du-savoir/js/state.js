@@ -321,6 +321,7 @@ export function porteParole(pion) {
 }
 
 export function markAsked(id) {
+  if (!state) return; // Partie Éclair sans plateau : le registre inter-parties suffit
   if (!state.askedIds.includes(id)) state.askedIds.push(id);
   save();
 }

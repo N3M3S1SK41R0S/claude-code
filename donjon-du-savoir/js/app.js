@@ -12,6 +12,7 @@ import { APP_VERSION } from "./version.js";
 import { POWERS } from "./powers.js";
 import { say, setVoice, stop, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
 import { RECIT_REGLES } from "./herald.js";
+import { renderEclairSetup } from "./eclair.js";
 import { configurerCle, nomVoixDirect, oublierCle, setVoixDirect, tailleCache, voixDirectActif, voixDirectConfigure } from "./voixdirect.js";
 import { setSfx, sfx, sfxAvailable, sfxEnabled } from "./sfx.js";
 import { setMusic, musicAvailable, musicEnabled } from "./music.js";
@@ -25,12 +26,16 @@ import { el } from "./ui.js";
 
 const MAX_PLAYERS = 20;
 
-const screens = ["home", "rules", "custom", "grimoire", "palmares", "reglages", "setup", "game", "victory"];
+const screens = ["home", "rules", "custom", "grimoire", "palmares", "reglages", "setup", "game", "victory", "eclair"];
 function show(name) {
   for (const s of screens) {
     document.getElementById(`screen-${s}`).hidden = s !== name;
   }
+  if (name === "home") renderHome(); // retour d'Éclair : accueil toujours frais
 }
+// Pont de navigation pour les modules autonomes (Partie Éclair) : évite un
+// import circulaire app ↔ eclair.
+window.__donjonShow = show;
 
 /* ---------- home ---------- */
 
@@ -65,6 +70,7 @@ function renderHome() {
   const newBtn = el("button", { class: "btn btn-big btn-gold", type: "button", onclick: () => { renderSetup(); show("setup"); } }, "⚔️ Nouvelle partie");
   if (!bankOk) newBtn.disabled = true;
   zone.append(newBtn);
+  zone.append(el("button", { class: "btn btn-big btn-eclair", type: "button", onclick: () => { renderEclairSetup(); show("eclair"); } }, "⚡ Partie Éclair — sans plateau"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderRules(); show("rules"); } }, "📖 Les règles"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderCustom(); show("custom"); } }, "✍️ Vos questions maison"));
   zone.append(el("button", { class: "btn btn-big", type: "button", onclick: () => { renderPalmares(); show("palmares"); } }, "🏅 Palmarès & succès"));

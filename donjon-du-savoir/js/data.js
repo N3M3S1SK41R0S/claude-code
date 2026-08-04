@@ -86,7 +86,8 @@ const diffOf = (q) => q.difficulte ?? 3;
 const inTiers = (q, b) => b.tiers.includes(q.niveau_age);
 
 function subset(b, formats, { ignoreAsked = false } = {}) {
-  const asked = ignoreAsked ? null : new Set(getState().askedIds);
+  const st = getState(); // nul en Partie Éclair (pas de plateau) : fraîcheur inter-parties seule
+  const asked = ignoreAsked || !st ? null : new Set(st.askedIds);
   let candidates = bank.filter((q) => (!asked || !asked.has(q.id)) && inTiers(q, b));
   if (formats) candidates = candidates.filter((q) => formats.includes(q.format));
   return candidates;
@@ -130,8 +131,9 @@ function pick(candidates) {
  * pool. `commit:false` sélectionne sans consommer (choix de thème) ; `exclude`
  * écarte des ids déjà proposés. Le registre de fraîcheur limite les redites.
  */
-export function drawQuestion(pion, { formats = null, commit = true, exclude = null } = {}) {
+export function drawQuestion(pion, { formats = null, commit = true, exclude = null, categories = null } = {}) {
   let pool = drawableFrom(rangeFor(pion), formats);
+  if (categories) pool = pool.filter((q) => categories.includes(q.categorie)); // thème du sprint Éclair
   if (exclude) pool = pool.filter((q) => !exclude.has(q.id));
   if (pool.length === 0) return null;
   const target = pion?.niveau ?? 2;

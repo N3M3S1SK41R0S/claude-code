@@ -29,7 +29,7 @@ const R = (p) => readFileSync(join(root, p), "utf8");
 // the entry last. We register every module, then require("./app.js").
 const MODULES = [
   "host-voice", "tts", "sfx", "music", "voices", "bots", "prefs", "grimoire", "palmares", "herald", "powers", "portraits", "custom", "items", "minigames",
-  "wordgames", "themes", "langues", "state", "board", "data", "voiceclips", "voixdirect", "ui", "scene", "models3d", "board3d", "souvenir", "version", "game", "app",
+  "wordgames", "themes", "langues", "state", "board", "data", "voiceclips", "voixdirect", "eclair", "ui", "scene", "models3d", "board3d", "souvenir", "version", "game", "app",
 ];
 
 function collectExports(src) {
@@ -56,9 +56,10 @@ function collectExports(src) {
 function transform(name, src) {
   const exports = collectExports(src);
   let code = src
-    // import { a, b } from "./x.js"  →  const { a, b } = require("./x.js")
+    // import { a, b as c } from "./x.js"  →  const { a, b: c } = require("./x.js")
+    // (l'alias `as` devient un renommage de déstructuration — sinon SyntaxError)
     .replace(/^import\s*\{([^}]*)\}\s*from\s*["']\.\/([-A-Za-z0-9_$]+)\.js["'];?/gm,
-      (_, names, mod) => `const {${names}} = require("./${mod}.js");`)
+      (_, names, mod) => `const {${names.replace(/\s+as\s+/g, ": ")}} = require("./${mod}.js");`)
     // drop `export { ... }` statements (re-exported explicitly at the end)
     .replace(/^export\s*\{[^}]*\}\s*;?\s*$/gm, "")
     // unwrap declaration exports

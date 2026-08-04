@@ -304,6 +304,81 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
     radial-gradient(circle at 90% 10%, rgba(224, 176, 74, 0.35) 0%, transparent 36%),
     linear-gradient(160deg, #2c2414 0%, #211a10 55%, #17120c 100%);
 }
+/* ⚡ PARTIE ÉCLAIR : une colonne plein pouce, taillée téléphone. */
+.eclair-ecran {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 0.6rem 0.8rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.eclair-setup { display: flex; flex-direction: column; gap: 0.5rem; }
+.eclair-joueur-row { display: flex; gap: 0.4rem; align-items: center; }
+.eclair-joueur-row .name-input { flex: 1; min-width: 0; }
+.eclair-themes { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.eclair-auto { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.92rem; opacity: 0.9; }
+.eclair-go { font-size: 1.25rem; }
+.eclair-bandeau {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  background: rgba(26, 18, 48, 0.65);
+  border-radius: 12px;
+  padding: 0.55rem 0.8rem;
+}
+.eclair-qui { display: flex; gap: 0.6rem; align-items: baseline; }
+.eclair-score { color: #e0b04a; font-weight: 700; }
+.eclair-etat { display: flex; gap: 0.7rem; align-items: baseline; font-size: 0.92rem; opacity: 0.95; }
+.eclair-serie-feu { animation: eclairFeu 0.9s ease-in-out infinite alternate; font-weight: 700; }
+@keyframes eclairFeu { from { transform: scale(1); } to { transform: scale(1.18); } }
+.eclair-carte {
+  background: rgba(20, 14, 40, 0.72);
+  border: 1px solid rgba(224, 176, 74, 0.35);
+  border-radius: 14px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.eclair-theme { align-self: flex-start; color: #fff; border-radius: 999px; padding: 0.15rem 0.7rem; font-size: 0.85rem; }
+.eclair-texte { font-size: 1.18rem; line-height: 1.45; margin: 0; }
+.eclair-indice { font-size: 0.95rem; opacity: 0.92; border-top: 1px dashed rgba(255,255,255,0.25); padding-top: 0.5rem; }
+.eclair-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+.eclair-grille-2 { grid-template-columns: 1fr 1fr; }
+.eclair-choix { padding: 0.95rem 0.6rem; font-size: 1.05rem; min-height: 3.4rem; }
+.eclair-efface { opacity: 0.25; text-decoration: line-through; }
+.eclair-bonne { outline: 3px solid var(--ok-color, #3ec27a); }
+.eclair-mauvaise { outline: 3px solid var(--bad-color, #b54a4a); }
+.eclair-jokers { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.eclair-stop { align-self: center; opacity: 0.75; }
+.eclair-verdict { border-radius: 14px; padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.eclair-v-bonne { background: rgba(62, 194, 122, 0.16); border: 1px solid rgba(62, 194, 122, 0.5); }
+.eclair-v-mauvaise { background: rgba(181, 74, 74, 0.14); border: 1px solid rgba(181, 74, 74, 0.5); }
+.eclair-v-titre { font-size: 1.12rem; font-weight: 700; margin: 0; }
+.eclair-v-anecdote { margin: 0; line-height: 1.45; }
+.eclair-suivant { font-size: 1.15rem; }
+.eclair-podium { display: flex; flex-direction: column; gap: 0.45rem; }
+.eclair-podium-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  background: rgba(26, 18, 48, 0.6);
+  border-radius: 10px;
+  padding: 0.5rem 0.8rem;
+}
+.eclair-podium-or { border: 1px solid rgba(224, 176, 74, 0.6); }
+.eclair-medaille { font-size: 1.3rem; }
+.eclair-record { font-weight: 700; color: #e0b04a; }
+.eclair-perle { margin: 0.15rem 0; line-height: 1.4; opacity: 0.95; }
+.eclair-fin-actions { display: flex; flex-direction: column; gap: 0.55rem; margin-top: 0.6rem; }
+@media (min-width: 40rem) {
+  .eclair-texte { font-size: 1.28rem; }
+}
+
 /* Réglage « Héraut ElevenLabs en direct » : un encart discret, sous les rangées. */
 .voixdirect-bloc {
   margin-top: 1.2rem;
