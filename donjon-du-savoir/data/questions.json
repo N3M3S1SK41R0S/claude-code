@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 4195,
+ "count": 4237,
  "questions": [
   {
    "id": "arts-001",
@@ -81090,6 +81090,756 @@
     "Faux"
    ],
    "bonne_reponse": "Vrai"
+  },
+  {
+   "categorie": "Séries",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans la série « Sam le Pompier », que fait Sam quand un feu se déclare ?",
+   "anecdote": "Sam le Pompier veille sur le village de Pontypandy, au pays de Galles : la série est née en Grande-Bretagne au milieu des années 1980.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sam_le_pompier"
+   ],
+   "choix": [
+    "Il éteint le feu avec de l'eau",
+    "Il prépare un gâteau",
+    "Il va se coucher"
+   ],
+   "bonne_reponse": "Il éteint le feu avec de l'eau",
+   "id": "v3-001"
+  },
+  {
+   "categorie": "Séries",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans la série « Masha et Michka », qui est le grand ami de la petite Masha ?",
+   "anecdote": "Michka est un ours brun à la retraite : il rêve de calme, mais Masha en décide autrement à chaque épisode.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Masha_et_Michka"
+   ],
+   "choix": [
+    "Un ours",
+    "Un crocodile",
+    "Un pingouin"
+   ],
+   "bonne_reponse": "Un ours",
+   "id": "v3-002"
+  },
+  {
+   "categorie": "Séries",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans « Trotro », le héros est un petit âne.",
+   "anecdote": "Trotro est un ânon gris et blanc né dans les albums de Bénédicte Guettier avant de trotter à la télévision.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Trotro"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai",
+   "id": "v3-003"
+  },
+  {
+   "categorie": "Séries",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans « Oui-Oui », comment le héros se déplace-t-il dans son village ?",
+   "anecdote": "Sa petite voiture jaune et rouge fait « bip-bip » : elle est presque aussi célèbre que lui.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Oui-Oui"
+   ],
+   "choix": [
+    "En petite voiture",
+    "En hélicoptère",
+    "À dos de chameau"
+   ],
+   "bonne_reponse": "En petite voiture",
+   "id": "v3-004"
+  },
+  {
+   "categorie": "Séries",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans le dessin animé « Grizzy et les Lemmings », où vivent les personnages ?",
+   "anecdote": "La série se passe dans une maison de garde forestier au Canada : Grizzy s'y installe dès que le garde a le dos tourné.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Grizzy_et_les_Lemmings"
+   ],
+   "choix": [
+    "Dans une forêt du Canada",
+    "Dans un désert",
+    "Sur une île tropicale"
+   ],
+   "bonne_reponse": "Dans une forêt du Canada",
+   "id": "v3-005"
+  },
+  {
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans une comptine très connue, quel petit animal vert court dans l'herbe ?",
+   "anecdote": "« Une souris verte » est l'une des comptines françaises les plus anciennes encore chantées aujourd'hui.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Une_souris_verte"
+   ],
+   "choix": [
+    "Une souris",
+    "Un lapin",
+    "Un poisson"
+   ],
+   "bonne_reponse": "Une souris",
+   "id": "v3-006"
+  },
+  {
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans la comptine, quel animal est perché « sur un mur » et picore du pain dur ?",
+   "anecdote": "« Une poule sur un mur » sert souvent de comptine à compter pour désigner qui commence à un jeu.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Une_poule_sur_un_mur"
+   ],
+   "choix": [
+    "Une poule",
+    "Un chat",
+    "Un éléphant"
+   ],
+   "bonne_reponse": "Une poule",
+   "id": "v3-007"
+  },
+  {
+   "categorie": "Musique",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on une chanson douce que l'on chante pour endormir un bébé ?",
+   "anecdote": "Une berceuse se chante lentement et tout bas : le rythme lent aide vraiment à trouver le sommeil.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Berceuse"
+   ],
+   "choix": [
+    "Une berceuse",
+    "Une marche militaire",
+    "Un cri de guerre"
+   ],
+   "bonne_reponse": "Une berceuse",
+   "id": "v3-008"
+  },
+  {
+   "categorie": "Sport",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "À la marelle, avec quoi avance-t-on d'une case à l'autre ?",
+   "anecdote": "On lance un petit caillou, puis on saute à cloche-pied : la marelle se joue depuis l'Antiquité romaine.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Marelle"
+   ],
+   "choix": [
+    "En sautant",
+    "En rampant",
+    "En roulant"
+   ],
+   "bonne_reponse": "En sautant",
+   "id": "v3-009"
+  },
+  {
+   "categorie": "Sport",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "À cache-cache, que fait celui qui compte les yeux fermés ?",
+   "anecdote": "Compter en fermant les yeux laisse aux autres le temps de se cacher : c'est la règle numéro un du jeu.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cache-cache"
+   ],
+   "choix": [
+    "Il cherche les autres après",
+    "Il se cache aussi",
+    "Il rentre à la maison"
+   ],
+   "bonne_reponse": "Il cherche les autres après",
+   "id": "v3-010"
+  },
+  {
+   "categorie": "Sport",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que met-on aux bras d'un enfant qui apprend à nager, pour qu'il flotte ?",
+   "anecdote": "Les brassards sont remplis d'air : c'est l'air, plus léger que l'eau, qui aide à flotter.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Brassard_de_natation"
+   ],
+   "choix": [
+    "Des brassards",
+    "Des gants de boxe",
+    "Des chaussettes"
+   ],
+   "bonne_reponse": "Des brassards",
+   "id": "v3-011"
+  },
+  {
+   "categorie": "Arts",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Avec quoi dessine-t-on sur un tableau noir à l'école ?",
+   "anecdote": "La craie laisse une trace blanche parce qu'elle s'effrite : de la poudre de roche reste accrochée au tableau.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Craie"
+   ],
+   "choix": [
+    "Une craie",
+    "Une cuillère",
+    "Une éponge"
+   ],
+   "bonne_reponse": "Une craie",
+   "id": "v3-012"
+  },
+  {
+   "categorie": "Cinéma",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que mange-t-on souvent dans une salle de cinéma ?",
+   "anecdote": "Le pop-corn a conquis les cinémas dans les années 1930 : il était peu cher et se préparait sur place.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pop-corn"
+   ],
+   "choix": [
+    "Du pop-corn",
+    "De la soupe",
+    "Une pizza chaude"
+   ],
+   "bonne_reponse": "Du pop-corn",
+   "id": "v3-013"
+  },
+  {
+   "categorie": "Cinéma",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans une salle de cinéma, on éteint les lumières avant que le film commence.",
+   "anecdote": "Sans obscurité, l'image projetée serait toute pâle : le noir fait ressortir les couleurs de l'écran.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Salle_de_cinéma"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai",
+   "id": "v3-014"
+  },
+  {
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Le 1er mai, quelle petite fleur blanche s'offre-t-on en France pour porter bonheur ?",
+   "anecdote": "Le muguet fleurit justement au début du mois de mai : chaque brin porte de petites clochettes blanches.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Muguet_de_mai"
+   ],
+   "choix": [
+    "Du muguet",
+    "Un cactus",
+    "Un tournesol"
+   ],
+   "bonne_reponse": "Du muguet",
+   "id": "v3-015"
+  },
+  {
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel jour de l'année accroche-t-on traditionnellement un poisson en papier dans le dos des gens ?",
+   "anecdote": "La coutume du poisson d'avril est attestée en France depuis le XVIe siècle ; on la retrouve dans plusieurs pays d'Europe.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Poisson_d%27avril"
+   ],
+   "choix": [
+    "Le 1er avril",
+    "Le 1er janvier",
+    "Le 31 octobre"
+   ],
+   "bonne_reponse": "Le 1er avril",
+   "id": "v3-016"
+  },
+  {
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel métier consiste à cultiver la terre et à élever des animaux de ferme ?",
+   "anecdote": "En France, un agriculteur nourrit en moyenne plusieurs dizaines de personnes grâce à sa production annuelle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Agriculteur"
+   ],
+   "choix": [
+    "Agriculteur",
+    "Astronome",
+    "Bibliothécaire"
+   ],
+   "bonne_reponse": "Agriculteur",
+   "id": "v3-017"
+  },
+  {
+   "categorie": "Général",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel métier soigne les animaux malades ?",
+   "anecdote": "Le mot « vétérinaire » vient du latin veterinae, qui désignait les bêtes de somme comme les bœufs et les ânes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vétérinaire"
+   ],
+   "choix": [
+    "Vétérinaire",
+    "Pâtissier",
+    "Plombier"
+   ],
+   "bonne_reponse": "Vétérinaire",
+   "id": "v3-018"
+  },
+  {
+   "categorie": "Général",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Qui apporte le courrier dans les boîtes aux lettres ?",
+   "anecdote": "En France, le facteur parcourt sa tournée à pied, à vélo ou en petite voiture jaune.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Facteur_(métier)"
+   ],
+   "choix": [
+    "Le facteur",
+    "Le pompier",
+    "Le jardinier"
+   ],
+   "bonne_reponse": "Le facteur",
+   "id": "v3-019"
+  },
+  {
+   "categorie": "Jeux de société",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans la plupart des jeux de plateau, chacun joue à son tour, l'un après l'autre.",
+   "anecdote": "Jouer chacun son tour est l'une des toutes premières règles que l'on apprend en jeu de société.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeu_de_société"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai",
+   "id": "v3-020"
+  },
+  {
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que dit-on à quelqu'un qui vient de nous rendre service ?",
+   "anecdote": "« Merci » vient du latin merces, qui voulait dire « récompense » ou « faveur ».",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/merci"
+   ],
+   "choix": [
+    "Merci",
+    "Au revoir",
+    "Attention"
+   ],
+   "bonne_reponse": "Merci",
+   "id": "v3-021"
+  },
+  {
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel petit mot ajoute-t-on quand on demande quelque chose poliment ?",
+   "anecdote": "« S'il te plaît » signifie mot à mot « si cela te plaît » : on demande, on n'exige pas.",
+   "sources": [
+    "https://fr.wiktionary.org/wiki/s%E2%80%99il_te_pla%C3%AEt"
+   ],
+   "choix": [
+    "S'il te plaît",
+    "Tout de suite",
+    "Sûrement pas"
+   ],
+   "bonne_reponse": "S'il te plaît",
+   "id": "v3-022"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on une très haute montagne couverte de neige à son sommet ?",
+   "anecdote": "Plus on monte, plus l'air est froid : c'est pour cela que la neige tient au sommet même en été.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Montagne"
+   ],
+   "choix": [
+    "Une montagne",
+    "Une plaine",
+    "Une île"
+   ],
+   "bonne_reponse": "Une montagne",
+   "id": "v3-023"
+  },
+  {
+   "categorie": "Histoire",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Autrefois, dans quel grand bâtiment en pierre vivaient les rois et les chevaliers ?",
+   "anecdote": "Les châteaux forts avaient de gros murs et un fossé : tout était fait pour se protéger des attaques.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Château_fort"
+   ],
+   "choix": [
+    "Un château fort",
+    "Une caravane",
+    "Une cabane en carton"
+   ],
+   "bonne_reponse": "Un château fort",
+   "id": "v3-024"
+  },
+  {
+   "categorie": "Littérature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Dans un livre, comment appelle-t-on les feuilles que l'on tourne une à une ?",
+   "anecdote": "Avant le livre à pages, on lisait des rouleaux que l'on déroulait : tourner une page est une invention plus récente.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Page_(livre)"
+   ],
+   "choix": [
+    "Des pages",
+    "Des marches",
+    "Des fenêtres"
+   ],
+   "bonne_reponse": "Des pages",
+   "id": "v3-025"
+  },
+  {
+   "categorie": "Littérature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on l'endroit où l'on peut emprunter des livres ?",
+   "anecdote": "Le mot « bibliothèque » vient du grec : biblion, le livre, et thêkê, le coffre où on le range.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Bibliothèque"
+   ],
+   "choix": [
+    "Une bibliothèque",
+    "Une boulangerie",
+    "Une piscine"
+   ],
+   "bonne_reponse": "Une bibliothèque",
+   "id": "v3-026"
+  },
+  {
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que se passe-t-il quand on laisse un glaçon dans une pièce bien chaude ?",
+   "anecdote": "La glace fond au-dessus de zéro degré : elle redevient alors de l'eau liquide, sans rien perdre en route.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Fusion_(physique)"
+   ],
+   "choix": [
+    "Il fond et devient de l'eau",
+    "Il devient une pierre",
+    "Il disparaît pour toujours"
+   ],
+   "bonne_reponse": "Il fond et devient de l'eau",
+   "id": "v3-027"
+  },
+  {
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Pourquoi voit-on son ombre quand on marche au soleil ?",
+   "anecdote": "Le corps arrête la lumière : l'ombre est simplement l'endroit que la lumière ne peut pas atteindre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ombre"
+   ],
+   "choix": [
+    "Parce que le corps arrête la lumière",
+    "Parce que le sol est mouillé",
+    "Parce que le vent souffle"
+   ],
+   "bonne_reponse": "Parce que le corps arrête la lumière",
+   "id": "v3-028"
+  },
+  {
+   "categorie": "Gastronomie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel métier consiste à fabriquer le pain, très tôt le matin ?",
+   "anecdote": "La baguette de tradition française est protégée par un décret de 1993 qui interdit d'y ajouter des additifs.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Boulanger"
+   ],
+   "choix": [
+    "Boulanger",
+    "Menuisier",
+    "Électricien"
+   ],
+   "bonne_reponse": "Boulanger",
+   "id": "v3-029"
+  },
+  {
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "L'escargot se déplace en rampant sur un seul « pied » gluant.",
+   "anecdote": "Ce pied unique produit un mucus qui lui permet même de ramper sur une lame de rasoir sans se couper.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Escargot"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai",
+   "id": "v3-030"
+  },
+  {
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "vrai_faux",
+   "texte": "Le nombre de points noirs sur le dos d'une coccinelle indique son âge en années.",
+   "anecdote": "Faux : ces points dépendent de l'espèce, pas de l'âge. La coccinelle à sept points en garde sept toute sa vie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Coccinelle"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Faux",
+   "id": "v3-031"
+  },
+  {
+   "categorie": "Dessin animé",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "vrai_faux",
+   "texte": "Dans un dessin animé, les personnages sont dessinés ou fabriqués par ordinateur, pas filmés en vrai.",
+   "anecdote": "Il faut des milliers d'images pour quelques minutes de dessin animé : chaque seconde en demande souvent vingt-quatre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Film_d%27animation"
+   ],
+   "choix": [
+    "Vrai",
+    "Faux"
+   ],
+   "bonne_reponse": "Vrai",
+   "id": "v3-032"
+  },
+  {
+   "categorie": "Pop Culture",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quand on souffle les bougies d'un gâteau, que fête-t-on le plus souvent ?",
+   "anecdote": "L'usage des bougies d'anniversaire est attesté en Allemagne dès le XVIIIe siècle, pour les fêtes d'enfants.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Anniversaire"
+   ],
+   "choix": [
+    "Un anniversaire",
+    "Un déménagement",
+    "La rentrée des classes"
+   ],
+   "bonne_reponse": "Un anniversaire",
+   "id": "v3-033"
+  },
+  {
+   "categorie": "Séries",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on l'ensemble des épisodes d'une série diffusés sur une même période ?",
+   "anecdote": "Une saison compte souvent entre six et vingt-quatre épisodes selon les pays et les chaînes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Saison_(télévision)"
+   ],
+   "choix": [
+    "Une saison",
+    "Un chapitre",
+    "Un tome"
+   ],
+   "bonne_reponse": "Une saison",
+   "id": "v3-034"
+  },
+  {
+   "categorie": "Musique",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel instrument joue-t-on en pinçant des cordes tendues sur un grand cadre triangulaire ?",
+   "anecdote": "La harpe de concert compte 47 cordes et sept pédales pour changer la hauteur des notes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Harpe"
+   ],
+   "choix": [
+    "La harpe",
+    "La flûte",
+    "La grosse caisse"
+   ],
+   "bonne_reponse": "La harpe",
+   "id": "v3-035"
+  },
+  {
+   "categorie": "Arts",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on un dessin ou une peinture qui représente le visage d'une personne ?",
+   "anecdote": "Avant la photographie, se faire tirer le portrait pouvait demander des dizaines d'heures de pose.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Portrait"
+   ],
+   "choix": [
+    "Un portrait",
+    "Un paysage",
+    "Une nature morte"
+   ],
+   "bonne_reponse": "Un portrait",
+   "id": "v3-036"
+  },
+  {
+   "categorie": "Arts",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on un tableau qui représente une campagne, une forêt ou une mer, sans personnage au premier plan ?",
+   "anecdote": "Le paysage est devenu un sujet à part entière assez tard : longtemps, il servait seulement de décor.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Paysage_(peinture)"
+   ],
+   "choix": [
+    "Un paysage",
+    "Un portrait",
+    "Une caricature"
+   ],
+   "bonne_reponse": "Un paysage",
+   "id": "v3-037"
+  },
+  {
+   "categorie": "Sport",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "À vélo, quel équipement protège la tête en cas de chute ?",
+   "anecdote": "En France, le casque est obligatoire à vélo pour les enfants de moins de douze ans, passagers compris.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Casque_de_vélo"
+   ],
+   "choix": [
+    "Le casque",
+    "Les gants",
+    "La sonnette"
+   ],
+   "bonne_reponse": "Le casque",
+   "id": "v3-038"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on une terre entourée d'eau de tous les côtés ?",
+   "anecdote": "La plus grande île du monde est le Groenland : l'Australie, plus vaste encore, est classée comme continent.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Île"
+   ],
+   "choix": [
+    "Une île",
+    "Une presqu'île",
+    "Un fleuve"
+   ],
+   "bonne_reponse": "Une île",
+   "id": "v3-039"
+  },
+  {
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Comment appelle-t-on deux mots de sens contraire, comme « chaud » et « froid » ?",
+   "anecdote": "Le mot « antonyme » est construit sur le grec anti, « contre », et onoma, « le nom ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Antonymie"
+   ],
+   "choix": [
+    "Des antonymes",
+    "Des synonymes",
+    "Des adverbes"
+   ],
+   "bonne_reponse": "Des antonymes",
+   "id": "v3-040"
+  },
+  {
+   "categorie": "Jeux de société",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Dans un jeu de cartes classique de 52 cartes, combien y a-t-il de couleurs différentes ?",
+   "anecdote": "Pique, cœur, carreau et trèfle : ces quatre enseignes françaises se sont imposées en Europe au XVe siècle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeu_de_cartes_français"
+   ],
+   "choix": [
+    "Quatre",
+    "Deux",
+    "Six"
+   ],
+   "bonne_reponse": "Quatre",
+   "id": "v3-041"
+  },
+  {
+   "categorie": "Sciences & Nature",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Où poussent les racines d'un arbre ?",
+   "anecdote": "Les racines vont chercher l'eau sous la terre et tiennent l'arbre debout, même par grand vent.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Racine_(botanique)"
+   ],
+   "choix": [
+    "Sous la terre",
+    "Dans les nuages",
+    "Sur les feuilles"
+   ],
+   "bonne_reponse": "Sous la terre",
+   "id": "v3-042"
   }
  ]
 }
