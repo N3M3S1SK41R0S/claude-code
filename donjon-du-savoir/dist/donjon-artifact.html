@@ -380,6 +380,9 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   .eclair-texte { font-size: 1.28rem; }
 }
 
+/* Plusieurs dés d'objet côte à côte : même culbute, départs en cascade. */
+.die3d-multi { display: flex; gap: 1.6rem; justify-content: center; }
+
 /* Le pile-ou-face de Gérard : la pièce tournoie puis se pose. */
 .piece-scene { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
 .piece-flip {
@@ -12351,7 +12354,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v125";
+const APP_VERSION = "donjon-v126";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
@@ -12867,9 +12870,27 @@ function useItem(pion, id) {
 }
 
 function rollN(n) {
-  let s = 0;
-  for (let i = 0; i < n; i++) s += 1 + Math.floor(Math.random() * 6);
-  return s;
+  return Array.from({ length: n }, () => 1 + Math.floor(Math.random() * 6));
+}
+
+/** Culbute commune à TOUS les dés d'objet : chaque cube roule puis SE POSE sur
+ *  sa face (même scène que le dé du tour) — le sort se joue sous les yeux. */
+function tumbleDice(valeurs, label, onDone) {
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduced || testFlag("__DONJON_TEST") || tempoLevel() >= 2) return onDone();
+  sfx("dice");
+  const FACES = { 1: [0, 0], 2: [-90, 0], 3: [0, -90], 4: [0, 90], 5: [90, 0], 6: [0, 180] };
+  const cubes = valeurs.map(() => el("div", { class: "die3d", "aria-hidden": "true" },
+    ...[1, 2, 3, 4, 5, 6].map((n) => el("div", { class: `die3d-face die3d-f${n}`, text: String(n) }))));
+  setPanel(el("div", { class: "die3d-scene die3d-multi", "aria-label": `${label} : les dés roulent…` }, ...cubes));
+  requestAnimationFrame(() => {
+    cubes.forEach((cube, i) => {
+      const [fx, fy] = FACES[valeurs[i]];
+      cube.style.transitionDelay = `${i * 0.12}s`; // départs en cascade
+      cube.style.transform = `rotateX(${fx + 720}deg) rotateY(${fy + 1080}deg)`;
+    });
+  });
+  window.setTimeout(onDone, 1250 + valeurs.length * 120);
 }
 
 /** Après un objet « de soutien » (bouclier, aimant, malus, échange) : on REND la
@@ -12889,15 +12910,19 @@ function applyItem(pion, id, target) {
   save();
   heraldSays(`${item.emoji} ${item.nom} !`);
   switch (id) {
-    case "de_double":
-      return showItemDie(rollN(2), "Dé Double");
-    case "de_triple":
-      return showItemDie(rollN(3), "Dé Triple");
+    case "de_double": {
+      const des = rollN(2);
+      return tumbleDice(des, "Dé Double", () => showItemDie(des.reduce((a, b) => a + b, 0), "Dé Double"));
+    }
+    case "de_triple": {
+      const des = rollN(3);
+      return tumbleDice(des, "Dé Triple", () => showItemDie(des.reduce((a, b) => a + b, 0), "Dé Triple"));
+    }
     case "de_choisi":
       return setPanel(
         el("h2", { class: "panel-title", text: "🎯 Dé Choisi — quelle valeur ?" }),
         el("div", { class: "choices bet-grid" },
-          ...[1, 2, 3, 4, 5, 6].map((v) => choiceButton(String(v), () => moveAndResolve(v))),
+          ...[1, 2, 3, 4, 5, 6].map((v) => choiceButton(String(v), () => tumbleDice([v], "Dé Choisi", () => moveAndResolve(v)))),
         ),
       );
     case "de_teleport": {
