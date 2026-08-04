@@ -897,11 +897,31 @@ function buildBoard(layout, boardDef) {
       animatedTiles.push({ anchor, type, phase: i * 0.73 });
     }
     upgradeStatic(anchor, tile, createTileModel(type), epoch, `socle ${type}`);
-    // Bâtiment posé DERRIÈRE la case-repère (le héros se tient devant).
-    const bat = CASE_BUILDING[type];
-    // Bâtiment-repère bien EN RETRAIT (3,4 u) : sa silhouette fantôme ne voile
-    // plus jamais le socle, la pastille de couleur ni le jeton de la case.
-    if (bat) addBuilding(bat.id, bat.art, p.clone().setZ(p.z - 4.8), type === "arrivee" ? 6.2 : 3.9, epoch);
+  }
+
+  // PLACEMENT ANTI-COLLISION : l'ancien décalage FIXE (z − 4,8) posait le
+  // bâtiment-repère pile sur la rangée du dessus (espacement 4,1) et le PNJ
+  // (x + 2,1) sur la case voisine (espacement ~2,3). Désormais chaque invité
+  // essaie plusieurs places autour de sa case et prend la première LIBRE
+  // (à bonne distance de TOUTES les cases) ; sinon il s'abstient — le vide
+  // vaut toujours mieux que le chevauchement.
+  const positionsCases = Array.from({ length }, (_, i) => worldOf(i, length));
+  const placeLibre = (p, candidats, marge) => {
+    for (const [dx, dz] of candidats) {
+      const x = p.x + dx, z = p.z + dz;
+      if (positionsCases.every((c) => Math.hypot(c.x - x, c.z - z) >= marge)) {
+        return new THREE.Vector3(x, 0, z);
+      }
+    }
+    return null;
+  };
+  for (let i = 0; i < length; i++) {
+    const bat = CASE_BUILDING[layout[i]];
+    if (!bat) continue;
+    const p = positionsCases[i];
+    // Derrière d'abord (entre deux rangées), sinon en biais, sinon plus loin.
+    const place = placeLibre(p, [[0, -2.05], [2.3, -2.05], [-2.3, -2.05], [0, -4.8], [2.3, -4.8], [-2.3, -4.8]], 1.9);
+    if (place) addBuilding(bat.id, bat.art, place, layout[i] === "arrivee" ? 6.2 : 3.9, epoch);
   }
 
   // Bâtiments et décors d'ambiance aux abords du plateau : ceux du MONDE
@@ -985,11 +1005,14 @@ function buildBoard(layout, boardDef) {
     trounoir: "assets/figurines/pnj-zebulon.webp",
     arrivee: "assets/figurines/pnj-merlinouche.webp",
   };
+  const pnjPostes = new Set(); // UN exemplaire de chaque PNJ : jamais de clones
   for (let i = 0; i < length; i++) {
     const art = PNJ_CASE[layout[i]];
-    if (!art) continue;
-    const p = worldOf(i, length);
-    boardGroup.add(figStandee(art, p.clone().add(new THREE.Vector3(2.1, 0, -1.6)), 2.8));
+    if (!art || pnjPostes.has(art)) continue;
+    // Le PNJ se poste dans un DÉGAGEMENT près de sa case : jamais sur une
+    // case ni coincé contre un liseré — sans place libre, il reste en coulisse.
+    const place = placeLibre(positionsCases[i], [[1.5, 1.45], [-1.5, 1.45], [1.5, -1.45], [-1.5, -1.45], [0, 1.9]], 1.15);
+    if (place) { boardGroup.add(figStandee(art, place, 2.8)); pnjPostes.add(art); }
   }
   const FLANEURS = ["assets/figurines/pnj-boubou.webp", "assets/figurines/pnj-groumf.webp", "assets/figurines/pnj-sylvette.webp", "assets/figurines/pnj-coassin.webp", "assets/figurines/pnj-barnabe.webp", "assets/figurines/pnj-ratichon.webp", "assets/figurines/pnj-biscornu.webp", "assets/figurines/pnj-hibou-passage.webp"];
   // Les habitants des CINQ NOUVEAUX MONDES (GEN 2 v5) : deux PNJ nés sur place
@@ -1719,19 +1742,19 @@ function loop(now = performance.now()) {
     camPos.lerp(swayPos.set(camFocus.target.x, 8.5, camFocus.target.z + 10.5), damp(0.06));
     camLook.lerp(camFocus.target, damp(0.08));
   } else if (camMode === "heros" && focusId != null && pionObjs.get(focusId)) {
-    // ZOOM HÉROS (défaut) : la caméra cadre le joueur actif d'assez près pour
-    // qu'on le voie TOUJOURS bien, avec un léger balancement de vie. La
-    // mini-carte garde la vue d'ensemble en permanence.
+    // ZOOM HÉROS (défaut) : caméra CINÉMATIQUE inclinée (~42°), assez basse
+    // pour que le plateau ait de la profondeur — figurines en pied, bâtiments
+    // en perspective, ciel à l'horizon. Plus jamais la plongée verticale qui
+    // aplatissait tout : si un toit s'interpose, updateOccluders le rend
+    // translucide, c'est SON travail.
     const hero = pionObjs.get(focusId).obj.position;
-    // Assez haut pour plonger PAR-DESSUS les toits du village : rien ne peut
-    // s'interposer entre la caméra et le héros.
     swayPos.set(
       hero.x + Math.sin(time * 0.14) * 0.6,
-      15.5 + Math.sin(time * 0.1) * 0.4,
-      hero.z + 5.5 + Math.cos(time * 0.11) * 0.5,
+      9.2 + Math.sin(time * 0.1) * 0.35,
+      hero.z + 9.8 + Math.cos(time * 0.11) * 0.5,
     );
     camPos.lerp(swayPos, damp(0.05));
-    camLook.lerp(lookTmp.set(hero.x, 0.8, hero.z - 1.2), damp(0.07));
+    camLook.lerp(lookTmp.set(hero.x, 1.1, hero.z - 1.6), damp(0.07));
   } else {
     // Vue d'ensemble avec un TILT très doux : le plateau respire (parallaxe).
     swayPos.set(

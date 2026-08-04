@@ -957,8 +957,9 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
     grid-template-columns: minmax(0, 2.3fr) minmax(340px, 1fr);
     grid-template-areas: "board herald" "board minimap" "board panel" "players players";
   }
-  .minimap { position: static; grid-area: minimap; width: 100%; z-index: auto; }
-  .board3d-canvas, .board3d-vignette { max-width: none; }
+  /* (Les règles plein écran du canvas 3D et de la mini-carte vivent dans le
+     bloc ≥1100px APRÈS leurs règles de base, en fin de fichier : à spécificité
+     égale c'est l'ORDRE qui tranche, et elles doivent gagner.) */
 }
 
 /* ============================================================
@@ -1150,6 +1151,18 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
 }
 .minimap svg { display: block; width: 100%; height: auto; }
+
+/* PLEIN ÉCRAN ≥ 1100 px — ce bloc DOIT rester après les règles de base
+   ci-dessus (même spécificité : l'ordre décide, et c'est lui qui gagne).
+   ⚠ Le plafond de 760 px sur le canvas 3D écrasait l'image : le tampon de
+   rendu prend la largeur de la colonne mais s'affichait compressé dans
+   760 px — cases rondes devenues OVALES, plateau riquiqui sur grand écran. */
+@media (min-width: 1100px) {
+  body.plein-jeu .board-map { max-width: none; }
+  .board3d-canvas, .board3d-vignette { max-width: none; }
+  /* La mini-carte quitte son coin absolu : à côté, EN GRAND, dans la colonne. */
+  .screen-game .minimap { position: static; grid-area: minimap; width: 100%; z-index: auto; }
+}
 
 /* Rappel de la question au moment de la révélation (collectif/bonus). */
 .question-rappel { color: var(--soft); font-style: italic; line-height: 1.4; margin-bottom: 0.2rem; }
