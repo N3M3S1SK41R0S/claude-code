@@ -1,4 +1,4 @@
-import { playClip, stopClips } from "./voiceclips.js";
+import { clipFor, playClip, stopClips } from "./voiceclips.js";
 // Narration locale : accroches Opus embarquées + synthèse vocale du navigateur
 // pour le texte variable des questions et anecdotes. Aucun service réseau,
 // aucun clonage et aucune imitation de personne réelle.
@@ -110,7 +110,9 @@ function audioCueAvailable() {
 }
 
 /** Joue l'accroche enregistrée puis passe la main à Web Speech. En cas de codec
- *  absent ou d'autoplay refusé, la même accroche est dite par Web Speech. */
+ *  absent ou d'autoplay refusé, la même accroche est dite par Web Speech.
+ *  La VRAIE voix du Héraut (banque de clips MP3) prime sur l'accroche WebM
+ *  de synthèse dès qu'elle existe pour ce texte. */
 function cueThenSpeak(cue, text, kind, token) {
   const spokenText = speechText(text, kind);
   const host = kind === "anecdote"
@@ -121,9 +123,10 @@ function cueThenSpeak(cue, text, kind, token) {
     activeAudio = null;
     say(`${cue?.text ? `${cue.text} ` : ""}${spokenText}`, host);
   };
-  if (!cue || !audioCueAvailable()) return fallback();
+  const clip = cue ? clipFor("heraut", cue.text) : null; // MP3 : lisible partout
+  if (!cue || (!clip && !audioCueAvailable())) return fallback();
 
-  const audio = new Audio(cue.src);
+  const audio = new Audio(clip ?? cue.src);
   activeAudio = audio;
   audio.preload = "auto";
   audio.volume = 0.88;

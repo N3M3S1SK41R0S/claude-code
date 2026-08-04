@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v113";
+const VERSION = "donjon-v114";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -50,6 +50,44 @@ const SHELL = [
   "./data/modeles-3d.json",
   "./data/voix-manifest.json",
   "./voix/heraut/05822e83.mp3",
+  "./voix/heraut/060eb7ca.mp3",
+  "./voix/heraut/094bfc12.mp3",
+  "./voix/heraut/0ed4e365.mp3",
+  "./voix/heraut/0f54b422.mp3",
+  "./voix/heraut/1fcd129a.mp3",
+  "./voix/heraut/292ac3af.mp3",
+  "./voix/heraut/2a1083ea.mp3",
+  "./voix/heraut/2fd0df47.mp3",
+  "./voix/heraut/3d0a9d07.mp3",
+  "./voix/heraut/43d841cd.mp3",
+  "./voix/heraut/49d24bb8.mp3",
+  "./voix/heraut/4d700c3a.mp3",
+  "./voix/heraut/4e8151ac.mp3",
+  "./voix/heraut/50d8d3c2.mp3",
+  "./voix/heraut/7298cd00.mp3",
+  "./voix/heraut/7500ea68.mp3",
+  "./voix/heraut/81da7b07.mp3",
+  "./voix/heraut/958d073e.mp3",
+  "./voix/heraut/9714e40d.mp3",
+  "./voix/heraut/97370ea9.mp3",
+  "./voix/heraut/9c003bed.mp3",
+  "./voix/heraut/9fd65e6e.mp3",
+  "./voix/heraut/a5f1e264.mp3",
+  "./voix/heraut/aa69c98b.mp3",
+  "./voix/heraut/acbf0703.mp3",
+  "./voix/heraut/b1b6f271.mp3",
+  "./voix/heraut/b6bb4e77.mp3",
+  "./voix/heraut/b804c22b.mp3",
+  "./voix/heraut/b86b3d6e.mp3",
+  "./voix/heraut/b91316fd.mp3",
+  "./voix/heraut/be5cff1a.mp3",
+  "./voix/heraut/be6e7e80.mp3",
+  "./voix/heraut/c133a9e2.mp3",
+  "./voix/heraut/ca3a8e18.mp3",
+  "./voix/heraut/cd124593.mp3",
+  "./voix/heraut/cfa95d82.mp3",
+  "./voix/heraut/e12ee0ce.mp3",
+  "./voix/heraut/f09377c3.mp3",
   "./voix/heraut/84ff920a.mp3",
   "./voix/heraut/6b63b641.mp3",
   "./voix/heraut/97ed0649.mp3",

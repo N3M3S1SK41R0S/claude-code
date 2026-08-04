@@ -5700,7 +5700,7 @@ function resetHostCues() {
 ;Object.assign(module.exports, {pickHostCue, resetHostCues, HOST_PROFILE, HOST_CUES});
 };
 __modules["./tts.js"] = function(module, exports, require) {
-const { playClip, stopClips } = require("./voiceclips.js");
+const { clipFor, playClip, stopClips } = require("./voiceclips.js");
 // Narration locale : accroches Opus embarquées + synthèse vocale du navigateur
 // pour le texte variable des questions et anecdotes. Aucun service réseau,
 // aucun clonage et aucune imitation de personne réelle.
@@ -5812,7 +5812,9 @@ function audioCueAvailable() {
 }
 
 /** Joue l'accroche enregistrée puis passe la main à Web Speech. En cas de codec
- *  absent ou d'autoplay refusé, la même accroche est dite par Web Speech. */
+ *  absent ou d'autoplay refusé, la même accroche est dite par Web Speech.
+ *  La VRAIE voix du Héraut (banque de clips MP3) prime sur l'accroche WebM
+ *  de synthèse dès qu'elle existe pour ce texte. */
 function cueThenSpeak(cue, text, kind, token) {
   const spokenText = speechText(text, kind);
   const host = kind === "anecdote"
@@ -5823,9 +5825,10 @@ function cueThenSpeak(cue, text, kind, token) {
     activeAudio = null;
     say(`${cue?.text ? `${cue.text} ` : ""}${spokenText}`, host);
   };
-  if (!cue || !audioCueAvailable()) return fallback();
+  const clip = cue ? clipFor("heraut", cue.text) : null; // MP3 : lisible partout
+  if (!cue || (!clip && !audioCueAvailable())) return fallback();
 
-  const audio = new Audio(cue.src);
+  const audio = new Audio(clip ?? cue.src);
   activeAudio = audio;
   audio.preload = "auto";
   audio.volume = 0.88;
@@ -9177,6 +9180,12 @@ function stopClips() {
   }
 }
 
+/** Chemin (ou data-URI) du clip d'une réplique, null si le lot ne l'a pas.
+ *  Pour les lecteurs qui gèrent eux-mêmes leur Audio (accroches du sayHost). */
+function clipFor(perso, texte) {
+  return manifest?.[perso]?.[idReplique(texte)] ?? null;
+}
+
 /** Joue le clip d'une réplique si le lot le contient. Renvoie true si un clip
  *  prend la parole (la synthèse doit alors se taire), false sinon. */
 function playClip(perso, texte, { queue = false } = {}) {
@@ -9191,7 +9200,7 @@ function playClip(perso, texte, { queue = false } = {}) {
   return true;
 }
 
-;Object.assign(module.exports, {normaliseReplique, idReplique, stopClips, playClip});
+;Object.assign(module.exports, {normaliseReplique, idReplique, stopClips, clipFor, playClip});
 };
 __modules["./ui.js"] = function(module, exports, require) {
 // Small DOM helpers: element factory, modal panel, herald banner.
@@ -11594,7 +11603,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v113";
+const APP_VERSION = "donjon-v114";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
