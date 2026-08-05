@@ -68,6 +68,11 @@ export function dailyPool() {
   return bank.filter((q) => q.format === "qcm" && q.niveau_age === "ado" && Array.isArray(q.choix));
 }
 
+/** La banque entière, telle qu'elle est en mémoire (outils de contrôle). */
+export function allQuestions() {
+  return bank;
+}
+
 export function bankSize() {
   return bank.length;
 }

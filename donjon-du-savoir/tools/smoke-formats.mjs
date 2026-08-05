@@ -156,6 +156,14 @@ try {
     if (vue) {
       check("le bouton de réécoute est là (aucun chronomètre)", (await page.getByRole("button", { name: /Réécouter le son|\(Ré\)écouter/ }).count()) === 1);
       check("quatre propositions à l'écoute", (await page.locator(".choices .btn-choice").count()) === 4);
+      // Le secours « on n'a pas compris » vaut aussi pour un bruitage.
+      const avant = await page.locator(".choices .btn-choice").first().textContent();
+      check("un autre son peut être demandé", (await page.locator(".changer-question").count()) === 1);
+      await page.locator(".changer-question").click();
+      await page.waitForTimeout(400);
+      const apres = await page.locator(".choices .btn-choice").first().textContent();
+      check(`le bruitage a bien changé (« ${String(avant).slice(0, 22)}… » → « ${String(apres).slice(0, 22)}… »)`, avant !== apres);
+      check("on ne peut pas en redemander indéfiniment", (await page.locator(".changer-question").count()) === 0);
     }
     // Chaque partition produit-elle VRAIMENT du son ? Rendu hors ligne + mesure.
     const mesures = await page.evaluate(async () => {
@@ -185,6 +193,30 @@ try {
     const satures = mesures.filter((m) => m.crete > 1);
     check("aucun bruitage ne sature (crête ≤ 1)", satures.length === 0);
     if (satures.length) console.log("  saturés : " + satures.map((m) => `${m.nom} (crête ${m.crete.toFixed(2)})`).join(", "));
+    await contexte.close();
+  }
+
+  /* ---------- ④ le Son Mystère existe AUSSI en Partie Éclair ---------- */
+  {
+    const contexte = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const page = await contexte.newPage();
+    page.on("pageerror", (e) => errors.push(String(e).slice(0, 200)));
+    await page.addInitScript(() => { window.__DONJON_TEST = true; window.__DONJON_SON = true; });
+    await page.goto(pathToFileURL(file).href, { waitUntil: "load" });
+    await page.locator("#bank-info").textContent({ timeout: 10000 });
+    await page.getByRole("button", { name: /Partie Éclair/ }).click();
+    await page.waitForSelector(".eclair-setup", { timeout: 8000 });
+    await page.getByRole("button", { name: "⚡ C'est parti !" }).click();
+    await page.waitForSelector(".eclair-carte", { timeout: 8000 });
+    const reecoute = (await page.locator(".eclair-reecoute").count()) > 0;
+    check("le Son Mystère s'invite dans le sprint éclair", reecoute);
+    if (reecoute) {
+      check("quatre propositions à l'écoute (éclair)", (await page.locator(".eclair-choix").count()) === 4);
+      await page.locator(".eclair-choix").first().click();
+      await page.waitForSelector(".eclair-verdict", { timeout: 8000 });
+      const anecdote = await page.locator(".eclair-v-anecdote").innerText();
+      check(`le verdict garde son anecdote (« ${anecdote.slice(2, 40)}… »)`, anecdote.length > 12);
+    }
     await contexte.close();
   }
 

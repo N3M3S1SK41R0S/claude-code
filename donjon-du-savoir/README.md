@@ -160,7 +160,7 @@ système demande de réduire les animations).
 
 ## La banque de questions
 
-`data/questions.json` — **4357 questions vérifiées** (chaque fait contrôlé
+`data/questions.json` — **4365 questions vérifiées** (chaque fait contrôlé
 contre ≥ 2 sources indépendantes, citées sous chaque anecdote), 13 catégories,
 6 formats, réparties en niveaux `tout_petit` / `enfant` / `ado` / `adulte`
 (difficulté 1-5). Elle est générée depuis la banque fact-checkée du projet
@@ -186,15 +186,34 @@ interdit du Tabou n'apparaît jamais dans le mot-cible (contrôlé par
 `tools/test-wordgames.mjs`). Même registre de fraîcheur inter-parties que les
 questions. Format volontairement simple pour être étendu à la main.
 
-**Questions à support visuel** (≈ 1 tirage sur 4) : le jeu dessine lui-même
-ses images en SVG — `js/visuels.js` pour les **drapeaux** (primitives
-paramétrées), les **monuments en ombre chinoise** et les **charades en émojis**,
-`js/cartes.js` pour les **cartes de pays**. Ces cartes ne sont pas des dessins
-à main levée mais les **vraies frontières** : contours **Natural Earth**
-(domaine public), projetés en Mercator, simplifiés et cadrés hors ligne par
-`tools/forge-cartes.mjs`, puis embarqués sous forme de chemins SVG. Rien n'est
-téléchargé en partie — le Donjon reste **100 % hors ligne**. Pour les revoir
-toutes d'un coup d'œil : `node tools/planche-cartes.mjs sortie.png`.
+**Questions à support visuel** (≈ 1 tirage sur 4, en plateau comme en Partie
+Éclair) : le jeu dessine lui-même ses images en SVG — `js/visuels.js` pour les
+**drapeaux** (primitives paramétrées), les **monuments en ombre chinoise** et
+les **charades en émojis** ; `js/cartes.js` pour les **51 cartes de pays** ;
+`js/constellations.js` pour les **8 figures du ciel**.
+
+Ni les cartes ni les constellations ne sont dessinées à main levée — les
+premières tentatives, tracées à l'estime, donnaient des patates méconnaissables.
+Les cartes partent des **vraies frontières** (contours **Natural Earth**,
+domaine public), projetées en Mercator, simplifiées et cadrées hors ligne par
+`tools/forge-cartes.mjs`. Les constellations partent des **vraies coordonnées
+des étoiles** (ascension droite et déclinaison), avec le diamètre de chaque
+point proportionnel à son éclat. Tout est embarqué en chemins SVG : rien n'est
+téléchargé en partie, le Donjon reste **100 % hors ligne**.
+
+Deux pièges de projection ont demandé une correction, tous deux trouvés par
+contrôle visuel et invisibles dans le code :
+
+- les morceaux lointains d'un pays se mesurent **bord à bord**, pas de centre à
+  centre — sinon le Svalbard coupe la Norvège en deux et l'Alaska réduit les
+  États-Unis à un timbre-poste ;
+- un pays qui franchit l'**antiméridien** (la Russie) doit être recentré, sans
+  quoi il « occupe » 350° de large et s'écrase en bande illisible ;
+- côté ciel, l'axe horizontal se resserre par le **cosinus de la déclinaison**,
+  sans quoi la Grande Ourse s'étire de 74 % et n'a plus rien d'une casserole.
+
+Après chaque génération, on revérifie **à l'œil** :
+`node tools/planche-cartes.mjs sortie.png` et `node tools/planche-ciel.mjs`.
 
 **Le Son Mystère** : `js/sonmystere.js` fabrique ses bruitages à la volée
 (Web Audio) — aucun fichier son, aucun droit d'auteur, aucun poids. Ce sont des
@@ -231,7 +250,8 @@ node tools/smoke-formats.mjs     # E2E cascade / Baccalauréat Éclair / Son Mys
                                  # (les bruitages sont rendus et MESURÉS)
 node tools/smoke-visuels.mjs     # E2E questions à support visuel + dosage du tirage
 node tools/forge-cartes.mjs      # régénère js/cartes.js depuis Natural Earth
-node tools/planche-cartes.mjs x.png  # planche de contrôle des 28 cartes
+node tools/planche-cartes.mjs x.png  # planche de contrôle des 51 cartes
+node tools/planche-ciel.mjs x.png    # planche de contrôle des 8 constellations
 node tools/test-bonus.mjs        # unitaire : tirage des étoiles bonus de fin
 node tools/test-minigames.mjs    # unitaire : anagramme / pendu / plus proche
 node tools/test-wordgames.mjs    # unitaire : contenu vérifié Tabou/Password/Mime

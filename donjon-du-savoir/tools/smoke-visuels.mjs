@@ -52,7 +52,11 @@ try {
 
   // ② Les trois familles de visuels se dessinent réellement.
   const rendu = await page.evaluate(() => {
-    const sortes = { drapeau: { type: "drapeau", cle: "france" }, ombre: { type: "ombre", cle: "tour-eiffel" }, rebus: { type: "rebus", emojis: "🦁👑" } };
+    const sortes = {
+      drapeau: { type: "drapeau", cle: "france" }, ombre: { type: "ombre", cle: "tour-eiffel" },
+      pays: { type: "pays", cle: "russie" }, ciel: { type: "ciel", cle: "grande-ourse" },
+      rebus: { type: "rebus", emojis: "🦁👑" },
+    };
     const res = {};
     for (const [nom, v] of Object.entries(sortes)) {
       const el = window.__donjonVisuel?.(v);
@@ -63,6 +67,8 @@ try {
   });
   check(`drapeau dessiné (${rendu.drapeau})`, rendu.drapeau === "svg");
   check(`ombre chinoise dessinée (${rendu.ombre})`, rendu.ombre === "svg");
+  check(`carte de pays dessinée (${rendu.pays})`, rendu.pays === "svg");
+  check(`constellation dessinée (${rendu.ciel})`, rendu.ciel === "svg");
   check(`charade en émojis affichée (${rendu.rebus})`, rendu.rebus === "🦁👑");
   check(`un visuel inconnu n'casse rien (${rendu.inconnu})`, rendu.inconnu === "ignoré proprement");
 
@@ -121,6 +127,19 @@ try {
     await page.waitForTimeout(150);
   }
   check(`une question visuelle est apparue en partie (${questionsVues} questions traversées)`, vue);
+  // ④ Intégrité : aucune question ne doit désigner un visuel qui n'existe pas
+  // (une clé mal orthographiée afficherait un énoncé sans image, sans erreur).
+  const orphelines = await page.evaluate(() => {
+    const connus = window.__donjonVisuelsConnus?.() ?? {};
+    const banque = window.__donjonBanque?.() ?? [];
+    return banque
+      .filter((q) => q.visuel && q.visuel.type !== "rebus")
+      .filter((q) => !(connus[q.visuel.type] ?? []).includes(q.visuel.cle))
+      .map((q) => `${q.id} → ${q.visuel.type}/${q.visuel.cle}`);
+  }).catch(() => null);
+  if (orphelines) {
+    check(`aucune question ne pointe vers un visuel absent${orphelines.length ? " : " + orphelines.slice(0, 4).join(", ") : ""}`, orphelines.length === 0);
+  }
   check("aucune erreur de page", errors.length === 0);
   if (errors.length) console.log("  " + errors.slice(0, 3).join("\n  "));
 } catch (e) {

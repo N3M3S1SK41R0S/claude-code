@@ -8,6 +8,7 @@
 // une ombre chinoise de monument est un tracé original fait maison, et les
 // cartes viennent de Natural Earth, qui est dans le domaine public.
 import { CARTES } from "./cartes.js";
+import { cielSvg, CIELS } from "./constellations.js";
 
 /* ---------- palette héraldique commune ---------- */
 
@@ -186,6 +187,10 @@ export const PAYS = Object.fromEntries(
   Object.entries(CARTES).map(([cle, d]) => [cle, ombre(d)]),
 );
 
+/* ---------- FIGURES DU CIEL ---------- */
+// Tracées d'après les vraies coordonnées des étoiles (voir constellations.js) :
+// la Grande Ourse a la forme qu'elle a réellement ce soir au-dessus du jardin.
+
 /* ---------- rendu ---------- */
 
 /** Fabrique l'élément visuel d'une question, ou null si le type est inconnu
@@ -202,6 +207,11 @@ export function visuelEl(visuel) {
   } else if (visuel.type === "pays" && PAYS[visuel.cle]) {
     boite.className = "visuel visuel-ombre visuel-pays"; // même plaque sombre
     boite.innerHTML = PAYS[visuel.cle];
+  } else if (visuel.type === "ciel" && CIELS.includes(visuel.cle)) {
+    // Le ciel a sa propre plaque, plus sombre : des étoiles sur fond clair,
+    // personne n'y croirait.
+    boite.className = "visuel visuel-ciel";
+    boite.innerHTML = cielSvg(visuel.cle);
   } else if (visuel.type === "rebus" && visuel.emojis) {
     boite.className = "visuel visuel-rebus";
     boite.textContent = visuel.emojis;
@@ -216,4 +226,5 @@ export const VISUELS_CONNUS = {
   drapeau: Object.keys(DRAPEAUX),
   ombre: Object.keys(MONUMENTS),
   pays: Object.keys(PAYS),
+  ciel: CIELS,
 };

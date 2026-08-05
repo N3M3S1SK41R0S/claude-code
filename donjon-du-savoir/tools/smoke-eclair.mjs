@@ -52,6 +52,19 @@ await page.locator(".eclair-setup .btn-small", { hasText: "Ajouter" }).click(); 
 await page.getByRole("button", { name: "⚡ C'est parti !" }).click();
 await page.waitForSelector(".eclair-carte", { timeout: 8000 });
 check(true, "première question affichée");
+
+// Une question à support visuel doit montrer son image ICI AUSSI : sans elle,
+// « quel pays reconnaissez-vous à sa carte ? » n'a aucune réponse possible.
+// On force TOUS les tirages en visuel, puis on relance un sprint : ce que l'on
+// contrôle est bien le rendu réel du mode Éclair, pas une sonde de laboratoire.
+await page.evaluate(() => { window.__DONJON_TOUT_VISUEL = true; });
+await page.getByRole("button", { name: "🏁 Terminer ici" }).click();
+await page.waitForSelector(".eclair-podium", { timeout: 8000 });
+await page.getByRole("button", { name: /Revanche|Rejouer|Nouveau sprint/ }).first().click();
+await page.waitForSelector(".eclair-carte", { timeout: 8000 });
+const visuelEclair = (await page.locator(".eclair-carte .visuel svg, .eclair-carte .visuel-rebus").count()) > 0;
+const enonce = await page.locator(".eclair-texte").innerText().catch(() => "");
+check(visuelEclair, `le visuel s'affiche en Partie Éclair (« ${enonce.slice(0, 40)}… »)`);
 if (process.env.SHOT_SETUP) await page.screenshot({ path: process.env.SHOT_SETUP, fullPage: false });
 
 for (let i = 0; i < 3; i++) {

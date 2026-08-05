@@ -103,9 +103,23 @@ const ecart = (a, b) => Math.hypot(
   Math.max(0, a[1] - b[3], b[1] - a[3]),
 );
 
+/**
+ * Recentre un pays qui franchit l'ANTIMÉRIDIEN (la ligne de changement de
+ * date). La Russie va de +19° à −169° de longitude : mesurée bêtement, elle
+ * occupe 350° de large et s'écrase en une bande horizontale illisible. On fait
+ * donc tourner le globe — les longitudes négatives passent au-delà de +180 —
+ * et le pays redevient d'un seul tenant.
+ */
+function recentreAntimeridien(parties) {
+  const lons = parties.flat().map((p) => p[0]);
+  const etendue = Math.max(...lons) - Math.min(...lons);
+  if (etendue <= 180) return parties;
+  return parties.map((anneau) => anneau.map(([lon, lat]) => [lon < 0 ? lon + 360 : lon, lat]));
+}
+
 /** Fabrique le chemin SVG d'un pays, cadré dans une viewBox 0 0 100 100. */
 function cheminDe(geom, { partsMax = 14, tolerance = 0.22, portee = 0.3 } = {}) {
-  let parties = contours(geom).map((anneau) => anneau.map(mercator));
+  let parties = recentreAntimeridien(contours(geom)).map((anneau) => anneau.map(mercator));
   if (!parties.length) return null;
   // On garde les morceaux SIGNIFICATIFS : sans cela, les confettis d'îlots
   // écrasent le pays principal une fois la carte mise à l'échelle.
@@ -150,6 +164,16 @@ const VOULUS = {
   "Brazil": "bresil", "Chile": "chili", "Argentina": "argentine", "Mexico": "mexique",
   "Canada": "canada", "United States of America": "etatsunis", "Egypt": "egypte",
   "South Africa": "afriquedusud", "Madagascar": "madagascar", "Morocco": "maroc",
+  // Deuxième vague : uniquement des pays dont la SILHOUETTE se retient (la
+  // botte, le S, la larme, la corne, le boomerang…). Un pays au contour banal
+  // ne ferait qu'une question frustrante, quelle que soit la qualité du tracé.
+  "Vietnam": "vietnam", "Thailand": "thailande", "Cuba": "cuba", "Sri Lanka": "srilanka",
+  "Croatia": "croatie", "Panama": "panama", "Nepal": "nepal",
+  "Saudi Arabia": "arabiesaoudite", "Somalia": "somalie", "South Korea": "coreedusud",
+  "Netherlands": "paysbas", "Denmark": "danemark", "Poland": "pologne", "Austria": "autriche",
+  "Russia": "russie", "Ukraine": "ukraine", "Mongolia": "mongolie", "Peru": "perou",
+  "Colombia": "colombie", "Namibia": "namibie", "Philippines": "philippines",
+  "Cyprus": "chypre", "Malaysia": "malaisie",
 };
 
 // Deux pays demandent un cadrage plus serré que la règle générale : l'Alaska

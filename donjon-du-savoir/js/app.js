@@ -1,6 +1,6 @@
 // Screens and wiring: home → setup → game → victory. Pass-and-play, 1-20
 // players (individual) or teams sharing a pion with rotating spokesperson.
-import { dailyPool, drawQuestion, loadBank, bankSize, refreshCustom } from "./data.js";
+import { allQuestions, dailyPool, drawQuestion, loadBank, bankSize, refreshCustom } from "./data.js";
 import { loadWordgames } from "./wordgames.js";
 import { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } from "./custom.js";
 import { BOARDS, boardById, deleteCustomBoard, generateBoard, loadCustomBoards, makeCustomBoard, saveCustomBoard } from "./board.js";
@@ -8,7 +8,7 @@ import { openReference, resumeGame, sansFiletPour, startGame } from "./game.js";
 import { AGE_BRACKETS, archiveCurrent, BONUS_STAR_POOL, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, deleteArchive, getState, listArchives, loadSave, newGame, restoreArchive, youngestBracket } from "./state.js";
 import { portraitEl } from "./portraits.js";
 import { FIGURINE_ATLAS, redonneChance3D } from "./board3d.js";
-import { visuelEl } from "./visuels.js";
+import { visuelEl, VISUELS_CONNUS } from "./visuels.js";
 import { APP_VERSION } from "./version.js";
 import { POWERS } from "./powers.js";
 import { say, setVoice, stop, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
@@ -1103,6 +1103,11 @@ window.__donjonLireDirect = (t) => lireEnDirect(t, { onEchec: () => {} });
 // Sondes d'outillage des questions à support visuel : dessiner un visuel isolé,
 // et tirer des questions en série pour mesurer le dosage réellement obtenu.
 window.__donjonVisuel = (v) => visuelEl(v);
+// Intégrité : la liste de ce que le jeu sait dessiner, et la banque entière.
+// Une clé mal orthographiée dans une question n'afficherait AUCUNE image et
+// AUCUNE erreur — seule cette confrontation la débusque.
+window.__donjonVisuelsConnus = () => VISUELS_CONNUS;
+window.__donjonBanque = () => allQuestions();
 window.__donjonTire = (pion) => drawQuestion(pion, { commit: false });
 window.__donjonSansFilet = (pion, q) => sansFiletPour(pion, q);
 

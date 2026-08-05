@@ -354,6 +354,12 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 .eclair-theme { align-self: flex-start; color: #fff; border-radius: 999px; padding: 0.15rem 0.7rem; font-size: 0.85rem; }
 .eclair-texte { font-size: 1.18rem; line-height: 1.45; margin: 0; }
 .eclair-indice { font-size: 0.95rem; opacity: 0.92; border-top: 1px dashed rgba(255,255,255,0.25); padding-top: 0.5rem; }
+/* Son Mystère en sprint : le bouton de réécoute vit DANS la carte question,
+   bien visible — c'est lui qui remplace l'énoncé qu'on n'a pas à lire. */
+.eclair-reecoute { display: block; margin: 0.6rem auto 0.1rem; font-size: 1rem; }
+/* Le visuel d'une question éclair ne doit pas manger l'écran d'un téléphone. */
+.eclair-carte .visuel { margin: 0.35rem 0 0.15rem; }
+.eclair-carte .visuel-svg { width: min(11rem, 58%); }
 .eclair-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
 .eclair-grille-2 { grid-template-columns: 1fr 1fr; }
 .eclair-choix { padding: 0.95rem 0.6rem; font-size: 1.05rem; min-height: 3.4rem; }
@@ -1200,6 +1206,14 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 /* Carte de pays : un peu plus grande que les monuments, parce que c'est le
    DÉTAIL du contour (fjords, îles, presqu'îles) qui permet de reconnaître. */
 .visuel-pays .visuel-svg { width: min(15rem, 62%); }
+/* Ciel : des étoiles claires sur une nuit profonde. Le fond parchemin des
+   autres visuels rendrait la figure illisible — ici on inverse franchement. */
+.visuel-ciel .visuel-svg {
+  width: min(15rem, 62%); color: #f4ecd8;
+  background: radial-gradient(circle at 50% 45%, #201a3a, #0d0a18 75%);
+  border: 1px solid var(--line); border-radius: 0.5rem; padding: 0.4rem;
+  box-shadow: var(--ombre-moyenne);
+}
 /* Charade en images : les émojis en grand, c'est tout le décor nécessaire. */
 .visuel-rebus {
   font-size: clamp(2.4rem, 11vw, 3.6rem); letter-spacing: 0.15em;

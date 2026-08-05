@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 4357,
+ "count": 4365,
  "questions": [
   {
    "id": "arts-001",
@@ -84600,6 +84600,191 @@
     "cle": "madagascar"
    },
    "id": "carte-028"
+  },
+  {
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quelle est cette figure du ciel, qu'on appelle aussi la Grande Casserole ?",
+   "choix": [
+    "La Grande Ourse",
+    "Orion",
+    "Cassiopée",
+    "La Croix du Sud"
+   ],
+   "bonne_reponse": "La Grande Ourse",
+   "anecdote": "Ses sept étoiles ne forment pas une constellation entière mais un dessin dans la Grande Ourse ; en prolongeant le bord du godet cinq fois, on tombe sur l'étoile Polaire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Grande_Ourse"
+   ],
+   "visuel": {
+    "type": "ciel",
+    "cle": "grande-ourse"
+   },
+   "id": "ciel-001"
+  },
+  {
+   "categorie": "Sciences & Nature",
+   "niveau_age": "enfant",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle constellation reconnaissez-vous à ses trois étoiles alignées au centre ?",
+   "choix": [
+    "Orion",
+    "Le Cygne",
+    "La Lyre",
+    "Le Lion"
+   ],
+   "bonne_reponse": "Orion",
+   "anecdote": "Les trois étoiles alignées forment la Ceinture d'Orion ; l'épaule rougeoyante juste au-dessus est Bételgeuse, une étoile si vaste qu'à la place du Soleil elle engloutirait l'orbite de Mars.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Orion_(constellation)"
+   ],
+   "visuel": {
+    "type": "ciel",
+    "cle": "orion"
+   },
+   "id": "ciel-002"
+  },
+  {
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quelle constellation dessine ce W dans le ciel ?",
+   "choix": [
+    "Cassiopée",
+    "La Grande Ourse",
+    "Le Bouvier",
+    "Pégase"
+   ],
+   "bonne_reponse": "Cassiopée",
+   "anecdote": "Elle tourne autour de l'étoile Polaire sans jamais se coucher sous nos latitudes : selon l'heure, son W se lit à l'endroit, à l'envers ou de travers.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cassiopée_(constellation)"
+   ],
+   "visuel": {
+    "type": "ciel",
+    "cle": "cassiopee"
+   },
+   "id": "ciel-003"
+  },
+  {
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quelle constellation de l'hémisphère sud est représentée ici ?",
+   "choix": [
+    "La Croix du Sud",
+    "Le Cygne",
+    "Le Triangle austral",
+    "Le Scorpion"
+   ],
+   "bonne_reponse": "La Croix du Sud",
+   "anecdote": "C'est la plus petite des quatre-vingt-huit constellations, et elle figure sur les drapeaux de l'Australie, de la Nouvelle-Zélande et du Brésil.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Croix_du_Sud_(constellation)"
+   ],
+   "visuel": {
+    "type": "ciel",
+    "cle": "croix-du-sud"
+   },
+   "id": "ciel-004"
+  },
+  {
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quelle constellation forme cette grande croix dans le ciel d'été ?",
+   "choix": [
+    "Le Cygne",
+    "Orion",
+    "La Croix du Sud",
+    "Persée"
+   ],
+   "bonne_reponse": "Le Cygne",
+   "anecdote": "On l'appelle aussi la Croix du Nord ; son étoile la plus brillante, Deneb, marque la queue de l'oiseau et l'un des sommets du Triangle d'été.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cygne_(constellation)"
+   ],
+   "visuel": {
+    "type": "ciel",
+    "cle": "cygne"
+   },
+   "id": "ciel-005"
+  },
+  {
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quelle petite constellation, dominée par l'éclatante Véga, est dessinée ici ?",
+   "choix": [
+    "La Lyre",
+    "L'Aigle",
+    "La Flèche",
+    "Le Dauphin"
+   ],
+   "bonne_reponse": "La Lyre",
+   "anecdote": "Véga fut la première étoile jamais photographiée, en 1850 ; dans environ douze mille ans, c'est elle qui jouera le rôle d'étoile polaire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Lyre_(constellation)",
+    "https://fr.wikipedia.org/wiki/Véga"
+   ],
+   "visuel": {
+    "type": "ciel",
+    "cle": "lyre"
+   },
+   "id": "ciel-006"
+  },
+  {
+   "categorie": "Sciences & Nature",
+   "niveau_age": "ado",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quelle constellation d'été déroule ici sa longue queue recourbée ?",
+   "choix": [
+    "Le Scorpion",
+    "Le Dragon",
+    "L'Hydre",
+    "Le Serpent"
+   ],
+   "bonne_reponse": "Le Scorpion",
+   "anecdote": "Son cœur est Antarès, une supergéante rouge dont le nom signifie « rivale de Mars », parce qu'on les confond facilement dans le ciel.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Scorpion_(constellation)"
+   ],
+   "visuel": {
+    "type": "ciel",
+    "cle": "scorpion"
+   },
+   "id": "ciel-007"
+  },
+  {
+   "categorie": "Sciences & Nature",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Quelle constellation du zodiaque est dessinée ici, avec sa faucille en point d'interrogation inversé ?",
+   "choix": [
+    "Le Lion",
+    "Le Taureau",
+    "La Vierge",
+    "Le Bélier"
+   ],
+   "bonne_reponse": "Le Lion",
+   "anecdote": "Sa plus brillante étoile, Régulus, est posée presque exactement sur la route que le Soleil parcourt dans le ciel au fil de l'année.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Lion_(constellation)"
+   ],
+   "visuel": {
+    "type": "ciel",
+    "cle": "lion"
+   },
+   "id": "ciel-008"
   }
  ]
 }

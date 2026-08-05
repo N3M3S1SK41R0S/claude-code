@@ -2014,9 +2014,13 @@ function anagramFlow(pion, q) {
  * aucun réseau) et la tablée devine ce que c'est. On peut le réécouter autant
  * de fois qu'on veut — il n'y a jamais de chronomètre ici.
  */
-function sonMystereFlow(pion) {
+function sonMystereFlow(pion, ecartes = new Set()) {
   markQuestionPosed(); // ce mystère tient lieu de question du tour
-  const item = QUESTIONS_SON[Math.floor(Math.random() * QUESTIONS_SON.length)];
+  // Un son qu'on n'identifie pas mérite le même secours qu'une question mal
+  // comprise : on peut en demander un autre, une fois, sans pénalité.
+  const dispo = QUESTIONS_SON.filter((s) => !ecartes.has(s.son));
+  const pioche = dispo.length ? dispo : QUESTIONS_SON;
+  const item = pioche[Math.floor(Math.random() * pioche.length)];
   const q = {
     id: `son-${item.son}`, categorie: "Musique", format: "qcm",
     difficulte: 2, niveau_age: "enfant",
@@ -2042,6 +2046,16 @@ function sonMystereFlow(pion) {
     }));
   }
   container.append(grid);
+  if (!ecartes.size) {
+    container.append(el("button", {
+      class: "btn btn-small changer-question", type: "button",
+      onclick: () => {
+        stopSon();
+        heraldSays("🔄 Ce bruitage ne dit rien à personne ? Le Donjon en fabrique un autre, sans pénalité.");
+        sonMystereFlow(pion, new Set([item.son]));
+      },
+    }, "🔄 On n'a pas compris — un autre son"));
+  }
   setPanel(container);
   // Le son part APRÈS la lecture de la consigne : deux sons en même temps, on
   // ne comprendrait plus rien (même règle que pour les voix). La file de parole

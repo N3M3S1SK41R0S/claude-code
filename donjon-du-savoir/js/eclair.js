@@ -24,6 +24,8 @@ import { herald } from "./herald.js";
 import { sfx } from "./sfx.js";
 import { recordGame } from "./palmares.js";
 import { el } from "./ui.js";
+import { visuelEl } from "./visuels.js";
+import { QUESTIONS_SON, jouerSon, sonMystereDispo, stopSon } from "./sonmystere.js";
 
 const RECORD_KEY = "donjon-eclair-records";
 const DISTANCES = [10, 20, 30, 50];
@@ -136,6 +138,12 @@ function prochaineQuestion() {
   if (partie.tour >= partie.total || (j.boucliers !== null && j.boucliers <= 0)) return finDeSprint();
 
   const etage = Math.min(5, etageDe());
+  // 🔊 LE SON MYSTÈRE s'invite aussi dans le sprint (~1 question sur 9) : une
+  // respiration bienvenue au milieu du texte. Jamais si le thème est imposé
+  // (on a promis un sprint sur CE thème) ni si l'appareil n'a pas d'audio.
+  if (!partie.theme && sonMystereDispo() && (window.__DONJON_SON || Math.random() < 0.11)) {
+    return montreQuestion(j, questionSon(), etage);
+  }
   const q = drawQuestion({ nom: j.nom, bracket: j.bracket, niveau: etage }, {
     formats: ["qcm", "vrai_faux"],
     categories: partie.theme ? [partie.theme] : null,
@@ -148,6 +156,19 @@ function prochaineQuestion() {
 
 // Questions déjà échangées : le secours ne joue qu'une fois par question.
 const changees = new Set();
+
+/** Fabrique une question « Son Mystère » à la volée : même forme qu'une
+ *  question de la banque, pour traverser le sprint sans cas particulier. */
+function questionSon() {
+  const item = QUESTIONS_SON[Math.floor(Math.random() * QUESTIONS_SON.length)];
+  return {
+    id: `son-${item.son}`, categorie: "Musique", format: "qcm",
+    difficulte: 2, niveau_age: "enfant",
+    texte: "Écoutez bien… quel est ce son ?",
+    choix: [item.reponse, ...item.leurres].sort(() => Math.random() - 0.5),
+    bonne_reponse: item.reponse, anecdote: item.anecdote, son: item.son,
+  };
+}
 
 function montreQuestion(j, q, etage) {
   const zone = document.getElementById("eclair-zone");
@@ -169,12 +190,23 @@ function montreQuestion(j, q, etage) {
       el("span", { class: "eclair-serie" + (j.serie >= 3 ? " eclair-serie-feu" : ""), text: j.serie > 0 ? `🔥${j.serie}${mult > 1 ? ` ×${mult}` : ""}` : "" }),
     )));
 
-  // La carte question, plein pouce.
-  const carte = el("div", { class: "eclair-carte" },
+  // La carte question, plein pouce. Le VISUEL passe avant l'énoncé : sans lui,
+  // « quel pays reconnaissez-vous à sa carte ? » n'a aucune réponse possible —
+  // une question sur quatre était injouable ici.
+  const carte = el("div", { class: "eclair-carte" });
+  carte.append(...[
     el("span", { class: "eclair-theme", style: `background:${m.color ?? "#4a6fb5"}`, text: `${m.emoji ?? "🎯"} ${q.categorie}` }),
-    el("p", { class: "eclair-texte", text: q.texte }));
+    visuelEl(q.visuel),
+    el("p", { class: "eclair-texte", text: q.texte }),
+  ].filter(Boolean));
+  // Un bouton de réécoute pour le Son Mystère — autant de fois qu'on veut,
+  // il n'y a pas plus de chronomètre ici qu'ailleurs.
+  if (q.son) {
+    carte.append(el("button", { class: "btn btn-small eclair-reecoute", type: "button", onclick: () => jouerSon(q.son) }, "🔊 (Ré)écouter le son"));
+  }
   zone.append(carte);
   sayHost(q.texte, "question");
+  if (q.son) setTimeout(() => jouerSon(q.son), 900); // après la consigne, jamais par-dessus
 
   const choix = q.format === "vrai_faux" ? ["Vrai", "Faux"] : (q.choix ?? []).slice(0, 4);
   const bonne = q.format === "vrai_faux" ? (q.bonne_reponse ?? q.reponse) : q.bonne_reponse;
@@ -221,6 +253,7 @@ function montreQuestion(j, q, etage) {
 }
 
 function repond(j, q, choisi, bonne, bouton) {
+  if (q.son) stopSon(); // le verdict est annoncé : on ne parle pas par-dessus le bruitage
   const ok = choisi === bonne;
   j.questions += 1;
   partie.tour += 1;
