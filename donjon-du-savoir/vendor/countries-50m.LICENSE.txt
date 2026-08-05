@@ -1,0 +1,11 @@
+countries-50m.json — fonds de carte des pays du monde
+Source : world-atlas (https://github.com/topojson/world-atlas), dérivé des
+données Natural Earth (https://www.naturalearthdata.com).
+
+Natural Earth place ses données dans le DOMAINE PUBLIC : « All versions of
+Natural Earth raster + vector map data found on this website are in the public
+domain. You may use the maps in any manner, including modifying the content
+and design, electronic dissemination, and offset printing. »
+
+Ce fichier ne sert QU'À LA GÉNÉRATION (tools/forge-cartes.mjs) : le jeu
+n'embarque que les chemins SVG simplifiés produits dans js/cartes.js.

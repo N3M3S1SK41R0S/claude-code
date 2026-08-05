@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 4333,
+ "count": 4357,
  "questions": [
   {
    "id": "arts-001",
@@ -83958,96 +83958,648 @@
    }
   },
   {
-   "id": "vis-pays-001",
    "categorie": "Géographie",
    "niveau_age": "enfant",
    "difficulte": 2,
    "format": "qcm",
-   "texte": "Quel pays reconnaissez-vous à sa silhouette ?",
-   "anecdote": "Sa forme de botte est si nette qu'on la reconnaît sur une carte dès l'école primaire.",
-   "sources": [
-    "https://fr.wikipedia.org/wiki/Liste_des_pays_du_monde"
-   ],
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
    "choix": [
+    "La France",
     "L'Espagne",
+    "L'Allemagne",
+    "La Pologne"
+   ],
+   "bonne_reponse": "La France",
+   "anecdote": "On la surnomme l'Hexagone : son contour métropolitain tient à peu près dans une figure à six côtés. L'île en bas à droite, c'est la Corse.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/France"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "france"
+   },
+   "id": "carte-001"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
     "L'Italie",
     "La Grèce",
-    "La Norvège"
+    "La Croatie",
+    "Le Portugal"
    ],
    "bonne_reponse": "L'Italie",
+   "anecdote": "Sa forme de botte est si nette qu'on la reconnaît dès l'école primaire ; la grande île que la botte semble shooter, c'est la Sicile.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Italie"
+   ],
    "visuel": {
     "type": "pays",
     "cle": "italie"
-   }
+   },
+   "id": "carte-002"
   },
   {
-   "id": "vis-pays-002",
    "categorie": "Géographie",
-   "niveau_age": "ado",
-   "difficulte": 4,
+   "niveau_age": "enfant",
+   "difficulte": 3,
    "format": "qcm",
-   "texte": "Quel pays reconnaissez-vous à sa silhouette ?",
-   "anecdote": "L'archipel compte près de quatorze mille îles, dont seule une poignée est vraiment habitée.",
-   "sources": [
-    "https://fr.wikipedia.org/wiki/Liste_des_pays_du_monde"
-   ],
+   "texte": "À quel pays appartient ce contour ?",
    "choix": [
-    "L'Indonésie",
-    "La Nouvelle-Zélande",
-    "Le Japon",
-    "Les Philippines"
+    "L'Espagne",
+    "La France",
+    "La Turquie",
+    "Le Maroc"
    ],
-   "bonne_reponse": "Le Japon",
+   "bonne_reponse": "L'Espagne",
+   "anecdote": "Elle occupe la plus grande partie de la péninsule Ibérique, qu'elle partage avec le Portugal.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Espagne"
+   ],
    "visuel": {
     "type": "pays",
-    "cle": "japon"
-   }
+    "cle": "espagne"
+   },
+   "id": "carte-003"
   },
   {
-   "id": "vis-pays-003",
-   "categorie": "Géographie",
-   "niveau_age": "ado",
-   "difficulte": 4,
-   "format": "qcm",
-   "texte": "Quel pays reconnaissez-vous à sa silhouette ?",
-   "anecdote": "Ses frontières sud et ouest sont des lignes droites tracées à la règle, comme souvent au Sahara.",
-   "sources": [
-    "https://fr.wikipedia.org/wiki/Liste_des_pays_du_monde"
-   ],
-   "choix": [
-    "L'Algérie",
-    "L'Égypte",
-    "La Libye",
-    "Le Soudan"
-   ],
-   "bonne_reponse": "L'Égypte",
-   "visuel": {
-    "type": "pays",
-    "cle": "egypte"
-   }
-  },
-  {
-   "id": "vis-pays-004",
    "categorie": "Géographie",
    "niveau_age": "ado",
    "difficulte": 3,
    "format": "qcm",
-   "texte": "Quel pays reconnaissez-vous à sa silhouette ?",
-   "anecdote": "Long de plus de quatre mille kilomètres pour environ deux cents de large : le pays le plus étiré du monde.",
-   "sources": [
-    "https://fr.wikipedia.org/wiki/Liste_des_pays_du_monde"
-   ],
+   "texte": "Cette carte est celle de quel pays ?",
    "choix": [
+    "Le Portugal",
+    "La Grèce",
+    "L'Italie",
+    "La Norvège"
+   ],
+   "bonne_reponse": "Le Portugal",
+   "anecdote": "Bande étroite tournée vers l'Atlantique, il n'a qu'un seul voisin terrestre : l'Espagne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Portugal"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "portugal"
+   },
+   "id": "carte-004"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
+   "choix": [
+    "Le Royaume-Uni",
+    "L'Irlande",
+    "L'Islande",
+    "La Norvège"
+   ],
+   "bonne_reponse": "Le Royaume-Uni",
+   "anecdote": "La carte réunit la grande île de Grande-Bretagne et, à gauche, l'Irlande du Nord.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Royaume-Uni"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "royaumeuni"
+   },
+   "id": "carte-005"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "L'Irlande",
+    "L'Islande",
+    "Le Danemark",
+    "Le Royaume-Uni"
+   ],
+   "bonne_reponse": "L'Irlande",
+   "anecdote": "Ses prairies d'un vert soutenu lui valent le surnom d'île d'Émeraude.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Irlande_(pays)"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "irlande"
+   },
+   "id": "carte-006"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "À quel pays appartient ce contour ?",
+   "choix": [
+    "L'Allemagne",
+    "La Pologne",
+    "L'Autriche",
+    "La Roumanie"
+   ],
+   "bonne_reponse": "L'Allemagne",
+   "anecdote": "Elle partage ses frontières avec neuf pays voisins, de la Belgique à la Pologne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Allemagne"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "allemagne"
+   },
+   "id": "carte-007"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Cette carte est celle de quel pays ?",
+   "choix": [
+    "La Suisse",
+    "L'Autriche",
+    "La Belgique",
+    "La Slovénie"
+   ],
+   "bonne_reponse": "La Suisse",
+   "anecdote": "Sans le moindre accès à la mer, elle est enserrée par cinq voisins, et les Alpes couvrent une bonne moitié de son territoire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Suisse"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "suisse"
+   },
+   "id": "carte-008"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
+   "choix": [
+    "La Grèce",
+    "La Turquie",
+    "L'Italie",
+    "La Croatie"
+   ],
+   "bonne_reponse": "La Grèce",
+   "anecdote": "Des milliers d'îles bordent ses côtes ; la grande, tout en bas, c'est la Crète.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Grèce"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "grece"
+   },
+   "id": "carte-009"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "La Turquie",
+    "L'Iran",
+    "L'Irak",
+    "La Grèce"
+   ],
+   "bonne_reponse": "La Turquie",
+   "anecdote": "Elle est à cheval sur deux continents : un petit bout en Europe, tout le reste en Asie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Turquie"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "turquie"
+   },
+   "id": "carte-010"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "À quel pays appartient ce contour ?",
+   "choix": [
+    "La Norvège",
+    "La Suède",
+    "La Finlande",
+    "Le Chili"
+   ],
+   "bonne_reponse": "La Norvège",
+   "anecdote": "Sa côte est si découpée de fjords que, déroulée avec ses îles, elle ferait plus de deux fois le tour de la Terre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Norvège"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "norvege"
+   },
+   "id": "carte-011"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Cette carte est celle de quel pays ?",
+   "choix": [
+    "La Suède",
+    "La Finlande",
+    "La Norvège",
+    "La Pologne"
+   ],
+   "bonne_reponse": "La Suède",
+   "anecdote": "Elle partage la péninsule scandinave avec la Norvège, dont elle occupe le versant est.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Suède"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "suede"
+   },
+   "id": "carte-012"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
+   "choix": [
+    "L'Islande",
+    "L'Irlande",
+    "Cuba",
+    "La Nouvelle-Zélande"
+   ],
+   "bonne_reponse": "L'Islande",
+   "anecdote": "Posée sur la limite entre deux plaques tectoniques qui s'écartent, cette île volcanique s'élargit d'environ deux centimètres par an.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Islande"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "islande"
+   },
+   "id": "carte-013"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "Le Japon",
+    "Les Philippines",
+    "L'Indonésie",
+    "La Nouvelle-Zélande"
+   ],
+   "bonne_reponse": "Le Japon",
+   "anecdote": "Cet archipel en arc de cercle compte quatre grandes îles et des milliers de petites.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Japon"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "japon"
+   },
+   "id": "carte-014"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "À quel pays appartient ce contour ?",
+   "choix": [
+    "La Chine",
+    "L'Inde",
+    "La Mongolie",
+    "La Russie"
+   ],
+   "bonne_reponse": "La Chine",
+   "anecdote": "Avec quatorze voisins terrestres, elle détient le record du monde, à égalité avec la Russie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chine"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "chine"
+   },
+   "id": "carte-015"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Cette carte est celle de quel pays ?",
+   "choix": [
+    "L'Inde",
+    "La Chine",
+    "Le Pakistan",
+    "L'Arabie saoudite"
+   ],
+   "bonne_reponse": "L'Inde",
+   "anecdote": "Sa pointe s'avance dans l'océan Indien, le seul océan qui porte le nom d'un pays.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Inde"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "inde"
+   },
+   "id": "carte-016"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
+   "choix": [
+    "L'Australie",
+    "L'Afrique du Sud",
+    "Le Brésil",
+    "Madagascar"
+   ],
+   "bonne_reponse": "L'Australie",
+   "anecdote": "C'est à la fois un pays, un continent et une île : un cas unique au monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Australie"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "australie"
+   },
+   "id": "carte-017"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "La Nouvelle-Zélande",
+    "Le Japon",
+    "Les Philippines",
+    "L'Islande"
+   ],
+   "bonne_reponse": "La Nouvelle-Zélande",
+   "anecdote": "Deux îles principales, sobrement baptisées île du Nord et île du Sud.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Nouvelle-Zélande"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "nouvellezelande"
+   },
+   "id": "carte-018"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "À quel pays appartient ce contour ?",
+   "choix": [
+    "Le Brésil",
+    "L'Argentine",
+    "L'Australie",
+    "L'Inde"
+   ],
+   "bonne_reponse": "Le Brésil",
+   "anecdote": "Il couvre près de la moitié de l'Amérique du Sud et touche dix des douze pays du continent.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Brésil"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "bresil"
+   },
+   "id": "carte-019"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Cette carte est celle de quel pays ?",
+   "choix": [
+    "Le Chili",
     "L'Argentine",
     "La Norvège",
-    "Le Chili",
     "Le Pérou"
    ],
    "bonne_reponse": "Le Chili",
+   "anecdote": "Plus de quatre mille kilomètres du nord au sud, mais rarement plus de deux cents de large : le pays le plus étiré du monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chili"
+   ],
    "visuel": {
     "type": "pays",
     "cle": "chili"
-   }
+   },
+   "id": "carte-020"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
+   "choix": [
+    "L'Argentine",
+    "Le Chili",
+    "Le Pérou",
+    "La Bolivie"
+   ],
+   "bonne_reponse": "L'Argentine",
+   "anecdote": "Elle s'effile vers le sud jusqu'à la Terre de Feu, presque au bout du continent américain.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Argentine"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "argentine"
+   },
+   "id": "carte-021"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "Le Mexique",
+    "Le Venezuela",
+    "Cuba",
+    "Le Pérou"
+   ],
+   "bonne_reponse": "Le Mexique",
+   "anecdote": "La longue langue de terre en haut à gauche est la Basse-Californie, une presqu'île de plus de mille kilomètres.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mexique"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "mexique"
+   },
+   "id": "carte-022"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "À quel pays appartient ce contour ?",
+   "choix": [
+    "Les États-Unis",
+    "Le Canada",
+    "L'Australie",
+    "Le Brésil"
+   ],
+   "bonne_reponse": "Les États-Unis",
+   "anecdote": "La carte montre les quarante-huit États d'un seul tenant ; l'Alaska et Hawaï sont bien plus loin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/États-Unis"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "etatsunis"
+   },
+   "id": "carte-023"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Cette carte est celle de quel pays ?",
+   "choix": [
+    "Le Canada",
+    "La Russie",
+    "La Norvège",
+    "Les États-Unis"
+   ],
+   "bonne_reponse": "Le Canada",
+   "anecdote": "Le semis d'îles en haut forme l'archipel arctique ; sa frontière avec les États-Unis est la plus longue du monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Canada"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "canada"
+   },
+   "id": "carte-024"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
+   "choix": [
+    "L'Égypte",
+    "La Libye",
+    "Le Soudan",
+    "L'Algérie"
+   ],
+   "bonne_reponse": "L'Égypte",
+   "anecdote": "Ses frontières sud et ouest sont des lignes droites tracées à la règle, comme souvent au Sahara.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Égypte"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "egypte"
+   },
+   "id": "carte-025"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "Le Maroc",
+    "L'Algérie",
+    "La Tunisie",
+    "La Libye"
+   ],
+   "bonne_reponse": "Le Maroc",
+   "anecdote": "Il a deux façades maritimes : l'Atlantique à l'ouest et la Méditerranée au nord.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Maroc"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "maroc"
+   },
+   "id": "carte-026"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "À quel pays appartient ce contour ?",
+   "choix": [
+    "L'Afrique du Sud",
+    "L'Angola",
+    "Le Kenya",
+    "La Namibie"
+   ],
+   "bonne_reponse": "L'Afrique du Sud",
+   "anecdote": "Le trou dans la carte n'est pas une erreur : c'est le Lesotho, un pays entièrement entouré par celui-ci.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Afrique_du_Sud"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "afriquedusud"
+   },
+   "id": "carte-027"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Cette carte est celle de quel pays ?",
+   "choix": [
+    "Madagascar",
+    "Le Sri Lanka",
+    "Cuba",
+    "La Nouvelle-Zélande"
+   ],
+   "bonne_reponse": "Madagascar",
+   "anecdote": "Quatrième plus grande île du monde, elle abrite des animaux qu'on ne trouve nulle part ailleurs, comme les lémuriens.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Madagascar"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "madagascar"
+   },
+   "id": "carte-028"
   }
  ]
 }

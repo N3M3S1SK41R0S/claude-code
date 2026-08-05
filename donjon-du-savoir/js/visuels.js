@@ -5,7 +5,9 @@
 // la version web partageable, dont le budget est presque saturé.
 //
 // Aucun visuel n'imite une œuvre protégée : un drapeau est un emblème public,
-// une ombre chinoise de monument est un tracé original fait maison.
+// une ombre chinoise de monument est un tracé original fait maison, et les
+// cartes viennent de Natural Earth, qui est dans le domaine public.
+import { CARTES } from "./cartes.js";
 
 /* ---------- palette héraldique commune ---------- */
 
@@ -175,16 +177,14 @@ export const MONUMENTS = {
   "cathedrale-basile": ombre("M50 20 Q38 32 40 44 L40 90 L60 90 L60 44 Q62 32 50 20 Z M50 20 Q47 14 50 8 Q53 14 50 20 Z M26 44 Q16 54 18 64 L18 90 L34 90 L34 64 Q36 54 26 44 Z M26 44 Q24 39 26 34 Q28 39 26 44 Z M74 44 Q64 54 66 64 L66 90 L82 90 L82 64 Q84 54 74 44 Z M74 44 Q72 39 74 34 Q76 39 74 44 Z M12 90 L88 90 L88 96 L12 96 Z"),
 };
 
-/* ---------- SILHOUETTES DE PAYS ---------- */
-// Contours simplifiés, tracés à la main pour rester lisibles en petit : on
-// garde la SIGNATURE (la botte italienne, l'hexagone français, la corne de
-// l'Afrique) et l'on gomme le détail des côtes, illisible à cette taille.
-export const PAYS = {
-  italie: ombre("M30 10 L44 16 L52 12 L58 18 L54 26 L58 34 L66 40 L74 52 L82 62 L86 74 L80 78 L72 68 L64 60 L58 66 L50 60 L44 50 L36 44 L28 38 L22 28 L24 18 Z M84 84 Q90 80 92 86 Q88 92 84 86 Z M64 84 Q74 78 78 86 Q72 94 64 88 Z"),
-  japon: ombre("M70 14 L78 20 L74 30 L66 34 L60 30 Z M56 38 L64 42 L60 54 L50 62 L42 60 L46 48 Z M38 64 L44 68 L40 78 L30 82 L26 76 Z M18 84 Q24 80 26 86 Q22 92 18 86 Z"),
-  egypte: ombre("M22 24 L78 24 L78 48 L66 48 L66 76 L34 76 L34 48 L22 48 Z"),
-  chili: ombre("M44 10 L56 12 L54 30 L58 48 L54 66 L56 84 L48 88 L42 70 L44 50 L40 30 Z"),
-};
+/* ---------- CARTES DE PAYS ---------- */
+// Mes silhouettes tracées à la main donnaient des patates méconnaissables.
+// Ici, ce sont les VRAIES frontières : contours Natural Earth (domaine public),
+// projetés en Mercator et simplifiés hors ligne par tools/forge-cartes.mjs,
+// puis embarqués sous forme de chemins SVG. Le jeu ne demande rien à internet.
+export const PAYS = Object.fromEntries(
+  Object.entries(CARTES).map(([cle, d]) => [cle, ombre(d)]),
+);
 
 /* ---------- rendu ---------- */
 

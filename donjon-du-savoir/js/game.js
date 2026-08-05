@@ -21,10 +21,11 @@ import { recordLivreDor } from "./palmares.js";
 import { addToGrimoire } from "./grimoire.js";
 import { npcPortraitEl, portraitEl } from "./portraits.js";
 import { addItem, BESASSE_COST, consumeItem, hasRoom, INV_BESASSE, inventoryCap, inventoryCount, ITEMS, ownedItems, SHOP_ORDER } from "./items.js";
-import { HANGMAN_ALPHABET, hangmanHas, hangmanState, makeAnagram } from "./minigames.js";
+import { HANGMAN_ALPHABET, cascadeEligible, hangmanHas, hangmanState, indicesCascade, makeAnagram, tirageBac } from "./minigames.js";
+import { QUESTIONS_SON, jouerSon, sonMystereDispo, stopSon } from "./sonmystere.js";
 import { drawDefi } from "./wordgames.js";
 import { chipStyle, softStyle, THEME_META, THEME_ORDER, themeMeta, TYPE_META, TYPE_ORDER, typeMeta } from "./themes.js";
-import { sfx } from "./sfx.js";
+import { sfx, sfxEnabled } from "./sfx.js";
 import { setMusicRush } from "./music.js";
 import { getPrefs } from "./prefs.js";
 
@@ -1714,8 +1715,11 @@ const REGLES = {
   gambit: "Gambit — annoncez le nombre le plus proche de la vraie réponse. Exact : +4 cases ; proche : +2 ou +1. Les autres parient Plus / Égal / Moins (la vraie réponse par rapport à votre nombre — bon pari : +2 🪙).",
   anagram: "Anagramme — retrouvez la réponse en réarrangeant les lettres, à voix haute. Trouvé : +2 cases.",
   hangman: "Pendu — devinez les lettres une à une (6 erreurs maximum). Mot reconstitué : +2 cases.",
+  cascade: "Devinette en cascade — répondez au premier indice pour +4 cases, au deuxième pour +3, au troisième pour +2. Vous pouvez toujours redemander les 4 propositions (+1 case). Aucun risque : on ne recule jamais.",
   fourchette: "La Fourchette — annoncez une fourchette [min ; max]. Si la vraie réponse est dedans : fourchette serrée +4 cases, moyenne +2, large +1. À côté : rien (aucun recul).",
   ordre: "Ordre ! — la tablée classe 3 faits numériques du plus petit au plus grand. Classement exact : +3 🪙 chacun. Aucune course, on discute !",
+  son_mystere: "Le Son Mystère — le Donjon fabrique un bruitage : reconnaissez-le parmi 4 propositions. Réécoutez autant de fois que vous voulez, rien ne presse. Bonne réponse : +2 cases.",
+  bac: "Baccalauréat Éclair — une lettre, trois rubriques. La tablée cherche un mot pour chacune, à voix haute : +1 🪙 pour tout le monde par rubrique remplie. Sans chronomètre, et rien à perdre.",
 };
 
 /** Bandeau « règle » clair en tête d'une question. Renvoie toujours un nœud
@@ -1743,6 +1747,13 @@ function doQuestion() {
     const bq = drawQuestion(pion, { formats: ["qcm", "vrai_faux"], commit: false });
     if (!bq) return endPanel("La banque de questions est épuisée. Le Donjon est impressionné.");
     return posePicked(pion, bq);
+  }
+  // 🔊 LE SON MYSTÈRE (~1 tour sur 12) : une question qui ne s'écrit pas. On ne
+  // la propose QUE si la table a du son (sinon ce serait une punition), et
+  // jamais aux bots — un robot ne tend pas l'oreille. __DONJON_SON la force.
+  if (testFlag("__DONJON_SON")
+    || (!testFlag("__DONJON_TEST") && Math.random() < 0.085 && sonMystereDispo() && (sfxEnabled() || voiceEnabled()))) {
+    return sonMystereFlow(pion);
   }
   // 📸 PHOTO FINISH : en toute fin de partie, le DERNIER du classement reçoit
   // une question dans son thème FORT (détecté sur ses bonnes réponses) — la
@@ -1908,6 +1919,7 @@ function posePicked(pion, q) {
     const eligible = miniGameAnswer(q); // réponse convenant à un anagramme/pendu
     if (eligible && forced === "anagram") return anagramFlow(pion, q);
     if (eligible && forced === "hangman") return hangmanFlow(pion, q);
+    if (forced === "cascade" && cascadeEligible(q)) return cascadeFlow(pion, q);
     // 🎯 À LA HAUTEUR DU JOUEUR : quand quelqu'un domine largement le niveau
     // de la question, les quatre propositions ne sont plus un défi mais une
     // formalité — on lui retire donc le filet et il annonce sa réponse à voix
@@ -1925,6 +1937,7 @@ function posePicked(pion, q) {
       if (r < 0.37) return anagramFlow(pion, q);
       if (r < 0.45) return hangmanFlow(pion, q);
     }
+    if (!testFlag("__DONJON_TEST") && r < 0.55 && cascadeEligible(q)) return cascadeFlow(pion, q);
   }
   questionFlow(pion, q);
 }
@@ -1994,6 +2007,115 @@ function anagramFlow(pion, q) {
   );
   setPanel(container);
   narrateQuestion(q);
+}
+
+/**
+ * LE SON MYSTÈRE : le Donjon fabrique un bruitage à la volée (aucun fichier,
+ * aucun réseau) et la tablée devine ce que c'est. On peut le réécouter autant
+ * de fois qu'on veut — il n'y a jamais de chronomètre ici.
+ */
+function sonMystereFlow(pion) {
+  markQuestionPosed(); // ce mystère tient lieu de question du tour
+  const item = QUESTIONS_SON[Math.floor(Math.random() * QUESTIONS_SON.length)];
+  const q = {
+    id: `son-${item.son}`, categorie: "Musique", format: "qcm",
+    difficulte: 2, niveau_age: "enfant",
+    texte: "Écoutez bien… quel est ce son ?",
+    choix: [item.reponse, ...item.leurres].sort(() => Math.random() - 0.5),
+    bonne_reponse: item.reponse, anecdote: item.anecdote,
+  };
+  heraldSays("🔊 LE SON MYSTÈRE ! Tendez l'oreille — et réécoutez autant de fois que vous voulez.");
+
+  const rejouer = () => jouerSon(item.son);
+  const container = el("div", { class: "question-block" });
+  container.append(
+    questionHeader(q, pion),
+    regleBanner("son_mystere"),
+    el("p", { class: "question-texte", text: q.texte }),
+    bigButton("🔊 (Ré)écouter le son", rejouer),
+  );
+  const grid = el("div", { class: "choices", role: "group", "aria-label": "Choix de réponse" });
+  for (const c of q.choix) {
+    grid.append(choiceButton(c, () => {
+      stopSon(); // on coupe le bruitage avant le verdict : jamais deux sons à la fois
+      resolveAnswer(pion, q, c === item.reponse, ADVANCE.qcm, { pariOk: true, choix: c });
+    }));
+  }
+  container.append(grid);
+  setPanel(container);
+  // Le son part APRÈS la lecture de la consigne : deux sons en même temps, on
+  // ne comprendrait plus rien (même règle que pour les voix). La file de parole
+  // garantit l'ordre — le bruitage attend que le Héraut ait fini.
+  direQuand(() => sayHost(q.texte, "question"));
+  direQuand(rejouer);
+  preparerVoix(item.anecdote, "anecdote");
+}
+
+/**
+ * Devinette en CASCADE : trois indices de plus en plus généreux, et une
+ * récompense de plus en plus modeste. Répondre tôt rapporte gros ; attendre
+ * ne coûte jamais rien d'autre que des cases non gagnées — on ne recule pas,
+ * et le filet des quatre propositions reste disponible jusqu'au bout.
+ */
+function cascadeFlow(pion, q) {
+  const intro = speakerIntro(pion);
+  if (intro) heraldSays(intro);
+  heraldSays("Devinette en CASCADE ! Plus vous trouvez tôt, plus vous avancez. Premier indice…");
+  const indices = indicesCascade(q);
+  let etape = 0; // combien d'indices sont déjà dévoilés
+
+  // Répondre « à voix haute » : la table tranche, comme au format CASH.
+  const juger = (cases) => setPanel(
+    el("div", { class: "question-block" },
+      el("p", { class: "question-texte", text: q.texte }),
+      el("p", { class: "reveal-answer", html: `✅ Réponse : <strong>${q.bonne_reponse}</strong>` }),
+      el("p", { class: "help-note", text: `La tablée tranche : la réponse annoncée était-elle la bonne ? (${cases} cases en jeu)` }),
+      el("div", { class: "choices choices-2" },
+        choiceButton("👍 Trouvé !", () => resolveAnswer(pion, q, true, cases)),
+        choiceButton("👎 Raté…", () => resolveAnswer(pion, q, false, cases)),
+      ),
+    ),
+  );
+
+  const rendre = () => {
+    const container = el("div", { class: "question-block" });
+    container.append(...[
+      questionHeader(q, pion), regleBanner("cascade"), visuelEl(q.visuel),
+      el("p", { class: "question-texte", text: q.texte }),
+    ].filter(Boolean));
+
+    const liste = el("ol", { class: "cascade-indices" });
+    for (let i = 0; i <= etape && i < indices.length; i++) {
+      const li = el("li", { class: "cascade-indice" });
+      li.append(
+        el("span", { class: "cascade-gain", text: `+${indices[i].cases}` }),
+        el("span", { text: indices[i].texte }),
+      );
+      liste.append(li);
+    }
+    container.append(liste);
+
+    const gain = indices[Math.min(etape, indices.length - 1)].cases;
+    container.append(bigButton(`💡 J'annonce ma réponse (+${gain} cases si c'est juste)`, () => juger(gain)));
+    if (etape < indices.length - 1) {
+      container.append(bigButton(`🔎 Indice suivant (la réponse ne vaudra plus que +${indices[etape + 1].cases})`, () => {
+        etape += 1;
+        sfx("tick");
+        rendre();
+        direQuand(() => sayHost(indices[etape].texte, "indice"));
+      }));
+    }
+    // Le filet : on redescend sur un QCM classique, à une case, sans honte.
+    container.append(bigButton("🪶 Trop dur — montrez-moi les 4 propositions (+1 case)", () => {
+      questionFlow(pion, q, { advanceOverride: 1 });
+    }));
+    const chg = boutonChangerQuestion(pion, q, (nq) => cascadeFlow(pion, nq), { formats: ["qcm"] });
+    if (chg) container.append(chg);
+    setPanel(container);
+  };
+  rendre();
+  narrateQuestion(q);
+  direQuand(() => sayHost(indices[0].texte, "indice"));
 }
 
 /** Pendu (façon Motus) : on devine les lettres de la réponse, 6 erreurs max.
@@ -3430,7 +3552,72 @@ function ordreFlow(set, onDone) {
   );
 }
 
+/**
+ * BACCALAURÉAT ÉCLAIR : une lettre, trois rubriques, toute la tablée cherche
+ * ENSEMBLE. Aucun chronomètre (on prend le temps qu'il faut), aucune course :
+ * on coche les rubriques trouvées et chacun repart avec une pièce par trouvaille.
+ * « Éclair » désigne ici la brièveté du jeu, pas une contrainte de vitesse.
+ */
+function bacFlow(onDone) {
+  const { lettre, rubriques } = tirageBac();
+  heraldSays(`⚡ BACCALAURÉAT ÉCLAIR ! La lettre est le « ${lettre} ». Trois rubriques, toute la tablée cherche ensemble — prenez le temps, personne ne chronomètre !`);
+  const trouvees = new Set();
+  const btns = [];
+  const rafraichir = () => {
+    btns.forEach((b, i) => {
+      const ok = trouvees.has(i);
+      b.classList.toggle("bet-selected", ok);
+      b.querySelector(".bac-coche").textContent = ok ? "✅" : "⬜";
+    });
+    valider.textContent = trouvees.size
+      ? `Valider : ${trouvees.size} rubrique${trouvees.size > 1 ? "s" : ""} trouvée${trouvees.size > 1 ? "s" : ""}`
+      : "Aucune trouvaille cette fois — continuer";
+  };
+  rubriques.forEach((r, i) => {
+    btns.push(el("button", { class: "btn btn-choice", type: "button", onclick: () => {
+      if (trouvees.has(i)) trouvees.delete(i); else { trouvees.add(i); sfx("coin"); }
+      rafraichir();
+    } }, el("strong", { class: "bac-coche", text: "⬜" }), el("span", { text: ` ${r} en ${lettre}…` })));
+  });
+  const valider = bigButton("Valider", () => {
+    const gain = trouvees.size;
+    const current = currentPion();
+    if (gain) for (const p of getState().pions) { if (p.id === current.id) addCoins(p, gain); else p.pieces += gain; }
+    save();
+    renderPlayersStrip();
+    heraldSays(gain === 3 ? "🎉 Grand chelem ! Les trois rubriques remplies : +3 🪙 pour tout le monde !"
+      : gain ? `Bien joué : +${gain} 🪙 pour toute la tablée !`
+        : "Cette lettre était coriace ! On n'y perd rien, et on retiendra le mot pour la prochaine fois.");
+    setPanel(
+      el("div", { class: "question-block" },
+        el("h2", { class: "panel-title", text: gain ? `⚡ +${gain} 🪙 pour toute la tablée !` : "⚡ Rien trouvé, rien perdu !" }),
+        ...rubriques.map((r, i) => el("p", { class: "bet-result", text: `${trouvees.has(i) ? "✅" : "⬜"} ${r} en ${lettre}` })),
+        bigButton("Continuer", onDone),
+      ),
+    );
+  });
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: `⚡ Baccalauréat Éclair — la lettre « ${lettre} »` }),
+      regleBanner("bac"),
+      el("p", { class: "bac-lettre", "aria-label": `Lettre tirée : ${lettre}`, text: lettre }),
+      el("p", { class: "help-note table-only", text: "Trouvez un mot par rubrique, à voix haute. Touchez une rubrique quand la tablée est d'accord — chaque rubrique remplie vaut 1 🪙 pour tout le monde. Aucun chronomètre : discutez !" }),
+      ...btns,
+      valider,
+    ),
+  );
+  rafraichir();
+}
+
 function teamBonusFlow(onDone) {
+  // Variante « Baccalauréat Éclair » (~1 bonus sur 4) : mêmes garde-fous que
+  // « Ordre ! » — hors tests, et jamais dans une partie 100 % bots, puisque
+  // c'est la tablée humaine qui cherche les mots. __DONJON_BAC la force.
+  if (testFlag("__DONJON_BAC")
+    || (!testFlag("__DONJON_TEST") && !testFlag("__DONJON_BONUS") && !testFlag("__DONJON_ORDRE")
+      && Math.random() < 0.25 && !getState().pions.every((p) => p.bot))) {
+    return bacFlow(onDone);
+  }
   // Variante « Ordre ! » (~1 bonus sur 3, hors tests, et jamais en partie
   // 100 % bots : c'est la tablée humaine qui classe). __DONJON_ORDRE la force.
   const forceOrdre = testFlag("__DONJON_ORDRE");

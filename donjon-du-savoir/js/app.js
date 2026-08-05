@@ -23,6 +23,7 @@ import { langueList } from "./langues.js";
 import { getPalmares, loadLivreDor, loadPalmares, recordGame, SKINS, skinById, skinUnlocked, SUCCES, titreLivreDor, unlockedSkins } from "./palmares.js";
 import { grimoireEntries, grimoireSize } from "./grimoire.js";
 import { souvenirSection } from "./souvenir.js";
+import { SONS } from "./sonmystere.js";
 import { el } from "./ui.js";
 
 const MAX_PLAYERS = 20;
@@ -1104,6 +1105,13 @@ window.__donjonLireDirect = (t) => lireEnDirect(t, { onEchec: () => {} });
 window.__donjonVisuel = (v) => visuelEl(v);
 window.__donjonTire = (pion) => drawQuestion(pion, { commit: false });
 window.__donjonSansFilet = (pion, q) => sansFiletPour(pion, q);
+
+// Sonde d'outillage du Son Mystère : jouer une partition de bruitage dans un
+// contexte audio FOURNI par le test (hors ligne, sans haut-parleur), pour
+// vérifier qu'elle produit vraiment un signal — un son muet passerait sinon
+// inaperçu jusque sur la table du salon.
+window.__donjonSonPartition = (nom, ctx, t0 = 0) => SONS[nom]?.(ctx, t0);
+window.__donjonSonsConnus = () => Object.keys(SONS);
 
 // Sonde d'outillage (captures, réglage des tempos) : rejoue la cérémonie avec
 // une tablée de démonstration, sans devoir finir une vraie partie Étoiles.

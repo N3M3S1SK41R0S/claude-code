@@ -1160,6 +1160,29 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 .minimap svg { display: block; width: 100%; height: auto; }
 
+/* ---------- Baccalauréat Éclair : la lettre tirée, bien lisible ---------- */
+.bac-lettre {
+  font-size: clamp(3.2rem, 16vw, 5rem); font-weight: 800; line-height: 1;
+  text-align: center; color: var(--gold); margin: 0.3rem 0 0.6rem;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+.bac-coche { font-size: 1.1em; }
+
+/* ---------- devinette en cascade : les indices s'empilent ---------- */
+/* Chaque indice arrive sous le précédent, avec la mise encore en jeu à gauche :
+   d'un coup d'œil on voit ce qu'on a déjà appris et ce que ça coûte. */
+.cascade-indices { list-style: none; margin: 0.6rem 0; padding: 0; display: grid; gap: 0.45rem; }
+.cascade-indice {
+  display: flex; gap: 0.6rem; align-items: baseline;
+  background: color-mix(in srgb, var(--gold) 7%, var(--stone));
+  border: 1px solid var(--line); border-left: 4px solid var(--gold);
+  border-radius: 0.5rem; padding: 0.5rem 0.7rem; box-shadow: var(--ombre-petite);
+}
+.cascade-gain { font-weight: 700; color: var(--gold); white-space: nowrap; }
+@media (prefers-reduced-motion: no-preference) {
+  .cascade-indice { animation: visuel-pose 0.35s ease; }
+}
+
 /* ---------- questions à support visuel (dessinées par code) ---------- */
 .visuel { display: flex; justify-content: center; margin: 0.2rem 0 0.6rem; }
 .visuel-svg {
@@ -1174,6 +1197,9 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   background: color-mix(in srgb, var(--gold) 8%, var(--stone));
   border: 1px solid var(--line); padding: 0.5rem;
 }
+/* Carte de pays : un peu plus grande que les monuments, parce que c'est le
+   DÉTAIL du contour (fjords, îles, presqu'îles) qui permet de reconnaître. */
+.visuel-pays .visuel-svg { width: min(15rem, 62%); }
 /* Charade en images : les émojis en grand, c'est tout le décor nécessaire. */
 .visuel-rebus {
   font-size: clamp(2.4rem, 11vw, 3.6rem); letter-spacing: 0.15em;

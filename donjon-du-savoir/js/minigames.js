@@ -68,6 +68,86 @@ export function hangmanHas(answer, letter) {
   return [...answer].some((ch) => /\p{L}/u.test(ch) && stripDia(ch.toLowerCase()) === base);
 }
 
+/* ---------- Devinette en cascade ---------- */
+
+// Un article initial ne dit rien de la réponse : « L'Italie » commencerait par
+// un L, ce qui serait un indice absurde. On travaille donc sur le mot utile.
+const ARTICLE = /^(l'|les\s|le\s|la\s|un\s|une\s|des\s|du\s|de\s+la\s|de\s+l'|d')/i;
+
+/** Le mot utile d'une réponse : sans article, tel qu'il s'écrit. */
+export function motCle(reponse) {
+  return String(reponse ?? "").trim().replace(ARTICLE, "").trim();
+}
+
+/**
+ * Squelette d'un mot : première et dernière lettre visibles, puis une lettre
+ * sur trois. Assez pour « voir » la réponse sans jamais la donner.
+ */
+export function squelette(mot) {
+  const lettres = [...String(mot)];
+  const positions = lettres.map((c, i) => (/\p{L}/u.test(c) ? i : -1)).filter((i) => i >= 0);
+  const visibles = new Set([positions[0], positions[positions.length - 1]]);
+  for (let k = 3; k < positions.length - 1; k += 3) visibles.add(positions[k]);
+  // Espaces INSÉCABLES : le navigateur réduit les espaces ordinaires à un seul,
+  // et « Daniel Craig » perdait la coupure entre ses deux mots.
+  const AIR = " ";
+  return lettres
+    .map((c, i) => (!/\p{L}/u.test(c) ? (/\s/.test(c) ? `${AIR}${AIR}${AIR}` : c) : visibles.has(i) ? c.toUpperCase() : "_"))
+    .join(AIR);
+}
+
+/**
+ * Les trois indices d'une devinette en cascade, du plus vague au plus parlant.
+ * Tout est déduit de la question elle-même : aucun contenu à écrire à la main,
+ * donc la cascade marche sur TOUTE la banque.
+ */
+export function indicesCascade(q) {
+  const mot = motCle(q.bonne_reponse);
+  const lettres = hangmanLetters(mot);
+  const mots = mot.split(/\s+/).filter(Boolean).length;
+  const premiere = ([...mot].find((c) => /\p{L}/u.test(c)) ?? "").toUpperCase();
+  return [
+    {
+      cases: 4,
+      texte: `Le domaine, c'est « ${q.categorie} », et la réponse s'écrit en ${lettres} lettres${mots > 1 ? ` réparties sur ${mots} mots` : ""}.`,
+    },
+    { cases: 3, texte: `La réponse commence par la lettre « ${premiere} ».` },
+    { cases: 2, texte: `Voici ce qu'on en voit : ${squelette(mot)}`, squelette: squelette(mot) },
+  ];
+}
+
+/** Une question se prête-t-elle à la cascade ? Il faut une réponse à deviner :
+ *  ni un Vrai/Faux (une chance sur deux), ni un pavé de plusieurs phrases. */
+export function cascadeEligible(q) {
+  if (!q || q.format !== "qcm") return false;
+  const mot = motCle(q.bonne_reponse);
+  const lettres = hangmanLetters(mot);
+  return lettres >= 4 && lettres <= 20 && mot.split(/\s+/).length <= 3;
+}
+
+/* ---------- Baccalauréat Éclair (le petit bac du Donjon) ---------- */
+
+// Lettres jouables uniquement : un « X » ou un « W » bloquerait la tablée et
+// transformerait le jeu en punition. On reste sur des lettres généreuses.
+export const LETTRES_BAC = "ABCDEFGHIJLMNOPRSTV".split("");
+
+// Rubriques choisies pour qu'un enfant de six ans ait toujours quelque chose à
+// dire, et qu'un adulte puisse briller sur la même lettre.
+export const RUBRIQUES_BAC = [
+  "un animal", "un pays", "un prénom", "un métier", "un aliment", "une couleur",
+  "un objet de la maison", "un personnage de dessin animé", "un sport", "une ville",
+  "un instrument de musique", "un vêtement", "une fleur ou un arbre", "un jeu",
+  "un moyen de transport", "quelque chose qui se mange au petit-déjeuner",
+  "une chose qu'on trouve dans une école", "un héros ou une héroïne",
+  "quelque chose de froid", "un mot de plus de huit lettres",
+];
+
+/** Tire une lettre et trois rubriques distinctes pour un Baccalauréat Éclair. */
+export function tirageBac(rng = Math.random) {
+  const lettre = LETTRES_BAC[Math.floor(rng() * LETTRES_BAC.length)];
+  return { lettre, rubriques: shuffle(RUBRIQUES_BAC, rng).slice(0, 3) };
+}
+
 /** « Le plus proche » : classe des propositions numériques vs la vérité. */
 export function closestRanking(answer, guesses) {
   return guesses

@@ -74,13 +74,19 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
    **plateau tient en entier à l'écran** (aucun défilement horizontal).
 5. **Après chaque question, l'anecdote s'affiche — toujours**, avec ses sources.
 6. **Mini-jeux de mots** : certaines questions QCM se muent en 🔤 **Anagramme**
-   (les lettres de la réponse mélangées, façon Motus/Time's Up) ou en 🪢 **Pendu**
-   (on devine les lettres, 6 erreurs max). Ils sont **dérivés de la banque déjà
-   vérifiée** — aucun contenu neuf, donc aucun risque factuel.
+   (les lettres de la réponse mélangées, façon Motus/Time's Up), en 🪢 **Pendu**
+   (on devine les lettres, 6 erreurs max) ou en 💡 **Devinette en cascade**
+   (trois indices de plus en plus généreux, récompense de plus en plus modeste).
+   Ils sont **dérivés de la banque déjà vérifiée** — aucun contenu neuf, donc
+   aucun risque factuel.
 7. **Question bonus de la tablée** : de temps en temps, entre deux tours, le
    Héraut lance une question à **toute la table** — **sans course** : chacun
    réfléchit tranquillement, et **tous ceux qui avaient bon** empochent l'or
-   (zéro chronomètre, aucune rapidité, la table est juge).
+   (zéro chronomètre, aucune rapidité, la table est juge). Ce bonus prend
+   parfois la forme d'un 🔢 **Ordre !** (classer trois nombres) ou d'un
+   ⚡ **Baccalauréat Éclair** (une lettre, trois rubriques, +1 🪙 par rubrique
+   remplie pour tout le monde — « éclair » désigne la brièveté du jeu, pas une
+   contrainte de vitesse).
 8. **Défis d'expression** (case 🎭) : le pion actif devient meneur et fait
    deviner à la tablée un défi 🚫 **Tabou** (sans dire les mots interdits),
    🔑 **Password** (indices d'un seul mot), 🤫 **Mime** (en silence) ou
@@ -103,6 +109,9 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
 | Pari de confiance | s'auto-évaluer de 1 à 10 avant de voir la question ; réussite = avance de ⌈mise/2⌉, mise ≥ 6 ratée = recul d'1 | +1 à +5 |
 | Gambit numérique | annoncer un nombre ; les autres parient « trop haut / trop bas / juste » (+2 🪙 aux bons parieurs) | exact +4, proche +2/+1 |
 | Question d'équipe / réponse ouverte | on répond à voix haute, la table valide (système d'honneur) | +2 |
+| Devinette en cascade | 3 indices dégressifs ; on annonce quand on veut, le filet des 4 propositions reste ouvert | +4 / +3 / +2 (filet +1) |
+| 🔊 Son Mystère | un bruitage **synthétisé à la volée** à reconnaître parmi 4 propositions, réécoutable sans limite | +2 |
+| 🖼️ Question à support visuel | drapeau, carte de pays, monument en ombre chinoise ou charade en émojis dessinés par le code | selon le format porteur |
 
 Bonne réponse = **+1 pièce** en plus des cases. Règle de moteur : seuls les
 **déplacements au dé** déclenchent les cases — les récompenses/pénalités
@@ -151,7 +160,7 @@ système demande de réduire les animations).
 
 ## La banque de questions
 
-`data/questions.json` — **1033 questions vérifiées** (chaque fait contrôlé
+`data/questions.json` — **4357 questions vérifiées** (chaque fait contrôlé
 contre ≥ 2 sources indépendantes, citées sous chaque anecdote), 13 catégories,
 6 formats, réparties en niveaux `tout_petit` / `enfant` / `ado` / `adulte`
 (difficulté 1-5). Elle est générée depuis la banque fact-checkée du projet
@@ -177,6 +186,24 @@ interdit du Tabou n'apparaît jamais dans le mot-cible (contrôlé par
 `tools/test-wordgames.mjs`). Même registre de fraîcheur inter-parties que les
 questions. Format volontairement simple pour être étendu à la main.
 
+**Questions à support visuel** (≈ 1 tirage sur 4) : le jeu dessine lui-même
+ses images en SVG — `js/visuels.js` pour les **drapeaux** (primitives
+paramétrées), les **monuments en ombre chinoise** et les **charades en émojis**,
+`js/cartes.js` pour les **cartes de pays**. Ces cartes ne sont pas des dessins
+à main levée mais les **vraies frontières** : contours **Natural Earth**
+(domaine public), projetés en Mercator, simplifiés et cadrés hors ligne par
+`tools/forge-cartes.mjs`, puis embarqués sous forme de chemins SVG. Rien n'est
+téléchargé en partie — le Donjon reste **100 % hors ligne**. Pour les revoir
+toutes d'un coup d'œil : `node tools/planche-cartes.mjs sortie.png`.
+
+**Le Son Mystère** : `js/sonmystere.js` fabrique ses bruitages à la volée
+(Web Audio) — aucun fichier son, aucun droit d'auteur, aucun poids. Ce sont des
+**imitations stylisées** assumées, à la manière d'un bruiteur de radio : on ne
+retient que les sons dont la signature tient dans un geste simple (les deux
+tons d'une sirène, les trois temps d'un galop). `tools/smoke-formats.mjs` rend
+chaque partition dans un contexte audio hors ligne et **mesure le signal** —
+un bruitage devenu muet ne peut pas passer inaperçu.
+
 **Fraîcheur inter-parties** : un registre local (localStorage) mémorise les
 questions déjà vues — une question ne revient que lorsque toutes les autres
 ont été vues autant de fois. Avec le choix du donjon, le re-mélange des cases
@@ -200,6 +227,11 @@ node tools/smoke-shop.mjs        # E2E boutique + objets + toast d'ouverture
 node tools/smoke-etoiles.mjs     # E2E mode Étoiles : achat d'étoile au passage,
                                  # sceptre du larcin, 3 étoiles bonus de fin
 node tools/smoke-minigames.mjs   # E2E anagramme / pendu / bonus tablée / défi 🎭
+node tools/smoke-formats.mjs     # E2E cascade / Baccalauréat Éclair / Son Mystère
+                                 # (les bruitages sont rendus et MESURÉS)
+node tools/smoke-visuels.mjs     # E2E questions à support visuel + dosage du tirage
+node tools/forge-cartes.mjs      # régénère js/cartes.js depuis Natural Earth
+node tools/planche-cartes.mjs x.png  # planche de contrôle des 28 cartes
 node tools/test-bonus.mjs        # unitaire : tirage des étoiles bonus de fin
 node tools/test-minigames.mjs    # unitaire : anagramme / pendu / plus proche
 node tools/test-wordgames.mjs    # unitaire : contenu vérifié Tabou/Password/Mime

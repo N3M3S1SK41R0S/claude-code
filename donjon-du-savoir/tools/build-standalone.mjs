@@ -29,7 +29,7 @@ const R = (p) => readFileSync(join(root, p), "utf8");
 // the entry last. We register every module, then require("./app.js").
 const MODULES = [
   "host-voice", "tts", "sfx", "music", "voices", "bots", "prefs", "grimoire", "palmares", "herald", "powers", "portraits", "custom", "items", "minigames",
-  "wordgames", "themes", "langues", "state", "board", "data", "voiceclips", "voixdirect", "visuels", "eclair", "ui", "scene", "models3d", "board3d", "souvenir", "version", "game", "app",
+  "wordgames", "themes", "langues", "state", "board", "data", "voiceclips", "voixdirect", "cartes", "visuels", "sonmystere", "eclair", "ui", "scene", "models3d", "board3d", "souvenir", "version", "game", "app",
 ];
 
 function collectExports(src) {
