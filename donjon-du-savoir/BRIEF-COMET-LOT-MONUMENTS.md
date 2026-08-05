@@ -106,28 +106,52 @@ gardez ça).
 |---|---|---|
 | `machu-picchu` | Machu Picchu, Pérou | Les terrasses en escalier accrochées à la crête, le piton pointu derrière |
 | `chichen-itza` | Pyramide de Kukulcán, Chichén Itzá | La pyramide à degrés carrée, l'escalier central raide, le petit temple au sommet |
-| `sagrada-familia` | Sagrada Família, Barcelone | Le faisceau de tours effilées, criblées de trous, comme des épis de maïs |
-| `opera-sydney` | Opéra de Sydney | Les coques blanches emboîtées, comme des voiles ou des coquillages dressés |
 | `mont-saint-michel` | Mont-Saint-Michel | L'îlot rocheux conique, le village en spirale, l'abbaye et sa flèche au sommet |
 | `stonehenge` | Stonehenge | Le cercle de pierres dressées coiffées de linteaux, dans l'herbe rase |
-| `christ-redempteur` | Christ Rédempteur, Rio | La silhouette aux bras horizontaux grands ouverts sur son socle, vue de loin |
 | `petra` | Al-Khazneh, Petra | La façade à colonnes taillée DANS la falaise, la gorge rocheuse qui l'encadre |
 | `angkor-vat` | Angkor Vat, Cambodge | Les cinq tours en épi de maïs, les douves devant, la longue chaussée d'accès |
 | `grande-muraille` | Grande Muraille de Chine | Le ruban crénelé qui ondule sur la crête des collines, avec ses tours carrées |
 | `neuschwanstein` | Château de Neuschwanstein, Bavière | Les tours blanches à toits bleus coniques, perchées sur l'éperon boisé |
 | `golden-gate` | Golden Gate Bridge, San Francisco | Les deux pylônes rouge-orangé à traverses, les câbles en courbe suspendue |
 | `alhambra` | Alhambra, Grenade | Les tours carrées ocre sur la colline, la cour aux arcades, la Sierra derrière |
-| `atomium` | Atomium, Bruxelles | Les neuf sphères métalliques reliées par des tubes, en cube posé sur un angle |
+| `sainte-sophie` | Sainte-Sophie, Istanbul | Le vaste dôme surbaissé posé sur un bloc massif, flanqué de quatre minarets fins |
+| `cite-interdite` | Cité interdite, Pékin | Les toits jaunes aux angles retroussés, étagés au-dessus d'une terrasse de marbre blanc |
+| `pont-du-gard` | Pont du Gard | Les trois étages d'arches superposées, de plus en plus étroites, enjambant la rivière |
+| `abou-simbel` | Temple d'Abou Simbel, Égypte | Les quatre colosses assis taillés dans la falaise, encadrant une porte étroite |
 
-> **Attention `atomium`** : l'Atomium est protégé par le droit d'auteur en
-> Belgique. **Ne le livrez PAS** si votre outil ou vos conditions d'utilisation
-> l'interdisent — dites-le simplement et nous le remplacerons par un autre
-> monument. Idem si un doute existe pour `christ-redempteur`, `sagrada-familia`
-> ou `opera-sydney`, tous trois d'auteurs récents. **En cas de doute sur un
-> monument, ne livrez pas et signalez-le : le jeu vivra très bien avec 20
-> illustrations sûres plutôt que 24 discutables.** Remplacements possibles, tous
-> anciens et libres : Parthénon d'Athènes, Alcázar de Ségovie, Château de
-> Chambord, Pont du Gard, Temple d'Abou Simbel, Cité interdite de Pékin.
+### Les quatre monuments ÉCARTÉS après contrôle des droits
+
+`sagrada-familia`, `christ-redempteur`, `atomium` et `opera-sydney` **ne font
+plus partie du lot** : leurs œuvres architecturales sont encore protégées, et
+peindre au lieu de photographier n'y change rien — une œuvre récente reste
+protégée quel que soit le médium de reproduction. Les quatre dernières lignes du
+tableau ci-dessus les remplacent. Détail et sources dans `NOTES.txt`.
+
+### Deux remplacements écartés à leur tour, et pourquoi
+
+Le contrôle proposait d'abord le **Parthénon** et **Chambord**. Ils sont libres
+de droit d'auteur, mais relèvent d'un **autre régime**, celui du patrimoine :
+
+- **Chambord** est un *domaine national* (article L621-42 du code du patrimoine,
+  décret du 2 mai 2017, avec le Louvre-Tuileries, Pau, Angers, l'Élysée et le
+  Palais du Rhin) : l'usage **commercial** de son image est soumis à
+  autorisation préalable du gestionnaire.
+- Le **Parthénon** relève de l'article 46 de la loi grecque 4858/2021 : la
+  reproduction et la diffusion d'images de monuments publics à des fins
+  commerciales exigent une autorisation du ministère de la Culture et une
+  redevance versée à l'organisme dédié.
+
+Les deux textes prévoient une **exemption culturelle et pédagogique** qui
+couvre le Donjon tel qu'il est aujourd'hui — gratuit, familial, sans vente.
+Mais autant ne pas s'encombrer d'une question à trancher si le jeu changeait un
+jour de statut : le Pont du Gard (monument historique, **pas** un domaine
+national) et la Cité interdite font le même travail sans aucune réserve.
+
+> La remarque vaut, à un degré moindre, pour le **Colisée**, la **tour de Pise**
+> et la **pyramide de Gizeh**, soumis à des régimes voisins en Italie et en
+> Égypte. Ils restent dans le lot : leurs silhouettes sont irremplaçables et
+> l'exemption pédagogique s'applique. À revoir seulement si le Donjon devenait
+> un produit commercial.
 
 ## 5. Cohérence de la série (le point le plus important après la lisibilité)
 
