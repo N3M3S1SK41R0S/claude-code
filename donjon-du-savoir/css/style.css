@@ -1462,3 +1462,12 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 
 /* Sélecteur de manches (pas de 5, jusqu'à 200). */
 .rounds-select { appearance: auto; max-width: 14rem; cursor: pointer; }
+
+/* « On n'a pas compris » : dépannage discret sous la question — présent sans
+   jamais attirer l'œil davantage que les réponses elles-mêmes. */
+.changer-question {
+  align-self: center; margin-top: 0.5rem;
+  background: transparent; color: var(--soft);
+  border: 1px dashed var(--line); font-size: 0.85rem;
+}
+.changer-question:hover { color: var(--ink); border-color: var(--gold); }

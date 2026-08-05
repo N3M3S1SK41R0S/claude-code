@@ -146,6 +146,9 @@ function prochaineQuestion() {
   montreQuestion(j, q, etage);
 }
 
+// Questions déjà échangées : le secours ne joue qu'une fois par question.
+const changees = new Set();
+
 function montreQuestion(j, q, etage) {
   const zone = document.getElementById("eclair-zone");
   zone.innerHTML = "";
@@ -181,6 +184,16 @@ function montreQuestion(j, q, etage) {
   }, String(c)));
   const grille = el("div", { class: "eclair-grille" + (choix.length === 2 ? " eclair-grille-2" : "") }, ...boutons);
   zone.append(grille);
+
+  // 🔄 Dépannage : une question incomprise ne doit pas gâcher le sprint. Une
+  // seule fois par question, et SANS consommer le joker « Passer » — celui-ci
+  // reste un choix tactique, ceci n'est qu'un secours.
+  if (!changees.has(q.id)) {
+    zone.append(el("button", {
+      class: "btn btn-small changer-question", type: "button",
+      onclick: () => { changees.add(q.id); prochaineQuestion(); },
+    }, "🔄 On n'a pas compris — changer de question"));
+  }
 
   // Jokers éclair du joueur (une cartouche de chaque par sprint).
   const jokers = el("div", { class: "eclair-jokers" });

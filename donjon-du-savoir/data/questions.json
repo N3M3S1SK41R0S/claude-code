@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 4332,
+ "count": 4333,
  "questions": [
   {
    "id": "arts-001",
@@ -83107,29 +83107,6 @@
    }
   },
   {
-   "id": "vis-monument-008",
-   "categorie": "Géographie",
-   "niveau_age": "ado",
-   "difficulte": 3,
-   "format": "qcm",
-   "texte": "Quel monument se cache derrière cette ombre ?",
-   "anecdote": "Les marées y sont parmi les plus fortes d'Europe : la mer peut avancer très vite sur la baie.",
-   "sources": [
-    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
-   ],
-   "choix": [
-    "L'abbaye de Cluny",
-    "La cité de Carcassonne",
-    "Le Mont-Saint-Michel",
-    "Le château de Chambord"
-   ],
-   "bonne_reponse": "Le Mont-Saint-Michel",
-   "visuel": {
-    "type": "ombre",
-    "cle": "mont-saint-michel"
-   }
-  },
-  {
    "id": "vis-monument-009",
    "categorie": "Géographie",
    "niveau_age": "enfant",
@@ -83153,29 +83130,6 @@
    }
   },
   {
-   "id": "vis-monument-010",
-   "categorie": "Géographie",
-   "niveau_age": "ado",
-   "difficulte": 3,
-   "format": "qcm",
-   "texte": "Quel monument se cache derrière cette ombre ?",
-   "anecdote": "Ses voiles sont couvertes de plus d'un million de tuiles blanches et crème.",
-   "sources": [
-    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
-   ],
-   "choix": [
-    "L'Opéra de Sydney",
-    "La Cité des arts de Valence",
-    "Le Kennedy Center",
-    "Le musée Guggenheim"
-   ],
-   "bonne_reponse": "L'Opéra de Sydney",
-   "visuel": {
-    "type": "ombre",
-    "cle": "opera-sydney"
-   }
-  },
-  {
    "id": "vis-monument-011",
    "categorie": "Géographie",
    "niveau_age": "adulte",
@@ -83196,29 +83150,6 @@
    "visuel": {
     "type": "ombre",
     "cle": "moai"
-   }
-  },
-  {
-   "id": "vis-monument-012",
-   "categorie": "Géographie",
-   "niveau_age": "adulte",
-   "difficulte": 4,
-   "format": "qcm",
-   "texte": "Quel monument se cache derrière cette ombre ?",
-   "anecdote": "Ses dômes en bulbe colorés, tous différents, dominent la place Rouge à Moscou.",
-   "sources": [
-    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
-   ],
-   "choix": [
-    "La cathédrale Saint-Basile",
-    "La cathédrale Saint-Sauveur",
-    "Le Kremlin",
-    "Le palais d'Hiver"
-   ],
-   "bonne_reponse": "La cathédrale Saint-Basile",
-   "visuel": {
-    "type": "ombre",
-    "cle": "kremlin"
    }
   },
   {
@@ -84024,6 +83955,98 @@
    "visuel": {
     "type": "rebus",
     "emojis": "🗽🍔"
+   }
+  },
+  {
+   "id": "vis-pays-001",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa silhouette ?",
+   "anecdote": "Sa forme de botte est si nette qu'on la reconnaît sur une carte dès l'école primaire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Liste_des_pays_du_monde"
+   ],
+   "choix": [
+    "L'Espagne",
+    "L'Italie",
+    "La Grèce",
+    "La Norvège"
+   ],
+   "bonne_reponse": "L'Italie",
+   "visuel": {
+    "type": "pays",
+    "cle": "italie"
+   }
+  },
+  {
+   "id": "vis-pays-002",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa silhouette ?",
+   "anecdote": "L'archipel compte près de quatorze mille îles, dont seule une poignée est vraiment habitée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Liste_des_pays_du_monde"
+   ],
+   "choix": [
+    "L'Indonésie",
+    "La Nouvelle-Zélande",
+    "Le Japon",
+    "Les Philippines"
+   ],
+   "bonne_reponse": "Le Japon",
+   "visuel": {
+    "type": "pays",
+    "cle": "japon"
+   }
+  },
+  {
+   "id": "vis-pays-003",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa silhouette ?",
+   "anecdote": "Ses frontières sud et ouest sont des lignes droites tracées à la règle, comme souvent au Sahara.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Liste_des_pays_du_monde"
+   ],
+   "choix": [
+    "L'Algérie",
+    "L'Égypte",
+    "La Libye",
+    "Le Soudan"
+   ],
+   "bonne_reponse": "L'Égypte",
+   "visuel": {
+    "type": "pays",
+    "cle": "egypte"
+   }
+  },
+  {
+   "id": "vis-pays-004",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa silhouette ?",
+   "anecdote": "Long de plus de quatre mille kilomètres pour environ deux cents de large : le pays le plus étiré du monde.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Liste_des_pays_du_monde"
+   ],
+   "choix": [
+    "L'Argentine",
+    "La Norvège",
+    "Le Chili",
+    "Le Pérou"
+   ],
+   "bonne_reponse": "Le Chili",
+   "visuel": {
+    "type": "pays",
+    "cle": "chili"
    }
   }
  ]

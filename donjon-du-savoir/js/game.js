@@ -2083,7 +2083,7 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
   }
 
   const container = el("div", { class: "question-block" });
-  container.append(questionHeader(q), regleBanner(cashMode ?? q.format), karaokeText(q.texte));
+  container.append(...[questionHeader(q), regleBanner(cashMode ?? q.format), visuelEl(q.visuel), karaokeText(q.texte)].filter(Boolean));
   const hintZone = el("div", { class: "hint-zone" });
   container.append(hintZone);
 
@@ -2103,9 +2103,34 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
   if (struck) container.append(el("p", { class: "help-note", text: "🤝 Coup de pouce du Donjon : une mauvaise réponse a été éliminée pour le dernier du classement." }));
 
   appendQuestionPowers(container, hintZone, pion, q, { cashMode });
+  const changer = boutonChangerQuestion(pion, q, (nouvelle) => questionFlow(pion, nouvelle, { advanceOverride, cashMode }));
+  if (changer) container.append(changer);
   setPanel(container);
   narrateQuestion(q);
 }
+
+/** 🔄 « On n'a rien compris » : une question mal formulée, hors-sujet pour la
+ *  table ou trop pointue ne doit JAMAIS bloquer la soirée. Un bouton discret
+ *  la remplace par une autre, du même format et du même palier d'âge.
+ *  UNE SEULE fois par question : c'est un dépannage, pas une machine à
+ *  chercher la question la plus facile. La question écartée est marquée vue,
+ *  donc elle ne revient pas dans la foulée. */
+function boutonChangerQuestion(pion, q, rejouer, { formats = null } = {}) {
+  if (dejaChangee.has(q.id)) return null;
+  return el("button", {
+    class: "btn btn-small changer-question", type: "button",
+    onclick: () => {
+      dejaChangee.add(q.id);
+      noteProposee(q); // écartée : elle recule dans la rotation
+      const remplacante = drawQuestion(pion, { formats: formats ?? [q.format], exclude: new Set([q.id]) });
+      if (!remplacante) { heraldSays("Le Donjon n'a rien d'autre sous la main pour cette fois — celle-ci fera l'affaire !"); return; }
+      heraldSays("🔄 Question incomprise ? Le Héraut en tire une autre, sans pénalité.");
+      rejouer(remplacante);
+    },
+  }, "🔄 On n'a pas compris — changer de question");
+}
+// Une question déjà échangée ne peut plus l'être (mémoire de la session).
+const dejaChangee = new Set();
 
 function questionHeader(q, pion = null) {
   // The answering pion is always named — essential at a 20-player table.
@@ -2253,7 +2278,7 @@ function ccdPicker(pion, q) {
 function openAnswerFlow(pion, q, { advance, accepted, onResolve = null, kind = "equipe" }) {
   const resolve = onResolve ?? ((correct) => resolveAnswer(pion, q, correct, advance));
   const container = el("div", { class: "question-block" });
-  container.append(questionHeader(q), regleBanner(kind), el("p", { class: "question-texte", text: q.texte }));
+  container.append(...[questionHeader(q), regleBanner(kind), visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte })].filter(Boolean));
   const hintZone = el("div", { class: "hint-zone" });
   container.append(hintZone);
   container.append(el("p", { class: "help-note", text: "🗣️ Répondez à voix haute, puis révélez la réponse. La table est juge !" }));
@@ -2272,6 +2297,8 @@ function openAnswerFlow(pion, q, { advance, accepted, onResolve = null, kind = "
     }),
   );
   appendQuestionPowers(container, hintZone, pion, q, { cashMode: null });
+  const changer = boutonChangerQuestion(pion, q, (nouvelle) => openAnswerFlow(pion, nouvelle, { advance, accepted, onResolve, kind }));
+  if (changer) container.append(changer);
   setPanel(container);
   narrateQuestion(q);
 }
@@ -3179,6 +3206,7 @@ function doEventCarte() {
       visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
       el("p", { class: "help-note paper-note", text: "✍️ Chacun écrit sa réponse sur SA feuille de papier, en secret et sans se presser. On ne saisit et on ne valide qu'ensuite." }),
       bigButton("Tout le monde a écrit ✍️", () => setPanel(entryPanel)),
+      boutonChangerQuestion(currentPion(), q, () => doEventCarte(), { formats: ["qcm", "vrai_faux"] }),
     ),
   );
   narrateQuestion(q);

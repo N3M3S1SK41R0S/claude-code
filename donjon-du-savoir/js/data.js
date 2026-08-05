@@ -162,7 +162,9 @@ export function drawQuestion(pion, { formats = null, commit = true, exclude = nu
   let pool = drawableFrom(rangeFor(pion), formats);
   // On vise la proportion, sans jamais l'imposer : si le vivier visuel de la
   // tranche d'âge est vide (ou déjà tout vu), on reprend le pool entier.
-  const veutVisuelle = Math.random() < PART_VISUELLE;
+  // Sonde de test : force le tirage visuel pour vérifier l'AFFICHAGE sans
+  // dépendre du hasard (le dosage, lui, est mesuré séparément sur 400 tirages).
+  const veutVisuelle = globalThis.__DONJON_TOUT_VISUEL ? true : Math.random() < PART_VISUELLE;
   const filtre = pool.filter((q) => estVisuelle(q) === veutVisuelle);
   if (filtre.length > 0) pool = filtre;
   if (categories) pool = pool.filter((q) => categories.includes(q.categorie)); // thème du sprint Éclair

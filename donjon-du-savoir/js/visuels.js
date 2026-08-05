@@ -155,21 +155,35 @@ const ombre = (d, ratio = "0 0 100 100") =>
 export const MONUMENTS = {
   "tour-eiffel": ombre("M50 6 L53 20 L56 20 L58 34 L64 34 L66 48 L74 48 L78 70 L86 92 L70 92 L62 74 L56 74 L54 92 L46 92 L44 74 L38 74 L30 92 L14 92 L22 70 L26 48 L34 48 L36 34 L42 34 L44 20 L47 20 Z"),
   "pyramide": ombre("M50 14 L92 86 L8 86 Z M50 14 L50 86"),
-  "big-ben": ombre("M38 92 L38 40 L42 40 L42 26 L46 26 L46 16 L50 6 L54 16 L54 26 L58 26 L58 40 L62 40 L62 92 Z M44 44 L58 44 L58 58 L44 58 Z"),
+  // La signature de Big Ben, c'est le CADRAN rond haut perché sous une flèche
+  // pointue, pas une tour rectangulaire : le cercle est creusé (evenodd).
+  "big-ben": ombre("M50 4 L44 20 L42 20 L42 30 L38 30 L38 92 L62 92 L62 30 L58 30 L58 20 L56 20 Z M50 46 m -8 0 a 8 8 0 1 0 16 0 a 8 8 0 1 0 -16 0 Z"),
   "colisee": ombre("M12 84 Q12 40 50 38 Q88 40 88 84 L88 90 L12 90 Z M22 60 L30 60 L30 76 L22 76 Z M40 58 L48 58 L48 76 L40 76 Z M58 58 L66 58 L66 76 L58 76 Z M74 62 L80 62 L80 76 L74 76 Z"),
   // Dôme bulbeux flanqué de deux minarets élancés, sur sa terrasse : c'est
   // cette combinaison qui fait le Taj Mahal, pas trois formes verticales.
   "taj-mahal": ombre("M50 14 Q49 10 50 8 Q51 10 50 14 Q64 20 64 34 Q64 44 56 50 L56 74 L44 74 L44 50 Q36 44 36 34 Q36 20 50 14 Z M20 34 Q22 30 24 34 L25 74 L19 74 Z M76 34 Q78 30 80 34 L81 74 L75 74 Z M14 74 L86 74 L86 82 L14 82 Z M8 82 L92 82 L92 90 L8 90 Z"),
-  // Torche levée à bout de bras, couronne à sept pointes, socle en étoile.
-  "statue-liberte": ombre("M50 22 Q45 22 45 28 Q45 32 47 34 L47 62 L53 62 L53 34 Q55 32 55 28 Q55 22 50 22 Z M42 18 L44 24 L46 19 L48 25 L50 18 L52 25 L54 19 L56 24 L58 18 Q50 14 42 18 Z M55 32 L66 16 L70 18 L59 36 Z M64 16 L72 16 L70 6 L66 6 Z M47 62 L53 62 L55 72 L45 72 Z M38 72 L62 72 L62 80 L38 80 Z M32 80 L68 80 L68 92 L32 92 Z"),
+  // Trois signes suffisent à la reconnaître : la robe qui s'évase, la couronne
+  // à pointes, et surtout le BRAS TENDU très haut portant la flamme.
+  "statue-liberte": ombre("M44 34 L40 66 L60 66 L56 34 Z M46 26 Q46 20 50 20 Q54 20 54 26 Q54 31 50 33 Q46 31 46 26 Z M41 22 L44 15 L46 21 L48 13 L50 20 L52 13 L54 21 L56 15 L59 22 Q50 17 41 22 Z M55 32 L63 14 L68 16 L60 35 Z M62 15 Q65 4 68 15 Q65 12 62 15 Z M40 66 L60 66 L62 74 L38 74 Z M34 74 L66 74 L66 84 L34 84 Z M28 84 L72 84 L72 92 L28 92 Z"),
   "arc-triomphe": ombre("M14 88 L14 26 L86 26 L86 88 L66 88 L66 52 Q50 38 34 52 L34 88 Z"),
-  "mont-saint-michel": ombre("M50 8 L52 22 L58 30 L58 44 L66 52 L66 66 L78 76 L84 92 L16 92 L22 76 L34 66 L34 52 L42 44 L42 30 L48 22 Z"),
   // Le penché ne suffit pas : ce sont les étages à colonnades superposés qui
   // font reconnaître Pise. Chaque bandeau creuse la silhouette (evenodd).
   "tour-de-pise": ombre("M42 92 L36 90 L48 12 L64 14 L54 92 Z M46.6 76 L60 77 L59.4 81 L46 80 Z M49 60 L62.4 61 L61.8 65 L48.4 64 Z M51.4 44 L64.8 45 L64.2 49 L50.8 48 Z M53.8 28 L67.2 29 L66.6 33 L53.2 32 Z"),
-  "opera-sydney": ombre("M8 84 Q26 40 44 84 Z M30 84 Q50 32 70 84 Z M52 84 Q70 44 88 84 Z M6 84 L92 84 L92 90 L6 90 Z"),
   "moai": ombre("M34 92 L34 44 Q34 18 50 14 Q66 18 66 44 L66 92 Z M40 46 L46 46 L46 52 L40 52 Z M54 46 L60 46 L60 52 L54 52 Z M42 68 L58 68 L58 72 L42 72 Z"),
-  "kremlin": ombre("M38 92 L38 46 Q50 26 62 46 L62 92 Z M50 26 Q44 16 50 6 Q56 16 50 26 Z M24 92 L24 60 L34 60 L34 92 Z M66 92 L66 60 L76 60 L76 92 Z"),
+  // Saint-Basile, ce sont PLUSIEURS bulbes de tailles différentes, jamais une
+  // tour unique : c'est cette skyline en oignons qui la rend inimitable.
+  "cathedrale-basile": ombre("M50 20 Q38 32 40 44 L40 90 L60 90 L60 44 Q62 32 50 20 Z M50 20 Q47 14 50 8 Q53 14 50 20 Z M26 44 Q16 54 18 64 L18 90 L34 90 L34 64 Q36 54 26 44 Z M26 44 Q24 39 26 34 Q28 39 26 44 Z M74 44 Q64 54 66 64 L66 90 L82 90 L82 64 Q84 54 74 44 Z M74 44 Q72 39 74 34 Q76 39 74 44 Z M12 90 L88 90 L88 96 L12 96 Z"),
+};
+
+/* ---------- SILHOUETTES DE PAYS ---------- */
+// Contours simplifiés, tracés à la main pour rester lisibles en petit : on
+// garde la SIGNATURE (la botte italienne, l'hexagone français, la corne de
+// l'Afrique) et l'on gomme le détail des côtes, illisible à cette taille.
+export const PAYS = {
+  italie: ombre("M30 10 L44 16 L52 12 L58 18 L54 26 L58 34 L66 40 L74 52 L82 62 L86 74 L80 78 L72 68 L64 60 L58 66 L50 60 L44 50 L36 44 L28 38 L22 28 L24 18 Z M84 84 Q90 80 92 86 Q88 92 84 86 Z M64 84 Q74 78 78 86 Q72 94 64 88 Z"),
+  japon: ombre("M70 14 L78 20 L74 30 L66 34 L60 30 Z M56 38 L64 42 L60 54 L50 62 L42 60 L46 48 Z M38 64 L44 68 L40 78 L30 82 L26 76 Z M18 84 Q24 80 26 86 Q22 92 18 86 Z"),
+  egypte: ombre("M22 24 L78 24 L78 48 L66 48 L66 76 L34 76 L34 48 L22 48 Z"),
+  chili: ombre("M44 10 L56 12 L54 30 L58 48 L54 66 L56 84 L48 88 L42 70 L44 50 L40 30 Z"),
 };
 
 /* ---------- rendu ---------- */
@@ -185,6 +199,9 @@ export function visuelEl(visuel) {
     boite.innerHTML = DRAPEAUX[visuel.cle];
   } else if (visuel.type === "ombre" && MONUMENTS[visuel.cle]) {
     boite.innerHTML = MONUMENTS[visuel.cle];
+  } else if (visuel.type === "pays" && PAYS[visuel.cle]) {
+    boite.className = "visuel visuel-ombre visuel-pays"; // même plaque sombre
+    boite.innerHTML = PAYS[visuel.cle];
   } else if (visuel.type === "rebus" && visuel.emojis) {
     boite.className = "visuel visuel-rebus";
     boite.textContent = visuel.emojis;
@@ -198,4 +215,5 @@ export function visuelEl(visuel) {
 export const VISUELS_CONNUS = {
   drapeau: Object.keys(DRAPEAUX),
   ombre: Object.keys(MONUMENTS),
+  pays: Object.keys(PAYS),
 };

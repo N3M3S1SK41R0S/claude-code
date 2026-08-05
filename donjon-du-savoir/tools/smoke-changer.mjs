@@ -1,0 +1,90 @@
+// SMOKE du dépannage « on n'a pas compris » : le bouton est proposé sur la
+// question, il la remplace vraiment par une AUTRE, et il ne s'offre qu'une
+// fois (sinon on pourrait fouiller la banque jusqu'à la question la plus
+// facile). Vérifié sur le plateau ET en Partie Éclair.
+// Run: node tools/smoke-changer.mjs
+import { chromium } from "playwright-core";
+import { existsSync, statSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+const file = join(root, "dist", "donjon-standalone.html");
+
+function findChromium() {
+  for (const c of [process.env.CHROMIUM_PATH, "/opt/pw-browsers/chromium"].filter(Boolean)) {
+    if (!existsSync(c)) continue;
+    if (statSync(c).isFile()) return c;
+    for (const sub of ["chrome-linux/chrome", "chrome"]) { const p = join(c, sub); if (existsSync(p) && statSync(p).isFile()) return p; }
+  }
+  throw new Error("Chromium not found");
+}
+
+const browser = await chromium.launch({ executablePath: findChromium(), args: ["--no-proxy-server"] });
+const page = await browser.newPage({ viewport: { width: 900, height: 1000 } });
+const errors = [];
+page.on("pageerror", (e) => errors.push(String(e).slice(0, 200)));
+let fails = 0;
+const check = (nom, ok) => { console.log(`${ok ? "✓" : "✗"} ${nom}`); if (!ok) fails++; };
+const enonce = async () => (await page.locator(".question-texte, .karaoke, .eclair-texte").first().textContent().catch(() => "")) ?? "";
+
+try {
+  await page.addInitScript(() => { window.__DONJON_TEST = true; });
+  await page.goto(pathToFileURL(file).href, { waitUntil: "load" });
+  await page.locator("#bank-info").textContent({ timeout: 10000 });
+
+  // ---------- sur le plateau ----------
+  await page.getByRole("button", { name: "⚔️ Nouvelle partie" }).click();
+  await page.waitForTimeout(300);
+  await page.getByRole("button", { name: "🏰 Entrer dans le Donjon" }).click();
+  await page.getByRole("button", { name: "🎲 Au hasard !" }).click({ timeout: 8000 });
+  let trouve = false;
+  for (let i = 0; i < 200 && !trouve; i++) {
+    if (await page.locator(".changer-question").count()) { trouve = true; break; }
+    const roll = page.getByRole("button", { name: "🎲 Lancer le dé" });
+    if (await roll.isVisible().catch(() => false)) {
+      await roll.click();
+      await page.getByRole("button", { name: /Avancer de \d/ }).click({ timeout: 6000 }).catch(() => {});
+      continue;
+    }
+    const next = page.getByRole("button", { name: /Découvrir|Continuer|Révéler|Valider|Subir|Quitter|Garder/ }).first();
+    if ((await next.isVisible().catch(() => false)) && (await next.isEnabled().catch(() => false))) { await next.click().catch(() => {}); continue; }
+    const gros = page.locator(".btn-big:not([disabled])").first();
+    if (await gros.isVisible().catch(() => false)) { await gros.click().catch(() => {}); continue; }
+    await page.waitForTimeout(120);
+  }
+  check("le dépannage est proposé sur une question du plateau", trouve);
+  if (trouve) {
+    const avant = await enonce();
+    await page.locator(".changer-question").first().click();
+    await page.waitForTimeout(500);
+    const apres = await enonce();
+    check(`la question a bien été remplacée (« ${avant.slice(0, 28)}… » → « ${apres.slice(0, 28)}… »)`, Boolean(apres) && apres !== avant);
+    check("le dépannage ne se represente pas sur la nouvelle question", (await page.locator(".changer-question").count()) <= 1);
+  }
+
+  // ---------- en Partie Éclair ----------
+  await page.goto(pathToFileURL(file).href, { waitUntil: "load" });
+  await page.locator("#bank-info").textContent({ timeout: 10000 });
+  await page.getByRole("button", { name: /Partie Éclair/ }).click();
+  await page.waitForTimeout(300);
+  await page.getByRole("button", { name: "⚡ C'est parti !" }).click();
+  await page.waitForTimeout(600);
+  const dispoEclair = (await page.locator(".changer-question").count()) > 0;
+  check("le dépannage est proposé en Partie Éclair", dispoEclair);
+  if (dispoEclair) {
+    const avant = await enonce();
+    await page.locator(".changer-question").first().click();
+    await page.waitForTimeout(500);
+    const apres = await enonce();
+    check(`la question éclair a été remplacée (« ${avant.slice(0, 24)}… » → « ${apres.slice(0, 24)}… »)`, Boolean(apres) && apres !== avant);
+  }
+  check("aucune erreur de page", errors.length === 0);
+  if (errors.length) console.log("  " + errors.slice(0, 3).join("\n  "));
+} catch (e) {
+  check(`déroulement sans imprévu (${String(e.message).split("\n")[0]})`, false);
+} finally {
+  await browser.close();
+}
+console.log(fails ? "CHANGER SMOKE: ÉCHEC" : "CHANGER SMOKE OK");
+process.exit(fails ? 1 : 0);

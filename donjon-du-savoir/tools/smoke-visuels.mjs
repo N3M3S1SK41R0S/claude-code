@@ -67,6 +67,9 @@ try {
   check(`un visuel inconnu n'casse rien (${rendu.inconnu})`, rendu.inconnu === "ignoré proprement");
 
   // ③ En partie réelle : une question visuelle s'affiche AVEC son énoncé.
+  // À partir d'ici, TOUTES les questions tirées sont visuelles : on vérifie
+  // l'affichage en partie sans dépendre du hasard.
+  await page.evaluate(() => { window.__DONJON_TOUT_VISUEL = true; });
   await page.getByRole("button", { name: "⚔️ Nouvelle partie" }).click();
   await page.waitForTimeout(300);
   await page.getByRole("button", { name: "🏰 Entrer dans le Donjon" }).click();
@@ -74,7 +77,7 @@ try {
   let vue = false;
   let questionsVues = 0;
   const enoncesVus = new Set();
-  for (let tour = 0; tour < 500 && !vue; tour++) {
+  for (let tour = 0; tour < 90 && !vue; tour++) {
     const nb = await page.locator(".question-texte").count();
     if (nb) { const t = await page.locator(".question-texte").first().textContent(); if (t && !enoncesVus.has(t)) { enoncesVus.add(t); questionsVues += 1; } }
     if (await page.locator(".visuel").count()) {
