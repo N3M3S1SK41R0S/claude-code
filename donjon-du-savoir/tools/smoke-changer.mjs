@@ -39,7 +39,11 @@ try {
   await page.getByRole("button", { name: "🏰 Entrer dans le Donjon" }).click();
   await page.getByRole("button", { name: "🎲 Au hasard !" }).click({ timeout: 8000 });
   let trouve = false;
-  for (let i = 0; i < 200 && !trouve; i++) {
+  // 400 tours de patience : le dépannage n'est proposé que sur les écrans où la
+  // question est VISIBLE (pas sur le pari de confiance ni le choix CASH/CARRÉ/
+  // DUO, où l'on mise avant de la lire). Une traversée malchanceuse peut donc
+  // enchaîner plusieurs de ces écrans-là avant de croiser une vraie question.
+  for (let i = 0; i < 400 && !trouve; i++) {
     if (await page.locator(".changer-question").count()) { trouve = true; break; }
     const roll = page.getByRole("button", { name: "🎲 Lancer le dé" });
     if (await roll.isVisible().catch(() => false)) {
@@ -49,9 +53,16 @@ try {
     }
     const next = page.getByRole("button", { name: /Découvrir|Continuer|Révéler|Valider|Subir|Quitter|Garder/ }).first();
     if ((await next.isVisible().catch(() => false)) && (await next.isEnabled().catch(() => false))) { await next.click().catch(() => {}); continue; }
-    const gros = page.locator(".btn-big:not([disabled])").first();
+    // Le `:visible` et la restriction au panneau sont indispensables : sans eux,
+    // `.first()` désigne un bouton caché d'un autre écran, la traversée n'appuie
+    // plus sur rien et le test échoue au hasard plutôt que sur un vrai défaut.
+    const gros = page.locator("#panel .btn-big:not([disabled]):visible, #panel .btn-choice:not([disabled]):visible, #panel button:not([disabled]):visible").first();
     if (await gros.isVisible().catch(() => false)) { await gros.click().catch(() => {}); continue; }
     await page.waitForTimeout(120);
+  }
+  if (!trouve) {
+    const ecran = (await page.locator("#panel, .panel").first().innerText().catch(() => "")) ?? "";
+    console.log(`  (bloqué sur : ${ecran.split("\n").slice(0, 4).join(" | ").slice(0, 160)})`);
   }
   check("le dépannage est proposé sur une question du plateau", trouve);
   if (trouve) {

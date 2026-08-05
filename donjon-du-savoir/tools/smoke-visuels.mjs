@@ -140,6 +140,26 @@ try {
   if (orphelines) {
     check(`aucune question ne pointe vers un visuel absent${orphelines.length ? " : " + orphelines.slice(0, 4).join(", ") : ""}`, orphelines.length === 0);
   }
+  // ⑤ L'ordre des propositions : mesuré, pas espéré. La banque écrit la bonne
+  // réponse en premier deux fois sur trois — si l'affichage ne mélangeait pas,
+  // « je prends la première » gagnerait sans rien savoir.
+  const positions = await page.evaluate(() => {
+    const q = { format: "qcm", choix: ["Alpha", "Bravo", "Charlie", "Delta"], bonne_reponse: "Alpha" };
+    return window.__donjonPositions?.(q, 800) ?? null;
+  }).catch(() => null);
+  if (positions) {
+    const total = positions.reduce((a, b) => a + b, 0);
+    const part = positions.map((n) => n / total);
+    const ecart = Math.max(...part) - Math.min(...part);
+    check(`les 4 positions se valent (${part.map((p) => (p * 100).toFixed(0) + " %").join(" / ")})`, ecart < 0.08);
+  }
+  // …et l'ordre CROISSANT est conservé quand les propositions sont des nombres.
+  const nombres = await page.evaluate(() => {
+    const q = { format: "qcm", choix: ["1969", "1961", "1975", "1957"], bonne_reponse: "1969" };
+    return window.__donjonChoixAffiches?.(q) ?? null;
+  }).catch(() => null);
+  if (nombres) check(`des propositions numériques restent croissantes (${nombres.join(" · ")})`, nombres.join() === "1957,1961,1969,1975");
+
   check("aucune erreur de page", errors.length === 0);
   if (errors.length) console.log("  " + errors.slice(0, 3).join("\n  "));
 } catch (e) {

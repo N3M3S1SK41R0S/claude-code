@@ -16,7 +16,7 @@
 // 10. Vibrations discrètes du téléphone sur les verdicts (si l'appareil sait).
 // 11. Récap croustillant : podium, meilleure série, anecdotes à ressortir à table.
 // 12. Records locaux par distance + palmarès général nourri (érudits, sans-faute).
-import { drawQuestion } from "./data.js";
+import { choixAffiches, drawQuestion } from "./data.js";
 import { AGE_BRACKETS, getState } from "./state.js";
 import { themeMeta, THEME_ORDER } from "./themes.js";
 import { say, sayHost, stop as stopVoix } from "./tts.js";
@@ -165,7 +165,7 @@ function questionSon() {
     id: `son-${item.son}`, categorie: "Musique", format: "qcm",
     difficulte: 2, niveau_age: "enfant",
     texte: "Écoutez bien… quel est ce son ?",
-    choix: [item.reponse, ...item.leurres].sort(() => Math.random() - 0.5),
+    choix: choixAffiches(null, [item.reponse, ...item.leurres]),
     bonne_reponse: item.reponse, anecdote: item.anecdote, son: item.son,
   };
 }
@@ -208,7 +208,9 @@ function montreQuestion(j, q, etage) {
   sayHost(q.texte, "question");
   if (q.son) setTimeout(() => jouerSon(q.son), 900); // après la consigne, jamais par-dessus
 
-  const choix = q.format === "vrai_faux" ? ["Vrai", "Faux"] : (q.choix ?? []).slice(0, 4);
+  // Même règle qu'au plateau : l'ordre des propositions est tiré au sort, sinon
+  // « je prends la première » suffit à gagner deux fois sur trois.
+  const choix = q.format === "vrai_faux" ? ["Vrai", "Faux"] : choixAffiches(q, (q.choix ?? []).slice(0, 4));
   const bonne = q.format === "vrai_faux" ? (q.bonne_reponse ?? q.reponse) : q.bonne_reponse;
   const boutons = choix.map((c) => el("button", {
     class: "btn eclair-choix", type: "button",

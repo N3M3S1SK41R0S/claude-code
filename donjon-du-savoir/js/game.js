@@ -4,7 +4,7 @@
 //    pion without re-triggering, so a turn always terminates;
 //  - nothing is ever timed (non-negotiable rule of the cahier des charges);
 //  - anecdote after EVERY question, no exception.
-import { commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawGambitTable, drawHardest, drawInsolite, drawQuestion, noteProposee } from "./data.js";
+import { choixAffiches, commitQuestion, drawEasier, drawEvent, drawEventPair, drawGambit, drawGambitTable, drawHardest, drawInsolite, drawQuestion, noteProposee } from "./data.js";
 import { boardById, CASE_TYPES, renderBoard, walkPion } from "./board.js";
 import { aimTile3D, clearAim3D, heroMoment3D, react3D, redonneChance3D, render3D, show3D, stageCase3D, use3D, walk3D } from "./board3d.js";
 import { CEREMONIE, herald, RETOURNEMENTS, TOASTS_OUVERTURE } from "./herald.js";
@@ -2005,6 +2005,10 @@ function anagramFlow(pion, q) {
       ),
     )),
   );
+  // Un mot qui ne dit rien à personne mérite le même secours qu'une question
+  // mal comprise : on en tire un autre, une seule fois, sans pénalité.
+  const changerAna = boutonChangerQuestion(pion, q, (nq) => anagramFlow(pion, nq), { formats: ["qcm"] });
+  if (changerAna) container.append(changerAna);
   setPanel(container);
   narrateQuestion(q);
 }
@@ -2025,7 +2029,7 @@ function sonMystereFlow(pion, ecartes = new Set()) {
     id: `son-${item.son}`, categorie: "Musique", format: "qcm",
     difficulte: 2, niveau_age: "enfant",
     texte: "Écoutez bien… quel est ce son ?",
-    choix: [item.reponse, ...item.leurres].sort(() => Math.random() - 0.5),
+    choix: choixAffiches(null, [item.reponse, ...item.leurres]),
     bonne_reponse: item.reponse, anecdote: item.anecdote,
   };
   heraldSays("🔊 LE SON MYSTÈRE ! Tendez l'oreille — et réécoutez autant de fois que vous voulez.");
@@ -2187,6 +2191,12 @@ function hangmanFlow(pion, q) {
       grid.append(btn);
     }
     container.append(grid, bigButton("J'abandonne — révéler la réponse", () => { errors = MAX_ERR; rerender(); }));
+    // Même secours qu'ailleurs, tant qu'aucune lettre n'a été proposée : après,
+    // ce serait changer de mot en cours de partie.
+    if (!guessed.size) {
+      const chg = boutonChangerQuestion(pion, q, (nq) => hangmanFlow(pion, nq), { formats: ["qcm"] });
+      if (chg) container.append(chg);
+    }
     setPanel(container);
   };
   rerender();
@@ -2203,11 +2213,13 @@ function questionFlow(pion, q, { advanceOverride = null, cashMode = null } = {})
   if (q.format === "gambit_numerique") return openAnswerFlow(pion, q, { advance: 2, accepted: [String(q.reponse_numerique)] });
   if (cashMode === "cash") return openAnswerFlow(pion, q, { advance: ADVANCE.cash, accepted: [q.bonne_reponse], kind: "cash" });
 
-  // Choice-based rendering (qcm, vrai_faux, carré, duo).
-  let choices = q.choix ?? [];
+  // Choice-based rendering (qcm, vrai_faux, carré, duo). L'ordre d'affichage
+  // est TIRÉ AU SORT : sans cela, la bonne réponse étant écrite en premier
+  // dans deux tiers de la banque, « je prends la première » gagnait tout seul.
+  let choices = choixAffiches(q);
   if (cashMode === "duo") {
     const wrong = choices.filter((c) => c !== q.bonne_reponse);
-    choices = [q.bonne_reponse, wrong[Math.floor(Math.random() * wrong.length)]].sort(() => Math.random() - 0.5);
+    choices = choixAffiches(q, [q.bonne_reponse, wrong[Math.floor(Math.random() * wrong.length)]]);
   }
   const advance = advanceOverride ?? (cashMode ? ADVANCE[cashMode] : ADVANCE[q.format] ?? 2);
 
@@ -2928,7 +2940,7 @@ function doCarrefour(pion) {
         visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
       );
       const grid = el("div", { class: "choices" });
-      for (const choice of q.choix) {
+      for (const choice of choixAffiches(q)) {
         grid.append(choiceButton(choice, () => {
           const correct = choice === q.bonne_reponse;
           pion.stats.questions += 1;
@@ -3289,7 +3301,7 @@ function doEventCarte() {
     const row = el("div", { class: "bet-row" }, el("strong", { class: "bet-name", text: p.nom }));
     const group = el("div", { class: "bet-buttons", role: "group", "aria-label": `Réponse de ${p.nom}` });
     if (p.bot) { group.dataset.bot = "1"; group.dataset.level = p.botLevel ?? "intermediaire"; } // pilote de bots
-    for (const choice of [...(q.choix ?? ["Vrai", "Faux"]), "🚫"]) {
+    for (const choice of [...choixAffiches(q, q.choix ?? ["Vrai", "Faux"]), "🚫"]) {
       const btn = choiceButton(choice, () => {
         answers.set(p.id, choice);
         group.querySelectorAll("button").forEach((b) => b.classList.remove("bet-selected"));
@@ -3742,7 +3754,7 @@ function dragonGate(next) {
     visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
   );
   const grid = el("div", { class: "choices" });
-  for (const choice of q.choix) {
+  for (const choice of choixAffiches(q)) {
     grid.append(choiceButton(choice, () => {
       const correct = choice === q.bonne_reponse;
       sfx(correct ? "win" : "ooh");

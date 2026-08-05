@@ -1,6 +1,6 @@
 // Screens and wiring: home → setup → game → victory. Pass-and-play, 1-20
 // players (individual) or teams sharing a pion with rotating spokesperson.
-import { allQuestions, dailyPool, drawQuestion, loadBank, bankSize, refreshCustom } from "./data.js";
+import { allQuestions, choixAffiches, dailyPool, drawQuestion, loadBank, bankSize, refreshCustom } from "./data.js";
 import { loadWordgames } from "./wordgames.js";
 import { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } from "./custom.js";
 import { BOARDS, boardById, deleteCustomBoard, generateBoard, loadCustomBoards, makeCustomBoard, saveCustomBoard } from "./board.js";
@@ -1108,6 +1108,18 @@ window.__donjonVisuel = (v) => visuelEl(v);
 // AUCUNE erreur — seule cette confrontation la débusque.
 window.__donjonVisuelsConnus = () => VISUELS_CONNUS;
 window.__donjonBanque = () => allQuestions();
+// Sonde de l'ordre des propositions : sans mélange, la bonne réponse tombait
+// en première position deux fois sur trois — un joueur pouvait gagner sans
+// rien savoir. Ce tirage en série permet de le MESURER, pas de l'espérer.
+window.__donjonPositions = (q, tirages = 400) => {
+  const pos = [0, 0, 0, 0];
+  for (let i = 0; i < tirages; i++) {
+    const idx = choixAffiches(q).indexOf(q.bonne_reponse);
+    if (idx >= 0 && idx < 4) pos[idx] += 1;
+  }
+  return pos;
+};
+window.__donjonChoixAffiches = (q) => choixAffiches(q);
 window.__donjonTire = (pion) => drawQuestion(pion, { commit: false });
 window.__donjonSansFilet = (pion, q) => sansFiletPour(pion, q);
 

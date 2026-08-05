@@ -113,6 +113,15 @@ Après un premier chargement, le jeu fonctionne **entièrement hors-ligne**.
 | 🔊 Son Mystère | un bruitage **synthétisé à la volée** à reconnaître parmi 4 propositions, réécoutable sans limite | +2 |
 | 🖼️ Question à support visuel | drapeau, carte de pays, monument en ombre chinoise ou charade en émojis dessinés par le code | selon le format porteur |
 
+**L'ordre des propositions est tiré au sort à l'affichage** (`choixAffiches`).
+Ce n'est pas un détail : mesurée sur la banque, la bonne réponse est écrite en
+**première position dans deux tiers des QCM** — c'est ainsi qu'on rédige une
+question naturellement. Sans mélange, « je prends toujours la première »
+gagnait deux fois sur trois sans rien savoir. Deux exceptions, où l'ordre porte
+du sens : le Vrai/Faux, et les propositions entièrement numériques (laissées
+croissantes, plus faciles à comparer). `tools/smoke-visuels.mjs` mesure la
+répartition réelle sur 800 tirages plutôt que de l'espérer.
+
 Bonne réponse = **+1 pièce** en plus des cases. Règle de moteur : seuls les
 **déplacements au dé** déclenchent les cases — les récompenses/pénalités
 déplacent le pion sans re-déclencher (un tour se termine toujours).
@@ -160,7 +169,7 @@ système demande de réduire les animations).
 
 ## La banque de questions
 
-`data/questions.json` — **4365 questions vérifiées** (chaque fait contrôlé
+`data/questions.json` — **4388 questions vérifiées** (chaque fait contrôlé
 contre ≥ 2 sources indépendantes, citées sous chaque anecdote), 13 catégories,
 6 formats, réparties en niveaux `tout_petit` / `enfant` / `ado` / `adulte`
 (difficulté 1-5). Elle est générée depuis la banque fact-checkée du projet

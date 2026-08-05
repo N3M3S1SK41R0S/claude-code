@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 4365,
+ "count": 4388,
  "questions": [
   {
    "id": "arts-001",
@@ -84785,6 +84785,553 @@
     "cle": "lion"
    },
    "id": "ciel-008"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
+   "choix": [
+    "Le Laos",
+    "Le Vietnam",
+    "Le Cambodge",
+    "La Birmanie"
+   ],
+   "bonne_reponse": "Le Vietnam",
+   "anecdote": "Les Vietnamiens comparent volontiers leur pays en forme de S à une palanche portant deux paniers de riz : le delta du fleuve Rouge au nord et celui du Mékong au sud.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vietnam",
+    "https://fr.wikipedia.org/wiki/G%C3%A9ographie_du_Vietnam"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "vietnam"
+   },
+   "id": "carte2-001"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "La Birmanie",
+    "Le Cambodge",
+    "La Thaïlande",
+    "Le Laos"
+   ],
+   "bonne_reponse": "La Thaïlande",
+   "anecdote": "On compare souvent cette silhouette à une tête d'éléphant dont la longue péninsule du sud formerait la trompe, et l'éléphant est justement un animal emblématique du pays.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tha%C3%AFlande",
+    "https://fr.wikipedia.org/wiki/G%C3%A9ographie_de_la_Tha%C3%AFlande"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "thailande"
+   },
+   "id": "carte2-002"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "À quel pays appartient ce contour ?",
+   "choix": [
+    "Le Sri Lanka",
+    "Madagascar",
+    "Taïwan",
+    "Chypre"
+   ],
+   "bonne_reponse": "Le Sri Lanka",
+   "anecdote": "Cette île en forme de goutte, séparée de l'Inde par le détroit de Palk, s'est appelée Ceylan jusqu'en 1972.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sri_Lanka"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "srilanka"
+   },
+   "id": "carte2-003"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Cette carte est celle de quel pays ?",
+   "choix": [
+    "Le Bhoutan",
+    "Le Bangladesh",
+    "Le Tadjikistan",
+    "Le Népal"
+   ],
+   "bonne_reponse": "Le Népal",
+   "anecdote": "Cette longue bande inclinée court le long de l'Himalaya, entre l'Inde et la Chine ; c'est aussi le seul pays au monde dont le drapeau n'est pas rectangulaire, mais formé de deux fanions triangulaires.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/N%C3%A9pal",
+    "https://fr.wikipedia.org/wiki/Drapeau_du_N%C3%A9pal"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "nepal"
+   },
+   "id": "carte2-004"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
+   "choix": [
+    "Le Japon",
+    "La Corée du Sud",
+    "Taïwan",
+    "La Corée du Nord"
+   ],
+   "bonne_reponse": "La Corée du Sud",
+   "anecdote": "Ce pays occupe la moitié sud de la péninsule coréenne ; au large de sa côte sud se trouve Jeju, une île volcanique dominée par le Hallasan, point culminant de la Corée du Sud.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cor%C3%A9e_du_Sud",
+    "https://fr.wikipedia.org/wiki/Jeju-do"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "coreedusud"
+   },
+   "id": "carte2-005"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "L'Indonésie",
+    "La Malaisie",
+    "Les Philippines",
+    "Le Japon"
+   ],
+   "bonne_reponse": "Les Philippines",
+   "anecdote": "Cet archipel compte plus de sept mille îles, mais les deux plus grandes suffisent à le reconnaître : Luçon tout au nord et Mindanao tout au sud.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Philippines",
+    "https://fr.wikipedia.org/wiki/G%C3%A9ographie_des_Philippines"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "philippines"
+   },
+   "id": "carte2-006"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
+   "choix": [
+    "La Croatie",
+    "La Slovénie",
+    "Le Monténégro",
+    "La Serbie"
+   ],
+   "bonne_reponse": "La Croatie",
+   "anecdote": "Sa forme en croissant vient de la longue bande côtière qui longe l'Adriatique en contournant la Bosnie-Herzégovine ; celle-ci atteint d'ailleurs la mer à Neum, sur une vingtaine de kilomètres, ce qui coupe l'extrême sud croate du reste du territoire continental.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Croatie",
+    "https://fr.wikipedia.org/wiki/Neum"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "croatie"
+   },
+   "id": "carte2-007"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "La Pologne",
+    "L'Allemagne",
+    "La Roumanie",
+    "La Tchéquie"
+   ],
+   "bonne_reponse": "La Pologne",
+   "anecdote": "Le nom du pays dans sa propre langue, Polska, vient d'un mot qui signifie « champ, plaine », et la carte le confirme : en dehors des montagnes de sa bordure sud, c'est un vaste pays de plaines.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pologne"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "pologne"
+   },
+   "id": "carte2-008"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "À quel pays appartient ce contour ?",
+   "choix": [
+    "L'Autriche",
+    "La Suisse",
+    "La Hongrie",
+    "La Slovaquie"
+   ],
+   "bonne_reponse": "L'Autriche",
+   "anecdote": "Cette silhouette étirée d'ouest en est explique une particularité : bien que peu étendue, l'Autriche touche huit pays voisins, du Liechtenstein et de la Suisse à l'ouest jusqu'à la Slovaquie et la Hongrie à l'est.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Autriche"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "autriche"
+   },
+   "id": "carte2-009"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Cette carte est celle de quel pays ?",
+   "choix": [
+    "Les Pays-Bas",
+    "La Belgique",
+    "Le Danemark",
+    "L'Irlande"
+   ],
+   "bonne_reponse": "Les Pays-Bas",
+   "anecdote": "Dans le nord du pays s'étend l'IJsselmeer : c'était autrefois un bras de mer, la Zuiderzee, refermé en 1932 par une digue de 32 km, l'Afsluitdijk, qui l'a transformé en lac d'eau douce.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pays-Bas",
+    "https://fr.wikipedia.org/wiki/IJsselmeer"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "paysbas"
+   },
+   "id": "carte2-010"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
+   "choix": [
+    "Le Danemark",
+    "La Suède",
+    "L'Estonie",
+    "La Lettonie"
+   ],
+   "bonne_reponse": "Le Danemark",
+   "anecdote": "La carte se lit en deux morceaux : la péninsule du Jutland, accrochée à l'Allemagne, et un chapelet d'îles à l'est, dont Seeland, où se trouve la capitale Copenhague, face à la Suède.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Danemark",
+    "https://fr.wikipedia.org/wiki/Jutland"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "danemark"
+   },
+   "id": "carte2-011"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "L'Ukraine",
+    "La Roumanie",
+    "La Biélorussie",
+    "La Bulgarie"
+   ],
+   "bonne_reponse": "L'Ukraine",
+   "anecdote": "Au sud, le contour laisse apparaître une grande péninsule presque détachée, la Crimée, rattachée au continent par un isthme si étroit qu'on le distingue à peine sur le tracé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ukraine",
+    "https://fr.wikipedia.org/wiki/Crim%C3%A9e"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "ukraine"
+   },
+   "id": "carte2-012"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
+   "choix": [
+    "La Russie",
+    "Le Canada",
+    "La Chine",
+    "Les États-Unis"
+   ],
+   "bonne_reponse": "La Russie",
+   "anecdote": "La Russie s'étend sur onze fuseaux horaires : quand il est midi à Moscou, il est déjà 21 heures au Kamtchatka, à l'autre bout du pays.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Russie",
+    "https://fr.wikipedia.org/wiki/G%C3%A9ographie_de_la_Russie"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "russie"
+   },
+   "id": "carte2-013"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "La Mongolie",
+    "Le Kazakhstan",
+    "L'Ouzbékistan",
+    "L'Afghanistan"
+   ],
+   "bonne_reponse": "La Mongolie",
+   "anecdote": "La Mongolie n'a que deux voisins — la Russie au nord et la Chine sur tout le reste de ses frontières — et pas le moindre accès à la mer.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mongolie",
+    "https://fr.wikipedia.org/wiki/G%C3%A9ographie_de_la_Mongolie"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "mongolie"
+   },
+   "id": "carte2-014"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "À quel pays appartient ce contour ?",
+   "choix": [
+    "L'Arabie saoudite",
+    "L'Iran",
+    "L'Irak",
+    "L'Égypte"
+   ],
+   "bonne_reponse": "L'Arabie saoudite",
+   "anecdote": "L'Arabie saoudite occupe la plus grande partie de la péninsule Arabique, entre la mer Rouge à l'ouest et le golfe Persique à l'est.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Arabie_saoudite",
+    "https://fr.wikipedia.org/wiki/P%C3%A9ninsule_Arabique"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "arabiesaoudite"
+   },
+   "id": "carte2-015"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Cette carte est celle de quel pays ?",
+   "choix": [
+    "La Somalie",
+    "L'Éthiopie",
+    "Le Kenya",
+    "L'Érythrée"
+   ],
+   "bonne_reponse": "La Somalie",
+   "anecdote": "Ce contour en forme de crochet dessine la pointe de la corne de l'Afrique, avec le golfe d'Aden au nord et l'océan Indien à l'est.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Somalie",
+    "https://fr.wikipedia.org/wiki/Corne_de_l%27Afrique"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "somalie"
+   },
+   "id": "carte2-016"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
+   "choix": [
+    "Chypre",
+    "Malte",
+    "Le Liban",
+    "La Grèce"
+   ],
+   "bonne_reponse": "Chypre",
+   "anecdote": "Chypre est la troisième plus grande île de la Méditerranée, après la Sicile et la Sardaigne ; sa longue pointe étirée vers le nord-est porte le nom de péninsule de Karpas.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chypre",
+    "https://fr.wikipedia.org/wiki/Chypre_(%C3%AEle)"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "chypre"
+   },
+   "id": "carte2-017"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "La Malaisie",
+    "L'Indonésie",
+    "Les Philippines",
+    "La Thaïlande"
+   ],
+   "bonne_reponse": "La Malaisie",
+   "anecdote": "La Malaisie est faite de deux morceaux séparés par la mer de Chine méridionale : une péninsule à l'ouest, et le nord de l'île de Bornéo, qu'elle partage avec l'Indonésie et Brunei.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Malaisie",
+    "https://fr.wikipedia.org/wiki/Born%C3%A9o"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "malaisie"
+   },
+   "id": "carte2-018"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel pays reconnaissez-vous à sa carte ?",
+   "choix": [
+    "La République dominicaine",
+    "Cuba",
+    "Haïti",
+    "La Jamaïque"
+   ],
+   "bonne_reponse": "Cuba",
+   "anecdote": "Cuba est la plus grande île des Antilles, et sa silhouette très allongée d'ouest en est fait souvent penser à un caïman ou à un crocodile.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cuba",
+    "https://fr.wikipedia.org/wiki/G%C3%A9ographie_de_Cuba"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "cuba"
+   },
+   "id": "carte2-019"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "Le Costa Rica",
+    "Le Honduras",
+    "Le Panama",
+    "Le Nicaragua"
+   ],
+   "bonne_reponse": "Le Panama",
+   "anecdote": "À cause de cette drôle de courbe en S, le canal de Panama traverse le pays du nord-ouest vers le sud-est : un navire parti de la mer des Caraïbes ressort dans le Pacifique plus à l'est qu'il n'était entré.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Panama",
+    "https://fr.wikipedia.org/wiki/Canal_de_Panama"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "panama"
+   },
+   "id": "carte2-020"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "À quel pays appartient ce contour ?",
+   "choix": [
+    "La Colombie",
+    "La Bolivie",
+    "L'Équateur",
+    "Le Pérou"
+   ],
+   "bonne_reponse": "Le Pérou",
+   "anecdote": "Le long côté presque rectiligne, à gauche de la carte, est la côte pacifique du Pérou. Le pays a cinq voisins : l'Équateur et la Colombie au nord, le Brésil à l'est, la Bolivie au sud-est et le Chili au sud.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/P%C3%A9rou"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "perou"
+   },
+   "id": "carte2-021"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Cette carte est celle de quel pays ?",
+   "choix": [
+    "Le Venezuela",
+    "La Colombie",
+    "Le Pérou",
+    "L'Équateur"
+   ],
+   "bonne_reponse": "La Colombie",
+   "anecdote": "La Colombie est le seul pays d'Amérique du Sud à posséder à la fois une côte sur l'océan Pacifique et une côte sur la mer des Caraïbes : on voit les deux sur sa carte.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Colombie"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "colombie"
+   },
+   "id": "carte2-022"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel pays dessine cette carte ?",
+   "choix": [
+    "L'Angola",
+    "La Zambie",
+    "Le Botswana",
+    "La Namibie"
+   ],
+   "bonne_reponse": "La Namibie",
+   "anecdote": "Le long doigt de terre qui pointe vers l'est, en haut à droite, s'appelle la bande de Caprivi : ce corridor étroit a été tracé à l'époque coloniale pour atteindre le fleuve Zambèze.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Namibie",
+    "https://fr.wikipedia.org/wiki/Bande_de_Caprivi"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "namibie"
+   },
+   "id": "carte2-023"
   }
  ]
 }

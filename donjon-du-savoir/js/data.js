@@ -68,6 +68,32 @@ export function dailyPool() {
   return bank.filter((q) => q.format === "qcm" && q.niveau_age === "ado" && Array.isArray(q.choix));
 }
 
+/**
+ * ORDRE D'AFFICHAGE DES PROPOSITIONS — mesuré sur la banque : deux tiers des
+ * QCM ont leur bonne réponse écrite en PREMIER (c'est ainsi qu'on les rédige
+ * naturellement). Sans mélange, répondre « la première » suffisait à gagner
+ * deux fois sur trois sans rien savoir. On mélange donc à l'affichage, jamais
+ * dans le fichier : la banque reste lisible pour qui la relit.
+ *
+ * Deux exceptions, où l'ordre PORTE du sens :
+ * - le Vrai/Faux, qu'on lit toujours dans cet ordre ;
+ * - les propositions entièrement numériques, plus faciles à comparer croissantes.
+ */
+export function choixAffiches(q, choix = q.choix ?? []) {
+  if (!Array.isArray(choix) || choix.length < 2) return choix;
+  if (q?.format === "vrai_faux") return choix;
+  const nombre = (c) => Number(String(c).replace(/\s| /g, "").replace(",", "."));
+  if (choix.every((c) => Number.isFinite(nombre(c)))) return [...choix].sort((a, b) => nombre(a) - nombre(b));
+  // Fisher-Yates : un `sort(() => Math.random() - 0.5)` est un mélange biaisé,
+  // et un biais est exactement ce que l'on cherche à supprimer ici.
+  const out = [...choix];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 /** La banque entière, telle qu'elle est en mémoire (outils de contrôle). */
 export function allQuestions() {
   return bank;
