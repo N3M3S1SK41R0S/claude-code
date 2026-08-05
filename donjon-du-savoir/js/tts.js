@@ -1,5 +1,5 @@
 import { clipEnCours, clipFor, playClip, stopClips } from "./voiceclips.js";
-import { directEnCours, lireEnDirect, stopDirect, voixDirectActif } from "./voixdirect.js";
+import { directEnCours, lireEnDirect, prechargeEnDirect, stopDirect, voixDirectActif } from "./voixdirect.js";
 // Narration locale : accroches Opus embarquées + synthèse vocale du navigateur
 // pour le texte variable des questions et anecdotes. Aucun service réseau,
 // aucun clonage et aucune imitation de personne réelle.
@@ -157,6 +157,11 @@ function speechText(text, kind) {
     .replace(/[«»"]/g, "")
     .replace(/\s*\.{3}\s*/g, "… ")
     .replace(/,\s*,/g, ",")
+    // Dernier lissage : retirer les guillemets laisse des doubles espaces —
+    // une hésitation à la lecture, et deux versions d'un même texte (donc un
+    // clip mis en cache que l'on ne retrouve plus ensuite).
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([,.;:!?…])/g, "$1")
     .trim();
   if (kind === "question" && !/[?!.…]$/.test(clean)) return `${clean} ?`;
   return clean;
@@ -224,6 +229,20 @@ export function sayHost(text, kind = null) {
   const token = speechToken;
   const cue = kind === "question" || kind === "anecdote" ? pickHostCue(kind) : null;
   cueThenSpeak(cue, text, kind, token);
+}
+
+/** PRÉPARE une réplique à venir sans la dire : la vraie voix est fabriquée
+ *  pendant que la table lit l'écran, si bien qu'elle est prête à l'instant
+ *  où elle doit parler. Sans option ElevenLabs, sans objet : la synthèse du
+ *  navigateur est déjà instantanée. `kind` applique le même toilettage de
+ *  ponctuation que la lecture réelle, sinon le texte préparé ne correspond
+ *  pas à celui demandé ensuite (et le cache serait manqué). */
+export function preparerVoix(text, kind = null) {
+  if (!enabled || !text || !voixDirectActif()) return;
+  const spoken = kind ? speechText(text, kind) : text;
+  // Une réplique qui a DÉJÀ son clip enregistré n'a rien à préparer.
+  if (clipFor("heraut", spoken)) return;
+  prechargeEnDirect(spoken);
 }
 
 /** L'ARBITRE DE PAROLE : vrai si QUELQU'UN parle, tous canaux confondus —

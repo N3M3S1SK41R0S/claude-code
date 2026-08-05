@@ -11,7 +11,7 @@ import { CEREMONIE, herald, RETOURNEMENTS, TOASTS_OUVERTURE } from "./herald.js"
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } from "./ui.js";
-import { onSpeechBoundary, say, sayHost, voiceEnabled } from "./tts.js";
+import { onSpeechBoundary, preparerVoix, say, sayHost, voiceEnabled } from "./tts.js";
 import { direQuand } from "./tts.js";
 import { heroLine, voiceOf } from "./voices.js";
 import { botNumericGuess, botWantsCorrect } from "./bots.js";
@@ -1676,6 +1676,9 @@ const ADVANCE = { qcm: 2, vrai_faux: 1, equipe: 2, duo: 1, carre: 2, cash: 4 };
 // Héraut prend la parole — fini les chevauchements de voix.
 function narrateQuestion(q) {
   if (q?.texte) direQuand(() => sayHost(q.texte, "question"));
+  // Pendant que le Héraut lit la question, la suite se fabrique en coulisse :
+  // l'anecdote sera prête bien avant qu'on y arrive.
+  if (q?.anecdote) preparerVoix(q.anecdote, "anecdote");
 }
 
 function narrateAnecdote(q) {
@@ -1692,7 +1695,9 @@ function narrateChoices(choices) {
   if (!voiceEnabled() || !Array.isArray(choices) || choices.length < 2) return;
   // « Vrai / Faux » : rien à énumérer, tout le monde connaît les deux choix.
   if (choices.length === 2 && choices.every((c) => /^(vrai|faux)$/i.test(String(c).trim()))) return;
-  say(`Les propositions sont : ${choices.map((c) => String(c)).join(". ")}.`, { queue: true });
+  const texte = `Les propositions sont : ${choices.map((c) => String(c)).join(". ")}.`;
+  preparerVoix(texte); // prête avant même la fin de la question
+  say(texte, { queue: true });
 }
 
 // Règle affichée clairement en tête de CHAQUE type de question : comment on
@@ -1834,6 +1839,9 @@ function themeRevealGate(pion, q) {
       bigButton("Découvrir la question", () => posePicked(pion, q)),
     ),
   );
+  // La vraie voix se prépare PENDANT que la table lit le thème : quand la
+  // question s'affiche, elle est déjà là — plus de blanc avant que ça parle.
+  preparerVoix(q.texte, "question");
 }
 
 /** Laisse le joueur choisir entre deux thèmes avant de voir la question. */
@@ -1853,6 +1861,11 @@ function themeChoiceGate(pion, qA, qB) {
       el("div", { class: "choices choices-2" }, btn(qA), btn(qB)),
     ),
   );
+  // Les DEUX questions se préparent pendant l'hésitation : quel que soit le
+  // thème choisi, la voix est prête. La non retenue coûte un souffle de
+  // crédits (~70 caractères) et sert dès qu'elle ressortira, plus tard.
+  preparerVoix(qA.texte, "question");
+  preparerVoix(qB.texte, "question");
 }
 
 /**

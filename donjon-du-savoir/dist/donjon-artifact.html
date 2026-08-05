@@ -5921,7 +5921,7 @@ function resetHostCues() {
 };
 __modules["./tts.js"] = function(module, exports, require) {
 const { clipEnCours, clipFor, playClip, stopClips } = require("./voiceclips.js");
-const { directEnCours, lireEnDirect, stopDirect, voixDirectActif } = require("./voixdirect.js");
+const { directEnCours, lireEnDirect, prechargeEnDirect, stopDirect, voixDirectActif } = require("./voixdirect.js");
 // Narration locale : accroches Opus embarquées + synthèse vocale du navigateur
 // pour le texte variable des questions et anecdotes. Aucun service réseau,
 // aucun clonage et aucune imitation de personne réelle.
@@ -6079,6 +6079,11 @@ function speechText(text, kind) {
     .replace(/[«»"]/g, "")
     .replace(/\s*\.{3}\s*/g, "… ")
     .replace(/,\s*,/g, ",")
+    // Dernier lissage : retirer les guillemets laisse des doubles espaces —
+    // une hésitation à la lecture, et deux versions d'un même texte (donc un
+    // clip mis en cache que l'on ne retrouve plus ensuite).
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([,.;:!?…])/g, "$1")
     .trim();
   if (kind === "question" && !/[?!.…]$/.test(clean)) return `${clean} ?`;
   return clean;
@@ -6148,6 +6153,20 @@ function sayHost(text, kind = null) {
   cueThenSpeak(cue, text, kind, token);
 }
 
+/** PRÉPARE une réplique à venir sans la dire : la vraie voix est fabriquée
+ *  pendant que la table lit l'écran, si bien qu'elle est prête à l'instant
+ *  où elle doit parler. Sans option ElevenLabs, sans objet : la synthèse du
+ *  navigateur est déjà instantanée. `kind` applique le même toilettage de
+ *  ponctuation que la lecture réelle, sinon le texte préparé ne correspond
+ *  pas à celui demandé ensuite (et le cache serait manqué). */
+function preparerVoix(text, kind = null) {
+  if (!enabled || !text || !voixDirectActif()) return;
+  const spoken = kind ? speechText(text, kind) : text;
+  // Une réplique qui a DÉJÀ son clip enregistré n'a rien à préparer.
+  if (clipFor("heraut", spoken)) return;
+  prechargeEnDirect(spoken);
+}
+
 /** L'ARBITRE DE PAROLE : vrai si QUELQU'UN parle, tous canaux confondus —
  *  clip enregistré, accroche, lecture en direct ou synthèse. */
 function parleEnCours() {
@@ -6193,7 +6212,7 @@ function warmVoices() {
   window.speechSynthesis.onvoiceschanged = () => frenchVoices(window.speechSynthesis);
 }
 
-;Object.assign(module.exports, {setVoice, voiceEnabled, voiceAvailable, stop, onSpeechBoundary, say, sayHost, parleEnCours, direQuand, videFileParole, warmVoices});
+;Object.assign(module.exports, {setVoice, voiceEnabled, voiceAvailable, stop, onSpeechBoundary, say, sayHost, preparerVoix, parleEnCours, direQuand, videFileParole, warmVoices});
 };
 __modules["./sfx.js"] = function(module, exports, require) {
 // Effets sonores SYNTHÉTISÉS (Web Audio) — aucun fichier, hors-ligne, muetables.
@@ -9749,6 +9768,47 @@ function joue(blob, onEchec) {
   a.play().catch(() => { if (audioDirect === a) { audioDirect = null; onEchec?.(); } });
 }
 
+/* ---------- préchargement (la voix prête AVANT de parler) ---------- */
+
+// Un texte jamais lu demande un aller-retour réseau d'une à deux secondes.
+// En le fabriquant PENDANT que la table lit l'écran (annonce du thème,
+// lecture de la question), la voix est déjà là quand vient son tour : plus
+// aucun blanc. Deux préchargements simultanés au plus — on prépare la suite,
+// on ne sature pas la ligne au détriment de ce qui doit être dit MAINTENANT.
+let prechargements = 0;
+const dejaDemande = new Set();
+
+function prechargeEnDirect(texte) {
+  if (!voixDirectActif() || !texte || prechargements >= 2) return;
+  const id = idReplique(texte);
+  if (dejaDemande.has(id)) return; // une seule tentative par texte et par session
+  const [voiceId] = (lit(VOIX_STOCKAGE) ?? "").split("|");
+  if (!voiceId) return;
+  dejaDemande.add(id);
+  prechargements += 1;
+  (async () => {
+    try {
+      if (await cacheLit(id)) return; // déjà acquis : rien à faire, rien à payer
+      if (!navigator.onLine) return;
+      const r = await fetch(`${API}/text-to-speech/${voiceId}?output_format=mp3_44100_64`, {
+        method: "POST",
+        headers: { "xi-api-key": lit(CLE_STOCKAGE), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: texte,
+          model_id: "eleven_multilingual_v2",
+          voice_settings: { stability: 0.4, similarity_boost: 0.8, style: 0.45 },
+        }),
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      cacheEcrit(id, await r.blob());
+    } catch {
+      dejaDemande.delete(id); // pépin réseau : la lecture normale retentera
+    } finally {
+      prechargements -= 1;
+    }
+  })();
+}
+
 /** Lit un texte avec la vraie voix (cache d'abord, API sinon). Renvoie true si
  *  la lecture est prise en charge ; en cas de pépin, onEchec() rend la main à
  *  la synthèse — jamais de silence, jamais de blocage. La parole est RÉSERVÉE
@@ -9788,7 +9848,7 @@ function lireEnDirect(texte, { onEchec } = {}) {
   return true;
 }
 
-;Object.assign(module.exports, {configurerCle, tailleCache, voixDirectConfigure, voixDirectActif, setVoixDirect, nomVoixDirect, oublierCle, directEnCours, stopDirect, lireEnDirect});
+;Object.assign(module.exports, {configurerCle, tailleCache, voixDirectConfigure, voixDirectActif, setVoixDirect, nomVoixDirect, oublierCle, directEnCours, stopDirect, prechargeEnDirect, lireEnDirect});
 };
 __modules["./eclair.js"] = function(module, exports, require) {
 // ⚡ PARTIE ÉCLAIR — le Donjon sans plateau : les questions s'enchaînent, pur
@@ -12646,7 +12706,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v139";
+const APP_VERSION = "donjon-v140";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
@@ -12664,7 +12724,7 @@ const { CEREMONIE, herald, RETOURNEMENTS, TOASTS_OUVERTURE } = require("./herald
 const { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } = require("./powers.js");
 const { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } = require("./state.js");
 const { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } = require("./ui.js");
-const { onSpeechBoundary, say, sayHost, voiceEnabled } = require("./tts.js");
+const { onSpeechBoundary, preparerVoix, say, sayHost, voiceEnabled } = require("./tts.js");
 const { direQuand } = require("./tts.js");
 const { heroLine, voiceOf } = require("./voices.js");
 const { botNumericGuess, botWantsCorrect } = require("./bots.js");
@@ -14329,6 +14389,9 @@ const ADVANCE = { qcm: 2, vrai_faux: 1, equipe: 2, duo: 1, carre: 2, cash: 4 };
 // Héraut prend la parole — fini les chevauchements de voix.
 function narrateQuestion(q) {
   if (q?.texte) direQuand(() => sayHost(q.texte, "question"));
+  // Pendant que le Héraut lit la question, la suite se fabrique en coulisse :
+  // l'anecdote sera prête bien avant qu'on y arrive.
+  if (q?.anecdote) preparerVoix(q.anecdote, "anecdote");
 }
 
 function narrateAnecdote(q) {
@@ -14345,7 +14408,9 @@ function narrateChoices(choices) {
   if (!voiceEnabled() || !Array.isArray(choices) || choices.length < 2) return;
   // « Vrai / Faux » : rien à énumérer, tout le monde connaît les deux choix.
   if (choices.length === 2 && choices.every((c) => /^(vrai|faux)$/i.test(String(c).trim()))) return;
-  say(`Les propositions sont : ${choices.map((c) => String(c)).join(". ")}.`, { queue: true });
+  const texte = `Les propositions sont : ${choices.map((c) => String(c)).join(". ")}.`;
+  preparerVoix(texte); // prête avant même la fin de la question
+  say(texte, { queue: true });
 }
 
 // Règle affichée clairement en tête de CHAQUE type de question : comment on
@@ -14487,6 +14552,9 @@ function themeRevealGate(pion, q) {
       bigButton("Découvrir la question", () => posePicked(pion, q)),
     ),
   );
+  // La vraie voix se prépare PENDANT que la table lit le thème : quand la
+  // question s'affiche, elle est déjà là — plus de blanc avant que ça parle.
+  preparerVoix(q.texte, "question");
 }
 
 /** Laisse le joueur choisir entre deux thèmes avant de voir la question. */
@@ -14506,6 +14574,11 @@ function themeChoiceGate(pion, qA, qB) {
       el("div", { class: "choices choices-2" }, btn(qA), btn(qB)),
     ),
   );
+  // Les DEUX questions se préparent pendant l'hésitation : quel que soit le
+  // thème choisi, la voix est prête. La non retenue coûte un souffle de
+  // crédits (~70 caractères) et sert dès qu'elle ressortira, plus tard.
+  preparerVoix(qA.texte, "question");
+  preparerVoix(qB.texte, "question");
 }
 
 /**

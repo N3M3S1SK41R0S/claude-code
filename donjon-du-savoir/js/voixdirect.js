@@ -126,6 +126,47 @@ function joue(blob, onEchec) {
   a.play().catch(() => { if (audioDirect === a) { audioDirect = null; onEchec?.(); } });
 }
 
+/* ---------- préchargement (la voix prête AVANT de parler) ---------- */
+
+// Un texte jamais lu demande un aller-retour réseau d'une à deux secondes.
+// En le fabriquant PENDANT que la table lit l'écran (annonce du thème,
+// lecture de la question), la voix est déjà là quand vient son tour : plus
+// aucun blanc. Deux préchargements simultanés au plus — on prépare la suite,
+// on ne sature pas la ligne au détriment de ce qui doit être dit MAINTENANT.
+let prechargements = 0;
+const dejaDemande = new Set();
+
+export function prechargeEnDirect(texte) {
+  if (!voixDirectActif() || !texte || prechargements >= 2) return;
+  const id = idReplique(texte);
+  if (dejaDemande.has(id)) return; // une seule tentative par texte et par session
+  const [voiceId] = (lit(VOIX_STOCKAGE) ?? "").split("|");
+  if (!voiceId) return;
+  dejaDemande.add(id);
+  prechargements += 1;
+  (async () => {
+    try {
+      if (await cacheLit(id)) return; // déjà acquis : rien à faire, rien à payer
+      if (!navigator.onLine) return;
+      const r = await fetch(`${API}/text-to-speech/${voiceId}?output_format=mp3_44100_64`, {
+        method: "POST",
+        headers: { "xi-api-key": lit(CLE_STOCKAGE), "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: texte,
+          model_id: "eleven_multilingual_v2",
+          voice_settings: { stability: 0.4, similarity_boost: 0.8, style: 0.45 },
+        }),
+      });
+      if (!r.ok) throw new Error(String(r.status));
+      cacheEcrit(id, await r.blob());
+    } catch {
+      dejaDemande.delete(id); // pépin réseau : la lecture normale retentera
+    } finally {
+      prechargements -= 1;
+    }
+  })();
+}
+
 /** Lit un texte avec la vraie voix (cache d'abord, API sinon). Renvoie true si
  *  la lecture est prise en charge ; en cas de pépin, onEchec() rend la main à
  *  la synthèse — jamais de silence, jamais de blocage. La parole est RÉSERVÉE

@@ -56,6 +56,9 @@ await page.addInitScript(() => {
 
 // Interception TOTALE de l'API : rien ne sort de la machine.
 const ttsTexts = [];
+const horodatage = []; // instant de chaque appel réseau (pour prouver le préchargement)
+let instantQuestion = null; // instant où la question apparaît à l'écran
+let instantAnecdote = null; // instant où l'anecdote apparaît à l'écran
 await page.route("https://api.elevenlabs.io/**", async (route) => {
   const req = route.request();
   const cors = {
@@ -69,6 +72,7 @@ await page.route("https://api.elevenlabs.io/**", async (route) => {
   }
   if (req.url().includes("/v1/text-to-speech/")) {
     try { ttsTexts.push(JSON.parse(req.postData() ?? "{}").text ?? ""); } catch { ttsTexts.push("?"); }
+    horodatage.push(Date.now());
     return route.fulfill({ status: 200, headers: cors, contentType: "audio/mpeg", body: MP3_SILENCE });
   }
   return route.abort();
@@ -111,6 +115,7 @@ try {
   while (guard++ < 120 && !question) {
     if (await page.locator(".question-texte").count()) {
       question = (await page.locator(".question-texte").first().textContent())?.trim();
+      instantQuestion = Date.now();
       break;
     }
     if (await page.getByText("Le Marchand d'Étoile").count()) {
@@ -151,11 +156,12 @@ try {
   // Même toilettage que speechText (guillemets et émojis retirés) pour que
   // l'aiguille corresponde au texte réellement envoyé à la voix.
   const aiguille = (t) => t.replace(/[\p{Extended_Pictographic}«»"]/gu, "").replace(/\s+/g, " ").trim().split(" ").slice(0, 3).join(" ");
+  const lisse = (t) => t.replace(/\s+/g, " ").trim(); // les appels TTS sont comparés lissés
   const nbChoix = await page.locator(".choices .btn-choice").count();
   if (question) {
     // 90 s : la file de parole joue accroches et réactions en temps réel avant
     // la question — les tirages les plus bavards dépassent 45 s.
-    const lue = await attend(() => ttsTexts.some((t) => t.includes(aiguille(question))), 90000);
+    const lue = await attend(() => ttsTexts.some((t) => lisse(t).includes(aiguille(question))), 90000);
     check(`la question est LUE par la voix du Héraut en direct (${ttsTexts.length} appels au total)`, lue);
     if (!lue) for (const t of ttsTexts) console.log("  [tts]", t.slice(0, 90));
   } else {
@@ -177,6 +183,7 @@ try {
       // autres sont le titre « 📜 L'ANECDOTE DU HÉRAUT » et les sources).
       const lignes = ((await page.locator(".anecdote-card").first().innerText()) ?? "").split("\n").map((l) => l.trim()).filter(Boolean);
       anecdote = lignes.sort((a, b) => b.length - a.length)[0] ?? null;
+      instantAnecdote = Date.now();
       break;
     }
     if ((await page.locator(".choices .btn-choice:not([disabled])").count()) > 0) { await page.locator(".choices .btn-choice:not([disabled])").first().click().catch(() => {}); continue; }
@@ -190,7 +197,7 @@ try {
   }
   if (anecdote) {
     check(`anecdote affichée (« ${anecdote.slice(0, 40)}… »)`, true);
-    const lue = await attend(() => ttsTexts.some((t) => t.includes(aiguille(anecdote))), 90000);
+    const lue = await attend(() => ttsTexts.some((t) => lisse(t).includes(aiguille(anecdote))), 90000);
     check(`l'anecdote est LUE par la voix du Héraut en direct (${ttsTexts.length} appels au total)`, lue);
     if (!lue) { console.log("  [aiguille]", aiguille(anecdote)); for (const t of ttsTexts.slice(-8)) console.log("  [tts]", t.slice(0, 90)); }
   } else {
@@ -198,7 +205,17 @@ try {
     // anecdote : la vérification n'a pas d'objet sur cette partie-là.
     console.log("  (pas de carte anecdote sur ce tirage : vérification sautée)");
   }
-  // ④ JAMAIS DE SUPERPOSITION : au plus UNE piste audio active à tout instant.
+  // ④ PRÉCHARGEMENT : l'anecdote est fabriquée PENDANT la lecture de la
+  // question — au moment de la dire, elle vient du cache, pas du réseau.
+  // (La question, elle, n'est préchargée que sur les chemins qui offrent un
+  // écran intermédiaire : annonce ou choix du thème.)
+  if (anecdote && instantAnecdote !== null) {
+    const iAppel = ttsTexts.findIndex((t) => lisse(t).includes(aiguille(anecdote)));
+    const avance = iAppel >= 0 ? (instantAnecdote - horodatage[iAppel]) / 1000 : null;
+    check(`l'anecdote était prête AVANT son affichage${avance === null ? "" : ` (${avance.toFixed(1)} s d'avance)`}`, avance !== null && avance > 0);
+  }
+
+  // ⑤ JAMAIS DE SUPERPOSITION : au plus UNE piste audio active à tout instant.
   const maxSimultane = await page.evaluate(() => window.__maxSimultane);
   check(`aucune superposition audio (max simultané : ${maxSimultane})`, maxSimultane <= 1);
   check("aucune erreur de page", errors.length === 0);
