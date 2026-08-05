@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 4237,
+ "count": 4332,
  "questions": [
   {
    "id": "arts-001",
@@ -81840,6 +81840,2191 @@
    ],
    "bonne_reponse": "Sous la terre",
    "id": "v3-042"
+  },
+  {
+   "id": "vis-drapeau-001",
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le bleu et le rouge sont les couleurs de Paris, le blanc celle de la monarchie : la Révolution les a réunies en 1790.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Italie",
+    "La Belgique",
+    "La France",
+    "Les Pays-Bas"
+   ],
+   "bonne_reponse": "La France",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "france"
+   }
+  },
+  {
+   "id": "vis-drapeau-002",
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Adopté en 1797, il s'inspire du drapeau français : on a simplement remplacé le bleu par le vert.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Irlande",
+    "L'Italie",
+    "La Hongrie",
+    "Le Mexique"
+   ],
+   "bonne_reponse": "L'Italie",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "italie"
+   }
+  },
+  {
+   "id": "vis-drapeau-003",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le vert représente les catholiques, l'orange les protestants, et le blanc la paix entre les deux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Inde",
+    "L'Irlande",
+    "L'Italie",
+    "La Côte d'Ivoire"
+   ],
+   "bonne_reponse": "L'Irlande",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "irlande"
+   }
+  },
+  {
+   "id": "vis-drapeau-004",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "C'est l'un des rares drapeaux nationaux presque carré : sa proportion officielle est de 13 sur 15.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Allemagne",
+    "L'Angola",
+    "L'Ouganda",
+    "La Belgique"
+   ],
+   "bonne_reponse": "La Belgique",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "belgique"
+   }
+  },
+  {
+   "id": "vis-drapeau-005",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Il est quasi identique à celui du Tchad : les deux pays s'en disputent poliment la paternité depuis 1960.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Andorre",
+    "La Moldavie",
+    "La Roumanie",
+    "Le Tchad"
+   ],
+   "bonne_reponse": "La Roumanie",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "roumanie"
+   }
+  },
+  {
+   "id": "vis-drapeau-006",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Vert, or et rouge sont les couleurs panafricaines, reprises du drapeau éthiopien, seul pays jamais colonisé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "La Guinée",
+    "Le Cameroun",
+    "Le Mali",
+    "Le Sénégal"
+   ],
+   "bonne_reponse": "Le Mali",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "mali"
+   }
+  },
+  {
+   "id": "vis-drapeau-007",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "La légende veut que le libérateur San Martín ait choisi le rouge et blanc après avoir vu des flamants roses.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Autriche",
+    "Le Canada",
+    "Le Pérou",
+    "Malte"
+   ],
+   "bonne_reponse": "Le Pérou",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "perou"
+   }
+  },
+  {
+   "id": "vis-drapeau-008",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "C'est l'un des plus anciens drapeaux du monde : la tradition le fait remonter à 1191.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Autriche",
+    "La Lettonie",
+    "Le Liban",
+    "Le Pérou"
+   ],
+   "bonne_reponse": "L'Autriche",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "autriche"
+   }
+  },
+  {
+   "id": "vis-drapeau-009",
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Noir, rouge et or viennent des uniformes d'un corps franc de 1813 : manteau noir, parements rouges, boutons dorés.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Allemagne",
+    "L'Espagne",
+    "L'Ouganda",
+    "La Belgique"
+   ],
+   "bonne_reponse": "L'Allemagne",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "allemagne"
+   }
+  },
+  {
+   "id": "vis-drapeau-010",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "La bande supérieure était orange à l'origine ; ce colorant virait au rouge en mer, et l'usage a fini par l'emporter.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "La France",
+    "La Russie",
+    "Le Luxembourg",
+    "Les Pays-Bas"
+   ],
+   "bonne_reponse": "Les Pays-Bas",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "paysbas"
+   }
+  },
+  {
+   "id": "vis-drapeau-011",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Pierre le Grand s'inspira du pavillon néerlandais lors de son séjour dans les chantiers navals d'Amsterdam.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "La Russie",
+    "La Serbie",
+    "La Slovaquie",
+    "Les Pays-Bas"
+   ],
+   "bonne_reponse": "La Russie",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "russie"
+   }
+  },
+  {
+   "id": "vis-drapeau-012",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le vert symbolise l'espérance, le blanc la fidélité, le rouge la force — une devise nationale en trois bandes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Iran",
+    "L'Italie",
+    "La Bulgarie",
+    "La Hongrie"
+   ],
+   "bonne_reponse": "La Hongrie",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "hongrie"
+   }
+  },
+  {
+   "id": "vis-drapeau-013",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "La bande jaune occupe la moitié du drapeau : elle représente les richesses du sol, séparées de l'Espagne par le sang.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Équateur",
+    "La Colombie",
+    "La Roumanie",
+    "Le Venezuela"
+   ],
+   "bonne_reponse": "La Colombie",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "colombie"
+   }
+  },
+  {
+   "id": "vis-drapeau-014",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Il est l'exact inverse de celui de Monaco et de l'Indonésie : le blanc y est en haut.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Autriche",
+    "L'Indonésie",
+    "La Pologne",
+    "Monaco"
+   ],
+   "bonne_reponse": "La Pologne",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "pologne"
+   }
+  },
+  {
+   "id": "vis-drapeau-015",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le bleu du ciel au-dessus du jaune des champs de blé : le drapeau est un paysage.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Ukraine",
+    "La Roumanie",
+    "La Suède",
+    "Le Kazakhstan"
+   ],
+   "bonne_reponse": "L'Ukraine",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "ukraine"
+   }
+  },
+  {
+   "id": "vis-drapeau-016",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "La croix décentrée, dite scandinave, vient du drapeau danois et unit tous les pays nordiques.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "La Finlande",
+    "La Norvège",
+    "La Suède",
+    "Le Danemark"
+   ],
+   "bonne_reponse": "La Suède",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "suede"
+   }
+  },
+  {
+   "id": "vis-drapeau-017",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le Dannebrog serait le plus vieux drapeau national encore utilisé : la légende le fait tomber du ciel en 1219.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Autriche",
+    "La Norvège",
+    "La Suisse",
+    "Le Danemark"
+   ],
+   "bonne_reponse": "Le Danemark",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "danemark"
+   }
+  },
+  {
+   "id": "vis-drapeau-018",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le bleu évoque les milliers de lacs du pays, le blanc la neige qui les recouvre l'hiver.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Islande",
+    "La Finlande",
+    "La Grèce",
+    "La Suède"
+   ],
+   "bonne_reponse": "La Finlande",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "finlande"
+   }
+  },
+  {
+   "id": "vis-drapeau-019",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Il contient les drapeaux du Danemark et de la Finlande : on peut les découper dedans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Islande",
+    "La France",
+    "La Norvège",
+    "Le Danemark"
+   ],
+   "bonne_reponse": "La Norvège",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "norvege"
+   }
+  },
+  {
+   "id": "vis-drapeau-020",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Rouge pour les volcans, blanc pour la glace, bleu pour l'océan : l'île entière tient dans son drapeau.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Islande",
+    "La Finlande",
+    "La Norvège",
+    "La Suède"
+   ],
+   "bonne_reponse": "L'Islande",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "islande"
+   }
+  },
+  {
+   "id": "vis-drapeau-021",
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Son nom, Hinomaru, signifie « disque solaire » : le Japon est le pays du Soleil levant.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "La Corée du Sud",
+    "Le Bangladesh",
+    "Le Japon",
+    "Les Palaos"
+   ],
+   "bonne_reponse": "Le Japon",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "japon"
+   }
+  },
+  {
+   "id": "vis-drapeau-022",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le disque est légèrement décalé vers la hampe pour paraître centré quand le drapeau flotte.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "Le Bangladesh",
+    "Le Japon",
+    "Le Pakistan",
+    "Les Palaos"
+   ],
+   "bonne_reponse": "Le Bangladesh",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "bangladesh"
+   }
+  },
+  {
+   "id": "vis-drapeau-023",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le croissant et l'étoile viennent de l'Empire ottoman, bien avant de devenir un symbole associé à l'islam.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Algérie",
+    "La Tunisie",
+    "La Turquie",
+    "Le Pakistan"
+   ],
+   "bonne_reponse": "La Turquie",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "turquie"
+   }
+  },
+  {
+   "id": "vis-drapeau-024",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Son croissant est enfermé dans un disque blanc, ce qui le distingue du drapeau turc.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Algérie",
+    "La Tunisie",
+    "La Turquie",
+    "Le Maroc"
+   ],
+   "bonne_reponse": "La Tunisie",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "tunisie"
+   }
+  },
+  {
+   "id": "vis-drapeau-025",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Après la séparation de 1993, la Tchéquie a gardé le drapeau commun, ce que le traité interdisait pourtant.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "La Slovaquie",
+    "La Slovénie",
+    "La Tchéquie",
+    "Les Philippines"
+   ],
+   "bonne_reponse": "La Tchéquie",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "tchequie"
+   }
+  },
+  {
+   "id": "vis-drapeau-026",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Les trois bandes bleues représentent les trois anciennes provinces de l'île.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "Cuba",
+    "Le Chili",
+    "Le Venezuela",
+    "Porto Rico"
+   ],
+   "bonne_reponse": "Cuba",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "cuba"
+   }
+  },
+  {
+   "id": "vis-drapeau-027",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le triangle noir symbolise l'unité du peuple, tourné vers l'or des plages et le bleu de la mer.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "La Jamaïque",
+    "Le Kenya",
+    "Les Bahamas",
+    "Les Seychelles"
+   ],
+   "bonne_reponse": "Les Bahamas",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "bahamas"
+   }
+  },
+  {
+   "id": "vis-drapeau-028",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Les cinq branches de l'étoile représentent les ouvriers, paysans, soldats, intellectuels et commerçants.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "La Chine",
+    "La Turquie",
+    "Le Maroc",
+    "Le Vietnam"
+   ],
+   "bonne_reponse": "Le Vietnam",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "vietnam"
+   }
+  },
+  {
+   "id": "vis-drapeau-029",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "L'étoile verte à cinq branches est appelée le sceau de Salomon.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Albanie",
+    "La Tunisie",
+    "La Turquie",
+    "Le Maroc"
+   ],
+   "bonne_reponse": "Le Maroc",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "maroc"
+   }
+  },
+  {
+   "id": "vis-drapeau-030",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "C'est, avec le Vatican, le seul drapeau national carré. L'emblème de la Croix-Rouge en est l'inverse exact.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Autriche",
+    "La Croix-Rouge",
+    "La Suisse",
+    "Le Danemark"
+   ],
+   "bonne_reponse": "La Suisse",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "suisse"
+   }
+  },
+  {
+   "id": "vis-drapeau-031",
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "La feuille d'érable n'y figure que depuis 1965 : avant, le Canada arborait un drapeau britannique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Autriche",
+    "Le Canada",
+    "Le Danemark",
+    "Le Pérou"
+   ],
+   "bonne_reponse": "Le Canada",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "canada"
+   }
+  },
+  {
+   "id": "vis-drapeau-032",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "La grande étoile représente le Parti, les quatre petites les classes du peuple, toutes tournées vers elle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "La Chine",
+    "La Turquie",
+    "Le Maroc",
+    "Le Vietnam"
+   ],
+   "bonne_reponse": "La Chine",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "chine"
+   }
+  },
+  {
+   "id": "vis-drapeau-033",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Ses neuf bandes correspondraient aux neuf syllabes du cri de l'indépendance : « La liberté ou la mort ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "Chypre",
+    "Israël",
+    "L'Uruguay",
+    "La Grèce"
+   ],
+   "bonne_reponse": "La Grèce",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "grece"
+   }
+  },
+  {
+   "id": "vis-drapeau-034",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le ciel étoilé du globe reproduit celui de Rio de Janeiro le matin du 15 novembre 1889.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Argentine",
+    "Le Brésil",
+    "Le Mexique",
+    "Le Portugal"
+   ],
+   "bonne_reponse": "Le Brésil",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "bresil"
+   }
+  },
+  {
+   "id": "vis-drapeau-035",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "La sphère armillaire rappelle les instruments de navigation des grandes expéditions maritimes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Italie",
+    "Le Brésil",
+    "Le Portugal",
+    "Le Sénégal"
+   ],
+   "bonne_reponse": "Le Portugal",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "portugal"
+   }
+  },
+  {
+   "id": "vis-drapeau-036",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "La roue bleue, l'Ashoka Chakra, compte vingt-quatre rayons et symbolise le mouvement perpétuel.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Inde",
+    "L'Irlande",
+    "La Côte d'Ivoire",
+    "Le Niger"
+   ],
+   "bonne_reponse": "L'Inde",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "inde"
+   }
+  },
+  {
+   "id": "vis-drapeau-037",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le soleil central est le Soleil de Mai, en mémoire de la révolution de mai 1810.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Argentine",
+    "L'Uruguay",
+    "La Grèce",
+    "Le Guatemala"
+   ],
+   "bonne_reponse": "L'Argentine",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "argentine"
+   }
+  },
+  {
+   "id": "vis-drapeau-038",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le rouge et le jaune ont été choisis en 1785 pour être visibles de loin en mer, sans confusion possible.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Espagne",
+    "L'Ukraine",
+    "La Colombie",
+    "La Roumanie"
+   ],
+   "bonne_reponse": "L'Espagne",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "espagne"
+   }
+  },
+  {
+   "id": "vis-drapeau-039",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "C'est le seul drapeau national au monde qui ne comporte ni rouge, ni blanc, ni bleu.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Afrique du Sud",
+    "La Jamaïque",
+    "Le Guyana",
+    "Le Kenya"
+   ],
+   "bonne_reponse": "La Jamaïque",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "jamaique"
+   }
+  },
+  {
+   "id": "vis-drapeau-040",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Les deux bandes bleues évoquent le châle de prière juif, le talith.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "Israël",
+    "L'Argentine",
+    "La Finlande",
+    "La Grèce"
+   ],
+   "bonne_reponse": "Israël",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "israel"
+   }
+  },
+  {
+   "id": "vis-drapeau-041",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le cercle central, le taegeuk, figure l'équilibre entre deux forces opposées et complémentaires.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "La Corée du Sud",
+    "La Mongolie",
+    "Le Japon",
+    "Le Vietnam"
+   ],
+   "bonne_reponse": "La Corée du Sud",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "coreedusud"
+   }
+  },
+  {
+   "id": "vis-drapeau-042",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le vert représente les forêts et l'agriculture, le blanc la paix : le dessin fut proposé par un étudiant en 1959.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Irlande",
+    "L'Italie",
+    "Le Nigeria",
+    "Le Pakistan"
+   ],
+   "bonne_reponse": "Le Nigeria",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "nigeria"
+   }
+  },
+  {
+   "id": "vis-drapeau-043",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Il est identique à celui de Monaco, aux proportions près — une coïncidence vieille de plusieurs siècles.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Indonésie",
+    "La Pologne",
+    "Malte",
+    "Monaco"
+   ],
+   "bonne_reponse": "L'Indonésie",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "indonesie"
+   }
+  },
+  {
+   "id": "vis-drapeau-044",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Rouge, blanc, noir et vert sont les couleurs panarabes, présentes sur de nombreux drapeaux de la région.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "La Jordanie",
+    "La Palestine",
+    "Le Koweït",
+    "Le Soudan"
+   ],
+   "bonne_reponse": "Le Soudan",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "soudan"
+   }
+  },
+  {
+   "id": "vis-drapeau-045",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "C'est l'exact miroir du drapeau malien : rouge à la hampe au lieu du vert.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "La Guinée",
+    "Le Ghana",
+    "Le Mali",
+    "Le Sénégal"
+   ],
+   "bonne_reponse": "La Guinée",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "guinee"
+   }
+  },
+  {
+   "id": "vis-drapeau-046",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le vert y remplace le bleu du drapeau russe, dont il s'inspire, pour évoquer les campagnes bulgares.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Iran",
+    "L'Italie",
+    "La Bulgarie",
+    "La Hongrie"
+   ],
+   "bonne_reponse": "La Bulgarie",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "bulgarie"
+   }
+  },
+  {
+   "id": "vis-drapeau-047",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Le jaune évoque les champs de blé, le vert les forêts, le rouge le courage — adopté dès 1918.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Éthiopie",
+    "La Bolivie",
+    "La Lituanie",
+    "Le Ghana"
+   ],
+   "bonne_reponse": "La Lituanie",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "lituanie"
+   }
+  },
+  {
+   "id": "vis-drapeau-048",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 5,
+   "format": "qcm",
+   "texte": "Regardez bien ce drapeau : de quel pays est-il ?",
+   "anecdote": "Son bleu est légèrement plus foncé que celui du drapeau roumain, seule différence entre les deux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_national"
+   ],
+   "choix": [
+    "L'Andorre",
+    "La Moldavie",
+    "La Roumanie",
+    "Le Tchad"
+   ],
+   "bonne_reponse": "Le Tchad",
+   "visuel": {
+    "type": "drapeau",
+    "cle": "tchad"
+   }
+  },
+  {
+   "id": "vis-monument-001",
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel monument se cache derrière cette ombre ?",
+   "anecdote": "Elle devait être démontée après vingt ans ; c'est son utilité comme antenne radio qui l'a sauvée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
+   ],
+   "choix": [
+    "L'Empire State Building",
+    "La tour Eiffel",
+    "La tour de Tokyo",
+    "Le Big Ben"
+   ],
+   "bonne_reponse": "La tour Eiffel",
+   "visuel": {
+    "type": "ombre",
+    "cle": "tour-eiffel"
+   }
+  },
+  {
+   "id": "vis-monument-002",
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel monument se cache derrière cette ombre ?",
+   "anecdote": "Elle fut la construction la plus haute du monde pendant près de quatre mille ans.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
+   ],
+   "choix": [
+    "La pyramide de Gizeh",
+    "La pyramide du Louvre",
+    "Le Machu Picchu",
+    "Le temple de Louxor"
+   ],
+   "bonne_reponse": "La pyramide de Gizeh",
+   "visuel": {
+    "type": "ombre",
+    "cle": "pyramide"
+   }
+  },
+  {
+   "id": "vis-monument-003",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel monument se cache derrière cette ombre ?",
+   "anecdote": "Big Ben est le nom de la cloche, pas de la tour, rebaptisée tour Elizabeth en 2012.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
+   ],
+   "choix": [
+    "Big Ben",
+    "La tour de Pise",
+    "La tour de l'Horloge de Berne",
+    "Le beffroi de Bruges"
+   ],
+   "bonne_reponse": "Big Ben",
+   "visuel": {
+    "type": "ombre",
+    "cle": "big-ben"
+   }
+  },
+  {
+   "id": "vis-monument-004",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel monument se cache derrière cette ombre ?",
+   "anecdote": "Il pouvait accueillir environ cinquante mille spectateurs, évacués en quelques minutes par ses nombreuses sorties.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
+   ],
+   "choix": [
+    "Le Colisée",
+    "Le Parthénon",
+    "Le théâtre d'Épidaure",
+    "Les arènes de Nîmes"
+   ],
+   "bonne_reponse": "Le Colisée",
+   "visuel": {
+    "type": "ombre",
+    "cle": "colisee"
+   }
+  },
+  {
+   "id": "vis-monument-005",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel monument se cache derrière cette ombre ?",
+   "anecdote": "C'est un mausolée : un empereur l'a fait bâtir pour son épouse, morte en donnant naissance à leur quatorzième enfant.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
+   ],
+   "choix": [
+    "La mosquée bleue",
+    "Le Taj Mahal",
+    "Le palais de Topkapi",
+    "Le temple d'Or"
+   ],
+   "bonne_reponse": "Le Taj Mahal",
+   "visuel": {
+    "type": "ombre",
+    "cle": "taj-mahal"
+   }
+  },
+  {
+   "id": "vis-monument-006",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel monument se cache derrière cette ombre ?",
+   "anecdote": "Offerte par la France, elle fut transportée en deux cent quatorze caisses à travers l'Atlantique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
+   ],
+   "choix": [
+    "La statue de Vulcain",
+    "La statue de la Liberté",
+    "Le Christ Rédempteur",
+    "Le colosse de Rhodes"
+   ],
+   "bonne_reponse": "La statue de la Liberté",
+   "visuel": {
+    "type": "ombre",
+    "cle": "statue-liberte"
+   }
+  },
+  {
+   "id": "vis-monument-007",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel monument se cache derrière cette ombre ?",
+   "anecdote": "Douze avenues rayonnent autour de lui, ce qui a valu à la place son ancien nom d'Étoile.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
+   ],
+   "choix": [
+    "L'Arc de Triomphe",
+    "L'arc de Constantin",
+    "La porte de Brandebourg",
+    "La porte de l'Inde"
+   ],
+   "bonne_reponse": "L'Arc de Triomphe",
+   "visuel": {
+    "type": "ombre",
+    "cle": "arc-triomphe"
+   }
+  },
+  {
+   "id": "vis-monument-008",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel monument se cache derrière cette ombre ?",
+   "anecdote": "Les marées y sont parmi les plus fortes d'Europe : la mer peut avancer très vite sur la baie.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
+   ],
+   "choix": [
+    "L'abbaye de Cluny",
+    "La cité de Carcassonne",
+    "Le Mont-Saint-Michel",
+    "Le château de Chambord"
+   ],
+   "bonne_reponse": "Le Mont-Saint-Michel",
+   "visuel": {
+    "type": "ombre",
+    "cle": "mont-saint-michel"
+   }
+  },
+  {
+   "id": "vis-monument-009",
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel monument se cache derrière cette ombre ?",
+   "anecdote": "Elle a commencé à pencher dès sa construction : le sol meuble cédait sous son poids.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
+   ],
+   "choix": [
+    "La Giralda de Séville",
+    "La tour de Pise",
+    "La tour penchée de Bologne",
+    "Le campanile de Venise"
+   ],
+   "bonne_reponse": "La tour de Pise",
+   "visuel": {
+    "type": "ombre",
+    "cle": "tour-de-pise"
+   }
+  },
+  {
+   "id": "vis-monument-010",
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel monument se cache derrière cette ombre ?",
+   "anecdote": "Ses voiles sont couvertes de plus d'un million de tuiles blanches et crème.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
+   ],
+   "choix": [
+    "L'Opéra de Sydney",
+    "La Cité des arts de Valence",
+    "Le Kennedy Center",
+    "Le musée Guggenheim"
+   ],
+   "bonne_reponse": "L'Opéra de Sydney",
+   "visuel": {
+    "type": "ombre",
+    "cle": "opera-sydney"
+   }
+  },
+  {
+   "id": "vis-monument-011",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel monument se cache derrière cette ombre ?",
+   "anecdote": "Beaucoup possèdent un corps enterré sous la terre : on ne voit longtemps cru qu'ils n'étaient que des têtes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
+   ],
+   "choix": [
+    "Les Bouddhas de Bâmiyân",
+    "Les moaï de l'île de Pâques",
+    "Les statues d'Angkor",
+    "Les têtes olmèques"
+   ],
+   "bonne_reponse": "Les moaï de l'île de Pâques",
+   "visuel": {
+    "type": "ombre",
+    "cle": "moai"
+   }
+  },
+  {
+   "id": "vis-monument-012",
+   "categorie": "Géographie",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Quel monument se cache derrière cette ombre ?",
+   "anecdote": "Ses dômes en bulbe colorés, tous différents, dominent la place Rouge à Moscou.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
+   ],
+   "choix": [
+    "La cathédrale Saint-Basile",
+    "La cathédrale Saint-Sauveur",
+    "Le Kremlin",
+    "Le palais d'Hiver"
+   ],
+   "bonne_reponse": "La cathédrale Saint-Basile",
+   "visuel": {
+    "type": "ombre",
+    "cle": "kremlin"
+   }
+  },
+  {
+   "id": "vis-rebus-001",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Sorti en 1994, il reste l'un des plus grands succès de l'animation.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Le Livre de la jungle",
+    "Le Roi Lion",
+    "Madagascar",
+    "Zootopie"
+   ],
+   "bonne_reponse": "Le Roi Lion",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🦁👑"
+   }
+  },
+  {
+   "id": "vis-rebus-002",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "La chanson du film a été traduite dans plus de quarante langues.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Blanche-Neige",
+    "Cendrillon",
+    "La Reine des neiges",
+    "Raiponce"
+   ],
+   "bonne_reponse": "La Reine des neiges",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "❄️👸"
+   }
+  },
+  {
+   "id": "vis-rebus-003",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le poisson-clown vit vraiment en symbiose avec les anémones de mer, qui le protègent.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "La Petite Sirène",
+    "Le Monde de Dory",
+    "Le Monde de Nemo",
+    "Les Dents de la mer"
+   ],
+   "bonne_reponse": "Le Monde de Nemo",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🐟🔍"
+   }
+  },
+  {
+   "id": "vis-rebus-004",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Il aurait fallu des millions de ballons pour soulever une vraie maison.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Dumbo",
+    "Là-haut",
+    "Mickey",
+    "Ratatouille"
+   ],
+   "bonne_reponse": "Là-haut",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🐭🎈"
+   }
+  },
+  {
+   "id": "vis-rebus-005",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le personnage est né en 1962 dans un magazine qui allait être arrêté.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Ant-Man",
+    "Batman",
+    "Iron Man",
+    "Spider-Man"
+   ],
+   "bonne_reponse": "Spider-Man",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🕷️👨"
+   }
+  },
+  {
+   "id": "vis-rebus-006",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le plat du film n'est pas une ratatouille classique mais une variante en fines lamelles.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Bee Movie",
+    "Chicken Run",
+    "Le Monde de Nemo",
+    "Ratatouille"
+   ],
+   "bonne_reponse": "Ratatouille",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🍝🐀"
+   }
+  },
+  {
+   "id": "vis-rebus-007",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Son auteur a inventé des langues complètes avant d'écrire l'histoire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Harry Potter",
+    "Le Hobbit",
+    "Le Seigneur des anneaux",
+    "Merlin"
+   ],
+   "bonne_reponse": "Le Seigneur des anneaux",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🧙‍♂️💍"
+   }
+  },
+  {
+   "id": "vis-rebus-008",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le premier tome fut refusé par une douzaine d'éditeurs avant d'être publié.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Harry Potter",
+    "Le Seigneur des anneaux",
+    "Merlin",
+    "Percy Jackson"
+   ],
+   "bonne_reponse": "Harry Potter",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "⚡🤓"
+   }
+  },
+  {
+   "id": "vis-rebus-009",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le naufrage a duré environ deux heures quarante après le choc.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "En eaux troubles",
+    "Le Chant du loup",
+    "Pirates des Caraïbes",
+    "Titanic"
+   ],
+   "bonne_reponse": "Titanic",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🚢🧊"
+   }
+  },
+  {
+   "id": "vis-rebus-010",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le rugissement du tyrannosaure est un mélange de sons de bébé éléphant, d'alligator et de tigre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Avatar",
+    "Godzilla",
+    "Jurassic Park",
+    "King Kong"
+   ],
+   "bonne_reponse": "Jurassic Park",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🦖🏝️"
+   }
+  },
+  {
+   "id": "vis-rebus-011",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le film passe ses quarante premières minutes presque sans dialogue.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Astro Boy",
+    "Big Hero 6",
+    "Terminator",
+    "Wall-E"
+   ],
+   "bonne_reponse": "Wall-E",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🤖❤️"
+   }
+  },
+  {
+   "id": "vis-rebus-012",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Une abeille visite parfois des milliers de fleurs en une seule journée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "1001 pattes",
+    "Bee Movie",
+    "Fourmiz",
+    "Le Monde de Nemo"
+   ],
+   "bonne_reponse": "Bee Movie",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🐝🎬"
+   }
+  },
+  {
+   "id": "vis-rebus-013",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Son thème musical est resté plusieurs semaines en tête des ventes en 1984.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Beetlejuice",
+    "Casper",
+    "Hôtel Transylvanie",
+    "SOS Fantômes"
+   ],
+   "bonne_reponse": "SOS Fantômes",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "👻🚫"
+   }
+  },
+  {
+   "id": "vis-rebus-014",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Les éléphants ne peuvent pas voler, mais ils nagent très bien.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Babar",
+    "Dumbo",
+    "Le Livre de la jungle",
+    "Madagascar"
+   ],
+   "bonne_reponse": "Dumbo",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🐘🎪"
+   }
+  },
+  {
+   "id": "vis-rebus-015",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le romancier écrivait ses livres dans une cabane au fond de son jardin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Charlie et la chocolaterie",
+    "Hansel et Gretel",
+    "Ratatouille",
+    "Willy le chocolatier"
+   ],
+   "bonne_reponse": "Charlie et la chocolaterie",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🍫🏭"
+   }
+  },
+  {
+   "id": "vis-rebus-016",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Dans le conte, seule la maison de briques résiste au souffle du loup.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Le Petit Chaperon rouge",
+    "Les Musiciens de Brême",
+    "Les Trois Petits Cochons",
+    "Pierre et le Loup"
+   ],
+   "bonne_reponse": "Les Trois Petits Cochons",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🐺🐷🐷🐷"
+   }
+  },
+  {
+   "id": "vis-rebus-017",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le conte existait bien avant d'être écrit : il se racontait à la veillée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Boucle d'or",
+    "Cendrillon",
+    "Hansel et Gretel",
+    "Le Petit Chaperon rouge"
+   ],
+   "bonne_reponse": "Le Petit Chaperon rouge",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "👧🔴🧺"
+   }
+  },
+  {
+   "id": "vis-rebus-018",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "La pantoufle était peut-être de vair, une fourrure, avant de devenir de verre.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Blanche-Neige",
+    "Cendrillon",
+    "La Belle au bois dormant",
+    "Raiponce"
+   ],
+   "bonne_reponse": "Cendrillon",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "👠🕛"
+   }
+  },
+  {
+   "id": "vis-rebus-019",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "L'héroïne goûte trois bols, essaie trois chaises et trois lits avant de trouver son bonheur.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Boucle d'or et les trois ours",
+    "Hansel et Gretel",
+    "Le Petit Poucet",
+    "Les Trois Petits Cochons"
+   ],
+   "bonne_reponse": "Boucle d'or et les trois ours",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🐻🐻🐻🥣"
+   }
+  },
+  {
+   "id": "vis-rebus-020",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le conte d'origine, danois, se termine bien plus tristement que le dessin animé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "La Petite Sirène",
+    "Le Monde de Nemo",
+    "Moana",
+    "Ondine"
+   ],
+   "bonne_reponse": "La Petite Sirène",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🌊🧜‍♀️"
+   }
+  },
+  {
+   "id": "vis-rebus-021",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le conte français d'origine date du dix-huitième siècle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Blanche-Neige",
+    "Cendrillon",
+    "La Belle et la Bête",
+    "Raiponce"
+   ],
+   "bonne_reponse": "La Belle et la Bête",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🏰🌹"
+   }
+  },
+  {
+   "id": "vis-rebus-022",
+   "categorie": "Insolite",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "L'ordinateur de bord avait moins de mémoire qu'une simple calculatrice d'aujourd'hui.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Apollo 11",
+    "Gravity",
+    "Interstellar",
+    "Star Wars"
+   ],
+   "bonne_reponse": "Apollo 11",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🚀🌙"
+   }
+  },
+  {
+   "id": "vis-rebus-023",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le lapin sorti du chapeau est un tour popularisé au dix-neuvième siècle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Le clown",
+    "Le dompteur",
+    "Le jongleur",
+    "Le magicien"
+   ],
+   "bonne_reponse": "Le magicien",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🎩🐰"
+   }
+  },
+  {
+   "id": "vis-rebus-024",
+   "categorie": "Insolite",
+   "niveau_age": "adulte",
+   "difficulte": 4,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "La légende raconte qu'il dut viser une pomme posée sur la tête de son fils.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Astérix",
+    "Guillaume Tell",
+    "Ivanhoé",
+    "Robin des Bois"
+   ],
+   "bonne_reponse": "Guillaume Tell",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🍎🎯"
+   }
+  },
+  {
+   "id": "vis-rebus-025",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "« Rien ne sert de courir, il faut partir à point » : la morale est restée un proverbe.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "La Cigale et la Fourmi",
+    "Le Corbeau et le Renard",
+    "Le Lièvre et la Tortue",
+    "Le Loup et l'Agneau"
+   ],
+   "bonne_reponse": "Le Lièvre et la Tortue",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🐢🐰"
+   }
+  },
+  {
+   "id": "vis-rebus-026",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "La cigale ne chante pas avec sa bouche mais avec des membranes situées sur son abdomen.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "La Cigale et la Fourmi",
+    "Le Corbeau et le Renard",
+    "Le Lièvre et la Tortue",
+    "Les Musiciens de Brême"
+   ],
+   "bonne_reponse": "La Cigale et la Fourmi",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🐜🎻"
+   }
+  },
+  {
+   "id": "vis-rebus-027",
+   "categorie": "Insolite",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "« Tout flatteur vit aux dépens de celui qui l'écoute » : la leçon vaut encore aujourd'hui.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "La Cigale et la Fourmi",
+    "Le Corbeau et le Renard",
+    "Le Loup et l'Agneau",
+    "Le Petit Chaperon rouge"
+   ],
+   "bonne_reponse": "Le Corbeau et le Renard",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🦊🧀"
+   }
+  },
+  {
+   "id": "vis-rebus-028",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Les vrais pirates enterraient très rarement leur butin : ils le dépensaient vite.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "La chasse au trésor",
+    "La course en sac",
+    "Le cache-cache",
+    "Le tour du monde"
+   ],
+   "bonne_reponse": "La chasse au trésor",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🏴‍☠️🗺️"
+   }
+  },
+  {
+   "id": "vis-rebus-029",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "La citrouille a remplacé le navet, que l'on creusait autrefois en Irlande.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Carnaval",
+    "Halloween",
+    "La Toussaint",
+    "Noël"
+   ],
+   "bonne_reponse": "Halloween",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🎃👻"
+   }
+  },
+  {
+   "id": "vis-rebus-030",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le renne au nez rouge a été inventé en 1939 pour une campagne publicitaire.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Halloween",
+    "Le Nouvel An",
+    "Noël",
+    "Pâques"
+   ],
+   "bonne_reponse": "Noël",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🎅🦌"
+   }
+  },
+  {
+   "id": "vis-rebus-031",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "En France ce sont les cloches qui apportent les œufs, ailleurs c'est un lapin.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Halloween",
+    "Mardi gras",
+    "Noël",
+    "Pâques"
+   ],
+   "bonne_reponse": "Pâques",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🐣🍫"
+   }
+  },
+  {
+   "id": "vis-rebus-032",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "On y produit plus de mille variétés de fromages différents.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "L'Espagne",
+    "L'Italie",
+    "La Belgique",
+    "La France"
+   ],
+   "bonne_reponse": "La France",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🗼🥐"
+   }
+  },
+  {
+   "id": "vis-rebus-033",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "La pizza Margherita porte le nom d'une reine et reprend les couleurs du drapeau italien.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "L'Espagne",
+    "L'Italie",
+    "La France",
+    "La Grèce"
+   ],
+   "bonne_reponse": "L'Italie",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🍕🍝"
+   }
+  },
+  {
+   "id": "vis-rebus-034",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le koala n'est pas un ours mais un marsupial, cousin du kangourou.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "L'Afrique du Sud",
+    "L'Australie",
+    "L'Inde",
+    "Le Brésil"
+   ],
+   "bonne_reponse": "L'Australie",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🐨🦘"
+   }
+  },
+  {
+   "id": "vis-rebus-035",
+   "categorie": "Insolite",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "anecdote": "Le pays compte cinquante États, dont deux ne touchent pas les autres.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rébus"
+   ],
+   "choix": [
+    "Le Canada",
+    "Le Mexique",
+    "Le Royaume-Uni",
+    "Les États-Unis"
+   ],
+   "bonne_reponse": "Les États-Unis",
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🗽🍔"
+   }
   }
  ]
 }

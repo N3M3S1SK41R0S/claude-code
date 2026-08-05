@@ -1,13 +1,14 @@
 // Screens and wiring: home → setup → game → victory. Pass-and-play, 1-20
 // players (individual) or teams sharing a pion with rotating spokesperson.
-import { dailyPool, loadBank, bankSize, refreshCustom } from "./data.js";
+import { dailyPool, drawQuestion, loadBank, bankSize, refreshCustom } from "./data.js";
 import { loadWordgames } from "./wordgames.js";
 import { addCustom, CUSTOM_CATEGORIES, loadCustom, removeCustom } from "./custom.js";
 import { BOARDS, boardById, deleteCustomBoard, generateBoard, loadCustomBoards, makeCustomBoard, saveCustomBoard } from "./board.js";
-import { openReference, resumeGame, startGame } from "./game.js";
+import { openReference, resumeGame, sansFiletPour, startGame } from "./game.js";
 import { AGE_BRACKETS, archiveCurrent, BONUS_STAR_POOL, bracketById, bracketProfil, CHARACTERS, characterById, clearSave, deleteArchive, getState, listArchives, loadSave, newGame, restoreArchive, youngestBracket } from "./state.js";
 import { portraitEl } from "./portraits.js";
 import { FIGURINE_ATLAS, redonneChance3D } from "./board3d.js";
+import { visuelEl } from "./visuels.js";
 import { APP_VERSION } from "./version.js";
 import { POWERS } from "./powers.js";
 import { say, setVoice, stop, voiceAvailable, voiceEnabled, warmVoices } from "./tts.js";
@@ -1097,6 +1098,12 @@ function ceremonieEtoiles(winner, rankingData, extras) {
 // tests interceptent l'API en LOCAL (fausse voix, MP3 de silence), aucune clé
 // réelle n'entre jamais dans un test ni dans le dépôt.
 window.__donjonLireDirect = (t) => lireEnDirect(t, { onEchec: () => {} });
+
+// Sondes d'outillage des questions à support visuel : dessiner un visuel isolé,
+// et tirer des questions en série pour mesurer le dosage réellement obtenu.
+window.__donjonVisuel = (v) => visuelEl(v);
+window.__donjonTire = (pion) => drawQuestion(pion, { commit: false });
+window.__donjonSansFilet = (pion, q) => sansFiletPour(pion, q);
 
 // Sonde d'outillage (captures, réglage des tempos) : rejoue la cérémonie avec
 // une tablée de démonstration, sans devoir finir une vraie partie Étoiles.

@@ -150,8 +150,21 @@ function pick(candidates) {
  * pool. `commit:false` sélectionne sans consommer (choix de thème) ; `exclude`
  * écarte des ids déjà proposés. Le registre de fraîcheur limite les redites.
  */
+// DOSAGE DES QUESTIONS « PAS COMME LES AUTRES ». Le plaisir vient du contraste :
+// une question sur quatre change de nature (drapeau, ombre chinoise, charade en
+// images). Le dosage se règle ICI, au tirage, et non par la taille du vivier :
+// quelques dizaines de bons visuels suffisent alors à parfumer toute la partie,
+// là où il aurait fallu en écrire un millier pour peser un quart de la banque.
+const PART_VISUELLE = 0.25;
+const estVisuelle = (q) => Boolean(q.visuel);
+
 export function drawQuestion(pion, { formats = null, commit = true, exclude = null, categories = null } = {}) {
   let pool = drawableFrom(rangeFor(pion), formats);
+  // On vise la proportion, sans jamais l'imposer : si le vivier visuel de la
+  // tranche d'âge est vide (ou déjà tout vu), on reprend le pool entier.
+  const veutVisuelle = Math.random() < PART_VISUELLE;
+  const filtre = pool.filter((q) => estVisuelle(q) === veutVisuelle);
+  if (filtre.length > 0) pool = filtre;
   if (categories) pool = pool.filter((q) => categories.includes(q.categorie)); // thème du sprint Éclair
   if (exclude) pool = pool.filter((q) => !exclude.has(q.id));
   if (pool.length === 0) return null;

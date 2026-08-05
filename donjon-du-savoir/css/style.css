@@ -1160,6 +1160,30 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 .minimap svg { display: block; width: 100%; height: auto; }
 
+/* ---------- questions à support visuel (dessinées par code) ---------- */
+.visuel { display: flex; justify-content: center; margin: 0.2rem 0 0.6rem; }
+.visuel-svg {
+  width: min(19rem, 78%); height: auto; display: block;
+  border-radius: 0.5rem; box-shadow: var(--ombre-moyenne);
+}
+/* Drapeau : un liseré ivoire le détache du parchemin, comme les jetons de case. */
+.visuel-drapeau .visuel-svg { border: 2px solid rgba(244, 236, 216, 0.35); }
+/* Ombre chinoise : la silhouette se découpe en ivoire sur une plaque sombre. */
+.visuel-ombre .visuel-svg {
+  width: min(12rem, 52%); color: var(--ink);
+  background: color-mix(in srgb, var(--gold) 8%, var(--stone));
+  border: 1px solid var(--line); padding: 0.5rem;
+}
+/* Charade en images : les émojis en grand, c'est tout le décor nécessaire. */
+.visuel-rebus {
+  font-size: clamp(2.4rem, 11vw, 3.6rem); letter-spacing: 0.15em;
+  text-align: center; line-height: 1.25;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .visuel-svg, .visuel-rebus { animation: visuel-pose 0.4s ease; }
+}
+@keyframes visuel-pose { from { opacity: 0; transform: translateY(-6px) scale(0.97); } to { opacity: 1; transform: none; } }
+
 /* Qui lit les questions, en ce moment ? (bloc Réglages de la voix directe) */
 .voixdirect-etat {
   font-size: 0.9rem; line-height: 1.4; border-radius: 0.7rem;

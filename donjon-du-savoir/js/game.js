@@ -12,6 +12,7 @@ import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } from "./ui.js";
 import { onSpeechBoundary, preparerVoix, say, sayHost, voiceEnabled } from "./tts.js";
+import { visuelEl } from "./visuels.js";
 import { direQuand } from "./tts.js";
 import { heroLine, voiceOf } from "./voices.js";
 import { botNumericGuess, botWantsCorrect } from "./bots.js";
@@ -1498,7 +1499,7 @@ function npcQuiz(pion, npc) {
       el("p", { class: "panel-text", text: npc.intro }),
       el("p", { class: "help-note", text: npc.demande }),
       questionHeader(q, pion),
-      el("p", { class: "question-texte", text: q.texte }),
+      visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
       grid,
     ),
   );
@@ -1545,7 +1546,7 @@ function malusQuiz(pion, effect) {
       el("p", { class: "panel-text", text: `Un piège se profile : ${effect.texte}` }),
       el("p", { class: "help-note", text: "Répondez juste pour l'ESQUIVER !" }),
       questionHeader(q, pion),
-      el("p", { class: "question-texte", text: q.texte }),
+      visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
       grid,
     ),
   );
@@ -1868,6 +1869,24 @@ function themeChoiceGate(pion, qA, qB) {
   preparerVoix(qB.texte, "question");
 }
 
+/** Faut-il retirer les propositions à ce joueur, pour CETTE question ?
+ *  On compare son niveau du moment (1 à 5, qui monte quand il enchaîne les
+ *  bonnes réponses) à la difficulté de la question. Deux garde-fous : les
+ *  tout-petits gardent TOUJOURS leurs propositions, et une réponse impossible
+ *  à dire de tête (nombre exact, formulation longue) reste un QCM. */
+export function sansFiletPour(pion, q) {
+  if (!pion || pion.bot) return false;
+  if (pion.bracket === "2-5" || q.niveau_age === "tout_petit") return false;
+  const niveau = pion.niveau ?? 1.5;
+  const marge = niveau - (q.difficulte ?? 3);
+  if (marge < 1.2) return false; // il ne domine pas (encore) le sujet
+  const rep = String(q.bonne_reponse ?? "");
+  if (!rep || rep.length > 34 || rep.split(/\s+/).length > 5) return false;
+  // Une chance sur deux même quand tout s'y prête : la surprise fait le sel,
+  // et l'on ne prive pas systématiquement les meilleurs de leurs propositions.
+  return Math.random() < 0.5;
+}
+
 /**
  * Poser la question choisie avec la même variété qu'avant : certains QCM
  * deviennent un pari de confiance, un CASH/CARRÉ/DUO, ou un mini-jeu de mots.
@@ -1889,6 +1908,15 @@ function posePicked(pion, q) {
     const eligible = miniGameAnswer(q); // réponse convenant à un anagramme/pendu
     if (eligible && forced === "anagram") return anagramFlow(pion, q);
     if (eligible && forced === "hangman") return hangmanFlow(pion, q);
+    // 🎯 À LA HAUTEUR DU JOUEUR : quand quelqu'un domine largement le niveau
+    // de la question, les quatre propositions ne sont plus un défi mais une
+    // formalité — on lui retire donc le filet et il annonce sa réponse à voix
+    // haute, pour davantage de gloire (et de cases). À l'inverse, une question
+    // au-dessus de son niveau garde ses propositions : on ne coule personne.
+    if (!testFlag("__DONJON_TEST") && sansFiletPour(pion, q)) {
+      heraldSays(`💰 ${pion.nom} maîtrise le sujet : PAS de propositions ! Annoncez la réponse à voix haute — mais ça rapporte ${ADVANCE.cash} cases.`);
+      return questionFlow(pion, q, { cashMode: "cash" });
+    }
     const r = Math.random();
     if (r < 0.12) return confianceFlow(pion, q);
     if (r < 0.28) return ccdPicker(pion, q);
@@ -1951,7 +1979,7 @@ function anagramFlow(pion, q) {
   container.append(
     questionHeader(q, pion),
     regleBanner("anagram"),
-    el("p", { class: "question-texte", text: q.texte }),
+    visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
     el("p", { class: "help-note", text: "🔤 Réarrangez ces lettres pour trouver la réponse, à voix haute." }),
     el("p", { class: "anagram-letters", "aria-label": `Lettres mélangées : ${scrambled}`, text: scrambled }),
     bigButton("Révéler la réponse", () => setPanel(
@@ -2003,7 +2031,7 @@ function hangmanFlow(pion, q) {
     container.append(
       questionHeader(q, pion),
       regleBanner("hangman"),
-      el("p", { class: "question-texte", text: q.texte }),
+      visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
       el("p", { class: "hangman-word", "aria-label": `Mot à trouver : ${display}`, text: display }),
       el("p", { class: "help-note", text: `Erreurs : ${errors} / ${MAX_ERR}` }),
     );
@@ -2233,7 +2261,7 @@ function openAnswerFlow(pion, q, { advance, accepted, onResolve = null, kind = "
     bigButton("Révéler la réponse", () => {
       setPanel(
         el("div", { class: "question-block" },
-          el("p", { class: "question-texte", text: q.texte }),
+          visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
           el("p", { class: "reveal-answer", html: `✅ Réponse${accepted.length > 1 ? "s acceptées" : ""} : <strong>${accepted.join(" · ")}</strong>` }),
           el("div", { class: "choices choices-2" },
             choiceButton("👍 Bonne réponse !", () => resolve(true)),
@@ -2607,7 +2635,7 @@ function duelQuestion(a, b, onDone) {
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: `⚔️ ${a.nom} contre ${b.nom} !` }),
       questionHeader(q, a),
-      el("p", { class: "question-texte", text: q.texte }),
+      visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
       el("p", { class: "help-note paper-note", text: "✍️ Les DEUX duellistes écrivent leur réponse sur leur feuille, en secret. On révèle ensuite !" }),
       bigButton("Les deux ont écrit → Révéler", reveal),
     ),
@@ -2734,7 +2762,7 @@ function doCarrefour(pion) {
       const container = el("div", { class: "question-block" },
         el("h2", { class: "panel-title", text: "⚡ Le péage du tunnel" }),
         questionHeader(q, pion),
-        el("p", { class: "question-texte", text: q.texte }),
+        visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
       );
       const grid = el("div", { class: "choices" });
       for (const choice of q.choix) {
@@ -2831,7 +2859,7 @@ function trouNoirQuestion(pion) {
     el("h2", { class: "panel-title", text: "🕳️ LE TROU NOIR" }),
     el("p", { class: "panel-text", text: "La question la plus redoutable de votre rang. Réussite : +3 cases. Échec : recul de 6 cases. Jamais d'élimination — le Donjon est joueur, pas cruel." }),
     questionHeader(q, pion),
-    el("p", { class: "question-texte", text: q.texte }),
+    visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
   );
   const hintZone = el("div", { class: "hint-zone" });
   container.append(hintZone);
@@ -2916,7 +2944,7 @@ function fourchetteFlow(pion, q) {
       el("h2", { class: "panel-title", text: "🎯 La Fourchette" }),
       questionHeader(q),
       regleBanner("fourchette"),
-      el("p", { class: "question-texte", text: q.texte }),
+      visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
       el("div", { class: "fourchette-inputs" }, minIn, maxIn),
       valider,
     ),
@@ -2955,7 +2983,7 @@ function doGambit(pion) {
     el("h2", { class: "panel-title", text: "🎲 GAMBIT" }),
     questionHeader(q, pion),
     regleBanner("gambit"),
-    el("p", { class: "question-texte", text: q.texte }),
+    visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
     el("p", { class: "help-note", text: `${pion.nom} annonce un nombre — puis les autres parient : la vraie réponse est-elle Plus, Égale, ou Moins que ce nombre ?` }),
     input,
     el("button", { class: "btn btn-big", type: "submit" }, "Valider mon nombre"),
@@ -3005,7 +3033,7 @@ function gambitBets(pion, q, guess, others) {
       el("h2", { class: "panel-title", text: "🎲 Les paris sont ouverts !" }),
       // La question RESTE sous les yeux des parieurs : on parie sur sa vraie
       // réponse, pas de mémoire — elle ne disparaît plus avec l'écran de saisie.
-      el("p", { class: "question-texte", text: q.texte }),
+      visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
       el("p", { class: "panel-text", html: `${pion.nom} annonce : <strong>${guess}</strong>. La vraie réponse est-elle <strong>Plus</strong>, <strong>Égale</strong>, ou <strong>Moins</strong> que ce nombre ?` }),
       el("p", { class: "help-note", text: "⬆️ Plus = la vraie réponse est plus grande · 🎯 Égal = pile ce nombre · ⬇️ Moins = plus petite. (🚫 pour un joueur absent.)" }),
       ...rows,
@@ -3041,7 +3069,7 @@ function gambitReveal(pion, q, guess, bets) {
   heraldSays(advance > 0 ? herald.bonne() : herald.mauvaise());
   setPanel(
     el("div", { class: "question-block" },
-      el("p", { class: "question-texte", text: q.texte }), // la question reste lisible au verdict
+      visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }), // la question reste lisible au verdict
       el("p", { class: "verdict", html: `La vraie réponse était <strong>${answer}</strong> — ${pion.nom} annonçait ${guess}. ${advance > 0 ? `<strong>+${advance} case${advance > 1 ? "s" : ""} !</strong>` : "<strong>Trop loin, pas de bonus.</strong>"}` }),
       ...betLines,
       anecdoteCardEl(q),
@@ -3137,7 +3165,7 @@ function doEventCarte() {
   const entryPanel = el("div", { class: "question-block" },
     el("h2", { class: "panel-title", text: "🎪 Événement collectif !" }),
     questionHeader(q),
-    el("p", { class: "question-texte", text: q.texte }),
+    visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
     el("p", { class: "help-note", text: "Chacun reporte la réponse écrite sur sa feuille (🚫 pour un joueur absent), puis on révèle — +2 pièces par bonne réponse." }),
     ...rows,
     validateBtn,
@@ -3148,7 +3176,7 @@ function doEventCarte() {
     el("div", { class: "question-block" },
       el("h2", { class: "panel-title", text: "🎪 Événement collectif !" }),
       questionHeader(q),
-      el("p", { class: "question-texte", text: q.texte }),
+      visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
       el("p", { class: "help-note paper-note", text: "✍️ Chacun écrit sa réponse sur SA feuille de papier, en secret et sans se presser. On ne saisit et on ne valide qu'ensuite." }),
       bigButton("Tout le monde a écrit ✍️", () => setPanel(entryPanel)),
     ),
@@ -3405,7 +3433,7 @@ function poseTableQuestion(q, label, next) {
         el("span", { class: "badge badge-cat", text: q.categorie }),
         el("span", { class: "badge", text: "★".repeat(q.difficulte ?? 3) }),
       ),
-      el("p", { class: "question-texte", text: q.texte }),
+      visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
       el("p", { class: "help-note paper-note table-only", text: "✍️ Chacun écrit sa réponse sur SA feuille de papier — en secret, sans se presser. On ne révèle qu'une fois que tout le monde a écrit : impossible de dire « je le savais » après coup !" }),
       bigButton("Tout le monde a écrit → Révéler la réponse", () => revealTableBonus(q, next)),
     ),
@@ -3482,7 +3510,7 @@ function dragonGate(next) {
     el("h2", { class: "panel-title", text: "🐉 La Question du Dragon" }),
     el("p", { class: "panel-text", text: `La tablée répond ENSEMBLE. Victoire : le Dragon offre 5 🪙 à ${dernier.nom}, dernier du classement — tout peut encore basculer !` }),
     questionHeader(q, dernier),
-    el("p", { class: "question-texte", text: q.texte }),
+    visuelEl(q.visuel), el("p", { class: "question-texte", text: q.texte }),
   );
   const grid = el("div", { class: "choices" });
   for (const choice of q.choix) {
