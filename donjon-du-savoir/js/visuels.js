@@ -187,6 +187,43 @@ export const PAYS = Object.fromEntries(
   Object.entries(CARTES).map(([cle, d]) => [cle, ombre(d)]),
 );
 
+/* ---------- MONUMENTS ILLUSTRÉS ---------- */
+// Aquarelles originales peintes pour le jeu (lot « Les Merveilles du Donjon »).
+// Elles remplacent peu à peu les ombres chinoises : une silhouette noire se
+// devine mal, une aquarelle se reconnaît. Chaque fichier est embarqué en
+// data-URI par le constructeur — aucune requête réseau en partie.
+//
+// Le contrôle des droits est consigné dans NOTES-DROITS-MONUMENTS.txt : tout
+// monument dont l'œuvre architecturale est encore protégée (opéra de Sydney,
+// Sagrada Família, Christ Rédempteur, Atomium) est ABSENT de cette liste, et
+// doit le rester — peindre au lieu de photographier n'y change rien.
+// Les chemins sont écrits EN TOUTES LETTRES, jamais construits par
+// concaténation : le constructeur du fichier autonome remplace les chaînes
+// « assets/... » qu'il TROUVE dans le source par l'image en base64. Un chemin
+// assemblé à l'exécution lui échappe, et le jeu partirait sans ses images.
+export const AQUARELLE_SRC = {
+  "cathedrale-basile": "assets/monuments/cathedrale-basile.webp",
+  "colisee": "assets/monuments/colisee.webp",
+  "golden-gate": "assets/monuments/golden-gate.webp",
+  "grande-muraille": "assets/monuments/grande-muraille.webp",
+  "machu-picchu": "assets/monuments/machu-picchu.webp",
+  "moai": "assets/monuments/moai.webp",
+  "mont-saint-michel": "assets/monuments/mont-saint-michel.webp",
+  "neuschwanstein": "assets/monuments/neuschwanstein.webp",
+  "parthenon": "assets/monuments/parthenon.webp",
+  "porte-brandebourg": "assets/monuments/porte-brandebourg.webp",
+  "sphinx": "assets/monuments/sphinx.webp",
+  "statue-liberte": "assets/monuments/statue-liberte.webp",
+  "stonehenge": "assets/monuments/stonehenge.webp",
+  "taj-mahal": "assets/monuments/taj-mahal.webp",
+  "tour-de-pise": "assets/monuments/tour-de-pise.webp",
+};
+export const AQUARELLES = Object.keys(AQUARELLE_SRC);
+
+/** Chemin de l'illustration d'un monument (remplacé par un data-URI à la
+ *  construction du fichier autonome). */
+const aquarelle = (cle) => AQUARELLE_SRC[cle];
+
 /* ---------- FIGURES DU CIEL ---------- */
 // Tracées d'après les vraies coordonnées des étoiles (voir constellations.js) :
 // la Grande Ourse a la forme qu'elle a réellement ce soir au-dessus du jardin.
@@ -207,6 +244,16 @@ export function visuelEl(visuel) {
   } else if (visuel.type === "pays" && PAYS[visuel.cle]) {
     boite.className = "visuel visuel-ombre visuel-pays"; // même plaque sombre
     boite.innerHTML = PAYS[visuel.cle];
+  } else if (visuel.type === "monument" && AQUARELLES.includes(visuel.cle)) {
+    // Une aquarelle est posée comme une page de carnet : léger cadre ivoire,
+    // ombre douce, mêmes coins arrondis que le reste des visuels.
+    boite.className = "visuel visuel-monument";
+    const img = document.createElement("img");
+    img.src = aquarelle(visuel.cle);
+    img.alt = "";
+    img.decoding = "async";
+    img.className = "visuel-aquarelle";
+    boite.append(img);
   } else if (visuel.type === "ciel" && CIELS.includes(visuel.cle)) {
     // Le ciel a sa propre plaque, plus sombre : des étoiles sur fond clair,
     // personne n'y croirait.
@@ -227,4 +274,5 @@ export const VISUELS_CONNUS = {
   ombre: Object.keys(MONUMENTS),
   pays: Object.keys(PAYS),
   ciel: CIELS,
+  monument: AQUARELLES,
 };

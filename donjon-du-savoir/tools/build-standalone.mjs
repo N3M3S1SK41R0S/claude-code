@@ -224,3 +224,19 @@ writeFileSync(join(root, "dist", "donjon-artifact.html"), artifactContent.replac
 const kb = (s) => Math.round(Buffer.byteLength(s) / 1024);
 console.log(`✓ dist/donjon-standalone.html (${kb(fullPage.replace(VOIX_TOKEN, JSON.stringify(voixInline)))} Ko, ${bank.questions.length} questions, ${assetCount} assets inline, ${nbClips} clips de voix)`);
 console.log(`✓ dist/donjon-artifact.html (${kb(artifactContent.replace(VOIX_TOKEN, "{}"))} Ko, voix en synthèse)`);
+
+// GARDE-FOU DE PUBLICATION : la version web plafonne à 16 Mio. Dépasser ne
+// produit pas une erreur ici mais un refus AU MOMENT de publier, longtemps
+// après la construction — d'où ce contrôle immédiat, chiffré, avec la marge
+// restante toujours affichée pour qu'on la voie fondre avant de la crever.
+const PLAFOND = 16 * 1024 * 1024;
+const poidsArtifact = Buffer.byteLength(artifactContent.replace(VOIX_TOKEN, "{}"));
+const marge = PLAFOND - poidsArtifact;
+if (marge < 0) {
+  console.error(`✗ LIMITE DÉPASSÉE : l'artifact pèse ${Math.round(-marge / 1024)} Ko de trop (plafond 16 Mio).`);
+  console.error("  Pistes : réduire assets/monuments (tools/forge-monuments.mjs --largeur/--qualite),");
+  console.error("  ou alléger les modèles 3D. Le fichier autonome, lui, n'a pas de limite.");
+  process.exit(1);
+}
+const alerte = marge < 200 * 1024 ? "⚠️ " : "";
+console.log(`${alerte}marge de publication : ${Math.round(marge / 1024)} Ko sous le plafond de 16 Mio`);

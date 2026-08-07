@@ -1206,6 +1206,16 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 /* Carte de pays : un peu plus grande que les monuments, parce que c'est le
    DÉTAIL du contour (fjords, îles, presqu'îles) qui permet de reconnaître. */
 .visuel-pays .visuel-svg { width: min(15rem, 62%); }
+/* Monument illustré : une page de carnet posée sur le parchemin. Le liseré
+   ivoire et l'ombre douce lui donnent l'épaisseur d'une photo collée. */
+.visuel-aquarelle {
+  width: min(15rem, 68%); height: auto; display: block;
+  border-radius: 0.5rem; border: 2px solid rgba(244, 236, 216, 0.35);
+  box-shadow: var(--ombre-moyenne);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .visuel-aquarelle { animation: visuel-pose 0.4s ease; }
+}
 /* Ciel : des étoiles claires sur une nuit profonde. Le fond parchemin des
    autres visuels rendrait la figure illisible — ici on inverse franchement. */
 .visuel-ciel .visuel-svg {

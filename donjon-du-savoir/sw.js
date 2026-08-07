@@ -1,7 +1,7 @@
 /* Le Donjon du Savoir — offline-first service worker.
    Static file list (no build step): bump VERSION on every content change. */
 
-const VERSION = "donjon-v152";
+const VERSION = "donjon-v153";
 const CACHE = `${VERSION}-shell`;
 
 const SHELL = [
@@ -41,6 +41,21 @@ const SHELL = [
   "./js/voixdirect.js",
   "./js/cartes.js",
   "./js/constellations.js",
+  "./assets/monuments/cathedrale-basile.webp",
+  "./assets/monuments/colisee.webp",
+  "./assets/monuments/golden-gate.webp",
+  "./assets/monuments/grande-muraille.webp",
+  "./assets/monuments/machu-picchu.webp",
+  "./assets/monuments/moai.webp",
+  "./assets/monuments/mont-saint-michel.webp",
+  "./assets/monuments/neuschwanstein.webp",
+  "./assets/monuments/parthenon.webp",
+  "./assets/monuments/porte-brandebourg.webp",
+  "./assets/monuments/sphinx.webp",
+  "./assets/monuments/statue-liberte.webp",
+  "./assets/monuments/stonehenge.webp",
+  "./assets/monuments/taj-mahal.webp",
+  "./assets/monuments/tour-de-pise.webp",
   "./js/visuels.js",
   "./js/sonmystere.js",
   "./js/eclair.js",
