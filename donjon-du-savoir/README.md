@@ -169,7 +169,7 @@ système demande de réduire les animations).
 
 ## La banque de questions
 
-`data/questions.json` — **4388 questions vérifiées** (chaque fait contrôlé
+`data/questions.json` — **4398 questions vérifiées** (chaque fait contrôlé
 contre ≥ 2 sources indépendantes, citées sous chaque anecdote), 13 catégories,
 6 formats, réparties en niveaux `tout_petit` / `enfant` / `ado` / `adulte`
 (difficulté 1-5). Elle est générée depuis la banque fact-checkée du projet
@@ -196,10 +196,23 @@ interdit du Tabou n'apparaît jamais dans le mot-cible (contrôlé par
 questions. Format volontairement simple pour être étendu à la main.
 
 **Questions à support visuel** (≈ 1 tirage sur 4, en plateau comme en Partie
-Éclair) : le jeu dessine lui-même ses images en SVG — `js/visuels.js` pour les
-**drapeaux** (primitives paramétrées), les **monuments en ombre chinoise** et
-les **charades en émojis** ; `js/cartes.js` pour les **51 cartes de pays** ;
+Éclair) : cinq familles, dont quatre dessinées par le code en SVG —
+`js/visuels.js` pour les **drapeaux** (primitives paramétrées) et les
+**charades en émojis** ; `js/cartes.js` pour les **51 cartes de pays** ;
 `js/constellations.js` pour les **8 figures du ciel**.
+
+La cinquième, les **monuments**, ce sont des **aquarelles originales** peintes
+pour le jeu (lot « Les Merveilles du Donjon »), converties par
+`tools/forge-monuments.mjs` : la machine n'ayant ni ImageMagick ni Pillow,
+c'est Chromium qui encode le WebP via un canvas. La mise en carré se fait par
+**ajout de marge, jamais par découpe** — rogner une planche verticale ferait
+sauter la flèche d'une cathédrale. `tools/planche-monuments.mjs` les affiche
+telles qu'elles apparaissent en jeu, à la taille réelle : le seul contrôle qui
+compte. Le statut des droits de chaque monument est consigné dans
+`NOTES-DROITS-MONUMENTS.txt` — tout monument dont l'œuvre architecturale est
+encore protégée en est absent et doit le rester, peindre au lieu de
+photographier n'y changeant rien. Quatre **ombres chinoises** subsistent, pour
+les monuments qui n'ont pas encore reçu leur illustration.
 
 Ni les cartes ni les constellations ne sont dessinées à main levée — les
 premières tentatives, tracées à l'estime, donnaient des patates méconnaissables.
