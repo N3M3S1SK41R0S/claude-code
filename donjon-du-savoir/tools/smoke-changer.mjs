@@ -26,7 +26,16 @@ const errors = [];
 page.on("pageerror", (e) => errors.push(String(e).slice(0, 200)));
 let fails = 0;
 const check = (nom, ok) => { console.log(`${ok ? "✓" : "✗"} ${nom}`); if (!ok) fails++; };
+// On compare l'énoncé ET les propositions : deux Sons Mystères d'affilée
+// portent le MÊME énoncé (« Écoutez bien… quel est ce son ? »), seul le
+// bruitage et les propositions changent. Comparer le seul texte ferait
+// conclure à tort que la question n'a pas été remplacée.
 const enonce = async () => (await page.locator(".question-texte, .karaoke, .eclair-texte").first().textContent().catch(() => "")) ?? "";
+const empreinte = async () => {
+  const t = await enonce();
+  const choix = await page.locator(".choices .btn-choice, .eclair-choix").allTextContents().catch(() => []);
+  return `${t}||${choix.join("|")}`;
+};
 
 try {
   await page.addInitScript(() => { window.__DONJON_TEST = true; });
@@ -43,8 +52,23 @@ try {
   // question est VISIBLE (pas sur le pari de confiance ni le choix CASH/CARRÉ/
   // DUO, où l'on mise avant de la lire). Une traversée malchanceuse peut donc
   // enchaîner plusieurs de ces écrans-là avant de croiser une vraie question.
+  let parties = 1;
   for (let i = 0; i < 400 && !trouve; i++) {
     if (await page.locator(".changer-question").count()) { trouve = true; break; }
+    // La traversée clique vite : un pion peut atteindre le Trésor avant qu'on
+    // ait croisé une question éligible. On repart alors pour une partie plutôt
+    // que de rester planté sur l'écran de victoire — c'est un comportement du
+    // jeu qu'on observe, pas une partie précise qu'on rejoue.
+    if (await page.locator("#screen-victory:not([hidden])").count()) {
+      parties += 1;
+      await page.goto(pathToFileURL(file).href, { waitUntil: "load" });
+      await page.locator("#bank-info").textContent({ timeout: 10000 });
+      await page.getByRole("button", { name: "⚔️ Nouvelle partie" }).click();
+      await page.waitForTimeout(300);
+      await page.getByRole("button", { name: "🏰 Entrer dans le Donjon" }).click();
+      await page.getByRole("button", { name: "🎲 Au hasard !" }).click({ timeout: 8000 }).catch(() => {});
+      continue;
+    }
     const roll = page.getByRole("button", { name: "🎲 Lancer le dé" });
     if (await roll.isVisible().catch(() => false)) {
       await roll.click();
@@ -64,13 +88,15 @@ try {
     const ecran = (await page.locator("#panel, .panel").first().innerText().catch(() => "")) ?? "";
     console.log(`  (bloqué sur : ${ecran.split("\n").slice(0, 4).join(" | ").slice(0, 160)})`);
   }
-  check("le dépannage est proposé sur une question du plateau", trouve);
+  check(`le dépannage est proposé sur une question du plateau${parties > 1 ? ` (${parties} parties jouées)` : ""}`, trouve);
   if (trouve) {
-    const avant = await enonce();
+    const avant = await empreinte();
+    const avantTexte = await enonce();
     await page.locator(".changer-question").first().click();
     await page.waitForTimeout(500);
-    const apres = await enonce();
-    check(`la question a bien été remplacée (« ${avant.slice(0, 28)}… » → « ${apres.slice(0, 28)}… »)`, Boolean(apres) && apres !== avant);
+    const apres = await empreinte();
+    const apresTexte = await enonce();
+    check(`la question a bien été remplacée (« ${avantTexte.slice(0, 28)}… » → « ${apresTexte.slice(0, 28)}… »)`, Boolean(apresTexte) && apres !== avant);
     check("le dépannage ne se represente pas sur la nouvelle question", (await page.locator(".changer-question").count()) <= 1);
   }
 
@@ -84,11 +110,13 @@ try {
   const dispoEclair = (await page.locator(".changer-question").count()) > 0;
   check("le dépannage est proposé en Partie Éclair", dispoEclair);
   if (dispoEclair) {
-    const avant = await enonce();
+    const avant = await empreinte();
+    const avantTexte = await enonce();
     await page.locator(".changer-question").first().click();
     await page.waitForTimeout(500);
-    const apres = await enonce();
-    check(`la question éclair a été remplacée (« ${avant.slice(0, 24)}… » → « ${apres.slice(0, 24)}… »)`, Boolean(apres) && apres !== avant);
+    const apres = await empreinte();
+    const apresTexte = await enonce();
+    check(`la question éclair a été remplacée (« ${avantTexte.slice(0, 24)}… » → « ${apresTexte.slice(0, 24)}… »)`, Boolean(apresTexte) && apres !== avant);
   }
   check("aucune erreur de page", errors.length === 0);
   if (errors.length) console.log("  " + errors.slice(0, 3).join("\n  "));

@@ -148,6 +148,9 @@ export const DRAPEAUX = {
 };
 
 /* ---------- OMBRES CHINOISES DE MONUMENTS ---------- */
+// Il n'en reste que quatre : celles dont le monument n'a pas ENCORE reçu son
+// aquarelle. Une silhouette noire se devine mal — dès qu'une illustration
+// existe (voir AQUARELLES plus bas), elle prend la place et l'ombre disparaît.
 // Silhouettes originales, tracées à la main : reconnaissables au seul contour.
 // `fill-rule="evenodd"` est INDISPENSABLE : sans elle, les sous-tracés
 // (arcades du Colisée, yeux du moai) se remplissent au lieu de creuser, et la
@@ -161,21 +164,7 @@ export const MONUMENTS = {
   // La signature de Big Ben, c'est le CADRAN rond haut perché sous une flèche
   // pointue, pas une tour rectangulaire : le cercle est creusé (evenodd).
   "big-ben": ombre("M50 4 L44 20 L42 20 L42 30 L38 30 L38 92 L62 92 L62 30 L58 30 L58 20 L56 20 Z M50 46 m -8 0 a 8 8 0 1 0 16 0 a 8 8 0 1 0 -16 0 Z"),
-  "colisee": ombre("M12 84 Q12 40 50 38 Q88 40 88 84 L88 90 L12 90 Z M22 60 L30 60 L30 76 L22 76 Z M40 58 L48 58 L48 76 L40 76 Z M58 58 L66 58 L66 76 L58 76 Z M74 62 L80 62 L80 76 L74 76 Z"),
-  // Dôme bulbeux flanqué de deux minarets élancés, sur sa terrasse : c'est
-  // cette combinaison qui fait le Taj Mahal, pas trois formes verticales.
-  "taj-mahal": ombre("M50 14 Q49 10 50 8 Q51 10 50 14 Q64 20 64 34 Q64 44 56 50 L56 74 L44 74 L44 50 Q36 44 36 34 Q36 20 50 14 Z M20 34 Q22 30 24 34 L25 74 L19 74 Z M76 34 Q78 30 80 34 L81 74 L75 74 Z M14 74 L86 74 L86 82 L14 82 Z M8 82 L92 82 L92 90 L8 90 Z"),
-  // Trois signes suffisent à la reconnaître : la robe qui s'évase, la couronne
-  // à pointes, et surtout le BRAS TENDU très haut portant la flamme.
-  "statue-liberte": ombre("M44 34 L40 66 L60 66 L56 34 Z M46 26 Q46 20 50 20 Q54 20 54 26 Q54 31 50 33 Q46 31 46 26 Z M41 22 L44 15 L46 21 L48 13 L50 20 L52 13 L54 21 L56 15 L59 22 Q50 17 41 22 Z M55 32 L63 14 L68 16 L60 35 Z M62 15 Q65 4 68 15 Q65 12 62 15 Z M40 66 L60 66 L62 74 L38 74 Z M34 74 L66 74 L66 84 L34 84 Z M28 84 L72 84 L72 92 L28 92 Z"),
   "arc-triomphe": ombre("M14 88 L14 26 L86 26 L86 88 L66 88 L66 52 Q50 38 34 52 L34 88 Z"),
-  // Le penché ne suffit pas : ce sont les étages à colonnades superposés qui
-  // font reconnaître Pise. Chaque bandeau creuse la silhouette (evenodd).
-  "tour-de-pise": ombre("M42 92 L36 90 L48 12 L64 14 L54 92 Z M46.6 76 L60 77 L59.4 81 L46 80 Z M49 60 L62.4 61 L61.8 65 L48.4 64 Z M51.4 44 L64.8 45 L64.2 49 L50.8 48 Z M53.8 28 L67.2 29 L66.6 33 L53.2 32 Z"),
-  "moai": ombre("M34 92 L34 44 Q34 18 50 14 Q66 18 66 44 L66 92 Z M40 46 L46 46 L46 52 L40 52 Z M54 46 L60 46 L60 52 L54 52 Z M42 68 L58 68 L58 72 L42 72 Z"),
-  // Saint-Basile, ce sont PLUSIEURS bulbes de tailles différentes, jamais une
-  // tour unique : c'est cette skyline en oignons qui la rend inimitable.
-  "cathedrale-basile": ombre("M50 20 Q38 32 40 44 L40 90 L60 90 L60 44 Q62 32 50 20 Z M50 20 Q47 14 50 8 Q53 14 50 20 Z M26 44 Q16 54 18 64 L18 90 L34 90 L34 64 Q36 54 26 44 Z M26 44 Q24 39 26 34 Q28 39 26 44 Z M74 44 Q64 54 66 64 L66 90 L82 90 L82 64 Q84 54 74 44 Z M74 44 Q72 39 74 34 Q76 39 74 44 Z M12 90 L88 90 L88 96 L12 96 Z"),
 };
 
 /* ---------- CARTES DE PAYS ---------- */

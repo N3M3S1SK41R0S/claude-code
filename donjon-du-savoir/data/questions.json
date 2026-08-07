@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 4388,
+ "count": 4398,
  "questions": [
   {
    "id": "arts-001",
@@ -83015,75 +83015,6 @@
    }
   },
   {
-   "id": "vis-monument-004",
-   "categorie": "Géographie",
-   "niveau_age": "enfant",
-   "difficulte": 2,
-   "format": "qcm",
-   "texte": "Quel monument se cache derrière cette ombre ?",
-   "anecdote": "Il pouvait accueillir environ cinquante mille spectateurs, évacués en quelques minutes par ses nombreuses sorties.",
-   "sources": [
-    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
-   ],
-   "choix": [
-    "Le Colisée",
-    "Le Parthénon",
-    "Le théâtre d'Épidaure",
-    "Les arènes de Nîmes"
-   ],
-   "bonne_reponse": "Le Colisée",
-   "visuel": {
-    "type": "ombre",
-    "cle": "colisee"
-   }
-  },
-  {
-   "id": "vis-monument-005",
-   "categorie": "Géographie",
-   "niveau_age": "ado",
-   "difficulte": 3,
-   "format": "qcm",
-   "texte": "Quel monument se cache derrière cette ombre ?",
-   "anecdote": "C'est un mausolée : un empereur l'a fait bâtir pour son épouse, morte en donnant naissance à leur quatorzième enfant.",
-   "sources": [
-    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
-   ],
-   "choix": [
-    "La mosquée bleue",
-    "Le Taj Mahal",
-    "Le palais de Topkapi",
-    "Le temple d'Or"
-   ],
-   "bonne_reponse": "Le Taj Mahal",
-   "visuel": {
-    "type": "ombre",
-    "cle": "taj-mahal"
-   }
-  },
-  {
-   "id": "vis-monument-006",
-   "categorie": "Géographie",
-   "niveau_age": "enfant",
-   "difficulte": 2,
-   "format": "qcm",
-   "texte": "Quel monument se cache derrière cette ombre ?",
-   "anecdote": "Offerte par la France, elle fut transportée en deux cent quatorze caisses à travers l'Atlantique.",
-   "sources": [
-    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
-   ],
-   "choix": [
-    "La statue de Vulcain",
-    "La statue de la Liberté",
-    "Le Christ Rédempteur",
-    "Le colosse de Rhodes"
-   ],
-   "bonne_reponse": "La statue de la Liberté",
-   "visuel": {
-    "type": "ombre",
-    "cle": "statue-liberte"
-   }
-  },
-  {
    "id": "vis-monument-007",
    "categorie": "Géographie",
    "niveau_age": "enfant",
@@ -83104,52 +83035,6 @@
    "visuel": {
     "type": "ombre",
     "cle": "arc-triomphe"
-   }
-  },
-  {
-   "id": "vis-monument-009",
-   "categorie": "Géographie",
-   "niveau_age": "enfant",
-   "difficulte": 2,
-   "format": "qcm",
-   "texte": "Quel monument se cache derrière cette ombre ?",
-   "anecdote": "Elle a commencé à pencher dès sa construction : le sol meuble cédait sous son poids.",
-   "sources": [
-    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
-   ],
-   "choix": [
-    "La Giralda de Séville",
-    "La tour de Pise",
-    "La tour penchée de Bologne",
-    "Le campanile de Venise"
-   ],
-   "bonne_reponse": "La tour de Pise",
-   "visuel": {
-    "type": "ombre",
-    "cle": "tour-de-pise"
-   }
-  },
-  {
-   "id": "vis-monument-011",
-   "categorie": "Géographie",
-   "niveau_age": "adulte",
-   "difficulte": 4,
-   "format": "qcm",
-   "texte": "Quel monument se cache derrière cette ombre ?",
-   "anecdote": "Beaucoup possèdent un corps enterré sous la terre : on ne voit longtemps cru qu'ils n'étaient que des têtes.",
-   "sources": [
-    "https://fr.wikipedia.org/wiki/Patrimoine_mondial"
-   ],
-   "choix": [
-    "Les Bouddhas de Bâmiyân",
-    "Les moaï de l'île de Pâques",
-    "Les statues d'Angkor",
-    "Les têtes olmèques"
-   ],
-   "bonne_reponse": "Les moaï de l'île de Pâques",
-   "visuel": {
-    "type": "ombre",
-    "cle": "moai"
    }
   },
   {
@@ -85332,6 +85217,353 @@
     "cle": "namibie"
    },
    "id": "carte2-023"
+  },
+  {
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel monument reconnaissez-vous sur cette image ?",
+   "choix": [
+    "Le Colisée de Rome",
+    "La tour de Pise",
+    "Le Taj Mahal",
+    "La Grande Muraille de Chine"
+   ],
+   "bonne_reponse": "Le Colisée de Rome",
+   "anecdote": "Son vrai nom est l'amphithéâtre Flavien : le surnom de « Colisée » lui viendrait d'une statue colossale de l'empereur Néron qui se dressait juste à côté.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Colis%C3%A9e"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "colisee"
+   },
+   "id": "monum-001"
+  },
+  {
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel est ce monument ?",
+   "choix": [
+    "Le Parthénon d'Athènes",
+    "Le temple de Poséidon au cap Sounion",
+    "Le temple d'Apollon à Delphes",
+    "La Maison carrée de Nîmes"
+   ],
+   "bonne_reponse": "Le Parthénon d'Athènes",
+   "anecdote": "Ses colonnes paraissent parfaitement droites, mais elles sont en réalité légèrement renflées et inclinées vers l'intérieur : les architectes ont corrigé les illusions d'optique pour que le temple semble rectiligne.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Parth%C3%A9non"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "parthenon"
+   },
+   "id": "monum-002"
+  },
+  {
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Cette aquarelle représente quel monument ?",
+   "choix": [
+    "Le Sphinx de Gizeh",
+    "Le colosse de Memnon",
+    "Les colosses d'Abou Simbel",
+    "Le temple de Karnak"
+   ],
+   "bonne_reponse": "Le Sphinx de Gizeh",
+   "anecdote": "Le Sphinx n'a pas été construit mais taillé directement dans la roche du plateau, comme une sculpture géante ; il est resté si longtemps enseveli sous le sable que plusieurs souverains, dont Thoutmôsis IV, ont dû le faire dégager.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sphinx_de_Gizeh"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "sphinx"
+   },
+   "id": "monum-003"
+  },
+  {
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel monument s'agit-il ?",
+   "choix": [
+    "Le site de Stonehenge",
+    "Les alignements de Carnac",
+    "Le cercle de pierres de Callanish",
+    "Le cromlech d'Avebury"
+   ],
+   "bonne_reponse": "Le site de Stonehenge",
+   "anecdote": "Les plus petites pierres du cercle, surnommées « pierres bleues », ne viennent pas de la plaine voisine : elles ont été amenées depuis les collines du pays de Galles, à plus de deux cents kilomètres de là.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Stonehenge"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "stonehenge"
+   },
+   "id": "monum-004"
+  },
+  {
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel monument reconnaissez-vous sur cette image ?",
+   "choix": [
+    "Les moaï de l'île de Pâques",
+    "Les têtes colossales olmèques",
+    "Les statues-menhirs de Filitosa",
+    "Les monolithes de Tiwanaku"
+   ],
+   "bonne_reponse": "Les moaï de l'île de Pâques",
+   "anecdote": "Ces géants ne sont pas que des têtes : les fouilles ont montré que sous la terre accumulée, beaucoup possèdent un corps entier avec des bras et des mains, sculpté dans le tuf volcanique de la carrière du Rano Raraku.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Moa%C3%AF",
+    "https://fr.wikipedia.org/wiki/%C3%8Ele_de_P%C3%A2ques"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "moai"
+   },
+   "id": "monum-005"
+  },
+  {
+   "categorie": "Arts",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel monument reconnaissez-vous sur cette image ?",
+   "choix": [
+    "La tour de Pise",
+    "Le campanile de Saint-Marc à Venise",
+    "La Giralda de Séville",
+    "La tour de Belém à Lisbonne"
+   ],
+   "bonne_reponse": "La tour de Pise",
+   "anecdote": "Ce clocher a commencé à pencher dès le chantier, vers 1178, parce qu'il repose sur un sol meuble. Des travaux menés entre 1990 et 2001 l'ont redressé d'une quarantaine de centimètres pour le stabiliser.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_de_Pise"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "tour-de-pise"
+   },
+   "id": "monum-006"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est ce monument ?",
+   "choix": [
+    "Le Mont-Saint-Michel",
+    "La cité de Carcassonne",
+    "Le château de Chambord",
+    "Le palais des Papes d'Avignon"
+   ],
+   "bonne_reponse": "Le Mont-Saint-Michel",
+   "anecdote": "Dans cette baie, la mer peut monter et descendre de près de quinze mètres : ce sont les plus grandes marées d'Europe continentale.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mont-Saint-Michel",
+    "https://fr.wikipedia.org/wiki/Abbaye_du_Mont-Saint-Michel"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "mont-saint-michel"
+   },
+   "id": "monum-007"
+  },
+  {
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Cette aquarelle représente quel monument ?",
+   "choix": [
+    "Le château de Neuschwanstein",
+    "Le château d'Édimbourg",
+    "Le château de Chillon",
+    "Le château de Chambord"
+   ],
+   "bonne_reponse": "Le château de Neuschwanstein",
+   "anecdote": "Louis II de Bavière en fit poser la première pierre en 1869 pour obtenir un château d'allure médiévale, mais l'intérieur était tout ce qu'il y a de moderne pour l'époque : la cuisine disposait déjà de l'eau courante chaude et froide et d'un tourne-broche automatique.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ch%C3%A2teau_de_Neuschwanstein"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "neuschwanstein"
+   },
+   "id": "monum-008"
+  },
+  {
+   "categorie": "Histoire",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel monument s'agit-il ?",
+   "choix": [
+    "La porte de Brandebourg",
+    "L'arc de triomphe de l'Étoile",
+    "La porte d'Alcalá à Madrid",
+    "L'arc de Constantin à Rome"
+   ],
+   "bonne_reponse": "La porte de Brandebourg",
+   "anecdote": "Ses colonnes s'inspirent des Propylées de l'Acropole d'Athènes. Le char à quatre chevaux qui la couronne fut emporté à Paris par Napoléon en 1806, avant que la Prusse ne le récupère et le replace en 1814.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Porte_de_Brandebourg"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "porte-brandebourg"
+   },
+   "id": "monum-009"
+  },
+  {
+   "categorie": "Arts",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Quel monument reconnaissez-vous sur cette image ?",
+   "choix": [
+    "La cathédrale Saint-Basile-le-Bienheureux",
+    "La basilique Saint-Marc de Venise",
+    "La basilique du Sacré-Cœur de Montmartre",
+    "Le Duomo de Florence"
+   ],
+   "bonne_reponse": "La cathédrale Saint-Basile-le-Bienheureux",
+   "anecdote": "Ce n'est pas un seul bâtiment mais neuf églises réunies sur une même fondation, ce qui lui donne cette silhouette en bouquet. Consacrée en 1561, elle n'était pas bariolée à l'origine : ses murs mêlaient brique rouge et décors blancs sous des coupoles dorées, et les bulbes n'ont reçu leurs couleurs actuelles qu'en 1848.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Cath%C3%A9drale_Saint-Basile-le-Bienheureux"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "cathedrale-basile"
+   },
+   "id": "monum-010"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel monument reconnaissez-vous sur cette image ?",
+   "choix": [
+    "La statue de la Liberté",
+    "Le Christ rédempteur de Rio",
+    "La Petite Sirène de Copenhague",
+    "Le Grand Bouddha de Kamakura"
+   ],
+   "bonne_reponse": "La statue de la Liberté",
+   "anecdote": "Elle fut d'abord assemblée à Paris, rue de Chazelles, avant de traverser l'Atlantique en pièces détachées : 214 caisses embarquées à bord du transport l'Isère, qui entra dans le port de New York en juin 1885.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Statue_de_la_Libert%C3%A9"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "statue-liberte"
+   },
+   "id": "monum-011"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel est ce monument ?",
+   "choix": [
+    "Le pont du Golden Gate",
+    "Le pont de Brooklyn",
+    "Le Tower Bridge de Londres",
+    "Le pont Charles de Prague"
+   ],
+   "bonne_reponse": "Le pont du Golden Gate",
+   "anecdote": "La marine américaine voulait le peindre à rayures noires et jaunes pour qu'on le repère depuis les navires ; c'est l'architecte-conseil Irving Morrow qui obtint son fameux « orange international », une couleur qui, disait-il, s'accorde aux collines de la baie et se détache bien dans le brouillard.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Golden_Gate_Bridge"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "golden-gate"
+   },
+   "id": "monum-012"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "ado",
+   "difficulte": 3,
+   "format": "qcm",
+   "texte": "Cette aquarelle représente quel monument ?",
+   "choix": [
+    "Le Machu Picchu",
+    "La citadelle d’Ollantaytambo",
+    "Les temples de Tikal",
+    "La cité de Petra"
+   ],
+   "bonne_reponse": "Le Machu Picchu",
+   "anecdote": "Quand l'explorateur Hiram Bingham atteignit le site en juillet 1911, deux familles de paysans y vivaient déjà et cultivaient les terrasses ; c'est un fils de la famille Recharte qui le guida jusqu'aux ruines.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Machu_Picchu"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "machu-picchu"
+   },
+   "id": "monum-013"
+  },
+  {
+   "categorie": "Histoire",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quel monument s'agit-il ?",
+   "choix": [
+    "La Grande Muraille de Chine",
+    "Le mur d'Hadrien",
+    "Les remparts de Carcassonne",
+    "Les murailles de Dubrovnik"
+   ],
+   "bonne_reponse": "La Grande Muraille de Chine",
+   "anecdote": "On répète souvent qu'on la verrait à l'œil nu depuis l'espace, voire depuis la Lune : c'est faux. Le premier Chinois envoyé en orbite, le taïkonaute Yang Liwei, a déclaré après son vol d'octobre 2003 n'avoir aperçu aucune trace de la muraille.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Grande_Muraille"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "grande-muraille"
+   },
+   "id": "monum-014"
+  },
+  {
+   "categorie": "Arts",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Quel monument reconnaissez-vous sur cette image ?",
+   "choix": [
+    "Le Taj Mahal",
+    "Le fort Rouge de Delhi",
+    "Le palais des Vents de Jaipur",
+    "Le Temple d'or d'Amritsar"
+   ],
+   "bonne_reponse": "Le Taj Mahal",
+   "anecdote": "Le Taj Mahal n'est pas un palais mais un tombeau : l'empereur moghol Shah Jahan le fit édifier à Agra à partir de 1632 pour son épouse Mumtaz Mahal, morte en 1631 ; à sa propre mort, en 1666, il fut enterré à côté d'elle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Taj_Mahal"
+   ],
+   "visuel": {
+    "type": "monument",
+    "cle": "taj-mahal"
+   },
+   "id": "monum-015"
   }
  ]
 }
