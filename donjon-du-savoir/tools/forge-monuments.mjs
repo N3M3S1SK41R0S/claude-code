@@ -9,12 +9,15 @@
 //     une image verticale ferait sauter la flèche d'une cathédrale. Comme les
 //     illustrations ont déjà un fond de papier crème, la marge ajoutée est
 //     invisible — elle prolonge la page du carnet.
-//  2. Redimensionnement à la taille d'affichage réelle (× 2 pour les écrans
-//     denses) : inutile d'embarquer du 1254 px pour une vignette de 190 px.
+//  2. Redimensionnement à la taille d'affichage réelle : inutile d'embarquer
+//     du 1254 px pour une vignette de 240 px. Le réglage retenu est 280 px —
+//     contrôlé à l'œil sur tools/planche-monuments.mjs, aucune perte visible à
+//     la taille où le jeu les montre, et c'est ce qui laisse la place aux
+//     illustrations encore à venir sous le plafond de publication.
 //  3. Encodage WebP. Le poids compte double ici : le jeu embarque TOUT en
 //     base64, et la version web publiable plafonne à 16 Mo.
 //
-// Lancer : node tools/forge-monuments.mjs <dossier-source> [--largeur 420] [--qualite 0.72]
+// Lancer : node tools/forge-monuments.mjs <dossier-source> [--largeur 280] [--qualite 0.75]
 import { chromium } from "playwright-core";
 import { existsSync, statSync, readdirSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -27,8 +30,8 @@ const arg = (nom, defaut) => {
   const i = process.argv.indexOf(nom);
   return i > -1 ? Number(process.argv[i + 1]) : defaut;
 };
-const LARGEUR = arg("--largeur", 420);
-const QUALITE = arg("--qualite", 0.72);
+const LARGEUR = arg("--largeur", 280);
+const QUALITE = arg("--qualite", 0.75);
 
 // Le nom de fichier livré par le studio ne dit rien du monument (« a_detailed_
 // watercolor_ink_illustration_scene_of.png ») : la correspondance est établie
