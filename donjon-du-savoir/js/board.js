@@ -271,7 +271,11 @@ const VIEW_W = 1000;
 
 /** Meandering serpentine sized to the board: ~10-11 cases per row. */
 function buildCoords(length) {
-  const rowCount = Math.max(3, Math.round(length / 10.5));
+  // 9 cases par rangée (et non 10,5) : mesuré en unités-monde 3D, l'ancien
+  // tracé descendait à 1,87 d'espacement dans les rangées impaires (marge
+  // 105) pour des socles de 1,92 — les cases se chevauchaient à l'écran.
+  // Avec 9 par rangée, le pire espacement remonte au-dessus de 2,4.
+  const rowCount = Math.max(3, Math.round(length / 9));
   const viewH = 180 + rowCount * 158;
   const base = Math.floor(length / rowCount);
   const extra = length - base * rowCount;

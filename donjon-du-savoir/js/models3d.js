@@ -84,7 +84,11 @@ export async function createAnimatedHero(characterId) {
   const model = gltf.scene.clone(true);
   model.traverse((node) => {
     if (!node.isMesh) return;
-    node.castShadow = true;
+    // Un SOCLE de case ne projette pas d'ombre : la lumière directionnelle
+    // dessinait un croissant noir dur sous chaque case — c'était le défaut le
+    // plus laid des captures de test. L'ancrage au sol vient des ombres douces
+    // peintes, pas de la shadow map.
+    node.castShadow = !tile;
     node.receiveShadow = true;
   });
 
@@ -119,7 +123,9 @@ function prepareStaticModel(gltf, name, { height = 3, tile = false } = {}) {
   const bounds = new THREE.Box3().setFromObject(model);
   const size = bounds.getSize(new THREE.Vector3());
   if (tile) {
-    const horizontal = 2.12 / Math.max(0.1, size.x, size.z);
+    // Empreinte 1,92 (et non 2,12) : dans les VIRAGES du serpentin, deux cases
+    // voisines se rapprochent sous 2,1 — les socles se chevauchaient.
+    const horizontal = 1.92 / Math.max(0.1, size.x, size.z);
     model.scale.set(horizontal, 0.52 / Math.max(0.1, size.y), horizontal);
   } else {
     // Les bâtiments bas et larges (pont, fontaine) ne doivent pas envahir le

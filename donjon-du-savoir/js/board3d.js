@@ -305,6 +305,11 @@ function figStandee(art, pos, height, vues = 3) {
   const mat = new THREE.SpriteMaterial({ transparent: true, depthWrite: false });
   const spr = new THREE.Sprite(mat);
   spr.center.set(0.5, 0);
+  // Au-dessus des jetons de case (renderOrder 2) : un jeton de la rangée du
+  // FOND se peignait par-dessus la tête d'une figurine pourtant plus proche
+  // (défaut vu en capture). Le socle opaque de la case garde la profondeur :
+  // une figurine réellement derrière une case reste correctement cachée.
+  spr.renderOrder = 3;
   const largeur = largeurSprite(height, vues);
   spr.scale.set(largeur, height, 1);
   groupe.add(spr);
@@ -333,11 +338,13 @@ function radialTexture(rgb, alpha) {
   return t;
 }
 
-/** Tache d'ombre douce qui ancre une figurine au sol. */
-function ombrePortee(radius) {
+/** Tache d'ombre douce qui ancre une figurine au sol. L'opacité BAISSE avec
+ *  la taille : à 0,45 constant, un grand bâtiment posait un disque noir —
+ *  la cabane de plage semblait flotter sur un trou. */
+function ombrePortee(radius, alpha = Math.max(0.18, 0.45 - radius * 0.075)) {
   const m = new THREE.Mesh(
     new THREE.PlaneGeometry(radius * 2, radius * 2),
-    new THREE.MeshBasicMaterial({ map: radialTexture("10, 6, 24", 0.45), transparent: true, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ map: radialTexture("10, 6, 24", alpha), transparent: true, depthWrite: false }),
   );
   m.rotation.x = -Math.PI / 2;
   return m;
@@ -382,6 +389,7 @@ function standee(art, pos, height) {
   const mat = new THREE.SpriteMaterial({ transparent: true, depthWrite: false });
   const spr = new THREE.Sprite(mat);
   spr.center.set(0.5, 0);
+  spr.renderOrder = 3; // même règle que les figurines : au-dessus des jetons de case
   const largeur = largeurSprite(height, 1);
   spr.scale.set(largeur, height, 1);
   g.add(spr);
@@ -857,16 +865,27 @@ function buildBoard(layout, boardDef) {
   const pts = coords.map((c) => new THREE.Vector3((c.x - VIEW_W / 2) * s, -0.12, (c.y - viewH / 2) * s));
   if (pts.length >= 2) {
     const curve = new THREE.CatmullRomCurve3(pts);
-    const tube = new THREE.Mesh(
-      new THREE.TubeGeometry(curve, length * 4, 1.15, 8, false),
-      new THREE.MeshStandardMaterial({ color: hex(boardDef.road || "#4a3a78"), roughness: 0.9 }),
-    );
+    const rubanMat = new THREE.MeshStandardMaterial({ color: hex(boardDef.road || "#4a3a78"), roughness: 0.9 });
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, length * 4, 1.15, 8, false), rubanMat);
     // Ruban APLATI : large sous les pieds mais bien plus bas que les pastilles
     // et jetons de case (l'ancien tube plein les engloutissait entièrement).
     tube.scale.y = 0.3;
     tube.castShadow = true;
     tube.receiveShadow = true;
     boardGroup.add(tube);
+    // BOUCHONS aux deux bouts : le tube ouvert montrait son intérieur noir
+    // sous la case d'arrivée (croissant sombre vu en capture). Une demi-sphère
+    // écrasée du même matériau arrondit proprement chaque extrémité.
+    // Rayon 1,5 (et non 1,15) : les cases Départ/Arrivée sont grossies ×1,18
+    // et leur disque déborderait d'un bouchon au rayon du tube — le vide
+    // sombre repointerait sous le disque.
+    for (const bout of [pts[0], pts[pts.length - 1]]) {
+      const bouchon = new THREE.Mesh(new THREE.SphereGeometry(1.5, 18, 12), rubanMat);
+      bouchon.position.set(bout.x, bout.y * 0.3, bout.z);
+      bouchon.scale.y = 0.23;
+      bouchon.receiveShadow = true;
+      boardGroup.add(bouchon);
+    }
   }
 
   // Une tuile 3D par case, teintée par son type ; bâtiment-repère sur certaines.
@@ -880,7 +899,7 @@ function buildBoard(layout, boardDef) {
     const anchor = new THREE.Group();
     anchor.position.set(p.x, 0, p.z);
     const tile = new THREE.Mesh(tileGeo, mat);
-    tile.castShadow = true;
+    tile.castShadow = false; // même règle que les socles GLB : pas de croissant noir
     tile.receiveShadow = true;
     anchor.add(tile);
     // Le JETON PEINT du type posé À PLAT sur le socle + un ANNEAU lumineux de
@@ -928,7 +947,7 @@ function buildBoard(layout, boardDef) {
     minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
     minZ = Math.min(minZ, p.z); maxZ = Math.max(maxZ, p.z);
     const special = type === "depart" || type === "arrivee";
-    if (special) anchor.scale.set(1.3, 1.3, 1.3);
+    if (special) anchor.scale.set(1.18, 1.18, 1.18); // à 1,3 le jeton débordait sur les voisines
     boardGroup.add(anchor);
     if (["chance", "evenement", "joker", "gambit", "trounoir", "teleporteur"].includes(type)) {
       animatedTiles.push({ anchor, type, phase: i * 0.73 });
@@ -943,10 +962,36 @@ function buildBoard(layout, boardDef) {
   // (à bonne distance de TOUTES les cases) ; sinon il s'abstient — le vide
   // vaut toujours mieux que le chevauchement.
   const positionsCases = Array.from({ length }, (_, i) => worldOf(i, length));
+  // DISTANCE AU CHEMIN : le ruban est un tube de rayon 1,15 qui suit la
+  // COURBE de Catmull-Rom passant par les cases — mesurer la distance aux
+  // seuls centres laissait un objet s'asseoir sur le ruban à mi-chemin entre
+  // deux cases, et la courbe DÉBORDE du tracé polygonal dans les virages
+  // (défauts vus en capture : potion sur le dallage clair, tonneau à cheval
+  // sur le bord). On échantillonne donc la même courbe que le ruban et on
+  // mesure la distance point-segment sur cet échantillon.
+  const echantillonChemin = positionsCases.length >= 2
+    ? new THREE.CatmullRomCurve3(positionsCases.map((p) => new THREE.Vector3(p.x, 0, p.z))).getPoints(length * 6)
+    : positionsCases;
+  const distAuChemin = (x, z) => {
+    let d = Infinity;
+    for (let i = 0; i < echantillonChemin.length; i++) {
+      const a = echantillonChemin[i], b = echantillonChemin[i + 1] ?? a;
+      const abx = b.x - a.x, abz = b.z - a.z;
+      const t = Math.max(0, Math.min(1, (abx * (x - a.x) + abz * (z - a.z)) / (abx * abx + abz * abz || 1)));
+      d = Math.min(d, Math.hypot(a.x + abx * t - x, a.z + abz * t - z));
+    }
+    return d;
+  };
+  // REGISTRE DU DÉCOR : tout ce qui se pose autour du chemin (bâtiment, objet,
+  // PNJ) s'y inscrit avec sa demi-empreinte au sol, et chaque nouveau venu
+  // vérifie la distance à TOUS les occupants — plus seulement aux cases.
+  const placesOccupees = [];
+  const occupe = (p, r) => placesOccupees.push({ x: p.x, z: p.z, r });
+  const loinDesOccupes = (x, z, r) => placesOccupees.every((o) => Math.hypot(o.x - x, o.z - z) >= o.r + r);
   const placeLibre = (p, candidats, marge) => {
     for (const [dx, dz] of candidats) {
       const x = p.x + dx, z = p.z + dz;
-      if (positionsCases.every((c) => Math.hypot(c.x - x, c.z - z) >= marge)) {
+      if (distAuChemin(x, z) >= marge) {
         return new THREE.Vector3(x, 0, z);
       }
     }
@@ -963,29 +1008,82 @@ function buildBoard(layout, boardDef) {
     if (!bat || batisPoses.has(bat.id)) continue;
     const p = positionsCases[i];
     // Derrière d'abord (entre deux rangées), sinon en biais, sinon plus loin.
-    const place = placeLibre(p, [[0, -2.05], [2.3, -2.05], [-2.3, -2.05], [0, -4.8], [2.3, -4.8], [-2.3, -4.8]], 1.9);
-    if (place) { addBuilding(bat.id, bat.art, place, layout[i] === "arrivee" ? 6.2 : 3.9, epoch); batisPoses.add(bat.id); }
+    // La marge suit la TAILLE du bâtiment : 1,9 constant suffisait pour une
+    // échoppe mais laissait le champignon géant s'asseoir sur le chemin.
+    const hauteurBat = layout[i] === "arrivee" ? 6.2 : 3.9;
+    const margeBat = 1.35 + hauteurBat * 0.45;
+    const place = placeLibre(p, [[0, -2.6], [2.6, -2.6], [-2.6, -2.6], [0, -5.2], [2.6, -5.2], [-2.6, -5.2], [0, -7.4], [3.2, -7.4], [-3.2, -7.4]], margeBat);
+    if (place) { addBuilding(bat.id, bat.art, place, hauteurBat, epoch); batisPoses.add(bat.id); occupe(place, hauteurBat * 0.45); }
   }
 
   // Bâtiments et décors d'ambiance aux abords du plateau : ceux du MONDE
   // (grille-pain de la cuisine, grande roue de la foraine…) ou le village
   // de donjon pour les cinq plateaux d'origine.
+  // Les bâtiments d'ambiance étaient posés à leurs coordonnées SANS contrôle :
+  // selon le tracé du serpentin, le bateau pirate écrasait deux cases et la
+  // cabane de plage bouchait le chemin. Chacun est désormais repoussé vers
+  // l'EXTÉRIEUR du plateau, pas à pas, jusqu'à une place franche — et un
+  // bâtiment sans place s'abstient, comme les flâneurs.
+  const centrePlateau = new THREE.Vector3((minX + maxX) / 2, 0, (minZ + maxZ) / 2);
   for (const b of buildingsFor(boardDef.theme)) {
-    addBuilding(BUILDING_ID[b.art], b.art, worldUV(b.u, b.v, length), b.w * (SPAN / 100) * 1.35, epoch);
+    const hauteurB = b.w * (SPAN / 100) * 1.35;
+    const margeB = 1.35 + hauteurB * 0.4;
+    const origine = worldUV(b.u, b.v, length);
+    const dir = origine.clone().sub(centrePlateau);
+    dir.y = 0;
+    if (dir.lengthSq() < 0.01) dir.set(0, 0, 1);
+    dir.normalize();
+    // Un bâtiment poussé CÔTÉ CAMÉRA (vers +z) est une affiche haute plantée
+    // DEVANT le chemin : à moins de ~1,25 fois sa hauteur, elle recouvre les
+    // cases derrière elle à l'écran (défaut vu en capture : l'échoppe posée
+    // sur la case verte). Derrière ou sur les côtés, la marge de base suffit.
+    const margeEff = dir.z > 0.25 ? Math.max(margeB, hauteurB * 1.25) : margeB;
+    for (let k = 0; k <= 6; k++) {
+      const cand = origine.clone().addScaledVector(dir, k * 1.4);
+      if (distAuChemin(cand.x, cand.z) >= margeEff
+        && loinDesOccupes(cand.x, cand.z, hauteurB * 0.45)) {
+        addBuilding(BUILDING_ID[b.art], b.art, cand, hauteurB, epoch);
+        occupe(cand, hauteurB * 0.45);
+        break;
+      }
+    }
   }
   // TORCHES PEINTES aux quatre coins : les anciens modules de pierre GLB
   // (murs, arches, colonnes, braseros) étaient du low-poly gris non texturé
   // qui jurait avec le village peint. La flamme vit dans l'œuvre ; le moteur
   // n'ajoute qu'une lueur qui tremble et une vraie lumière chaude.
+  // Torches et objets de bordure : leurs coordonnées u/v vivent juste hors du
+  // cadre, mais sur un plateau compact « juste hors du cadre » peut frôler la
+  // rangée extérieure. Même loi que les bâtiments : on recule vers l'extérieur
+  // jusqu'à une place franche, sinon on s'abstient.
+  const placeBordure = (u, v, marge, rayon) => {
+    const origine = worldUV(u, v, length);
+    const dir = origine.clone().sub(centrePlateau);
+    dir.y = 0;
+    if (dir.lengthSq() < 0.01) dir.set(0, 0, 1);
+    dir.normalize();
+    for (let k = 0; k <= 5; k++) {
+      const cand = origine.clone().addScaledVector(dir, k * 1.1);
+      if (distAuChemin(cand.x, cand.z) >= marge && loinDesOccupes(cand.x, cand.z, rayon)) return cand;
+    }
+    return null;
+  };
   for (const t of DUNGEON_LAYOUT) {
-    const pos = worldUV(t.u, t.v, length);
+    const pos = placeBordure(t.u, t.v, 1.9, 0.8);
+    if (!pos) continue;
     boardGroup.add(standee("assets/objet-torche.png", pos, 2.4));
+    occupe(pos, 0.8);
     const glow = new THREE.Sprite(new THREE.SpriteMaterial({
       map: radialTexture("255, 176, 96", 0.62),
       transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      opacity: 0.85,
     }));
     glow.scale.setScalar(1.25);
     glow.position.copy(pos).setY(2.1);
+    // La torche et sa lueur sont deux sprites à la MÊME profondeur : sans ordre
+    // explicite, la lueur se dessinait parfois DERRIÈRE la peinture (« lumière
+    // apposée derrière », défaut signalé). Dessinée après, elle enveloppe la flamme.
+    glow.renderOrder = 4;
     boardGroup.add(glow);
     const light = new THREE.PointLight(0xff9a3c, 1.0, 10, 2);
     light.position.copy(pos).setY(2.3);
@@ -1014,7 +1112,12 @@ function buildBoard(layout, boardDef) {
     { art: "assets/objet-tonneau.png", u: 0.8, v: 1.07, h: 1.7 },
     { art: "assets/objet-coffre.png", u: 1.06, v: 0.9, h: 1.5 },
   ];
-  for (const b of BORDURE) boardGroup.add(standee(b.art, worldUV(b.u, b.v, length), b.h));
+  for (const b of BORDURE) {
+    const pos = placeBordure(b.u, b.v, 1.7, 0.8);
+    if (!pos) continue;
+    boardGroup.add(standee(b.art, pos, b.h));
+    occupe(pos, 0.8);
+  }
 
   // PNJ 3D animés : chacun posté près de « sa » case (repli : case libre).
   const PNJ3D_CASE = [
@@ -1048,14 +1151,44 @@ function buildBoard(layout, boardDef) {
     trounoir: "assets/figurines/pnj-zebulon.webp",
     arrivee: "assets/figurines/pnj-merlinouche.webp",
   };
+  // POSTE AU BORD DU CHEMIN : la règle commune à tous les habitants du décor.
+  // On part d'une case d'ancrage, on pousse vers l'extérieur du plateau, et on
+  // exige une place FRANCHE : hors du ruban (distance au CHEMIN, pas aux seuls
+  // centres), loin des autres silhouettes et du décor déjà posé. Sans
+  // dégagement près de l'ancrage, on essaie les cases voisines, puis on
+  // s'abstient — le vide vaut toujours mieux que le chevauchement.
+  const placesFlaneurs = [];
+  const posteAuChemin = (idxVoulu, portee, distances, margeChemin, margeEntreEux, rayon) => {
+    for (let d = 0; d <= portee; d++) {
+      for (const s of d === 0 ? [0] : [d, -d]) {
+        const i = idxVoulu + s;
+        if (i < 0 || i >= length) continue;
+        const c = positionsCases[i];
+        const dir = new THREE.Vector3(c.x - centrePlateau.x, 0, c.z - centrePlateau.z);
+        if (dir.lengthSq() < 0.01) continue; // case pile au centre : pas d'« extérieur »
+        dir.normalize();
+        for (const k of distances) {
+          const x = c.x + dir.x * k, z = c.z + dir.z * k;
+          if (distAuChemin(x, z) < margeChemin) continue;
+          if (!placesFlaneurs.every((q) => Math.hypot(q.x - x, q.z - z) >= margeEntreEux)) continue;
+          if (!loinDesOccupes(x, z, rayon)) continue;
+          const p = new THREE.Vector3(x, 0, z);
+          placesFlaneurs.push(p);
+          return p;
+        }
+      }
+    }
+    return null;
+  };
   const pnjPostes = new Set(); // UN exemplaire de chaque PNJ : jamais de clones
   for (let i = 0; i < length; i++) {
     const art = PNJ_CASE[layout[i]];
     if (!art || pnjPostes.has(art)) continue;
-    // Le PNJ se poste dans un DÉGAGEMENT près de sa case : jamais sur une
-    // case ni coincé contre un liseré — sans place libre, il reste en coulisse.
-    const place = placeLibre(positionsCases[i], [[1.5, 1.45], [-1.5, 1.45], [1.5, -1.45], [-1.5, -1.45], [0, 1.9]], 1.15);
-    if (place) { boardGroup.add(figStandee(art, place, ECHELLES.pnjCase.atlas)); pnjPostes.add(art); }
+    // Le PNJ se poste au bord du chemin, près de sa case-repère : l'ancienne
+    // marge de 1,15 aux centres le laissait au MILIEU du couloir du serpentin
+    // (défaut vu en capture : la fée assise entre quatre cases).
+    const place = posteAuChemin(i, 2, [2.2, 2.9], 1.9, 2.0, 1.1);
+    if (place) { boardGroup.add(figStandee(art, place, ECHELLES.pnjCase.atlas)); pnjPostes.add(art); occupe(place, 1.1); }
   }
   const FLANEURS = ["assets/figurines/pnj-boubou.webp", "assets/figurines/pnj-groumf.webp", "assets/figurines/pnj-sylvette.webp", "assets/figurines/pnj-coassin.webp", "assets/figurines/pnj-barnabe.webp", "assets/figurines/pnj-ratichon.webp", "assets/figurines/pnj-biscornu.webp", "assets/figurines/pnj-hibou-passage.webp"];
   // Les habitants des CINQ NOUVEAUX MONDES (GEN 2 v5) : deux PNJ nés sur place
@@ -1071,30 +1204,20 @@ function buildBoard(layout, boardDef) {
     ...(THEME_FLANEURS[boardDef.theme] ?? []).map((art) => ({ art, vues: 1 })), // PNJ v5 : vue unique sur socle
     ...FLANEURS.map((art) => ({ art, vues: 3 })), // classiques : atlas directionnels
   ];
-  // Les flâneurs obéissent à la même loi que les bâtiments : une place FRANCHE
-  // (loin de toutes les cases ET des autres flâneurs), sinon pas de place.
-  // L'ancien « ±0,09 hors du cadre » ignorait les cases : sur un parcours en
-  // serpentin, la dernière rangée frôle le bord et les PNJ se posaient dessus.
-  const pasFlaneur = 0.88 / Math.max(1, flaneurs.length - 1);
-  const placesFlaneurs = [];
-  const placeAuBord = (u, dedans, marge, margeEntreEux) => {
-    for (const v of dedans) {
-      const p = worldUV(u, v, length);
-      if (!positionsCases.every((c) => Math.hypot(c.x - p.x, c.z - p.z) >= marge)) continue;
-      if (!placesFlaneurs.every((q) => Math.hypot(q.x - p.x, q.z - p.z) >= margeEntreEux)) continue;
-      placesFlaneurs.push(p);
-      return p;
-    }
-    return null; // le vide vaut toujours mieux que le chevauchement
-  };
+  // Les flâneurs vivent AU BORD DU CHEMIN, pas sur le pourtour du rectangle :
+  // l'ancien tracé les éparpillait loin des cases (défaut signalé). Cases
+  // d'ancrage régulièrement espacées le long du parcours.
   flaneurs.forEach((f, i) => {
-    const cotes = i % 2 ? [-0.1, -0.18, -0.26] : [1.1, 1.18, 1.26];
-    const place = placeAuBord(0.06 + pasFlaneur * i, cotes, 2.1, 2.2);
+    const idx = Math.round(((i + 0.5) * length) / flaneurs.length) % length;
+    const place = posteAuChemin(idx, 3, [2.6, 3.2], 2.1, 2.2, 1.1);
     if (place) boardGroup.add(figStandee(f.art, place, f.vues === 1 ? ECHELLES.flaneur.vueUnique : ECHELLES.flaneur.atlas, f.vues));
   });
   const PROPS = ["assets/objet-coffre.png", "assets/objet-tonneau.png", "assets/objet-torche.png", "assets/objet-cristal.png", "assets/objet-potion.png"];
   PROPS.forEach((art, i) => {
-    const place = placeAuBord(0.05 + 0.225 * i, i % 2 ? [-0.06, -0.15] : [1.06, 1.15], 1.6, 1.4);
+    // Cases d'ancrage décalées d'un tiers de pas par rapport aux flâneurs :
+    // les objets se glissent ENTRE les personnages au lieu de les concurrencer.
+    const idx = Math.round(((i + 0.83) * length) / PROPS.length) % length;
+    const place = posteAuChemin(idx, 2, [2.2, 2.8], 1.7, 1.4, 0.7);
     if (place) boardGroup.add(standee(art, place, ECHELLES.prop));
   });
 
@@ -1319,6 +1442,7 @@ function makePionSprite(p) {
     // boucle de rendu choisit ensuite la vue selon la direction de marche.
     const mat = new THREE.SpriteMaterial({ transparent: true });
     obj = new THREE.Sprite(mat);
+    obj.renderOrder = 3; // même règle que les figurines du décor
     obj.scale.set(1.06, ECHELLES.heros, 1); // l'étalon de la table d'échelles
     obj.center.set(0.5, 0);
     const fig = { view: "face", views: {} };
@@ -1333,6 +1457,7 @@ function makePionSprite(p) {
   } else if (art) {
     const mat = new THREE.SpriteMaterial({ map: loadTex(art), transparent: true });
     obj = new THREE.Sprite(mat);
+    obj.renderOrder = 3; // même règle que les figurines du décor
     obj.scale.set(2.8, 2.8, 1);
     obj.center.set(0.5, 0);
   } else {
@@ -1743,6 +1868,7 @@ function loop(now = performance.now()) {
     const f = Math.sin(time * 9 + b.phase) * 0.5 + Math.sin(time * 23 + b.phase * 2.3) * 0.5;
     b.light.intensity = 0.95 + f * 0.3;
     b.flame.scale.set(1 + f * 0.12, 1 + f * 0.22, 1 + f * 0.12);
+    b.flame.material.opacity = 0.72 + f * 0.2; // la lueur respire avec la flamme
     b.flame.rotation.y += dt * 2.4;
   }
   // La poussière dorée dérive en bloc, très lentement.
