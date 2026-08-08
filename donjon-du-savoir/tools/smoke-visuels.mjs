@@ -36,16 +36,25 @@ try {
   const mesure = await page.evaluate(() => {
     const pion = { niveau: 2, bracket: "adulte", profil: null };
     let visuelles = 0;
+    const parFamille = {};
     const total = 400;
     for (let i = 0; i < total; i++) {
       const q = window.__donjonTire ? window.__donjonTire(pion) : null;
-      if (q?.visuel) visuelles += 1;
+      if (q?.visuel) { visuelles += 1; parFamille[q.visuel.type] = (parFamille[q.visuel.type] ?? 0) + 1; }
     }
-    return { visuelles, total };
+    return { visuelles, total, parFamille };
   }).catch(() => null);
   if (mesure) {
     const part = mesure.visuelles / mesure.total;
     check(`dosage tiré ≈ 1 sur 4 (${(part * 100).toFixed(0)} %)`, part > 0.15 && part < 0.36);
+    // …et AUCUNE famille ne doit rafler le tirage visuel (le vécu : quatre
+    // constellations en dix questions, parce qu'elles étaient les plus neuves).
+    const parts = Object.values(mesure.parFamille ?? {});
+    const totalVis = parts.reduce((a, b) => a + b, 0);
+    if (totalVis >= 40 && parts.length > 1) {
+      const max = Math.max(...parts) / totalVis;
+      check(`aucune famille visuelle ne domine (max ${(max * 100).toFixed(0)} % — ${JSON.stringify(mesure.parFamille)})`, max < 0.55);
+    }
   } else {
     console.log("  (sonde de tirage absente : dosage non mesuré ici)");
   }

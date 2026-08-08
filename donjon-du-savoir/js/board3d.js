@@ -1071,15 +1071,32 @@ function buildBoard(layout, boardDef) {
     ...(THEME_FLANEURS[boardDef.theme] ?? []).map((art) => ({ art, vues: 1 })), // PNJ v5 : vue unique sur socle
     ...FLANEURS.map((art) => ({ art, vues: 3 })), // classiques : atlas directionnels
   ];
+  // Les flâneurs obéissent à la même loi que les bâtiments : une place FRANCHE
+  // (loin de toutes les cases ET des autres flâneurs), sinon pas de place.
+  // L'ancien « ±0,09 hors du cadre » ignorait les cases : sur un parcours en
+  // serpentin, la dernière rangée frôle le bord et les PNJ se posaient dessus.
   const pasFlaneur = 0.88 / Math.max(1, flaneurs.length - 1);
-  flaneurs.forEach((f, i) => boardGroup.add(figStandee(
-    f.art,
-    worldUV(0.06 + pasFlaneur * i, i % 2 ? -0.09 : 1.09, length),
-    f.vues === 1 ? ECHELLES.flaneur.vueUnique : ECHELLES.flaneur.atlas,
-    f.vues,
-  )));
+  const placesFlaneurs = [];
+  const placeAuBord = (u, dedans, marge, margeEntreEux) => {
+    for (const v of dedans) {
+      const p = worldUV(u, v, length);
+      if (!positionsCases.every((c) => Math.hypot(c.x - p.x, c.z - p.z) >= marge)) continue;
+      if (!placesFlaneurs.every((q) => Math.hypot(q.x - p.x, q.z - p.z) >= margeEntreEux)) continue;
+      placesFlaneurs.push(p);
+      return p;
+    }
+    return null; // le vide vaut toujours mieux que le chevauchement
+  };
+  flaneurs.forEach((f, i) => {
+    const cotes = i % 2 ? [-0.1, -0.18, -0.26] : [1.1, 1.18, 1.26];
+    const place = placeAuBord(0.06 + pasFlaneur * i, cotes, 2.1, 2.2);
+    if (place) boardGroup.add(figStandee(f.art, place, f.vues === 1 ? ECHELLES.flaneur.vueUnique : ECHELLES.flaneur.atlas, f.vues));
+  });
   const PROPS = ["assets/objet-coffre.png", "assets/objet-tonneau.png", "assets/objet-torche.png", "assets/objet-cristal.png", "assets/objet-potion.png"];
-  PROPS.forEach((art, i) => boardGroup.add(standee(art, worldUV(0.05 + 0.225 * i, i % 2 ? -0.06 : 1.06, length), ECHELLES.prop)));
+  PROPS.forEach((art, i) => {
+    const place = placeAuBord(0.05 + 0.225 * i, i % 2 ? [-0.06, -0.15] : [1.06, 1.15], 1.6, 1.4);
+    if (place) boardGroup.add(standee(art, place, ECHELLES.prop));
+  });
 
   // Vue d'ensemble : recule assez pour cadrer TOUT le plateau (le joueur voit
   // le plateau global au repos ; la caméra ne se rapproche que pendant un trajet).
@@ -1416,14 +1433,40 @@ export function render3D(hostBoard, layout, pions, currentPionId, boardDef, star
   buildBoard(layout, boardDef);
   focusId = currentPionId;
 
-  // Étoile (mode Étoiles).
+  // Étoile (mode Étoiles) : une VRAIE étoile à cinq branches, dorée, dressée
+  // au-dessus de sa case — l'octaèdre d'avant n'était qu'un « bloc beige »
+  // (mot du testeur). Elle tourne lentement sur elle-même dans la boucle
+  // d'animation, avec un léger flottement et un halo doux : on la repère de
+  // l'autre bout du plateau, c'est SON travail.
   if (starPos != null) {
     if (!starMesh) {
+      const forme = new THREE.Shape();
+      for (let i = 0; i < 10; i++) {
+        const r = i % 2 === 0 ? 1.05 : 0.44; // pointes / creux
+        const a = (i / 10) * Math.PI * 2 - Math.PI / 2;
+        const x = Math.cos(a) * r, y = -Math.sin(a) * r;
+        if (i === 0) forme.moveTo(x, y); else forme.lineTo(x, y);
+      }
+      forme.closePath();
+      const geo = new THREE.ExtrudeGeometry(forme, { depth: 0.26, bevelEnabled: true, bevelThickness: 0.07, bevelSize: 0.07, bevelSegments: 2 });
+      geo.center();
       starMesh = new THREE.Mesh(
-        new THREE.OctahedronGeometry(0.95),
-        new THREE.MeshStandardMaterial({ color: 0xe0b04a, emissive: 0x7a5a12, roughness: 0.3 }),
+        geo,
+        new THREE.MeshStandardMaterial({ color: 0xf6cf4a, emissive: 0x9a6c0e, metalness: 0.55, roughness: 0.28 }),
       );
       starMesh.castShadow = true;
+      // Halo : le sprite du fx « halo-etoile », permanent et discret, en enfant
+      // de l'étoile — il suit tous ses déplacements sans code supplémentaire.
+      new THREE.TextureLoader().load(FX_URLS["halo-etoile"], (tex) => {
+        if (!starMesh) return;
+        tex.encoding = THREE.sRGBEncoding;
+        const map = tex.clone(); map.needsUpdate = true;
+        map.repeat.set(0.25, 0.25); map.offset.set(0, 0.75); // 1re image de la planche
+        const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, opacity: 0.5, depthWrite: false }));
+        halo.scale.set(3.4, 3.4, 1);
+        halo.name = "halo";
+        starMesh.add(halo);
+      }, undefined, () => { /* halo optionnel */ });
       scene.add(starMesh);
     }
     const sp = worldOf(starPos, layout.length);
@@ -1684,6 +1727,15 @@ function loop(now = performance.now()) {
   for (const tile of animatedTiles) {
     tile.anchor.position.y = Math.sin(time * 1.4 + tile.phase) * 0.025;
     if (tile.type === "trounoir") tile.anchor.rotation.y += dt * 0.22;
+  }
+
+  // L'étoile du mode Étoiles : rotation LENTE sur elle-même (un tour en ~12 s),
+  // flottement doux, halo qui respire — brillante sans être stroboscopique.
+  if (starMesh) {
+    starMesh.rotation.y += dt * 0.52;
+    starMesh.position.y = 1.9 + Math.sin(time * 1.1) * 0.14;
+    const halo = starMesh.getObjectByName("halo");
+    if (halo) halo.material.opacity = 0.38 + (Math.sin(time * 1.7) + 1) * 0.11;
   }
 
   // Braseros : la flamme danse et la lueur tremble (déterministe, sans RNG).

@@ -80,16 +80,26 @@ export function say(text, {
   // `force` : lecture DEMANDÉE par un bouton (ex. « écouter les règles ») —
   // elle passe outre le Héraut muet, sans changer le réglage de la tablée.
   if ((!enabled && !force) || !voiceAvailable() || !text) return;
-  // UNE seule voie de sortie : la réplique choisit son canal AU MOMENT de
-  // parler — clip enregistré d'abord, voix ElevenLabs en direct pour la voix
-  // du jeu (règles de question, annonces, textes interpolés du Héraut),
-  // synthèse du navigateur en filet. Les héros gardent leur timbre propre.
-  const voixDuJeu = !perso || perso === "heraut";
+  // UNE seule voie de sortie ; l'ordre des canaux est LA règle de la maison :
+  //  ① le timbre PROPRE d'un personnage (héros, PNJ) : son clip enregistré ;
+  //  ② la voix personnalisée du Héraut (ElevenLabs, cache définitif) — pour
+  //     toutes les répliques du jeu, ET en intérim d'un personnage dont le
+  //     clip n'existe pas encore ;
+  //  ③ le clip embarqué du Héraut (appareil sans clé, ou hors ligne) ;
+  //  ④ la synthèse du navigateur, filet de PANNE uniquement.
+  // La voix directe prime sur le clip du Héraut, et non l'inverse : sinon la
+  // tablée entend DEUX voix — les répliques fixes avec le timbre du lot
+  // enregistré, les questions avec la voix choisie dans les réglages. C'était
+  // exactement le défaut signalé sur les toasts d'ouverture.
+  const opts = { pitch, rate, volume, lang, v, preferredVoiceHints };
   const canal = () => {
-    if (perso && playClip(perso, text)) return;
-    if (voixDuJeu && voixDirectActif()
-      && lireEnDirect(text, { onEchec: () => diseEnSynthese(text, { pitch, rate, volume, lang, v, preferredVoiceHints }) })) return;
-    diseEnSynthese(text, { pitch, rate, volume, lang, v, preferredVoiceHints });
+    if (perso && perso !== "heraut" && playClip(perso, text)) return;
+    if (voixDirectActif() && lireEnDirect(text, { onEchec: () => {
+      if (perso === "heraut" && playClip("heraut", text)) return;
+      diseEnSynthese(text, opts);
+    } })) return;
+    if (perso === "heraut" && playClip("heraut", text)) return;
+    diseEnSynthese(text, opts);
   };
   // `queue:true` : la réplique prend sa place dans la FILE et ne démarre qu'au
   // silence TOTAL (anecdote comprise) — jamais par-dessus quelqu'un.
@@ -200,7 +210,10 @@ function cueThenSpeak(cue, text, kind, token) {
     direTexte(true);
   };
   const clip = cue ? clipFor("heraut", cue.text) : null; // MP3 : lisible partout
-  if (!cue || (!clip && !audioCueAvailable())) return fallback();
+  // Voix directe armée : l'accroche est lue FUSIONNÉE au texte, par la même
+  // voix — jouer l'accroche en clip puis le texte en direct faisait entendre
+  // deux timbres différents dans la même phrase.
+  if (!cue || voixDirectActif() || (!clip && !audioCueAvailable())) return fallback();
 
   const audio = new Audio(clip ?? cue.src);
   activeAudio = audio;

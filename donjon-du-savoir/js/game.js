@@ -11,7 +11,7 @@ import { CEREMONIE, herald, RETOURNEMENTS, TOASTS_OUVERTURE } from "./herald.js"
 import { canRecharge, POWERS, powerOf, recharge, RECHARGE_COST } from "./powers.js";
 import { bumpNiveau, CHARACTERS, characterById, clearPendingCase, computeBonusStars, currentPion, getState, isEtoiles, isLast, LAP_BONUS, LAST_ROUND_BONUS, moveStar, nextTurn, porteParole, ranking, save, setPendingCase, starPrice, youngestBracket, evalDefi } from "./state.js";
 import { bigButton, choiceButton, el, heraldSays, onPanelRender, setPanel } from "./ui.js";
-import { onSpeechBoundary, preparerVoix, say, sayHost, voiceEnabled } from "./tts.js";
+import { onSpeechBoundary, parleEnCours, preparerVoix, say, sayHost, stop as stopParole, voiceEnabled } from "./tts.js";
 import { visuelEl } from "./visuels.js";
 import { direQuand } from "./tts.js";
 import { heroLine, voiceOf } from "./voices.js";
@@ -60,9 +60,20 @@ function scheduleBot(delay = 800) {
 
 function botClick(btn) {
   if (!btn) return;
+  // Le bot obéit à la même règle que la table : quand il ENCHAÎNE (grand
+  // bouton, réponse à sa question), la lecture en cours s'arrête. Ses clics
+  // étant synthétiques, le coupe-parole des vrais clics (app.js) ne les voit
+  // pas — sans ceci, la voix du tour du bot continuait sur le tour suivant.
+  // Exception : ses PARIS pendant le tour d'un humain (boutons .btn-bet) —
+  // là, le Héraut lit pour la table, le bot n'a pas à lui couper la parole.
+  try { if (btn.matches?.(".btn-big:not(.btn-bet), .btn-choice:not(.btn-bet)")) stopParole(); } catch { /* jamais bloquant */ }
   try { btn.click(); } catch { /* ignore */ }
   scheduleBot(); // enchaîne l'action suivante
 }
+
+// Patience du bot : combien de fois d'affilée il a différé son geste pour
+// laisser une lecture se finir. Bornée — jamais un blocage de partie.
+let botPatience = 0;
 
 /** Choisit une mauvaise réponse (pour un bot qui « rate »). */
 function botPickWrong(choices, good) {
@@ -114,6 +125,17 @@ function botAct() {
   const humainsEnAttente = [...panel.querySelectorAll(".bet-buttons:not([data-bot='1'])")]
     .some((gr) => !gr.querySelector(".bet-selected"));
   if (humainsEnAttente) return;
+
+  // La POLITESSE du bot : sur SON tour, si le Héraut parle encore (question,
+  // verdict, anecdote), il attend — comme un joueur qui écoute. C'est la même
+  // règle que pour les humains (« l'anecdote se finit, sauf si on enchaîne »),
+  // sauf que le bot, lui, n'est jamais pressé. Borne stricte : ~14 s de
+  // patience, puis il joue quand même — une partie ne gèle jamais.
+  if (!testFlag("__DONJON_BOTFAST") && parleEnCours() && botPatience < 20) {
+    botPatience += 1;
+    return scheduleBot(700);
+  }
+  botPatience = 0;
 
   // (B) Lancer le dé, (C) avancer.
   const roll = byText(/Lancer le dé/); if (roll) return botClick(roll);
@@ -433,6 +455,11 @@ function startTurn({ silent = false, prefix = "" } = {}) {
   if (!silent) { heraldSays(`${prefix}${herald.debutTour(pion.nom)}`); charSays(pion, "tour"); heroMoment3D(pion.id, "salute"); }
 
   const actions = [bigButton("🎲 Lancer le dé", () => rollDie())];
+  // 🗺️ CONSULTER LE PLATEAU avant de lancer : en 3D plein écran, on ne voit
+  // qu'un bout du chemin — ce bouton montre les six atterrissages possibles
+  // (une ligne par valeur du dé), pour décider besace, pouvoir ou relance en
+  // connaissance de cause. Demande de la table, jamais obligatoire.
+  actions.push(choiceButton("🗺️ Consulter le plateau — où puis-je tomber ?", () => montrePlateau(pion, () => startTurn({ silent: true }))));
 
   // Besace : UN seul objet par tour ; on peut ensuite quand même lancer le dé.
   if (inventoryCount(pion) > 0 && !pion.objetUtilise) {
@@ -718,6 +745,35 @@ function destinationDe(pion, steps) {
   const L = boardLen();
   if (isEtoiles()) return (((pion.position + steps * (getState().sens ?? 1)) % L) + L) % L;
   return Math.max(0, Math.min(L - 1, pion.position + steps));
+}
+
+/**
+ * L'ÉCLAIREUR : pour chaque valeur du dé (1 à 6), la case d'atterrissage et
+ * son type. Les cases spéciales (portails, glissades) se résolvent À
+ * L'ARRIVÉE : on montre donc la case VISÉE, celle où le pion se posera avant
+ * que le plateau ne décide de la suite — exactement ce que voit un joueur qui
+ * compte les cases du doigt sur un plateau en carton.
+ */
+function montrePlateau(pion, retour) {
+  const st = getState();
+  const lignes = [];
+  for (let de = 1; de <= 6; de++) {
+    const cible = destinationDe(pion, de);
+    const t = CASE_TYPES[st.board[cible]] ?? CASE_TYPES.question;
+    lignes.push(el("p", { class: "eclaireur-ligne" },
+      el("strong", { class: "eclaireur-de", text: `🎲 ${de}` }),
+      el("span", { text: ` → case ${cible + 1} : ${t.emoji ?? "❓"} ${t.label}` },
+      ),
+    ));
+  }
+  setPanel(
+    el("div", { class: "question-block" },
+      el("h2", { class: "panel-title", text: "🗺️ L'éclaireur du Donjon" }),
+      el("p", { class: "help-note", text: "Voici où chaque valeur du dé vous ferait atterrir. Les portails et glissades se déclenchent à l'arrivée — le Donjon garde ses surprises." }),
+      ...lignes,
+      bigButton("🎲 C'est vu — retour au dé", retour),
+    ),
+  );
 }
 
 function showDieResult(value, { rerollAvailable }) {
@@ -1447,7 +1503,10 @@ function doNPC(pion) {
   const pool = testFlag("__DONJON_NPC") ? NPCS.filter((n) => n.quiz) : NPCS;
   const npc = pool[Math.floor(Math.random() * pool.length)] ?? NPCS[0];
   heraldSays(`✨ Une rencontre ! ${npc.emoji} ${npc.nom} surgit sur le chemin.`); sfx("npc");
-  say(npc.intro, { ...voiceOf(npc.slug), queue: true }); // le PNJ parle de sa propre voix
+  // Le PNJ parle de SA voix : son clip s'il est enregistré (lot en commande),
+  // la voix du Héraut en intérim sinon — jamais la synthèse tant que la voix
+  // directe est armée (règle des voix, voir tts.js).
+  say(npc.intro, { ...voiceOf(npc.slug), queue: true, perso: npc.slug });
   // 🃏 Aplomb du PNJ : une seconde réplique qui assume tout (humour ≥ complice).
   if (humourLevel() >= 1 && NPC_GAGS[npc.slug] && Math.random() < 0.45) {
     heraldSays(`${npc.emoji} ${npc.nom} : « ${aleaHumour(NPC_GAGS[npc.slug])} »`);

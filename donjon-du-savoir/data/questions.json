@@ -1,6 +1,6 @@
 {
  "version": 2,
- "count": 4398,
+ "count": 4426,
  "questions": [
   {
    "id": "arts-001",
@@ -85564,6 +85564,617 @@
     "cle": "taj-mahal"
    },
    "id": "monum-015"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Regarde ce drapeau : quelle forme rouge vois-tu au milieu ?",
+   "choix": [
+    "Un rond",
+    "Un carré"
+   ],
+   "bonne_reponse": "Un rond",
+   "anecdote": "Ce grand rond rouge, c'est le soleil qui se lève le matin !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_du_Japon"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "japon"
+   },
+   "id": "pti-001"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Quel dessin blanc vois-tu sur ce drapeau tout rouge ?",
+   "choix": [
+    "Une croix",
+    "Un rond"
+   ],
+   "bonne_reponse": "Une croix",
+   "anecdote": "Ce drapeau est tout carré, comme un petit carreau de chocolat !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_de_la_Suisse"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "suisse"
+   },
+   "id": "pti-002"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que vois-tu au milieu de ce drapeau ?",
+   "choix": [
+    "Une feuille",
+    "Un poisson",
+    "Un soleil"
+   ],
+   "bonne_reponse": "Une feuille",
+   "anecdote": "C'est la feuille de l'érable, l'arbre qui donne le sirop tout sucré des crêpes !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_du_Canada"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "canada"
+   },
+   "id": "pti-003"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Compte bien : combien de bandes de couleurs a ce drapeau ?",
+   "choix": [
+    "Une",
+    "Deux",
+    "Trois"
+   ],
+   "bonne_reponse": "Trois",
+   "anecdote": "Bleu, blanc, rouge : on voit ces trois bandes flotter sur toutes les écoles de France !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_de_la_France"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "france"
+   },
+   "id": "pti-004"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Que vois-tu briller sur ce drapeau rouge ?",
+   "choix": [
+    "Une lune et une étoile",
+    "Un soleil",
+    "Un nuage"
+   ],
+   "bonne_reponse": "Une lune et une étoile",
+   "anecdote": "La lune y est dessinée en croissant, comme celui que l'on mange au petit-déjeuner !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_de_la_Turquie"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "turquie"
+   },
+   "id": "pti-005"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelle couleur est ce grand drapeau ?",
+   "choix": [
+    "Vert",
+    "Rose"
+   ],
+   "bonne_reponse": "Vert",
+   "anecdote": "Le vert rappelle l'immense forêt du Brésil, où vivent des perroquets de toutes les couleurs !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_du_Br%C3%A9sil"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "bresil"
+   },
+   "id": "pti-006"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quelles couleurs sont les rayures de ce drapeau ?",
+   "choix": [
+    "Bleu et blanc",
+    "Rouge et noir"
+   ],
+   "bonne_reponse": "Bleu et blanc",
+   "anecdote": "On dit que le bleu du drapeau, c'est le ciel et la grande mer bleue de Grèce, où naviguent les bateaux !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_de_la_Gr%C3%A8ce"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "grece"
+   },
+   "id": "pti-007"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Que vois-tu de jaune sur ce drapeau rouge ?",
+   "choix": [
+    "Des étoiles",
+    "Des cœurs",
+    "Des fleurs"
+   ],
+   "bonne_reponse": "Des étoiles",
+   "anecdote": "Il y a une grande étoile et quatre petites, comme une maman étoile avec ses petits !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_de_la_R%C3%A9publique_populaire_de_Chine"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "chine"
+   },
+   "id": "pti-008"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quel pays est ce drapeau ?",
+   "choix": [
+    "La France",
+    "Les Pays-Bas",
+    "L'Italie"
+   ],
+   "bonne_reponse": "La France",
+   "anecdote": "On l'appelle le drapeau tricolore, parce qu'il a trois couleurs : bleu, blanc, rouge !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_de_la_France"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "france"
+   },
+   "id": "pti-009"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel pays est ce drapeau ?",
+   "choix": [
+    "L'Italie",
+    "L'Irlande",
+    "La France"
+   ],
+   "bonne_reponse": "L'Italie",
+   "anecdote": "La célèbre pizza margherita a les mêmes couleurs que ce drapeau : basilic vert, mozzarella blanche et tomate rouge !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_de_l%27Italie",
+    "https://fr.wikipedia.org/wiki/Pizza_Margherita"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "italie"
+   },
+   "id": "pti-010"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel pays est ce drapeau ?",
+   "choix": [
+    "L'Espagne",
+    "Le Portugal",
+    "L'Allemagne"
+   ],
+   "bonne_reponse": "L'Espagne",
+   "anecdote": "Si tu regardes bien le petit blason de ce drapeau, tu peux y trouver un château et un lion !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_de_l%27Espagne"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "espagne"
+   },
+   "id": "pti-011"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quel pays est ce drapeau ?",
+   "choix": [
+    "Le Japon",
+    "La Chine",
+    "Le Canada"
+   ],
+   "bonne_reponse": "Le Japon",
+   "anecdote": "Le grand rond rouge est un soleil : le Japon est surnommé le pays du Soleil levant !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_du_Japon"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "japon"
+   },
+   "id": "pti-012"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "De quel pays est ce drapeau ?",
+   "choix": [
+    "Le Canada",
+    "Le Japon",
+    "La Suisse"
+   ],
+   "bonne_reponse": "Le Canada",
+   "anecdote": "La feuille rouge du drapeau est une feuille d'érable, l'arbre qui donne le bon sirop qu'on met sur les crêpes !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_du_Canada"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "canada"
+   },
+   "id": "pti-013"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel pays est ce drapeau ?",
+   "choix": [
+    "Le Brésil",
+    "L'Argentine",
+    "Le Portugal"
+   ],
+   "bonne_reponse": "Le Brésil",
+   "anecdote": "Le rond bleu au milieu du drapeau est rempli de petites étoiles, comme le ciel pendant la nuit !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_du_Br%C3%A9sil"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "bresil"
+   },
+   "id": "pti-014"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel pays est ce drapeau ?",
+   "choix": [
+    "L'Allemagne",
+    "La Belgique",
+    "L'Espagne"
+   ],
+   "bonne_reponse": "L'Allemagne",
+   "anecdote": "La bande du bas de ce drapeau n'est pas jaune : on dit qu'elle est couleur or, comme un trésor !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_de_l%27Allemagne"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "allemagne"
+   },
+   "id": "pti-015"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "De quel pays est ce drapeau ?",
+   "choix": [
+    "L'Irlande",
+    "L'Italie",
+    "La France"
+   ],
+   "bonne_reponse": "L'Irlande",
+   "anecdote": "L'Irlande est si verte qu'on la surnomme l'île d'émeraude, du nom d'une pierre précieuse toute verte !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_de_l%27Irlande_(pays)"
+   ],
+   "visuel": {
+    "type": "drapeau",
+    "cle": "irlande"
+   },
+   "id": "pti-016"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Regarde bien cette carte : ce pays a la forme d'une botte ! Quel est ce pays ?",
+   "choix": [
+    "L'Italie",
+    "L'Espagne",
+    "La Chine"
+   ],
+   "bonne_reponse": "L'Italie",
+   "anecdote": "L'Italie ressemble à une grande botte qui donne un coup de pied dans une île : la Sicile !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Italie"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "italie"
+   },
+   "id": "pti-017"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Regarde cette carte : c'est le pays où nous jouons en ce moment ! Quel est ce pays ?",
+   "choix": [
+    "La France",
+    "L'Italie",
+    "Le Japon"
+   ],
+   "bonne_reponse": "La France",
+   "anecdote": "La France a six côtés, comme un hexagone : c'est pour ça qu'on la surnomme l'Hexagone !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/France"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "france"
+   },
+   "id": "pti-018"
+  },
+  {
+   "categorie": "Géographie",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Ce très grand pays est une île entourée par la mer, et des kangourous y sautent partout ! Quel est ce pays ?",
+   "choix": [
+    "L'Australie",
+    "La France",
+    "L'Italie"
+   ],
+   "bonne_reponse": "L'Australie",
+   "anecdote": "En Australie, il y a plus de kangourous que d'habitants !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Australie",
+    "https://fr.wikipedia.org/wiki/Kangourou"
+   ],
+   "visuel": {
+    "type": "pays",
+    "cle": "australie"
+   },
+   "id": "pti-019"
+  },
+  {
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "choix": [
+    "Un poisson rouge",
+    "Un oiseau bleu"
+   ],
+   "bonne_reponse": "Un poisson rouge",
+   "anecdote": "Le poisson rouge n'est pas toujours rouge : certains brillent comme de l'or dans leur bocal !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Poisson_rouge"
+   ],
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🐟🔴"
+   },
+   "id": "pti-020"
+  },
+  {
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "choix": [
+    "Une étoile de mer",
+    "Un crabe"
+   ],
+   "bonne_reponse": "Une étoile de mer",
+   "anecdote": "Si une étoile de mer perd un bras, il repousse tout doucement, comme par magie !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89toile_de_mer"
+   ],
+   "visuel": {
+    "type": "rebus",
+    "emojis": "⭐🌊"
+   },
+   "id": "pti-021"
+  },
+  {
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "choix": [
+    "Une souris verte",
+    "Un chien rouge"
+   ],
+   "bonne_reponse": "Une souris verte",
+   "anecdote": "« Une souris verte », c'est une chanson que les enfants chantent depuis très très longtemps !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Une_souris_verte"
+   ],
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🐭💚"
+   },
+   "id": "pti-022"
+  },
+  {
+   "categorie": "Langue française",
+   "niveau_age": "tout_petit",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "choix": [
+    "Un arc-en-ciel",
+    "Un bonhomme de neige"
+   ],
+   "bonne_reponse": "Un arc-en-ciel",
+   "anecdote": "L'arc-en-ciel apparaît quand le soleil et la pluie jouent ensemble dans le ciel !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Arc-en-ciel"
+   ],
+   "visuel": {
+    "type": "rebus",
+    "emojis": "☀️🌧️"
+   },
+   "id": "pti-023"
+  },
+  {
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "choix": [
+    "Donner sa langue au chat",
+    "Le chat boit du lait",
+    "Caresser un chat"
+   ],
+   "bonne_reponse": "Donner sa langue au chat",
+   "anecdote": "On dit « je donne ma langue au chat » quand on ne trouve pas la réponse à une devinette !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chat"
+   ],
+   "visuel": {
+    "type": "rebus",
+    "emojis": "👅🐱"
+   },
+   "id": "pti-024"
+  },
+  {
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "choix": [
+    "Avoir la tête dans les nuages",
+    "Il va pleuvoir",
+    "Faire un câlin à un nuage"
+   ],
+   "bonne_reponse": "Avoir la tête dans les nuages",
+   "anecdote": "Avoir la tête dans les nuages, c'est rêver si fort qu'on oublie ce qui se passe autour de soi !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Nuage"
+   ],
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🙂☁️☁️"
+   },
+   "id": "pti-025"
+  },
+  {
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 1,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "choix": [
+    "Avoir le cœur sur la main",
+    "Dire bonjour de la main",
+    "Envoyer un bisou"
+   ],
+   "bonne_reponse": "Avoir le cœur sur la main",
+   "anecdote": "Avoir le cœur sur la main, c'est aimer partager et donner sans rien attendre en retour !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/C%C5%93ur"
+   ],
+   "visuel": {
+    "type": "rebus",
+    "emojis": "❤️🤚"
+   },
+   "id": "pti-026"
+  },
+  {
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "choix": [
+    "Un froid de canard",
+    "Le canard est malade",
+    "Un canard qui nage",
+    "Un canard en colère"
+   ],
+   "bonne_reponse": "Un froid de canard",
+   "anecdote": "On dit « un froid de canard » quand il fait très très froid, mais le canard, lui, reste bien au chaud grâce à ses plumes !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Canard"
+   ],
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🥶🦆"
+   },
+   "id": "pti-027"
+  },
+  {
+   "categorie": "Langue française",
+   "niveau_age": "enfant",
+   "difficulte": 2,
+   "format": "qcm",
+   "texte": "Charade en images : que racontent ces émojis ?",
+   "choix": [
+    "Des larmes de crocodile",
+    "Le crocodile s'est fait mal",
+    "Un crocodile sous la pluie"
+   ],
+   "bonne_reponse": "Des larmes de crocodile",
+   "anecdote": "Faire des larmes de crocodile, c'est faire semblant de pleurer... et le vrai crocodile, lui, a les yeux qui coulent quand il mange, sans être triste du tout !",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Larmes_de_crocodile"
+   ],
+   "visuel": {
+    "type": "rebus",
+    "emojis": "🐊😢"
+   },
+   "id": "pti-028"
   }
  ]
 }

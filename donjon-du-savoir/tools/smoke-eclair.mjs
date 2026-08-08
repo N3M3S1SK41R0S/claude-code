@@ -62,7 +62,9 @@ await page.getByRole("button", { name: "🏁 Terminer ici" }).click();
 await page.waitForSelector(".eclair-podium", { timeout: 8000 });
 await page.getByRole("button", { name: /Revanche|Rejouer|Nouveau sprint/ }).first().click();
 await page.waitForSelector(".eclair-carte", { timeout: 8000 });
-const visuelEclair = (await page.locator(".eclair-carte .visuel svg, .eclair-carte .visuel-rebus").count()) > 0;
+// svg (drapeaux, cartes, ciels), img (aquarelles de monuments) ou émojis :
+// les CINQ familles comptent — le test ratait les monuments, dessinés en <img>.
+const visuelEclair = (await page.locator(".eclair-carte .visuel svg, .eclair-carte .visuel img, .eclair-carte .visuel-rebus").count()) > 0;
 const enonce = await page.locator(".eclair-texte").innerText().catch(() => "");
 check(visuelEclair, `le visuel s'affiche en Partie Éclair (« ${enonce.slice(0, 40)}… »)`);
 if (process.env.SHOT_SETUP) await page.screenshot({ path: process.env.SHOT_SETUP, fullPage: false });

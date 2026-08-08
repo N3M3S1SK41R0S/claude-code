@@ -25,6 +25,7 @@ import { grimoireEntries, grimoireSize } from "./grimoire.js";
 import { souvenirSection } from "./souvenir.js";
 import { SONS } from "./sonmystere.js";
 import { el } from "./ui.js";
+import { clipsDisponibles } from "./voiceclips.js";
 
 const MAX_PLAYERS = 20;
 
@@ -101,6 +102,18 @@ function renderHome() {
   document.getElementById("bank-info").textContent = bankOk
     ? `${bankSize()} questions vérifiées et sourcées · 18 catégories · zéro chronomètre`
     : "⚠️ Impossible de charger les questions (data/questions.json). Rechargez la page une fois en ligne.";
+
+  // 🔇 VERSION WEB SANS VOIX PERSONNALISÉE : la page partageable part sans les
+  // clips MP3 (limite de publication), et la clé ElevenLabs vit dans le
+  // stockage de CETTE page — qui peut repartir à zéro à chaque republication.
+  // Sans cet avis, on croit les voix « cassées » alors qu'elles ne sont
+  // simplement pas branchées ici : on le DIT, et on dit où les brancher.
+  if (bankOk && voiceEnabled() && !voixDirectActif() && !clipsDisponibles()) {
+    zone.append(el("p", {
+      class: "avis-voix",
+      text: "🔇 Sur cette version web, la voix du Héraut n'est pas branchée : c'est la synthèse de l'appareil qui lit. Pour retrouver SA voix : ⚙️ Réglages → Voix du Héraut, collez votre clé ElevenLabs (elle reste sur votre appareil). À refaire si la page a été republiée depuis.",
+    }));
+  }
 }
 
 /** Image décorative avec repli : l'élément se retire si l'asset manque. */

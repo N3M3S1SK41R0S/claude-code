@@ -169,7 +169,7 @@ système demande de réduire les animations).
 
 ## La banque de questions
 
-`data/questions.json` — **4398 questions vérifiées** (chaque fait contrôlé
+`data/questions.json` — **4426 questions vérifiées** (chaque fait contrôlé
 contre ≥ 2 sources indépendantes, citées sous chaque anecdote), 13 catégories,
 6 formats, réparties en niveaux `tout_petit` / `enfant` / `ado` / `adulte`
 (difficulté 1-5). Elle est générée depuis la banque fact-checkée du projet
@@ -271,6 +271,8 @@ node tools/smoke-minigames.mjs   # E2E anagramme / pendu / bonus tablée / défi
 node tools/smoke-formats.mjs     # E2E cascade / Baccalauréat Éclair / Son Mystère
                                  # (les bruitages sont rendus et MESURÉS)
 node tools/smoke-visuels.mjs     # E2E questions à support visuel + dosage du tirage
+node tools/smoke-voix-regle.mjs  # AUDIT de la règle des voix : voix directe armée →
+                                 # zéro synthèse (chaque canal est espionné et compté)
 node tools/forge-cartes.mjs      # régénère js/cartes.js depuis Natural Earth
 node tools/planche-cartes.mjs x.png  # planche de contrôle des 51 cartes
 node tools/planche-ciel.mjs x.png    # planche de contrôle des 8 constellations

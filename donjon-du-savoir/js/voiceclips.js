@@ -80,6 +80,12 @@ export function stopClips() {
 
 /** Chemin (ou data-URI) du clip d'une réplique, null si le lot ne l'a pas.
  *  Pour les lecteurs qui gèrent eux-mêmes leur Audio (accroches du sayHost). */
+/** La banque de clips est-elle embarquée ici ? (La version web partageable
+ *  part SANS les MP3 — la limite de publication ne les laisse pas passer.) */
+export function clipsDisponibles() {
+  return Object.keys(manifest?.heraut ?? {}).length > 0;
+}
+
 export function clipFor(perso, texte) {
   return manifest?.[perso]?.[idReplique(texte)] ?? null;
 }

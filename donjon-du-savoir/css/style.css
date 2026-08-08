@@ -1166,6 +1166,22 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
 }
 .minimap svg { display: block; width: 100%; height: auto; }
 
+/* Avis « voix non branchée » (version web) : visible sans être criard. */
+.avis-voix {
+  font-size: 0.88rem; line-height: 1.45; opacity: 0.92;
+  background: color-mix(in srgb, #d9822b 12%, var(--stone));
+  border: 1px solid color-mix(in srgb, #d9822b 45%, var(--line));
+  border-radius: 0.5rem; padding: 0.5rem 0.7rem; margin-top: 0.5rem;
+}
+
+/* ---------- l'éclaireur : où le dé peut faire atterrir ---------- */
+.eclaireur-ligne {
+  display: flex; gap: 0.6rem; align-items: baseline; margin: 0.3rem 0;
+  background: color-mix(in srgb, var(--gold) 6%, var(--stone));
+  border: 1px solid var(--line); border-radius: 0.5rem; padding: 0.45rem 0.7rem;
+}
+.eclaireur-de { color: var(--gold); white-space: nowrap; }
+
 /* ---------- Baccalauréat Éclair : la lettre tirée, bien lisible ---------- */
 .bac-lettre {
   font-size: clamp(3.2rem, 16vw, 5rem); font-weight: 800; line-height: 1;

@@ -204,7 +204,26 @@ export function drawQuestion(pion, { formats = null, commit = true, exclude = nu
   const target = pion?.niveau ?? 2;
   let near = pool.filter((q) => Math.abs(diffOf(q) - target) <= 1);
   if (near.length === 0) near = pool;
-  const q = select(near);
+  // ÉQUILIBRE DES FAMILLES VISUELLES : le registre de fraîcheur privilégie le
+  // jamais-vu — à chaque nouvelle famille ajoutée (constellations, cartes…),
+  // il concentrait donc le tirage sur elle : quatre ciels en dix questions,
+  // vécu sur table. On tire d'abord la FAMILLE au sort (drapeau, carte, ciel,
+  // monument, rébus à parts égales), puis la question dans cette famille.
+  let vivier = near;
+  if (near.some(estVisuelle)) {
+    const familles = new Map();
+    for (const q of near) {
+      const f = q.visuel?.type;
+      if (!f) continue;
+      if (!familles.has(f)) familles.set(f, []);
+      familles.get(f).push(q);
+    }
+    if (familles.size > 1) {
+      const cles = [...familles.keys()];
+      vivier = familles.get(cles[Math.floor(Math.random() * cles.length)]);
+    }
+  }
+  const q = select(vivier);
   if (commit) commitQuestion(q);
   return q;
 }
