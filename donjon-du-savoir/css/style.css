@@ -321,6 +321,11 @@ select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor:
   flex-direction: column;
   gap: 0.7rem;
 }
+/* Sur grand écran, la colonne téléphone flottait dans le tiers haut d'une
+   page vide : on la centre verticalement — sans toucher au mobile. */
+@media (min-height: 700px) and (min-width: 60rem) {
+  .eclair-ecran { justify-content: center; min-height: calc(100vh - 9rem); }
+}
 .eclair-setup { display: flex; flex-direction: column; gap: 0.5rem; }
 .eclair-joueur-row { display: flex; gap: 0.4rem; align-items: center; }
 .eclair-joueur-row .name-input { flex: 1; min-width: 0; }

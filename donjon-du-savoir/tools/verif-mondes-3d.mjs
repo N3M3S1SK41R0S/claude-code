@@ -51,7 +51,11 @@ for (const monde of MONDES) {
   page.on("pageerror", (e) => errors.push(String(e)));
   await page.addInitScript(() => {
     window.__DONJON_KEEP3D = true;
-    try { localStorage.setItem("donjon-prefs", JSON.stringify({ tutoVu: true, immersion: true, voixProposee: true })); } catch { /* privé */ }
+    try {
+      localStorage.setItem("donjon-prefs", JSON.stringify({ tutoVu: true, immersion: true, voixProposee: true }));
+      // Vue d'ensemble : l'audit doit voir TOUT le plateau, pas le gros plan héros.
+      localStorage.setItem("donjon-cam", "ensemble");
+    } catch { /* privé */ }
   });
   try {
     await page.goto(`http://localhost:${PORT}/`, { waitUntil: "load" });

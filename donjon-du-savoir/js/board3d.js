@@ -550,7 +550,7 @@ function themeGroundTexture(theme, road) {
   }
   const tex = new THREE.CanvasTexture(c);
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(11, 10);
+  tex.repeat.set(16.5, 15);
   groundTexCache.set(theme, tex);
   return tex;
 }
@@ -592,7 +592,7 @@ function upgradeGroundTexture(mat, theme) {
   if (solTexCache.has(theme)) { mat.map = solTexCache.get(theme); mat.needsUpdate = true; return; }
   new THREE.TextureLoader().load(src, (tex) => {
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-    tex.repeat.set(11, 10);
+    tex.repeat.set(16.5, 15);
     tex.encoding = THREE.sRGBEncoding;
     solTexCache.set(theme, tex);
     mat.map = tex;
@@ -853,7 +853,7 @@ function buildBoard(layout, boardDef) {
   const groundMat = new THREE.MeshStandardMaterial({ map: themeGroundTexture(boardDef.theme, boardDef.road), roughness: 1, metalness: 0 });
   upgradeGroundTexture(groundMat, boardDef.theme); // texture peinte GEN 2 dès que prête
   const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(SPAN * 2.4, (SPAN * viewH) / VIEW_W * 2.2),
+    new THREE.PlaneGeometry(SPAN * 3.6, (SPAN * viewH) / VIEW_W * 3.3),
     groundMat,
   );
   ground.rotation.x = -Math.PI / 2;
@@ -1573,13 +1573,23 @@ export function render3D(hostBoard, layout, pions, currentPionId, boardDef, star
         if (i === 0) forme.moveTo(x, y); else forme.lineTo(x, y);
       }
       forme.closePath();
-      const geo = new THREE.ExtrudeGeometry(forme, { depth: 0.26, bevelEnabled: true, bevelThickness: 0.07, bevelSize: 0.07, bevelSegments: 2 });
+      const geo = new THREE.ExtrudeGeometry(forme, { depth: 0.34, bevelEnabled: true, bevelThickness: 0.07, bevelSize: 0.07, bevelSegments: 2 });
       geo.center();
-      starMesh = new THREE.Mesh(
-        geo,
-        new THREE.MeshStandardMaterial({ color: 0xf6cf4a, emissive: 0x9a6c0e, metalness: 0.55, roughness: 0.28 }),
-      );
+      // Or SOMBRE + émissif : une base claire se surexpose au soleil et l'ACES
+      // la délave en beige (vu en capture, deux fois). La teinte diffuse est
+      // donc un or profond que la lumière ne peut pas blanchir, et l'émissif
+      // saturé comble les faces à l'ombre — l'étoile reste dorée sous tous les
+      // éclairages de monde.
+      const orMat = new THREE.MeshStandardMaterial({ color: 0x8a5f06, emissive: 0xf59d05, emissiveIntensity: 0.28, metalness: 0, roughness: 0.5 });
+      starMesh = new THREE.Mesh(geo, orMat);
       starMesh.castShadow = true;
+      // ÉTOILE EN CROIX : une étoile plate vue par la tranche n'est qu'un
+      // bâton jaune (vu en capture pendant la rotation). Une seconde étoile
+      // croisée à 90° garantit la silhouette étoilée sous TOUS les angles.
+      const croix = new THREE.Mesh(geo, orMat);
+      croix.rotation.y = Math.PI / 2;
+      croix.castShadow = true;
+      starMesh.add(croix);
       // Halo : le sprite du fx « halo-etoile », permanent et discret, en enfant
       // de l'étoile — il suit tous ses déplacements sans code supplémentaire.
       new THREE.TextureLoader().load(FX_URLS["halo-etoile"], (tex) => {
