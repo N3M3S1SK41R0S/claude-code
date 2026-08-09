@@ -9,11 +9,13 @@ export const POWERS = {
       nom: "Charge Téméraire",
       desc: "Transforme la question à choix en CASH : répondez sans les choix, gain maximal.",
       quand: "question",
+      moment: "pendant une question à choix (QCM ou Carré) — le bouton apparaît sous l'énoncé",
     },
     enfant: {
       nom: "Bouclier Facile",
       desc: "Remplace la question par une plus facile.",
       quand: "question",
+      moment: "pendant une question — le bouton apparaît sous l'énoncé",
     },
   },
   etincelle: {
@@ -26,6 +28,7 @@ export const POWERS = {
       nom: "Deuxième Chance",
       desc: "Relance le dé une fois.",
       quand: "de",
+      moment: "juste après votre lancer — le bouton de relance apparaît à côté du résultat",
     },
   },
   gobelin: {
@@ -50,6 +53,7 @@ export const POWERS = {
       nom: "Bulle Protectrice",
       desc: "Annule un Coup dur.",
       quand: "malus",
+      moment: "proposé automatiquement quand un Coup dur vous frappe",
     },
   },
   boumbastien: {
@@ -57,6 +61,7 @@ export const POWERS = {
       nom: "Relance !",
       desc: "Relance le dé après avoir vu le résultat.",
       quand: "de",
+      moment: "juste après votre lancer — le bouton de relance apparaît à côté du résultat",
     },
     enfant: {
       nom: "Turbo Case",
@@ -69,11 +74,13 @@ export const POWERS = {
       nom: "Indice Royal",
       desc: "Révèle l'anecdote avant de répondre.",
       quand: "question",
+      moment: "pendant une question — le bouton apparaît sous l'énoncé",
     },
     enfant: {
       nom: "Indice Malin",
       desc: "Un indice supplémentaire sur la question.",
       quand: "question",
+      moment: "pendant une question — le bouton apparaît sous l'énoncé",
     },
   },
   flaque: {
@@ -86,6 +93,7 @@ export const POWERS = {
       nom: "Vent en Poupe",
       desc: "Relance le dé une fois.",
       quand: "de",
+      moment: "juste après votre lancer — le bouton de relance apparaît à côté du résultat",
     },
   },
   pelote: {
@@ -98,6 +106,7 @@ export const POWERS = {
       nom: "Doudou Réconfort",
       desc: "Annule un Coup dur.",
       quand: "malus",
+      moment: "proposé automatiquement quand un Coup dur vous frappe",
     },
   },
   hibou: {
@@ -105,11 +114,13 @@ export const POWERS = {
       nom: "Cinquante-Cinquante",
       desc: "Retire 2 mauvaises réponses d'un QCM.",
       quand: "question",
+      moment: "pendant un QCM — le bouton apparaît sous l'énoncé",
     },
     enfant: {
       nom: "Petit Curieux",
       desc: "Révèle la première lettre de la réponse.",
       quand: "question",
+      moment: "pendant une question — le bouton apparaît sous l'énoncé",
     },
   },
   kribouille: {
@@ -122,6 +133,7 @@ export const POWERS = {
       nom: "Galipette",
       desc: "Relance le dé une fois.",
       quand: "de",
+      moment: "juste après votre lancer — le bouton de relance apparaît à côté du résultat",
     },
   },
   plomberoy: {
@@ -134,6 +146,7 @@ export const POWERS = {
       nom: "Coup de Clé",
       desc: "Répare tout : annule un Coup dur.",
       quand: "malus",
+      moment: "proposé automatiquement quand un Coup dur vous frappe",
     },
   },
 };

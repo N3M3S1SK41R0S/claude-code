@@ -7387,11 +7387,13 @@ const POWERS = {
       nom: "Charge Téméraire",
       desc: "Transforme la question à choix en CASH : répondez sans les choix, gain maximal.",
       quand: "question",
+      moment: "pendant une question à choix (QCM ou Carré) — le bouton apparaît sous l'énoncé",
     },
     enfant: {
       nom: "Bouclier Facile",
       desc: "Remplace la question par une plus facile.",
       quand: "question",
+      moment: "pendant une question — le bouton apparaît sous l'énoncé",
     },
   },
   etincelle: {
@@ -7404,6 +7406,7 @@ const POWERS = {
       nom: "Deuxième Chance",
       desc: "Relance le dé une fois.",
       quand: "de",
+      moment: "juste après votre lancer — le bouton de relance apparaît à côté du résultat",
     },
   },
   gobelin: {
@@ -7428,6 +7431,7 @@ const POWERS = {
       nom: "Bulle Protectrice",
       desc: "Annule un Coup dur.",
       quand: "malus",
+      moment: "proposé automatiquement quand un Coup dur vous frappe",
     },
   },
   boumbastien: {
@@ -7435,6 +7439,7 @@ const POWERS = {
       nom: "Relance !",
       desc: "Relance le dé après avoir vu le résultat.",
       quand: "de",
+      moment: "juste après votre lancer — le bouton de relance apparaît à côté du résultat",
     },
     enfant: {
       nom: "Turbo Case",
@@ -7447,11 +7452,13 @@ const POWERS = {
       nom: "Indice Royal",
       desc: "Révèle l'anecdote avant de répondre.",
       quand: "question",
+      moment: "pendant une question — le bouton apparaît sous l'énoncé",
     },
     enfant: {
       nom: "Indice Malin",
       desc: "Un indice supplémentaire sur la question.",
       quand: "question",
+      moment: "pendant une question — le bouton apparaît sous l'énoncé",
     },
   },
   flaque: {
@@ -7464,6 +7471,7 @@ const POWERS = {
       nom: "Vent en Poupe",
       desc: "Relance le dé une fois.",
       quand: "de",
+      moment: "juste après votre lancer — le bouton de relance apparaît à côté du résultat",
     },
   },
   pelote: {
@@ -7476,6 +7484,7 @@ const POWERS = {
       nom: "Doudou Réconfort",
       desc: "Annule un Coup dur.",
       quand: "malus",
+      moment: "proposé automatiquement quand un Coup dur vous frappe",
     },
   },
   hibou: {
@@ -7483,11 +7492,13 @@ const POWERS = {
       nom: "Cinquante-Cinquante",
       desc: "Retire 2 mauvaises réponses d'un QCM.",
       quand: "question",
+      moment: "pendant un QCM — le bouton apparaît sous l'énoncé",
     },
     enfant: {
       nom: "Petit Curieux",
       desc: "Révèle la première lettre de la réponse.",
       quand: "question",
+      moment: "pendant une question — le bouton apparaît sous l'énoncé",
     },
   },
   kribouille: {
@@ -7500,6 +7511,7 @@ const POWERS = {
       nom: "Galipette",
       desc: "Relance le dé une fois.",
       quand: "de",
+      moment: "juste après votre lancer — le bouton de relance apparaît à côté du résultat",
     },
   },
   plomberoy: {
@@ -7512,6 +7524,7 @@ const POWERS = {
       nom: "Coup de Clé",
       desc: "Répare tout : annule un Coup dur.",
       quand: "malus",
+      moment: "proposé automatiquement quand un Coup dur vous frappe",
     },
   },
 };
@@ -13893,7 +13906,7 @@ __modules["./version.js"] = function(module, exports, require) {
 // traîne sur un bureau depuis des semaines).
 // SYNCHRONISÉ AUTOMATIQUEMENT depuis sw.js par tools/build-standalone.mjs :
 // ne pas modifier à la main, bumper la VERSION du service worker.
-const APP_VERSION = "donjon-v156";
+const APP_VERSION = "donjon-v157";
 
 ;Object.assign(module.exports, {APP_VERSION});
 };
@@ -14370,6 +14383,11 @@ function startTurn({ silent = false, prefix = "" } = {}) {
   const power = powerOf(pion);
   if (power && !pion.pouvoirUtilise && power.quand === "tour") {
     actions.push(choiceButton(`${characterById(pion.characterId).emoji} ${power.nom} — ${power.desc}`, () => useTurnPower(pion)));
+  } else if (power && !pion.pouvoirUtilise && power.moment) {
+    // Pouvoir qui se déclenche AILLEURS (question, dé, coup dur) : sans ce
+    // rappel, les héros concernés semblaient « sans pouvoir » (retour de
+    // table) — le bouton n'apparaissant qu'à son moment, jamais au tour.
+    actions.push(el("p", { class: "help-note", text: `${characterById(pion.characterId).emoji} Pouvoir « ${power.nom} » : ${power.moment}.` }));
   }
   if (canRecharge(pion)) {
     actions.push(
@@ -15527,7 +15545,16 @@ function useTurnPower(pion) {
   switch (`${pion.characterId}:${pion.profil}`) {
     case "etincelle:adulte": {
       const targets = others.filter((p) => p.jokers > 0);
-      if (targets.length === 0) return startTurn({ silent: true });
+      if (targets.length === 0) {
+        // Sans cible, le clic retournait au tour EN SILENCE : le pouvoir
+        // semblait cassé (retour de table). On explique, et on le CONSERVE.
+        setPanel(
+          el("h2", { class: "panel-title", text: "Chapardage — personne à détrousser !" }),
+          el("p", { class: "help-note", text: "Aucun adversaire ne détient de carte Joker pour l'instant. Le pouvoir reste prêt — revenez quand une bourse s'en sera garnie." }),
+          choiceButton("↩️ Retour au tour", () => startTurn({ silent: true })),
+        );
+        return;
+      }
       setPanel(
         el("h2", { class: "panel-title", text: "Chapardage — voler un Joker à qui ?" }),
         ...targets.map((t) => choiceButton(`${t.nom} (🃏 ${t.jokers})`, () => {

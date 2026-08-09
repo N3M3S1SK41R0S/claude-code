@@ -470,6 +470,11 @@ function startTurn({ silent = false, prefix = "" } = {}) {
   const power = powerOf(pion);
   if (power && !pion.pouvoirUtilise && power.quand === "tour") {
     actions.push(choiceButton(`${characterById(pion.characterId).emoji} ${power.nom} — ${power.desc}`, () => useTurnPower(pion)));
+  } else if (power && !pion.pouvoirUtilise && power.moment) {
+    // Pouvoir qui se déclenche AILLEURS (question, dé, coup dur) : sans ce
+    // rappel, les héros concernés semblaient « sans pouvoir » (retour de
+    // table) — le bouton n'apparaissant qu'à son moment, jamais au tour.
+    actions.push(el("p", { class: "help-note", text: `${characterById(pion.characterId).emoji} Pouvoir « ${power.nom} » : ${power.moment}.` }));
   }
   if (canRecharge(pion)) {
     actions.push(
@@ -1627,7 +1632,16 @@ function useTurnPower(pion) {
   switch (`${pion.characterId}:${pion.profil}`) {
     case "etincelle:adulte": {
       const targets = others.filter((p) => p.jokers > 0);
-      if (targets.length === 0) return startTurn({ silent: true });
+      if (targets.length === 0) {
+        // Sans cible, le clic retournait au tour EN SILENCE : le pouvoir
+        // semblait cassé (retour de table). On explique, et on le CONSERVE.
+        setPanel(
+          el("h2", { class: "panel-title", text: "Chapardage — personne à détrousser !" }),
+          el("p", { class: "help-note", text: "Aucun adversaire ne détient de carte Joker pour l'instant. Le pouvoir reste prêt — revenez quand une bourse s'en sera garnie." }),
+          choiceButton("↩️ Retour au tour", () => startTurn({ silent: true })),
+        );
+        return;
+      }
       setPanel(
         el("h2", { class: "panel-title", text: "Chapardage — voler un Joker à qui ?" }),
         ...targets.map((t) => choiceButton(`${t.nom} (🃏 ${t.jokers})`, () => {
