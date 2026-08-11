@@ -1,0 +1,617 @@
+{
+ "generatedBy": "mogul-script-verify wf_b9f722d6-ed1",
+ "verdicts": [
+  {
+   "id": "G1",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "La Tour Eiffel est bien à Paris, en Europe, les trois distracteurs sont clairement faux, et l'anecdote est exacte (la France est le pays le plus visité au monde selon l'OMT, avec 102 millions d'arrivées internationales en 2024).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tour_Eiffel",
+    "https://fr.wikipedia.org/wiki/Tourisme_en_France",
+    "https://en.wikipedia.org/wiki/Eiffel_Tower"
+   ]
+  },
+  {
+   "id": "G2",
+   "keep": true,
+   "confidence": 0.95,
+   "reason": "placeholder",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Kangourou",
+    "https://en.wikipedia.org/wiki/Coat_of_arms_of_Australia",
+    "https://www.pmc.gov.au/honours-and-symbols/commonwealth-coat-arms"
+   ],
+   "correctedAnecdote": "Le kangourou ne peut pas reculer à cause de sa puissante queue et de ses grandes pattes : c'est pourquoi il figure, avec l'émeu, sur les armoiries de l'Australie comme symbole d'une nation qui va toujours de l'avant."
+  },
+  {
+   "id": "G3",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "Bonne réponse exacte et non ambiguë (l'Oural marque traditionnellement la limite Europe-Asie), distracteurs clairement faux et anecdote strictement factuelle, confirmé par fr.wikipedia et Britannica.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Oural",
+    "https://www.britannica.com/place/Ural-Mountains",
+    "https://fr.wikipedia.org/wiki/Fronti%C3%A8re_entre_l%27Europe_et_l%27Asie"
+   ]
+  },
+  {
+   "id": "G4",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "Canberra est bien la capitale de l'Australie et les distracteurs sont clairement faux ; seule nuance : en 1908 c'est le site de la future ville qui fut choisi (la ville, fondée en 1913, n'existait pas encore), d'où une anecdote légèrement reformulée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Canberra",
+    "https://en.wikipedia.org/wiki/Canberra",
+    "https://www.britannica.com/place/Canberra"
+   ],
+   "correctedAnecdote": "Le site de Canberra fut choisi en 1908 comme compromis neutre entre Sydney et Melbourne, rivales pour le titre de capitale ; la ville, fondée en 1913, accueille le Parlement depuis 1927."
+  },
+  {
+   "id": "G5",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "La bonne réponse est exacte et sans ambiguïté (l'Antarctique, ~14 M km², est le plus grand désert du monde selon la définition par les précipitations), les distracteurs sont tous clairement plus petits et l'anecdote est strictement factuelle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Antarctique",
+    "https://fr.wikipedia.org/wiki/D%C3%A9sert",
+    "https://www.britannica.com/science/desert"
+   ]
+  },
+  {
+   "id": "G6",
+   "keep": true,
+   "confidence": 0.93,
+   "reason": "Question et anecdote exactes (13 pays est le décompte standard), mais la liste des réponses acceptées omet la République démocratique du Congo, incohérence corrigée via additionalAccepted.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Equator",
+    "https://education.toutcomment.com/article/quels-sont-les-pays-traverses-par-l-equateur-13109.html",
+    "https://www.techno-science.net/definition/2592.html"
+   ],
+   "additionalAccepted": [
+    "République démocratique du Congo"
+   ],
+   "correctedAnecdote": "13 pays sont traversés par la ligne équatoriale : 11 sur la terre ferme, tandis que les Maldives et Kiribati ne sont concernés que par leurs eaux territoriales."
+  },
+  {
+   "id": "G7",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "La réponse 193 est exacte et stable depuis l'admission du Soudan du Sud le 14 juillet 2011, confirmée par le site officiel de l'ONU et Wikipédia ; l'anecdote est strictement factuelle.",
+   "sources": [
+    "https://www.un.org/en/about-us/member-states",
+    "https://fr.wikipedia.org/wiki/%C3%89tats_membres_de_l%27Organisation_des_Nations_unies"
+   ]
+  },
+  {
+   "id": "H1",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "Bonne réponse exacte et distracteurs clairement faux ; anecdote confirmée (Khéops, plus haut monument humain de ~2560 av. J.-C. jusqu'à la cathédrale de Lincoln en 1311, soit plus de 3800 ans) par deux sources vérifiées.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pyramides_d%27%C3%89gypte",
+    "https://fr.wikipedia.org/wiki/Pyramide_de_Kh%C3%A9ops"
+   ]
+  },
+  {
+   "id": "H2",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "Vérifié sur deux articles Wikipédia : Napoléon Bonaparte fut bien le premier empereur des Français (proclamé le 18 mai 1804, sacré le 2 décembre 1804 à Notre-Dame) et il se couronna lui-même, Pie VII ne donnant que la bénédiction ; les distracteurs (Louis XIV roi, Charlemagne empereur d'Occident, Louis-Napoléon = Napoléon III, deuxième empereur) sont clairement faux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Napol%C3%A9on_Ier",
+    "https://fr.wikipedia.org/wiki/Sacre_de_Napol%C3%A9on_Ier",
+    "https://fr.wikipedia.org/wiki/Empereur_des_Fran%C3%A7ais"
+   ]
+  },
+  {
+   "id": "H3",
+   "keep": true,
+   "confidence": 0.99,
+   "reason": "La prise de la Bastille a bien eu lieu le 14 juillet 1789 et la forteresse ne comptait que 7 prisonniers ce jour-là, faits confirmés par Wikipédia FR et Britannica — question et anecdote irréprochables.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Prise_de_la_Bastille",
+    "https://www.britannica.com/topic/Bastille"
+   ]
+  },
+  {
+   "id": "H4",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "La guerre anglo-zanzibarienne du 27 août 1896 est bien considérée comme la guerre la plus courte de l'histoire (38 à 45 minutes selon la définition du début et de la fin des hostilités), les distracteurs sont clairement faux et l'anecdote est exacte ; seule retouche mineure suggérée : l'adjectif usuel en français est « anglo-zanzibarienne ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Guerre_anglo-zanzibarienne",
+    "https://en.wikipedia.org/wiki/Anglo-Zanzibar_War"
+   ],
+   "correctedAnecdote": "Le 27 août 1896, ce conflit entre le Royaume-Uni et le sultanat de Zanzibar a duré entre 38 et 45 minutes selon les sources."
+  },
+  {
+   "id": "H5",
+   "keep": true,
+   "confidence": 0.99,
+   "reason": "La bonne réponse (1989, chute le 9 novembre 1989) est exacte et sans ambiguïté, les distracteurs sont clairement faux, et l'anecdote sur l'erreur de communication de Günter Schabowski en conférence de presse est factuellement vérifiée sur deux sources indépendantes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chute_du_mur_de_Berlin",
+    "https://en.wikipedia.org/wiki/Fall_of_the_Berlin_Wall"
+   ]
+  },
+  {
+   "id": "H6",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "Fait solidement établi : aucun casque viking à cornes n'a été retrouvé et le mythe provient bien du XIXe siècle, popularisé par les costumes de Carl Emil Doepler pour les opéras de Wagner (Bayreuth, 1876) ; réponse \"Faux\" correcte et anecdote exacte.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Casque_%C3%A0_cornes",
+    "https://en.wikipedia.org/wiki/Horned_helmet"
+   ],
+   "correctedAnecdote": "C'est une invention du XIXe siècle, popularisée par les costumes créés par Carl Emil Doepler pour l'opéra de Wagner à Bayreuth en 1876. Aucun casque viking retrouvé ne porte de cornes."
+  },
+  {
+   "id": "H7",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "La liste des 7 réponses acceptées correspond exactement au canon des sept merveilles du monde antique (liste complète, aucun manque), et l'anecdote est confirmée par deux sources indépendantes : la grande pyramide de Gizeh est la seule encore debout.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Sept_merveilles_du_monde",
+    "https://en.wikipedia.org/wiki/Seven_Wonders_of_the_Ancient_World"
+   ],
+   "correctedAnecdote": "La grande pyramide de Gizeh (pyramide de Khéops) est la seule des 7 merveilles encore debout aujourd'hui ; c'est aussi, de loin, la plus ancienne."
+  },
+  {
+   "id": "S1",
+   "keep": true,
+   "confidence": 0.99,
+   "reason": "La réponse \"8\" est exacte et sans ambiguïté (Wikipédia et Britannica confirment 8 pattes, contre 6 pour les insectes), les distracteurs sont clairement faux et l'anecdote est strictement factuelle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Araneae",
+    "https://www.britannica.com/animal/spider-arachnid"
+   ]
+  },
+  {
+   "id": "S2",
+   "keep": true,
+   "confidence": 0.96,
+   "reason": "La bonne réponse « vert » est exacte et les distracteurs clairement faux, mais l'anecdote est factuellement fausse (bleu et jaune ne sont pas des couleurs complémentaires en mélange pigmentaire ; ils sont complémentaires en synthèse additive de la lumière) et doit être remplacée par la version corrigée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vert",
+    "https://fr.wikipedia.org/wiki/Couleur_compl%C3%A9mentaire",
+    "https://fr.wikipedia.org/wiki/Synth%C3%A8se_soustractive"
+   ],
+   "correctedAnecdote": "En peinture, mélanger un bleu et un jaune donne du vert : c'est le principe du mélange des pigments, appelé synthèse soustractive."
+  },
+  {
+   "id": "S3",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "Les chauves-souris (Chiroptères) sont bien le seul groupe de mammifères doté d'un vol battu actif, les trois distracteurs (écureuil volant, phalanger/sugar glider, colugo) ne faisant que planer.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Chiroptera",
+    "https://en.wikipedia.org/wiki/Bat",
+    "https://fr.wikipedia.org/wiki/Vol_animal"
+   ]
+  },
+  {
+   "id": "S4",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "Le mythe des 10 % est un neuromythe débunké : l'imagerie (fMRI, PET) et les études de lésions montrent que la quasi-totalité du cerveau est fonctionnellement utilisée, donc la bonne réponse « Faux » et l'anecdote sont exactes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mythe_de_l'utilisation_incompl%C3%A8te_du_cerveau",
+    "https://en.wikipedia.org/wiki/Ten_percent_of_the_brain_myth"
+   ]
+  },
+  {
+   "id": "S5",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "La lumière met environ 8 minutes 20 secondes (~499 s) pour parcourir les ~150 millions de km Soleil-Terre : la réponse \"8 minutes environ\" est correcte et l'anecdote est factuelle.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vitesse_de_la_lumière",
+    "https://fr.wikipedia.org/wiki/Soleil",
+    "https://en.wikipedia.org/wiki/Sunlight",
+    "https://www.tameteo.com/actualites/actualite/combien-de-temps-faut-il-a-la-lumiere-du-soleil-pour-atteindre-la-terre-sciences-univers.html"
+   ],
+   "correctedAnecdote": "On voit donc toujours le Soleil tel qu'il était il y a environ 8 minutes et 20 secondes : sa lumière met ce temps à parcourir les 150 millions de kilomètres qui nous en séparent."
+  },
+  {
+   "id": "S6",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "Vérifié sur deux sources indépendantes : la tomate est botaniquement un fruit (une baie) et l'arrêt Nix v. Hedden de 1893 l'a bien classée comme légume à des fins douanières — énoncé, réponse et anecdote exacts.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Tomate",
+    "https://en.wikipedia.org/wiki/Nix_v._Hedden"
+   ]
+  },
+  {
+   "id": "S7",
+   "keep": true,
+   "confidence": 0.85,
+   "reason": "La réponse \"Vrai\" est scientifiquement défendable (le miel bien scellé ne se périme pas, grâce à sa faible teneur en eau, son acidité et son peroxyde d'hydrogène), mais l'anecdote des pots égyptiens \"encore comestibles\" est une légende contestée — Wikipédia (fr) précise que les pots de la tombe de Toutânkhamon étaient vides ou contenaient du natron — donc anecdote et énoncé corrigés.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Miel",
+    "https://www.smithsonianmag.com/science-nature/the-science-behind-honeys-eternal-shelf-life-1218690/"
+   ],
+   "correctedText": "Bien conservé dans un récipient fermé, à l'abri de l'humidité, le miel peut se garder indéfiniment sans se périmer.",
+   "correctedAnecdote": "Grâce à sa très faible teneur en eau, à son acidité et au peroxyde d'hydrogène qu'il contient naturellement, le miel bien scellé ne se périme pas. La célèbre histoire des pots de miel \"encore comestibles\" des tombeaux égyptiens est en revanche largement légendaire."
+  },
+  {
+   "id": "SP1",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "Le badminton est sans ambiguïté le seul sport de raquette utilisant un volant, les distracteurs (balle) sont clairement faux, et l'anecdote est vérifiée : 426 km/h mesurés en compétition (Mads Pieler Kolding, 2017) et record absolu de 565 km/h (Guinness, 2023), le volant étant le projectile le plus rapide des sports de raquette.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Badminton",
+    "https://en.wikipedia.org/wiki/Badminton",
+    "https://www.guinnessworldrecords.com/world-records/92507-fastest-badminton-hit-male"
+   ]
+  },
+  {
+   "id": "SP2",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "La réponse 11 est confirmée (Loi 3 de l'IFAB : deux équipes de onze joueurs, gardien compris), les distracteurs sont clairement faux, et l'anecdote sur le football comme sport le plus regardé/populaire au monde est corroborée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Football",
+    "https://en.wikipedia.org/wiki/Laws_of_the_Game_(association_football)"
+   ]
+  },
+  {
+   "id": "SP3",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "Vérifié sur Wikipédia : les JO d'été ont bien lieu tous les 4 ans, les distracteurs sont clairement faux, et l'anecdote (annulations 1916, 1940, 1944 pour cause de guerre, report de Tokyo 2020 à 2021 pour Covid-19) est strictement exacte.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques_d%27%C3%A9t%C3%A9",
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques",
+    "https://fr.wikipedia.org/wiki/Jeux_olympiques_d%27%C3%A9t%C3%A9_de_2020"
+   ]
+  },
+  {
+   "id": "SP4",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "La liste des 8 pays vainqueurs est exacte et complète (Uruguay, Italie, Allemagne, Brésil, Angleterre, Argentine, France, Espagne) et l'anecdote sur la participation du Brésil à toutes les phases finales est confirmée par Wikipédia.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Coupe_du_monde_de_football",
+    "https://en.wikipedia.org/wiki/FIFA_World_Cup"
+   ]
+  },
+  {
+   "id": "SP5",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "Vérifié sur deux sources indépendantes : au rugby à XV, l'essai vaut 5 points depuis 1992 et la transformation ajoute 2 points ; les distracteurs (3 = pénalité/drop, 6, 7 = essai transformé) sont tous clairement faux, et l'anecdote est exacte (seule ambiguïté théorique, le rugby à XIII où l'essai vaut 4 points, mais 4 n'est pas proposé et « rugby » désigne le XV pour le grand public).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Essai_(rugby_%C3%A0_XV)",
+    "https://en.wikipedia.org/wiki/Try_(rugby)"
+   ],
+   "correctedAnecdote": "La transformation, si elle est réussie, ajoute 2 points supplémentaires — soit 7 points au total. L'essai ne vaut 5 points que depuis 1992 : à la création du barème en 1887, il n'en valait qu'un seul !"
+  },
+  {
+   "id": "SP6",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "La bonne réponse (curling, sport olympique joué avec balais et pierres sur glace) est exacte et sans ambiguïté, les distracteurs sont clairement faux, et l'anecdote (né en Écosse au XVIe siècle, pierres datées de 1511, première mention écrite en 1541) est confirmée par les sources.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Curling",
+    "https://en.wikipedia.org/wiki/Curling"
+   ]
+  },
+  {
+   "id": "SP7",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "Bonne réponse \"Faux\" correcte (le tennis se joue avec une balle), mais l'anecdote inversait les matériaux : la balle est un noyau en caoutchouc recouvert de feutre, pas \"en feutre recouvert de caoutchouc\" — corrigé.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Balle_de_tennis",
+    "https://fr.wikipedia.org/wiki/Tennis"
+   ],
+   "correctedAnecdote": "On joue avec une balle : une sphère en caoutchouc remplie d'air et recouverte de feutre, généralement jaune."
+  },
+  {
+   "id": "P1",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "La bonne réponse (Montmartre) est confirmée par Wikipédia, les distracteurs sont clairement faux, et l'anecdote est exacte sur le fond — seule légère retouche : le café s'appelle officiellement « Café des 2 Moulins » (15 rue Lepic, 18e), pas « Les Deux Moulins ».",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Fabuleux_Destin_d%27Am%C3%A9lie_Poulain",
+    "https://fr.wikipedia.org/wiki/Caf%C3%A9_des_2_Moulins"
+   ],
+   "correctedAnecdote": "Le café où travaille Amélie, le « Café des 2 Moulins », existe réellement au 15 rue Lepic à Montmartre et accueille toujours ses clients — devenu lieu de pèlerinage, il a même vu ses chaises régulièrement volées par des fans après la sortie du film."
+  },
+  {
+   "id": "P2",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "Vérifié sur deux pages Wikipédia indépendantes : Simba est bien le héros du Roi Lion (1994), les distracteurs (Mufasa, Scar, Nala) sont des personnages secondaires clairement distincts, et l'anecdote est exacte ('simba' signifie 'lion' en swahili).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Le_Roi_lion",
+    "https://fr.wikipedia.org/wiki/Simba"
+   ],
+   "correctedText": "Quel est le nom du héros, le jeune lion, dans 'Le Roi Lion' ?"
+  },
+  {
+   "id": "P3",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "L'autruche et le manchot sont tous deux des oiseaux incapables de voler, les distracteurs sont clairement faux, et l'autruche est bien l'oiseau le plus rapide à la course (jusqu'à ~70 km/h).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Autruche",
+    "https://fr.wikipedia.org/wiki/Manchot",
+    "https://fr.wikipedia.org/wiki/Oiseau_incapable_de_vol"
+   ]
+  },
+  {
+   "id": "P4",
+   "keep": true,
+   "confidence": 0.95,
+   "reason": "Fait bien établi et vérifié sur deux sources indépendantes : c'est Ub Iwerks qui a dessiné le design final de Mickey Mouse (Disney apportant le concept, la personnalité et la voix), donc la réponse \"Faux\" et l'anecdote sont correctes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Mickey_Mouse",
+    "https://en.wikipedia.org/wiki/Ub_Iwerks"
+   ]
+  },
+  {
+   "id": "P5",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "Réponse exacte (les Beatles, Abbey Road, 1969), distracteurs clairement faux, et l'anecdote confirmée par Wikipédia : la photo d'Iain Macmillan a été prise en une dizaine de minutes (six clichés) le 8 août 1969.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Abbey_Road_(album)",
+    "https://en.wikipedia.org/wiki/Abbey_Road",
+    "https://fr.wikipedia.org/wiki/The_Beatles"
+   ]
+  },
+  {
+   "id": "P6",
+   "keep": true,
+   "confidence": 0.99,
+   "reason": "Anna est bien la sœur (cadette) d'Elsa dans La Reine des Neiges, les distracteurs (Belle, Raiponce, Merida) sont d'autres héroïnes Disney/Pixar clairement fausses, et l'anecdote sur l'inspiration libre du conte d'Andersen est exacte (vérifié sur Wikipédia).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/La_Reine_des_neiges_(film,_2013)",
+    "https://fr.wikipedia.org/wiki/Anna_(Disney)"
+   ]
+  },
+  {
+   "id": "P7",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "John Williams a bien composé les musiques de Star Wars et des trois premiers Harry Potter (2001, 2002, 2004), les distracteurs sont clairement faux et l'anecdote est exacte (54 nominations aux Oscars, deuxième total de l'histoire derrière Walt Disney), vérifié sur Wikipédia FR et EN.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/John_Williams_(compositeur)",
+    "https://en.wikipedia.org/wiki/John_Williams"
+   ],
+   "correctedAnecdote": "Avec 54 nominations aux Oscars, John Williams est la personne la plus nommée de l'histoire du cinéma après Walt Disney — et il détient le record chez les vivants, avec 5 statuettes remportées."
+  },
+  {
+   "id": "I1",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "La pieuvre a bien trois cœurs (deux branchiaux vers les branchies, un systémique vers le corps) ; réponse, distracteurs et anecdote exacts.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Pieuvre",
+    "https://en.wikipedia.org/wiki/Octopus"
+   ]
+  },
+  {
+   "id": "I2",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "Le guépard est bien l'animal terrestre le plus rapide (jusqu'à environ 110 km/h en pointe), les distracteurs sont clairement faux et l'anecdote est factuellement défendable, légèrement précisée dans la version corrigée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Gu%C3%A9pard",
+    "https://en.wikipedia.org/wiki/Cheetah",
+    "https://www.britannica.com/animal/cheetah-mammal"
+   ],
+   "correctedAnecdote": "Il peut atteindre environ 110 km/h en pointe, mais seulement sur de très courtes distances (300 à 400 mètres) avant de s'épuiser."
+  },
+  {
+   "id": "I3",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "La réponse \"Faux\" est exacte : la division cellulaire cesse à la mort, et l'illusion de pousse vient de la déshydratation/rétraction de la peau, comme l'explique correctement l'anecdote.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Liste_d%27id%C3%A9es_re%C3%A7ues",
+    "https://www.sciencepresse.qc.ca/actualite/detecteur-rumeurs/2022/04/27/ongles-cheveux-continuent-pousser-apres-mort-faux"
+   ]
+  },
+  {
+   "id": "I4",
+   "keep": true,
+   "confidence": 0.95,
+   "reason": "Fait bien établi et vérifié : grâce à ses outre-mer, la France couvre 12 fuseaux horaires (13 avec l'Antarctique), record mondial devant la Russie (11) ; réponse exacte, distracteurs clairement faux, anecdote juste (légèrement précisée).",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Time_in_France",
+    "https://fr.wikipedia.org/wiki/Fuseau_horaire"
+   ],
+   "correctedAnecdote": "Grâce à ses territoires d'outre-mer, de la Polynésie française (UTC−10) aux îles de l'océan Indien, la France couvre 12 fuseaux horaires (13 en comptant sa base en Antarctique), un record mondial devant la Russie et ses 11 fuseaux."
+  },
+  {
+   "id": "I5",
+   "keep": true,
+   "confidence": 0.95,
+   "reason": "La peau est bien le plus grand organe du corps humain, les distracteurs (foie, cœur, cerveau) sont tous nettement plus petits, et l'anecdote (\"environ 16 %\", couverte par \"environ\") correspond aux estimations classiques du poids de la peau (~15-16 % du poids corporel).",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Peau",
+    "https://en.wikipedia.org/wiki/Skin",
+    "https://fr.wikipedia.org/wiki/Organe"
+   ]
+  },
+  {
+   "id": "I6",
+   "keep": true,
+   "confidence": 0.9,
+   "reason": "La valeur ~60% pour l'adulte et l'anecdote du nourrisson ~75% correspondent au consensus scientifique établi.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Body_water",
+    "https://www.medicalnewstoday.com/articles/what-percentage-of-the-human-body-is-water",
+    "https://fr.wikipedia.org/wiki/Eau_dans_le_corps_humain"
+   ]
+  },
+  {
+   "id": "I7",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "La réponse \"Faux\" est correcte : le mythe de la mémoire de quelques secondes est réfuté, les poissons rouges retenant des informations pendant des semaines voire plusieurs mois, ce que confirme l'anecdote.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Poisson_rouge",
+    "https://en.wikipedia.org/wiki/Goldfish"
+   ]
+  },
+  {
+   "id": "B1",
+   "keep": true,
+   "confidence": 0.9,
+   "reason": "La repousse complète d'un ongle de main est de 3 à 6 mois (Wikipedia FR et EN), donc « environ 6 mois » est la seule bonne réponse parmi les distracteurs clairement faux, et l'anecdote (12 à 18 mois pour les orteils) est exacte.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Ongle",
+    "https://en.wikipedia.org/wiki/Nail_(anatomy)"
+   ]
+  },
+  {
+   "id": "B2",
+   "keep": true,
+   "confidence": 0.9,
+   "reason": "Le nom collectif « flamboyance » pour un groupe de flamants roses est bien attesté (Wikipédia anglophone le cite explicitement, et le terme circule aussi en français, p. ex. WWF France) ; la réponse « Vrai » est correcte, seule une coquille anglicisante (« so parfaitement ») est à corriger dans l'anecdote.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Flamingo",
+    "https://en.wikipedia.org/wiki/List_of_animal_names",
+    "https://www.birdfact.com/articles/what-is-a-group-of-flamingos-called"
+   ],
+   "correctedAnecdote": "Un nom collectif si parfaitement choisi qu'on dirait un mot inventé pour un jeu, et pourtant bien réel : en anglais on dit « a flamboyance of flamingos » (on dit aussi « a stand »)."
+  },
+  {
+   "id": "B3",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "Les flamants roses tirent leur couleur des caroténoïdes de leur alimentation (crevettes Artemia, algues) et naissent gris ; les distracteurs sont tous faux et l'anecdote est exacte.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Flamant_rose",
+    "https://en.wikipedia.org/wiki/Flamingo"
+   ]
+  },
+  {
+   "id": "B4",
+   "keep": true,
+   "confidence": 0.85,
+   "reason": "Exact et bien formulé : la quasi-totalité des gens ne peut pas se lécher le coude (longueur de l'avant-bras vs portée de la langue), et la réserve \"immense majorité\" couvre les rares exceptions documentées (hyperlaxité, langues exceptionnellement longues).",
+   "sources": [
+    "https://www.guinnessworldrecords.com/news/2014/9/video-nick-stoeberl-has-the-worlds-longest-tongue-60102",
+    "https://fr.wikipedia.org/wiki/Hyperlaxit%C3%A9"
+   ],
+   "correctedAnecdote": "La longueur de l'avant-bras dépasse la portée de la langue chez presque tout le monde — mais quelques rares personnes très souples ou à la langue exceptionnellement longue y parviennent, comme Nick Stoeberl, recordman Guinness de la plus longue langue."
+  },
+  {
+   "id": "B5",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "La réponse \"le raisin\" est exacte et vérifiée (moût de raisin cuit, vieilli 12 à 25 ans et plus), les distracteurs sont clairement faux et l'anecdote est fidèle aux faits.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Vinaigre_balsamique",
+    "https://en.wikipedia.org/wiki/Balsamic_vinegar"
+   ]
+  },
+  {
+   "id": "B6",
+   "keep": true,
+   "confidence": 0.93,
+   "reason": "Le Népal possède bien le seul drapeau national non rectangulaire (deux fanions triangulaires), fait confirmé par Wikipédia ; la formulation corrigée (\"ni rectangulaire ni carré\") évite l'ambiguïté des drapeaux carrés de la Suisse et du Vatican, qui sont géométriquement des rectangles.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Drapeau_du_N%C3%A9pal",
+    "https://en.wikipedia.org/wiki/Flag_of_Nepal",
+    "https://fr.wikipedia.org/wiki/Drapeau_de_la_Suisse"
+   ],
+   "correctedText": "Quel pays possède le seul drapeau national qui ne soit ni rectangulaire ni carré ?",
+   "correctedAnecdote": "Son drapeau est formé de deux fanions triangulaires superposés, évoquant les sommets de l'Himalaya ainsi que les deux grandes religions du pays, l'hindouisme et le bouddhisme."
+  },
+  {
+   "id": "B7",
+   "keep": true,
+   "confidence": 0.96,
+   "reason": "La banane est bien une baie botanique (fruit charnu issu d'un seul ovaire) alors que la fraise est un faux-fruit (réceptacle charnu, akènes = vrais fruits), l'énoncé et l'anecdote sont exacts.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Baie_(botanique)",
+    "https://fr.wikipedia.org/wiki/Fraise",
+    "https://fr.wikipedia.org/wiki/Pseudo-fruit"
+   ]
+  },
+  {
+   "id": "V1",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "La bonne réponse (366) est correcte et les distracteurs clairement faux, mais l'anecdote confond rotation (jour) et révolution autour du Soleil (année) : corrigée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Année_bissextile",
+    "https://en.wikipedia.org/wiki/Leap_year"
+   ],
+   "correctedAnecdote": "On ajoute un jour (le 29 février) tous les 4 ans environ pour rattraper le décalage entre le calendrier et la révolution de la Terre autour du Soleil, qui dure environ 365,25 jours."
+  },
+  {
+   "id": "V2",
+   "keep": false,
+   "confidence": 0.95,
+   "reason": "La bonne réponse est fausse : le modèle à 7 continents est celui des pays anglo-saxons, tandis qu'en France on enseigne traditionnellement 6 continents (voire 5 sans l'Antarctique), et cette ambiguïté 5/6 entre deux distracteurs rend la question irréparable sans changer la clé de réponse.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Continent",
+    "https://en.wikipedia.org/wiki/Continent"
+   ],
+   "correctedAnecdote": "En France, on apprend traditionnellement 6 continents (l'Amérique comptée comme un seul), voire 5 sans l'Antarctique, alors que les pays anglo-saxons en enseignent 7 : ce découpage n'est pas universel !"
+  },
+  {
+   "id": "V3",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "Le yen est bien la monnaie officielle du Japon, introduit par la loi du 10 mai 1871 pour remplacer le système monétaire Tokugawa (conforme à l'anecdote), et les distracteurs (won = Corées, yuan = Chine, dong = Vietnam) sont clairement faux.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Yen",
+    "https://en.wikipedia.org/wiki/Japanese_yen"
+   ]
+  },
+  {
+   "id": "V4",
+   "keep": true,
+   "confidence": 0.96,
+   "reason": "Les quatre réponses sont défendables (le romanche est langue officielle « pour les rapports avec les personnes de langue romanche », art. 70 Cst.), mais l'énoncé est plus irréprochable en parlant de « langues nationales », ce que corrige correctedText et que précise l'anecdote corrigée.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Langues_en_Suisse",
+    "https://fr.wikipedia.org/wiki/Romanche",
+    "https://www.fedlex.admin.ch/eli/cc/1999/404/fr"
+   ],
+   "correctedText": "Citez une des quatre langues nationales de la Suisse.",
+   "correctedAnecdote": "La Suisse compte 4 langues nationales : allemand, français, italien et romanche, ce dernier parlé par moins de 1 % de la population. Seules les trois premières sont pleinement officielles au niveau fédéral, le romanche ne l'étant que dans les rapports avec ses locuteurs."
+  },
+  {
+   "id": "V5",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "Le Canada (9 984 670 km²) dépasse les États-Unis en superficie totale selon toutes les méthodologies ; seule l'anecdote est corrigée car la 3e place (États-Unis ou Chine) est disputée selon les classements.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Liste_des_pays_et_territoires_par_superficie",
+    "https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_area",
+    "https://fr.wikipedia.org/wiki/Canada"
+   ],
+   "correctedAnecdote": "Avec près de 10 millions de km², le Canada est le 2e plus grand pays du monde derrière la Russie. Les États-Unis et la Chine se disputent la 3e place selon les modes de calcul, mais restent tous deux derrière le Canada."
+  },
+  {
+   "id": "V6",
+   "keep": true,
+   "confidence": 0.98,
+   "reason": "L'éléphant d'Afrique est bien le plus grand animal terrestre actuel (par la masse), les distracteurs sont tous nettement plus petits, et l'anecdote (mâle > 6 tonnes) est confirmée par les sources.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/%C3%89l%C3%A9phant_de_savane_d%27Afrique",
+    "https://en.wikipedia.org/wiki/African_bush_elephant"
+   ]
+  },
+  {
+   "id": "V7",
+   "keep": true,
+   "confidence": 0.97,
+   "reason": "La réponse \"24\" est correcte (jour solaire = 24 h ; jour sidéral = 23 h 56 min 4 s, qui arrondit aussi à 24 h), les distracteurs sont clairement faux et l'anecdote (écart ~4 min, étoiles se levant ~4 min plus tôt chaque jour) est confirmée par deux sources indépendantes.",
+   "sources": [
+    "https://fr.wikipedia.org/wiki/Rotation_de_la_Terre",
+    "https://fr.wikipedia.org/wiki/Jour_sid%C3%A9ral"
+   ]
+  }
+ ]
+}

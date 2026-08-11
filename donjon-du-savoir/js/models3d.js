@@ -1,0 +1,228 @@
+// Figurines 3D animées du Donjon. Les chemins restent des chaînes littérales :
+// le constructeur du fichier autonome peut ainsi remplacer chaque GLB par une
+// data-URI. Aucun chargement réseau n'est nécessaire, même en file://.
+
+const THREE = globalThis.THREE;
+
+// Les GLB de HERO_MODEL_URLS sont ABANDONNÉS (les peintures GEN 2 sont la
+// représentation officielle — verdicts v4.1/v4.3). Carte vide : plus
+// d'inlining ni de précache. Pour les rebrancher, voir l'historique git.
+export const HERO_MODEL_URLS = {};
+
+// Les GLB de BUILDING_MODEL_URLS sont ABANDONNÉS (les peintures GEN 2 sont la
+// représentation officielle — verdicts v4.1/v4.3). Carte vide : plus
+// d'inlining ni de précache. Pour les rebrancher, voir l'historique git.
+export const BUILDING_MODEL_URLS = {};
+
+export const TILE_MODEL_URLS = {
+  question: "assets/3d/tiles/socle-question.glb",
+  chance: "assets/3d/tiles/socle-chance.glb",
+  evenement: "assets/3d/tiles/socle-evenement.glb",
+  malus: "assets/3d/tiles/socle-malus.glb",
+  pieces: "assets/3d/tiles/socle-pieces.glb",
+  joker: "assets/3d/tiles/socle-joker.glb",
+  gambit: "assets/3d/tiles/socle-gambit.glb",
+  trounoir: "assets/3d/tiles/socle-trounoir.glb",
+  boutique: "assets/3d/tiles/socle-boutique.glb",
+  insolite: "assets/3d/tiles/socle-insolite.glb",
+  expression: "assets/3d/tiles/socle-expression.glb",
+  tresor: "assets/3d/tiles/socle-tresor.glb",
+};
+
+// GLB de DUNGEON_MODEL_URLS ABANDONNÉS : leur low-poly gris/sombre jurait avec
+// les maquettes peintes (verdict v4.5). Carte vide = plus d'inlining ni
+// de précache. Pour les rebrancher, voir l'historique git.
+export const DUNGEON_MODEL_URLS = {};
+
+let loader = null;
+let dracoLoader = null;
+const templateCache = new Map();
+
+/** Prépare les loaders vendorés. En fichier autonome, le décodeur Draco est
+ *  injecté en mémoire par le bundler ; dans la PWA, il vient du cache local. */
+function getLoader() {
+  if (loader) return loader;
+  if (!THREE?.GLTFLoader || !THREE?.DRACOLoader) {
+    throw new Error("Loaders glTF/Draco indisponibles");
+  }
+
+  dracoLoader = new THREE.DRACOLoader();
+  dracoLoader.setDecoderConfig({ type: "wasm" });
+  const memoire = Number(navigator.deviceMemory || 4);
+  const coeurs = Number(navigator.hardwareConcurrency || 4);
+  dracoLoader.setWorkerLimit(memoire <= 4 || coeurs <= 4 ? 1 : 2);
+
+  const embarque = globalThis.__DONJON_DRACO;
+  if (embarque?.wrapper && embarque?.wasm && dracoLoader.setDecoderResources) {
+    dracoLoader.setDecoderResources(embarque.wrapper, embarque.wasm);
+  } else {
+    dracoLoader.setDecoderPath("vendor/draco/");
+  }
+
+  loader = new THREE.GLTFLoader();
+  loader.setDRACOLoader(dracoLoader);
+  return loader;
+}
+
+function loadTemplate(key, url) {
+  if (!url) return Promise.reject(new Error(`Modèle 3D inconnu : ${key}`));
+  if (!templateCache.has(key)) {
+    templateCache.set(key, new Promise((resolve, reject) => {
+      getLoader().load(url, resolve, undefined, reject);
+    }).catch((error) => {
+      templateCache.delete(key);
+      throw error;
+    }));
+  }
+  return templateCache.get(key);
+}
+
+/** Crée une instance autonome d'un héros. Les géométries et matériaux peuvent
+ *  être partagés entre exemplaires ; les groupes et le mixer restent privés. */
+export async function createAnimatedHero(characterId) {
+  const gltf = await loadTemplate(`hero:${characterId}`, HERO_MODEL_URLS[characterId]);
+  const model = gltf.scene.clone(true);
+  model.traverse((node) => {
+    if (!node.isMesh) return;
+    // Un SOCLE de case ne projette pas d'ombre : la lumière directionnelle
+    // dessinait un croissant noir dur sous chaque case — c'était le défaut le
+    // plus laid des captures de test. L'ancrage au sol vient des ombres douces
+    // peintes, pas de la shadow map.
+    node.castShadow = !tile;
+    node.receiveShadow = true;
+  });
+
+  // Tous les modèles sont normalisés à la même hauteur de figurine, puis posés
+  // sur l'origine de leur groupe-ancre (la dalle est à y = 0,35).
+  const bounds = new THREE.Box3().setFromObject(model);
+  const size = bounds.getSize(new THREE.Vector3());
+  const scale = 2.9 / Math.max(0.1, size.y);
+  model.scale.setScalar(scale);
+  const scaledBounds = new THREE.Box3().setFromObject(model);
+  model.position.y -= scaledBounds.min.y;
+
+  const object = new THREE.Group();
+  object.name = `Figurine_${characterId}`;
+  object.add(model);
+
+  const mixer = new THREE.AnimationMixer(model);
+  const actions = new Map();
+  for (const clip of gltf.animations ?? []) actions.set(clip.name, mixer.clipAction(clip));
+  const hero = { characterId, object, model, mixer, actions, current: null };
+  playHeroAnimation(hero, "idle");
+  return hero;
+}
+
+function prepareStaticModel(gltf, name, { height = 3, tile = false } = {}) {
+  const model = gltf.scene.clone(true);
+  model.traverse((node) => {
+    if (!node.isMesh) return;
+    node.castShadow = true;
+    node.receiveShadow = true;
+  });
+  const bounds = new THREE.Box3().setFromObject(model);
+  const size = bounds.getSize(new THREE.Vector3());
+  if (tile) {
+    // Empreinte 1,92 (et non 2,12) : dans les VIRAGES du serpentin, deux cases
+    // voisines se rapprochent sous 2,1 — les socles se chevauchaient.
+    const horizontal = 1.92 / Math.max(0.1, size.x, size.z);
+    model.scale.set(horizontal, 0.52 / Math.max(0.1, size.y), horizontal);
+  } else {
+    // Les bâtiments bas et larges (pont, fontaine) ne doivent pas envahir le
+    // plateau : la hauteur demandée sert aussi de plafond à leur empreinte.
+    const scale = Math.min(
+      height / Math.max(0.1, size.y),
+      (height * 1.35) / Math.max(0.1, size.x, size.z),
+    );
+    model.scale.setScalar(scale);
+  }
+  const scaled = new THREE.Box3().setFromObject(model);
+  const center = scaled.getCenter(new THREE.Vector3());
+  model.position.set(-center.x, -scaled.min.y, -center.z);
+  const object = new THREE.Group();
+  object.name = name;
+  object.add(model);
+  return object;
+}
+
+export async function createBuildingModel(id, height = 4.5) {
+  const gltf = await loadTemplate(`building:${id}`, BUILDING_MODEL_URLS[id]);
+  return prepareStaticModel(gltf, `Batiment_${id}`, { height });
+}
+
+export async function createTileModel(type) {
+  const id = type === "arrivee" ? "tresor" : type;
+  const url = TILE_MODEL_URLS[id];
+  if (!url) return null; // départ : la dalle procédurale reste volontairement.
+  const gltf = await loadTemplate(`tile:${id}`, url);
+  return prepareStaticModel(gltf, `Socle_${id}`, { tile: true });
+}
+
+// Décors vivants, remparts et PNJ 3D (GEN 2 v3) — chemins littéraux (inliner).
+// GLB de DECOR_MODEL_URLS ABANDONNÉS : leur low-poly gris/sombre jurait avec
+// les maquettes peintes (verdict v4.5). Carte vide = plus d'inlining ni
+// de précache. Pour les rebrancher, voir l'historique git.
+export const DECOR_MODEL_URLS = {};
+// Les GLB de PNJ_MODEL_URLS sont ABANDONNÉS (les peintures GEN 2 sont la
+// représentation officielle — verdicts v4.1/v4.3). Carte vide : plus
+// d'inlining ni de précache. Pour les rebrancher, voir l'historique git.
+export const PNJ_MODEL_URLS = {};
+
+/** Décor ou rempart (le nœud « anim » éventuel est conservé pour la boucle). */
+export async function createDecorModel(id, height = 2.2) {
+  const gltf = await loadTemplate(`decor:${id}`, DECOR_MODEL_URLS[id]);
+  return prepareStaticModel(gltf, id, { height });
+}
+
+/** PNJ animé (idle + animation signature), un peu plus petit qu'un héros. */
+export async function createAnimatedPnj(slug) {
+  const gltf = await loadTemplate(`pnj:${slug}`, PNJ_MODEL_URLS[slug]);
+  const model = gltf.scene.clone(true);
+  model.traverse((n) => { if (n.isMesh) { n.castShadow = true; n.receiveShadow = true; } });
+  const bounds = new THREE.Box3().setFromObject(model);
+  const size = bounds.getSize(new THREE.Vector3());
+  const scale = 2.5 / Math.max(0.1, size.y);
+  model.scale.setScalar(scale);
+  const scaled = new THREE.Box3().setFromObject(model);
+  model.position.y -= scaled.min.y;
+  const object = new THREE.Group();
+  object.name = `PNJ_${slug}`;
+  object.add(model);
+  const mixer = new THREE.AnimationMixer(model);
+  const actions = new Map();
+  for (const clip of gltf.animations ?? []) actions.set(clip.name, mixer.clipAction(clip));
+  const idle = actions.get("idle");
+  if (idle) idle.play();
+  return { slug, object, mixer, actions };
+}
+
+export async function createDungeonModule(id, height = 3) {
+  const gltf = await loadTemplate(`dungeon:${id}`, DUNGEON_MODEL_URLS[id]);
+  return prepareStaticModel(gltf, `Module_${id}`, { height });
+}
+
+/** Lance une animation avec un fondu court. `joy` et `disappointment` ne
+ *  bouclent pas ; board3d remet ensuite la figurine au repos. */
+export function playHeroAnimation(hero, name) {
+  const next = hero?.actions?.get(name);
+  if (!next || hero.current === name) return false;
+  const previous = hero.actions.get(hero.current);
+  next.enabled = true;
+  next.reset();
+  if (name === "joy" || name === "disappointment") {
+    next.setLoop(THREE.LoopOnce, 1);
+    next.clampWhenFinished = true;
+  } else {
+    next.setLoop(THREE.LoopRepeat, Infinity);
+    next.clampWhenFinished = false;
+  }
+  if (previous) previous.fadeOut(0.16);
+  next.fadeIn(0.16).play();
+  hero.current = name;
+  return true;
+}
+
+export function disposeAnimatedHero(hero) {
+  if (!hero) return;
+  try { hero.mixer.stopAllAction(); hero.mixer.uncacheRoot(hero.model); } catch { /* repli silencieux */ }
+}

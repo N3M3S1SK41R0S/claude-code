@@ -1,0 +1,67 @@
+{
+ "_mode_d_emploi": "Un voice_id ElevenLabs par personnage, choisi dans la bibliothèque du compte — QUINZE VOIX DISTINCTES (le script refuse les doublons). Le champ nom est un simple aide-mémoire. Le caractère attendu de chaque voix est décrit dans BRIEF-VOIX-LOT4-PNJ.md. L'entrée heraut doit être LA voix du Héraut déjà utilisée dans les réglages du jeu.",
+ "heraut": {
+  "voice_id": "",
+  "nom": "— la voix du Héraut des réglages —"
+ },
+ "merlinouche": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "biscornu": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "hibou-passage": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "barnabe": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "roquefort": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "fee-bricole": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "boubou": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "gerard": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "turbo": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "groumf": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "ratichon": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "sylvette": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "coassin": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "piquot": {
+  "voice_id": "",
+  "nom": ""
+ },
+ "zebulon": {
+  "voice_id": "",
+  "nom": ""
+ }
+}

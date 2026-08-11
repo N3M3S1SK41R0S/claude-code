@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Le Donjon du Savoir — jeu de plateau de culture générale</title>
+  <meta name="description" content="Jeu de plateau interactif de culture générale : 1 à 20 joueurs, questions vérifiées avec anecdotes, zéro chronomètre. Se cultiver en jouant !" />
+  <meta name="theme-color" content="#1a1230" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span aria-hidden="true">🏰</span>
+      <strong>LE DONJON DU SAVOIR</strong>
+    </div>
+    <div class="topbar-actions">
+      <button id="music-toggle" class="btn btn-small" type="button" aria-pressed="false">🎵 Musique</button>
+      <button id="sfx-toggle" class="btn btn-small" type="button" aria-pressed="false">🔕 Sons</button>
+      <button id="voice-toggle" class="btn btn-small" type="button" aria-pressed="false">🔇 Héraut muet</button>
+      <button id="help-btn" class="btn btn-small" type="button" aria-label="Aide-mémoire (règles, pouvoirs, objets)">📖 Aide</button>
+      <button id="quit-btn" class="btn btn-small" type="button" aria-label="Retour à l'accueil">🏠</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Accueil -->
+    <section id="screen-home" class="screen screen-centre">
+      <div class="home-hero">
+        <img class="home-hero-img" alt="Le Donjon du Savoir" src="assets/hero-accueil.webp"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <p class="home-emoji" aria-hidden="true" style="display:none">🏰</p>
+      </div>
+      <h1 class="home-title">LE DONJON DU SAVOIR</h1>
+      <p class="home-tagline">Se cultiver en jouant — 1 à 20 aventuriers, aucune montre au mur.</p>
+      <div class="herald-bubble herald-home">
+        <span class="herald-avatar" aria-hidden="true">📯<img class="herald-art" alt="" src="assets/heraut-medaillon.png" onerror="this.remove()"></span>
+        <p class="herald-text">« Oyez ! Ici, chaque question offre son anecdote, et nul chronomètre ne viendra jamais vous presser. Parole de Héraut. »</p>
+      </div>
+      <div id="home-actions" class="home-actions"></div>
+      <p id="bank-info" class="bank-info"></p>
+    </section>
+
+    <!-- Partie Éclair : le sprint de questions sans plateau -->
+    <section id="screen-eclair" class="screen" hidden>
+      <div id="eclair-zone" class="eclair-ecran"></div>
+    </section>
+
+    <!-- Règles -->
+    <section id="screen-rules" class="screen" hidden>
+      <h1 class="screen-title">📖 Les règles du Donjon</h1>
+      <div class="rules-body">
+        <h2>Le but</h2>
+        <p>Avancez sur le plateau en lançant le dé. Le premier pion qui atteint le
+        Trésor 🏆 gagne. Personne n'est jamais éliminé, et <strong>rien n'est jamais
+        chronométré</strong> : prenez le temps de réfléchir (et de digérer les anecdotes).</p>
+
+        <h2>Les cases</h2>
+        <p>❓ <strong>Question</strong> (bonne réponse : avancez + 1 pièce) ·
+        🍀 <strong>Chance</strong> · 🎪 <strong>Événement</strong> (tout le monde répond,
+        +2 pièces par bonne réponse) · 💀 <strong>Coup dur</strong> ·
+        🪙 <strong>Pièces</strong> · 🃏 <strong>Joker</strong> (recharge un pouvoir) ·
+        🎲 <strong>Gambit</strong> (annoncez un nombre, les autres parient trop haut /
+        trop bas / juste) · 🕳️ <strong>Trou Noir</strong> (question redoutable : +3 cases
+        ou recul de 6).</p>
+
+        <h2>Les questions</h2>
+        <p>QCM (+2 cases), Vrai/Faux (+1), <strong>CASH / CARRÉ / DUO</strong> — choisissez
+        votre risque avant de voir les choix (+4 / +2 / +1) —, <strong>Pari de
+        confiance</strong> — évaluez-vous de 1 à 10 avant de voir la question —, questions
+        ouvertes jugées par la table. Après chaque question, <strong>l'anecdote du
+        Héraut</strong> s'affiche avec ses sources : on repart toujours moins bête.</p>
+
+        <h2>Les compagnons (1 pouvoir par partie, rechargeable 🃏 ou 8 🪙)</h2>
+        <div id="rules-cast" class="rules-cast"></div>
+
+        <h2>L'esprit du jeu</h2>
+        <p>Le profil 👶 enfant garantit des questions adaptées (elles conviennent à tous).
+        Le premier du classement pioche plus dur, le dernier reçoit un coup de pouce.
+        En équipe, un porte-parole différent répond à chaque question — tout le monde joue.</p>
+      </div>
+      <button id="rules-back" class="btn btn-big" type="button">← Retour</button>
+    </section>
+
+    <!-- Questions maison -->
+    <section id="screen-custom" class="screen" hidden>
+      <h1 class="screen-title">✍️ Vos questions maison</h1>
+      <p class="help-note" style="text-align:center">Écrites par la table, mélangées à la banque du Donjon (sur cet appareil uniquement). Marquées 🏠 en jeu — idéal pour piéger les parents.</p>
+      <div id="custom-zone"></div>
+      <button id="custom-back" class="btn btn-big" type="button">← Retour</button>
+    </section>
+
+    <!-- Grimoire des anecdotes -->
+    <section id="screen-grimoire" class="screen" hidden>
+      <h1 class="screen-title">📖 Le Grimoire</h1>
+      <p class="help-note" style="text-align:center">Toutes les anecdotes découvertes en jeu, gardées précieusement sur cet appareil.</p>
+      <div id="grimoire-zone"></div>
+      <button id="grimoire-back" class="btn btn-big" type="button" style="max-width:44rem;margin:0 auto;width:100%">← Retour</button>
+    </section>
+
+    <!-- Palmarès & succès -->
+    <section id="screen-palmares" class="screen" hidden>
+      <h1 class="screen-title">🏅 Palmarès & succès</h1>
+      <p class="help-note" style="text-align:center">Vos exploits cumulés sur cet appareil — les parties des bots ne comptent pas.</p>
+      <div id="palmares-zone"></div>
+      <button id="palmares-back" class="btn btn-big" type="button" style="max-width:40rem;margin:0 auto;width:100%">← Retour</button>
+    </section>
+
+    <!-- Réglages (confort & accessibilité) -->
+    <section id="screen-reglages" class="screen" hidden>
+      <h1 class="screen-title">⚙️ Réglages</h1>
+      <p class="help-note" style="text-align:center">Confort et accessibilité — vos choix sont mémorisés sur cet appareil.</p>
+      <div id="reglages-zone" class="reglages-body"></div>
+      <button id="reglages-back" class="btn btn-big" type="button" style="max-width:34rem;margin:0 auto;width:100%">← Retour</button>
+    </section>
+
+    <!-- Configuration -->
+    <section id="screen-setup" class="screen" hidden>
+      <h1 class="screen-title">Préparez l'expédition</h1>
+      <div id="setup-zone"></div>
+    </section>
+
+    <!-- Partie -->
+    <section id="screen-game" class="screen screen-game" hidden>
+      <div class="board-scroll">
+        <div id="board" class="board-map" role="img" aria-label="Plateau du Donjon"></div>
+      </div>
+      <div id="herald-zone" class="herald-zone" aria-live="polite"></div>
+      <div id="panel" class="panel"></div>
+      <div id="players" class="players-strip" aria-label="Aventuriers"></div>
+    </section>
+
+    <!-- Victoire -->
+    <section id="screen-victory" class="screen screen-centre" hidden>
+      <div id="victory-zone"></div>
+    </section>
+  </main>
+
+  <noscript><p style="padding:2rem;text-align:center">Le Donjon du Savoir a besoin de JavaScript pour ouvrir ses portes.</p></noscript>
+  <!-- three.js (MIT) embarqué en local pour la vue 3D immersive : hors-ligne,
+       aucun CDN. Chargé avant les modules (defer garde l'ordre). Repli 2D si
+       WebGL est indisponible. -->
+  <script defer src="vendor/three.min.js"></script>
+  <script defer src="vendor/DRACOLoader.js"></script>
+  <script defer src="vendor/GLTFLoader.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

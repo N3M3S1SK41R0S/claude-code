@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/* Dark is the default scheme; `.light` on <html> switches to light. */
+@custom-variant light (&:where(.light, .light *));
+
+:root {
+  --bg: #0e0b1e;
+  --surface: #1b1533;
+  --card: #241c42;
+  --ink: #f2ecdc;
+  --soft: #a79dc8;
+  --gold: #d9a83c;
+  --gold-strong: #f0c05a;
+  --line: rgba(242, 236, 220, 0.12);
+  --good: #4cc286;
+  --bad: #e05a6d;
+}
+
+.light {
+  --bg: #f5efe2;
+  --surface: #fffaf0;
+  --card: #ffffff;
+  --ink: #26203f;
+  --soft: #6f6790;
+  --gold: #a87c1f;
+  --gold-strong: #8a6412;
+  --line: rgba(38, 32, 63, 0.14);
+  --good: #1e8f57;
+  --bad: #c03246;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-soft: var(--soft);
+  --color-gold: var(--gold);
+  --color-gold-strong: var(--gold-strong);
+  --color-line: var(--line);
+  --color-good: var(--good);
+  --color-bad: var(--bad);
+  --font-display: Georgia, "Times New Roman", "Noto Serif", serif;
+}
+
+html {
+  background: var(--bg);
+  color-scheme: dark;
+}
+
+html.light {
+  color-scheme: light;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+  min-height: 100dvh;
+}
+
+button {
+  touch-action: manipulation;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

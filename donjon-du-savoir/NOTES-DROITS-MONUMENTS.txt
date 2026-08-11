@@ -1,0 +1,61 @@
+NOTES.txt — Lot "Les Merveilles du Donjon"
+Contrôle des droits effectué le 05/08/2026, relu et complété le même jour.
+Principe : illustrations ORIGINALES peintes (pas de photographies).
+
+Deux régimes distincts ont été examinés, car ils ne se recouvrent pas :
+  A. le DROIT D'AUTEUR sur l'œuvre architecturale ou sculpturale ;
+  B. le DROIT DU PATRIMOINE (autorisation d'usage commercial de l'image d'un
+     monument public), qui existe en France, en Grèce, en Italie et en Égypte.
+Peindre au lieu de photographier ne change RIEN au régime A : une œuvre récente
+reste protégée quel que soit le médium de reproduction.
+
+MONUMENTS NON LIVRÉS — régime A, droit d'auteur (4) :
+
+- sagrada-familia : œuvre encore protégée. Œuvre collaborative (Gaudí et
+  co-auteurs), droits courant bien au-delà du XXIe siècle en Espagne.
+- christ-redempteur : œuvre encore protégée (Landowski †1961, protection
+  jusque vers 2031). Droits gérés et licenciés activement par l'archidiocèse
+  de Rio ; usage commercial de l'image soumis à licence.
+- atomium : œuvre encore protégée. L'Atomium asbl exige une autorisation
+  écrite pour TOUT usage, commercial comme non commercial. La liberté de
+  panorama belge (2016) étant limitée au non-commercial, elle ne suffit pas.
+- opera-sydney : incertain. Œuvre récente protégée (Utzon †2008, jusque vers
+  2078). La liberté de panorama australienne couvre la peinture, mais
+  l'exploitation d'une œuvre architecturale récente reste un risque. Écarté
+  par prudence.
+
+REMPLACEMENTS RETENUS (4), libres des DEUX régimes :
+  sainte-sophie (Istanbul, VIe s.) — cite-interdite (Pékin, XVe s.)
+  pont-du-gard (Ier s., monument historique, PAS un domaine national)
+  abou-simbel (XIIIe s. av. J.-C.)
+
+REMPLACEMENTS ÉCARTÉS À LEUR TOUR — régime B (2) :
+
+- chambord : libre de droit d'auteur, mais DOMAINE NATIONAL au sens de
+  l'article L621-42 du code du patrimoine (décret du 2 mai 2017, avec le
+  Louvre-Tuileries, Pau, Angers, l'Élysée et le Palais du Rhin). L'usage
+  COMMERCIAL de son image est soumis à autorisation préalable du gestionnaire.
+- parthenon : libre de droit d'auteur, mais article 46 de la loi grecque
+  4858/2021 : la reproduction et la diffusion d'images de monuments publics à
+  des fins commerciales exigent une autorisation du ministère de la Culture et
+  une redevance versée à l'organisme dédié.
+  Les deux textes prévoient une exemption culturelle et pédagogique qui couvre
+  le Donjon tel qu'il est aujourd'hui (gratuit, familial, sans vente). Écartés
+  seulement pour n'avoir aucune question à trancher si le jeu changeait un jour
+  de statut.
+
+REMARQUE SPÉCIALE — tour-eiffel :
+  La Tour elle-même est dans le domaine public (Eiffel †1923). Son ÉCLAIRAGE
+  NOCTURNE (Pierre Bideau, 1985) est une œuvre protégée distincte.
+  -> Peindre la tour DE JOUR uniquement, jamais illuminée.
+
+RÉSERVE ASSUMÉE — colisee, tour-de-pise, pyramide :
+  Soumis à des régimes voisins du régime B en Italie (Codice dei beni
+  culturali) et en Égypte. Conservés dans le lot : silhouettes irremplaçables,
+  et l'exemption pédagogique s'applique au Donjon tel qu'il existe. À revoir
+  uniquement si le jeu devenait un produit commercial.
+
+Sources principales : legifrance.gouv.fr (art. L621-42 et R621-98 du code du
+patrimoine), loi grecque 4858/2021 art. 46 (UNESCO Database of National
+Cultural Heritage Laws), atomium.be/copyright, moellerip.com (Christ
+Rédempteur), commons.wikimedia.org (liberté de panorama par pays).

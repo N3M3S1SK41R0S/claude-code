@@ -1,0 +1,12 @@
+# Dev-only: playwright-core resolved via a link to ../grand-mogul/node_modules
+node_modules
+
+# Build output of tools/make-launcher.mjs (regenerable ; contient le gros HTML)
+dist/launcher-kit/
+dist/*.zip
+
+# Lots de forge : fichiers de TRAVAIL d'une vague d'enrichissement. Une fois
+# passés par tools/inserer-questions.mjs, ils sont absorbés dans
+# data/questions.json — la banque reste la seule source de vérité, et garder
+# les brouillons ferait deux versions d'une même question dans le dépôt.
+data/forge/

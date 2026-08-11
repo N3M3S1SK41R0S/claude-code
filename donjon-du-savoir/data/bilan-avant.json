@@ -1,0 +1,212 @@
+{
+ "total": 4426,
+ "parCatAge": {
+  "Arts": {
+   "tout_petit": 10,
+   "enfant": 41,
+   "ado": 57,
+   "adulte": 103
+  },
+  "Cinéma": {
+   "tout_petit": 7,
+   "enfant": 26,
+   "ado": 96,
+   "adulte": 106
+  },
+  "Dessin animé": {
+   "tout_petit": 33,
+   "enfant": 55,
+   "ado": 67,
+   "adulte": 40
+  },
+  "Gastronomie": {
+   "tout_petit": 39,
+   "enfant": 46,
+   "ado": 86,
+   "adulte": 90
+  },
+  "Général": {
+   "tout_petit": 97,
+   "enfant": 42,
+   "ado": 81,
+   "adulte": 67
+  },
+  "Géographie": {
+   "tout_petit": 28,
+   "enfant": 76,
+   "ado": 127,
+   "adulte": 132
+  },
+  "Histoire": {
+   "tout_petit": 7,
+   "enfant": 53,
+   "ado": 100,
+   "adulte": 117
+  },
+  "Insolite": {
+   "tout_petit": 42,
+   "enfant": 82,
+   "ado": 104,
+   "adulte": 104
+  },
+  "Jeux de société": {
+   "tout_petit": 9,
+   "enfant": 41,
+   "ado": 66,
+   "adulte": 43
+  },
+  "Jeux vidéo": {
+   "tout_petit": 6,
+   "enfant": 44,
+   "ado": 96,
+   "adulte": 43
+  },
+  "Langue française": {
+   "tout_petit": 14,
+   "enfant": 51,
+   "ado": 60,
+   "adulte": 92
+  },
+  "Littérature": {
+   "tout_petit": 7,
+   "enfant": 34,
+   "ado": 68,
+   "adulte": 126
+  },
+  "Manga": {
+   "tout_petit": 0,
+   "enfant": 25,
+   "ado": 111,
+   "adulte": 52
+  },
+  "Musique": {
+   "tout_petit": 22,
+   "enfant": 39,
+   "ado": 85,
+   "adulte": 110
+  },
+  "Pop Culture": {
+   "tout_petit": 6,
+   "enfant": 25,
+   "ado": 103,
+   "adulte": 47
+  },
+  "Sciences & Nature": {
+   "tout_petit": 146,
+   "enfant": 51,
+   "ado": 85,
+   "adulte": 98
+  },
+  "Séries": {
+   "tout_petit": 4,
+   "enfant": 24,
+   "ado": 114,
+   "adulte": 55
+  },
+  "Sport": {
+   "tout_petit": 18,
+   "enfant": 60,
+   "ado": 96,
+   "adulte": 89
+  }
+ },
+ "parFormatAge": {
+  "qcm": {
+   "tout_petit": 359,
+   "enfant": 516,
+   "ado": 940,
+   "adulte": 931
+  },
+  "vrai_faux": {
+   "tout_petit": 131,
+   "enfant": 244,
+   "ado": 382,
+   "adulte": 341
+  },
+  "gambit_numerique": {
+   "tout_petit": 5,
+   "enfant": 50,
+   "ado": 176,
+   "adulte": 152
+  },
+  "equipe": {
+   "tout_petit": 0,
+   "enfant": 5,
+   "ado": 104,
+   "adulte": 88
+  },
+  "cash_carre_duo": {
+   "tout_petit": 0,
+   "enfant": 0,
+   "ado": 0,
+   "adulte": 2
+  }
+ },
+ "maigres": [
+  {
+   "categorie": "Manga",
+   "age": "tout_petit",
+   "n": 0
+  },
+  {
+   "categorie": "Séries",
+   "age": "tout_petit",
+   "n": 4
+  },
+  {
+   "categorie": "Jeux vidéo",
+   "age": "tout_petit",
+   "n": 6
+  },
+  {
+   "categorie": "Pop Culture",
+   "age": "tout_petit",
+   "n": 6
+  },
+  {
+   "categorie": "Cinéma",
+   "age": "tout_petit",
+   "n": 7
+  },
+  {
+   "categorie": "Histoire",
+   "age": "tout_petit",
+   "n": 7
+  },
+  {
+   "categorie": "Littérature",
+   "age": "tout_petit",
+   "n": 7
+  },
+  {
+   "categorie": "Jeux de société",
+   "age": "tout_petit",
+   "n": 9
+  },
+  {
+   "categorie": "Arts",
+   "age": "tout_petit",
+   "n": 10
+  },
+  {
+   "categorie": "Langue française",
+   "age": "tout_petit",
+   "n": 14
+  },
+  {
+   "categorie": "Sport",
+   "age": "tout_petit",
+   "n": 18
+  },
+  {
+   "categorie": "Musique",
+   "age": "tout_petit",
+   "n": 22
+  },
+  {
+   "categorie": "Séries",
+   "age": "enfant",
+   "n": 24
+  }
+ ]
+}

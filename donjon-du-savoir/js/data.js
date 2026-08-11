@@ -1,0 +1,346 @@
+// Question bank: loading, adaptive drawing, no repeats within a game — and a
+// persistent cross-game ledger so a question only comes back once EVERY other
+// question has been seen as often ("inexhaustible" feeling on replays).
+//
+// HARD RULE (cahier §5): a child profile NEVER receives an above-age
+// question. Every fallback recycles within the same age subset instead of
+// escalating the difficulty.
+import { bracketById, getState, markAsked, youngestBracket } from "./state.js";
+import { loadCustom } from "./custom.js";
+import { applyLangue, banquePath, loadLangues } from "./langues.js";
+
+let bank = [];
+
+const SEEN_KEY = "donjon-seen-v1";
+let seenCounts = null;
+
+function seen() {
+  if (seenCounts === null) {
+    try {
+      seenCounts = JSON.parse(localStorage.getItem(SEEN_KEY)) ?? {};
+    } catch {
+      seenCounts = {};
+    }
+  }
+  return seenCounts;
+}
+
+function bumpSeen(id) {
+  const s = seen();
+  s[id] = (s[id] ?? 0) + 1;
+  try {
+    localStorage.setItem(SEEN_KEY, JSON.stringify(s));
+  } catch {
+    /* private mode: the in-memory ledger still works for this session */
+  }
+}
+
+/** Keep only the least-seen candidates (cross-game freshness). */
+function preferUnseen(candidates) {
+  if (candidates.length <= 1) return candidates;
+  const s = seen();
+  let min = Infinity;
+  for (const q of candidates) min = Math.min(min, s[q.id] ?? 0);
+  return candidates.filter((q) => (s[q.id] ?? 0) === min);
+}
+
+export async function loadBank() {
+  // Pack de langues : le manifeste choisit la banque (français par défaut).
+  await loadLangues();
+  applyLangue();
+  const res = await fetch(banquePath());
+  if (!res.ok) throw new Error(`questions.json ${res.status}`);
+  const data = await res.json();
+  bank = (data.questions ?? []).filter(
+    (q) => q && q.id && q.texte && q.anecdote && q.format && q.niveau_age,
+  );
+  refreshCustom();
+  return bank.length;
+}
+
+/** Mix the device's home-made questions into the bank (tagged 🏠). */
+export function refreshCustom() {
+  bank = bank.filter((q) => !q.maison).concat(loadCustom());
+}
+
+/** Pool stable pour la « question du jour » : QCM tous publics (palier ado). */
+export function dailyPool() {
+  return bank.filter((q) => q.format === "qcm" && q.niveau_age === "ado" && Array.isArray(q.choix));
+}
+
+/**
+ * ORDRE D'AFFICHAGE DES PROPOSITIONS — mesuré sur la banque : deux tiers des
+ * QCM ont leur bonne réponse écrite en PREMIER (c'est ainsi qu'on les rédige
+ * naturellement). Sans mélange, répondre « la première » suffisait à gagner
+ * deux fois sur trois sans rien savoir. On mélange donc à l'affichage, jamais
+ * dans le fichier : la banque reste lisible pour qui la relit.
+ *
+ * Deux exceptions, où l'ordre PORTE du sens :
+ * - le Vrai/Faux, qu'on lit toujours dans cet ordre ;
+ * - les propositions entièrement numériques, plus faciles à comparer croissantes.
+ */
+export function choixAffiches(q, choix = q.choix ?? []) {
+  if (!Array.isArray(choix) || choix.length < 2) return choix;
+  if (q?.format === "vrai_faux") return choix;
+  const nombre = (c) => Number(String(c).replace(/\s| /g, "").replace(",", "."));
+  if (choix.every((c) => Number.isFinite(nombre(c)))) return [...choix].sort((a, b) => nombre(a) - nombre(b));
+  // Fisher-Yates : un `sort(() => Math.random() - 0.5)` est un mélange biaisé,
+  // et un biais est exactement ce que l'on cherche à supprimer ici.
+  const out = [...choix];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+/** La banque entière, telle qu'elle est en mémoire (outils de contrôle). */
+export function allQuestions() {
+  return bank;
+}
+
+export function bankSize() {
+  return bank.length;
+}
+
+/** Tranche d'âge (paliers de contenu autorisés) d'un pion. */
+function rangeFor(pion) {
+  return bracketById(pion?.bracket ?? "9-11");
+}
+
+/** Formats whose UI is a button grid (safe everywhere, incl. Trou Noir). */
+const CHOICE_FORMATS = ["qcm", "vrai_faux"];
+
+const diffOf = (q) => q.difficulte ?? 3;
+/** RÈGLE FERME : une question n'est jouable que si son palier d'âge est
+ *  autorisé par la tranche (adulte ne va JAMAIS aux tranches non-adultes). */
+const inTiers = (q, b) => b.tiers.includes(q.niveau_age);
+
+/** FAMILLES DE QUASI-DOUBLONS : « Qui a peint la Joconde ? » existe en huit
+ *  variantes (champ `famille` calculé par tools/familles-questions.mjs) —
+ *  jouer l'une d'elles écarte TOUTES les autres pour la partie, sinon la
+ *  table a l'impression de retomber sans cesse sur la même question. */
+function famillesPosees(asked) {
+  const posees = new Set();
+  for (const q of bank) if (q.famille && asked.has(q.id)) posees.add(q.famille);
+  return posees;
+}
+
+function subset(b, formats, { ignoreAsked = false } = {}) {
+  const st = getState(); // nul en Partie Éclair (pas de plateau) : fraîcheur inter-parties seule
+  const asked = ignoreAsked || !st ? null : new Set(st.askedIds);
+  const fam = asked ? famillesPosees(asked) : null;
+  let candidates = bank.filter((q) => (!asked || (!asked.has(q.id) && (!q.famille || !fam.has(q.famille)))) && inTiers(q, b));
+  if (formats) candidates = candidates.filter((q) => formats.includes(q.format));
+  return candidates;
+}
+
+/**
+ * Questions jouables pour une tranche : contenu frais d'abord, puis recyclage
+ * dans les MÊMES paliers d'âge. On n'élargit JAMAIS au-dessus de l'âge : une
+ * tranche sans contenu pour un format renvoie une liste vide (l'appelant gère).
+ */
+function drawableFrom(b, formats) {
+  const fresh = subset(b, formats);
+  if (fresh.length > 0) return fresh;
+  return subset(b, formats, { ignoreAsked: true });
+}
+
+/** Choisit un candidat en privilégiant les moins vus (fraîcheur inter-parties)
+ *  — SANS le consommer (le tirage de choix de thème n'en garde qu'un seul). */
+function select(candidates) {
+  const fresh = preferUnseen(candidates);
+  return fresh[Math.floor(Math.random() * fresh.length)] ?? null;
+}
+
+/** Une question MONTRÉE au choix de thème mais NON choisie recule dans la
+ *  rotation inter-parties (sans être exclue de la partie) : c'est elle qui
+ *  créait le sentiment de déjà-vu — reproposée en boucle tant qu'on ne la
+ *  choisissait pas. */
+export function noteProposee(q) {
+  if (q) bumpSeen(q.id);
+}
+
+/** Marque une question comme posée (partie) ET vue (registre inter-parties). */
+export function commitQuestion(q) {
+  if (!q) return;
+  bumpSeen(q.id);
+  markAsked(q.id);
+}
+
+function pick(candidates) {
+  const q = select(candidates);
+  commitQuestion(q);
+  return q;
+}
+
+/**
+ * Tirage adaptatif : dans les paliers d'âge autorisés (et EUX SEULS), on vise
+ * la difficulté courante du joueur (`niveau` : facile au début, plus dur s'il
+ * gagne). Petite fenêtre autour de la cible pour la variété, sinon tout le
+ * pool. `commit:false` sélectionne sans consommer (choix de thème) ; `exclude`
+ * écarte des ids déjà proposés. Le registre de fraîcheur limite les redites.
+ */
+// DOSAGE DES QUESTIONS « PAS COMME LES AUTRES ». Le plaisir vient du contraste :
+// une question sur quatre change de nature (drapeau, ombre chinoise, charade en
+// images). Le dosage se règle ICI, au tirage, et non par la taille du vivier :
+// quelques dizaines de bons visuels suffisent alors à parfumer toute la partie,
+// là où il aurait fallu en écrire un millier pour peser un quart de la banque.
+const PART_VISUELLE = 0.25;
+const estVisuelle = (q) => Boolean(q.visuel);
+
+export function drawQuestion(pion, { formats = null, commit = true, exclude = null, categories = null } = {}) {
+  let pool = drawableFrom(rangeFor(pion), formats);
+  // On vise la proportion, sans jamais l'imposer : si le vivier visuel de la
+  // tranche d'âge est vide (ou déjà tout vu), on reprend le pool entier.
+  // Sonde de test : force le tirage visuel pour vérifier l'AFFICHAGE sans
+  // dépendre du hasard (le dosage, lui, est mesuré séparément sur 400 tirages).
+  const veutVisuelle = globalThis.__DONJON_TOUT_VISUEL ? true : Math.random() < PART_VISUELLE;
+  const filtre = pool.filter((q) => estVisuelle(q) === veutVisuelle);
+  if (filtre.length > 0) pool = filtre;
+  if (categories) pool = pool.filter((q) => categories.includes(q.categorie)); // thème du sprint Éclair
+  if (exclude) pool = pool.filter((q) => !exclude.has(q.id));
+  if (pool.length === 0) return null;
+  const target = pion?.niveau ?? 2;
+  let near = pool.filter((q) => Math.abs(diffOf(q) - target) <= 1);
+  if (near.length === 0) near = pool;
+  // ÉQUILIBRE DES FAMILLES VISUELLES : le registre de fraîcheur privilégie le
+  // jamais-vu — à chaque nouvelle famille ajoutée (constellations, cartes…),
+  // il concentrait donc le tirage sur elle : quatre ciels en dix questions,
+  // vécu sur table. On tire d'abord la FAMILLE au sort (drapeau, carte, ciel,
+  // monument, rébus à parts égales), puis la question dans cette famille.
+  let vivier = near;
+  if (near.some(estVisuelle)) {
+    const familles = new Map();
+    for (const q of near) {
+      const f = q.visuel?.type;
+      if (!f) continue;
+      if (!familles.has(f)) familles.set(f, []);
+      familles.get(f).push(q);
+    }
+    if (familles.size > 1) {
+      const cles = [...familles.keys()];
+      vivier = familles.get(cles[Math.floor(Math.random() * cles.length)]);
+    }
+  }
+  const q = select(vivier);
+  if (commit) commitQuestion(q);
+  return q;
+}
+
+/** Trou Noir: the hardest CHOICE question within the pion's allowed tiers. */
+export function drawHardest(pion) {
+  const candidates = drawableFrom(rangeFor(pion), CHOICE_FORMATS);
+  if (candidates.length === 0) return null;
+  const maxDiff = Math.max(...candidates.map(diffOf));
+  return pick(candidates.filter((q) => diffOf(q) === maxDiff));
+}
+
+/** Toutes les tranches d'âge présentes à la table (pions + membres d'équipe). */
+function tableBrackets() {
+  const brackets = [];
+  for (const p of getState().pions) {
+    if (Array.isArray(p.membres) && p.membres.length) {
+      for (const m of p.membres) brackets.push(m.bracket ?? p.bracket ?? "9-11");
+    } else {
+      brackets.push(p.bracket ?? "9-11");
+    }
+  }
+  return brackets;
+}
+
+/** Une question collective à un palier d'âge donné (vrai/faux puis QCM). */
+function drawEventFor(b, { exclude = null } = {}) {
+  for (const fmt of [["vrai_faux"], ["qcm"]]) {
+    let pool = drawableFrom(b, fmt);
+    if (exclude) pool = pool.filter((q) => !exclude.has(q.id));
+    if (pool.length > 0) return pick(pool);
+  }
+  return null;
+}
+
+/**
+ * Événement collectif : une question que TOUT LE MONDE peut tenter. On vise la
+ * tranche d'âge la PLUS JEUNE présente à la table (les pions et leurs membres
+ * d'équipe), vrai/faux d'abord puis QCM — jamais au-dessus de cet âge.
+ */
+export function drawEvent() {
+  return drawEventFor(bracketById(youngestBracket(tableBrackets())));
+}
+
+/**
+ * Collectif « à deux difficultés » (demande du cahier) : quand la tablée réunit
+ * à la fois de jeunes joueurs ET des joueurs qui peuvent recevoir de l'adulte,
+ * on prépare DEUX questions — une accessible aux plus jeunes, une pour les
+ * adultes — pour que chacun brille à son niveau. Renvoie { enfant, adulte } ;
+ * `null` si un seul niveau suffit (la table est homogène) → collectif simple.
+ */
+export function drawEventPair() {
+  const brackets = tableBrackets();
+  const young = bracketById(youngestBracket(brackets));
+  const adulte = bracketById("18+");
+  // Deux niveaux seulement si l'écart est réel : le plus jeune n'atteint pas
+  // le palier « adulte » mais au moins un joueur, si.
+  const hasAdult = brackets.some((id) => bracketById(id).tiers.includes("adulte"));
+  if (!hasAdult || young.tiers.includes("adulte")) return null;
+  const qEnfant = drawEventFor(young);
+  const qAdulte = drawEventFor(adulte, { exclude: qEnfant ? new Set([qEnfant.id]) : null });
+  if (!qEnfant || !qAdulte) return null;
+  return { enfant: qEnfant, adulte: qAdulte };
+}
+
+/** Gambit: numeric question within the pion's allowed tiers — or null. */
+export function drawGambit(pion) {
+  const candidates = drawableFrom(rangeFor(pion), ["gambit_numerique"]);
+  return candidates.length > 0 ? pick(candidates) : null;
+}
+
+/**
+ * Mini-jeu « Ordre ! » : n faits numériques adaptés au PLUS JEUNE de la table,
+ * à valeurs toutes DISTINCTES (sinon impossible à classer). Sélectionne sans
+ * consommer — l'appelant committe les questions réellement posées. Renvoie
+ * null s'il n'y a pas assez de faits jouables.
+ */
+export function drawGambitTable(n = 3) {
+  const b = bracketById(youngestBracket(tableBrackets()));
+  const pool = drawableFrom(b, ["gambit_numerique"]);
+  // COHÉRENCE DU CLASSEMENT : on ne classe jamais des années avec des
+  // quantités — les trois faits partagent la même NATURE (des dates entre
+  // elles, des nombres entre eux), sinon la consigne n'a aucun sens.
+  const natureDe = (q) => (/quelle année|quelle date/i.test(q.texte)
+    || (q.reponse_numerique >= 1000 && q.reponse_numerique <= 2100 && /année|siècle/i.test(q.texte)))
+    ? "date" : "quantite";
+  for (const nature of Math.random() < 0.5 ? ["quantite", "date"] : ["date", "quantite"]) {
+    const set = [];
+    const seenVals = new Set();
+    for (const q of pool.filter((x) => natureDe(x) === nature).sort(() => Math.random() - 0.5)) {
+      const v = q.reponse_numerique;
+      if (typeof v !== "number" || seenVals.has(v)) continue;
+      seenVals.add(v);
+      set.push(q);
+      if (set.length === n) { set.nature = nature; return set; }
+    }
+  }
+  return null;
+}
+
+/**
+ * Savoir insolite (case 🦩) : une VRAIE question, de préférence de la catégorie
+ * « Insolite », dans les paliers d'âge autorisés. Sélectionne SANS consommer
+ * (l'appelant la pose et la commit). Renvoie null si rien n'est jouable.
+ */
+export function drawInsolite(pion) {
+  const pool = drawableFrom(rangeFor(pion), ["qcm", "vrai_faux", "gambit_numerique"]);
+  if (pool.length === 0) return null;
+  const inso = pool.filter((q) => q.categorie === "Insolite");
+  return select(inso.length > 0 ? inso : pool);
+}
+
+/** Easier replacement (Bouclier Facile) — may return null; the caller must
+ *  then NOT consume the power. */
+export function drawEasier(pion, currentDifficulty) {
+  const all = drawableFrom(rangeFor(pion), CHOICE_FORMATS);
+  if (all.length === 0) return null;
+  const easier = all.filter((q) => diffOf(q) < (currentDifficulty ?? 3));
+  return pick(easier.length > 0 ? easier : all);
+}

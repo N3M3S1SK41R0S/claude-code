@@ -1,0 +1,78 @@
+// Small DOM helpers: element factory, modal panel, herald banner.
+import { herald } from "./herald.js";
+import { say } from "./tts.js";
+
+export function el(tag, attrs = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") node.className = v;
+    else if (k === "text") node.textContent = v;
+    else if (k === "html") node.innerHTML = v;
+    else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2), v);
+    else if (v !== undefined && v !== null) node.setAttribute(k, v);
+  }
+  for (const child of children) {
+    if (child == null) continue;
+    node.append(child);
+  }
+  return node;
+}
+
+const panel = () => document.getElementById("panel");
+
+/** Replace the action panel content (the zone under the board). */
+// Crochet appelé après chaque rendu de panneau (utilisé par le pilote de bots
+// pour jouer automatiquement le tour d'un joueur automatique).
+let panelHook = null;
+export function onPanelRender(cb) { panelHook = cb; }
+
+export function setPanel(...children) {
+  const p = panel();
+  p.innerHTML = "";
+  p.append(...children.filter(Boolean));
+  p.scrollTop = 0;
+  // Pendant une question, le plateau 3D s'estompe doucement derrière la carte :
+  // tous les regards convergent vers la question, sans jamais quitter le donjon.
+  document.querySelector(".board3d-canvas")?.classList.toggle("q-focus", !!p.querySelector(".question-block"));
+  if (panelHook) { try { panelHook(); } catch { /* le pilote de bot ne doit jamais casser le rendu */ } }
+}
+
+/** Avatar du Héraut : médaillon peint posé sur l'emoji 📯 (repli si absent). */
+export function heraldAvatar() {
+  const span = el("span", { class: "herald-avatar", "aria-hidden": "true", text: "📯" });
+  const img = document.createElement("img");
+  img.className = "herald-art";
+  img.alt = "";
+  img.decoding = "async";
+  img.src = "assets/heraut-medaillon.png";
+  img.onerror = () => img.remove();
+  span.appendChild(img);
+  return span;
+}
+
+export function heraldSays(text, { speak = true } = {}) {
+  const zone = document.getElementById("herald-zone");
+  if (zone) {
+    zone.innerHTML = "";
+    zone.append(
+      el("div", { class: "herald-bubble", role: "status", "aria-live": "polite" },
+        heraldAvatar(),
+        el("p", { class: "herald-text", text }),
+      ),
+    );
+  }
+  // File d'attente : l'annonce prend son tour de parole au prochain silence —
+  // l'anecdote en cours se finit toujours, rien ne se chevauche. (Un vrai clic
+  // du joueur sur un grand bouton coupe tout : il « enchaîne », voir app.js.)
+  if (speak) say(text, { perso: "heraut", queue: true });
+}
+
+export function bigButton(label, onclick, cls = "") {
+  return el("button", { class: `btn btn-big ${cls}`, type: "button", onclick }, label);
+}
+
+export function choiceButton(label, onclick, cls = "") {
+  return el("button", { class: `btn btn-choice ${cls}`, type: "button", onclick }, label);
+}
+
+export { herald };

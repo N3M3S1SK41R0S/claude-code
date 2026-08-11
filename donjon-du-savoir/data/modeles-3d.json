@@ -1,0 +1,194 @@
+{
+  "version": 1,
+  "format": "GLB 2.0 + KHR_draco_mesh_compression",
+  "origine": "Modèles low-poly originaux créés pour Le Donjon du Savoir",
+  "modeles": [
+    {
+      "id": "cageot",
+      "nom": "Sire Cageot",
+      "fichier": "assets/3d/heroes/hero-cageot.glb",
+      "triangles": 2182,
+      "octets": 89724,
+      "animations": [
+        "idle",
+        "walk",
+        "joy",
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
+      ]
+    },
+    {
+      "id": "etincelle",
+      "nom": "Dame Étincelle",
+      "fichier": "assets/3d/heroes/hero-etincelle.glb",
+      "triangles": 1227,
+      "octets": 47980,
+      "animations": [
+        "idle",
+        "walk",
+        "joy",
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
+      ]
+    },
+    {
+      "id": "gobelin",
+      "nom": "Gobelin Comptable",
+      "fichier": "assets/3d/heroes/hero-gobelin.glb",
+      "triangles": 1462,
+      "octets": 46184,
+      "animations": [
+        "idle",
+        "walk",
+        "joy",
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
+      ]
+    },
+    {
+      "id": "nebulia",
+      "nom": "Nébulia",
+      "fichier": "assets/3d/heroes/hero-nebulia.glb",
+      "triangles": 1716,
+      "octets": 49980,
+      "animations": [
+        "idle",
+        "walk",
+        "joy",
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
+      ]
+    },
+    {
+      "id": "boumbastien",
+      "nom": "Boumbastien",
+      "fichier": "assets/3d/heroes/hero-boumbastien.glb",
+      "triangles": 1623,
+      "octets": 53848,
+      "animations": [
+        "idle",
+        "walk",
+        "joy",
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
+      ]
+    },
+    {
+      "id": "duchesse",
+      "nom": "La Duchesse Anecdote",
+      "fichier": "assets/3d/heroes/hero-duchesse.glb",
+      "triangles": 1365,
+      "octets": 50096,
+      "animations": [
+        "idle",
+        "walk",
+        "joy",
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
+      ]
+    },
+    {
+      "id": "flaque",
+      "nom": "Capitaine Flaque",
+      "fichier": "assets/3d/heroes/hero-flaque.glb",
+      "triangles": 1472,
+      "octets": 46784,
+      "animations": [
+        "idle",
+        "walk",
+        "joy",
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
+      ]
+    },
+    {
+      "id": "pelote",
+      "nom": "Mémé Pelote",
+      "fichier": "assets/3d/heroes/hero-pelote.glb",
+      "triangles": 1996,
+      "octets": 52216,
+      "animations": [
+        "idle",
+        "walk",
+        "joy",
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
+      ]
+    },
+    {
+      "id": "hibou",
+      "nom": "Professeur Hibou",
+      "fichier": "assets/3d/heroes/hero-hibou.glb",
+      "triangles": 1421,
+      "octets": 47348,
+      "animations": [
+        "idle",
+        "walk",
+        "joy",
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
+      ]
+    },
+    {
+      "id": "kribouille",
+      "nom": "Kribouille",
+      "fichier": "assets/3d/heroes/hero-kribouille.glb",
+      "triangles": 1222,
+      "octets": 45560,
+      "animations": [
+        "idle",
+        "walk",
+        "joy",
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
+      ]
+    },
+    {
+      "id": "plomberoy",
+      "nom": "Sire Plomberoy",
+      "fichier": "assets/3d/heroes/hero-plomberoy.glb",
+      "triangles": 1468,
+      "octets": 48384,
+      "animations": [
+        "idle",
+        "walk",
+        "joy",
+        "disappointment",
+        "deception",
+        "salute",
+        "dance",
+        "think"
+      ]
+    }
+  ]
+}

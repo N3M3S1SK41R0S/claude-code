@@ -1,0 +1,1544 @@
+/* Le Donjon du Savoir — dungeon-parchment theme.
+   Accessibility rules from the cahier: readable text, big touch targets,
+   clear contrast, nothing blinking, nothing that rushes the player. */
+
+:root {
+  --bg: #1a1230;
+  --stone: #2a1f4a;
+  --card: #342a58;
+  --ink: #f4ecd8;
+  --soft: #b3a8d4;
+  --gold: #e0b04a;
+  --gold-dark: #221a10;
+  --line: rgba(244, 236, 216, 0.16);
+  --good: #58c98b;
+  --bad: #e06a6a;
+  /* UNE SEULE LUMIÈRE pour tout le plateau 2D : elle vient du haut-gauche,
+     donc toute ombre portée tombe en bas-droite, avec la même teinte et la
+     même douceur. Trois calibres selon la taille de l'objet — un bâtiment
+     projette plus loin qu'un jeton, c'est la seule variation permise. */
+  --ombre-teinte: rgba(10, 6, 20, 0.45);
+  --ombre-petite: 1px 2px 3px var(--ombre-teinte);
+  --ombre-moyenne: 2px 3px 5px var(--ombre-teinte);
+  --ombre-grande: 4px 6px 9px var(--ombre-teinte);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { color-scheme: dark; }
+
+body {
+  background:
+    radial-gradient(circle at 30% 0%, #2c2052 0%, var(--bg) 55%),
+    var(--bg);
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button { font-family: inherit; }
+
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation: none !important; }
+}
+
+/* ---------- layout ---------- */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap; /* petit écran : les boutons passent à la ligne au lieu de faire déborder la page */
+  gap: 0.5rem;
+  padding: max(0.6rem, env(safe-area-inset-top)) 1rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand { display: flex; align-items: center; gap: 0.5rem; color: var(--gold); letter-spacing: 0.06em; }
+.brand strong { font-size: 0.95rem; }
+.topbar-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; }
+
+main { max-width: 60rem; margin: 0 auto; padding: 1rem; }
+
+.screen { display: flex; flex-direction: column; gap: 1rem; }
+.screen[hidden] { display: none; }
+.screen-centre { align-items: center; text-align: center; padding-top: 4vh; }
+.screen-title { font-size: 1.5rem; color: var(--gold); text-align: center; }
+
+/* ---------- buttons ---------- */
+
+.btn {
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 0.8rem 1.1rem;
+  font-size: 1rem;
+  min-height: 48px;
+  cursor: pointer;
+  transition: transform 0.08s ease, border-color 0.15s ease;
+}
+.btn:active { transform: scale(0.97); }
+.btn:hover { border-color: var(--gold); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.btn-big { font-size: 1.15rem; font-weight: bold; padding: 1rem 1.6rem; width: 100%; }
+.btn-gold { background: var(--gold); color: var(--gold-dark); border-color: var(--gold); }
+.btn-small { min-height: 44px; padding: 0.4rem 0.8rem; font-size: 0.9rem; }
+.btn-choice { width: 100%; text-align: left; font-size: 1.05rem; }
+.btn-toggle { font-size: 0.9rem; white-space: nowrap; }
+.btn-toggle-on { border-color: var(--gold); background: var(--gold); color: var(--gold-dark); font-weight: bold; }
+.btn-toggle-enfant { border-color: var(--good); }
+.btn-x { min-width: 48px; }
+.btn-bet { width: auto; flex: 1; font-size: 0.9rem; padding: 0.6rem 0.4rem; }
+.bet-selected { border-color: var(--gold); background: var(--gold); color: var(--gold-dark); font-weight: bold; }
+
+/* ---------- home ---------- */
+
+.home-emoji { font-size: 4rem; }
+.home-hero { width: 100%; display: flex; justify-content: center; }
+.home-hero-img {
+  width: min(30rem, 100%);
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  display: block;
+}
+.home-title { color: var(--gold); font-size: 2.1rem; letter-spacing: 0.04em; }
+.home-tagline { color: var(--soft); font-style: italic; }
+.home-actions { display: flex; flex-direction: column; gap: 0.8rem; width: min(26rem, 100%); margin-top: 0.5rem; }
+.bank-info { color: var(--soft); font-size: 0.85rem; }
+
+/* ---------- herald ---------- */
+
+.herald-bubble {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  background: var(--stone);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 0.7rem 1rem;
+  max-width: 38rem;
+}
+.herald-home { margin-top: 0.6rem; }
+.herald-avatar {
+  font-size: 1.6rem;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  flex-shrink: 0;
+}
+.herald-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.herald-text { font-style: italic; line-height: 1.35; }
+.herald-zone { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; min-height: 3.2rem; }
+/* Bulle de réplique d'un personnage (héros/PNJ) : portrait + phrase, sous le Héraut. */
+.char-bubble {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  background: color-mix(in srgb, var(--gold) 12%, var(--stone));
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--gold);
+  border-radius: 14px;
+  padding: 0.45rem 0.8rem;
+  max-width: 34rem;
+  animation: char-pop 0.25s ease;
+}
+.char-bubble .portrait { flex-shrink: 0; }
+.char-text { line-height: 1.3; font-size: 0.92rem; }
+@keyframes char-pop { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .char-bubble { animation: none; } }
+
+/* ---------- rules ---------- */
+
+.rules-body { display: flex; flex-direction: column; gap: 0.6rem; max-width: 44rem; margin: 0 auto; }
+.rules-body h2 { color: var(--gold); font-size: 1.05rem; margin-top: 0.6rem; }
+.rules-body p { line-height: 1.5; }
+.rules-cast { display: flex; flex-direction: column; gap: 0.7rem; }
+.rules-cast-item {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  background: var(--stone);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.6rem 0.8rem;
+}
+.rules-power { color: var(--soft); font-size: 0.88rem; line-height: 1.4; }
+
+.custom-item { background: var(--stone); border: 1px solid var(--line); border-radius: 12px; padding: 0.5rem 0.7rem; }
+.custom-item-body { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 0.15rem; }
+#custom-zone { display: flex; flex-direction: column; gap: 0.8rem; max-width: 44rem; margin: 0 auto; width: 100%; }
+#custom-zone select.name-input { appearance: auto; }
+#custom-back { max-width: 44rem; margin: 0 auto; width: 100%; }
+#rules-back { max-width: 44rem; margin: 0 auto; width: 100%; }
+
+/* ---------- setup ---------- */
+
+.mode-switch { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+/* Choix du nombre de manches (mode Étoiles) : saisie libre 5-200 + raccourcis. */
+.rounds-picker { display: flex; flex-direction: column; gap: 0.5rem; align-items: center; }
+.rounds-label { display: flex; flex-direction: column; gap: 0.35rem; align-items: center; font-size: 0.95rem; color: var(--soft); }
+.rounds-input {
+  width: 7rem;
+  text-align: center;
+  font: inherit;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 0.5rem 0.6rem;
+  min-height: 48px;
+}
+.setup-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.setup-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.setup-row-membre { margin-left: 1.4rem; }
+.team-block { border: 1px solid var(--line); border-radius: 14px; padding: 0.7rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.name-input {
+  flex: 1;
+  min-width: 8rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  font: inherit;
+  padding: 0.7rem 0.9rem;
+  min-height: 48px;
+}
+.name-input::placeholder { color: var(--soft); }
+select.age-select { appearance: auto; flex: 0 1 auto; min-width: 9.5rem; cursor: pointer; }
+#setup-zone { display: flex; flex-direction: column; gap: 1rem; }
+.setup-subtitle { color: var(--gold); font-size: 1.1rem; text-align: center; }
+
+.board-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.6rem;
+}
+.board-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  align-items: flex-start;
+  text-align: left;
+  background: var(--card);
+  color: var(--ink);
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  padding: 0.7rem 0.8rem;
+  cursor: pointer;
+  font: inherit;
+  min-height: 48px;
+}
+.board-card:hover { border-color: var(--gold); }
+.board-card-on { border-color: var(--gold); box-shadow: 0 0 10px rgba(224, 176, 74, 0.35); }
+.board-card-emoji { font-size: 1.6rem; }
+.board-card-nom { font-size: 0.95rem; }
+.board-card-meta { color: var(--gold); font-size: 0.72rem; }
+.board-card-desc { color: var(--soft); font-size: 0.78rem; line-height: 1.3; }
+
+/* ---------- board — Mario-Party-style winding map ---------- */
+
+.board-scroll { overflow-x: auto; border-radius: 18px; }
+
+.board-map {
+  position: relative;
+  /* Le plateau tient TOUJOURS dans la largeur de l'écran (pas de défilement
+     horizontal) ; les cases sont dimensionnées en cqw et s'adaptent. */
+  width: 100%;
+  max-width: 760px;
+  min-width: 0;
+  margin-inline: auto;
+  aspect-ratio: 10 / 7;
+  container-type: size;
+  background:
+    radial-gradient(circle at 8% 92%, rgba(88, 162, 79, 0.22) 0%, transparent 32%),
+    radial-gradient(circle at 92% 10%, rgba(224, 176, 74, 0.2) 0%, transparent 30%),
+    radial-gradient(circle at 78% 84%, rgba(62, 184, 194, 0.1) 0%, transparent 28%),
+    radial-gradient(circle at 40% 12%, rgba(181, 74, 74, 0.12) 0%, transparent 30%),
+    linear-gradient(160deg, #241a45 0%, #1a1230 55%, #150e28 100%);
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.board-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Per-dungeon moods : fond peint (webp) posé sur un léger voile pour la
+   lisibilité ; les dégradés restent en repli si l'image n'est pas chargée
+   (ex. version un seul fichier allégée). */
+.board-theme-donjon {
+  background:
+    linear-gradient(rgba(20, 14, 40, 0.24), rgba(20, 14, 40, 0.4)),
+    url(assets/fond-donjon.webp) center/cover no-repeat,
+    linear-gradient(160deg, #241a45 0%, #1a1230 55%, #150e28 100%);
+}
+.board-theme-crypte {
+  background:
+    linear-gradient(rgba(16, 26, 22, 0.22), rgba(16, 26, 22, 0.4)),
+    url(assets/fond-crypte.webp) center/cover no-repeat,
+    radial-gradient(circle at 12% 88%, rgba(88, 162, 79, 0.3) 0%, transparent 38%),
+    linear-gradient(160deg, #1c2b1e 0%, #14201a 60%, #101a16 100%);
+}
+.board-theme-tour {
+  background:
+    linear-gradient(rgba(25, 13, 28, 0.24), rgba(25, 13, 28, 0.42)),
+    url(assets/fond-tour.webp) center/cover no-repeat,
+    radial-gradient(circle at 85% 8%, rgba(224, 90, 60, 0.28) 0%, transparent 34%),
+    linear-gradient(160deg, #33192b 0%, #241224 55%, #190d1c 100%);
+}
+.board-theme-catacombes {
+  background:
+    linear-gradient(rgba(11, 20, 30, 0.24), rgba(11, 20, 30, 0.42)),
+    url(assets/fond-catacombes.webp) center/cover no-repeat,
+    radial-gradient(circle at 90% 12%, rgba(62, 184, 194, 0.25) 0%, transparent 32%),
+    linear-gradient(160deg, #10262c 0%, #0e1c26 55%, #0b141e 100%);
+}
+.board-theme-labyrinthe {
+  background:
+    linear-gradient(rgba(23, 18, 12, 0.22), rgba(23, 18, 12, 0.4)),
+    url(assets/fond-labyrinthe.webp) center/cover no-repeat,
+    radial-gradient(circle at 90% 10%, rgba(224, 176, 74, 0.35) 0%, transparent 36%),
+    linear-gradient(160deg, #2c2414 0%, #211a10 55%, #17120c 100%);
+}
+/* ⚡ PARTIE ÉCLAIR : une colonne plein pouce, taillée téléphone. */
+.eclair-ecran {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 0.6rem 0.8rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+/* Sur grand écran, la colonne téléphone flottait dans le tiers haut d'une
+   page vide : on la centre verticalement — sans toucher au mobile. */
+@media (min-height: 700px) and (min-width: 60rem) {
+  .eclair-ecran { justify-content: center; min-height: calc(100vh - 9rem); }
+}
+.eclair-setup { display: flex; flex-direction: column; gap: 0.5rem; }
+.eclair-joueur-row { display: flex; gap: 0.4rem; align-items: center; }
+.eclair-joueur-row .name-input { flex: 1; min-width: 0; }
+.eclair-themes { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.eclair-auto { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.92rem; opacity: 0.9; }
+.eclair-go { font-size: 1.25rem; }
+.eclair-bandeau {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  background: rgba(26, 18, 48, 0.65);
+  border-radius: 12px;
+  padding: 0.55rem 0.8rem;
+}
+.eclair-qui { display: flex; gap: 0.6rem; align-items: baseline; }
+.eclair-score { color: #e0b04a; font-weight: 700; }
+.eclair-etat { display: flex; gap: 0.7rem; align-items: baseline; font-size: 0.92rem; opacity: 0.95; }
+.eclair-serie-feu { animation: eclairFeu 0.9s ease-in-out infinite alternate; font-weight: 700; }
+@keyframes eclairFeu { from { transform: scale(1); } to { transform: scale(1.18); } }
+.eclair-carte {
+  background: rgba(20, 14, 40, 0.72);
+  border: 1px solid rgba(224, 176, 74, 0.35);
+  border-radius: 14px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.eclair-theme { align-self: flex-start; color: #fff; border-radius: 999px; padding: 0.15rem 0.7rem; font-size: 0.85rem; }
+.eclair-texte { font-size: 1.18rem; line-height: 1.45; margin: 0; }
+.eclair-indice { font-size: 0.95rem; opacity: 0.92; border-top: 1px dashed rgba(255,255,255,0.25); padding-top: 0.5rem; }
+/* Son Mystère en sprint : le bouton de réécoute vit DANS la carte question,
+   bien visible — c'est lui qui remplace l'énoncé qu'on n'a pas à lire. */
+.eclair-reecoute { display: block; margin: 0.6rem auto 0.1rem; font-size: 1rem; }
+/* Le visuel d'une question éclair ne doit pas manger l'écran d'un téléphone. */
+.eclair-carte .visuel { margin: 0.35rem 0 0.15rem; }
+.eclair-carte .visuel-svg { width: min(11rem, 58%); }
+.eclair-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+.eclair-grille-2 { grid-template-columns: 1fr 1fr; }
+.eclair-choix { padding: 0.95rem 0.6rem; font-size: 1.05rem; min-height: 3.4rem; }
+.eclair-efface { opacity: 0.25; text-decoration: line-through; }
+.eclair-bonne { outline: 3px solid var(--ok-color, #3ec27a); }
+.eclair-mauvaise { outline: 3px solid var(--bad-color, #b54a4a); }
+.eclair-jokers { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.eclair-stop { align-self: center; opacity: 0.75; }
+.eclair-verdict { border-radius: 14px; padding: 0.9rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.eclair-v-bonne { background: rgba(62, 194, 122, 0.16); border: 1px solid rgba(62, 194, 122, 0.5); }
+.eclair-v-mauvaise { background: rgba(181, 74, 74, 0.14); border: 1px solid rgba(181, 74, 74, 0.5); }
+.eclair-v-titre { font-size: 1.12rem; font-weight: 700; margin: 0; }
+.eclair-v-anecdote { margin: 0; line-height: 1.45; }
+.eclair-suivant { font-size: 1.15rem; }
+.eclair-podium { display: flex; flex-direction: column; gap: 0.45rem; }
+.eclair-podium-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+  background: rgba(26, 18, 48, 0.6);
+  border-radius: 10px;
+  padding: 0.5rem 0.8rem;
+}
+.eclair-podium-or { border: 1px solid rgba(224, 176, 74, 0.6); }
+.eclair-medaille { font-size: 1.3rem; }
+.eclair-record { font-weight: 700; color: #e0b04a; }
+.eclair-perle { margin: 0.15rem 0; line-height: 1.4; opacity: 0.95; }
+.eclair-fin-actions { display: flex; flex-direction: column; gap: 0.55rem; margin-top: 0.6rem; }
+@media (min-width: 40rem) {
+  .eclair-texte { font-size: 1.28rem; }
+}
+
+.version-accueil { text-align: center; opacity: 0.75; font-size: 0.82rem; }
+.voixdirect-invite { border-style: dashed; opacity: 0.92; font-size: 0.92rem; }
+
+/* Plusieurs dés d'objet côte à côte : même culbute, départs en cascade. */
+.die3d-multi { display: flex; gap: 1.6rem; justify-content: center; }
+
+/* Le pile-ou-face de Gérard : la pièce tournoie puis se pose. */
+.piece-scene { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; }
+.piece-flip {
+  font-size: 4.2rem;
+  line-height: 1;
+  animation: pieceSpin 1.4s cubic-bezier(0.2, 0.7, 0.3, 1) forwards;
+}
+.piece-flip.piece-posee { animation: piecePose 0.35s ease-out; }
+.piece-verdict { font-size: 1.15rem; font-weight: 700; color: var(--gold); min-height: 1.4em; margin: 0; }
+@keyframes pieceSpin {
+  0% { transform: translateY(0) rotateY(0); }
+  50% { transform: translateY(-46px) rotateY(900deg); }
+  100% { transform: translateY(0) rotateY(1800deg); }
+}
+@keyframes piecePose {
+  0% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+
+/* Réglage « Héraut ElevenLabs en direct » : un encart discret, sous les rangées. */
+.voixdirect-bloc {
+  margin-top: 1.2rem;
+  padding: 0.9rem 1rem;
+  border: 1px dashed rgba(224, 176, 74, 0.45);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Barre d'écoute des règles : le conteur à portée de pouce. */
+.rules-ecoute {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 0 0 1rem;
+}
+
+/* Les CINQ NOUVEAUX MONDES (GEN 2 v5) */
+.board-theme-cuisine {
+  background:
+    linear-gradient(rgba(36, 21, 5, 0.24), rgba(36, 21, 5, 0.42)),
+    url(assets/fond-cuisine.webp) center/cover no-repeat,
+    radial-gradient(circle at 88% 10%, rgba(242, 207, 98, 0.3) 0%, transparent 36%),
+    linear-gradient(160deg, #4c3115 0%, #362209 55%, #241505 100%);
+}
+.board-theme-plage {
+  background:
+    linear-gradient(rgba(10, 26, 46, 0.2), rgba(10, 26, 46, 0.4)),
+    url(assets/fond-plage.webp) center/cover no-repeat,
+    radial-gradient(circle at 12% 10%, rgba(242, 226, 160, 0.3) 0%, transparent 36%),
+    linear-gradient(160deg, #1d4a6e 0%, #123049 55%, #0a1a2e 100%);
+}
+.board-theme-grenier {
+  background:
+    linear-gradient(rgba(23, 15, 8, 0.24), rgba(23, 15, 8, 0.44)),
+    url(assets/fond-grenier.webp) center/cover no-repeat,
+    radial-gradient(circle at 86% 14%, rgba(224, 176, 74, 0.28) 0%, transparent 34%),
+    linear-gradient(160deg, #3c2f1f 0%, #2a1f12 55%, #170f08 100%);
+}
+.board-theme-foraine {
+  background:
+    linear-gradient(rgba(26, 10, 30, 0.22), rgba(26, 10, 30, 0.42)),
+    url(assets/fond-foraine.webp) center/cover no-repeat,
+    radial-gradient(circle at 88% 8%, rgba(255, 154, 213, 0.3) 0%, transparent 34%),
+    linear-gradient(160deg, #4a2144 0%, #331230 55%, #1a0a1e 100%);
+}
+.board-theme-banquise {
+  background:
+    linear-gradient(rgba(10, 28, 38, 0.2), rgba(10, 28, 38, 0.4)),
+    url(assets/fond-banquise.webp) center/cover no-repeat,
+    radial-gradient(circle at 14% 8%, rgba(216, 240, 248, 0.26) 0%, transparent 36%),
+    linear-gradient(160deg, #2c5a74 0%, #1a3a50 55%, #0a1c26 100%);
+}
+
+.decor {
+  position: absolute;
+  translate: -50% -50%;
+  font-size: 1.2rem;
+  font-size: 3cqw;
+  opacity: 0.7;
+  filter: saturate(0.85);
+  pointer-events: none;
+}
+/* Bâtiments 3D (décor d'ambiance, tout au fond, sous les cases et les pions). */
+.building {
+  position: absolute;
+  translate: -50% -50%;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  opacity: 0.96;
+  filter: drop-shadow(var(--ombre-grande));
+}
+/* Décor peint posé sur l'emoji (repli si l'image manque). */
+.decor-art { position: absolute; left: 50%; top: 50%; translate: -50% -50%; width: 1.7em; height: 1.7em; object-fit: contain; filter: drop-shadow(var(--ombre-petite)); }
+
+.case {
+  position: absolute;
+  translate: -50% -50%;
+  width: 6.6cqw;
+  height: 6.6cqw;
+  min-width: 30px;
+  min-height: 30px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--case-color) 78%, #ffffff) 0%, var(--case-color) 55%, color-mix(in srgb, var(--case-color) 55%, #000) 100%);
+  border: 2.5px solid rgba(14, 10, 28, 0.85);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45), inset 0 -3px 5px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.case-emoji { font-size: 0.95rem; font-size: 3.2cqw; }
+.case-num {
+  position: absolute;
+  bottom: -1.1em;
+  left: 50%;
+  translate: -50%;
+  font-size: 0.5rem;
+  color: var(--soft);
+  opacity: 0.8;
+}
+.case-depart, .case-arrivee { width: 8.6cqw; height: 8.6cqw; }
+.case-trounoir {
+  background: radial-gradient(circle at 50% 50%, #000 0%, #181026 45%, #3a2a66 100%);
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.9), inset 0 0 12px #000;
+}
+.case-arrivee { box-shadow: 0 0 18px rgba(224, 176, 74, 0.65), inset 0 -3px 5px rgba(0, 0, 0, 0.3); }
+.case-gambit { box-shadow: 0 0 12px rgba(62, 184, 194, 0.5), inset 0 -3px 5px rgba(0, 0, 0, 0.3); }
+/* Jeton peint posé par-dessus la pastille (emoji en repli si l'image manque). */
+.case-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(244, 236, 216, 0.22), var(--ombre-moyenne); }
+
+.landmark {
+  position: absolute;
+  translate: -50% -50%;
+  font-size: 1.4rem;
+  font-size: 4cqw;
+  pointer-events: none;
+}
+.landmark-goal { text-shadow: 0 0 14px rgba(224, 176, 74, 0.9); }
+
+.pion-layer { position: absolute; inset: 0; pointer-events: none; }
+
+.star-marker {
+  position: absolute;
+  translate: -50% -50%;
+  font-size: 1.5rem;
+  font-size: 5cqw;
+  filter: drop-shadow(0 0 6px rgba(224, 176, 74, 0.9));
+  animation: star-bob 1.8s ease-in-out infinite;
+  z-index: 4;
+  pointer-events: none;
+}
+@keyframes star-bob { 0%,100% { margin-top: 0 } 50% { margin-top: -0.6cqw } }
+
+.pion {
+  position: absolute;
+  translate: -50% -50%;
+  width: 5.4cqw;
+  height: 5.4cqw;
+  min-width: 24px;
+  min-height: 24px;
+  border-radius: 50% 50% 50% 12%;
+  rotate: -45deg;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--pion-color) 70%, #fff) 0%, var(--pion-color) 70%);
+  border: 2px solid var(--ink);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-size: 2.6cqw;
+  transition: left 0.6s ease, top 0.6s ease;
+  z-index: 2;
+}
+.pion > * { rotate: 45deg; }
+.pion { text-orientation: mixed; }
+/* Pion « figurine 3D » : on efface la goutte colorée et on montre la figurine
+   en entier ; l'emoji reste dessous en repli si l'image ne charge pas. */
+.pion-fig {
+  rotate: none;
+  border: none;
+  background: none;
+  box-shadow: none;
+  width: 7.4cqw;
+  height: 7.4cqw;
+  min-width: 34px;
+  min-height: 34px;
+  overflow: visible;
+}
+.pion-fig > * { rotate: none; }
+.pion-fig .pion-emoji { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.pion-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(var(--ombre-moyenne)); }
+.pion-fig.pion-actif { box-shadow: none; }
+.pion-fig.pion-actif .pion-art { filter: drop-shadow(0 0 5px var(--gold)) drop-shadow(0 0 9px var(--gold)) drop-shadow(var(--ombre-moyenne)); }
+.pion-actif {
+  box-shadow: 0 0 0 3px var(--gold), 0 4px 10px rgba(0, 0, 0, 0.6);
+  z-index: 3;
+  animation: pion-hop 1.6s ease-in-out infinite;
+}
+
+@keyframes pion-hop {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -0.5cqw; }
+}
+
+/* ---------- game panel ---------- */
+
+.panel {
+  background: var(--stone);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  min-height: 9rem;
+}
+.panel-title { color: var(--gold); font-size: 1.2rem; }
+.panel-text { line-height: 1.4; }
+.panel-event { font-size: 1.1rem; }
+
+.die {
+  font-size: 4rem;
+  text-align: center;
+  line-height: 1;
+}
+.die-rolling { animation: die-tumble 0.55s ease-in-out; }
+@keyframes die-tumble {
+  0% { transform: rotate(0) scale(0.8); }
+  40% { transform: rotate(200deg) scale(1.15); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.question-block { display: flex; flex-direction: column; gap: 0.8rem; }
+.question-head { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.badge {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  font-size: 0.8rem;
+  color: var(--soft);
+}
+.badge-cat { color: var(--gold); border-color: var(--gold); }
+.badge-joueur { color: var(--ink); border-color: var(--ink); font-weight: bold; }
+.badge-theme, .badge-type { font-weight: 700; }
+.question-texte { font-size: 1.2rem; line-height: 1.4; font-weight: bold; }
+
+/* ---- thème annoncé avant la question + choix de thème ---- */
+.theme-gate { display: flex; flex-direction: column; gap: 0.7rem; }
+.theme-banner {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.7rem 1rem; border-radius: 14px; font-weight: 700; font-size: 1.15rem;
+}
+.theme-banner-emoji { font-size: 1.6rem; line-height: 1; }
+.theme-choice {
+  display: flex; align-items: center; gap: 0.6rem; text-align: left;
+  font-weight: 600;
+}
+.theme-choice .theme-banner-emoji { font-size: 1.5rem; }
+.theme-choice-type { color: var(--soft); font-size: 0.85rem; font-weight: 400; }
+
+/* ---- aide-mémoire (overlay consultable à tout moment) ---- */
+.ref-overlay {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(10, 7, 20, 0.72);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 1rem; overflow-y: auto;
+}
+.ref-card {
+  background: var(--stone);
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  padding: 1.1rem 1.2rem 1.6rem;
+  max-width: 640px; width: 100%;
+  margin: auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+.ref-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.ref-title { color: var(--gold); font-size: 1.3rem; margin: 0; }
+.ref-section {
+  color: var(--gold); font-size: 1rem; margin: 1.1rem 0 0.5rem;
+  border-bottom: 1px solid var(--line); padding-bottom: 0.25rem;
+}
+.ref-list { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; line-height: 1.35; }
+.ref-legend { display: flex; flex-direction: column; gap: 0.4rem; }
+.ref-legend-themes { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.4rem; }
+.ref-chip { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.ref-swatch { font-weight: 700; white-space: nowrap; }
+.ref-note { color: var(--soft); font-size: 0.85rem; }
+.ref-line { line-height: 1.4; margin: 0.15rem 0; }
+
+.choices { display: flex; flex-direction: column; gap: 0.5rem; }
+.choices-2, .choices-3 { flex-direction: row; flex-wrap: wrap; }
+.choices-2 .btn, .choices-3 .btn { flex: 1 1 40%; text-align: center; }
+.choice-struck { text-decoration: line-through; opacity: 0.4; }
+.bet-grid { flex-direction: row; flex-wrap: wrap; }
+.bet-grid .btn { flex: 1 1 16%; text-align: center; font-weight: bold; }
+
+/* Mini-jeux : anagramme & pendu (dérivés de la banque vérifiée). */
+.anagram-letters {
+  font-size: 1.8rem;
+  font-weight: bold;
+  letter-spacing: 0.5rem;
+  text-align: center;
+  color: var(--gold);
+  word-break: break-word;
+}
+.hangman-word {
+  font-size: 1.6rem;
+  font-weight: bold;
+  letter-spacing: 0.35rem;
+  text-align: center;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.hangman-alpha { flex-direction: row; flex-wrap: wrap; gap: 0.35rem; }
+.hangman-alpha .btn { flex: 1 1 12%; min-width: 2.1rem; text-align: center; font-weight: bold; }
+.letter-hit { background: color-mix(in srgb, #3ec27a 32%, var(--card)); opacity: 1; }
+.letter-miss { opacity: 0.35; text-decoration: line-through; }
+
+.hint-zone .hint { color: var(--gold); font-style: italic; }
+.help-note { color: var(--soft); font-size: 0.9rem; }
+/* Consigne « écris ta réponse sur ta feuille » : mise en avant douce (pas de course). */
+.paper-note {
+  color: var(--ink);
+  background: rgba(224, 176, 74, 0.12);
+  border: 1px dashed var(--gold);
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  line-height: 1.4;
+}
+/* Règle claire en tête de chaque question (comment répondre + récompense). */
+.regle-banner {
+  background: color-mix(in srgb, var(--gold) 13%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--gold) 42%, transparent);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.power-zone { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.verdict { font-size: 1.1rem; line-height: 1.4; }
+.reveal-answer { font-size: 1.15rem; }
+
+.anecdote-card {
+  border: 1px solid var(--gold);
+  border-radius: 14px;
+  padding: 0.8rem 1rem;
+  background: color-mix(in srgb, var(--gold) 8%, var(--stone));
+}
+.anecdote-title { color: var(--gold); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.anecdote-texte { margin-top: 0.4rem; line-height: 1.45; }
+.sources { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.source-link { color: var(--soft); font-size: 0.75rem; }
+.source-link:hover { color: var(--gold); }
+
+.num-input {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  font: inherit;
+  font-size: 1.2rem;
+  padding: 0.8rem 1rem;
+  width: 100%;
+}
+
+.bet-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.bet-name { min-width: 6rem; }
+.bet-buttons { display: flex; gap: 0.4rem; flex: 1; }
+.bet-result { font-size: 0.95rem; }
+
+.trou-noir { border-radius: 14px; }
+
+/* ---------- players strip ---------- */
+
+.players-strip {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.3rem;
+}
+.player-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.45rem 0.7rem;
+  flex: 0 0 auto;
+}
+.player-chip-actif { border-color: var(--gold); box-shadow: 0 0 8px rgba(224, 176, 74, 0.35); }
+.round-chip { border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--card)); }
+.player-emoji { font-size: 1.3rem; }
+
+.portrait { flex-shrink: 0; position: relative; }
+.portrait svg { width: 100%; height: 100%; display: block; }
+/* Illustration peinte par-dessus le médaillon SVG (repli si l'image manque). */
+.portrait-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+/* PNJ : image peinte carrée à fond transparent — on la montre EN ENTIER (pas de
+   rognage circulaire) sur un doux médaillon, et l'emoji sert de repli centré. */
+.portrait-npc { border-radius: 18px; background: radial-gradient(circle at 50% 34%, rgba(224, 176, 74, 0.20), rgba(42, 31, 74, 0.30)); }
+.portrait-npc .portrait-art { object-fit: contain; border-radius: 14px; }
+.portrait-emoji { display: block; width: 100%; height: 100%; text-align: center; }
+.npc-card { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; margin-bottom: 0.6rem; }
+.npc-card .npc-nom { font-size: 1.05rem; font-weight: bold; text-align: center; }
+/* Boutique / besace : bouton avec icône 3D de l'objet à gauche du libellé. */
+.btn-item { display: flex; align-items: center; gap: 0.7rem; text-align: left; }
+.btn-item-text { flex: 1; }
+.item-icon { position: relative; flex-shrink: 0; width: 46px; height: 46px; display: inline-flex; align-items: center; justify-content: center; }
+.item-emoji { font-size: 1.5rem; }
+.item-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(var(--ombre-petite)); }
+/* Réglages : ligne d'un bot (fond légèrement teinté), boutons d'ajout côte à côte. */
+.setup-row-bot { background: color-mix(in srgb, var(--gold) 8%, transparent); border-radius: 12px; padding: 0.25rem; }
+.setup-add-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.bot-level { font-weight: bold; }
+/* Podium festif de fin de partie : top 3 sur des marches, gagnant surélevé. */
+.victory-podium { display: flex; justify-content: center; align-items: flex-end; gap: 0.6rem; margin: 0.6rem 0 1rem; flex-wrap: nowrap; }
+.podium-col { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; }
+.podium-crown { font-size: 1.3rem; line-height: 1; }
+.podium-name { font-weight: bold; font-size: 0.82rem; text-align: center; max-width: 6.5rem; overflow-wrap: anywhere; }
+.podium-stand { display: flex; align-items: flex-start; justify-content: center; width: 5rem; border: 2px solid var(--gold-dark); border-bottom: none; border-radius: 8px 8px 0 0; color: var(--gold); font-weight: bold; font-size: 1.05rem; padding-top: 0.25rem; background: linear-gradient(#3a2d5e, #2a1f4a); }
+.podium-rank-1 .podium-stand { height: 4.2rem; background: linear-gradient(#6a531f, #3a2d0e); }
+.podium-rank-2 .podium-stand { height: 3rem; }
+.podium-rank-3 .podium-stand { height: 2rem; }
+.podium-rank-1 .podium-crown { font-size: 1.7rem; filter: drop-shadow(0 0 6px var(--gold)); }
+.podium-rank-1 { animation: podium-bounce 1.5s ease-in-out infinite; }
+@keyframes podium-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .podium-rank-1 { animation: none; } }
+/* Tableau de statistiques de fin de partie (repliable). */
+.stats-details { margin: 0.4rem auto 0.8rem; max-width: 42rem; width: 100%; background: var(--stone); border: 1px solid var(--line); border-radius: 12px; padding: 0.3rem 0.7rem; }
+.stats-details summary { cursor: pointer; font-weight: bold; padding: 0.4rem 0.2rem; color: var(--gold); }
+.stats-scroll { overflow-x: auto; }
+.stats-table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+.stats-table th, .stats-table td { padding: 0.35rem 0.5rem; text-align: center; white-space: nowrap; border-bottom: 1px solid var(--line); }
+.stats-table th { color: var(--soft); font-weight: bold; }
+.stats-table .stats-th-name, .stats-table .stats-name { text-align: left; }
+.stats-table .stats-first td { color: var(--gold); font-weight: bold; }
+.stats-table tbody tr:last-child td { border-bottom: none; }
+.btn-character { display: inline-flex; align-items: center; gap: 0.5rem; }
+.victory-who { display: inline-flex; align-items: center; gap: 0.5rem; }
+.player-info { display: flex; flex-direction: column; }
+.player-info strong { font-size: 0.85rem; }
+.player-meta { font-size: 0.72rem; color: var(--soft); white-space: nowrap; }
+
+/* ---------- victory ---------- */
+
+.victory-title { color: var(--gold); font-size: 1.6rem; }
+.victory-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; width: min(30rem, 100%); }
+.victory-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  background: var(--stone);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  flex-wrap: wrap;
+}
+.victory-item-first { border-color: var(--gold); }
+.victory-meta { color: var(--soft); font-size: 0.85rem; }
+.bonus-stars {
+  width: min(30rem, 100%);
+  background: color-mix(in srgb, var(--gold) 10%, var(--card));
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 0.7rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.bonus-stars-title { color: var(--gold); font-size: 1rem; margin: 0; }
+.bonus-star-line { font-size: 0.9rem; margin: 0; }
+
+/* ---------- cérémonie des étoiles bonus (remise au compte-goutte) ---------- */
+
+.ceremonie { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.9rem; width: 100%; }
+.ceremonie-enjeu { color: var(--soft); font-size: 0.95rem; text-align: center; }
+.ceremonie-etape {
+  width: min(32rem, 100%); min-height: 14rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.8rem;
+  background: color-mix(in srgb, var(--gold) 8%, var(--card));
+  border: 1px solid var(--gold); border-radius: 1rem; padding: 1rem 1.2rem;
+}
+.ceremonie-sous-titre { color: var(--gold); font-size: 1.15rem; text-align: center; }
+/* La roue de tirage : un cadre doré où les prix défilent puis se figent. */
+.ceremonie-roue {
+  display: flex; align-items: center; gap: 0.7rem;
+  background: var(--stone); border: 2px solid var(--gold); border-radius: 0.9rem;
+  padding: 0.8rem 1.2rem; min-width: min(24rem, 90%); justify-content: center;
+}
+.ceremonie-roue-emoji { font-size: 1.8rem; animation: ceremonie-tourne 1.1s linear infinite; }
+.ceremonie-roue-fixe .ceremonie-roue-emoji { animation: none; }
+.ceremonie-roue-texte { font-size: 1.15rem; font-weight: bold; text-align: center; min-width: 12ch; }
+.ceremonie-roue-fixe { box-shadow: 0 0 0.9rem color-mix(in srgb, var(--gold) 55%, transparent); }
+.ceremonie-roue-fixe .ceremonie-roue-texte { color: var(--gold); }
+@keyframes ceremonie-tourne { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+.ceremonie-tambour { font-size: 1.1rem; font-weight: bold; animation: ceremonie-pouls 0.5s ease-in-out infinite alternate; }
+@keyframes ceremonie-pouls { from { transform: scale(1); opacity: 0.75; } to { transform: scale(1.12); opacity: 1; } }
+.ceremonie-laureat { display: flex; align-items: center; gap: 0.9rem; }
+.ceremonie-laureat-bloc { display: flex; flex-direction: column; gap: 0.15rem; }
+.ceremonie-laureat-nom { font-size: 1.05rem; font-weight: bold; }
+.ceremonie-laureat-etoile { color: var(--gold); font-size: 1.3rem; font-weight: bold; }
+/* La stat du prix, joueur par joueur : le lauréat brille, les autres comparent. */
+.ceremonie-stats { width: 100%; display: flex; flex-direction: column; gap: 0.25rem; }
+.ceremonie-stat-ligne {
+  display: flex; justify-content: space-between; gap: 0.8rem;
+  font-size: 0.9rem; color: var(--soft);
+  background: var(--stone); border-radius: 0.6rem; padding: 0.35rem 0.7rem;
+}
+.ceremonie-stat-gagnant {
+  color: var(--ink); font-weight: bold;
+  background: color-mix(in srgb, var(--gold) 22%, var(--stone));
+  border: 1px solid var(--gold);
+}
+.ceremonie-passer { align-self: center; opacity: 0.85; }
+@media (prefers-reduced-motion: reduce) {
+  .ceremonie-roue-emoji, .ceremonie-tambour { animation: none; }
+}
+
+/* Confettis de victoire (festif, coupé si l'utilisateur réduit les animations). */
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 60; }
+.confetti-piece {
+  position: absolute;
+  top: -14px;
+  width: 9px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0.9;
+  animation: confetti-fall linear forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translateY(-14px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(104vh) rotate(560deg); opacity: 0.55; }
+}
+@media (prefers-reduced-motion: reduce) { .confetti { display: none; } }
+#victory-zone { display: flex; flex-direction: column; gap: 1rem; align-items: center; width: 100%; }
+#victory-zone .btn { width: min(26rem, 100%); }
+
+/* ---------- larger screens: board beside panel ---------- */
+
+.screen-game { position: relative; } /* ancre la minimap en surimpression (mobile) */
+
+@media (min-width: 900px) {
+  .screen-game {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    grid-template-areas: "board herald" "board panel" "players players";
+    gap: 1rem;
+    align-items: start;
+  }
+  .board-scroll { grid-area: board; }
+  .herald-zone { grid-area: herald; justify-content: flex-start; }
+  .panel { grid-area: panel; }
+  .players-strip { grid-area: players; }
+}
+
+/* Grand écran : le jeu emplit la PAGE ENTIÈRE — le plateau 3D en majesté,
+   la mini-carte À CÔTÉ, grande et lisible (plus jamais superposée). */
+@media (min-width: 1100px) {
+  main:has(#screen-game:not([hidden])), body.plein-jeu main { max-width: none; padding: 1rem 1.4rem; }
+  .screen-game {
+    grid-template-columns: minmax(0, 2.3fr) minmax(340px, 1fr);
+    grid-template-areas: "board herald" "board minimap" "board panel" "players players";
+  }
+  /* (Les règles plein écran du canvas 3D et de la mini-carte vivent dans le
+     bloc ≥1100px APRÈS leurs règles de base, en fin de fichier : à spécificité
+     égale c'est l'ORDRE qui tranche, et elles doivent gagner.) */
+}
+
+/* ============================================================
+   Confort & accessibilité (réglages persistés dans prefs.js)
+   ============================================================ */
+
+/* Police plus lisible : sans empattement, aérée — aide notamment la dyslexie.
+   Polices système universelles (aucun téléchargement, marche hors-ligne). */
+.pref-lisible body,
+.pref-lisible input,
+.pref-lisible select,
+.pref-lisible textarea,
+.pref-lisible button {
+  font-family: Verdana, Tahoma, "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
+.pref-lisible body { line-height: 1.6; word-spacing: 0.05em; }
+
+/* Mode daltonien : « bonne réponse » vire au bleu ciel et « coup dur » à
+   l'orange — un couple lisible pour les daltonismes rouge/vert les plus courants. */
+.pref-daltonien { --good: #56b4e9; --bad: #e69f00; }
+
+/* Animations réduites AU CHOIX (même si le système ne le demande pas). */
+.pref-anim-reduites *,
+.pref-anim-reduites *::before,
+.pref-anim-reduites *::after {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Texte plus grand pour lire sans effort. */
+.pref-gros body { font-size: 1.13rem; }
+
+/* ---------- écran Réglages ---------- */
+.reglages-body { display: flex; flex-direction: column; gap: 0.8rem; width: 100%; max-width: 34rem; margin: 0 auto; }
+.reglage-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  background: var(--card); border: 1px solid var(--line); border-radius: 0.8rem;
+  padding: 0.8rem 1rem; text-align: left;
+}
+.reglage-label { display: flex; flex-direction: column; gap: 0.15rem; }
+.reglage-titre { font-weight: bold; color: var(--ink); }
+.reglage-desc { color: var(--soft); font-size: 0.85rem; }
+.reglage-control { display: flex; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+.seg-btn {
+  background: var(--stone); color: var(--ink); border: 1px solid var(--line);
+  border-radius: 0.6rem; padding: 0.5rem 0.8rem; cursor: pointer; font-size: 0.9rem;
+}
+.seg-btn.seg-on { background: var(--gold); color: var(--gold-dark); border-color: var(--gold); font-weight: bold; }
+
+/* ---------- tutoriel (1er lancement) ---------- */
+.tuto-overlay {
+  position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center;
+  background: rgba(12, 8, 26, 0.82); padding: 1.2rem; backdrop-filter: blur(2px);
+}
+.tuto-card {
+  background: var(--card); border: 2px solid var(--gold); border-radius: 1rem;
+  max-width: 30rem; width: 100%; padding: 1.4rem; text-align: center;
+  display: flex; flex-direction: column; gap: 0.9rem; box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+}
+.tuto-emoji { font-size: 3rem; line-height: 1; }
+.tuto-titre { color: var(--gold); font-size: 1.35rem; }
+.tuto-texte { color: var(--ink); line-height: 1.5; }
+.tuto-dots { display: flex; gap: 0.4rem; justify-content: center; }
+.tuto-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--line); }
+.tuto-dot.tuto-dot-on { background: var(--gold); }
+.tuto-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
+
+/* ---------- palmarès & succès ---------- */
+#palmares-zone { display: flex; flex-direction: column; gap: 1rem; max-width: 40rem; margin: 0 auto; width: 100%; }
+.palm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: 0.6rem; }
+.palm-stat {
+  background: var(--card); border: 1px solid var(--line); border-radius: 0.9rem;
+  padding: 0.7rem; display: flex; flex-direction: column; align-items: center; gap: 0.15rem; text-align: center;
+}
+.palm-stat-val { font-size: 1.5rem; font-weight: bold; color: var(--gold); }
+.palm-stat-lbl { font-size: 0.78rem; color: var(--soft); }
+.palm-succes-titre { color: var(--gold); font-size: 1.15rem; text-align: center; }
+.palm-succes-grid { display: flex; flex-direction: column; gap: 0.5rem; }
+.palm-succes {
+  display: flex; align-items: center; gap: 0.7rem;
+  background: var(--stone); border: 1px solid var(--line); border-radius: 0.8rem; padding: 0.6rem 0.8rem;
+  opacity: 0.55;
+}
+.palm-succes-on { opacity: 1; border-color: var(--gold); background: color-mix(in srgb, var(--gold) 10%, var(--stone)); }
+.palm-succes-emoji { font-size: 1.6rem; width: 2rem; text-align: center; flex-shrink: 0; }
+.palm-succes-txt { display: flex; flex-direction: column; gap: 0.1rem; }
+.palm-succes-nom { font-weight: bold; color: var(--ink); }
+.palm-succes-desc { font-size: 0.82rem; color: var(--soft); }
+
+/* Bandeau « succès débloqué » sur l'écran de victoire. */
+.succes-unlock {
+  background: color-mix(in srgb, var(--gold) 16%, var(--stone));
+  border: 1px solid var(--gold); border-radius: 0.9rem; padding: 0.7rem 1rem;
+  display: flex; flex-direction: column; gap: 0.3rem; max-width: 34rem; width: 100%;
+}
+.succes-unlock-title { color: var(--gold); font-size: 1.05rem; text-align: center; }
+.succes-unlock-line { font-size: 0.92rem; text-align: center; }
+
+/* ---------- règles maison (configuration) ---------- */
+.house-rules {
+  border: 1px solid var(--line); border-radius: 0.9rem; background: var(--card);
+  padding: 0.2rem 0.2rem; max-width: 40rem; margin: 0 auto; width: 100%;
+}
+.house-rules > summary {
+  cursor: pointer; list-style: none; padding: 0.7rem 0.9rem; font-weight: bold; color: var(--gold);
+}
+.house-rules > summary::-webkit-details-marker { display: none; }
+.house-rules > summary::before { content: "▸ "; }
+.house-rules[open] > summary::before { content: "▾ "; }
+.house-rules-body { display: flex; flex-direction: column; gap: 0.5rem; padding: 0 0.5rem 0.6rem; }
+
+/* ---------- scène immersive 2.5D (arrivée sur une case marquante) ---------- */
+/* Calque décoratif NON bloquant (transparent aux clics), qui se dissipe seul. */
+.scene-overlay {
+  position: fixed; inset: 0; z-index: 40; pointer-events: none;
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
+  animation: scene-overlay-fade 1.9s ease forwards;
+}
+@keyframes scene-overlay-fade {
+  0% { opacity: 0; } 12% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; }
+}
+.scene-stage {
+  position: relative; width: min(26rem, 92vw); height: clamp(150px, 44vw, 210px);
+  border-radius: 1rem; overflow: hidden; border: 1px solid var(--gold);
+  isolation: isolate; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  background: linear-gradient(180deg, #2c2052 0%, #1a1230 100%);
+}
+.scene-bg {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0.5; filter: saturate(0.9) brightness(0.78);
+  animation: scene-bg-in 0.6s ease both;
+}
+.scene-building {
+  position: absolute; left: 50%; bottom: 5%; height: 84%; transform: translateX(-50%);
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.5));
+  animation: scene-rise 0.5s cubic-bezier(0.2, 0.8, 0.3, 1.2) both;
+}
+.scene-npc {
+  position: absolute; right: 7%; bottom: 8%; height: 50%;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.5));
+  animation: scene-npc-in 0.6s ease 0.15s both;
+}
+.scene-hero {
+  position: absolute; left: 11%; bottom: 6%; height: 60%;
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.55));
+  animation: scene-walk-in 0.7s cubic-bezier(0.3, 0.7, 0.4, 1) both, scene-bob 1.7s ease-in-out 0.7s infinite;
+}
+.scene-hero-emoji { font-size: 2.8rem; align-items: flex-end; }
+.scene-caption {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg, transparent, rgba(12, 8, 26, 0.88));
+  color: var(--ink); text-align: center; padding: 1rem 0.6rem 0.45rem;
+  font-weight: bold; animation: scene-cap-in 0.5s ease 0.25s both;
+}
+@keyframes scene-bg-in { from { opacity: 0; } to { opacity: 0.5; } }
+@keyframes scene-rise { from { opacity: 0; transform: translateX(-50%) translateY(30%) scale(0.9); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+@keyframes scene-npc-in { from { opacity: 0; transform: translateX(30%); } to { opacity: 1; transform: none; } }
+@keyframes scene-walk-in { from { opacity: 0; transform: translateX(-170%); } to { opacity: 1; transform: translateX(0); } }
+@keyframes scene-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7%); } }
+@keyframes scene-cap-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ---------- plateau 3D (WebGL, board3d.js) ---------- */
+.board3d-canvas {
+  display: block; width: 100%; max-width: 760px; margin-inline: auto;
+  border-radius: 18px; border: 2px solid var(--line);
+  background: linear-gradient(160deg, #241a45 0%, #1a1230 55%, #150e28 100%);
+  touch-action: pan-y;
+}
+
+/* Vignette du diorama : un léger assombrissement des bords soude la scène 3D
+   (héros, PNJ, maquettes, cases) en UN tableau — même cadre pour tout. */
+.board3d-vignette {
+  position: absolute;
+  inset: 0;
+  margin-inline: auto;
+  max-width: 760px;
+  border-radius: 18px;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 42%, transparent 58%, rgba(10, 6, 20, 0.34) 100%);
+}
+
+/* ---------- mini-carte (vue d'ensemble en mode 3D) ---------- */
+.board-scroll { position: relative; } /* ancre la mini-carte */
+.minimap {
+  position: absolute; top: 10px; right: 10px; width: 148px; z-index: 4;
+  background: rgba(20, 14, 40, 0.74); border: 1px solid var(--line);
+  border-radius: 9px; padding: 5px; pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+.minimap svg { display: block; width: 100%; height: auto; }
+
+/* Avis « voix non branchée » (version web) : visible sans être criard. */
+.avis-voix {
+  font-size: 0.88rem; line-height: 1.45; opacity: 0.92;
+  background: color-mix(in srgb, #d9822b 12%, var(--stone));
+  border: 1px solid color-mix(in srgb, #d9822b 45%, var(--line));
+  border-radius: 0.5rem; padding: 0.5rem 0.7rem; margin-top: 0.5rem;
+}
+
+/* ---------- l'éclaireur : où le dé peut faire atterrir ---------- */
+.eclaireur-ligne {
+  display: flex; gap: 0.6rem; align-items: baseline; margin: 0.3rem 0;
+  background: color-mix(in srgb, var(--gold) 6%, var(--stone));
+  border: 1px solid var(--line); border-radius: 0.5rem; padding: 0.45rem 0.7rem;
+}
+.eclaireur-de { color: var(--gold); white-space: nowrap; }
+
+/* ---------- Baccalauréat Éclair : la lettre tirée, bien lisible ---------- */
+.bac-lettre {
+  font-size: clamp(3.2rem, 16vw, 5rem); font-weight: 800; line-height: 1;
+  text-align: center; color: var(--gold); margin: 0.3rem 0 0.6rem;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+}
+.bac-coche { font-size: 1.1em; }
+
+/* ---------- devinette en cascade : les indices s'empilent ---------- */
+/* Chaque indice arrive sous le précédent, avec la mise encore en jeu à gauche :
+   d'un coup d'œil on voit ce qu'on a déjà appris et ce que ça coûte. */
+.cascade-indices { list-style: none; margin: 0.6rem 0; padding: 0; display: grid; gap: 0.45rem; }
+.cascade-indice {
+  display: flex; gap: 0.6rem; align-items: baseline;
+  background: color-mix(in srgb, var(--gold) 7%, var(--stone));
+  border: 1px solid var(--line); border-left: 4px solid var(--gold);
+  border-radius: 0.5rem; padding: 0.5rem 0.7rem; box-shadow: var(--ombre-petite);
+}
+.cascade-gain { font-weight: 700; color: var(--gold); white-space: nowrap; }
+@media (prefers-reduced-motion: no-preference) {
+  .cascade-indice { animation: visuel-pose 0.35s ease; }
+}
+
+/* ---------- questions à support visuel (dessinées par code) ---------- */
+.visuel { display: flex; justify-content: center; margin: 0.2rem 0 0.6rem; }
+.visuel-svg {
+  width: min(19rem, 78%); height: auto; display: block;
+  border-radius: 0.5rem; box-shadow: var(--ombre-moyenne);
+}
+/* Drapeau : un liseré ivoire le détache du parchemin, comme les jetons de case. */
+.visuel-drapeau .visuel-svg { border: 2px solid rgba(244, 236, 216, 0.35); }
+/* Ombre chinoise : la silhouette se découpe en ivoire sur une plaque sombre. */
+.visuel-ombre .visuel-svg {
+  width: min(12rem, 52%); color: var(--ink);
+  background: color-mix(in srgb, var(--gold) 8%, var(--stone));
+  border: 1px solid var(--line); padding: 0.5rem;
+}
+/* Carte de pays : un peu plus grande que les monuments, parce que c'est le
+   DÉTAIL du contour (fjords, îles, presqu'îles) qui permet de reconnaître. */
+.visuel-pays .visuel-svg { width: min(15rem, 62%); }
+/* Monument illustré : une page de carnet posée sur le parchemin. Le liseré
+   ivoire et l'ombre douce lui donnent l'épaisseur d'une photo collée. */
+.visuel-aquarelle {
+  width: min(15rem, 68%); height: auto; display: block;
+  border-radius: 0.5rem; border: 2px solid rgba(244, 236, 216, 0.35);
+  box-shadow: var(--ombre-moyenne);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .visuel-aquarelle { animation: visuel-pose 0.4s ease; }
+}
+/* Ciel : des étoiles claires sur une nuit profonde. Le fond parchemin des
+   autres visuels rendrait la figure illisible — ici on inverse franchement. */
+.visuel-ciel .visuel-svg {
+  width: min(15rem, 62%); color: #f4ecd8;
+  background: radial-gradient(circle at 50% 45%, #201a3a, #0d0a18 75%);
+  border: 1px solid var(--line); border-radius: 0.5rem; padding: 0.4rem;
+  box-shadow: var(--ombre-moyenne);
+}
+/* Charade en images : les émojis en grand, c'est tout le décor nécessaire. */
+.visuel-rebus {
+  font-size: clamp(2.4rem, 11vw, 3.6rem); letter-spacing: 0.15em;
+  text-align: center; line-height: 1.25;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .visuel-svg, .visuel-rebus { animation: visuel-pose 0.4s ease; }
+}
+@keyframes visuel-pose { from { opacity: 0; transform: translateY(-6px) scale(0.97); } to { opacity: 1; transform: none; } }
+
+/* Qui lit les questions, en ce moment ? (bloc Réglages de la voix directe) */
+.voixdirect-etat {
+  font-size: 0.9rem; line-height: 1.4; border-radius: 0.7rem;
+  padding: 0.5rem 0.75rem; margin: 0.35rem 0;
+  background: var(--stone); border-left: 4px solid var(--soft);
+}
+.voixdirect-etat-on {
+  background: color-mix(in srgb, var(--gold) 16%, var(--stone));
+  border-left-color: var(--gold);
+}
+
+/* PLEIN ÉCRAN ≥ 1100 px — ce bloc DOIT rester après les règles de base
+   ci-dessus (même spécificité : l'ordre décide, et c'est lui qui gagne).
+   ⚠ Le plafond de 760 px sur le canvas 3D écrasait l'image : le tampon de
+   rendu prend la largeur de la colonne mais s'affichait compressé dans
+   760 px — cases rondes devenues OVALES, plateau riquiqui sur grand écran. */
+@media (min-width: 1100px) {
+  body.plein-jeu .board-map { max-width: none; }
+  .board3d-canvas, .board3d-vignette { max-width: none; }
+  /* La mini-carte quitte son coin absolu : à côté, EN GRAND, dans la colonne. */
+  .screen-game .minimap { position: static; grid-area: minimap; width: 100%; z-index: auto; }
+}
+
+/* Rappel de la question au moment de la révélation (collectif/bonus). */
+.question-rappel { color: var(--soft); font-style: italic; line-height: 1.4; margin-bottom: 0.2rem; }
+
+/* ---------- mini-jeux « La Fourchette » et « Ordre ! » ---------- */
+.fourchette-inputs { display: flex; gap: 0.6rem; justify-content: center; }
+.fourchette-inputs .num-input { width: 8.5rem; }
+.ordre-rang { color: var(--gold); min-width: 1.4rem; display: inline-block; }
+
+/* ---------- le Grimoire des anecdotes ---------- */
+#grimoire-zone { display: flex; flex-direction: column; gap: 0.8rem; max-width: 44rem; margin: 0 auto; width: 100%; }
+.grimoire-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; }
+.grimoire-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.grimoire-card { background: var(--stone); border: 1px solid var(--line); border-left: 4px solid var(--gold); border-radius: 0.8rem; padding: 0.7rem 0.9rem; }
+.grimoire-cat { color: var(--gold); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.grimoire-q { color: var(--soft); font-style: italic; font-size: 0.9rem; margin: 0.15rem 0; }
+.grimoire-anec { line-height: 1.45; }
+
+/* Karaoké : le mot lu par l'animateur s'illumine. */
+.karaoke .kw { border-radius: 4px; transition: background 0.12s ease; }
+.karaoke .kw-on { background: color-mix(in srgb, var(--gold) 45%, transparent); color: #fff; }
+
+/* ---------- dé 3D (cube CSS qui culbute puis se pose) ---------- */
+.die3d-scene { display: flex; justify-content: center; padding: 1.4rem 0; perspective: 480px; }
+.die3d {
+  position: relative; width: 84px; height: 84px; transform-style: preserve-3d;
+  transform: rotateX(-12deg) rotateY(18deg);
+  transition: transform 1s cubic-bezier(0.22, 0.72, 0.28, 1.04);
+}
+.die3d-face {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(160deg, #f6efdb, #e6d9b8); color: #221a10;
+  border: 2px solid #b39b62; border-radius: 14px; font-size: 2.4rem; font-weight: bold;
+  backface-visibility: hidden;
+}
+.die3d-f1 { transform: translateZ(42px); }
+.die3d-f6 { transform: rotateY(180deg) translateZ(42px); }
+.die3d-f3 { transform: rotateY(90deg) translateZ(42px); }
+.die3d-f4 { transform: rotateY(-90deg) translateZ(42px); }
+.die3d-f2 { transform: rotateX(90deg) translateZ(42px); }
+.die3d-f5 { transform: rotateX(-90deg) translateZ(42px); }
+
+/* Portraits réactifs : joie (bond) / aïe (tremblement) sur le jeton joueur. */
+.chip-joy { animation: chip-joy 0.9s ease; }
+.chip-ouch { animation: chip-ouch 0.6s ease; }
+@keyframes chip-joy { 0%,100% { transform: none; } 30% { transform: translateY(-7px) scale(1.06); } 55% { transform: translateY(0) scale(1); } 75% { transform: translateY(-3px); } }
+@keyframes chip-ouch { 0%,100% { transform: none; } 20% { transform: translateX(-4px) rotate(-2deg); } 40% { transform: translateX(4px) rotate(2deg); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
+
+/* Question du jour (accueil). */
+.qdj { text-align: left; }
+.qdj-titre { color: var(--gold); font-weight: bold; }
+.qdj-choices { display: flex; flex-direction: column; gap: 0.4rem; }
+.qdj-btn { text-align: left; }
+
+/* ---------- carte souvenir de partie ---------- */
+.souvenir-details {
+  width: 100%;
+  max-width: 560px;
+  margin: 10px auto 0;
+  background: rgba(38, 26, 60, 0.65);
+  border: 1px solid rgba(224, 176, 74, 0.35);
+  border-radius: 12px;
+  padding: 8px 14px;
+}
+.souvenir-details > summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--gold, #e0b04a);
+  padding: 6px 0;
+}
+.souvenir-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0 6px;
+}
+.souvenir-canvas {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+.souvenir-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* ---------- tenues (skins) de héros ---------- */
+.portrait-skin {
+  border-radius: 50%;
+}
+.portrait-skin-dore { box-shadow: 0 0 10px 2px rgba(224, 176, 74, 0.75); }
+.portrait-skin-dore .portrait-art, .portrait-skin-dore svg { filter: sepia(0.35) saturate(1.5) brightness(1.08); }
+.portrait-skin-emeraude { box-shadow: 0 0 10px 2px rgba(62, 194, 122, 0.7); }
+.portrait-skin-emeraude .portrait-art, .portrait-skin-emeraude svg { filter: hue-rotate(60deg) saturate(1.2); }
+.portrait-skin-flamboyant { box-shadow: 0 0 10px 2px rgba(224, 90, 60, 0.75); }
+.portrait-skin-flamboyant .portrait-art, .portrait-skin-flamboyant svg { filter: hue-rotate(-25deg) saturate(1.55) brightness(1.05); }
+.portrait-skin-royal { box-shadow: 0 0 10px 2px rgba(194, 62, 107, 0.75); }
+.portrait-skin-royal .portrait-art, .portrait-skin-royal svg { filter: hue-rotate(-50deg) saturate(1.3); }
+.portrait-skin-cosmique { box-shadow: 0 0 12px 3px rgba(122, 106, 208, 0.8); }
+.portrait-skin-cosmique .portrait-art, .portrait-skin-cosmique svg { filter: hue-rotate(160deg) saturate(1.25) brightness(1.05); }
+
+/* ---------- éditeur de plateau maison ---------- */
+.editor-card {
+  max-width: 470px;
+  text-align: left;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.editor-counter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin: 6px 0;
+}
+.editor-counter-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.editor-counter-val {
+  min-width: 1.6em;
+  text-align: center;
+  color: var(--gold, #e0b04a);
+}
+.editor-range {
+  flex: 1;
+  accent-color: var(--gold, #e0b04a);
+}
+
+/* ---------- bascule de caméra 3D ---------- */
+.cam-toggle {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+  background: rgba(26, 18, 48, 0.82);
+  color: var(--ink, #f4ecd8);
+  border: 1px solid rgba(224, 176, 74, 0.5);
+  border-radius: 10px;
+  padding: 0.35rem 0.6rem;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  min-height: 40px;
+}
+.cam-toggle:hover { border-color: var(--gold, #e0b04a); }
+
+/* ---------- humour : perle du jour et précision inutile ---------- */
+.perle-note {
+  color: var(--soft);
+  font-style: italic;
+  font-size: 0.85rem;
+  text-align: center;
+  margin-top: 0.2rem;
+}
+.anecdote-quip {
+  color: var(--soft);
+  font-style: italic;
+  font-size: 0.85rem;
+  margin-top: 0.35rem;
+}
+
+/* ---------- visuels GEN 2 v2 : fête, médailles, tenues ---------- */
+#victory-zone { position: relative; }
+#victory-zone > *:not(.victory-bg) { position: relative; z-index: 1; }
+.victory-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.16;
+  border-radius: 16px;
+  pointer-events: none;
+  z-index: 0;
+}
+.prix-line { display: flex; align-items: center; gap: 0.5rem; }
+.prix-medaille { width: 30px; height: 30px; object-fit: contain; flex-shrink: 0; }
+.itw-block { position: relative; }
+.itw-micro { position: absolute; top: 6px; right: 8px; width: 40px; height: 40px; object-fit: contain; opacity: 0.9; }
+.perle-parchemin { width: 22px; height: 22px; object-fit: contain; vertical-align: -5px; margin-right: 2px; }
+.tenue-art { width: 34px; height: 34px; object-fit: contain; display: block; }
+
+/* ---------- polish v3 : figurines, confettis, livre d'or, focus ---------- */
+
+/* Le plateau 3D s'estompe pendant une question (focus sur la carte). */
+.board3d-canvas { transition: filter 0.35s ease; }
+.board3d-canvas.q-focus { filter: blur(2px) saturate(0.85) brightness(0.82); }
+
+/* Figurine en pied (vue de face = premier tiers de l'atlas peint). */
+.figurine-pied {
+  display: inline-block;
+  background-size: 300% 100%;
+  background-position: 0 0;
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+}
+
+/* Pluie de confettis de l'écran de victoire. */
+.confetti-zone { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.confetti {
+  position: absolute;
+  top: -4%;
+  width: 10px;
+  height: 14px;
+  border-radius: 3px;
+  opacity: 0.85;
+  animation: confetti-chute 4s linear infinite;
+}
+@keyframes confetti-chute {
+  0% { transform: translateY(-6vh) rotate(0deg); }
+  100% { transform: translateY(108vh) rotate(660deg); }
+}
+
+/* Marchés de PNJ : le portrait parle, deux choix clairs. */
+.pnj-deal .char-bubble { max-width: none; }
+.pnj-deal-portrait { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; }
+
+/* Livre d'or familial (palmarès). */
+.livre-dor { display: flex; flex-direction: column; gap: 0.45rem; }
+.livre-ligne {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  background: var(--stone);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 0.5rem 0.8rem;
+}
+.livre-nom { font-size: 1.02rem; }
+.livre-titre { color: var(--gold); font-size: 0.88rem; }
+.livre-meta { color: var(--soft); font-size: 0.85rem; margin-left: auto; }
+
+/* Encart de version (Réglages) : vérifier qu'une copie hors-ligne est à jour. */
+.version-note {
+  margin-top: 1rem;
+  padding: 0.7rem 0.9rem;
+  background: var(--stone);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.version-line { color: var(--gold); font-size: 0.95rem; }
+.version-help { color: var(--soft); font-size: 0.82rem; line-height: 1.4; margin-top: 0.3rem; }
+
+/* Estimation de durée sous le sélecteur de manches : information, pas alerte. */
+.rounds-duree { color: var(--gold); font-weight: bold; }
+
+/* Sélecteur de manches (pas de 5, jusqu'à 200). */
+.rounds-select { appearance: auto; max-width: 14rem; cursor: pointer; }
+
+/* « On n'a pas compris » : dépannage discret sous la question — présent sans
+   jamais attirer l'œil davantage que les réponses elles-mêmes. */
+.changer-question {
+  align-self: center; margin-top: 0.5rem;
+  background: transparent; color: var(--soft);
+  border: 1px dashed var(--line); font-size: 0.85rem;
+}
+.changer-question:hover { color: var(--ink); border-color: var(--gold); }

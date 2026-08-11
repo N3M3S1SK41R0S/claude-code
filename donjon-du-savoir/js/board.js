@@ -1,0 +1,706 @@
+// Boards — Mario-Party-style winding maps, now PLURAL: five dungeons with
+// different lengths, hazards, distributions and moods. Geometry and layout
+// are fully parametric; §4 frequencies remain the baseline of the classic.
+import { getPrefs } from "./prefs.js";
+
+// `art` : jeton peint (PNG) posé par-dessus l'emoji ; si l'image manque, l'emoji
+// reste (repli garanti). Le bundler du fichier unique remplace ces chemins par
+// des data-URI. (depart/arrivee réutilisent le jeton trésor / n'ont pas d'art.)
+export const CASE_TYPES = {
+  depart: { label: "Départ", emoji: "🚪", couleur: "#58a24f" },
+  question: { label: "Question", emoji: "❓", couleur: "#4a6fb5", art: "assets/case-question.png" },
+  chance: { label: "Chance", emoji: "🍀", couleur: "#3ec27a", art: "assets/case-chance.png" },
+  evenement: { label: "Événement", emoji: "🎪", couleur: "#c28a3e", art: "assets/case-evenement.png" },
+  malus: { label: "Coup dur", emoji: "💀", couleur: "#b54a4a", art: "assets/case-malus.png" },
+  pieces: { label: "Pièces", emoji: "🪙", couleur: "#c2a93e", art: "assets/case-pieces.png" },
+  joker: { label: "Joker", emoji: "🃏", couleur: "#8e5cc2", art: "assets/case-joker.png" },
+  gambit: { label: "Gambit", emoji: "🎲", couleur: "#3eb8c2", art: "assets/case-gambit.png" },
+  teleporteur: { label: "Tourbillon", emoji: "🌀", couleur: "#39b8d8", art: "assets/case-teleporteur.png" },
+  carrefour: { label: "Carrefour", emoji: "🛤️", couleur: "#8f9e3d", art: "assets/case-carrefour.png" },
+  trounoir: { label: "Trou Noir", emoji: "🕳️", couleur: "#181026", art: "assets/case-trounoir.png" },
+  arrivee: { label: "Trésor", emoji: "🏆", couleur: "#e0b04a", art: "assets/case-tresor.png" },
+  boutique: { label: "Boutique", emoji: "🛒", couleur: "#c25ea0", art: "assets/case-boutique.png" },
+  insolite: { label: "Savoir insolite", emoji: "🦩", couleur: "#e0568f", art: "assets/case-insolite.png" },
+  expression: { label: "Défi d'expression", emoji: "🎭", couleur: "#c2683e", art: "assets/case-expression.png" },
+};
+
+/**
+ * The five dungeons. `dist` weights apply to the free cases (start, goal,
+ * gambits and trous noirs are placed first); `road` tints the path.
+ */
+export const BOARDS = [
+  {
+    id: "crypte",
+    nom: "La Crypte d'Initiation",
+    emoji: "🕯️",
+    desc: "Courte et clémente : plus de chance, aucun trou noir. Parfaite avec des enfants ou pour découvrir.",
+    length: 28,
+    gambits: [13],
+    trounoirs: [],
+    dist: { question: 13, chance: 5, evenement: 2, malus: 1, pieces: 3, joker: 1 },
+    road: "#3f6b46",
+    theme: "crypte",
+  },
+  {
+    id: "grand-donjon",
+    nom: "Le Grand Donjon",
+    emoji: "🏰",
+    desc: "Le parcours classique : équilibré, deux gambits, un trou noir en fin de route.",
+    length: 42,
+    gambits: [14, 28],
+    trounoirs: [38],
+    dist: { question: 18, chance: 5, evenement: 4, malus: 5, pieces: 3, joker: 2 },
+    road: "#4a3a78",
+    theme: "donjon",
+  },
+  {
+    id: "tour",
+    nom: "La Tour du Vertige",
+    emoji: "🗼",
+    desc: "Étroite et cruelle : coups durs fréquents et DEUX trous noirs. Pour les âmes trempées.",
+    length: 48,
+    gambits: [16, 33],
+    trounoirs: [40, 44],
+    dist: { question: 19, chance: 4, evenement: 4, malus: 9, pieces: 3, joker: 3 },
+    road: "#6e3a3a",
+    theme: "tour",
+  },
+  {
+    id: "catacombes",
+    nom: "Les Catacombes du Chaos",
+    emoji: "💀",
+    desc: "Le royaume du pari : trois gambits et des événements collectifs à chaque détour.",
+    length: 44,
+    gambits: [11, 22, 33],
+    trounoirs: [40],
+    dist: { question: 16, chance: 5, evenement: 8, malus: 5, pieces: 2, joker: 2 },
+    road: "#2e5f63",
+    theme: "catacombes",
+  },
+  {
+    id: "labyrinthe",
+    nom: "Le Labyrinthe Doré",
+    emoji: "💰",
+    desc: "Long marathon à trésors : pièces et jokers abondent, les pouvoirs se rachètent souvent.",
+    length: 56,
+    gambits: [18, 37],
+    trounoirs: [50],
+    dist: { question: 23, chance: 6, evenement: 5, malus: 6, pieces: 7, joker: 4 },
+    road: "#7a6428",
+    theme: "labyrinthe",
+  },
+  {
+    id: "cuisine",
+    nom: "La Cuisine Géante",
+    emoji: "🍳",
+    desc: "Un plateau sur la table du petit-déj : pièces à gogo, marchands gourmands et deux tourbillons d'évier qui téléportent. L'économie, c'est la cuisine.",
+    length: 40,
+    gambits: [15, 30],
+    trounoirs: [],
+    dist: { question: 13, chance: 4, evenement: 3, malus: 2, pieces: 6, joker: 2, teleporteur: 2 },
+    road: "#b5772e",
+    theme: "cuisine",
+  },
+  {
+    id: "plage",
+    nom: "La Plage des Pirates",
+    emoji: "🏴‍☠️",
+    desc: "Paris de moussaillons, trois gambits et QUATRE tourbillons marins qui téléportent d'une crique à l'autre. Le trésor n'attend pas.",
+    length: 44,
+    gambits: [10, 21, 32],
+    trounoirs: [40],
+    dist: { question: 14, chance: 5, evenement: 3, malus: 3, pieces: 3, joker: 2, teleporteur: 4 },
+    road: "#c2a45e",
+    theme: "plage",
+  },
+  {
+    id: "grenier",
+    nom: "Le Grenier Hanté",
+    emoji: "🧸",
+    desc: "Les jouets s'animent la nuit… et le GRAND RETOURNEMENT peut inverser le sens du plateau en pleine partie !",
+    length: 42,
+    gambits: [14, 28],
+    trounoirs: [24, 38],
+    dist: { question: 14, chance: 4, evenement: 7, malus: 4, pieces: 3, joker: 2 },
+    road: "#7a5a3a",
+    theme: "grenier",
+    retournement: true,
+  },
+  {
+    id: "foraine",
+    nom: "La Fête Foraine",
+    emoji: "🎡",
+    desc: "Manèges, barbe à papa et TROIS carrefours où choisir son chemin : le plateau des décisions.",
+    length: 46,
+    gambits: [12, 34],
+    trounoirs: [42],
+    dist: { question: 15, chance: 6, evenement: 4, malus: 3, pieces: 3, joker: 2, carrefour: 3 },
+    road: "#c24a7a",
+    theme: "foraine",
+  },
+  {
+    id: "banquise",
+    nom: "La Banquise Rigolote",
+    emoji: "🐧",
+    desc: "Ça glisse ! Atterrir peut vous faire déraper quelques cases plus loin, et deux tourbillons gelés traversent la glace.",
+    length: 38,
+    gambits: [17],
+    trounoirs: [],
+    dist: { question: 12, chance: 6, evenement: 3, malus: 2, pieces: 4, joker: 2, teleporteur: 2 },
+    road: "#6ea8c2",
+    theme: "banquise",
+    glissades: true,
+  },
+];
+
+export function boardById(id) {
+  return BOARDS.find((b) => b.id === id) ?? loadCustomBoards().find((b) => b.id === id) ?? BOARDS[1];
+}
+
+/* ---------- plateaux maison (éditeur) ---------- */
+
+const CUSTOM_BOARDS_KEY = "donjon-plateaux";
+const MAX_CUSTOM_BOARDS = 6;
+
+/** Plateaux créés sur cet appareil (validés à la relecture, mode privé toléré). */
+export function loadCustomBoards() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(CUSTOM_BOARDS_KEY)) ?? [];
+    return Array.isArray(raw)
+      ? raw.filter((b) => b && b.id && b.nom && b.length >= 20 && b.dist && Array.isArray(b.gambits) && Array.isArray(b.trounoirs))
+      : [];
+  } catch { return []; }
+}
+
+export function saveCustomBoard(def) {
+  const list = loadCustomBoards().filter((b) => b.id !== def.id);
+  list.push(def);
+  try { localStorage.setItem(CUSTOM_BOARDS_KEY, JSON.stringify(list.slice(-MAX_CUSTOM_BOARDS))); } catch { /* mode privé */ }
+}
+
+export function deleteCustomBoard(id) {
+  try { localStorage.setItem(CUSTOM_BOARDS_KEY, JSON.stringify(loadCustomBoards().filter((b) => b.id !== id))); } catch { /* mode privé */ }
+}
+
+const THEME_ROADS = { crypte: "#3f6b46", donjon: "#4a3a78", tour: "#6e3a3a", catacombes: "#2e5f63", labyrinthe: "#7a6428" };
+
+/**
+ * Définition complète d'un plateau maison depuis les réglages de l'éditeur :
+ * gambits répartis régulièrement au cœur du parcours, trous noirs vers la fin,
+ * le reste des cases libres en Questions (generateBoard ajuste si besoin).
+ */
+export function makeCustomBoard({ id = null, nom, length, theme, chance, evenement, malus, pieces, joker, nbGambits, nbTrousNoirs }) {
+  const L = Math.max(24, Math.min(64, Math.round(length) || 36));
+  const gambits = Array.from({ length: nbGambits }, (_, i) => Math.round(((i + 1) / (nbGambits + 1)) * (L - 8)) + 3);
+  const trounoirs = Array.from({ length: nbTrousNoirs }, (_, i) => L - 6 - i * 4);
+  const free = L - 2 - gambits.length - trounoirs.length;
+  const bonus = chance + evenement + malus + pieces + joker;
+  const dist = { question: Math.max(4, free - bonus), chance, evenement, malus, pieces, joker };
+  return {
+    id: id ?? `maison-${Date.now().toString(36)}`,
+    nom: (nom || "Mon donjon").slice(0, 40),
+    emoji: "🛠️",
+    desc: "Plateau maison, façonné par la famille.",
+    length: L, gambits, trounoirs, dist,
+    road: THEME_ROADS[theme] ?? THEME_ROADS.donjon,
+    theme: THEME_ROADS[theme] ? theme : "donjon",
+    maison: true,
+  };
+}
+
+/**
+ * Build a board layout from its definition: fixed cases first (start, goal,
+ * gambits, trous noirs), then the weighted shuffle of everything else, with
+ * the first travelled cases guaranteed harmless.
+ */
+export function generateBoard(def = boardById("grand-donjon"), { trouNoir = true } = {}) {
+  const L = def.length;
+  const layout = new Array(L).fill(null);
+  layout[0] = "depart";
+  layout[L - 1] = "arrivee";
+  for (const g of def.gambits) layout[g] = "gambit";
+  // Règle maison : le Trou Noir peut être désactivé — ses cases redeviennent
+  // alors de simples cases (remplies comme les autres plus bas).
+  if (trouNoir) for (const t of def.trounoirs) layout[t] = "trounoir";
+
+  const free = [];
+  for (let i = 0; i < L; i++) if (layout[i] === null) free.push(i);
+
+  const fill = [];
+  for (const [type, count] of Object.entries(def.dist)) fill.push(...Array(count).fill(type));
+  // dist sums are tuned to equal the free-case count; pad with questions if a
+  // definition ever undershoots (never silently drop an announced case).
+  while (fill.length < free.length) fill.push("question");
+  if (fill.length > free.length) fill.length = free.length;
+
+  for (let i = fill.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [fill[i], fill[j]] = [fill[j], fill[i]];
+  }
+  free.forEach((idx, i) => {
+    layout[idx] = fill[i];
+  });
+
+  for (const idx of [1, 2]) {
+    if (layout[idx] === "malus") {
+      const swap = layout.findIndex((t, i) => i > 6 && t === "question");
+      if (swap !== -1) [layout[idx], layout[swap]] = [layout[swap], layout[idx]];
+    }
+  }
+
+  // v2 : semer une Boutique et une case Savoir insolite (plus une 2e boutique
+  // sur les grands plateaux) en recyclant quelques cases Question.
+  const seed = (type, count) => {
+    for (let k = 0; k < count; k++) {
+      const i = layout.findIndex((t, idx) => idx > 3 && idx < L - 2 && t === "question");
+      if (i !== -1) layout[i] = type;
+    }
+  };
+  // Boutiques réparties (au passage) : peu nombreuses — 1 sur la plupart des
+  // plateaux, 2 sur les grands, pour ne pas saturer le parcours.
+  seed("boutique", Math.max(1, Math.round(L / 30)));
+  seed("insolite", L >= 40 ? 2 : 1);
+  // Défis d'expression (Tabou / Password / Mime) : la tablée joue ensemble.
+  seed("expression", L >= 40 ? 2 : 1);
+  return layout;
+}
+
+/* ---------- path geometry (viewBox 1000 × H) ---------- */
+
+const VIEW_W = 1000;
+
+/** Meandering serpentine sized to the board: ~10-11 cases per row. */
+function buildCoords(length) {
+  // 9 cases par rangée (et non 10,5) : mesuré en unités-monde 3D, l'ancien
+  // tracé descendait à 1,87 d'espacement dans les rangées impaires (marge
+  // 105) pour des socles de 1,92 — les cases se chevauchaient à l'écran.
+  // Avec 9 par rangée, le pire espacement remonte au-dessus de 2,4.
+  const rowCount = Math.max(3, Math.round(length / 9));
+  const viewH = 180 + rowCount * 158;
+  const base = Math.floor(length / rowCount);
+  const extra = length - base * rowCount;
+  const rows = Array.from({ length: rowCount }, (_, r) => base + (r < extra ? 1 : 0));
+
+  const coords = [];
+  let index = 0;
+  rows.forEach((count, r) => {
+    const margin = r % 2 === 0 ? 70 : 105;
+    const step = count > 1 ? (VIEW_W - margin * 2) / (count - 1) : 0;
+    const yRow = viewH - 90 - r * 158;
+    for (let c = 0; c < count; c++) {
+      const along = r % 2 === 0 ? c : count - 1 - c;
+      const x = margin + step * along;
+      const wobble = Math.sin(index * 1.9) * 20 + Math.cos(index * 0.7) * 8;
+      coords.push({ x, y: yRow + wobble });
+      index += 1;
+    }
+  });
+  return { coords: coords.slice(0, length), viewH };
+}
+
+const geomCache = new Map();
+function geometry(length) {
+  if (!geomCache.has(length)) geomCache.set(length, buildCoords(length));
+  return geomCache.get(length);
+}
+
+/** Géométrie du plateau (coords des cases + hauteur du viewBox) — partagée avec
+ *  le rendu 3D (board3d.js) pour placer les cases dans la scène. */
+export function boardGeometry(length) {
+  return geometry(length);
+}
+
+export { VIEW_W };
+
+/** Catmull-Rom spline through the case centers → smooth SVG road. */
+function roadPath(coords) {
+  const p = coords;
+  let d = `M ${p[0].x.toFixed(1)} ${p[0].y.toFixed(1)}`;
+  for (let i = 0; i < p.length - 1; i++) {
+    const p0 = p[Math.max(0, i - 1)];
+    const p1 = p[i];
+    const p2 = p[i + 1];
+    const p3 = p[Math.min(p.length - 1, i + 2)];
+    d += ` C ${(p1.x + (p2.x - p0.x) / 6).toFixed(1)} ${(p1.y + (p2.y - p0.y) / 6).toFixed(1)}, ${(p2.x - (p3.x - p1.x) / 6).toFixed(1)} ${(p2.y - (p3.y - p1.y) / 6).toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
+
+/** Dungeon scenery (relative positions 0-1, scaled to each board). `art` : décor
+ *  peint posé par-dessus l'emoji (repli si l'image manque). */
+export const DECOR = [
+  { e: "🏰", u: 0.03, v: 0.94, s: 44, art: "assets/decor-chateau.png" }, { e: "🌲", u: 0.19, v: 0.97, s: 26, art: "assets/decor-arbre.png" },
+  { e: "🕯️", u: 0.975, v: 0.91, s: 24, art: "assets/decor-bougie.png" }, { e: "🍄", u: 0.955, v: 0.75, s: 22, art: "assets/decor-champignon.png" },
+  { e: "🦇", u: 0.06, v: 0.55, s: 22, art: "assets/decor-chauvesouris.png" }, { e: "🕸️", u: 0.025, v: 0.72, s: 26, art: "assets/decor-toile.png" },
+  { e: "💎", u: 0.965, v: 0.53, s: 22, art: "assets/decor-cristal.png" }, { e: "🗿", u: 0.03, v: 0.31, s: 30, art: "assets/decor-statue.png" },
+  { e: "🌋", u: 0.85, v: 0.09, s: 30, art: "assets/decor-volcan.png" }, { e: "🦴", u: 0.5, v: 0.965, s: 20, art: "assets/decor-os.png" },
+  { e: "⭐", u: 0.968, v: 0.14, s: 26, art: "assets/decor-etoile.png" }, { e: "🔥", u: 0.12, v: 0.09, s: 22, art: "assets/decor-flamme.png" },
+];
+
+/** Bâtiments 3D (rendus isométriques) posés en décor sur les bords du plateau,
+ *  derrière les cases et les pions. `u`,`v` : position relative 0-1 ; `w` :
+ *  largeur en cqw (unités de largeur du plateau). Repli : rien si l'image manque
+ *  (aucun emoji sous-jacent — ce sont de purs décors d'ambiance). */
+export const BUILDINGS = [
+  { art: "assets/batiment-chateau.webp", u: 0.10, v: 0.86, w: 20 },
+  { art: "assets/batiment-etoile.webp", u: 0.11, v: 0.12, w: 14 },
+  { art: "assets/batiment-tour-mage.webp", u: 0.065, v: 0.32, w: 13 },
+  { art: "assets/batiment-bibliotheque.webp", u: 0.94, v: 0.30, w: 14 },
+  { art: "assets/batiment-taverne.webp", u: 0.935, v: 0.64, w: 14 },
+  { art: "assets/batiment-portail.webp", u: 0.91, v: 0.11, w: 13 },
+  { art: "assets/batiment-boutique.webp", u: 0.27, v: 0.975, w: 14 },
+  { art: "assets/batiment-fontaine.webp", u: 0.52, v: 0.98, w: 11 },
+  { art: "assets/batiment-pont.webp", u: 0.74, v: 0.975, w: 14 },
+  { art: "assets/batiment-champignon.webp", u: 0.955, v: 0.90, w: 12 },
+];
+
+// Les CINQ NOUVEAUX MONDES (GEN 2 v5) ont chacun leurs maquettes d'ambiance :
+// une cuisine a un grille-pain-auberge, pas une taverne médiévale. Les
+// bâtiments-REPÈRES des cases (échoppe, portail…) restent, eux, communs à tous
+// les mondes : c'est la troupe du Donjon qui voyage. Doublé aux quatre coins
+// pour habiller le tour du plateau comme le village d'origine.
+const THEME_BUILDINGS = {
+  cuisine: [
+    { art: "assets/bat-cuisine-gateau.webp", u: 0.10, v: 0.86, w: 17 },
+    { art: "assets/bat-cuisine-theiere.webp", u: 0.11, v: 0.12, w: 14 },
+    { art: "assets/bat-cuisine-grille-pain.webp", u: 0.065, v: 0.32, w: 13 },
+    { art: "assets/bat-cuisine-casserole.webp", u: 0.94, v: 0.30, w: 14 },
+    { art: "assets/bat-cuisine-theiere.webp", u: 0.935, v: 0.64, w: 13 },
+    { art: "assets/bat-cuisine-casserole.webp", u: 0.27, v: 0.975, w: 13 },
+    { art: "assets/bat-cuisine-grille-pain.webp", u: 0.74, v: 0.975, w: 13 },
+    { art: "assets/bat-cuisine-gateau.webp", u: 0.955, v: 0.90, w: 12 },
+  ],
+  plage: [
+    { art: "assets/bat-plage-phare.webp", u: 0.10, v: 0.86, w: 17 },
+    { art: "assets/bat-plage-cabane.webp", u: 0.11, v: 0.12, w: 14 },
+    { art: "assets/bat-plage-coquillage.webp", u: 0.065, v: 0.32, w: 13 },
+    { art: "assets/bat-plage-epave.webp", u: 0.94, v: 0.30, w: 14 },
+    { art: "assets/bat-plage-cabane.webp", u: 0.935, v: 0.64, w: 13 },
+    { art: "assets/bat-plage-coquillage.webp", u: 0.27, v: 0.975, w: 13 },
+    { art: "assets/bat-plage-epave.webp", u: 0.74, v: 0.975, w: 13 },
+    { art: "assets/bat-plage-phare.webp", u: 0.955, v: 0.90, w: 12 },
+  ],
+  grenier: [
+    { art: "assets/bat-grenier-malle.webp", u: 0.10, v: 0.86, w: 17 },
+    { art: "assets/bat-grenier-cheval.webp", u: 0.11, v: 0.12, w: 14 },
+    { art: "assets/bat-grenier-livres.webp", u: 0.065, v: 0.32, w: 13 },
+    { art: "assets/bat-grenier-lanterne.webp", u: 0.94, v: 0.30, w: 14 },
+    { art: "assets/bat-grenier-livres.webp", u: 0.935, v: 0.64, w: 13 },
+    { art: "assets/bat-grenier-lanterne.webp", u: 0.27, v: 0.975, w: 13 },
+    { art: "assets/bat-grenier-cheval.webp", u: 0.74, v: 0.975, w: 13 },
+    { art: "assets/bat-grenier-malle.webp", u: 0.955, v: 0.90, w: 12 },
+  ],
+  foraine: [
+    { art: "assets/bat-foraine-grande-roue.webp", u: 0.10, v: 0.86, w: 18 },
+    { art: "assets/bat-foraine-chapiteau.webp", u: 0.11, v: 0.12, w: 15 },
+    { art: "assets/bat-foraine-barbe-papa.webp", u: 0.065, v: 0.32, w: 13 },
+    { art: "assets/bat-foraine-stand.webp", u: 0.94, v: 0.30, w: 14 },
+    { art: "assets/bat-foraine-chapiteau.webp", u: 0.935, v: 0.64, w: 13 },
+    { art: "assets/bat-foraine-stand.webp", u: 0.27, v: 0.975, w: 13 },
+    { art: "assets/bat-foraine-barbe-papa.webp", u: 0.74, v: 0.975, w: 13 },
+    { art: "assets/bat-foraine-grande-roue.webp", u: 0.955, v: 0.90, w: 13 },
+  ],
+  banquise: [
+    { art: "assets/bat-banquise-igloo.webp", u: 0.10, v: 0.86, w: 17 },
+    { art: "assets/bat-banquise-toboggan.webp", u: 0.11, v: 0.12, w: 15 },
+    { art: "assets/bat-banquise-sapin.webp", u: 0.065, v: 0.32, w: 13 },
+    { art: "assets/bat-banquise-phoque.webp", u: 0.94, v: 0.30, w: 14 },
+    { art: "assets/bat-banquise-sapin.webp", u: 0.935, v: 0.64, w: 12 },
+    { art: "assets/bat-banquise-phoque.webp", u: 0.27, v: 0.975, w: 13 },
+    { art: "assets/bat-banquise-toboggan.webp", u: 0.74, v: 0.975, w: 13 },
+    { art: "assets/bat-banquise-igloo.webp", u: 0.955, v: 0.90, w: 12 },
+  ],
+};
+
+/** Bâtiments d'ambiance du plateau : ceux du monde s'il en a, le village
+ *  médiéval sinon. Partagé 2D/3D. */
+export function buildingsFor(theme) {
+  return THEME_BUILDINGS[theme] ?? BUILDINGS;
+}
+
+/** Figurines 3D des héros = pions du plateau. Chemins littéraux (inlinés en
+ *  data-URI dans le fichier unique). Repli : l'emoji du pion si l'image manque. */
+export function heroArt(id) {
+  return HERO_TOKEN[id] ?? null;
+}
+
+const HERO_TOKEN = {
+  cageot: "assets/hero-cageot.png",
+  etincelle: "assets/hero-etincelle.png",
+  gobelin: "assets/hero-gobelin.png",
+  nebulia: "assets/hero-nebulia.png",
+  boumbastien: "assets/hero-boumbastien.png",
+  duchesse: "assets/hero-duchesse.png",
+  flaque: "assets/hero-flaque.png",
+  pelote: "assets/hero-pelote.png",
+  hibou: "assets/hero-hibou.png",
+  kribouille: "assets/hero-kribouille.png",
+  plomberoy: "assets/hero-plomberoy.png",
+};
+
+// Petits objets 3D d'ambiance, CHOISIS SELON LE THÈME du donjon (« décor par
+// plateau ») : posés dans la marge haute (zone libre), derrière tout le reste.
+const PROP_SPOTS = [
+  { u: 0.37, v: 0.055, w: 6.5 },
+  { u: 0.50, v: 0.045, w: 6.5 },
+  { u: 0.63, v: 0.055, w: 6.5 },
+];
+const THEME_PROPS = {
+  crypte: ["assets/objet-torche.png", "assets/objet-potion.png", "assets/objet-champignon.png"],
+  donjon: ["assets/objet-coffre.png", "assets/objet-bouclier.png", "assets/objet-cristal.png"],
+  tour: ["assets/objet-cristal.png", "assets/objet-sablier.png", "assets/objet-de.png"],
+  catacombes: ["assets/objet-tonneau.png", "assets/objet-cle.png", "assets/objet-parchemin.png"],
+  labyrinthe: ["assets/objet-coffre.png", "assets/objet-pieces.png", "assets/objet-etoile.png"],
+};
+
+/* ---------- rendering ---------- */
+
+let builtSignature = null;
+
+/**
+ * Render (or update) the board. The static part — road, scenery, spaces —
+ * is built once per layout; the pion layer is updated in place so CSS
+ * transitions make the tokens glide.
+ */
+export function renderBoard(container, layout, pions, currentPionId, boardDef = boardById("grand-donjon"), starPos = null) {
+  const signature = `${boardDef.id}:${layout.join(",")}`;
+  if (builtSignature !== signature || !container.querySelector(".pion-layer")) {
+    buildStatic(container, layout, boardDef);
+    builtSignature = signature;
+    walkingPions.clear(); // nouveau plateau : on oublie tout trajet en cours
+  }
+  updateStar(container, layout, starPos);
+  updatePions(container, layout, pions, currentPionId);
+}
+
+/** Marqueur ⭐ du marchand d'étoile (mode Étoiles), repositionné à chaque achat. */
+function updateStar(container, layout, starPos) {
+  let marker = container.querySelector(".star-marker");
+  if (starPos == null) {
+    if (marker) marker.remove();
+    return;
+  }
+  const { coords, viewH } = geometry(layout.length);
+  const c = coords[Math.max(0, Math.min(layout.length - 1, starPos))];
+  if (!marker) {
+    marker = document.createElement("div");
+    marker.className = "star-marker";
+    marker.textContent = "⭐";
+    marker.setAttribute("aria-label", "L'Étoile est ici");
+    container.querySelector(".pion-layer")?.before(marker);
+  }
+  marker.style.left = `${(c.x / VIEW_W) * 100}%`;
+  marker.style.top = `${((c.y - 30) / viewH) * 100}%`;
+}
+
+function buildStatic(container, layout, def) {
+  const { coords, viewH } = geometry(layout.length);
+  container.innerHTML = "";
+  container.className = `board-map board-theme-${def.theme}`;
+  container.style.aspectRatio = `${VIEW_W} / ${viewH}`;
+
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", `0 0 ${VIEW_W} ${viewH}`);
+  svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+  svg.classList.add("board-svg");
+  svg.setAttribute("aria-hidden", "true");
+  const d = roadPath(coords);
+  svg.innerHTML = `
+    <path d="${d}" fill="none" stroke="#0e0a1c" stroke-width="52" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+    <path d="${d}" fill="none" stroke="${def.road}" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="${d}" fill="none" stroke="#e0b04a" stroke-width="3" stroke-dasharray="2 14" stroke-linecap="round" opacity="0.7"/>`;
+  container.appendChild(svg);
+
+  // Bâtiments 3D : posés d'abord (tout au fond, derrière décors, cases et pions).
+  for (const b of buildingsFor(def.theme)) {
+    const img = document.createElement("img");
+    img.className = "building";
+    img.alt = "";
+    img.decoding = "async";
+    img.src = b.art;
+    img.style.left = `${b.u * 100}%`;
+    img.style.top = `${b.v * 100}%`;
+    img.style.width = `${b.w}cqw`;
+    img.onerror = () => img.remove(); // repli : pas de bâtiment, le plateau reste net
+    img.setAttribute("aria-hidden", "true");
+    container.appendChild(img);
+  }
+
+  // Objets d'ambiance propres au thème du donjon (décor par plateau).
+  const props = THEME_PROPS[def.theme] ?? THEME_PROPS.donjon;
+  PROP_SPOTS.forEach((spot, i) => {
+    if (!props[i]) return;
+    const img = document.createElement("img");
+    img.className = "building building-prop";
+    img.alt = "";
+    img.decoding = "async";
+    img.src = props[i];
+    img.style.left = `${spot.u * 100}%`;
+    img.style.top = `${spot.v * 100}%`;
+    img.style.width = `${spot.w}cqw`;
+    img.onerror = () => img.remove();
+    img.setAttribute("aria-hidden", "true");
+    container.appendChild(img);
+  });
+
+  for (const dec of DECOR) {
+    const span = document.createElement("span");
+    span.className = "decor";
+    span.textContent = dec.e;
+    span.style.left = `${dec.u * 100}%`;
+    span.style.top = `${dec.v * 100}%`;
+    span.style.fontSize = `${dec.s / 10}cqw`;
+    span.setAttribute("aria-hidden", "true");
+    if (dec.art) {
+      const img = document.createElement("img");
+      img.className = "decor-art";
+      img.alt = "";
+      img.decoding = "async";
+      img.src = dec.art;
+      img.onerror = () => img.remove(); // repli : l'emoji de décor reste
+      span.appendChild(img);
+    }
+    container.appendChild(span);
+  }
+
+  layout.forEach((type, i) => {
+    const defCase = CASE_TYPES[type];
+    const { x, y } = coords[i];
+    const cell = document.createElement("div");
+    cell.className = `case case-${type}`;
+    cell.style.left = `${(x / VIEW_W) * 100}%`;
+    cell.style.top = `${(y / viewH) * 100}%`;
+    cell.style.setProperty("--case-color", defCase.couleur);
+    cell.dataset.index = String(i);
+    cell.title = `Case ${i} — ${defCase.label}`;
+    cell.innerHTML = `<span class="case-emoji" aria-hidden="true">${defCase.emoji}</span>`;
+    if (defCase.art) {
+      const art = document.createElement("img");
+      art.className = "case-art";
+      art.alt = "";
+      art.decoding = "async";
+      art.src = defCase.art;
+      art.onerror = () => art.remove(); // repli : l'emoji reste visible
+      cell.appendChild(art);
+    }
+    if (i !== 0 && i !== layout.length - 1) {
+      cell.innerHTML += `<span class="case-num" aria-hidden="true">${i}</span>`;
+    }
+    container.appendChild(cell);
+  });
+
+  const start = document.createElement("span");
+  start.className = "landmark landmark-start";
+  start.textContent = "🏁";
+  start.style.left = `${(coords[0].x / VIEW_W) * 100}%`;
+  start.style.top = `${((coords[0].y - 58) / viewH) * 100}%`;
+  start.setAttribute("aria-hidden", "true");
+  container.appendChild(start);
+
+  const goal = document.createElement("span");
+  goal.className = "landmark landmark-goal";
+  goal.textContent = "✨";
+  const last = coords[coords.length - 1];
+  goal.style.left = `${(last.x / VIEW_W) * 100}%`;
+  goal.style.top = `${((last.y - 58) / viewH) * 100}%`;
+  goal.setAttribute("aria-hidden", "true");
+  container.appendChild(goal);
+
+  const layer = document.createElement("div");
+  layer.className = "pion-layer";
+  container.appendChild(layer);
+}
+
+// Pions dont la position est pilotée par une animation de trajet (walkPion) :
+// updatePions ne doit PAS les repositionner tant qu'ils « marchent ».
+const walkingPions = new Set();
+
+/**
+ * Fait « marcher » un pion le long du chemin (case par case) — on voit son
+ * personnage avancer sur le plateau, façon Mario Party. `path` est la suite
+ * d'indices de cases à traverser (calculée par le moteur, boucle comprise).
+ * Sans effet en test, immersion coupée ou mouvements réduits : le pion se pose
+ * directement (comportement d'origine).
+ */
+export function walkPion(pionId, path, length) {
+  if (globalThis.__DONJON_TEST) return;
+  if (!Array.isArray(path) || path.length === 0) return;
+  if (getPrefs().immersion === false || getPrefs().animations === "reduites") return;
+  try { if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return; } catch { /* pas de matchMedia */ }
+  const layer = document.querySelector(".pion-layer");
+  const token = layer?.querySelector(`[data-pion="${pionId}"]`);
+  if (!token) return;
+  const { coords, viewH } = geometry(length);
+  const place = (pos) => {
+    const c = coords[Math.max(0, Math.min(length - 1, pos))];
+    token.style.left = `${(c.x / VIEW_W) * 100}%`;
+    token.style.top = `${((c.y - 26) / viewH) * 100}%`;
+  };
+  walkingPions.add(pionId);
+  let i = 0;
+  const hop = () => {
+    if (!walkingPions.has(pionId)) return; // trajet annulé (nouvelle partie, etc.)
+    if (i >= path.length) { walkingPions.delete(pionId); return; }
+    place(path[i]);
+    i += 1;
+    setTimeout(hop, 150);
+  };
+  hop();
+}
+
+function updatePions(container, layout, pions, currentPionId) {
+  const { coords, viewH } = geometry(layout.length);
+  const layer = container.querySelector(".pion-layer");
+  const seen = new Set();
+
+  const byCase = new Map();
+  for (const p of pions) {
+    if (!byCase.has(p.position)) byCase.set(p.position, []);
+    byCase.get(p.position).push(p);
+  }
+
+  for (const [pos, group] of byCase) {
+    const { x, y } = coords[Math.max(0, Math.min(layout.length - 1, pos))];
+    group.forEach((p, i) => {
+      seen.add(p.id);
+      let token = layer.querySelector(`[data-pion="${p.id}"]`);
+      const fig = HERO_TOKEN[p.characterId];
+      if (!token) {
+        token = document.createElement("div");
+        token.dataset.pion = String(p.id);
+        // Emoji en repli (dessous) + figurine 3D par-dessus si disponible.
+        const emojiSpan = document.createElement("span");
+        emojiSpan.className = "pion-emoji";
+        emojiSpan.textContent = p.emoji;
+        token.appendChild(emojiSpan);
+        if (fig) {
+          const img = document.createElement("img");
+          img.className = "pion-art";
+          img.alt = "";
+          img.decoding = "async";
+          img.src = fig;
+          img.onerror = () => { img.remove(); token.classList.remove("pion-fig"); };
+          token.appendChild(img);
+        }
+        layer.appendChild(token);
+      }
+      token.className = "pion" + (fig ? " pion-fig" : "") + (p.id === currentPionId ? " pion-actif" : "");
+      token.style.setProperty("--pion-color", p.couleur);
+      const angle = (i / Math.max(1, group.length)) * 2 * Math.PI;
+      const spread = group.length > 1 ? 16 : 0;
+      const px = x + Math.cos(angle) * spread;
+      const py = y - 26 + Math.sin(angle) * (spread * 0.6);
+      // Un pion en plein trajet animé garde la main sur sa position.
+      if (!walkingPions.has(p.id)) {
+        token.style.left = `${(px / VIEW_W) * 100}%`;
+        token.style.top = `${(py / viewH) * 100}%`;
+      }
+      token.title = p.nom;
+      token.setAttribute("aria-label", `${p.nom}, case ${pos}`);
+    });
+  }
+
+  for (const token of [...layer.querySelectorAll(".pion")]) {
+    if (!seen.has(Number(token.dataset.pion))) token.remove();
+  }
+}

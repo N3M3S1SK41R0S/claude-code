@@ -1,0 +1,37 @@
+LE DONJON DU SAVOIR — raccourci « lien direct »
+===============================================
+
+Ce dossier crée sur votre bureau une icône qui ouvre le jeu EN LIGNE.
+Gros avantage : elle pointe TOUJOURS sur la dernière version — il n'y a
+jamais rien à remplacer, contrairement au fichier hors-ligne.
+
+  Adresse ouverte : https://claude.ai/code/artifact/e2127687-04c1-40c0-be43-f0e5f8b27205
+  Version en ligne au moment de la création de ce kit : donjon-v107
+
+Gardez ce dossier quelque part (par ex. dans « Documents ») : l'icône y
+est stockée, le raccourci va la chercher ici.
+
+——— WINDOWS ———
+  1. Double-cliquez sur « Windows — Créer le raccourci du bureau.cmd ».
+     (Avertissement SmartScreen éventuel : « Informations complémentaires »
+      puis « Exécuter quand même » — le script crée juste un raccourci.)
+  2. L'icône « Le Donjon du Savoir » apparaît sur le Bureau.
+
+——— macOS ———
+  Le plus simple : glissez « Le Donjon du Savoir.webloc » sur le Bureau
+  ou dans le Dock.
+  Pour une jolie icône : sélectionnez « donjon.icns », Cmd+C. Puis clic
+  droit sur « macOS — Le Donjon du Savoir.command » → Lire les
+  informations → cliquez la petite icône en haut à gauche → Cmd+V.
+  Glissez ensuite ce fichier sur le Bureau. (Au 1er lancement : clic
+  droit → Ouvrir → Ouvrir, pour autoriser.)
+
+——— LINUX ———
+  chmod +x "Linux — Installer le raccourci.sh" && "./Linux — Installer le raccourci.sh"
+
+——— BON À SAVOIR ———
+  • Ce raccourci a besoin d'internet, et que vous soyez connecté au
+    compte Claude qui héberge la page (le lien est privé).
+  • Pour jouer SANS internet (en voiture, en vacances, chez des amis),
+    utilisez l'autre kit : celui qui embarque le jeu en un seul fichier.
+  • Pour vérifier la version en cours de jeu : Réglages, tout en bas.

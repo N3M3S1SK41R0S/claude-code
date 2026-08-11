@@ -1,0 +1,1647 @@
+[
+ {
+  "perso": "heraut",
+  "id": "232e5b8b",
+  "fichier": "voix/heraut/232e5b8b.mp3",
+  "contexte": "ouverture",
+  "texte": "Oyez, oyez ! Le Donjon du Savoir ouvre ses portes. Essuyez vos pieds sur la culture."
+ },
+ {
+  "perso": "heraut",
+  "id": "7ae45066",
+  "fichier": "voix/heraut/7ae45066.mp3",
+  "contexte": "ouverture",
+  "texte": "Bienvenue, nobles aventuriers ! Ici, on ne tue pas de dragons : on répond à des questions. C'est plus dangereux."
+ },
+ {
+  "perso": "heraut",
+  "id": "bfa0aa37",
+  "fichier": "voix/heraut/bfa0aa37.mp3",
+  "contexte": "ouverture",
+  "texte": "Par ma trompette ! Que les cerveaux s'échauffent, le Donjon vous attend."
+ },
+ {
+  "perso": "heraut",
+  "id": "c1396fe2",
+  "fichier": "voix/heraut/c1396fe2.mp3",
+  "contexte": "caseComment.teleporteur",
+  "texte": "Un tourbillon ! Accrochez votre chapeau, le voyage est inclus dans le prix."
+ },
+ {
+  "perso": "heraut",
+  "id": "f61ab207",
+  "fichier": "voix/heraut/f61ab207.mp3",
+  "contexte": "caseComment.teleporteur",
+  "texte": "Le tourbillon vous regarde avec appétit. C'est flatteur, d'une certaine façon."
+ },
+ {
+  "perso": "heraut",
+  "id": "0e7fc66e",
+  "fichier": "voix/heraut/0e7fc66e.mp3",
+  "contexte": "caseComment.carrefour",
+  "texte": "Un carrefour ! Deux chemins, zéro GPS. Le Donjon adore vous voir hésiter."
+ },
+ {
+  "perso": "heraut",
+  "id": "b4f3f316",
+  "fichier": "voix/heraut/b4f3f316.mp3",
+  "contexte": "caseComment.carrefour",
+  "texte": "Carrefour en vue. Petit conseil du Héraut : le chemin le plus court n'est jamais gratuit."
+ },
+ {
+  "perso": "heraut",
+  "id": "f3924a4d",
+  "fichier": "voix/heraut/f3924a4d.mp3",
+  "contexte": "caseComment.question",
+  "texte": "Une question ! Le Donjon teste votre esprit. Il est joueur, mais jamais pressé."
+ },
+ {
+  "perso": "heraut",
+  "id": "d13a4fd0",
+  "fichier": "voix/heraut/d13a4fd0.mp3",
+  "contexte": "caseComment.question",
+  "texte": "Halte ! Nul ne passe sans faire travailler sa cervelle."
+ },
+ {
+  "perso": "heraut",
+  "id": "3b4d993b",
+  "fichier": "voix/heraut/3b4d993b.mp3",
+  "contexte": "caseComment.chance",
+  "texte": "Case Chance ! Le Donjon est de bonne humeur, profitez-en."
+ },
+ {
+  "perso": "heraut",
+  "id": "1a23bc03",
+  "fichier": "voix/heraut/1a23bc03.mp3",
+  "contexte": "caseComment.chance",
+  "texte": "Fortune sourit ! C'est rare, savourez."
+ },
+ {
+  "perso": "heraut",
+  "id": "4081ea1f",
+  "fichier": "voix/heraut/4081ea1f.mp3",
+  "contexte": "caseComment.evenement",
+  "texte": "Événement ! Tout le monde sur le pont, même ceux qui dormaient."
+ },
+ {
+  "perso": "heraut",
+  "id": "987aade4",
+  "fichier": "voix/heraut/987aade4.mp3",
+  "contexte": "caseComment.evenement",
+  "texte": "Grand rassemblement ! Le Donjon convoque toutes les cervelles."
+ },
+ {
+  "perso": "heraut",
+  "id": "a75bad5a",
+  "fichier": "voix/heraut/a75bad5a.mp3",
+  "contexte": "caseComment.malus",
+  "texte": "Aïe. Le Donjon a ses humeurs, et là, c'est la mauvaise."
+ },
+ {
+  "perso": "heraut",
+  "id": "b9a6ce80",
+  "fichier": "voix/heraut/b9a6ce80.mp3",
+  "contexte": "caseComment.malus",
+  "texte": "Coup dur ! Courage, les légendes naissent dans la boue."
+ },
+ {
+  "perso": "heraut",
+  "id": "11827ddc",
+  "fichier": "voix/heraut/11827ddc.mp3",
+  "contexte": "caseComment.pieces",
+  "texte": "Des pièces d'or ! Le Gobelin Comptable en frémit quelque part."
+ },
+ {
+  "perso": "heraut",
+  "id": "ccb80183",
+  "fichier": "voix/heraut/ccb80183.mp3",
+  "contexte": "caseComment.pieces",
+  "texte": "Sonnante et trébuchante fortune ! Ramassez, ramassez."
+ },
+ {
+  "perso": "heraut",
+  "id": "4e40e407",
+  "fichier": "voix/heraut/4e40e407.mp3",
+  "contexte": "caseComment.joker",
+  "texte": "Une carte Joker ! Gardez-la précieusement, elle vaut son pesant de malice."
+ },
+ {
+  "perso": "heraut",
+  "id": "ea8164a7",
+  "fichier": "voix/heraut/ea8164a7.mp3",
+  "contexte": "caseComment.joker",
+  "texte": "Le Donjon vous offre un Joker. Il attend un merci."
+ },
+ {
+  "perso": "heraut",
+  "id": "8f4c8859",
+  "fichier": "voix/heraut/8f4c8859.mp3",
+  "contexte": "caseComment.gambit",
+  "texte": "GAMBIT ! Un nombre, des paris, et beaucoup de mauvaise foi. J'adore."
+ },
+ {
+  "perso": "heraut",
+  "id": "af67821f",
+  "fichier": "voix/heraut/af67821f.mp3",
+  "contexte": "caseComment.gambit",
+  "texte": "Place au Gambit ! Les spectateurs deviennent parieurs."
+ },
+ {
+  "perso": "heraut",
+  "id": "3db2bc57",
+  "fichier": "voix/heraut/3db2bc57.mp3",
+  "contexte": "caseComment.trounoir",
+  "texte": "LE TROU NOIR... Même moi, je baisse la voix. La question suprême vous attend."
+ },
+ {
+  "perso": "heraut",
+  "id": "07bf039d",
+  "fichier": "voix/heraut/07bf039d.mp3",
+  "contexte": "caseComment.trounoir",
+  "texte": "Frissons garantis : voici le Trou Noir. Nul chronomètre, mais quel vertige."
+ },
+ {
+  "perso": "heraut",
+  "id": "54430d43",
+  "fichier": "voix/heraut/54430d43.mp3",
+  "contexte": "caseComment.arrivee",
+  "texte": "LE TRÉSOR EST EN VUE !"
+ },
+ {
+  "perso": "heraut",
+  "id": "9d297e8d",
+  "fichier": "voix/heraut/9d297e8d.mp3",
+  "contexte": "bonneReponse",
+  "texte": "Exact ! Le Donjon applaudit des deux créneaux."
+ },
+ {
+  "perso": "heraut",
+  "id": "81fe2f68",
+  "fichier": "voix/heraut/81fe2f68.mp3",
+  "contexte": "bonneReponse",
+  "texte": "Bonne réponse. Le Donjon applaudirait des deux mains s'il en avait."
+ },
+ {
+  "perso": "heraut",
+  "id": "05822e83",
+  "fichier": "voix/heraut/05822e83.mp3",
+  "contexte": "bonneReponse",
+  "texte": "Exact. Je n'en attendais pas moins, et j'attendais beaucoup."
+ },
+ {
+  "perso": "heraut",
+  "id": "c4a47982",
+  "fichier": "voix/heraut/c4a47982.mp3",
+  "contexte": "bonneReponse",
+  "texte": "C'est juste ! Le comité d'experts que je suis à moi tout seul valide."
+ },
+ {
+  "perso": "heraut",
+  "id": "bdb402b5",
+  "fichier": "voix/heraut/bdb402b5.mp3",
+  "contexte": "bonneReponse",
+  "texte": "Bonne réponse ! Quelque part, un parchemin verse une larme de joie."
+ },
+ {
+  "perso": "heraut",
+  "id": "dd502907",
+  "fichier": "voix/heraut/dd502907.mp3",
+  "contexte": "bonneReponse",
+  "texte": "Bravo ! Votre cervelle mérite une statue. Petite, mais une statue."
+ },
+ {
+  "perso": "heraut",
+  "id": "6003736d",
+  "fichier": "voix/heraut/6003736d.mp3",
+  "contexte": "bonneReponse",
+  "texte": "Correct ! Même les gargouilles sont impressionnées."
+ },
+ {
+  "perso": "heraut",
+  "id": "1957adfc",
+  "fichier": "voix/heraut/1957adfc.mp3",
+  "contexte": "mauvaiseReponse",
+  "texte": "Raté ! Mais quel panache dans l'erreur."
+ },
+ {
+  "perso": "heraut",
+  "id": "6d24e7ce",
+  "fichier": "voix/heraut/6d24e7ce.mp3",
+  "contexte": "mauvaiseReponse",
+  "texte": "Raté. Mais dit avec une conviction remarquable, c'est déjà ça."
+ },
+ {
+  "perso": "heraut",
+  "id": "af632edf",
+  "fichier": "voix/heraut/af632edf.mp3",
+  "contexte": "mauvaiseReponse",
+  "texte": "Non. Réponse incorrecte, aplomb impeccable : moyenne honorable."
+ },
+ {
+  "perso": "heraut",
+  "id": "7ae25ea4",
+  "fichier": "voix/heraut/7ae25ea4.mp3",
+  "contexte": "mauvaiseReponse",
+  "texte": "Perdu ! Le Donjon efface tout et ne retient que le panache."
+ },
+ {
+  "perso": "heraut",
+  "id": "b5b52cb0",
+  "fichier": "voix/heraut/b5b52cb0.mp3",
+  "contexte": "mauvaiseReponse",
+  "texte": "Hélas ! Le Donjon note l'audace, à défaut de la réponse."
+ },
+ {
+  "perso": "heraut",
+  "id": "6df8de51",
+  "fichier": "voix/heraut/6df8de51.mp3",
+  "contexte": "mauvaiseReponse",
+  "texte": "Non ! Mais rassurez-vous : ici, on apprend même en se trompant."
+ },
+ {
+  "perso": "heraut",
+  "id": "ee76f848",
+  "fichier": "voix/heraut/ee76f848.mp3",
+  "contexte": "mauvaiseReponse",
+  "texte": "Perdu ! Les plus grands héros ont commencé par se cogner aux murs."
+ },
+ {
+  "perso": "heraut",
+  "id": "8e483e7c",
+  "fichier": "voix/heraut/8e483e7c.mp3",
+  "contexte": "anecdoteIntro",
+  "texte": "Et maintenant, la minute savante du Héraut :"
+ },
+ {
+  "perso": "heraut",
+  "id": "43a4fa52",
+  "fichier": "voix/heraut/43a4fa52.mp3",
+  "contexte": "anecdoteIntro",
+  "texte": "Approchez, voici la pépite du jour :"
+ },
+ {
+  "perso": "heraut",
+  "id": "285761fd",
+  "fichier": "voix/heraut/285761fd.mp3",
+  "contexte": "anecdoteIntro",
+  "texte": "Le saviez-vous ? Le Donjon, lui, le savait :"
+ },
+ {
+  "perso": "heraut",
+  "id": "e175a793",
+  "fichier": "voix/heraut/e175a793.mp3",
+  "contexte": "docTrouNoir",
+  "texte": "Chut… Observons l'aventurier s'approcher du Trou Noir. Il ne se doute de rien. Enfin si : il y a un panneau."
+ },
+ {
+  "perso": "heraut",
+  "id": "4fd979f2",
+  "fichier": "voix/heraut/4fd979f2.mp3",
+  "contexte": "docTrouNoir",
+  "texte": "Le Trou Noir, milieu hostile s'il en est. L'aventurier avance. La science reste sans voix ; moi, je chuchote."
+ },
+ {
+  "perso": "heraut",
+  "id": "b63617f8",
+  "fichier": "voix/heraut/b63617f8.mp3",
+  "contexte": "docTrouNoir",
+  "texte": "Notez la démarche assurée de l'espèce. C'est précisément ainsi que commencent les grandes anecdotes."
+ },
+ {
+  "perso": "heraut",
+  "id": "d8482afb",
+  "fichier": "voix/heraut/d8482afb.mp3",
+  "contexte": "dePetit",
+  "texte": "Le dé a parlé. Le dé est parfois laconique."
+ },
+ {
+  "perso": "heraut",
+  "id": "84ff920a",
+  "fichier": "voix/heraut/84ff920a.mp3",
+  "contexte": "dePetit",
+  "texte": "Un. C'est un début. Techniquement."
+ },
+ {
+  "perso": "heraut",
+  "id": "6b63b641",
+  "fichier": "voix/heraut/6b63b641.mp3",
+  "contexte": "dePetit",
+  "texte": "Le dé vous offre un 1. Il précise que c'est pour votre humilité."
+ },
+ {
+  "perso": "heraut",
+  "id": "97ed0649",
+  "fichier": "voix/heraut/97ed0649.mp3",
+  "contexte": "deTriple",
+  "texte": "Trois 6 d'affilée. Je ne dis rien. Je note."
+ },
+ {
+  "perso": "heraut",
+  "id": "cfc22556",
+  "fichier": "voix/heraut/cfc22556.mp3",
+  "contexte": "deTriple",
+  "texte": "Encore un 6. Le dé et vous, on en reparlera."
+ },
+ {
+  "perso": "heraut",
+  "id": "f904ef2f",
+  "fichier": "voix/heraut/f904ef2f.mp3",
+  "contexte": "sponsors",
+  "texte": "La Taverne du Gobelin — certifiée sans dragon depuis mardi."
+ },
+ {
+  "perso": "heraut",
+  "id": "74fe3093",
+  "fichier": "voix/heraut/74fe3093.mp3",
+  "contexte": "sponsors",
+  "texte": "Les Potions de la Fée Bricole : effets garantis, effets non précisés."
+ },
+ {
+  "perso": "heraut",
+  "id": "2944c490",
+  "fichier": "voix/heraut/2944c490.mp3",
+  "contexte": "sponsors",
+  "texte": "Boucliers Groumf & Fils. Solides. Comme l'argument."
+ },
+ {
+  "perso": "heraut",
+  "id": "19dd99c8",
+  "fichier": "voix/heraut/19dd99c8.mp3",
+  "contexte": "sponsors",
+  "texte": "L'Auberge du Trou Noir : personne n'est jamais revenu se plaindre."
+ },
+ {
+  "perso": "heraut",
+  "id": "49749ee2",
+  "fichier": "voix/heraut/49749ee2.mp3",
+  "contexte": "sponsors",
+  "texte": "Parchemins Merlinouche — l'orthographe est comprise, l'ordre des mots en option."
+ },
+ {
+  "perso": "heraut",
+  "id": "c49dd46f",
+  "fichier": "voix/heraut/c49dd46f.mp3",
+  "contexte": "sponsors",
+  "texte": "Les cours du soir de Maître Hibou : hou hou, mais avec mention."
+ },
+ {
+  "perso": "heraut",
+  "id": "a1280e86",
+  "fichier": "voix/heraut/a1280e86.mp3",
+  "contexte": "pouvoirUtilise",
+  "texte": "Pouvoir activé ! La magie opère, réglementairement."
+ },
+ {
+  "perso": "heraut",
+  "id": "fb1ed469",
+  "fichier": "voix/heraut/fb1ed469.mp3",
+  "contexte": "pouvoirUtilise",
+  "texte": "Et hop ! Un pouvoir de moins, un moment de gloire de plus."
+ },
+ {
+  "perso": "heraut",
+  "id": "49d24bb8",
+  "fichier": "voix/heraut/49d24bb8.mp3",
+  "contexte": "recitRegles",
+  "texte": "Oyez, oyez ! Le Grand Héraut vous raconte les règles du Donjon du Savoir."
+ },
+ {
+  "perso": "heraut",
+  "id": "acbf0703",
+  "fichier": "voix/heraut/acbf0703.mp3",
+  "contexte": "recitRegles",
+  "texte": "Voilà pour les règles. Le reste s'apprend en jouant, et le Héraut veille. Bonne partie !"
+ },
+ {
+  "perso": "heraut",
+  "id": "f245abd2",
+  "fichier": "voix/heraut/f245abd2.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que commence : celui qui a mangé le plus récemment."
+ },
+ {
+  "perso": "heraut",
+  "id": "8b9decb1",
+  "fichier": "voix/heraut/8b9decb1.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que ouvre le bal : celui dont l'anniversaire est le plus proche d'aujourd'hui."
+ },
+ {
+  "perso": "heraut",
+  "id": "1ce4d71e",
+  "fichier": "voix/heraut/1ce4d71e.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que débute : le plus petit de la table. Oui, on se lève pour comparer."
+ },
+ {
+  "perso": "heraut",
+  "id": "034b6aec",
+  "fichier": "voix/heraut/034b6aec.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que s'élance : celui qui a les mains les plus froides. Touchez-vous, c'est réglementaire."
+ },
+ {
+  "perso": "heraut",
+  "id": "2318bb21",
+  "fichier": "voix/heraut/2318bb21.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que commence : le dernier à avoir ri. Ça ne compte pas, ce rire-là."
+ },
+ {
+  "perso": "heraut",
+  "id": "0ad11a5b",
+  "fichier": "voix/heraut/0ad11a5b.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que ouvre la marche : celui qui vit le plus loin du Donjon. À vol de dragon."
+ },
+ {
+  "perso": "heraut",
+  "id": "4b2b53d5",
+  "fichier": "voix/heraut/4b2b53d5.mp3",
+  "contexte": "toasts",
+  "texte": "Oyez ! Que démarre : celui qui porte le plus de boutons (vêtements, pas d'ascenseur)."
+ },
+ {
+  "perso": "heraut",
+  "id": "6f8c6c0c",
+  "fichier": "voix/heraut/6f8c6c0c.mp3",
+  "contexte": "retournements",
+  "texte": "LE GRAND RETOURNEMENT ! Le plateau pivote dans un grincement épouvantable : on joue désormais dans l'autre sens, marche arrière toute !"
+ },
+ {
+  "perso": "heraut",
+  "id": "9917e221",
+  "fichier": "voix/heraut/9917e221.mp3",
+  "contexte": "retournements",
+  "texte": "LE GRAND RETOURNEMENT ! Le plateau pivote à nouveau : on repart dans le sens d'origine, en avant toute !"
+ },
+ {
+  "perso": "heraut",
+  "id": "86e7ca76",
+  "fichier": "voix/heraut/86e7ca76.mp3",
+  "contexte": "ceremonie",
+  "texte": "Rideau sur la partie ! Mais rien n'est joué : place à la Cérémonie des Étoiles Bonus…"
+ },
+ {
+  "perso": "heraut",
+  "id": "5e389bd2",
+  "fichier": "voix/heraut/5e389bd2.mp3",
+  "contexte": "ceremonie",
+  "texte": "Mesdames et messieurs, la Cérémonie des Étoiles Bonus ! Des prix, des exploits, et peut-être un retournement !"
+ },
+ {
+  "perso": "heraut",
+  "id": "58c3e1ce",
+  "fichier": "voix/heraut/58c3e1ce.mp3",
+  "contexte": "ceremonie",
+  "texte": "Toutes les étoiles sont remises ! Roulement de tambour… voici le classement final !"
+ },
+ {
+  "perso": "heraut",
+  "id": "d2156fbc",
+  "fichier": "voix/heraut/d2156fbc.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix Le Lièvre — pour qui a galopé le plus de cases !"
+ },
+ {
+  "perso": "heraut",
+  "id": "88e7df6f",
+  "fichier": "voix/heraut/88e7df6f.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix La Tortue Sage — pour qui a avancé le moins, tout en sagesse !"
+ },
+ {
+  "perso": "heraut",
+  "id": "6e62a70a",
+  "fichier": "voix/heraut/6e62a70a.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix Le Roi des Questions — pour qui a donné le plus de bonnes réponses !"
+ },
+ {
+  "perso": "heraut",
+  "id": "939b94ab",
+  "fichier": "voix/heraut/939b94ab.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix L'Œil de Lynx — pour qui a le meilleur taux de réussite !"
+ },
+ {
+  "perso": "heraut",
+  "id": "3fe40f61",
+  "fichier": "voix/heraut/3fe40f61.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix Le Magnat — pour qui a amassé le plus d'or de toute la partie !"
+ },
+ {
+  "perso": "heraut",
+  "id": "7acf2f7b",
+  "fichier": "voix/heraut/7acf2f7b.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix Le Souffre-Douleur — pour qui a vaillamment encaissé le plus de coups durs !"
+ },
+ {
+  "perso": "heraut",
+  "id": "fa0f76e6",
+  "fichier": "voix/heraut/fa0f76e6.mp3",
+  "contexte": "ceremonie.prix",
+  "texte": "Le prix Le Chouchou du Destin — pour qui a été désigné par le pur hasard des dés !"
+ },
+ {
+  "perso": "heraut",
+  "id": "2fd0df47",
+  "fichier": "voix/heraut/2fd0df47.mp3",
+  "contexte": "accroche.question",
+  "texte": "Attention, les neurones entrent en scène !"
+ },
+ {
+  "perso": "heraut",
+  "id": "9c003bed",
+  "fichier": "voix/heraut/9c003bed.mp3",
+  "contexte": "accroche.question",
+  "texte": "Question en approche. Les sourcils sont autorisés à réfléchir."
+ },
+ {
+  "perso": "heraut",
+  "id": "b86b3d6e",
+  "fichier": "voix/heraut/b86b3d6e.mp3",
+  "contexte": "accroche.question",
+  "texte": "Silence dans le donjon, juste assez pour entendre la question."
+ },
+ {
+  "perso": "heraut",
+  "id": "cd124593",
+  "fichier": "voix/heraut/cd124593.mp3",
+  "contexte": "accroche.question",
+  "texte": "À vos cerveaux, prêts, pensez !"
+ },
+ {
+  "perso": "heraut",
+  "id": "0ed4e365",
+  "fichier": "voix/heraut/0ed4e365.mp3",
+  "contexte": "accroche.question",
+  "texte": "Le donjon pose la question. Prenez tout votre temps."
+ },
+ {
+  "perso": "heraut",
+  "id": "aa69c98b",
+  "fichier": "voix/heraut/aa69c98b.mp3",
+  "contexte": "accroche.question",
+  "texte": "Celle-ci est très sérieuse. Enfin, elle essaie."
+ },
+ {
+  "perso": "heraut",
+  "id": "4e8151ac",
+  "fichier": "voix/heraut/4e8151ac.mp3",
+  "contexte": "accroche.question",
+  "texte": "Ouvrez grand les oreilles et le petit tiroir à savoir."
+ },
+ {
+  "perso": "heraut",
+  "id": "9fd65e6e",
+  "fichier": "voix/heraut/9fd65e6e.mp3",
+  "contexte": "accroche.question",
+  "texte": "Question fraîche, servie sans chronomètre."
+ },
+ {
+  "perso": "heraut",
+  "id": "7500ea68",
+  "fichier": "voix/heraut/7500ea68.mp3",
+  "contexte": "accroche.question",
+  "texte": "Le savoir frappe à la porte. On lui ouvre !"
+ },
+ {
+  "perso": "heraut",
+  "id": "b6bb4e77",
+  "fichier": "voix/heraut/b6bb4e77.mp3",
+  "contexte": "accroche.question",
+  "texte": "Attention, question avec supplément panache."
+ },
+ {
+  "perso": "heraut",
+  "id": "f09377c3",
+  "fichier": "voix/heraut/f09377c3.mp3",
+  "contexte": "accroche.question",
+  "texte": "Le prochain indice est la question elle-même."
+ },
+ {
+  "perso": "heraut",
+  "id": "c133a9e2",
+  "fichier": "voix/heraut/c133a9e2.mp3",
+  "contexte": "accroche.question",
+  "texte": "Concentration royale. Voici la question !"
+ },
+ {
+  "perso": "heraut",
+  "id": "0f54b422",
+  "fichier": "voix/heraut/0f54b422.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Et voici le petit trésor derrière la réponse."
+ },
+ {
+  "perso": "heraut",
+  "id": "4d700c3a",
+  "fichier": "voix/heraut/4d700c3a.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Minute culture. Elle dure le temps qu'il faut."
+ },
+ {
+  "perso": "heraut",
+  "id": "43d841cd",
+  "fichier": "voix/heraut/43d841cd.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "L'anecdote arrive, bien coiffée et presque à l'heure."
+ },
+ {
+  "perso": "heraut",
+  "id": "094bfc12",
+  "fichier": "voix/heraut/094bfc12.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Le saviez-vous ? Le donjon, lui, vient de l'apprendre."
+ },
+ {
+  "perso": "heraut",
+  "id": "2a1083ea",
+  "fichier": "voix/heraut/2a1083ea.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Place au détail qui fait briller les lunettes."
+ },
+ {
+  "perso": "heraut",
+  "id": "ca3a8e18",
+  "fichier": "voix/heraut/ca3a8e18.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Un peu de savoir en plus, ça ne prend aucune place."
+ },
+ {
+  "perso": "heraut",
+  "id": "292ac3af",
+  "fichier": "voix/heraut/292ac3af.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Attention, anecdote à raconter dès demain."
+ },
+ {
+  "perso": "heraut",
+  "id": "060eb7ca",
+  "fichier": "voix/heraut/060eb7ca.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Le rideau se lève sur les coulisses du savoir."
+ },
+ {
+  "perso": "heraut",
+  "id": "81da7b07",
+  "fichier": "voix/heraut/81da7b07.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Bonus de culture, sans supplément de prix."
+ },
+ {
+  "perso": "heraut",
+  "id": "50d8d3c2",
+  "fichier": "voix/heraut/50d8d3c2.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Et maintenant, le pourquoi du comment."
+ },
+ {
+  "perso": "heraut",
+  "id": "a5f1e264",
+  "fichier": "voix/heraut/a5f1e264.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Une réponse, c'est bien. Son histoire, c'est encore mieux."
+ },
+ {
+  "perso": "heraut",
+  "id": "b1b6f271",
+  "fichier": "voix/heraut/b1b6f271.mp3",
+  "contexte": "accroche.anecdote",
+  "texte": "Le grand héraut ouvre son tiroir à anecdotes."
+ },
+ {
+  "perso": "heraut",
+  "id": "be5cff1a",
+  "fichier": "voix/heraut/be5cff1a.mp3",
+  "contexte": "accroche.bonne",
+  "texte": "Bonne réponse ! Les neurones saluent la performance."
+ },
+ {
+  "perso": "heraut",
+  "id": "1fcd129a",
+  "fichier": "voix/heraut/1fcd129a.mp3",
+  "contexte": "accroche.bonne",
+  "texte": "Exact ! Le donjon applaudit avec ses deux mains."
+ },
+ {
+  "perso": "heraut",
+  "id": "b91316fd",
+  "fichier": "voix/heraut/b91316fd.mp3",
+  "contexte": "accroche.bonne",
+  "texte": "Bien joué ! Une réponse nette, sans miettes."
+ },
+ {
+  "perso": "heraut",
+  "id": "e12ee0ce",
+  "fichier": "voix/heraut/e12ee0ce.mp3",
+  "contexte": "accroche.bonne",
+  "texte": "C'est juste ! Même la pierre avait parié sur vous."
+ },
+ {
+  "perso": "heraut",
+  "id": "958d073e",
+  "fichier": "voix/heraut/958d073e.mp3",
+  "contexte": "accroche.bonne",
+  "texte": "Magnifique ! Le savoir vous va très bien."
+ },
+ {
+  "perso": "heraut",
+  "id": "be6e7e80",
+  "fichier": "voix/heraut/be6e7e80.mp3",
+  "contexte": "accroche.bonne",
+  "texte": "Réponse validée avec panache et petit bruit de trompette."
+ },
+ {
+  "perso": "heraut",
+  "id": "9714e40d",
+  "fichier": "voix/heraut/9714e40d.mp3",
+  "contexte": "accroche.mauvaise",
+  "texte": "Raté, mais avec une élégance remarquable."
+ },
+ {
+  "perso": "heraut",
+  "id": "97370ea9",
+  "fichier": "voix/heraut/97370ea9.mp3",
+  "contexte": "accroche.mauvaise",
+  "texte": "Pas cette fois. Le savoir revient au prochain tour."
+ },
+ {
+  "perso": "heraut",
+  "id": "3d0a9d07",
+  "fichier": "voix/heraut/3d0a9d07.mp3",
+  "contexte": "accroche.mauvaise",
+  "texte": "Presque ! Enfin, à quelques connaissances près."
+ },
+ {
+  "perso": "heraut",
+  "id": "cfa95d82",
+  "fichier": "voix/heraut/cfa95d82.mp3",
+  "contexte": "accroche.mauvaise",
+  "texte": "Le donjon dit non, mais très gentiment."
+ },
+ {
+  "perso": "heraut",
+  "id": "b804c22b",
+  "fichier": "voix/heraut/b804c22b.mp3",
+  "contexte": "accroche.mauvaise",
+  "texte": "Réponse cabossée. Anecdote toute neuve en échange."
+ },
+ {
+  "perso": "heraut",
+  "id": "7298cd00",
+  "fichier": "voix/heraut/7298cd00.mp3",
+  "contexte": "accroche.mauvaise",
+  "texte": "Ce n'est pas juste, mais personne ne perd son goûter."
+ },
+ {
+  "perso": "cageot",
+  "id": "46068317",
+  "fichier": "voix/cageot/46068317.mp3",
+  "contexte": "tour",
+  "texte": "En avant, pour le carton et la gloire !"
+ },
+ {
+  "perso": "cageot",
+  "id": "a2c78f78",
+  "fichier": "voix/cageot/a2c78f78.mp3",
+  "contexte": "tour",
+  "texte": "Mon casque-casserole est bien vissé, j'y vais !"
+ },
+ {
+  "perso": "cageot",
+  "id": "c679b638",
+  "fichier": "voix/cageot/c679b638.mp3",
+  "contexte": "tour",
+  "texte": "Un chevalier en carton n'a peur de rien… ou presque."
+ },
+ {
+  "perso": "cageot",
+  "id": "6ffd0fea",
+  "fichier": "voix/cageot/6ffd0fea.mp3",
+  "contexte": "bonne",
+  "texte": "Solide comme du carton triple épaisseur !"
+ },
+ {
+  "perso": "cageot",
+  "id": "5915ad97",
+  "fichier": "voix/cageot/5915ad97.mp3",
+  "contexte": "bonne",
+  "texte": "Ha ! Même pas plié !"
+ },
+ {
+  "perso": "cageot",
+  "id": "6bfa3555",
+  "fichier": "voix/cageot/6bfa3555.mp3",
+  "contexte": "mauvaise",
+  "texte": "Aïe, mon plastron a pris l'humidité…"
+ },
+ {
+  "perso": "cageot",
+  "id": "2e3514fa",
+  "fichier": "voix/cageot/2e3514fa.mp3",
+  "contexte": "mauvaise",
+  "texte": "Bon. On va dire que c'était un galop d'essai."
+ },
+ {
+  "perso": "cageot",
+  "id": "8071a8c5",
+  "fichier": "voix/cageot/8071a8c5.mp3",
+  "contexte": "pouvoir",
+  "texte": "Pouvoir du Grand Cageot, déploie-toi !"
+ },
+ {
+  "perso": "cageot",
+  "id": "476cab90",
+  "fichier": "voix/cageot/476cab90.mp3",
+  "contexte": "pouvoir",
+  "texte": "Place au carton renforcé !"
+ },
+ {
+  "perso": "cageot",
+  "id": "11a3420e",
+  "fichier": "voix/cageot/11a3420e.mp3",
+  "contexte": "victoire",
+  "texte": "Le carton triomphe de tout ! Youpi !"
+ },
+ {
+  "perso": "cageot",
+  "id": "ef30f376",
+  "fichier": "voix/cageot/ef30f376.mp3",
+  "contexte": "victoire",
+  "texte": "Champion, en armure recyclée s'il vous plaît !"
+ },
+ {
+  "perso": "etincelle",
+  "id": "223032fc",
+  "fichier": "voix/etincelle/223032fc.mp3",
+  "contexte": "tour",
+  "texte": "Abracada-me voilà ! À moi de jouer !"
+ },
+ {
+  "perso": "etincelle",
+  "id": "756f541b",
+  "fichier": "voix/etincelle/756f541b.mp3",
+  "contexte": "tour",
+  "texte": "Ça pétille là-dedans, j'y vais !"
+ },
+ {
+  "perso": "etincelle",
+  "id": "1f079b27",
+  "fichier": "voix/etincelle/1f079b27.mp3",
+  "contexte": "tour",
+  "texte": "Une pincée d'étoiles et c'est parti !"
+ },
+ {
+  "perso": "etincelle",
+  "id": "5902dbe3",
+  "fichier": "voix/etincelle/5902dbe3.mp3",
+  "contexte": "bonne",
+  "texte": "Étincelant ! Pouf, paillettes !"
+ },
+ {
+  "perso": "etincelle",
+  "id": "021be3f5",
+  "fichier": "voix/etincelle/021be3f5.mp3",
+  "contexte": "bonne",
+  "texte": "Magie de la mémoire : réussie !"
+ },
+ {
+  "perso": "etincelle",
+  "id": "08fe2443",
+  "fichier": "voix/etincelle/08fe2443.mp3",
+  "contexte": "mauvaise",
+  "texte": "Oups, ma potion a fait pschitt…"
+ },
+ {
+  "perso": "etincelle",
+  "id": "300b0bb1",
+  "fichier": "voix/etincelle/300b0bb1.mp3",
+  "contexte": "mauvaise",
+  "texte": "Ce n'était pas la bonne formule, tant pis !"
+ },
+ {
+  "perso": "etincelle",
+  "id": "861ab213",
+  "fichier": "voix/etincelle/861ab213.mp3",
+  "contexte": "pouvoir",
+  "texte": "Que la magie opère !"
+ },
+ {
+  "perso": "etincelle",
+  "id": "2094fa72",
+  "fichier": "voix/etincelle/2094fa72.mp3",
+  "contexte": "pouvoir",
+  "texte": "Un p'tit sort et hop !"
+ },
+ {
+  "perso": "etincelle",
+  "id": "7c17d696",
+  "fichier": "voix/etincelle/7c17d696.mp3",
+  "contexte": "victoire",
+  "texte": "Feu d'artifice de joie ! J'ai gagné !"
+ },
+ {
+  "perso": "etincelle",
+  "id": "1d6540f9",
+  "fichier": "voix/etincelle/1d6540f9.mp3",
+  "contexte": "victoire",
+  "texte": "La magie a parlé, et elle a bon goût !"
+ },
+ {
+  "perso": "gobelin",
+  "id": "fe32c187",
+  "fichier": "voix/gobelin/fe32c187.mp3",
+  "contexte": "tour",
+  "texte": "Comptons, comptons… à moi de jouer !"
+ },
+ {
+  "perso": "gobelin",
+  "id": "af3ddb51",
+  "fichier": "voix/gobelin/af3ddb51.mp3",
+  "contexte": "tour",
+  "texte": "Chaque pièce compte, et chaque question aussi !"
+ },
+ {
+  "perso": "gobelin",
+  "id": "f794e105",
+  "fichier": "voix/gobelin/f794e105.mp3",
+  "contexte": "tour",
+  "texte": "Un bon calcul et le trésor est à moi."
+ },
+ {
+  "perso": "gobelin",
+  "id": "433d7e57",
+  "fichier": "voix/gobelin/433d7e57.mp3",
+  "contexte": "bonne",
+  "texte": "Exact au centime près !"
+ },
+ {
+  "perso": "gobelin",
+  "id": "dd921428",
+  "fichier": "voix/gobelin/dd921428.mp3",
+  "contexte": "bonne",
+  "texte": "Bénéfice net : une bonne réponse !"
+ },
+ {
+  "perso": "gobelin",
+  "id": "edff19c3",
+  "fichier": "voix/gobelin/edff19c3.mp3",
+  "contexte": "mauvaise",
+  "texte": "Erreur dans mes comptes… ça arrive."
+ },
+ {
+  "perso": "gobelin",
+  "id": "46007610",
+  "fichier": "voix/gobelin/46007610.mp3",
+  "contexte": "mauvaise",
+  "texte": "Petit déficit, je me referai."
+ },
+ {
+  "perso": "gobelin",
+  "id": "d5df43ec",
+  "fichier": "voix/gobelin/d5df43ec.mp3",
+  "contexte": "pouvoir",
+  "texte": "Bonus comptable, activé !"
+ },
+ {
+  "perso": "gobelin",
+  "id": "ed8b9ac5",
+  "fichier": "voix/gobelin/ed8b9ac5.mp3",
+  "contexte": "pouvoir",
+  "texte": "Les intérêts, ça se cultive !"
+ },
+ {
+  "perso": "gobelin",
+  "id": "c2a9f5a2",
+  "fichier": "voix/gobelin/c2a9f5a2.mp3",
+  "contexte": "victoire",
+  "texte": "Trésor sécurisé, comptes équilibrés : j'ai gagné !"
+ },
+ {
+  "perso": "gobelin",
+  "id": "ac37cad9",
+  "fichier": "voix/gobelin/ac37cad9.mp3",
+  "contexte": "victoire",
+  "texte": "Riche en or ET en savoir !"
+ },
+ {
+  "perso": "nebulia",
+  "id": "c7fc9ad7",
+  "fichier": "voix/nebulia/c7fc9ad7.mp3",
+  "contexte": "tour",
+  "texte": "Les étoiles m'appellent… à moi de jouer."
+ },
+ {
+  "perso": "nebulia",
+  "id": "23a6a7fd",
+  "fichier": "voix/nebulia/23a6a7fd.mp3",
+  "contexte": "tour",
+  "texte": "Je lis l'avenir dans la poussière d'étoiles…"
+ },
+ {
+  "perso": "nebulia",
+  "id": "be941269",
+  "fichier": "voix/nebulia/be941269.mp3",
+  "contexte": "tour",
+  "texte": "L'univers murmure la réponse, écoutons."
+ },
+ {
+  "perso": "nebulia",
+  "id": "0803cc7a",
+  "fichier": "voix/nebulia/0803cc7a.mp3",
+  "contexte": "bonne",
+  "texte": "Écrit dans les astres, forcément juste."
+ },
+ {
+  "perso": "nebulia",
+  "id": "d21be793",
+  "fichier": "voix/nebulia/d21be793.mp3",
+  "contexte": "bonne",
+  "texte": "Les constellations approuvent."
+ },
+ {
+  "perso": "nebulia",
+  "id": "ec083dc1",
+  "fichier": "voix/nebulia/ec083dc1.mp3",
+  "contexte": "mauvaise",
+  "texte": "Une éclipse a brouillé ma vision…"
+ },
+ {
+  "perso": "nebulia",
+  "id": "b4228492",
+  "fichier": "voix/nebulia/b4228492.mp3",
+  "contexte": "mauvaise",
+  "texte": "Le cosmos est parfois taquin."
+ },
+ {
+  "perso": "nebulia",
+  "id": "7c2e725f",
+  "fichier": "voix/nebulia/7c2e725f.mp3",
+  "contexte": "pouvoir",
+  "texte": "Que la voûte céleste m'assiste !"
+ },
+ {
+  "perso": "nebulia",
+  "id": "22ad27d4",
+  "fichier": "voix/nebulia/22ad27d4.mp3",
+  "contexte": "pouvoir",
+  "texte": "Poussière d'étoiles, fais ton œuvre !"
+ },
+ {
+  "perso": "nebulia",
+  "id": "02c2bed5",
+  "fichier": "voix/nebulia/02c2bed5.mp3",
+  "contexte": "victoire",
+  "texte": "Les étoiles s'alignent : victoire cosmique !"
+ },
+ {
+  "perso": "nebulia",
+  "id": "9557c9bb",
+  "fichier": "voix/nebulia/9557c9bb.mp3",
+  "contexte": "victoire",
+  "texte": "Je brille plus fort que la Voie lactée !"
+ },
+ {
+  "perso": "boumbastien",
+  "id": "ed73ee93",
+  "fichier": "voix/boumbastien/ed73ee93.mp3",
+  "contexte": "tour",
+  "texte": "BOUM ! Enfin, doucement… à moi de jouer !"
+ },
+ {
+  "perso": "boumbastien",
+  "id": "dccb6e8a",
+  "fichier": "voix/boumbastien/dccb6e8a.mp3",
+  "contexte": "tour",
+  "texte": "J'ai bricolé un plan génial, regardez !"
+ },
+ {
+  "perso": "boumbastien",
+  "id": "a958d81c",
+  "fichier": "voix/boumbastien/a958d81c.mp3",
+  "contexte": "tour",
+  "texte": "Attention, ça va faire des étincelles !"
+ },
+ {
+  "perso": "boumbastien",
+  "id": "deec3a65",
+  "fichier": "voix/boumbastien/deec3a65.mp3",
+  "contexte": "bonne",
+  "texte": "EURÊKA ! Ça marche !"
+ },
+ {
+  "perso": "boumbastien",
+  "id": "ca0f381c",
+  "fichier": "voix/boumbastien/ca0f381c.mp3",
+  "contexte": "bonne",
+  "texte": "Explosion de génie contrôlée !"
+ },
+ {
+  "perso": "boumbastien",
+  "id": "707c24ab",
+  "fichier": "voix/boumbastien/707c24ab.mp3",
+  "contexte": "mauvaise",
+  "texte": "Bon, ça a fait pschitt au lieu de boum."
+ },
+ {
+  "perso": "boumbastien",
+  "id": "37dcdadd",
+  "fichier": "voix/boumbastien/37dcdadd.mp3",
+  "contexte": "mauvaise",
+  "texte": "Petit court-circuit, je répare !"
+ },
+ {
+  "perso": "boumbastien",
+  "id": "74c76d95",
+  "fichier": "voix/boumbastien/74c76d95.mp3",
+  "contexte": "pouvoir",
+  "texte": "Invention numéro 42, en marche !"
+ },
+ {
+  "perso": "boumbastien",
+  "id": "0dca4433",
+  "fichier": "voix/boumbastien/0dca4433.mp3",
+  "contexte": "pouvoir",
+  "texte": "Trois, deux, un… ça part !"
+ },
+ {
+  "perso": "boumbastien",
+  "id": "51cb13f5",
+  "fichier": "voix/boumbastien/51cb13f5.mp3",
+  "contexte": "victoire",
+  "texte": "BOUM final : j'ai tout fait sauter, sauf ma victoire !"
+ },
+ {
+  "perso": "boumbastien",
+  "id": "e7f7014b",
+  "fichier": "voix/boumbastien/e7f7014b.mp3",
+  "contexte": "victoire",
+  "texte": "Mon plus beau feu d'artifice, c'est ce triomphe !"
+ },
+ {
+  "perso": "duchesse",
+  "id": "55d67e0b",
+  "fichier": "voix/duchesse/55d67e0b.mp3",
+  "contexte": "tour",
+  "texte": "À moi, je vous prie. Noblesse oblige."
+ },
+ {
+  "perso": "duchesse",
+  "id": "c363d68b",
+  "fichier": "voix/duchesse/c363d68b.mp3",
+  "contexte": "tour",
+  "texte": "Un peu d'érudition, mes chers."
+ },
+ {
+  "perso": "duchesse",
+  "id": "001c90ac",
+  "fichier": "voix/duchesse/001c90ac.mp3",
+  "contexte": "tour",
+  "texte": "Observez la classe en action."
+ },
+ {
+  "perso": "duchesse",
+  "id": "52f6fa82",
+  "fichier": "voix/duchesse/52f6fa82.mp3",
+  "contexte": "bonne",
+  "texte": "Élémentaire, voyons."
+ },
+ {
+  "perso": "duchesse",
+  "id": "0000d234",
+  "fichier": "voix/duchesse/0000d234.mp3",
+  "contexte": "bonne",
+  "texte": "Comme il se doit, très chère."
+ },
+ {
+  "perso": "duchesse",
+  "id": "ce1ceade",
+  "fichier": "voix/duchesse/ce1ceade.mp3",
+  "contexte": "mauvaise",
+  "texte": "Une broutille sans importance."
+ },
+ {
+  "perso": "duchesse",
+  "id": "4dc5aa0c",
+  "fichier": "voix/duchesse/4dc5aa0c.mp3",
+  "contexte": "mauvaise",
+  "texte": "Même la noblesse a ses petits jours."
+ },
+ {
+  "perso": "duchesse",
+  "id": "1de3c70c",
+  "fichier": "voix/duchesse/1de3c70c.mp3",
+  "contexte": "pouvoir",
+  "texte": "Permettez que je m'illustre."
+ },
+ {
+  "perso": "duchesse",
+  "id": "78de3710",
+  "fichier": "voix/duchesse/78de3710.mp3",
+  "contexte": "pouvoir",
+  "texte": "Avec distinction, naturellement."
+ },
+ {
+  "perso": "duchesse",
+  "id": "393daf82",
+  "fichier": "voix/duchesse/393daf82.mp3",
+  "contexte": "victoire",
+  "texte": "La victoire sied à mon rang. Merci, merci."
+ },
+ {
+  "perso": "duchesse",
+  "id": "23ae4257",
+  "fichier": "voix/duchesse/23ae4257.mp3",
+  "contexte": "victoire",
+  "texte": "Couronnée de savoir, quelle élégance !"
+ },
+ {
+  "perso": "flaque",
+  "id": "4346771d",
+  "fichier": "voix/flaque/4346771d.mp3",
+  "contexte": "tour",
+  "texte": "Moussaillons, à l'abordage des questions !"
+ },
+ {
+  "perso": "flaque",
+  "id": "db954174",
+  "fichier": "voix/flaque/db954174.mp3",
+  "contexte": "tour",
+  "texte": "Hissez la grand-voile, à moi de jouer !"
+ },
+ {
+  "perso": "flaque",
+  "id": "a75e514d",
+  "fichier": "voix/flaque/a75e514d.mp3",
+  "contexte": "tour",
+  "texte": "Par mes bottes trempées, c'est mon tour !"
+ },
+ {
+  "perso": "flaque",
+  "id": "614c05bc",
+  "fichier": "voix/flaque/614c05bc.mp3",
+  "contexte": "bonne",
+  "texte": "Trésor trouvé, matelot !"
+ },
+ {
+  "perso": "flaque",
+  "id": "3425e1ac",
+  "fichier": "voix/flaque/3425e1ac.mp3",
+  "contexte": "bonne",
+  "texte": "En plein dans le mille, tonnerre !"
+ },
+ {
+  "perso": "flaque",
+  "id": "89cb6895",
+  "fichier": "voix/flaque/89cb6895.mp3",
+  "contexte": "mauvaise",
+  "texte": "Sacré grain de sable dans la boussole…"
+ },
+ {
+  "perso": "flaque",
+  "id": "d26f8438",
+  "fichier": "voix/flaque/d26f8438.mp3",
+  "contexte": "mauvaise",
+  "texte": "Homme à la mer ! Enfin, réponse à la mer."
+ },
+ {
+  "perso": "flaque",
+  "id": "8b79c55f",
+  "fichier": "voix/flaque/8b79c55f.mp3",
+  "contexte": "pouvoir",
+  "texte": "Vent en poupe, pouvoir déployé !"
+ },
+ {
+  "perso": "flaque",
+  "id": "4b5ea82d",
+  "fichier": "voix/flaque/4b5ea82d.mp3",
+  "contexte": "pouvoir",
+  "texte": "Par le pouvoir des sept flaques !"
+ },
+ {
+  "perso": "flaque",
+  "id": "b9e82a8f",
+  "fichier": "voix/flaque/b9e82a8f.mp3",
+  "contexte": "victoire",
+  "texte": "Le trésor est à moi, moussaillons ! Yo-ho !"
+ },
+ {
+  "perso": "flaque",
+  "id": "1b9974fd",
+  "fichier": "voix/flaque/1b9974fd.mp3",
+  "contexte": "victoire",
+  "texte": "Capitaine du savoir, ça se fête au grog… de sirop !"
+ },
+ {
+  "perso": "pelote",
+  "id": "9a62602c",
+  "fichier": "voix/pelote/9a62602c.mp3",
+  "contexte": "tour",
+  "texte": "À mon tour, mes petits chats."
+ },
+ {
+  "perso": "pelote",
+  "id": "efe15458",
+  "fichier": "voix/pelote/efe15458.mp3",
+  "contexte": "tour",
+  "texte": "Laissez faire mamie, tricot-tricot !"
+ },
+ {
+  "perso": "pelote",
+  "id": "5ec28962",
+  "fichier": "voix/pelote/5ec28962.mp3",
+  "contexte": "tour",
+  "texte": "Une maille à l'endroit, une bonne réponse à l'envers !"
+ },
+ {
+  "perso": "pelote",
+  "id": "85773bf7",
+  "fichier": "voix/pelote/85773bf7.mp3",
+  "contexte": "bonne",
+  "texte": "Voilà, tout doux, c'était juste !"
+ },
+ {
+  "perso": "pelote",
+  "id": "f15135f2",
+  "fichier": "voix/pelote/f15135f2.mp3",
+  "contexte": "bonne",
+  "texte": "Mamie sait des choses, figurez-vous."
+ },
+ {
+  "perso": "pelote",
+  "id": "ea433b83",
+  "fichier": "voix/pelote/ea433b83.mp3",
+  "contexte": "mauvaise",
+  "texte": "Oh, une maille filée… ce n'est rien."
+ },
+ {
+  "perso": "pelote",
+  "id": "d1c5e5a1",
+  "fichier": "voix/pelote/d1c5e5a1.mp3",
+  "contexte": "mauvaise",
+  "texte": "J'ai dû laisser mes lunettes au salon."
+ },
+ {
+  "perso": "pelote",
+  "id": "7567a867",
+  "fichier": "voix/pelote/7567a867.mp3",
+  "contexte": "pouvoir",
+  "texte": "Un petit coup de laine magique !"
+ },
+ {
+  "perso": "pelote",
+  "id": "41b14e4c",
+  "fichier": "voix/pelote/41b14e4c.mp3",
+  "contexte": "pouvoir",
+  "texte": "Tricotons-nous un joli coup."
+ },
+ {
+  "perso": "pelote",
+  "id": "15d960fe",
+  "fichier": "voix/pelote/15d960fe.mp3",
+  "contexte": "victoire",
+  "texte": "Mamie gagne, venez tous faire un câlin !"
+ },
+ {
+  "perso": "pelote",
+  "id": "782eaacd",
+  "fichier": "voix/pelote/782eaacd.mp3",
+  "contexte": "victoire",
+  "texte": "Et une écharpe de champion, tricotée maison !"
+ },
+ {
+  "perso": "hibou",
+  "id": "b481f21d",
+  "fichier": "voix/hibou/b481f21d.mp3",
+  "contexte": "tour",
+  "texte": "Hou hou… à moi de réfléchir."
+ },
+ {
+  "perso": "hibou",
+  "id": "1e964bdd",
+  "fichier": "voix/hibou/1e964bdd.mp3",
+  "contexte": "tour",
+  "texte": "Ouvrons le grand livre du savoir."
+ },
+ {
+  "perso": "hibou",
+  "id": "f4d64ad5",
+  "fichier": "voix/hibou/f4d64ad5.mp3",
+  "contexte": "tour",
+  "texte": "Chut, laissez le sage travailler."
+ },
+ {
+  "perso": "hibou",
+  "id": "531b0a82",
+  "fichier": "voix/hibou/531b0a82.mp3",
+  "contexte": "bonne",
+  "texte": "Page 42, comme je le pensais."
+ },
+ {
+  "perso": "hibou",
+  "id": "26d474f8",
+  "fichier": "voix/hibou/26d474f8.mp3",
+  "contexte": "bonne",
+  "texte": "Le savoir a toujours raison."
+ },
+ {
+  "perso": "hibou",
+  "id": "68185a04",
+  "fichier": "voix/hibou/68185a04.mp3",
+  "contexte": "mauvaise",
+  "texte": "Hmm, une note en bas de page m'a échappé."
+ },
+ {
+  "perso": "hibou",
+  "id": "12bced2c",
+  "fichier": "voix/hibou/12bced2c.mp3",
+  "contexte": "mauvaise",
+  "texte": "Même les hiboux clignent parfois des yeux."
+ },
+ {
+  "perso": "hibou",
+  "id": "e2d72dd3",
+  "fichier": "voix/hibou/e2d72dd3.mp3",
+  "contexte": "pouvoir",
+  "texte": "Sagesse ancestrale, à l'œuvre."
+ },
+ {
+  "perso": "hibou",
+  "id": "83a87f01",
+  "fichier": "voix/hibou/83a87f01.mp3",
+  "contexte": "pouvoir",
+  "texte": "Le grimoire s'ouvre pour moi."
+ },
+ {
+  "perso": "hibou",
+  "id": "5c377a80",
+  "fichier": "voix/hibou/5c377a80.mp3",
+  "contexte": "victoire",
+  "texte": "Le savoir couronne le patient. Hou hou !"
+ },
+ {
+  "perso": "hibou",
+  "id": "f875d8b9",
+  "fichier": "voix/hibou/f875d8b9.mp3",
+  "contexte": "victoire",
+  "texte": "Bibliothèque une, hasard zéro !"
+ },
+ {
+  "perso": "kribouille",
+  "id": "92d36dda",
+  "fichier": "voix/kribouille/92d36dda.mp3",
+  "contexte": "tour",
+  "texte": "Kribi-kribi ! À moi, à moi !"
+ },
+ {
+  "perso": "kribouille",
+  "id": "6be0b7d7",
+  "fichier": "voix/kribouille/6be0b7d7.mp3",
+  "contexte": "tour",
+  "texte": "Youpiii, c'est mon tour de jouer !"
+ },
+ {
+  "perso": "kribouille",
+  "id": "4b3ed3d0",
+  "fichier": "voix/kribouille/4b3ed3d0.mp3",
+  "contexte": "tour",
+  "texte": "Guili-question, j'adore !"
+ },
+ {
+  "perso": "kribouille",
+  "id": "42a22026",
+  "fichier": "voix/kribouille/42a22026.mp3",
+  "contexte": "bonne",
+  "texte": "Kribi ouiii ! Trop facile !"
+ },
+ {
+  "perso": "kribouille",
+  "id": "58f98806",
+  "fichier": "voix/kribouille/58f98806.mp3",
+  "contexte": "bonne",
+  "texte": "Hihi, j'ai trouvé, j'ai trouvé !"
+ },
+ {
+  "perso": "kribouille",
+  "id": "5acdc738",
+  "fichier": "voix/kribouille/5acdc738.mp3",
+  "contexte": "mauvaise",
+  "texte": "Ououh… pas grave, pas grave !"
+ },
+ {
+  "perso": "kribouille",
+  "id": "e09e13a8",
+  "fichier": "voix/kribouille/e09e13a8.mp3",
+  "contexte": "mauvaise",
+  "texte": "Oups-a-daisy ! On recommence !"
+ },
+ {
+  "perso": "kribouille",
+  "id": "58f91dd2",
+  "fichier": "voix/kribouille/58f91dd2.mp3",
+  "contexte": "pouvoir",
+  "texte": "Galipette magique, hop hop !"
+ },
+ {
+  "perso": "kribouille",
+  "id": "b0458b09",
+  "fichier": "voix/kribouille/b0458b09.mp3",
+  "contexte": "pouvoir",
+  "texte": "Kribouille-pouvoir, activé !"
+ },
+ {
+  "perso": "kribouille",
+  "id": "5d00cf63",
+  "fichier": "voix/kribouille/5d00cf63.mp3",
+  "contexte": "victoire",
+  "texte": "KRIBIII ! J'ai gagné, câlin d'étoiles !"
+ },
+ {
+  "perso": "kribouille",
+  "id": "0c4cfd2f",
+  "fichier": "voix/kribouille/0c4cfd2f.mp3",
+  "contexte": "victoire",
+  "texte": "Youpi youpi, sautons de joie !"
+ },
+ {
+  "perso": "plomberoy",
+  "id": "ab8c73cb",
+  "fichier": "voix/plomberoy/ab8c73cb.mp3",
+  "contexte": "tour",
+  "texte": "Clé à molette en main, c'est parti !"
+ },
+ {
+  "perso": "plomberoy",
+  "id": "e2f03353",
+  "fichier": "voix/plomberoy/e2f03353.mp3",
+  "contexte": "tour",
+  "texte": "On répare la question et on avance !"
+ },
+ {
+  "perso": "plomberoy",
+  "id": "469a6cf3",
+  "fichier": "voix/plomberoy/469a6cf3.mp3",
+  "contexte": "tour",
+  "texte": "Y'a du boulot ? J'adore, à moi de jouer !"
+ },
+ {
+  "perso": "plomberoy",
+  "id": "2cd19100",
+  "fichier": "voix/plomberoy/2cd19100.mp3",
+  "contexte": "bonne",
+  "texte": "Et voilà, réparé du premier coup !"
+ },
+ {
+  "perso": "plomberoy",
+  "id": "523775ca",
+  "fichier": "voix/plomberoy/523775ca.mp3",
+  "contexte": "bonne",
+  "texte": "Ça, c'est du travail bien serré !"
+ },
+ {
+  "perso": "plomberoy",
+  "id": "8c6b447f",
+  "fichier": "voix/plomberoy/8c6b447f.mp3",
+  "contexte": "mauvaise",
+  "texte": "Petite fuite… je colmate au prochain tour."
+ },
+ {
+  "perso": "plomberoy",
+  "id": "669d2cdf",
+  "fichier": "voix/plomberoy/669d2cdf.mp3",
+  "contexte": "mauvaise",
+  "texte": "Bon, faut resserrer le boulon."
+ },
+ {
+  "perso": "plomberoy",
+  "id": "5776af99",
+  "fichier": "voix/plomberoy/5776af99.mp3",
+  "contexte": "pouvoir",
+  "texte": "Super Bond, c'est parti !"
+ },
+ {
+  "perso": "plomberoy",
+  "id": "aa46a881",
+  "fichier": "voix/plomberoy/aa46a881.mp3",
+  "contexte": "pouvoir",
+  "texte": "Un coup de clé et hop, magie de plombier !"
+ },
+ {
+  "perso": "plomberoy",
+  "id": "ca99b9c0",
+  "fichier": "voix/plomberoy/ca99b9c0.mp3",
+  "contexte": "victoire",
+  "texte": "Chantier terminé, victoire livrée !"
+ },
+ {
+  "perso": "plomberoy",
+  "id": "734e38f6",
+  "fichier": "voix/plomberoy/734e38f6.mp3",
+  "contexte": "victoire",
+  "texte": "Champion toutes catégories, et sans fuite !"
+ }
+]

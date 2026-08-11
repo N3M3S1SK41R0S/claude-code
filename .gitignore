@@ -9,3 +9,8 @@
 .claude/skills/grill-me/
 .claude/skills/make-interfaces-feel-better/
 .claude/skills/thermo-nuclear-code-quality-review/
+
+# Copies de LIVRAISON du fichier autonome (Le-Donjon-du-Savoir-vNNN.html) :
+# ce sont des doublons octet pour octet de dist/donjon-standalone.html, déjà
+# versionné. Les committer ajouterait 25 Mo par version livrée, pour rien.
+donjon-du-savoir/dist/Le-Donjon-du-Savoir-v*.html
