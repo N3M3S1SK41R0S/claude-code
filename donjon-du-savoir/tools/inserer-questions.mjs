@@ -23,7 +23,16 @@ const norm = (t) => String(t).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,
 const STOP = new Set(`le la les un une des de du au aux et ou a l d en dans sur pour par avec sans que qui quoi dont quel quelle quels quelles est sont etait fut ont avait combien comment pourquoi ou quand tres plus moins celebre celebres connu connue grand grande petit petite monde terre france francais francaise pays ville nom nombre annee siecle premier premiere dernier derniere possede compte existe appelle designe trouve situe joue jouee film roman serie histoire question reponse classique standard officiel officielle veritable vrai vraie faux fausse`.split(" "));
 const motscles = (q) => new Set(norm(q.texte).split(" ").filter((w) => w.length > 2 && !STOP.has(w)));
 const jaccard = (a, b) => { let i = 0; for (const w of a) if (b.has(w)) i++; return i / Math.max(1, a.size + b.size - i); };
-const repDe = (q) => norm(q.bonne_reponse ?? q.reponse_numerique ?? "");
+// Empreinte de la RÉPONSE. `norm` ne garde que lettres et chiffres : une
+// réponse faite d'un SYMBOLE (« & », « @ », « % », « + ») se réduisait donc à
+// une chaîne vide, que le test d'égalité plus bas exigeait non vide — le
+// contrôle anti-doublon était alors purement et simplement sauté pour ces
+// questions-là. On retombe sur la réponse brute quand la normalisation ne
+// laisse rien.
+const repDe = (q) => {
+  const brut = String(q.bonne_reponse ?? q.reponse_numerique ?? "");
+  return norm(brut) || brut.trim().toLowerCase();
+};
 
 // Champs obligatoires : une question mal formée casserait le jeu en silence.
 const OBLIGATOIRES = ["categorie", "niveau_age", "difficulte", "format", "texte", "anecdote", "sources"];

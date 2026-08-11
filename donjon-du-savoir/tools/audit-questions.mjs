@@ -35,6 +35,11 @@ const VALIDES_EN_REVUE = new Set([
   "add-2053", "add-2096", "add-2377", "add-2559", // démythages vrai/faux relus
   "ext-0418", "add-0088", "add-0097", "add-0672", "add-1439", "add-2007", "add-2440", // réponse inhérente, niveaux jeunes
   "add-1033", "add-1104", "add-1318", "add-2493", // périphrases déjà limpides (Annecy, Caspienne)
+  // Compter les cochons des « Trois Petits Cochons » : la réponse est dans le
+  // titre, et c'est VOULU à 2-5 ans — l'enfant reconnaît son conte et compte
+  // jusqu'à trois. Même famille que les cas Uno / Chaperon rouge ci-dessus :
+  // à cet âge, la question sert la participation, pas la difficulté.
+  "v6a-138",
 ]);
 
 let retouches = 0;

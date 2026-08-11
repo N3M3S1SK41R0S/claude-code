@@ -1,0 +1,146 @@
+{
+ "total": 5209,
+ "parCatAge": {
+  "Arts": {
+   "tout_petit": 34,
+   "enfant": 43,
+   "ado": 65,
+   "adulte": 110
+  },
+  "Cinéma": {
+   "tout_petit": 32,
+   "enfant": 30,
+   "ado": 104,
+   "adulte": 113
+  },
+  "Dessin animé": {
+   "tout_petit": 55,
+   "enfant": 59,
+   "ado": 82,
+   "adulte": 55
+  },
+  "Gastronomie": {
+   "tout_petit": 45,
+   "enfant": 49,
+   "ado": 94,
+   "adulte": 97
+  },
+  "Général": {
+   "tout_petit": 104,
+   "enfant": 45,
+   "ado": 89,
+   "adulte": 74
+  },
+  "Géographie": {
+   "tout_petit": 46,
+   "enfant": 81,
+   "ado": 135,
+   "adulte": 139
+  },
+  "Histoire": {
+   "tout_petit": 28,
+   "enfant": 58,
+   "ado": 108,
+   "adulte": 124
+  },
+  "Insolite": {
+   "tout_petit": 46,
+   "enfant": 84,
+   "ado": 111,
+   "adulte": 112
+  },
+  "Jeux de société": {
+   "tout_petit": 31,
+   "enfant": 44,
+   "ado": 83,
+   "adulte": 60
+  },
+  "Jeux vidéo": {
+   "tout_petit": 31,
+   "enfant": 47,
+   "ado": 111,
+   "adulte": 58
+  },
+  "Langue française": {
+   "tout_petit": 37,
+   "enfant": 55,
+   "ado": 67,
+   "adulte": 100
+  },
+  "Littérature": {
+   "tout_petit": 29,
+   "enfant": 38,
+   "ado": 75,
+   "adulte": 134
+  },
+  "Manga": {
+   "tout_petit": 25,
+   "enfant": 27,
+   "ado": 125,
+   "adulte": 67
+  },
+  "Musique": {
+   "tout_petit": 46,
+   "enfant": 43,
+   "ado": 92,
+   "adulte": 118
+  },
+  "Pop Culture": {
+   "tout_petit": 33,
+   "enfant": 29,
+   "ado": 118,
+   "adulte": 62
+  },
+  "Sciences & Nature": {
+   "tout_petit": 159,
+   "enfant": 57,
+   "ado": 92,
+   "adulte": 106
+  },
+  "Séries": {
+   "tout_petit": 29,
+   "enfant": 26,
+   "ado": 129,
+   "adulte": 70
+  },
+  "Sport": {
+   "tout_petit": 40,
+   "enfant": 65,
+   "ado": 103,
+   "adulte": 97
+  }
+ },
+ "parFormatAge": {
+  "qcm": {
+   "tout_petit": 573,
+   "enfant": 516,
+   "ado": 1049,
+   "adulte": 1041
+  },
+  "vrai_faux": {
+   "tout_petit": 217,
+   "enfant": 244,
+   "ado": 428,
+   "adulte": 384
+  },
+  "gambit_numerique": {
+   "tout_petit": 30,
+   "enfant": 85,
+   "ado": 202,
+   "adulte": 181
+  },
+  "equipe": {
+   "tout_petit": 30,
+   "enfant": 35,
+   "ado": 104,
+   "adulte": 88
+  },
+  "cash_carre_duo": {
+   "tout_petit": 0,
+   "enfant": 0,
+   "ado": 0,
+   "adulte": 2
+  }
+ },
+ "maigres": []
+}
