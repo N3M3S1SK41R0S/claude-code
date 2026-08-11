@@ -14,6 +14,7 @@ if (!fichier) { console.error("usage : node tools/inserer-questions.mjs <fichier
 const iPref = process.argv.indexOf("--prefixe");
 const prefixe = iPref > -1 ? process.argv[iPref + 1] : "v3";
 const force = process.argv.includes("--force");
+const essai = process.argv.includes("--essai"); // contrôle sans écrire
 
 const banque = JSON.parse(readFileSync(chemin, "utf8"));
 const candidates = JSON.parse(readFileSync(fichier, "utf8"));
@@ -53,6 +54,10 @@ for (const c of candidates) {
 console.log(`${retenues.length} retenue(s), ${rejets.length} rejet(s) sur ${candidates.length} candidate(s)`);
 for (const [t, raison] of rejets) console.log(`  ✗ « ${String(t).slice(0, 55)} » — ${raison}`);
 if (rejets.length && !force) { console.log("\nRien n'a été écrit (--force pour insérer quand même les retenues)."); process.exit(1); }
+// --essai : contrôle À BLANC. Indispensable quand plusieurs forgerons
+// préparent des lots EN PARALLÈLE — chacun vérifie son fichier sans jamais
+// toucher à la banque (deux écritures simultanées la corrompraient).
+if (essai) { console.log("\n(essai) rien n'a été écrit — le lot est prêt à être inséré."); process.exit(0); }
 
 let n = 0;
 const existants = new Set(banque.questions.map((q) => q.id));

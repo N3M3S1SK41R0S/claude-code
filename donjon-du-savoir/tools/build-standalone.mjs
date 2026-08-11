@@ -8,6 +8,7 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { gzipSync } from "node:zlib";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const R = (p) => readFileSync(join(root, p), "utf8");
@@ -89,11 +90,30 @@ for (const [perso, clips] of Object.entries(voixManifest)) {
   }
 }
 const VOIX_TOKEN = '"__VOIX_MANIFEST_TOKEN__"';
+// Deux façons de servir la banque, choisies à l'écriture de chaque sortie.
+const BANQUE_TOKEN = '"__BANQUE_TOKEN__"';
+const banqueEnClair = `(() => { const b = ${JSON.stringify(bank)}; return () => Promise.resolve(b); })()`;
+const banqueCompressee = (() => {
+  const gz = gzipSync(Buffer.from(JSON.stringify(bank), "utf8"), { level: 9 });
+  return `(() => {
+    let promesse = null;
+    return () => (promesse ??= (async () => {
+      const octets = Uint8Array.from(atob(${JSON.stringify(gz.toString("base64"))}), (c) => c.charCodeAt(0));
+      const flux = new Blob([octets]).stream().pipeThrough(new DecompressionStream("gzip"));
+      return JSON.parse(await new Response(flux).text());
+    })());
+  })()`;
+})();
 
 const runtime = `
 (function () {
   "use strict";
-  const __QUESTIONS = ${JSON.stringify(bank)};
+  // La banque arrive par une FONCTION qui rend une promesse : le fichier
+  // autonome la porte en clair (aucune limite de taille, lisible par
+  // n'importe quel appareil, même ancien), l'artifact publié la porte
+  // COMPRESSÉE — 2,2 Mio de texte tombent à 0,8 Mio, et c'est cette place
+  // qui permet à la banque de continuer à grossir sous le plafond de 16 Mio.
+  const __LIRE_BANQUE = ${BANQUE_TOKEN};
   const __WORDGAMES = ${JSON.stringify(wordgames)};
   const __LANGUES = ${JSON.stringify(langues)};
   const __VOIXMANIFEST = ${VOIX_TOKEN};
@@ -101,7 +121,7 @@ const runtime = `
   const __realFetch = typeof window.fetch === "function" ? window.fetch.bind(window) : null;
   window.fetch = function (url, ...rest) {
     if (String(url).indexOf("questions.json") !== -1) {
-      return Promise.resolve({ ok: true, json: () => Promise.resolve(__QUESTIONS) });
+      return Promise.resolve({ ok: true, json: () => __LIRE_BANQUE() });
     }
     if (String(url).indexOf("wordgames.json") !== -1) {
       return Promise.resolve({ ok: true, json: () => Promise.resolve(__WORDGAMES) });
@@ -219,18 +239,24 @@ ${artifactContent}</body>
 
 mkdirSync(join(root, "dist"), { recursive: true });
 const nbClips = Object.values(voixInline).reduce((n, c) => n + Object.keys(c).length, 0);
-writeFileSync(join(root, "dist", "donjon-standalone.html"), fullPage.replace(VOIX_TOKEN, JSON.stringify(voixInline)), "utf8");
-writeFileSync(join(root, "dist", "donjon-artifact.html"), artifactContent.replace(VOIX_TOKEN, "{}"), "utf8");
+const sortieStandalone = fullPage
+  .replace(VOIX_TOKEN, JSON.stringify(voixInline))
+  .replace(BANQUE_TOKEN, () => banqueEnClair);
+const sortieArtifact = artifactContent
+  .replace(VOIX_TOKEN, "{}")
+  .replace(BANQUE_TOKEN, () => banqueCompressee);
+writeFileSync(join(root, "dist", "donjon-standalone.html"), sortieStandalone, "utf8");
+writeFileSync(join(root, "dist", "donjon-artifact.html"), sortieArtifact, "utf8");
 const kb = (s) => Math.round(Buffer.byteLength(s) / 1024);
-console.log(`✓ dist/donjon-standalone.html (${kb(fullPage.replace(VOIX_TOKEN, JSON.stringify(voixInline)))} Ko, ${bank.questions.length} questions, ${assetCount} assets inline, ${nbClips} clips de voix)`);
-console.log(`✓ dist/donjon-artifact.html (${kb(artifactContent.replace(VOIX_TOKEN, "{}"))} Ko, voix en synthèse)`);
+console.log(`✓ dist/donjon-standalone.html (${kb(sortieStandalone)} Ko, ${bank.questions.length} questions en clair, ${assetCount} assets inline, ${nbClips} clips de voix)`);
+console.log(`✓ dist/donjon-artifact.html (${kb(sortieArtifact)} Ko, banque compressée, voix en synthèse)`);
 
 // GARDE-FOU DE PUBLICATION : la version web plafonne à 16 Mio. Dépasser ne
 // produit pas une erreur ici mais un refus AU MOMENT de publier, longtemps
 // après la construction — d'où ce contrôle immédiat, chiffré, avec la marge
 // restante toujours affichée pour qu'on la voie fondre avant de la crever.
 const PLAFOND = 16 * 1024 * 1024;
-const poidsArtifact = Buffer.byteLength(artifactContent.replace(VOIX_TOKEN, "{}"));
+const poidsArtifact = Buffer.byteLength(sortieArtifact); // le fichier RÉELLEMENT publié
 const marge = PLAFOND - poidsArtifact;
 if (marge < 0) {
   console.error(`✗ LIMITE DÉPASSÉE : l'artifact pèse ${Math.round(-marge / 1024)} Ko de trop (plafond 16 Mio).`);
