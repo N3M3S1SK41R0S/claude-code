@@ -46,6 +46,20 @@ for (const f of FORMATS) {
   console.log(ligne(f, v, v.reduce((s, x) => s + x, 0)));
 }
 
+// ÉQUILIBRE DES VRAI/FAUX : si « Vrai » est presque toujours la bonne
+// réponse, répondre « Vrai » les yeux fermés devient une stratégie gagnante
+// et le format ne teste plus rien. Défaut invisible à la relecture — une
+// vague entière est arrivée à 87 % de « Vrai » sans que rien ne le signale —
+// donc mesuré ici à demeure.
+const vf = questions.filter((q) => q.format === "vrai_faux");
+if (vf.length) {
+  const vrais = vf.filter((q) => q.bonne_reponse === "Vrai").length;
+  const part = Math.round((vrais / vf.length) * 100);
+  const verdict = part >= 40 && part <= 60 ? "✓" : part >= 30 && part <= 70 ? "≈" : "⚠️";
+  console.log(`\n${verdict} vrai/faux : ${vrais} « Vrai » contre ${vf.length - vrais} « Faux » (${part} % de Vrai — l'équilibre visé est 50 %)`);
+  if (part > 70 || part < 30) console.log("   Répondre toujours pareil suffirait à gagner : à rééquilibrer.");
+}
+
 if (maigres.length) {
   console.log(`\n${maigres.length} case(s) sous ${SEUIL} questions :`);
   for (const m of maigres.sort((a, b) => a.n - b.n)) console.log(`  ${String(m.n).padStart(4)}  ${m.categorie} / ${m.age}`);

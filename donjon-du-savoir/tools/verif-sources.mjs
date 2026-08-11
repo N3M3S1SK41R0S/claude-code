@@ -47,6 +47,25 @@ for (let i = 0; i < urls.length; i += LOT) {
 }
 console.log("");
 
+// SECONDE CHANCE, AU RALENTI : un « 429 » (trop de requêtes) vient de notre
+// propre cadence, pas d'une source fautive. On repasse ces URL une par une,
+// espacées — sans quoi un contrôle sain ressemblerait à une avalanche de
+// problèmes et on finirait par ne plus le lire.
+if (douteuses.length) {
+  console.log(`\nSeconde chance au ralenti pour ${douteuses.length} URL…`);
+  const restantes = [];
+  for (const [u, code] of douteuses) {
+    await new Promise((r) => setTimeout(r, 1500));
+    try {
+      const r = await fetch(u, { redirect: "follow", signal: AbortSignal.timeout(25000) });
+      if (r.status === 404 || r.status === 410) absentes.push([u, r.status]);
+      else if (!r.ok) restantes.push([u, r.status]);
+    } catch { restantes.push([u, code]); }
+  }
+  douteuses.length = 0;
+  douteuses.push(...restantes);
+}
+
 for (const [u, code] of absentes) console.log(`✗ ${code} — ${u}\n     questions : ${parUrl.get(u).slice(0, 4).join(", ")}`);
 for (const [u, code] of douteuses) console.log(`? ${code} — ${u}`);
 console.log(`\n${absentes.length} source(s) INTROUVABLE(S), ${douteuses.length} non concluante(s) (réseau/403).`);
