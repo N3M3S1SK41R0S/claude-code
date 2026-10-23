@@ -176,8 +176,19 @@ begin
 end
 $$;
 
--- ── 5. Valorisations : uniquement via la propriété de l'item ─────────────────
+-- ── 5. Valorisations : écrites par le serveur, lues via la propriété de l'item ─
+-- Estimation de service (valuate / price-cron : service_role).
 do $$
+begin
+  set local role service_role;
+  insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, sources)
+  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01', 40, 35, 45, 30, 50, 60, '[]'::jsonb);
+end
+$$;
+
+do $$
+declare
+  v_count integer;
 begin
   perform set_config('velum.uid', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', true);
   set local role authenticated;
@@ -188,7 +199,31 @@ begin
   exception
     when insufficient_privilege or check_violation then null; -- attendu
   end;
-  raise notice 'OK 5 — valuations protégées par la propriété de l''item';
+  select count(*) into v_count from public.valuations;
+  if v_count <> 0 then raise exception 'RLS valuations : Bob lit % estimation(s) d''autrui', v_count; end if;
+
+  -- La propriétaire LIT ses estimations mais n'en écrit, modifie ni supprime
+  -- aucune (seuil de certification des plateformes : jamais falsifiable).
+  perform set_config('velum.uid', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', true);
+  select count(*) into v_count from public.valuations;
+  if v_count <> 1 then raise exception 'RLS valuations : Alice devrait lire 1 estimation, vu %', v_count; end if;
+  begin
+    insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, sources, valued_at)
+    values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01', 1, 1, 1, 1, 1, 10, '[]'::jsonb, now() + interval '50 years');
+    raise exception 'valuations : estimation forgée par la propriétaire acceptée';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+  begin
+    update public.valuations set central = 1;
+    raise exception 'valuations : estimation modifiée par la propriétaire';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+  begin
+    delete from public.valuations;
+    raise exception 'valuations : estimation supprimée par la propriétaire';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+  raise notice 'OK 5 — valuations : écriture serveur seule, lecture via la propriété de l''item';
 end
 $$;
 
