@@ -434,6 +434,8 @@ export interface OrderRow {
   listing_title?: string | null;
   listing_domain?: VelumDomain | null;
   certification_required?: boolean | null;
+  /** L'annonce porte déjà une certification d'expert (vue anonymisée). */
+  listing_certified?: boolean | null;
 }
 
 /** Pseudonyme affiché quand le serveur n'en fournit pas (schéma antérieur). */
@@ -469,6 +471,9 @@ export function rowToOrder(row: OrderRow, viewerId?: string): MarketOrder {
     counterpartyAlias: row.counterparty_alias ?? FALLBACK_MEMBER_ALIAS,
     listingTitle: row.listing_title ?? null,
     certificationRequired: row.certification_required === true,
+    // Absent (et non « faux ») quand le serveur ne le fournit pas : on ne
+    // présume jamais qu'une annonce n'est pas certifiée.
+    ...(typeof row.listing_certified === 'boolean' ? { listingCertified: row.listing_certified } : {}),
   };
 }
 
@@ -614,6 +619,8 @@ export interface ExchangeRow {
   state: ExchangeState;
   my_commission: number | string | null;
   certification_required: boolean | null;
+  /** L'annonce visée porte déjà une certification d'expert. */
+  listing_certified?: boolean | null;
   proposer_tracking: string | null;
   recipient_tracking: string | null;
   proposer_received: boolean | null;
@@ -642,6 +649,7 @@ export function rowToExchangeProposal(row: ExchangeRow): ExchangeProposal {
     state: row.state,
     myCommission: toNullableNumber(row.my_commission),
     certificationRequired: row.certification_required === true,
+    ...(typeof row.listing_certified === 'boolean' ? { listingCertified: row.listing_certified } : {}),
     proposerTracking: row.proposer_tracking ?? null,
     recipientTracking: row.recipient_tracking ?? null,
     proposerReceived: row.proposer_received === true,

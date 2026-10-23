@@ -41,7 +41,11 @@ create type public.market_order_view as (
   counterparty_alias text,
   listing_title text,
   listing_domain public.velum_domain,
-  certification_required boolean
+  -- Certification demandée (ou obtenue) sur la commande elle-même.
+  certification_required boolean,
+  -- L'ANNONCE porte déjà une certification d'expert : aucune nouvelle
+  -- demande d'expertise n'est recevable sur la commande.
+  listing_certified boolean
 );
 
 create type public.market_exchange_view as (
@@ -61,6 +65,9 @@ create type public.market_exchange_view as (
   state text,
   my_commission numeric,
   certification_required boolean,
+  -- L'ANNONCE visée porte déjà une certification d'expert : son objet n'est
+  -- plus expertisable à la demande de l'auteur de la proposition.
+  listing_certified boolean,
   proposer_tracking text,
   recipient_tracking text,
   proposer_received boolean,
@@ -365,7 +372,8 @@ as $$
     l.domain,
     exists (
       select 1 from public.certification_requests c
-      where c.order_id = o.id and c.status in ('requested', 'in_review', 'certified'))
+      where c.order_id = o.id and c.status in ('requested', 'in_review', 'certified')),
+    l.expert_appraisal_ref is not null
   from public.orders o
   join public.listings l on l.id = o.listing_id
   where auth.uid() in (o.buyer_id, o.seller_id)
@@ -397,6 +405,7 @@ as $$
     e.state,
     case when e.proposer_id = auth.uid() then e.proposer_commission else e.recipient_commission end,
     e.certification_required,
+    l.expert_appraisal_ref is not null,
     e.proposer_tracking,
     e.recipient_tracking,
     e.proposer_received,
@@ -405,6 +414,7 @@ as $$
     e.created_at,
     e.updated_at
   from public.exchange_proposals e
+  left join public.listings l on l.id = e.listing_id
   where auth.uid() in (e.proposer_id, e.recipient_id)
     and (p_exchange is null or e.id = p_exchange)
   order by e.updated_at desc, e.id

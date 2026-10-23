@@ -25,7 +25,8 @@
 --       annonce réservée invisible d'un tiers ;
 --   X15 arrondi au centime sur les écritures réelles du registre (vecteurs
 --       partagés avec packages/config) ;
---   X16 expédition du vendeur avec date de livraison : P0001 ; sans date, elle passe.
+--   X16 expédition du vendeur avec date de livraison : P0001 ; sans date, elle passe ;
+--   X17 listing_certified : annonce déjà certifiée, exposée aux parties.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 \set ON_ERROR_STOP on
@@ -1297,6 +1298,74 @@ begin
     raise exception 'X16 : aucune date de livraison ne doit être enregistrée (%)', v_delivered;
   end if;
   raise notice 'OK X16 — vendeur : date de livraison à l''expédition ⇒ P0001 ; sans date, l''expédition passe';
+end
+$$;
+
+-- ── X17. listing_certified : l'annonce porte déjà une certification ─────────
+-- Exposé par my_market_orders et my_exchanges (aux deux parties), distinct
+-- de certification_required (demande portée par la transaction elle-même) :
+-- l'interface ne propose plus une expertise que le serveur refuse.
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000023', '81000000-0000-4000-8000-000000000001', 'coin', 'Médaille de Roty'),
+  ('91000000-0000-4000-8000-000000000024', '81000000-0000-4000-8000-000000000001', 'coin', 'Jeton de Louis XIII'),
+  ('92000000-0000-4000-8000-000000000004', '82000000-0000-4000-8000-000000000002', 'coin', 'Liard de Bouillon');
+
+do $$
+declare
+  v_cert uuid;
+  v_order uuid;
+  v_ex uuid;
+  v_row record;
+begin
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price, kind) values
+    ('a1700000-0000-4000-8000-000000000023', '91000000-0000-4000-8000-000000000023',
+     '81000000-0000-4000-8000-000000000001', 600, 'sale_or_exchange'),
+    ('a1700000-0000-4000-8000-000000000024', '91000000-0000-4000-8000-000000000024',
+     '81000000-0000-4000-8000-000000000001', 40, 'sale');
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select id into v_cert from public.certification_requests
+  where listing_id = 'a1700000-0000-4000-8000-000000000023' and status = 'requested';
+  perform public.decide_certification(v_cert, true, 'expertises/alice/roty.pdf', 'Authentique');
+
+  -- Commande sur l'annonce certifiée : listing_certified vrai, aucune demande.
+  set local role authenticated;
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select * into v_row from public.market_buy('a1700000-0000-4000-8000-000000000023');
+  v_order := v_row.id;
+  if v_row.listing_certified is distinct from true or v_row.certification_required then
+    raise exception 'X17 : commande sur annonce certifiée ⇒ listing_certified vrai attendu (%)', row_to_json(v_row);
+  end if;
+  perform public._mkh_expect_error(
+    format('select * from public.request_certification(''mutual_agreement'', p_order => %L)', v_order),
+    '%déjà authentifié%');
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select * into v_row from public.my_market_orders(v_order);
+  if v_row.listing_certified is distinct from true then
+    raise exception 'X17 : vendeur ⇒ listing_certified vrai attendu (%)', row_to_json(v_row);
+  end if;
+  -- Annonce non certifiée : listing_certified faux.
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select * into v_row from public.market_buy('a1700000-0000-4000-8000-000000000024');
+  if v_row.listing_certified is distinct from false then
+    raise exception 'X17 : annonce non certifiée ⇒ listing_certified faux attendu (%)', row_to_json(v_row);
+  end if;
+
+  -- Proposition d'échange sur l'annonce certifiée : vrai pour les deux parties.
+  select * into v_row from public.propose_exchange(
+    'a1700000-0000-4000-8000-000000000023', '92000000-0000-4000-8000-000000000004', 450);
+  v_ex := v_row.id;
+  if v_row.listing_certified is distinct from true then
+    raise exception 'X17 : auteur ⇒ listing_certified vrai attendu (%)', row_to_json(v_row);
+  end if;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select * into v_row from public.my_exchanges(v_ex);
+  if v_row.listing_certified is distinct from true then
+    raise exception 'X17 : destinataire ⇒ listing_certified vrai attendu (%)', row_to_json(v_row);
+  end if;
+  raise notice 'OK X17 — listing_certified exposé aux parties d''une commande et d''un échange';
 end
 $$;
 

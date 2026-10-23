@@ -69,6 +69,7 @@ function orderView(overrides: Record<string, unknown> = {}): Record<string, unkn
     listing_title: 'Écu Louis XV 1726',
     listing_domain: 'coin',
     certification_required: false,
+    listing_certified: false,
     ...overrides,
   };
 }
@@ -91,6 +92,7 @@ function exchangeView(overrides: Record<string, unknown> = {}): Record<string, u
     state: 'proposed',
     my_commission: null,
     certification_required: false,
+    listing_certified: false,
     proposer_tracking: null,
     recipient_tracking: null,
     proposer_received: false,
@@ -249,7 +251,12 @@ describe('marketplace repo — commandes', () => {
 
   it('myOrders lit la vue anonymisée : rôle et pseudonyme, identifiant d’autrui masqué', async () => {
     fake.rpcResponses['my_market_orders'] = {
-      data: [orderView(), orderView({ id: 'o2', role: 'seller', buyer_id: null, seller_id: ME, counterparty_alias: 'Collectionneur B21C', certification_required: true })],
+      data: [
+        orderView(),
+        orderView({ id: 'o2', role: 'seller', buyer_id: null, seller_id: ME, counterparty_alias: 'Collectionneur B21C', certification_required: true }),
+        // Annonce déjà certifiée : aucune demande d'expertise recevable sur la commande.
+        orderView({ id: 'o3', listing_certified: true }),
+      ],
     };
     const orders = await repo.myOrders();
     expect(fake.rpcCalls[0]).toEqual({ fn: 'my_market_orders', args: {} });
@@ -271,8 +278,10 @@ describe('marketplace repo — commandes', () => {
       counterpartyAlias: 'Collectionneur 7F3A',
       listingTitle: 'Écu Louis XV 1726',
       certificationRequired: false,
+      listingCertified: false,
     });
     expect(orders[1]).toMatchObject({ role: 'seller', buyerId: '', sellerId: ME, certificationRequired: true });
+    expect(orders[2]).toMatchObject({ certificationRequired: false, listingCertified: true });
   });
 
   it('buy passe par market_buy ; un refus métier devient INVALID_INPUT avec le motif serveur', async () => {
@@ -390,6 +399,7 @@ describe('marketplace repo — échanges', () => {
       state: 'proposed',
       myCommission: null,
       certificationRequired: false,
+      listingCertified: false,
       proposerTracking: null,
       recipientTracking: null,
       proposerReceived: false,
@@ -413,10 +423,15 @@ describe('marketplace repo — échanges', () => {
 
   it('myExchanges : propositions émises et reçues, commission figée', async () => {
     fake.rpcResponses['my_exchanges'] = {
-      data: [exchangeView({ role: 'recipient', state: 'shipping', my_commission: '16.00', recipient_tracking: 'SO-1', recipient_received: true })],
+      data: [
+        exchangeView({ role: 'recipient', state: 'shipping', my_commission: '16.00', recipient_tracking: 'SO-1', recipient_received: true }),
+        exchangeView({ id: 'x2', listing_certified: true }),
+      ],
     };
-    const [exchange] = await repo.myExchanges();
-    expect(exchange).toMatchObject({ role: 'recipient', state: 'shipping', myCommission: 16, recipientTracking: 'SO-1', recipientReceived: true, proposerReceived: false });
+    const [exchange, onCertified] = await repo.myExchanges();
+    expect(exchange).toMatchObject({ role: 'recipient', state: 'shipping', myCommission: 16, recipientTracking: 'SO-1', recipientReceived: true, proposerReceived: false, listingCertified: false });
+    // Annonce visée déjà certifiée : l'auteur ne peut plus en demander l'expertise.
+    expect(onCertified).toMatchObject({ role: 'proposer', listingCertified: true });
     // Échéance relue de my_exchanges (expires_at) : l'interface masque « Accepter » une fois échue.
     expect(exchange?.expiresAt).toBe('2026-10-28T08:00:00Z');
   });

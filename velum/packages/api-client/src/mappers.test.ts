@@ -283,6 +283,44 @@ describe('mappers marketplace (vues anonymisées)', () => {
     });
   });
 
+  it('rowToOrder / rowToExchangeProposal : listingCertified seulement s’il est fourni', () => {
+    // Fourni par la vue : recopié tel quel (vrai comme faux).
+    expect(rowToOrder({ ...legacyOrder, listing_certified: true }).listingCertified).toBe(true);
+    expect(rowToOrder({ ...legacyOrder, listing_certified: false }).listingCertified).toBe(false);
+    // Absent ou null (schéma antérieur) : propriété omise, jamais « non certifiée » présumé.
+    expect('listingCertified' in rowToOrder(legacyOrder)).toBe(false);
+    expect('listingCertified' in rowToOrder({ ...legacyOrder, listing_certified: null })).toBe(false);
+    const exchange: ExchangeRow = {
+      id: 'x1',
+      listing_id: 'l1',
+      role: 'proposer',
+      counterparty_alias: 'Collectionneur 7F3A',
+      listing_title: 'Bloc CITEX',
+      listing_domain: 'stamp',
+      listing_value: '780',
+      offered_title: 'Pièce',
+      offered_domain: 'coin',
+      offered_value: '700',
+      cash_adjustment: '0',
+      currency: 'EUR',
+      message: null,
+      state: 'proposed',
+      my_commission: null,
+      certification_required: false,
+      listing_certified: true,
+      proposer_tracking: null,
+      recipient_tracking: null,
+      proposer_received: false,
+      recipient_received: false,
+      created_at: '2026-10-01T00:00:00Z',
+      updated_at: '2026-10-01T00:00:00Z',
+    };
+    expect(rowToExchangeProposal(exchange)).toMatchObject({ certificationRequired: false, listingCertified: true });
+    const legacyExchange: ExchangeRow = { ...exchange };
+    delete legacyExchange.listing_certified;
+    expect('listingCertified' in rowToExchangeProposal(legacyExchange)).toBe(false);
+  });
+
   it('rowToListing : nature, textes publics, certification', () => {
     const row: ListingRow = {
       id: 'l1',
