@@ -163,6 +163,17 @@ create trigger disputes_redact_reason
   before insert or update of reason on public.disputes
   for each row execute function public.redact_dispute_reason();
 
+-- Rattrapage : litiges existants (0006), motif et note lisibles par l'autre
+-- partie — y compris les notes forgées par l'INSERT direct qu'autorisait 0006.
+-- Seules les colonnes porteuses de coordonnées sont réécrites (un motif blanc
+-- n'est pas touché : le trigger ci-dessus le refuserait).
+update public.disputes
+set reason = public.redact_contact_info(reason)
+where reason is distinct from public.redact_contact_info(reason);
+update public.disputes
+set resolution_note = public.redact_contact_info(resolution_note)
+where resolution_note is distinct from public.redact_contact_info(resolution_note);
+
 -- ── 2. Registre de la plateforme ─────────────────────────────────────────────
 create table public.platform_ledger (
   id uuid primary key default gen_random_uuid(),

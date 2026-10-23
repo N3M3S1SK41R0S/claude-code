@@ -385,6 +385,13 @@ begin
 end;
 $$;
 
+-- Rattrapage : titres publics déjà copiés EN CLAIR par 0006 (le masquage
+-- ci-dessus ne s'applique qu'aux nouvelles annonces). Avant la migration 2/5 :
+-- aucun recalcul de publication ni de certification n'est déclenché.
+update public.listings
+set title = public.redact_contact_info(title)
+where title is distinct from public.redact_contact_info(title);
+
 -- ── 6. Fin de la lecture directe du catalogue par les autres membres ────────
 -- La policy de 0006 exposait seller_id et item_id de toute annonce active.
 drop policy "listings_select_active" on public.listings;

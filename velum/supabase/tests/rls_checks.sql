@@ -227,6 +227,12 @@ begin
 end
 $$;
 
+-- Objets supplémentaires d'Alice (une seule annonce ouverte par objet).
+insert into public.items (id, owner_id, domain, title) values
+  ('cccccccc-cccc-4ccc-8ccc-cccccccccc02', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'coin', 'Pièce d''Alice'),
+  ('cccccccc-cccc-4ccc-8ccc-cccccccccc04', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'stamp', 'Timbre d''Alice'),
+  ('cccccccc-cccc-4ccc-8ccc-cccccccccc05', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'art', 'Estampe d''Alice');
+
 -- ── 6. Marketplace Platine : policy d'insertion + expertise > 500 € ─────────
 do $$
 begin
@@ -304,12 +310,22 @@ begin
 
   -- Petite annonce (≤ 500 €) : publiée sans certification.
   insert into public.listings (item_id, seller_id, ask_price)
-  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01',
+  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc02',
           'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100)
   returning status into v_status;
   if v_status <> 'active' then
     raise exception 'listings : 100 € devait être publiée directement, vu %', v_status;
   end if;
+
+  -- Une seule annonce ouverte par objet.
+  begin
+    insert into public.listings (item_id, seller_id, ask_price)
+    values ('cccccccc-cccc-4ccc-8ccc-cccccccccc02',
+            'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 90);
+    raise exception 'listings : seconde annonce ouverte sur le même objet acceptée';
+  exception when raise_exception then
+    if sqlerrm not like '%déjà une annonce ouverte%' then raise; end if;
+  end;
 
   raise notice 'OK 6b — Platine : commission 5 %%, certification imposée > 500 € (annonce retenue)';
 end
@@ -506,9 +522,9 @@ where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 insert into public.listings (id, item_id, seller_id, ask_price, status)
 values
   ('dddddddd-dddd-4ddd-8ddd-dddddddddd02',
-   'cccccccc-cccc-4ccc-8ccc-cccccccccc01', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 120, 'active'),
+   'cccccccc-cccc-4ccc-8ccc-cccccccccc04', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 120, 'active'),
   ('dddddddd-dddd-4ddd-8ddd-dddddddddd03',
-   'cccccccc-cccc-4ccc-8ccc-cccccccccc01', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 90, 'active');
+   'cccccccc-cccc-4ccc-8ccc-cccccccccc05', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 90, 'active');
 
 do $$
 declare
@@ -567,12 +583,16 @@ begin
   update public.orders set escrow_state = 'funds_held'
   where id in ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02','eeeeeeee-eeee-4eee-8eee-eeeeeeeeee03');
 
-  -- Litige ouvert par l'acheteur sur la commande 02.
-  update public.orders set escrow_state = 'disputed'
-  where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02';
-  insert into public.disputes (order_id, opened_by, reason)
-  values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02',
-          'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'objet non conforme');
+  -- Litige ouvert par l'acheteur sur la commande 02 (RPC atomique : aucune
+  -- écriture directe dans disputes, qui forgerait un litige « arbitré »).
+  begin
+    insert into public.disputes (order_id, opened_by, reason, status)
+    values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02',
+            'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'objet non conforme', 'resolved_refund');
+    raise exception 'litige : insertion directe acceptée';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+  perform public.open_order_dispute('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02', 'objet non conforme');
 end
 $$;
 
