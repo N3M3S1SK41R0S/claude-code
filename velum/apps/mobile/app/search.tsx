@@ -30,6 +30,7 @@ import { loadCarnetData, type CarnetData } from '../lib/carnetData';
 import { getVelumClient } from '../lib/client';
 import { collectionHref, parseTextParam } from '../lib/collectionView';
 import { errorMessage } from '../lib/errors';
+import { marketplaceEnabled } from '../lib/features';
 import {
   WISHLIST_LIST_KEY,
   catalogueAccess,
@@ -146,6 +147,8 @@ export default function GlobalSearch() {
     queryFn: () => client.wishlist.list(),
   });
 
+  // Échanges & ventes coupés par le drapeau produit : section absente, aucun appel.
+  const marketplace = marketplaceEnabled();
   const access = catalogueAccess(
     planState.status === 'ready'
       ? { status: 'ready', community: planState.entitlements.community }
@@ -155,7 +158,7 @@ export default function GlobalSearch() {
   const marketQuery = useQuery<CatalogueListing[]>({
     queryKey: catalogueSearchKey(catalogueQuery ?? { text: '' }),
     queryFn: () => client.marketplace.catalogue(catalogueQuery ?? undefined),
-    enabled: access === 'open' && catalogueQuery !== null,
+    enabled: marketplace && access === 'open' && catalogueQuery !== null,
     retry: catalogueRetry,
     staleTime: 30 * 1000,
   });
@@ -179,6 +182,7 @@ export default function GlobalSearch() {
     [query, wishlistQuery.status, wishlistQuery.data, wishlistQuery.error],
   );
   const marketState: SectionState<CatalogueListing> = useMemo(() => {
+    if (!marketplace) return { status: 'idle' };
     // Saisie en cours, pas encore envoyée au serveur : chargement honnête.
     if (catalogueQueryFor(text) !== null && debouncedQuery !== text && access === 'open') {
       return { status: 'loading' };
@@ -190,6 +194,7 @@ export default function GlobalSearch() {
       catalogue: { status: marketQuery.status, data: marketQuery.data, error: marketQuery.error },
     });
   }, [
+    marketplace,
     text,
     debouncedQuery,
     access,
@@ -236,6 +241,7 @@ export default function GlobalSearch() {
 
   /** Section « Échanges & ventes » repliée : offre, fonction à venir, panne. */
   const marketCollapsed = (() => {
+    if (!marketplace) return null;
     if (marketState.status === 'idle' && trimmed.length > 0) {
       return (
         <VText variant="body" tone="dim">
@@ -379,45 +385,47 @@ export default function GlobalSearch() {
             />
           </View>
 
-          {/* ÉCHANGES & VENTES */}
-          <View style={styles.section}>
-            <SectionHeader
-              title={t('globalSearch.sections.market')}
-              count={marketState.status === 'ready' ? marketState.slice.total : null}
-            />
-            {marketCollapsed ?? (
-              <SectionStatus
-                state={marketState}
-                onRetry={() => void marketQuery.refetch()}
-                renderReady={(results, count, hasMore) => (
-                  <>
-                    {results.map((listing) => (
-                      <VListRow
-                        key={listing.id}
-                        title={listing.title ?? t('common.unknown')}
-                        subtitle={listingSubtitle(listing)}
-                        right={
-                          listing.certified ? (
-                            <VBadge label={t('globalSearch.certified')} tone="gold" />
-                          ) : undefined
-                        }
-                        onPress={() => router.push(routes.listing(listing.id))}
-                      />
-                    ))}
-                    <VButton
-                      label={
-                        hasMore
-                          ? t('globalSearch.seeAllMarketCount', { count })
-                          : t('globalSearch.seeAllMarket')
-                      }
-                      variant="ghost"
-                      onPress={() => router.push(routes.community(null, undefined, trimmed))}
-                    />
-                  </>
-                )}
+          {/* ÉCHANGES & VENTES (si le marché est ouvert) */}
+          {marketplace ? (
+            <View style={styles.section}>
+              <SectionHeader
+                title={t('globalSearch.sections.market')}
+                count={marketState.status === 'ready' ? marketState.slice.total : null}
               />
-            )}
-          </View>
+              {marketCollapsed ?? (
+                <SectionStatus
+                  state={marketState}
+                  onRetry={() => void marketQuery.refetch()}
+                  renderReady={(results, count, hasMore) => (
+                    <>
+                      {results.map((listing) => (
+                        <VListRow
+                          key={listing.id}
+                          title={listing.title ?? t('common.unknown')}
+                          subtitle={listingSubtitle(listing)}
+                          right={
+                            listing.certified ? (
+                              <VBadge label={t('globalSearch.certified')} tone="gold" />
+                            ) : undefined
+                          }
+                          onPress={() => router.push(routes.listing(listing.id))}
+                        />
+                      ))}
+                      <VButton
+                        label={
+                          hasMore
+                            ? t('globalSearch.seeAllMarketCount', { count })
+                            : t('globalSearch.seeAllMarket')
+                        }
+                        variant="ghost"
+                        onPress={() => router.push(routes.community(null, undefined, trimmed))}
+                      />
+                    </>
+                  )}
+                />
+              )}
+            </View>
+          ) : null}
         </>
       ) : null}
 

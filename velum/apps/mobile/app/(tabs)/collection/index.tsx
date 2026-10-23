@@ -53,7 +53,7 @@ import {
 import { displayWineLabel, positionLabel } from '../../../lib/cellarPeak';
 import { drinkNowBannerEntries } from '../../../lib/drinkNow';
 import { errorMessage } from '../../../lib/errors';
-import { getActiveDomains } from '../../../lib/features';
+import { getActiveDomains, marketplaceEnabled } from '../../../lib/features';
 import { globalSearchHref } from '../../../lib/globalSearch';
 import { formatEUR } from '../../../lib/i18n';
 import { routes } from '../../../lib/routes';
@@ -159,7 +159,7 @@ export default function Collection() {
 
   const quickTiles: QuickAccessTile[] = useMemo(
     () =>
-      collectionQuickAccess({ hasWine, activeDomains: domains }).map((entry) => ({
+      collectionQuickAccess({ hasWine, activeDomains: domains, marketplace: marketplaceEnabled() }).map((entry) => ({
         key: entry.id,
         label: t(QUICK_LABEL_KEYS[entry.id].label),
         hint: t(QUICK_LABEL_KEYS[entry.id].hint),

@@ -1,7 +1,8 @@
 /**
  * Onglet Profil, en sections claires :
  *  1. Mon compte & offre — formule actuelle (chargement / panne distingués).
- *  2. Mes espaces — carnet, envies, échanges & ventes, certifications.
+ *  2. Mes espaces — carnet, envies, échanges & ventes, certifications (ces
+ *     deux dernières ouvrent « Mon activité », si le marché est ouvert).
  *  3. Préférences — mode senior (persisté local + profile.a11yMode), langue
  *     FR/EN, rappels de cave (réglage fourni par le chantier cave).
  *  4. Confidentialité & données — consentement IA révocable, exports CSV /
@@ -34,6 +35,7 @@ import { useSession } from '../../../lib/auth';
 import { loadCarnetData } from '../../../lib/carnetData';
 import { getVelumClient } from '../../../lib/client';
 import { errorMessage } from '../../../lib/errors';
+import { marketplaceEnabled } from '../../../lib/features';
 import { buildCollectionCsv, buildInsuranceReportHtml } from '../../../lib/exporters';
 import { insuranceReportEntries } from '../../../lib/insuranceReportData';
 import type { SupportedLocale } from '../../../lib/i18n';
@@ -203,16 +205,21 @@ export default function Profile() {
           subtitle={t('profile.spaces.wishlistHint')}
           onPress={() => router.push(routes.wishlist())}
         />
-        <VListRow
-          title={t('profile.spaces.community')}
-          subtitle={t('profile.spaces.communityHint')}
-          onPress={() => router.push(routes.community())}
-        />
-        <VListRow
-          title={t('profile.spaces.certifications')}
-          subtitle={t('profile.spaces.certificationsHint')}
-          onPress={() => router.push(routes.community())}
-        />
+        {/* Annonces, achats, échanges et certifications vivent dans « Mon activité ». */}
+        {marketplaceEnabled() ? (
+          <>
+            <VListRow
+              title={t('profile.spaces.community')}
+              subtitle={t('profile.spaces.communityHint')}
+              onPress={() => router.push(routes.communityActivity())}
+            />
+            <VListRow
+              title={t('profile.spaces.certifications')}
+              subtitle={t('profile.spaces.certificationsHint')}
+              onPress={() => router.push(routes.communityActivity())}
+            />
+          </>
+        ) : null}
       </ProfileSection>
 
       {/* 3. PRÉFÉRENCES */}
