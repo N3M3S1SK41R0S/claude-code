@@ -405,7 +405,13 @@ describe('mappers marketplace (vues anonymisées)', () => {
       myCommission: 16,
       certificationRequired: false,
       proposerReceived: false,
+      // Colonne absente (schéma antérieur) : échéance inconnue, jamais inventée.
+      expiresAt: null,
     });
+    expect(rowToExchangeProposal({ ...exchange, expires_at: '2026-10-08T00:00:00Z' }).expiresAt).toBe(
+      '2026-10-08T00:00:00Z',
+    );
+    expect(rowToExchangeProposal({ ...exchange, expires_at: null }).expiresAt).toBeNull();
     const certification: CertificationRow = {
       id: 'c1',
       listing_id: null,

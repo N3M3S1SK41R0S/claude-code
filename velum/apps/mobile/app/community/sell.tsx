@@ -21,7 +21,7 @@ import { CommunityGate } from '../../components/market/CommunityGate';
 import { ItemPicker } from '../../components/market/ItemPicker';
 import { AmountRows, AsyncBlock, CheckRow, Notice, Segmented, type AmountRow } from '../../components/market/controls';
 import {
-  useCompletedSales,
+  useCommissionBasis,
   useInvalidateCommunity,
   useMarketErrorToast,
   useMyCertifications,
@@ -30,17 +30,36 @@ import {
 } from '../../components/market/hooks';
 import { getVelumClient } from '../../lib/client';
 import {
+  amountProblemMessage,
   amountToInput,
-  estimateFromValuation,
   formatPrice,
   formatRate,
+  latestEstimate,
   redactionPreview,
+  referenceEstimate,
   sellPreview,
 } from '../../lib/marketForms';
+import { commissionBasisNoticeKey, isBestTier } from '../../lib/marketCommission';
 import { communityActivityHref, isVelumDomain, stringParam } from '../../lib/marketQuery';
-import { isForSale, isOpenToExchange, itemCertifiedByExpert } from '../../lib/marketState';
+import {
+  isForSale,
+  isOpenToExchange,
+  itemCertifiedByExpert,
+  itemMarketBlock,
+  type ItemMarketBlock,
+} from '../../lib/marketState';
 import { routes } from '../../lib/routes';
 import { showToast } from '../../stores/toastStore';
+
+/** Motif d'indisponibilité d'un objet (liste de choix / formulaire). */
+const BLOCK_PICKER_KEY: Record<ItemMarketBlock['reason'], string> = {
+  openListing: 'community.picker.blockedOpen',
+  ceded: 'community.picker.blockedCeded',
+};
+const BLOCK_FORM_KEY: Record<ItemMarketBlock['reason'], string> = {
+  openListing: 'community.sellForm.blockedOpen',
+  ceded: 'community.sellForm.blockedCeded',
+};
 
 function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () => void }) {
   const { t, i18n } = useTranslation();
@@ -48,14 +67,20 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
   const client = getVelumClient();
   const invalidate = useInvalidateCommunity();
   const onError = useMarketErrorToast();
-  const sales = useCompletedSales();
+  // Taux ACTUEL du serveur (figé à la publication), taux maximal en repli.
+  const commission = useCommissionBasis();
   const locale = i18n.language;
 
-  const latest = useQuery({
-    queryKey: ['valuations', item.id, 'latest'],
-    queryFn: () => client.valuations.latest(item.id),
+  // Historique des estimations : la plus RÉCENTE pré-remplit le prix ; la plus
+  // HAUTE des 18 derniers mois (dates futures ignorées) décide du seuil
+  // d'expertise, comme le serveur (_market_reference_value).
+  const history = useQuery({
+    queryKey: ['valuations', item.id, 'history'],
+    queryFn: () => client.valuations.history(item.id),
   });
-  const estimate = estimateFromValuation(latest.data);
+  const nowIso = new Date().toISOString();
+  const estimate = history.data ? latestEstimate(history.data, nowIso) : null;
+  const reference = history.data ? referenceEstimate(history.data, nowIso) : null;
 
   const [kind, setKind] = useState<ListingKind>('sale');
   const [price, setPrice] = useState('');
@@ -72,6 +97,8 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
   const myListings = useMyListings();
   const myCertifications = useMyCertifications();
   const myExchanges = useMyExchanges();
+  // Objet déjà annoncé ou déjà cédé (miroir d'enforce_listing_rules) : pas de publication.
+  const block = myListings.data ? itemMarketBlock(item.id, myListings.data) : null;
   const alreadyCertified = itemCertifiedByExpert(
     item.id,
     myListings.data ?? [],
@@ -82,8 +109,8 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
   const preview = sellPreview({
     kind,
     priceInput: price,
-    completedSales: sales.completedSales,
-    estimatedValue: estimate,
+    commission: commission.basis,
+    estimatedValue: reference,
     voluntaryCertification: voluntary,
     alreadyCertified,
   });
@@ -126,7 +153,14 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
   });
 
   const locked = publish.isPending;
-  const priceError = price.trim().length > 0 && preview.value === null ? t('community.invalidPrice') : undefined;
+  // Taux non confirmé par le serveur : mention explicite (aperçu au taux maximal).
+  const rateNoticeKey = commissionBasisNoticeKey(commission.status);
+  // Motif précis (illisible, sous 1 €, au-delà du maximum serveur) : jamais un simple « invalide ».
+  const priceProblem =
+    price.trim().length > 0 && preview.valueProblem !== null
+      ? amountProblemMessage(preview.valueProblem, locale)
+      : null;
+  const priceError = priceProblem !== null ? t(priceProblem.key, priceProblem.params) : undefined;
 
   const rows: AmountRow[] = [];
   if (preview.sale !== null) {
@@ -183,6 +217,21 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
         <VButton label={t('community.sellForm.changeItem')} variant="ghost" onPress={onChangeItem} />
       </VCard>
 
+      {block !== null ? (
+        <Notice tone="warning" title={t('community.sellForm.blockedTitle')}>
+          <>
+            <VText variant="caption" tone="dim">
+              {t(BLOCK_FORM_KEY[block.reason])}
+            </VText>
+            <VButton
+              label={t('community.sellForm.viewListing')}
+              variant="ghost"
+              onPress={() => router.push(routes.listing(block.listingId))}
+            />
+          </>
+        </Notice>
+      ) : null}
+
       <VText variant="body">{t('community.sellForm.kind')}</VText>
       <Segmented<ListingKind>
         value={kind}
@@ -206,7 +255,7 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
         placeholder="250"
         error={priceError}
       />
-      {latest.isLoading ? (
+      {history.isLoading ? (
         <VSpinner />
       ) : estimate !== null ? (
         <VText variant="caption" tone="dim">
@@ -214,7 +263,7 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
         </VText>
       ) : (
         <VText variant="caption" tone="dim">
-          {latest.isError ? t('community.estimateUnavailable') : t('community.noEstimate')}
+          {history.isError ? t('community.estimateUnavailable') : t('community.noEstimate')}
         </VText>
       )}
 
@@ -225,17 +274,21 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
             {t('community.sellForm.breakdown')}
           </VText>
           <AmountRows rows={rows} />
-          <VText variant="caption" tone="dim">
-            {preview.nextTier !== null
-              ? t('community.sellForm.nextTier', {
-                  count: preview.nextTier.salesNeeded,
-                  rate: formatRate(preview.nextTier.rate, locale),
-                })
-              : t('community.sellForm.bestTier')}
-          </VText>
-          {!sales.known ? (
+          {preview.nextTier !== null ? (
             <VText variant="caption" tone="dim">
-              {t('community.rateUnknown')}
+              {t('community.sellForm.nextTier', {
+                count: preview.nextTier.salesNeeded,
+                rate: formatRate(preview.nextTier.rate, locale),
+              })}
+            </VText>
+          ) : isBestTier(commission.basis) ? (
+            <VText variant="caption" tone="dim">
+              {t('community.sellForm.bestTier')}
+            </VText>
+          ) : null}
+          {rateNoticeKey !== null ? (
+            <VText variant="caption" tone="dim" accessibilityLiveRegion="polite">
+              {t(rateNoticeKey, { rate: formatRate(commission.basis.rate, locale) })}
             </VText>
           ) : null}
         </VCard>
@@ -262,7 +315,9 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
       )}
       {preview.requirement.required && preview.value !== null && preview.requirement.referenceValue > preview.value ? (
         <VText variant="caption" tone="dim">
-          {t('community.sellForm.estimateRule')}
+          {t('community.sellForm.estimateRule', {
+            amount: formatPrice(preview.requirement.referenceValue, locale),
+          })}
         </VText>
       ) : null}
 
@@ -302,7 +357,8 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
           preview.certification === 'required' ? t('community.sellForm.publishAfterCertification') : t('community.publish')
         }
         onPress={() => publish.mutate()}
-        disabled={preview.value === null || locked}
+        // Estimations en cours de lecture : le seuil d'expertise n'est pas encore connu.
+        disabled={preview.value === null || locked || history.isLoading || myListings.isLoading || block !== null}
         loading={publish.isPending}
       />
     </View>
@@ -323,6 +379,9 @@ function SellContent() {
     queryFn: () => client.items.get(itemId ?? ''),
     enabled: itemId !== null,
   });
+  // Mes annonces d'abord : un objet déjà annoncé ou déjà cédé est désactivé
+  // (avec son motif) plutôt que proposé puis refusé par le serveur.
+  const myListings = useMyListings();
 
   return (
     <Screen title={t('community.sellForm.title')} backFallback={routes.community()}>
@@ -334,15 +393,23 @@ function SellContent() {
           <VText variant="heading" tone="gold" accessibilityRole="header">
             {t('community.sellForm.pick')}
           </VText>
-          <ItemPicker
-            selectedId={itemId}
-            onSelect={(item) => {
-              setItemId(item.id);
-              setPicking(false);
-            }}
-            preferredDomain={domain}
-            label={t('community.sellForm.pick')}
-          />
+          <AsyncBlock source={myListings}>
+            {(listings) => (
+              <ItemPicker
+                selectedId={itemId}
+                onSelect={(item) => {
+                  setItemId(item.id);
+                  setPicking(false);
+                }}
+                preferredDomain={domain}
+                label={t('community.sellForm.pick')}
+                blockReason={(item) => {
+                  const block = itemMarketBlock(item.id, listings);
+                  return block === null ? null : t(BLOCK_PICKER_KEY[block.reason]);
+                }}
+              />
+            )}
+          </AsyncBlock>
         </View>
       ) : (
         <AsyncBlock source={itemQuery}>

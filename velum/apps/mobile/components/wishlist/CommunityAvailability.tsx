@@ -6,6 +6,7 @@
  * Chaque issue a son message : annonces trouvées, aucune annonce, offre
  * Platine requise (lien vers les offres), fonction pas encore disponible,
  * panne (Réessayer). Une panne n'est jamais présentée comme « aucune annonce ».
+ * Plateformes coupées par le drapeau produit (marketplaceEnabled) : rien.
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -15,6 +16,7 @@ import type { CatalogueListing, WishlistEntry } from '@velum/core';
 import { VBadge, VButton, VCard, VListRow, VSpinner, VText, velumSpacing } from '@velum/ui';
 
 import { getVelumClient } from '../../lib/client';
+import { marketplaceEnabled } from '../../lib/features';
 import { formatMoney } from '../../lib/i18n';
 import { usePlan } from '../../lib/plan';
 import { routes } from '../../lib/routes';
@@ -30,6 +32,11 @@ type CheckState =
   | { status: 'problem'; problem: CommunityProblem };
 
 export function CommunityAvailability({ entry }: { entry: WishlistEntry }) {
+  // Drapeau constant pour la session : aucune vérification proposée quand les plateformes sont coupées.
+  return marketplaceEnabled() ? <CommunityCheck entry={entry} /> : null;
+}
+
+function CommunityCheck({ entry }: { entry: WishlistEntry }) {
   const { t } = useTranslation();
   const router = useRouter();
   const plan = usePlan();

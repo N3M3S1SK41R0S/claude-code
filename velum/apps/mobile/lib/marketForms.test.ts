@@ -1,24 +1,45 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { REDACTION_TOKEN } from '@velum/config';
+import {
+  MARKET_CARRIERS as API_MARKET_CARRIERS,
+  MARKET_MAX_AMOUNT,
+  MARKET_MIN_ASK_PRICE,
+  normalizeTrackingNumber as apiNormalizeTrackingNumber,
+} from '@velum/api-client';
+import { REDACTION_TOKEN, commissionRateFor } from '@velum/config';
 import type { VelumItem } from '@velum/core';
+
+import { FALLBACK_COMMISSION_BASIS, commissionBasis, type CommissionBasis } from './marketCommission';
 
 import {
   MARKET_CARRIERS,
+  MARKET_VALUATION_WINDOW_MONTHS,
+  amountProblemMessage,
   amountToInput,
+  checkMarketAmount,
   estimateFromValuation,
   exchangePreview,
   formatPrice,
   formatRate,
+  latestEstimate,
   nextCommissionTier,
   normalizeTrackingNumber,
+  orderCommission,
   parseFrenchAmount,
   parsePositiveAmount,
   redactionPreview,
+  referenceEstimate,
   sellPreview,
   shipmentInput,
   signedCashAdjustment,
   sortItemsForExchange,
 } from './marketForms';
+
+/** Base de commission telle que lue du serveur pour `completedSales` ventes retenues. */
+const server = (completedSales: number): CommissionBasis =>
+  commissionBasis({ currentRate: commissionRateFor(completedSales), completedSales });
 
 /** Normalise les espaces insécables d'Intl pour comparer. */
 const plain = (s: string) => s.replace(/[  ]/g, ' ');
@@ -44,9 +65,30 @@ describe('parseFrenchAmount', () => {
     expect(parseFrenchAmount(raw)).toBeNull();
   });
 
-  it('positif strict pour un prix', () => {
+  it('prix ou valeur déclarée : bornes serveur (1 € minimum, numeric(14, 2) maximum)', () => {
+    expect(MARKET_MIN_ASK_PRICE).toBe(1);
     expect(parsePositiveAmount('0')).toBeNull();
-    expect(parsePositiveAmount('0,01')).toBe(0.01);
+    expect(parsePositiveAmount('0,01')).toBeNull();
+    expect(parsePositiveAmount('0,99')).toBeNull();
+    expect(parsePositiveAmount('1')).toBe(1);
+    expect(parsePositiveAmount('0,995')).toBe(1); // arrondi au centime d’abord, comme numeric(14, 2)
+    expect(parsePositiveAmount('999 999 999 999,99')).toBe(MARKET_MAX_AMOUNT);
+    expect(parsePositiveAmount('1 000 000 000 000')).toBeNull();
+    expect(checkMarketAmount('abc')).toEqual({ ok: false, problem: 'invalid' });
+    expect(checkMarketAmount('')).toEqual({ ok: false, problem: 'invalid' });
+    expect(checkMarketAmount('0,50')).toEqual({ ok: false, problem: 'belowMin' });
+    expect(checkMarketAmount('1 000 000 000 000')).toEqual({ ok: false, problem: 'aboveMax' });
+    expect(checkMarketAmount('1 250,50')).toEqual({ ok: true, value: 1250.5 });
+  });
+
+  it('message clair d’un montant refusé : minimum et maximum chiffrés', () => {
+    const below = amountProblemMessage('belowMin', 'fr');
+    expect(below.key).toBe('community.amountBelowMin');
+    expect(plain(below.params?.['min'] ?? '')).toBe('1 €');
+    const above = amountProblemMessage('aboveMax', 'fr');
+    expect(above.key).toBe('community.amountAboveMax');
+    expect(plain(above.params?.['max'] ?? '')).toBe('999 999 999 999,99 €');
+    expect(amountProblemMessage('invalid', 'en')).toEqual({ key: 'community.invalidAmount' });
   });
 
   it('pré-remplit un champ à partir d’une valeur', () => {
@@ -75,6 +117,72 @@ describe('parseFrenchAmount', () => {
   });
 });
 
+describe('estimation de référence (miroir de _market_reference_value)', () => {
+  const NOW = '2026-10-23T10:00:00Z';
+  const v = (central: number, valuedAt: string) => ({ central, valuedAt });
+
+  it('fenêtre répliquée de market_valuation_window() (SQL)', () => {
+    const sql = readFileSync(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../../supabase/migrations/20261023100100_market_exchanges_certification.sql',
+      ),
+      'utf8',
+    );
+    const match = /function public\.market_valuation_window\(\)[\s\S]*?interval '(\d+) months'/.exec(sql);
+    expect(Number(match?.[1])).toBe(MARKET_VALUATION_WINDOW_MONTHS);
+  });
+
+  it('MAX des 18 derniers mois : une estimation basse postérieure ne masque pas la haute', () => {
+    const history = [v(300, '2026-10-01T00:00:00Z'), v(900, '2026-03-01T00:00:00Z'), v(450, '2025-12-01T00:00:00Z')];
+    expect(referenceEstimate(history, NOW)).toBe(900);
+    expect(latestEstimate(history, NOW)).toBe(300);
+  });
+
+  it('dates futures et estimations hors fenêtre ignorées ; montants invalides écartés', () => {
+    const history = [
+      v(5000, '2026-12-01T00:00:00Z'), // future : invalide
+      v(4000, '2025-04-23T10:00:00Z'), // exactement 18 mois : hors fenêtre (> now − 18 mois)
+      v(3000, '2025-04-23T10:00:01Z'), // juste dans la fenêtre
+      v(Number.NaN, '2026-10-01T00:00:00Z'),
+      v(0, '2026-10-02T00:00:00Z'),
+      v(200, 'date illisible'),
+    ];
+    expect(referenceEstimate(history, NOW)).toBe(3000);
+    expect(latestEstimate(history, NOW)).toBe(3000);
+    expect(referenceEstimate([v(5000, '2026-12-01T00:00:00Z')], NOW)).toBeNull();
+    expect(referenceEstimate([], NOW)).toBeNull();
+  });
+
+  it('fin de mois bornée comme en SQL (31 août − 18 mois = 28 février)', () => {
+    const now = '2027-08-31T12:00:00Z';
+    expect(referenceEstimate([v(700, '2026-02-28T12:00:00Z')], now)).toBeNull();
+    expect(referenceEstimate([v(700, '2026-02-28T12:00:01Z')], now)).toBe(700);
+  });
+
+  it('seuil de la mise en vente sur cette référence (sous-déclaration impossible)', () => {
+    const history = [v(300, '2026-10-01T00:00:00Z'), v(900, '2026-03-01T00:00:00Z')];
+    const p = sellPreview({
+      kind: 'sale',
+      priceInput: '320',
+      commission: server(0),
+      estimatedValue: referenceEstimate(history, NOW),
+      voluntaryCertification: false,
+    });
+    expect(p.requirement).toEqual({ required: true, reason: 'threshold', referenceValue: 900 });
+  });
+});
+
+describe('commission d’une commande', () => {
+  it('au centime, demi-centime au supérieur : identique au registre SQL (round(numeric, 2))', () => {
+    // Vecteur partagé avec marketplace_hardening_checks (X15) : 20,70 × 5 % = 1,035 → 1,04.
+    expect(orderCommission({ amount: 20.7, commissionRate: 0.05 })).toBe(1.04);
+    expect(orderCommission({ amount: 150, commissionRate: 0.05 })).toBe(7.5);
+    expect(orderCommission({ amount: 333.33, commissionRate: 0.03 })).toBe(10);
+    expect(orderCommission({ amount: -5, commissionRate: 0.05 })).toBe(0);
+  });
+});
+
 describe('commission dégressive', () => {
   it('annonce le palier suivant et les ventes restantes', () => {
     expect(nextCommissionTier(0)).toEqual({ rate: 0.04, minSales: 10, salesNeeded: 10 });
@@ -90,7 +198,7 @@ describe('sellPreview', () => {
     const p = sellPreview({
       kind: 'sale',
       priceInput: '320',
-      completedSales: 3,
+      commission: server(3),
       estimatedValue: 300,
       voluntaryCertification: false,
     });
@@ -105,7 +213,7 @@ describe('sellPreview', () => {
     const p = sellPreview({
       kind: 'sale_or_exchange',
       priceInput: '450',
-      completedSales: 12,
+      commission: server(12),
       estimatedValue: 900, // on ne contourne pas le seuil en sous-déclarant
       voluntaryCertification: false,
     });
@@ -120,7 +228,7 @@ describe('sellPreview', () => {
     const p = sellPreview({
       kind: 'exchange',
       priceInput: '200',
-      completedSales: 0,
+      commission: server(0),
       estimatedValue: null,
       voluntaryCertification: true,
     });
@@ -130,11 +238,38 @@ describe('sellPreview', () => {
     expect(p.exchange).toEqual({ commissionRate: 0.05, commission: 10 });
   });
 
+  it('taux serveur indisponible : repli sur le taux MAXIMAL, sans palier inventé', () => {
+    const p = sellPreview({
+      kind: 'sale',
+      priceInput: '320',
+      commission: FALLBACK_COMMISSION_BASIS,
+      estimatedValue: null,
+      voluntaryCertification: false,
+    });
+    expect(p.commissionRate).toBe(0.05);
+    expect(p.sale).toEqual({ price: 320, commissionRate: 0.05, commission: 16, certificationFee: 0, sellerNet: 304 });
+    expect(p.nextTier).toBeNull();
+  });
+
+  it('taux du serveur appliqué tel quel (règle de palier serveur : ventes retenues seulement)', () => {
+    // 12 commandes libérées côté client, mais le serveur n’en retient que 4 (≥ 20 €, 3 par acheteur) : 5 %.
+    const p = sellPreview({
+      kind: 'sale_or_exchange',
+      priceInput: '200',
+      commission: commissionBasis({ currentRate: 0.05, completedSales: 4 }),
+      estimatedValue: null,
+      voluntaryCertification: false,
+    });
+    expect(p.sale?.commission).toBe(10);
+    expect(p.exchange).toEqual({ commissionRate: 0.05, commission: 10 });
+    expect(p.nextTier).toEqual({ rate: 0.04, minSales: 10, salesNeeded: 6 });
+  });
+
   it('prix invalide : aucun calcul trompeur', () => {
     const p = sellPreview({
       kind: 'sale',
       priceInput: 'abc',
-      completedSales: 0,
+      commission: server(0),
       estimatedValue: null,
       voluntaryCertification: true,
     });
@@ -147,7 +282,7 @@ describe('sellPreview', () => {
     const p = sellPreview({
       kind: 'sale',
       priceInput: '900',
-      completedSales: 0,
+      commission: server(0),
       estimatedValue: 950,
       voluntaryCertification: true,
       alreadyCertified: true,
@@ -174,7 +309,7 @@ describe('proposition d’échange', () => {
       offeredValueInput: '250',
       cashDirection: 'add',
       cashInput: '50',
-      completedSales: 0,
+      commission: server(0),
       mutualCertification: true,
     });
     expect(p.myCommission).toEqual({ commissionRate: 0.05, commission: 12.5 });
@@ -190,7 +325,7 @@ describe('proposition d’échange', () => {
       offeredValueInput: '800',
       cashDirection: 'ask',
       cashInput: '',
-      completedSales: 0,
+      commission: server(0),
       mutualCertification: false,
     });
     expect(p.requirement).toEqual({ required: true, reason: 'threshold', referenceValue: 800 });
@@ -208,7 +343,7 @@ describe('proposition d’échange', () => {
       offeredEstimate: 800,
       cashDirection: 'add',
       cashInput: '',
-      completedSales: 0,
+      commission: server(0),
     });
     expect(p.requirement).toEqual({ required: true, reason: 'threshold', referenceValue: 800 });
     expect(p.thresholdItems).toEqual({ mine: true, theirs: false });
@@ -223,7 +358,7 @@ describe('proposition d’échange', () => {
       offeredEstimate: null,
       cashDirection: 'add',
       cashInput: '',
-      completedSales: 0,
+      commission: server(0),
     });
     expect(certified.requirement.required).toBe(false);
     expect(certified.certificationFee).toBe(0);
@@ -235,7 +370,7 @@ describe('proposition d’échange', () => {
       offeredEstimate: null,
       cashDirection: 'add',
       cashInput: '',
-      completedSales: 0,
+      commission: server(0),
     });
     expect(notCertified.requirement.reason).toBe('threshold');
     expect(notCertified.thresholdItems).toEqual({ mine: false, theirs: true });
@@ -251,10 +386,29 @@ describe('proposition d’échange', () => {
       offeredCertified: true,
       cashDirection: 'add',
       cashInput: '',
-      completedSales: 0,
+      commission: server(0),
     });
     expect(p.requirement.required).toBe(false);
     expect(p.thresholdItems).toEqual({ mine: false, theirs: false });
+  });
+
+  it('ma commission d’échange au taux serveur, ou au taux maximal en repli', () => {
+    const atServer = exchangePreview({
+      listingValue: 300,
+      offeredValueInput: '300',
+      cashDirection: 'add',
+      cashInput: '',
+      commission: commissionBasis({ currentRate: 0.03, completedSales: 30 }),
+    });
+    expect(atServer.myCommission).toEqual({ commissionRate: 0.03, commission: 9 });
+    const fallback = exchangePreview({
+      listingValue: 300,
+      offeredValueInput: '300',
+      cashDirection: 'add',
+      cashInput: '',
+      commission: FALLBACK_COMMISSION_BASIS,
+    });
+    expect(fallback.myCommission).toEqual({ commissionRate: 0.05, commission: 15 });
   });
 
   it('valeur invalide : pas de commission ni d’équilibre', () => {
@@ -263,7 +417,7 @@ describe('proposition d’échange', () => {
       offeredValueInput: '',
       cashDirection: 'add',
       cashInput: '',
-      completedSales: 0,
+      commission: server(0),
       mutualCertification: false,
     });
     expect(p.myCommission).toBeNull();
@@ -287,6 +441,42 @@ describe('expédition', () => {
     expect(normalizeTrackingNumber('AB1')).toBeNull();
     expect(normalizeTrackingNumber('appelez-moi@exemple.com')).toBeNull();
     expect(normalizeTrackingNumber('Colis remis en main propre')).toBeNull();
+  });
+
+  it('une seule liste de transporteurs : celle de @velum/api-client (réplique de market_carriers())', () => {
+    expect(MARKET_CARRIERS).toBe(API_MARKET_CARRIERS);
+    expect(MARKET_CARRIERS).not.toContain('Royal Mail');
+  });
+
+  it('règle UI (au moins un chiffre) = sous-ensemble strict du format serveur', () => {
+    const samples = [
+      ' 6a 1234 5678 901 ',
+      'LL123456789FR',
+      'ab-1234',
+      'ABCD',
+      'abcd-efgh',
+      '1234',
+      '-1234',
+      'A'.repeat(39) + '1',
+      'A'.repeat(40) + '1',
+      'écrivez-moi',
+      'bob@yahoo.fr',
+      'www.site.fr',
+      '',
+    ];
+    for (const sample of samples) {
+      const ui = normalizeTrackingNumber(sample);
+      if (ui !== null) {
+        // Tout suivi accepté par l’UI l’est par le dépôt / le serveur, à l’identique.
+        expect(apiNormalizeTrackingNumber(sample)).toBe(ui);
+        expect(ui).toMatch(/^[A-Z0-9][A-Z0-9-]{3,39}$/);
+        expect(ui).toMatch(/[0-9]/);
+      }
+    }
+    expect(normalizeTrackingNumber('ABCD')).toBeNull(); // valide côté serveur, sans chiffre : refusé ici
+    expect(apiNormalizeTrackingNumber('ABCD')).toBe('ABCD');
+    expect(normalizeTrackingNumber('-1234')).toBeNull();
+    expect(normalizeTrackingNumber('A'.repeat(40) + '1')).toBeNull();
   });
 
   it('n’envoie que le suivi et le transporteur choisi — jamais de date de livraison', () => {

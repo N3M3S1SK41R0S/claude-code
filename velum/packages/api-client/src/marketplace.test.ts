@@ -394,6 +394,7 @@ describe('marketplace repo — échanges', () => {
       recipientTracking: null,
       proposerReceived: false,
       recipientReceived: false,
+      expiresAt: '2026-10-28T08:00:00Z',
       createdAt: '2026-10-21T08:00:00Z',
       updatedAt: '2026-10-21T08:00:00Z',
     });
@@ -416,6 +417,8 @@ describe('marketplace repo — échanges', () => {
     };
     const [exchange] = await repo.myExchanges();
     expect(exchange).toMatchObject({ role: 'recipient', state: 'shipping', myCommission: 16, recipientTracking: 'SO-1', recipientReceived: true, proposerReceived: false });
+    // Échéance relue de my_exchanges (expires_at) : l'interface masque « Accepter » une fois échue.
+    expect(exchange?.expiresAt).toBe('2026-10-28T08:00:00Z');
   });
 
   it('chaque action appelle sa RPC et renvoie l’échange à jour', async () => {
@@ -568,6 +571,26 @@ describe('marketplace repo — certification et messagerie', () => {
     });
     fake.rpcResponses['my_commission_summary'] = { error: { message: 'Session requise', code: 'VL401' } };
     await expectCode(fetchCommissionSummary(asSupabase(fake)), 'UNAUTHORIZED');
+  });
+
+  it('commissionSummary (contrat MarketplaceRepo) : même RPC que fetchCommissionSummary', async () => {
+    fake.rpcResponses['my_commission_summary'] = {
+      data: { currency: 'EUR', currentRate: 0.04, completedSales: 12, commissions: 80, certificationFees: 0, payouts: 1520, entries: 24 },
+    };
+    expect(repo.commissionSummary).toBeTypeOf('function');
+    await expect(repo.commissionSummary?.()).resolves.toEqual({
+      currency: 'EUR',
+      currentRate: 0.04,
+      completedSales: 12,
+      commissions: 80,
+      certificationFees: 0,
+      payouts: 1520,
+      entries: 24,
+    });
+    expect(fake.rpcCalls).toEqual([{ fn: 'my_commission_summary', args: {} }]);
+    // Panne réseau ≠ refus : jamais présentée comme un taux connu.
+    fake.rpcResponses['my_commission_summary'] = { error: { message: 'fetch failed' } };
+    await expectCode(repo.commissionSummary?.() ?? Promise.resolve(), 'SOURCE_UNAVAILABLE');
   });
 });
 

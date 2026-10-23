@@ -6,11 +6,13 @@
 import { useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { VelumError } from '@velum/core';
 
 import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
+import { commissionBasisState, type CommissionBasis, type CommissionBasisStatus } from '../../lib/marketCommission';
 import { communityKeys } from '../../lib/marketQuery';
-import { completedSalesCount, isNotYetAvailable, marketRetry } from '../../lib/marketState';
+import { isNotYetAvailable, marketRetry } from '../../lib/marketState';
 import { showToast } from '../../stores/toastStore';
 
 export { marketRetry };
@@ -74,15 +76,36 @@ export function useMyCertifications() {
 }
 
 /**
- * Nombre de MES ventes conclues (base du taux dégressif). `known` = false tant
- * que les commandes ne sont pas lues (ou en panne) : l'aperçu affiche alors le
- * taux de départ (le plus élevé), jamais un taux trop favorable.
+ * Synthèse de MON commissionnement (serveur : `my_commission_summary`) — taux
+ * actuel, ventes retenues pour le palier, totaux du registre. Méthode absente
+ * du dépôt injecté : « bientôt disponible » (jamais un faux taux).
  */
-export function useCompletedSales(): { completedSales: number; known: boolean; isLoading: boolean } {
-  const orders = useMyOrders();
-  return {
-    completedSales: orders.data ? completedSalesCount(orders.data) : 0,
-    known: orders.data !== undefined,
-    isLoading: orders.isLoading,
-  };
+export function useCommissionSummary() {
+  const client = getVelumClient();
+  return useQuery({
+    queryKey: communityKeys.commission,
+    queryFn: () => {
+      const repo = client.marketplace;
+      if (repo.commissionSummary === undefined) {
+        throw new VelumError('SOURCE_UNAVAILABLE', 'Synthèse des commissions pas encore disponible');
+      }
+      return repo.commissionSummary();
+    },
+    retry: marketRetry,
+  });
+}
+
+/**
+ * Base de commission des aperçus : taux ACTUEL du serveur, ou le taux
+ * MAXIMAL tant qu'il n'est pas connu (chargement, hors-ligne, panne) — avec
+ * l'état pour la mention explicite (lib/marketCommission).
+ */
+export function useCommissionBasis(): { basis: CommissionBasis; status: CommissionBasisStatus } {
+  const summary = useCommissionSummary();
+  return commissionBasisState({
+    data: summary.data,
+    isError: summary.isError,
+    isPending: summary.isPending,
+    fetchStatus: summary.fetchStatus,
+  });
 }

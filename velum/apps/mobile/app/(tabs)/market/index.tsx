@@ -23,9 +23,8 @@ import {
 import { Screen } from '../../../components/Screen';
 import { PlatformTiles } from '../../../components/market/PlatformTiles';
 import { getVelumClient } from '../../../lib/client';
-import { isDemoMode } from '../../../lib/env';
 import { errorMessage } from '../../../lib/errors';
-import { getFeatures } from '../../../lib/features';
+import { marketplaceEnabled } from '../../../lib/features';
 import { formatDate, formatEUR } from '../../../lib/i18n';
 import { parseMarketNotifications } from '../../../lib/marketNotifications';
 import { usePlan } from '../../../lib/plan';
@@ -35,11 +34,10 @@ export default function Market() {
   const { t } = useTranslation();
   const router = useRouter();
   const client = getVelumClient();
-  const features = getFeatures();
   const planState = usePlan();
-  // Plateformes : flag produit (rails de paiement / KYC), toujours visibles en
-  // démo (aucune transaction réelle) ; l'accès reste gaté par l'offre Platine.
-  const showPlatforms = features.enableMarketplace || isDemoMode();
+  // Plateformes : source UNIQUE marketplaceEnabled() (drapeau produit, toujours
+  // vrai en démo) ; l'accès reste gaté par l'offre Platine.
+  const showPlatforms = marketplaceEnabled();
 
   const notificationsQuery = useQuery({
     queryKey: ['notifications'],

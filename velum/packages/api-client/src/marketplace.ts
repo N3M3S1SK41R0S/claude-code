@@ -287,6 +287,16 @@ export interface MarketplaceRepo {
   messages(threadKind: MarketThreadKind, threadId: string): Promise<MarketMessage[]>;
   /** Envoie un message — le serveur masque toute coordonnée avant stockage. */
   sendMessage(threadKind: MarketThreadKind, threadId: string, body: string): Promise<MarketMessage>;
+
+  // ── Commissionnement ──
+  /**
+   * Synthèse de MON commissionnement (RPC `my_commission_summary`) : taux
+   * dégressif ACTUEL et ventes retenues pour le palier (commandes libérées
+   * d'au moins 20 €, 3 au plus par acheteur), totaux du registre
+   * (commissions, frais d'expertise, versements). Optionnel pour les clients
+   * injectés historiques : absent, l'interface applique le taux maximal.
+   */
+  commissionSummary?(): Promise<CommissionSummary>;
 }
 
 export function createMarketplaceRepo(supabase: SupabaseClient): MarketplaceRepo {
@@ -628,13 +638,18 @@ export function createMarketplaceRepo(supabase: SupabaseClient): MarketplaceRepo
       );
       return rowToMarketMessage(row);
     },
+
+    async commissionSummary() {
+      return fetchCommissionSummary(supabase);
+    },
   };
 }
 
 /**
  * Synthèse du commissionnement de l'utilisateur courant (registre de la
- * plateforme : commissions, frais d'expertise, versements). Hors
- * `MarketplaceRepo` (contrat figé) : appel direct sur le client Supabase.
+ * plateforme : commissions, frais d'expertise, versements). Exposée aussi
+ * par `MarketplaceRepo.commissionSummary()` ; appel direct sur le client
+ * Supabase pour les usages hors dépôt.
  */
 export async function fetchCommissionSummary(supabase: SupabaseClient): Promise<CommissionSummary> {
   await requireUid(supabase);

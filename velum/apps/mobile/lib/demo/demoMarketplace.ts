@@ -14,19 +14,34 @@
  *    accepté) et quitte alors le catalogue, « vendue » à la libération ;
  *    titres dénormalisés expurgés des coordonnées ;
  *  - lib/marketState : actions légales par rôle × état (miroir serveur) ;
- *  - lib/search : recherche texte insensible aux accents.
+ *  - lib/search : recherche texte insensible aux accents ;
+ *  - @velum/api-client : transporteurs (market_carriers()) et format de suivi,
+ *    euro seulement, prix plancher 1 € ; objet cédé (vendu ou échangé) jamais
+ *    réannonçable ni proposé ; une seule annonce ouverte par objet ; décision
+ *    d'expert MÉMORISÉE sur l'objet (refus : annonces dépubliées, expertise
+ *    exigée à toute republication ; certification : elle suit l'objet).
  *
  * Les gestes de L'AUTRE partie (expédition, réception) sont SIMULÉS pour que
  * chaque parcours puisse être mené à son terme en démo — commentés sur place.
  * Chaque lecture renvoie des COPIES : React Query détecte ainsi les changements.
  */
-import type { MarketplaceRepo, NewListing } from '@velum/api-client';
+import {
+  MARKET_CURRENCY,
+  MARKET_MAX_AMOUNT,
+  MARKET_MIN_ASK_PRICE,
+  normalizeCarrier,
+  normalizeTrackingNumber,
+  type CommissionSummary,
+  type MarketplaceRepo,
+  type NewListing,
+} from '@velum/api-client';
 import {
   certificationRequirement,
   commissionRateFor,
   defaultCertificationFeePayer,
   exchangeCommission,
   redactContactInfo,
+  roundCents,
 } from '@velum/config';
 import {
   VelumError,
@@ -50,14 +65,17 @@ import {
 } from '@velum/core';
 
 import {
+  EXCHANGE_PROPOSAL_TTL_DAYS,
   canTransitionOrder,
   canWithdrawListing,
   certificationActions,
   exchangeActions,
+  isExchangeExpired,
   isForSale,
   isOpenToExchange,
   type ExchangeAction,
 } from '../marketState';
+import { qualifyingSalesCount } from '../marketCommission';
 import { scoreDocument, tokenize } from '../search';
 import { DEMO_OWNER } from './demoData';
 
@@ -136,12 +154,16 @@ interface DemoExchange {
   recipientTracking: string | null;
   proposerReceived: boolean;
   recipientReceived: boolean;
+  /** Échéance de la proposition (expires_at : création + EXCHANGE_PROPOSAL_TTL_DAYS). */
+  expiresAt: string;
   createdAt: string;
   updatedAt: string;
 }
 
 interface DemoCertification {
   id: string;
+  /** Objet expertisé (certification_requests.item_id), null s'il est inconnu. */
+  itemId: string | null;
   listingId: string | null;
   orderId: string | null;
   exchangeId: string | null;
@@ -429,7 +451,16 @@ function seedOrders(): DemoOrder[] {
   ];
 }
 
-function seedExchanges(): DemoExchange[] {
+/** Échéance d'une proposition faite à `from` (ISO) : + EXCHANGE_PROPOSAL_TTL_DAYS. */
+function proposalExpiry(from: string): string {
+  return new Date(Date.parse(from) + EXCHANGE_PROPOSAL_TTL_DAYS * 86_400_000).toISOString();
+}
+
+/**
+ * `now` : horloge du dépôt — les propositions de départ en attente échoient
+ * une semaine après l'ouverture de la démo (jamais déjà échues).
+ */
+function seedExchanges(now: string): DemoExchange[] {
   const base = {
     currency: 'EUR',
     proposerCommission: null,
@@ -439,6 +470,7 @@ function seedExchanges(): DemoExchange[] {
     recipientTracking: null,
     proposerReceived: false,
     recipientReceived: false,
+    expiresAt: proposalExpiry(now),
   };
   return [
     // REÇUE : on me propose un Hercule (+ soulte) contre ma Semeuse.
@@ -489,6 +521,7 @@ function seedCertifications(): DemoCertification[] {
     // EN COURS : expertise obligatoire de ma montre (> 500 €).
     {
       id: 'demo-cert-1',
+      itemId: 'demo-mine-2-item',
       listingId: 'demo-mine-2',
       orderId: null,
       exchangeId: null,
@@ -511,6 +544,7 @@ function seedCertifications(): DemoCertification[] {
     // expertise avant l'expédition (sur la commande, comme l'exige le serveur).
     {
       id: 'demo-cert-2',
+      itemId: 'demo-mine-5-item',
       listingId: 'demo-mine-5',
       orderId: 'demo-order-4',
       exchangeId: null,
@@ -575,16 +609,45 @@ export interface DemoMarketplaceOptions {
   /** Horloge injectable (ISO). */
   now?: () => string;
   /**
-   * Dernière valorisation VELUM d'un objet (estimation centrale, EUR), comme
-   * _market_reference_value : le seuil d'expertise porte sur max(prix,
-   * valorisation). Le scan éclair (`attributes.quickEstimate`) n'est PAS une
-   * valorisation et n'est pas lu (le serveur ne le lit pas non plus).
+   * Estimation VELUM de RÉFÉRENCE d'un objet (EUR) — comme
+   * _market_reference_value, la plus haute des 18 derniers mois (nom
+   * historique) : le seuil d'expertise porte sur max(prix, estimation). Le
+   * scan éclair (`attributes.quickEstimate`) n'est PAS une valorisation et
+   * n'est pas lu (le serveur ne le lit pas non plus).
    */
   latestValuation?: (itemId: string) => number | null;
 }
 
+/** Décision d'un expert partenaire (simulation démo de decide_certification). */
+export interface DemoExpertDecision {
+  certified: boolean;
+  /** Frais d'expertise (EUR) fixés par l'expert ; inchangés si absents. */
+  feeAmount?: number;
+  /** Référence du rapport (défaut démo si certifié). */
+  reportRef?: string;
+  expertNote?: string;
+}
+
+/**
+ * Dépôt démo : le contrat MarketplaceRepo, plus la décision de l'EXPERT
+ * (côté plateforme, sans écran dans l'app) pour mener chaque parcours à
+ * son terme en démo et dans les tests.
+ */
+export interface DemoMarketplaceRepo extends MarketplaceRepo {
+  decideCertification(certificationId: string, decision: DemoExpertDecision): Promise<CertificationRequest>;
+}
+
 function invalid(message: string): never {
   throw new VelumError('INVALID_INPUT', `${message} (démo)`);
+}
+
+/** Règle de saisie du dépôt réel (@velum/api-client), refus marqué « démo ». */
+function demoRule<T>(rule: () => T): T {
+  try {
+    return rule();
+  } catch (error) {
+    return invalid(error instanceof Error ? error.message : String(error));
+  }
 }
 
 function cleanText(text: string | undefined): { text: string | null; redacted: boolean } {
@@ -617,7 +680,7 @@ const ENGAGING_EXCHANGE: ReadonlySet<ExchangeState> = new Set([
 export function createDemoMarketplaceRepo(
   findItem: (id: string) => VelumItem | null,
   options: DemoMarketplaceOptions = {},
-): MarketplaceRepo {
+): DemoMarketplaceRepo {
   const delayMs = options.delayMs ?? 250;
   const now = options.now ?? (() => new Date().toISOString());
   const valuationOf = (itemId: string | null): number | null =>
@@ -631,7 +694,7 @@ export function createDemoMarketplaceRepo(
   const listings = seedListings();
   const orders = seedOrders();
   const disputes: DisputeRecord[] = [];
-  const exchanges = seedExchanges();
+  const exchanges = seedExchanges(now());
   const certifications = seedCertifications();
   const messages = seedMessages();
 
@@ -684,6 +747,7 @@ export function createDemoMarketplaceRepo(
       recipientTracking: e.recipientTracking,
       proposerReceived: e.proposerReceived,
       recipientReceived: e.recipientReceived,
+      expiresAt: e.expiresAt,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
     };
@@ -721,11 +785,91 @@ export function createDemoMarketplaceRepo(
 
   // ── Accès internes ──
 
-  const mySales = () =>
-    orders.filter((o) => o.sellerId === DEMO_OWNER && o.escrowState === 'released').length;
+  /** Mes ventes conclues (fonds libérés), toutes. */
+  const myReleasedSales = () => orders.filter((o) => o.sellerId === DEMO_OWNER && o.escrowState === 'released');
+
+  /**
+   * Ventes RETENUES pour mon palier (commission_qualifying_sales) : commandes
+   * libérées d'au moins 20 €, 3 au plus par acheteur — base du taux dégressif.
+   */
+  const mySales = () => qualifyingSalesCount(myReleasedSales());
 
   const salesOf = (memberId: string) =>
     memberId === DEMO_OWNER ? mySales() : (DEMO_REPUTATION[memberId]?.completedSales ?? 0);
+
+  /**
+   * DERNIÈRE décision d'expert par objet et propriétaire (mémorisée, comme
+   * _market_item_certification_ref / _market_item_rejected côté serveur).
+   */
+  const decisions = new Map<
+    string,
+    { status: 'certified' | 'rejected'; reportRef: string | null; title: string | null; domain: VelumDomain | null }
+  >();
+  const decisionKey = (itemId: string, owner: string) => `${owner}::${itemId}`;
+  const lastDecision = (itemId: string | null, owner: string) =>
+    itemId === null ? undefined : decisions.get(decisionKey(itemId, owner));
+  /** Refus mémorisé : l'objet ne se republie (ni ne s'échange) plus sans nouvelle certification. */
+  const itemRejected = (itemId: string | null, owner: string): boolean =>
+    lastDecision(itemId, owner)?.status === 'rejected';
+  /** Certification qui SUIT l'objet resté identique (même titre public, même catégorie). */
+  const itemCertificationRef = (item: VelumItem, owner: string): string | null => {
+    const d = lastDecision(item.id, owner);
+    return d?.status === 'certified' && d.title === redactTitle(item.title) && d.domain === item.domain
+      ? d.reportRef
+      : null;
+  };
+  /** Objet CÉDÉ par `owner` (_market_item_ceded) : annonce vendue / échangée, ou offert dans un échange conclu. */
+  const itemCeded = (itemId: string, owner: string): boolean =>
+    listings.some(
+      (l) => l.itemId === itemId && l.sellerId === owner && (l.status === 'sold' || l.status === 'exchanged'),
+    ) || exchanges.some((e) => e.offeredItemId === itemId && e.proposerId === owner && e.state === 'completed');
+
+  /** Propriétaire de l'objet expertisé (certification_requests.owner_id). */
+  const certificationOwner = (c: DemoCertification): string | null => {
+    if (c.exchangeId !== null) {
+      const e = exchanges.find((x) => x.id === c.exchangeId);
+      if (!e) return null;
+      return c.side === 'offered' ? e.proposerId : e.recipientId;
+    }
+    if (c.orderId !== null) return orders.find((x) => x.id === c.orderId)?.sellerId ?? null;
+    return listings.find((x) => x.id === c.listingId)?.sellerId ?? null;
+  };
+
+  /**
+   * Mon registre (platform_ledger), reconstitué des transactions comme le
+   * font les triggers serveur : commission + versement net à la libération
+   * d'une vente ; commission figée (et soulte reçue) à la conclusion d'un
+   * échange ; part des frais d'expertise à la décision de l'expert.
+   */
+  const myLedger = (): { kind: 'commission' | 'certification_fee' | 'payout'; amount: number }[] => {
+    const entries: { kind: 'commission' | 'certification_fee' | 'payout'; amount: number }[] = [];
+    for (const o of myReleasedSales()) {
+      const commission = roundCents(Math.max(0, o.amount) * o.commissionRate);
+      entries.push({ kind: 'commission', amount: commission });
+      entries.push({ kind: 'payout', amount: roundCents(Math.max(0, o.amount - commission)) });
+    }
+    for (const e of exchanges) {
+      if (e.state !== 'completed') continue;
+      const iAmProposer = e.proposerId === DEMO_OWNER;
+      if (!iAmProposer && e.recipientId !== DEMO_OWNER) continue;
+      entries.push({ kind: 'commission', amount: (iAmProposer ? e.proposerCommission : e.recipientCommission) ?? 0 });
+      const cashToMe = iAmProposer ? -e.cashAdjustment : e.cashAdjustment;
+      if (cashToMe > 0) entries.push({ kind: 'payout', amount: cashToMe });
+    }
+    for (const c of certifications) {
+      const fee = c.feeAmount ?? 0;
+      if ((c.status !== 'certified' && c.status !== 'rejected') || fee <= 0) continue;
+      const owner = certificationOwner(c);
+      if (owner === null) continue;
+      // ledger_on_certification_decision : part du propriétaire / de l'autre partie.
+      const other = c.requesterId === owner ? c.counterpartyId : c.requesterId;
+      const ownerShare =
+        other === null || c.feePayer === 'seller' ? fee : c.feePayer === 'buyer' ? 0 : roundCents(fee / 2);
+      const share = owner === DEMO_OWNER ? ownerShare : other === DEMO_OWNER ? roundCents(fee - ownerShare) : 0;
+      if (share > 0) entries.push({ kind: 'certification_fee', amount: share });
+    }
+    return entries;
+  };
 
   const findListing = (id: string): ListingRecord =>
     listings.find((l) => l.id === id) ?? invalid('Annonce introuvable');
@@ -743,7 +887,9 @@ export function createDemoMarketplaceRepo(
   };
 
   const requireExchangeAction = (e: DemoExchange, action: ExchangeAction) => {
-    const context = { hasOpenCertification: hasOpenCertification({ exchangeId: e.id }) };
+    // Miroir d'enforce_exchange_transition : une proposition échue ne s'accepte plus.
+    if (action === 'accept' && isExchangeExpired(e, now())) invalid('Proposition expirée');
+    const context = { hasOpenCertification: hasOpenCertification({ exchangeId: e.id }), now: now() };
     if (!exchangeActions(exchangeView(e), context).includes(action)) {
       invalid(`Action « ${action} » impossible dans l’état ${e.state}`);
     }
@@ -808,10 +954,12 @@ export function createDemoMarketplaceRepo(
   const thresholdSides = (e: DemoExchange): ('listing' | 'offered')[] => {
     const l = listings.find((x) => x.id === e.listingId);
     const sides: ('listing' | 'offered')[] = [];
-    const over = (value: number, itemId: string | null) =>
-      certificationRequirement({ value, estimatedValue: valuationOf(itemId) }).reason === 'threshold';
-    if (l && !l.certified && over(e.listingValue, l.itemId)) sides.push('listing');
-    if (e.offeredItemId !== null && over(e.offeredValue, e.offeredItemId)) sides.push('offered');
+    // Au-delà du seuil, ou objet refusé par un expert (refus mémorisé).
+    const over = (value: number, itemId: string | null, owner: string) =>
+      certificationRequirement({ value, estimatedValue: valuationOf(itemId) }).reason === 'threshold' ||
+      itemRejected(itemId, owner);
+    if (l && !l.certified && over(e.listingValue, l.itemId, l.sellerId)) sides.push('listing');
+    if (e.offeredItemId !== null && over(e.offeredValue, e.offeredItemId, e.proposerId)) sides.push('offered');
     return sides;
   };
 
@@ -883,43 +1031,60 @@ export function createDemoMarketplaceRepo(
 
     async createListing(input: NewListing) {
       await tick();
+      // Mêmes refus que le dépôt réel et enforce_listing_rules.
       if (!Number.isFinite(input.askPrice) || input.askPrice <= 0) invalid('Prix invalide');
+      if (input.askPrice < MARKET_MIN_ASK_PRICE) {
+        invalid(`Prix ou valeur déclarée minimum : ${String(MARKET_MIN_ASK_PRICE)} €`);
+      }
+      if (input.askPrice > MARKET_MAX_AMOUNT) invalid('Prix ou valeur déclarée trop élevé');
+      if (input.currency !== undefined && input.currency !== MARKET_CURRENCY) {
+        invalid('Seul l’euro (EUR) est accepté sur les plateformes d’échange et de vente');
+      }
       const item = findItem(input.itemId) ?? invalid('Objet introuvable dans votre collection');
+      if (itemCeded(item.id, DEMO_OWNER)) {
+        invalid('Objet déjà cédé (vente ou échange conclu) : il ne peut plus être mis en vente');
+      }
+      // Une seule annonce OUVERTE par objet (brouillon compris).
       const alreadyListed = listings.some(
         (l) =>
           l.itemId === input.itemId &&
           l.sellerId === DEMO_OWNER &&
-          (l.status === 'active' || l.status === 'pending_certification'),
+          (l.status === 'draft' || l.status === 'active' || l.status === 'pending_certification'),
       );
-      if (alreadyListed) invalid('Cet objet a déjà une annonce en cours');
+      if (alreadyListed) invalid('Cet objet a déjà une annonce ouverte : retirez-la d’abord');
 
       const kind = input.kind ?? 'sale';
-      // Seuil sur max(prix, dernière valorisation) — _market_reference_value.
+      // Seuil sur max(prix, estimation de référence) — _market_reference_value —
+      // ou refus d'expert mémorisé ; une certification obtenue suit l'objet.
       const requirement = certificationRequirement({
         value: input.askPrice,
         estimatedValue: valuationOf(input.itemId),
       });
+      const required = requirement.required || itemRejected(item.id, DEMO_OWNER);
+      const reportRef = itemCertificationRef(item, DEMO_OWNER);
+      const pending = required && reportRef === null;
       const rec: ListingRecord = {
         id: newId('listing'),
         itemId: input.itemId,
         sellerId: DEMO_OWNER,
         askPrice: input.askPrice,
-        currency: input.currency ?? 'EUR',
-        status: requirement.required ? 'pending_certification' : 'active',
+        currency: MARKET_CURRENCY,
+        status: pending ? 'pending_certification' : 'active',
         title: redactTitle(item.title),
         domain: item.domain,
         kind,
         description: cleanText(input.description).text,
         exchangeWishes: isOpenToExchange(kind) ? cleanText(input.exchangeWishes).text : null,
         commissionRate: commissionRateFor(mySales()),
-        certificationRequired: requirement.required,
-        certified: false,
+        certificationRequired: required,
+        certified: reportRef !== null,
         createdAt: now(),
       };
       listings.unshift(rec);
-      if (requirement.required) {
+      if (pending) {
         certifications.unshift({
           id: newId('cert'),
+          itemId: rec.itemId,
           listingId: rec.id,
           orderId: null,
           exchangeId: null,
@@ -1003,7 +1168,13 @@ export function createDemoMarketplaceRepo(
       if (!canTransitionOrder(role, o.escrowState, escrowState)) {
         invalid(`Transition de séquestre interdite (${o.escrowState} → ${escrowState})`);
       }
-      const tracking = patch?.trackingNumber?.trim() ?? '';
+      // Transporteur de la liste fermée (market_carriers()) et suivi au format
+      // serveur : mêmes règles que le dépôt réel, aucun texte libre.
+      const carrier = demoRule(() => normalizeCarrier(patch?.carrier));
+      const tracking =
+        patch?.trackingNumber !== undefined && patch.trackingNumber.trim() !== ''
+          ? demoRule(() => normalizeTrackingNumber(patch.trackingNumber ?? ''))
+          : '';
       if (escrowState === 'shipped' && tracking.length === 0) invalid('Numéro de suivi requis');
       // Miroir de guard_order_terms : la livraison est attestée par l'acheteur
       // (ou le transporteur), jamais par le vendeur — elle déclencherait sinon
@@ -1020,7 +1191,7 @@ export function createDemoMarketplaceRepo(
         invalid('Annonce déjà réservée par un autre membre');
       }
       o.escrowState = escrowState;
-      if (patch?.carrier !== undefined) o.carrier = patch.carrier;
+      if (carrier !== undefined) o.carrier = carrier;
       if (tracking.length > 0) o.trackingNumber = tracking;
       if (patch?.deliveredAt !== undefined) o.deliveredAt = patch.deliveredAt;
       if (escrowState === 'funds_held') {
@@ -1108,7 +1279,13 @@ export function createDemoMarketplaceRepo(
       await tick();
       const member = memberOfAlias(alias);
       if (member === DEMO_OWNER) {
-        return { completedSales: mySales(), refunded: 0, disputes: 0, disputeRate: 0, memberSince: '2025-02-01T00:00:00Z' };
+        return {
+          completedSales: myReleasedSales().length,
+          refunded: 0,
+          disputes: 0,
+          disputeRate: 0,
+          memberSince: '2025-02-01T00:00:00Z',
+        };
       }
       const rep = member !== null ? DEMO_REPUTATION[member] : undefined;
       return rep
@@ -1127,6 +1304,13 @@ export function createDemoMarketplaceRepo(
       const cash = input.cashAdjustment ?? 0;
       if (!Number.isFinite(cash)) invalid('Soulte invalide');
       const offered = findItem(input.offeredItemId) ?? invalid('Objet proposé introuvable dans votre collection');
+      // Comme le serveur : objet déjà cédé, ou refusé par un expert (refus mémorisé).
+      if (itemCeded(offered.id, DEMO_OWNER)) {
+        invalid('Objet déjà cédé (vente ou échange conclu) : il ne peut plus être proposé');
+      }
+      if (itemRejected(offered.id, DEMO_OWNER)) {
+        invalid('Objet refusé par un expert : il ne peut pas être proposé sans nouvelle certification');
+      }
       const pending = exchanges.some(
         (e) => e.listingId === l.id && e.proposerId === DEMO_OWNER && e.state === 'proposed',
       );
@@ -1158,6 +1342,7 @@ export function createDemoMarketplaceRepo(
         recipientTracking: null,
         proposerReceived: false,
         recipientReceived: false,
+        expiresAt: proposalExpiry(now()),
         createdAt: now(),
         updatedAt: now(),
       };
@@ -1221,6 +1406,7 @@ export function createDemoMarketplaceRepo(
         const owner = side === 'listing' ? e.recipientId : e.proposerId;
         certifications.unshift({
           id: newId('cert'),
+          itemId: side === 'listing' ? (l.itemId === '' ? null : l.itemId) : e.offeredItemId,
           listingId: null,
           orderId: null,
           exchangeId: e.id,
@@ -1271,12 +1457,13 @@ export function createDemoMarketplaceRepo(
       return exchangeView(e);
     },
 
-    async shipExchange(id: string, trackingNumber: string) {
+    async shipExchange(id: string, trackingNumber: string, carrier?: string) {
       await tick();
       const e = findMyExchange(id);
       requireExchangeAction(e, 'ship');
-      const tracking = trackingNumber.trim();
-      if (tracking.length === 0) invalid('Numéro de suivi requis');
+      // Suivi au format serveur, transporteur de la liste fermée (dépôt réel).
+      const tracking = demoRule(() => normalizeTrackingNumber(trackingNumber));
+      demoRule(() => normalizeCarrier(carrier));
       if (e.proposerId === DEMO_OWNER) e.proposerTracking = tracking;
       else e.recipientTracking = tracking;
       e.state = 'shipping';
@@ -1376,6 +1563,7 @@ export function createDemoMarketplaceRepo(
         if (open) invalid('Une demande de certification est déjà ouverte');
         rec = {
           ...base,
+          itemId: l.itemId === '' ? null : l.itemId,
           listingId: l.id,
           orderId: null,
           exchangeId: null,
@@ -1399,6 +1587,7 @@ export function createDemoMarketplaceRepo(
         if (hasOpenCertification({ orderId: o.id })) invalid('Une demande de certification est déjà ouverte');
         rec = {
           ...base,
+          itemId: l === undefined || l.itemId === '' ? null : l.itemId,
           listingId: o.listingId,
           orderId: o.id,
           exchangeId: null,
@@ -1428,8 +1617,10 @@ export function createDemoMarketplaceRepo(
           (c) => c.exchangeId === e.id && c.side === side && (OPEN_CERTIFICATION.has(c.status) || c.status === 'certified'),
         );
         if (already) invalid('Certification déjà obtenue ou demandée pour cet objet');
+        const listingItem = listings.find((x) => x.id === e.listingId)?.itemId ?? '';
         rec = {
           ...base,
+          itemId: side === 'listing' ? (listingItem === '' ? null : listingItem) : e.offeredItemId,
           listingId: null,
           orderId: null,
           exchangeId: e.id,
@@ -1497,6 +1688,103 @@ export function createDemoMarketplaceRepo(
         if (l && l.status === 'pending_certification' && !l.certified) l.status = 'draft';
       }
       return certificationView(c);
+    },
+
+    // ── Décision de l'expert (simulation démo de decide_certification) ──
+
+    async decideCertification(id: string, decision: DemoExpertDecision) {
+      await tick();
+      const c = certifications.find((x) => x.id === id);
+      if (!c || (c.status !== 'requested' && c.status !== 'in_review')) {
+        invalid('Demande introuvable ou non décidable');
+      }
+      const owner = certificationOwner(c);
+      c.status = decision.certified ? 'certified' : 'rejected';
+      c.decidedAt = now();
+      c.feeAmount = decision.feeAmount ?? c.feeAmount;
+      c.reportRef = decision.reportRef?.trim() || (decision.certified ? `demo-rapport-${c.id}` : null);
+      c.expertNote = decision.expertNote?.trim() || null;
+      // Décision MÉMORISÉE sur l'objet : la dernière fait foi (certifié ou refusé).
+      if (owner !== null && c.itemId !== null) {
+        decisions.set(decisionKey(c.itemId, owner), {
+          status: c.status,
+          reportRef: c.reportRef,
+          title: c.itemTitle,
+          domain: c.domain,
+        });
+      }
+      const listingOnly = c.orderId === null && c.exchangeId === null;
+      const resumeExchange = () => {
+        // _exchange_resume_after_certification : plus aucune expertise en attente → expédition.
+        const e = c.exchangeId ? exchanges.find((x) => x.id === c.exchangeId) : undefined;
+        const stillOpen = certifications.some(
+          (x) => x.exchangeId === c.exchangeId && (x.status === 'requested' || x.status === 'in_review'),
+        );
+        if (e && e.state === 'awaiting_certification' && !stillOpen) {
+          e.state = 'shipping';
+          touch(e);
+        }
+      };
+      if (c.status === 'certified') {
+        // Badge « authentifié VELUM » : l'annonce en attente est publiée.
+        const l = listingOnly && c.listingId ? listings.find((x) => x.id === c.listingId) : undefined;
+        if (l && l.status !== 'sold' && l.status !== 'exchanged' && l.status !== 'withdrawn') {
+          l.certified = true;
+          if (l.status === 'pending_certification') l.status = 'active';
+        }
+        resumeExchange();
+        return certificationView(c);
+      }
+      // Refus (certification_after_change) : la transaction tombe, PUIS l'objet
+      // quitte le catalogue — annonce de la demande et toute annonce ouverte de
+      // l'objet repassent en brouillon — et ses propositions en attente tombent.
+      const o = c.orderId ? orders.find((x) => x.id === c.orderId) : undefined;
+      if (o && (o.escrowState === 'pending_payment' || o.escrowState === 'funds_held')) o.escrowState = 'cancelled';
+      const ex = c.exchangeId ? exchanges.find((x) => x.id === c.exchangeId) : undefined;
+      if (ex && (ex.state === 'accepted' || ex.state === 'awaiting_certification' || ex.state === 'shipping')) {
+        ex.state = 'cancelled';
+        touch(ex);
+      }
+      const unpublished = new Set<string>();
+      for (const l of listings) {
+        const concerned = l.id === c.listingId || (c.itemId !== null && l.itemId === c.itemId);
+        if (
+          concerned &&
+          l.sellerId === owner &&
+          (l.status === 'active' || l.status === 'pending_certification') &&
+          !isEngaged(l.id)
+        ) {
+          l.status = 'draft';
+          unpublished.add(l.id);
+        }
+      }
+      for (const other of exchanges) {
+        if (other.state !== 'proposed') continue;
+        if (unpublished.has(other.listingId)) other.state = 'declined';
+        else if (c.itemId !== null && other.offeredItemId === c.itemId && other.proposerId === owner) other.state = 'withdrawn';
+        else continue;
+        touch(other);
+      }
+      return certificationView(c);
+    },
+
+    // ── Commissionnement ──
+
+    async commissionSummary(): Promise<CommissionSummary> {
+      await tick();
+      // Miroir de my_commission_summary : même définition des ventes retenues que le palier.
+      const ledger = myLedger();
+      const total = (kind: 'commission' | 'certification_fee' | 'payout') =>
+        roundCents(ledger.filter((entry) => entry.kind === kind).reduce((sum, entry) => sum + entry.amount, 0));
+      return {
+        currency: 'EUR',
+        currentRate: commissionRateFor(mySales()),
+        completedSales: mySales(),
+        commissions: total('commission'),
+        certificationFees: total('certification_fee'),
+        payouts: total('payout'),
+        entries: ledger.length,
+      };
     },
 
     // ── Messagerie anonymisée ──

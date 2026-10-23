@@ -190,6 +190,8 @@ export const communityKeys = {
   orders: [COMMUNITY_KEY, 'orders'] as const,
   exchanges: [COMMUNITY_KEY, 'exchanges'] as const,
   certifications: [COMMUNITY_KEY, 'certifications'] as const,
+  /** Synthèse de mon commissionnement (taux actuel, registre). */
+  commission: [COMMUNITY_KEY, 'commission'] as const,
   reputation: (alias: string) => [COMMUNITY_KEY, 'reputation', alias] as const,
   messages: (kind: 'order' | 'exchange', id: string) => [COMMUNITY_KEY, 'messages', kind, id] as const,
 };

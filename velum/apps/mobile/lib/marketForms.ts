@@ -3,24 +3,37 @@
  * vente / à l'échange, proposition d'échange) : saisie de montants à la
  * française, aperçus en direct (commission, certification, net vendeur),
  * aperçu du masquage des coordonnées. Les RÈGLES viennent de @velum/config
- * (source de vérité, répliquée côté SQL) : rien n'est recalculé ici.
+ * (source de vérité, répliquée côté SQL) et les bornes / transporteurs de
+ * @velum/api-client ; le TAUX de commission vient du serveur
+ * (lib/marketCommission, repli sur le taux maximal) : rien n'est recalculé ici.
  */
 import {
-  COMMISSION_TIERS,
   certificationRequirement,
-  commissionRateFor,
   estimateCertificationFee,
-  exchangeCommission,
   redactContactInfo,
   roundCents,
-  saleBreakdown,
   splitCertificationFee,
   type CertificationRequirement,
   type ExchangeCommission,
   type SaleBreakdown,
 } from '@velum/config';
+import {
+  MARKET_CARRIERS,
+  MARKET_MAX_AMOUNT,
+  MARKET_MIN_ASK_PRICE,
+  normalizeTrackingNumber as normalizeServerTracking,
+  type MarketCarrier,
+} from '@velum/api-client';
 import type { ListingKind, ValuationRecord, VelumDomain, VelumItem } from '@velum/core';
 
+import {
+  exchangeCommissionAt,
+  nextCommissionTier,
+  nextTierOf,
+  saleBreakdownAt,
+  type CommissionBasis,
+  type NextCommissionTier,
+} from './marketCommission';
 import { isForSale, isOpenToExchange } from './marketState';
 
 // ── Montants ─────────────────────────────────────────────────────────────────
@@ -59,10 +72,50 @@ export function parseFrenchAmount(raw: string): number | null {
   return Number.isFinite(value) ? roundCents(value) : null;
 }
 
-/** Montant strictement positif, ou null. */
-export function parsePositiveAmount(raw: string): number | null {
+/**
+ * Motif de refus d'un montant saisi : illisible, sous le minimum
+ * (MARKET_MIN_ASK_PRICE, 1 €), au-delà du plus grand montant représentable
+ * côté serveur (MARKET_MAX_AMOUNT, numeric(14, 2)).
+ */
+export type AmountProblem = 'invalid' | 'belowMin' | 'aboveMax';
+
+export type AmountCheck = { ok: true; value: number } | { ok: false; problem: AmountProblem };
+
+/**
+ * Prix demandé ou valeur déclarée saisi → montant accepté par le serveur
+ * (bornes de @velum/api-client : market_min_ask_price_eur() et numeric(14, 2)),
+ * ou le motif du refus pour un message clair.
+ */
+export function checkMarketAmount(raw: string): AmountCheck {
   const value = parseFrenchAmount(raw);
-  return value !== null && value > 0 ? value : null;
+  if (value === null) return { ok: false, problem: 'invalid' };
+  if (value < MARKET_MIN_ASK_PRICE) return { ok: false, problem: 'belowMin' };
+  if (value > MARKET_MAX_AMOUNT) return { ok: false, problem: 'aboveMax' };
+  return { ok: true, value };
+}
+
+/**
+ * Prix ou valeur déclarée valide (≥ MARKET_MIN_ASK_PRICE, ≤ MARKET_MAX_AMOUNT),
+ * ou null — le motif s'obtient par `checkMarketAmount`.
+ */
+export function parsePositiveAmount(raw: string): number | null {
+  const check = checkMarketAmount(raw);
+  return check.ok ? check.value : null;
+}
+
+/** Message (clé i18n + paramètres) d'un montant refusé — minimum et maximum chiffrés. */
+export function amountProblemMessage(
+  problem: AmountProblem,
+  locale: string,
+): { key: string; params?: Record<string, string> } {
+  switch (problem) {
+    case 'belowMin':
+      return { key: 'community.amountBelowMin', params: { min: formatPrice(MARKET_MIN_ASK_PRICE, locale) } };
+    case 'aboveMax':
+      return { key: 'community.amountAboveMax', params: { max: formatPrice(MARKET_MAX_AMOUNT, locale) } };
+    default:
+      return { key: 'community.invalidAmount' };
+  }
 }
 
 /** Valeur pré-remplie dans un champ (entier si possible, virgule décimale). */
@@ -70,6 +123,66 @@ export function amountToInput(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value) || value <= 0) return '';
   const rounded = roundCents(value);
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace('.', ',');
+}
+
+/**
+ * Fenêtre des estimations VELUM retenues pour le seuil de certification, en
+ * mois — réplique de market_valuation_window() (relue par les tests).
+ */
+export const MARKET_VALUATION_WINDOW_MONTHS = 18;
+
+type EstimatePoint = Pick<ValuationRecord, 'central' | 'valuedAt'>;
+
+/** `date` moins `months` mois civils (jour borné à la fin du mois, comme `- interval` en SQL). */
+function minusMonths(date: Date, months: number): Date {
+  const target = new Date(date.getTime());
+  const day = date.getUTCDate();
+  target.setUTCDate(1);
+  target.setUTCMonth(target.getUTCMonth() - months);
+  const daysInMonth = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  target.setUTCDate(Math.min(day, daysInMonth));
+  return target;
+}
+
+/** Estimations valides de la fenêtre : montant > 0, datées ni dans le futur ni trop anciennes. */
+function estimatesInWindow(history: readonly EstimatePoint[], now: string | Date): { central: number; at: number }[] {
+  const nowDate = typeof now === 'string' ? new Date(now) : now;
+  const nowMs = nowDate.getTime();
+  if (!Number.isFinite(nowMs)) return [];
+  const floor = minusMonths(nowDate, MARKET_VALUATION_WINDOW_MONTHS).getTime();
+  const points: { central: number; at: number }[] = [];
+  for (const v of history) {
+    const at = Date.parse(v.valuedAt);
+    if (!Number.isFinite(v.central) || v.central <= 0 || !Number.isFinite(at)) continue;
+    // Date future (invalide) ou hors fenêtre : ignorée, comme _market_reference_value.
+    if (at > nowMs || at <= floor) continue;
+    points.push({ central: v.central, at });
+  }
+  return points;
+}
+
+/**
+ * Estimation de RÉFÉRENCE pour le seuil de certification : la PLUS HAUTE des
+ * estimations VELUM des 18 derniers mois (dates futures ignorées) — même
+ * règle que _market_reference_value côté serveur : une estimation basse
+ * postérieure ne masque pas une estimation haute récente. null si aucune.
+ */
+export function referenceEstimate(history: readonly EstimatePoint[], now: string | Date): number | null {
+  const points = estimatesInWindow(history, now);
+  if (points.length === 0) return null;
+  // Non arrondie : comparée telle quelle au seuil, comme côté serveur.
+  return Math.max(...points.map((p) => p.central));
+}
+
+/**
+ * Estimation VELUM la plus RÉCENTE de la fenêtre (pré-remplissage et rappel
+ * sous le champ), dates futures ignorées ; null si aucune.
+ */
+export function latestEstimate(history: readonly EstimatePoint[], now: string | Date): number | null {
+  const points = estimatesInWindow(history, now);
+  let latest: { central: number; at: number } | null = null;
+  for (const p of points) if (latest === null || p.at > latest.at) latest = p;
+  return latest === null ? null : roundCents(latest.central);
 }
 
 /** Estimation VELUM retenue depuis la dernière valorisation (null si absente). */
@@ -107,24 +220,17 @@ export function formatRate(rate: number, locale: string): string {
 
 // ── Commission dégressive ────────────────────────────────────────────────────
 
-export interface NextCommissionTier {
-  /** Taux du palier suivant. */
-  rate: number;
-  /** Ventes conclues requises pour l'atteindre. */
-  minSales: number;
-  /** Ventes conclues restant à réaliser. */
-  salesNeeded: number;
+/**
+ * Commission d'une vente au taux FIGÉ de la commande : exactement l'écriture
+ * du registre (ledger_on_order_release : round(greatest(montant, 0) × taux, 2)),
+ * roundCents de @velum/config étant aligné sur round(numeric, 2).
+ */
+export function orderCommission(order: { amount: number; commissionRate: number }): number {
+  return roundCents(Math.max(0, order.amount) * order.commissionRate);
 }
 
-/** Palier de commission suivant (null si le taux minimal est déjà atteint). */
-export function nextCommissionTier(completedSales: number): NextCommissionTier | null {
-  const sales = Math.max(0, Math.floor(completedSales));
-  const current = commissionRateFor(sales);
-  const next = [...COMMISSION_TIERS]
-    .sort((a, b) => a.minSales - b.minSales)
-    .find((tier) => tier.minSales > sales && tier.rate < current);
-  return next ? { rate: next.rate, minSales: next.minSales, salesNeeded: next.minSales - sales } : null;
-}
+/** Palier suivant : voir lib/marketCommission (base serveur des aperçus). */
+export { nextCommissionTier, type NextCommissionTier };
 
 // ── Mise en vente / à l'échange ──────────────────────────────────────────────
 
@@ -134,7 +240,11 @@ export type SellCertification = 'required' | 'voluntary' | 'none' | 'already';
 export interface SellPreview {
   /** Prix demandé / valeur déclarée saisi (null si invalide). */
   value: number | null;
+  /** Motif du refus de la saisie (null si valide). */
+  valueProblem: AmountProblem | null;
+  /** Taux appliqué : celui du serveur, ou le taux maximal en repli (`commission.source`). */
   commissionRate: number;
+  /** Palier suivant (null si inconnu — taux en repli — ou minimum atteint). */
   nextTier: NextCommissionTier | null;
   /** Décomposition de la vente (null pour un échange seul ou un prix invalide). */
   sale: SaleBreakdown | null;
@@ -149,13 +259,18 @@ export interface SellPreview {
 export function sellPreview(input: {
   kind: ListingKind;
   priceInput: string;
-  completedSales: number;
+  /**
+   * Base de commission (lib/marketCommission) : taux ACTUEL du serveur
+   * (figé à la publication), ou le taux maximal si indisponible.
+   */
+  commission: CommissionBasis;
   estimatedValue: number | null;
   voluntaryCertification: boolean;
   /** Objet déjà certifié par un expert (lib/marketState `itemCertifiedByExpert`). */
   alreadyCertified?: boolean;
 }): SellPreview {
-  const value = parsePositiveAmount(input.priceInput);
+  const check = checkMarketAmount(input.priceInput);
+  const value = check.ok ? check.value : null;
   const rule = certificationRequirement({
     value: value ?? 0,
     estimatedValue: input.estimatedValue,
@@ -177,15 +292,16 @@ export function sellPreview(input: {
       : estimateCertificationFee(requirement.referenceValue);
   return {
     value,
-    commissionRate: commissionRateFor(input.completedSales),
-    nextTier: nextCommissionTier(input.completedSales),
+    valueProblem: check.ok ? null : check.problem,
+    commissionRate: input.commission.rate,
+    nextTier: nextTierOf(input.commission),
     sale:
       value !== null && isForSale(input.kind)
-        ? saleBreakdown(value, input.completedSales, certificationFee)
+        ? saleBreakdownAt(value, input.commission, certificationFee)
         : null,
     exchange:
       value !== null && isOpenToExchange(input.kind)
-        ? exchangeCommission(value, input.completedSales)
+        ? exchangeCommissionAt(value, input.commission)
         : null,
     requirement,
     certification,
@@ -204,13 +320,16 @@ export type CashDirection = 'add' | 'ask';
 export function signedCashAdjustment(direction: CashDirection, amountInput: string): number | null {
   if (amountInput.trim().length === 0) return 0;
   const amount = parseFrenchAmount(amountInput);
-  if (amount === null) return null;
+  // Au-delà de numeric(14, 2) : refus local (jamais présenté comme une panne).
+  if (amount === null || amount > MARKET_MAX_AMOUNT) return null;
   if (amount === 0) return 0;
   return direction === 'add' ? amount : -amount;
 }
 
 export interface ExchangePreview {
   offeredValue: number | null;
+  /** Motif du refus de la valeur déclarée saisie (null si valide). */
+  offeredValueProblem: AmountProblem | null;
   cashAdjustment: number | null;
   /** Ma commission (sur la valeur de l'objet que je cède), figée à l'acceptation. */
   myCommission: ExchangeCommission | null;
@@ -246,10 +365,12 @@ export function exchangePreview(input: {
   offeredCertified?: boolean;
   cashDirection: CashDirection;
   cashInput: string;
-  completedSales: number;
+  /** Base de commission (lib/marketCommission) : taux serveur, ou le maximum en repli. */
+  commission: CommissionBasis;
   mutualCertification?: boolean;
 }): ExchangePreview {
-  const offeredValue = parsePositiveAmount(input.offeredValueInput);
+  const offeredCheck = checkMarketAmount(input.offeredValueInput);
+  const offeredValue = offeredCheck.ok ? offeredCheck.value : null;
   const cashAdjustment = signedCashAdjustment(input.cashDirection, input.cashInput);
   // Objet par objet, comme le serveur : mon objet = max(valeur déclarée,
   // estimation) ; l'objet de l'annonce = sa valeur déclarée ; un objet déjà
@@ -282,8 +403,9 @@ export function exchangePreview(input: {
       : 0;
   return {
     offeredValue,
+    offeredValueProblem: offeredCheck.ok ? null : offeredCheck.problem,
     cashAdjustment,
-    myCommission: offeredValue !== null ? exchangeCommission(offeredValue, input.completedSales) : null,
+    myCommission: offeredValue !== null ? exchangeCommissionAt(offeredValue, input.commission) : null,
     requirement,
     thresholdItems: { mine, theirs },
     certificationFee,
@@ -307,21 +429,28 @@ export function sortItemsForExchange(
 // ── Expédition ───────────────────────────────────────────────────────────────
 
 /**
- * Transporteurs proposés à l'expédition : liste FERMÉE (pas de texte libre,
- * donc aucun canal de coordonnées).
+ * Transporteurs proposés à l'expédition : la liste FERMÉE de @velum/api-client,
+ * réplique testée de market_carriers() (SQL) — une seule liste pour l'UI, le
+ * dépôt et le serveur ; pas de texte libre, donc aucun canal de coordonnées.
  */
-export const MARKET_CARRIERS = ['La Poste', 'Colissimo', 'Chronopost', 'Mondial Relay', 'DHL', 'UPS', 'FedEx'] as const;
-export type MarketCarrier = (typeof MARKET_CARRIERS)[number];
+export { MARKET_CARRIERS, type MarketCarrier };
 
 /**
  * Numéro de suivi saisi → forme normalisée (blancs retirés, majuscules), ou
- * null s'il ne ressemble pas à un numéro de suivi (4 à 40 lettres, chiffres
- * ou tirets, au moins un chiffre) : une phrase, un e-mail ou un lien ne
- * passent pas.
+ * null s'il ne ressemble pas à un numéro de suivi. Règle du dépôt et du
+ * serveur (normalizeTrackingNumber de @velum/api-client : lettres, chiffres
+ * et tirets, 4 à 40 caractères, ^[A-Z0-9][A-Z0-9-]{3,39}$), plus STRICTE
+ * ici : au moins un chiffre — sous-ensemble du format serveur, jamais plus
+ * permissive. Une phrase, un e-mail ou un lien ne passent pas.
  */
 export function normalizeTrackingNumber(raw: string): string | null {
-  const value = raw.replace(/\s+/g, '').toUpperCase();
-  return /^(?=.*[0-9])[A-Z0-9][A-Z0-9-]{3,39}$/.test(value) ? value : null;
+  let value: string;
+  try {
+    value = normalizeServerTracking(raw);
+  } catch {
+    return null;
+  }
+  return /[0-9]/.test(value) ? value : null;
 }
 
 /**

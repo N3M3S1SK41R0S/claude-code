@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   VelumError,
@@ -12,6 +15,7 @@ import {
 import {
   CERTIFICATION_TONE,
   ESCROW_TONE,
+  EXCHANGE_PROPOSAL_TTL_DAYS,
   EXCHANGE_TONE,
   LISTING_STATUS_TONE,
   canRequestExchangeCertification,
@@ -26,10 +30,12 @@ import {
   exchangeTimeline,
   hasOpenCertificationOn,
   isClosed,
+  isExchangeExpired,
   isForSale,
   isNotYetAvailable,
   isOpenToExchange,
   itemCertifiedByExpert,
+  itemMarketBlock,
   listingAvailability,
   marketLabelKeys,
   marketRetry,
@@ -207,6 +213,28 @@ describe('échanges : actions par rôle × état', () => {
     expect(exchangeActions({ ...expired, expiresAt: '2026-10-30T00:00:00Z' }, { now })).toEqual(['accept', 'decline']);
     // Échéance inconnue : le serveur tranche.
     expect(exchangeActions(exchange(), { now })).toEqual(['accept', 'decline']);
+  });
+
+  it('isExchangeExpired : échéance atteinte d’une proposition seulement, illisible ⇒ le serveur tranche', () => {
+    const now = '2026-10-23T10:00:00Z';
+    expect(isExchangeExpired({ state: 'proposed', expiresAt: '2026-10-23T10:00:00Z' }, now)).toBe(true);
+    expect(isExchangeExpired({ state: 'proposed', expiresAt: '2026-10-23T10:00:01Z' }, now)).toBe(false);
+    expect(isExchangeExpired({ state: 'shipping', expiresAt: '2026-10-01T00:00:00Z' }, now)).toBe(false);
+    expect(isExchangeExpired({ state: 'proposed', expiresAt: null }, now)).toBe(false);
+    expect(isExchangeExpired({ state: 'proposed', expiresAt: 'pas une date' }, now)).toBe(false);
+    expect(isExchangeExpired({ state: 'proposed', expiresAt: '2026-10-01T00:00:00Z' }, undefined)).toBe(false);
+  });
+
+  it('EXCHANGE_PROPOSAL_TTL_DAYS est la réplique de exchange_proposal_ttl_days() (SQL)', () => {
+    const sql = readFileSync(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../../supabase/migrations/20261023100100_market_exchanges_certification.sql',
+      ),
+      'utf8',
+    );
+    const match = /function public\.exchange_proposal_ttl_days\(\)[\s\S]*?select (\d+)/.exec(sql);
+    expect(Number(match?.[1])).toBe(EXCHANGE_PROPOSAL_TTL_DAYS);
   });
 
   it('aucune action sur les états terminaux et en litige', () => {
@@ -398,6 +426,30 @@ describe('expertise d’un commun accord : demandée sur la transaction (miroir 
     expect(canRequestOrderCertification(order('funds_held'), [{ status: 'awaiting_agreement' }])).toBe(false);
     expect(canRequestOrderCertification(order('funds_held'), [{ status: 'certified' }])).toBe(false);
     expect(canRequestOrderCertification(order('funds_held'), [{ status: 'cancelled' }])).toBe(true);
+  });
+});
+
+describe('objet non remettable en vente (miroir d’enforce_listing_rules)', () => {
+  const l = (id: string, itemId: string, status: ListingStatus) => ({ id, itemId, status });
+
+  it('annonce ouverte (brouillon, en attente d’expertise, publiée) : une seule par objet', () => {
+    for (const status of ['draft', 'pending_certification', 'active'] as ListingStatus[]) {
+      expect(itemMarketBlock('it-1', [l('l-1', 'it-1', status)])).toEqual({ reason: 'openListing', listingId: 'l-1' });
+    }
+  });
+
+  it('objet cédé (annonce vendue ou échangée) : prioritaire, jamais réannonçable', () => {
+    expect(itemMarketBlock('it-1', [l('l-1', 'it-1', 'sold')])).toEqual({ reason: 'ceded', listingId: 'l-1' });
+    expect(
+      itemMarketBlock('it-1', [l('l-2', 'it-1', 'active'), l('l-1', 'it-1', 'exchanged')]),
+    ).toEqual({ reason: 'ceded', listingId: 'l-1' });
+  });
+
+  it('annonce retirée, autre objet ou annonce détachée : libre', () => {
+    expect(itemMarketBlock('it-1', [l('l-1', 'it-1', 'withdrawn')])).toBeNull();
+    expect(itemMarketBlock('it-1', [l('l-1', 'it-2', 'active')])).toBeNull();
+    expect(itemMarketBlock('', [l('l-1', '', 'sold')])).toBeNull();
+    expect(itemMarketBlock('it-1', [])).toBeNull();
   });
 });
 

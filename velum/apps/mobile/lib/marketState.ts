@@ -160,7 +160,11 @@ export function canTransitionOrder(role: MarketRole, from: EscrowState, to: Escr
 /** Actions « principales » (qui font avancer la transaction), par opposition à litige/annulation. */
 export const PRIMARY_ORDER_ACTIONS: ReadonlySet<OrderAction> = new Set(['pay', 'ship', 'confirm_receipt']);
 
-/** Nombre de ventes CONCLUES de l'utilisateur (base du taux dégressif). */
+/**
+ * Nombre de ventes CONCLUES de l'utilisateur (fonds libérés), à titre
+ * informatif : le palier de commission compte les ventes RETENUES (≥ 20 €,
+ * 3 par acheteur) et se lit du serveur (lib/marketCommission).
+ */
 export function completedSalesCount(
   orders: readonly Pick<MarketOrder, 'role' | 'escrowState'>[],
 ): number {
@@ -188,7 +192,7 @@ type ExchangeView = Pick<
   | 'proposerReceived'
   | 'recipientReceived'
 > & {
-  /** Échéance d'une proposition (expires_at), si le dépôt la fournit. */
+  /** Échéance d'une proposition (ExchangeProposal.expiresAt), si le dépôt la fournit. */
   expiresAt?: string | null;
 };
 
@@ -217,6 +221,28 @@ function hasText(value: string | null): boolean {
 }
 
 /**
+ * Durée de validité d'une proposition sans réponse, en jours — réplique de
+ * exchange_proposal_ttl_days() (migration 20261023100100, relue par les tests).
+ */
+export const EXCHANGE_PROPOSAL_TTL_DAYS = 7;
+
+/**
+ * true si la proposition `proposed` est ÉCHUE à `now` (échéance atteinte,
+ * avant même le passage du cron qui la passe en « expirée ») : elle ne
+ * s'accepte plus (« Proposition expirée » côté serveur). Échéance inconnue
+ * ou illisible : false (le serveur tranche).
+ */
+export function isExchangeExpired(
+  ex: Pick<ExchangeView, 'state' | 'expiresAt'>,
+  now: string | undefined,
+): boolean {
+  if (ex.state !== 'proposed' || now === undefined || typeof ex.expiresAt !== 'string') return false;
+  const expires = Date.parse(ex.expiresAt);
+  const at = Date.parse(now);
+  return Number.isFinite(expires) && Number.isFinite(at) && expires <= at;
+}
+
+/**
  * Actions légales sur un échange pour l'utilisateur courant (rôle × état) :
  *  - proposed : le destinataire accepte/refuse, l'auteur peut retirer ;
  *  - accepted : expédier (si aucune expertise n'est exigée) ou annuler ;
@@ -234,12 +260,8 @@ export function exchangeActions(ex: ExchangeView, context: ActionContext = {}): 
   const shipBlocked = context.hasOpenCertification === true;
   switch (ex.state) {
     case 'proposed': {
-      const expired =
-        context.now !== undefined &&
-        typeof ex.expiresAt === 'string' &&
-        Date.parse(ex.expiresAt) <= Date.parse(context.now);
       if (ex.role !== 'recipient') return ['withdraw'];
-      return expired ? ['decline'] : ['accept', 'decline'];
+      return isExchangeExpired(ex, context.now) ? ['decline'] : ['accept', 'decline'];
     }
     case 'accepted':
       return !ex.certificationRequired && !mine && !shipBlocked ? ['ship', 'cancel'] : ['cancel'];
@@ -496,6 +518,37 @@ export function listingAvailability(
     canPropose: isOpenToExchange(listing.kind) && !held && pending === undefined,
     mine,
   };
+}
+
+/** Annonce OUVERTE (une seule par objet : _market_item_has_open_listing). */
+const OPEN_LISTING: ReadonlySet<ListingStatus> = new Set(['draft', 'pending_certification', 'active']);
+/** Annonce conclue : l'objet est CÉDÉ (_market_item_ceded). */
+const CEDED_LISTING: ReadonlySet<ListingStatus> = new Set(['sold', 'exchanged']);
+
+export interface ItemMarketBlock {
+  /** 'ceded' : déjà vendu ou échangé ; 'openListing' : une annonce est déjà en cours. */
+  reason: 'ceded' | 'openListing';
+  /** Annonce en cause (lien « Voir l'annonce »). */
+  listingId: string;
+}
+
+/**
+ * Objet de MA collection qui ne peut pas être (re)mis en vente — miroir des
+ * refus d'enforce_listing_rules d'après mes annonces : déjà CÉDÉ (annonce
+ * vendue ou échangée) ou déjà une annonce OUVERTE (brouillon, en attente
+ * d'expertise, publiée). Un objet cédé ne s'offre pas non plus à l'échange.
+ * Seules mes annonces sont connues ici (un échange conclu où j'ai OFFERT
+ * l'objet n'en expose pas l'identifiant) : le serveur reste l'arbitre.
+ */
+export function itemMarketBlock(
+  itemId: string,
+  listings: readonly Pick<ListingRecord, 'id' | 'itemId' | 'status'>[],
+): ItemMarketBlock | null {
+  const ofItem = listings.filter((l) => l.itemId !== '' && l.itemId === itemId);
+  const ceded = ofItem.find((l) => CEDED_LISTING.has(l.status));
+  if (ceded) return { reason: 'ceded', listingId: ceded.id };
+  const open = ofItem.find((l) => OPEN_LISTING.has(l.status));
+  return open ? { reason: 'openListing', listingId: open.id } : null;
 }
 
 /**

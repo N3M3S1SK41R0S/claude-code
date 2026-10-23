@@ -1,8 +1,8 @@
 /**
  * « Mon activité » : mes annonces, mes achats & ventes (séquestre), mes
- * échanges et mes certifications. Chaque section a son propre état
- * chargement / erreur (Réessayer) / vide ; ce qui attend MON action passe en
- * tête, l'historique (éléments clos) est replié.
+ * échanges, mes certifications et mes commissions (registre transparent).
+ * Chaque section a son propre état chargement / erreur (Réessayer) / vide ;
+ * ce qui attend MON action passe en tête, l'historique (éléments clos) est replié.
  */
 import { useState, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -22,6 +22,7 @@ import {
 } from '../../lib/marketState';
 import { routes } from '../../lib/routes';
 import { CertificationCard, ExchangeSummaryCard, MyListingCard } from './ActivityCards';
+import { CommissionCard } from './CommissionCard';
 import { AsyncBlock } from './controls';
 import { useMyCertifications, useMyExchanges, useMyListings, useMyOrders } from './hooks';
 import { OrderCard } from './OrderCard';
@@ -176,6 +177,10 @@ export function MyActivity() {
             );
           }}
         </AsyncBlock>
+      </Section>
+
+      <Section title={t('community.commissions.title')} hint={t('community.commissions.hint')}>
+        <CommissionCard />
       </Section>
     </View>
   );

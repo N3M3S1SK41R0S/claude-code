@@ -119,6 +119,12 @@ export interface ExchangeProposal {
   /** Réception confirmée par chaque partie. */
   proposerReceived: boolean;
   recipientReceived: boolean;
+  /**
+   * Échéance d'une proposition sans réponse (ISO, `expires_at` serveur) :
+   * passé ce délai, elle ne s'accepte plus. Optionnel (ajout additif) :
+   * absent ou null quand le dépôt ne la fournit pas.
+   */
+  expiresAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

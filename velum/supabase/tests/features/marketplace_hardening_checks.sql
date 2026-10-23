@@ -16,7 +16,8 @@
 --   X11 date de publication posée par le serveur ;
 --   X12 annonce certifiée : suppression interdite (historique d'expertise) ;
 --   X13 fin d'abonnement Platine : annonces retirées, actions refusées ;
---   X14 market_listing() : annonce par identifiant, anonymisée, hors catalogue.
+--   X14 market_listing() : annonce par identifiant, anonymisée, hors catalogue ;
+--   X16 expédition du vendeur avec date de livraison : P0001 ; sans date, elle passe.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 \set ON_ERROR_STOP on
@@ -839,6 +840,57 @@ begin
     raise exception 'arrondi : demi-centime arrondi au supérieur attendu';
   end if;
   raise notice 'OK X15 — arrondi au centime (demi supérieur), vecteurs partagés avec roundCents';
+end
+$$;
+
+-- ── X16. Expédition par le vendeur : date de livraison refusée (P0001 exact) ─
+-- Le vendeur qui expédie avec un suivi VALIDE et un transporteur reconnu,
+-- mais en posant delivered_at, reçoit P0001 (refus métier, jamais une panne :
+-- le client ne le met pas en file hors-ligne) ; sans date, l'expédition passe.
+do $$
+declare
+  v_order uuid;
+  v_row record;
+  v_refused boolean := false;
+  v_delivered timestamptz;
+begin
+  insert into public.items (id, owner_id, domain, title) values
+    ('91000000-0000-4000-8000-000000000016', '81000000-0000-4000-8000-000000000001', 'coin',
+     'Liard de Louis XIV 1655');
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a1600000-0000-4000-8000-000000000016', '91000000-0000-4000-8000-000000000016',
+     '81000000-0000-4000-8000-000000000001', 90);
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select id into v_order from public.market_buy('a1600000-0000-4000-8000-000000000016');
+  perform public.advance_market_order(v_order, 'funds_held');
+
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  begin
+    perform public.advance_market_order(v_order, 'shipped', 'Colissimo', '6A12345678901', now());
+  exception when others then
+    if sqlstate <> 'P0001' or sqlerrm not like '%atteste la livraison%' then
+      raise exception 'X16 : refus inattendu (% — %)', sqlstate, sqlerrm;
+    end if;
+    v_refused := true;
+  end;
+  if not v_refused then
+    raise exception 'X16 : expédition du vendeur avec date de livraison acceptée';
+  end if;
+
+  -- Même expédition, delivered_at null : elle passe, sans date de livraison.
+  select * into v_row from public.advance_market_order(v_order, 'shipped', 'Colissimo', '6A12345678901', null);
+  if v_row.escrow_state <> 'shipped' or v_row.delivered_at is not null
+     or v_row.carrier <> 'Colissimo' or v_row.tracking_number <> '6A12345678901' then
+    raise exception 'X16 : expédition sans date de livraison attendue (%)', row_to_json(v_row);
+  end if;
+  reset role;
+  select delivered_at into v_delivered from public.orders where id = v_order;
+  if v_delivered is not null then
+    raise exception 'X16 : aucune date de livraison ne doit être enregistrée (%)', v_delivered;
+  end if;
+  raise notice 'OK X16 — vendeur : date de livraison à l''expédition ⇒ P0001 ; sans date, l''expédition passe';
 end
 $$;
 
