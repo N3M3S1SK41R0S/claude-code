@@ -12,8 +12,10 @@
 > à l'identique en SQL), contrats `packages/core/src/market.ts` et `items.ts`,
 > schéma `supabase/migrations/20261023100000…100400_*.sql` et `20261023130000…132000_*.sql`
 > (garde de l'offre, estimations serveur, paliers de commission), client
-> `packages/api-client/src/marketplace.ts`. Tests : `supabase/tests/features/marketplace_checks.sql`
-> et `marketplace_hardening_checks.sql` (contournements rejoués et refusés).
+> `packages/api-client/src/marketplace.ts`. Tests : `supabase/tests/features/marketplace_checks.sql`,
+> `marketplace_hardening_checks.sql` (contournements rejoués et refusés) et
+> `supabase/tests/upgrade/legacy_0006_*.sql` (rattrapages des données 0006,
+> rejoués par `run-local.sh` sur une base intermédiaire).
 
 ## 1. Décisions verrouillées
 
@@ -28,15 +30,18 @@
      il **authentifie**, puis l'objet circule assuré (remise contre signature).
 3. **Certification AVANT publication au-delà du seuil** : toute annonce dont la
    **valeur de référence = max(prix demandé ou valeur déclarée, plus haute
-   estimation VELUM des 18 derniers mois)** dépasse **strictement 500 €** est
+   estimation VELUM des 18 derniers mois — à défaut, la dernière estimation
+   passée, quel que soit son âge)** dépasse **strictement 500 €** est
    retenue en `pending_certification` jusqu'à la décision de l'expert ; un faux
    n'atteint **jamais** le catalogue. Badge « **authentifié VELUM** » une fois
    certifiée. Sous-déclarer ne contourne pas le seuil : l'estimation compte. Les
    estimations sont écrites par le **serveur seul** (`valuate` après contrôle de
    propriété, `price-cron`) ; une estimation basse postérieure (candidat
    trompeur soumis à `valuate`) ne masque pas une estimation haute récente, une
-   date future est ignorée. Limite assumée : un objet **jamais estimé** n'est
-   jugé que sur son prix déclaré.
+   date future est ignorée ; une estimation ancienne n'est écartée que par une
+   estimation plus récente (dans la fenêtre), jamais par le seul passage du
+   temps. Limite assumée : un objet **jamais estimé** n'est jugé que sur son
+   prix déclaré.
 4. **Libération du séquestre automatique à J+X après livraison prouvée** (suivi
    transporteur ; remise contre signature pour le high-value), **sauf litige**.
    X = `escrow_release_days()` = 5 jours. Le silence de l'acheteur ne bloque pas
@@ -58,11 +63,11 @@
 | Réservation | Une annonce est réservée dès le **paiement capturé** (`funds_held`) ou l'**échange accepté** — premier payé, premier servi ; une commande non payée ne bloque personne. **Une seule annonce ouverte par objet** (index unique) : un objet unique ne se paie pas deux fois, ni ne se paie et s'échange en même temps. |
 | Capture du paiement | Revérifie l'annonce : toujours **publiée**, au **même prix**, en euros, ouverte à la vente. Toute suspension (certification exigée par une nouvelle estimation), dépublication ou modification des termes **annule** les commandes non payées. |
 | Objet cédé | Un objet vendu ou cédé dans un échange conclu ne se **remet plus en vente** et ne s'**offre plus à l'échange** (il reste dans la collection du cédant, sans lui appartenir). |
-| Devise, prix | **Euro uniquement** (seuil, commissions et registre en EUR) ; prix ou valeur déclarée **1 € minimum**. |
-| Suivi d'expédition | Lisible par l'autre partie : écrit par le **seul expéditeur, à l'expédition**, jamais réécrit ; transporteur choisi dans une **liste fermée** (`market_carriers()` / `MARKET_CARRIERS`) ou absent ; numéro `[A-Z0-9-]`, 4 à 40 caractères — jamais un texte libre (canal de coordonnées). |
+| Devise, prix | **Euro uniquement** (seuil, commissions et registre en EUR) ; prix ou valeur déclarée **1 € minimum**. Une annonce historique (0006) hors euro ou sous le plancher est retirée à la migration (vendeur prévenu), sauf transaction en cours ; libérée ensuite, elle n'est ni exposée aux autres membres, ni achetable, ni ouverte à l'échange (refus explicite). |
+| Suivi d'expédition | Lisible par l'autre partie : écrit par le **seul expéditeur, à l'expédition**, jamais réécrit ; transporteur choisi dans une **liste fermée** (`market_carriers()` / `MARKET_CARRIERS`) ou absent ; numéro `[A-Z0-9-]`, 4 à 40 caractères — jamais un texte libre (canal de coordonnées). Suivis historiques (0006) rattrapés à la migration : transporteur hors liste effacé, numéro non conforme effacé avant expédition (un suivi conforme est alors exigé) et masqué après, numéros conformes normalisés. |
 | Fin d'abonnement Platine | Annonces publiées ou en attente de certification **retirées** (les transactions en cours se poursuivent), propositions en attente retirées ; plus de (re)publication, d'acceptation d'échange ni de demande de certification sur annonce (`VL402`) ; annonces d'un vendeur hors Platine absentes du catalogue et non achetables. L'offre n'est écrite que par le serveur (webhook RevenueCat). |
 | Attestation de livraison | **Acheteur ou transporteur** uniquement (`record_order_delivery`), jamais le vendeur — sinon il déclencherait lui-même l'auto-libération des fonds. |
-| Refus de l'expert | **Quel que soit le contexte** (seuil, volontaire, commande, échange) : transaction annulée (remboursement **STRIPE**), puis **toute annonce ouverte de l'objet** repasse en brouillon et ses propositions d'échange en attente sont retirées. Le refus est **mémorisé** sur l'objet : republier exige une nouvelle certification, même sous le seuil ; l'objet ne s'offre plus à l'échange. |
+| Refus de l'expert | **Quel que soit le motif** (seuil, accord mutuel, volontaire) **et le contexte** (annonce, commande, échange) : **toute transaction non expédiée** sur l'objet tombe — commandes en attente de paiement ou payées annulées (remboursement **STRIPE**, acheteur prévenu), échanges acceptés sans aucun envoi annulés (les deux parties prévenues) ; une transaction déjà expédiée relève du litige. Puis **toute annonce ouverte de l'objet** repasse en brouillon, ses propositions d'échange en attente sont retirées et la référence d'une certification antérieure est **effacée** de ses annonces non closes. Le refus est **mémorisé** sur l'objet : republier exige une nouvelle certification, même sous le seuil ; l'objet ne s'offre plus à l'échange ; achat et capture du paiement le refusent (défense en profondeur). |
 | Publication | Le **serveur** décide : une annonce créée sans statut naît `active`, ou `pending_certification` si le seuil l'exige. Le client ne déclare jamais un badge ni un taux. |
 
 ## 2. Plateformes par catégorie
@@ -78,14 +83,16 @@ texte (titre + description + souhaits, chaque mot requis, **insensible à la
 casse et aux accents** via `unaccent`), fourchette de prix, certifiées
 seulement, inclusion de mes annonces, tri (récent, prix ↑, prix ↓) et limite
 bornée (1..100, défaut 50). Seules les annonces `active`, non réservées,
-d'un vendeur Platine y figurent ; l'ordre « récent » suit une date de
-publication **posée par le serveur**.
+en euros et au moins au prix plancher, d'un vendeur Platine y figurent ;
+l'ordre « récent » suit une date de publication **posée par le serveur**.
 
 `market_listing(id)` (`getListing` côté client) renvoie **une** annonce, mêmes
 colonnes anonymisées que le catalogue, y compris **hors catalogue** (réservée,
 suspendue, vendue, échangée, retirée) pour ses **seules parties** : vendeur,
 acheteur d'une de ses commandes, parties d'un échange qui la vise. Pour les
-autres membres : annonce publiée d'un vendeur Platine, offre Platine requise.
+autres membres, mêmes règles que le catalogue : annonce publiée d'un vendeur
+Platine, **non réservée** (paiement capturé ou échange accepté par un autre
+membre), en euros, au moins au prix plancher ; offre Platine requise.
 Aucune ligne (`null`) si l'annonce n'existe pas ou n'est pas visible.
 
 Cycle d'une annonce :
@@ -179,6 +186,11 @@ l'autre** (une fois expédié). À la conclusion : annonce `exchanged`, annonce
   Les vues de l'appelant (`my_market_orders`, `my_exchanges`,
   `my_certifications`, `thread_messages`) renvoient `role`,
   `counterparty_alias`, `mine`… et l'identifiant du seul utilisateur courant.
+  `my_market_orders` et `my_exchanges` exposent aussi `listing_certified`
+  (`listingCertified`) : l'**annonce** porte déjà une certification d'expert —
+  distinct de `certification_required` (demande portée par la transaction) ;
+  aucune nouvelle expertise n'est alors recevable sur la commande, ni à la
+  demande de l'auteur d'une proposition d'échange.
 - **Masquage des coordonnées** (`redact_contact_info`, réplique exacte de
   `redactContactInfo`) : e-mails ENTIERS, partie locale comprise (accents,
   majuscules, maquillages « arobase », « (at) », « [at] », « point »,
@@ -214,8 +226,13 @@ L'expert partenaire agit via des fonctions **service_role** :
 annonce du même objet par le même propriétaire naît certifiée — **seulement**
 si c'est la dernière décision d'expert sur l'objet et que son **titre public et
 sa catégorie sont inchangés** (renommer un objet certifié ne lui transmet pas le
-badge). Un **refus** dépublie l'objet quel que soit le contexte et reste
-mémorisé : toute republication passe par une nouvelle certification.
+badge). La même règle est **recalculée** à toute (re)publication ou
+réouverture par le vendeur (retirée → brouillon ou publiée, brouillon →
+publiée) : une annonce ne garde jamais un badge que la dernière décision ou le
+contenu de l'objet démentent. Deux décisions ex aequo (même horodatage) : le
+refus l'emporte. Un **refus** annule toute transaction non expédiée sur
+l'objet, le dépublie quel que soit le motif ou le contexte et reste mémorisé :
+toute republication passe par une nouvelle certification.
 
 ## 6. Commissionnement transparent
 
