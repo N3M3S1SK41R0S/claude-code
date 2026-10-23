@@ -195,6 +195,94 @@ describe('localPairing — plat → vins de ma cave, sans IA', () => {
   });
 });
 
+describe('non-régressions : faux ingrédients dans un nom de plat composé', () => {
+  const MADIRAN: CellarWineEntry = {
+    itemId: 'madiran',
+    label: 'Madiran Montus 2016',
+    color: 'rouge',
+    appellation: 'Madiran',
+    foodPairings: ['magret de canard', 'cassoulet'],
+  };
+  const PAUILLAC: CellarWineEntry = { itemId: 'pauillac', label: 'Pauillac 2016', color: 'rouge', appellation: 'Pauillac' };
+  const CHABLIS: CellarWineEntry = { itemId: 'chablis', label: 'Chablis 2022', color: 'blanc', appellation: 'Chablis' };
+  const CDR: CellarWineEntry = {
+    itemId: 'cdr',
+    label: 'Côtes-du-Rhône 2021',
+    color: 'rouge',
+    appellation: 'Côtes du Rhône',
+    foodPairings: ['grillades', 'pizza'],
+  };
+  const GEWURZ: CellarWineEntry = { itemId: 'gewurz', label: 'Gewurztraminer 2020', color: 'blanc' };
+  const SUDUIRAUT: CellarWineEntry = { ...SAUTERNES, foodPairings: [] };
+  const BEEF_RED: CellarWineEntry = { itemId: 'cornas', label: 'Cornas 2015', color: 'rouge' };
+
+  it('foie gras de canard / d’oie reste du foie gras (jamais un plat de canard)', () => {
+    expect(dishCategories('foie gras de canard poêlé')).toEqual(['foie_gras']);
+    expect(dishCategories('Foie gras d’oie')).toEqual(['foie_gras']);
+    expect(dishCategories('foie gras de canard mi-cuit')).toEqual(['foie_gras']);
+    const ids = localPairing('foie gras de canard poêlé', [MADIRAN, SUDUIRAUT], YEAR).suggestions.map((s) => s.itemId);
+    expect(ids[0]).toBe('sauternes');
+    expect(ids).not.toContain('madiran');
+  });
+
+  it('carpaccio / steak / tartare de poisson : du poisson, pas du bœuf', () => {
+    expect(dishCategories('carpaccio de saint-jacques')).toEqual(['shellfish']);
+    expect(dishCategories('carpaccio de saumon')).toEqual(['fish']);
+    expect(dishCategories('steak de thon')).toEqual(['fish']);
+    expect(dishCategories('tartare de saumon')).toEqual(['fish']);
+    expect(dishCategories('carpaccio de bœuf')).toEqual(['red_meat']);
+    expect(localPairing('carpaccio de saint jacques', [PAUILLAC, CHABLIS], YEAR).suggestions.map((s) => s.itemId)).toEqual([
+      'chablis',
+    ]);
+  });
+
+  it('pâtés ≠ pâtes : la charcuterie ne devient pas un plat de pâtes', () => {
+    expect(dishCategories('pâtés et rillettes')).toEqual(['charcuterie']);
+    expect(dishCategories('Pâté de campagne')).toEqual(['charcuterie']);
+    expect(dishCategories('pâté en croûte')).toEqual(['charcuterie']);
+    expect(dishCategories('pâtes carbonara')).toEqual(['pasta_pizza']);
+    expect(dishCategories('pates carbonara')).toEqual(['pasta_pizza']);
+    expect(dishCategories('pâtisserie')).toEqual(['fruit_dessert']);
+  });
+
+  it('un mode de cuisson ne réclame jamais un rouge pour un poisson ou des fruits de mer', () => {
+    for (const dish of ['dorade grillée', 'saumon grillé', 'bar à la plancha', 'brochettes de Saint-Jacques', 'pizza aux fruits de mer']) {
+      const ids = localPairing(dish, [CDR, CHABLIS], YEAR).suggestions.map((s) => s.itemId);
+      expect(ids, dish).toEqual(['chablis']);
+    }
+    // Le style garde son effet quand il est compatible avec l'ingrédient.
+    expect(localPairing('poulet au curry', [GEWURZ], YEAR).suggestions.map((s) => s.itemId)).toEqual(['gewurz']);
+    expect(localPairing('côte de bœuf grillée', [BEEF_RED, CDR], YEAR).suggestions.map((s) => s.itemId).sort()).toEqual([
+      'cdr',
+      'cornas',
+    ]);
+  });
+});
+
+describe('classifyWine — couleur explicite et mots-clés spéciaux', () => {
+  it('un rouge sec d’appellation homonyme n’est ni liquoreux ni muté', () => {
+    expect(
+      classifyWine({ label: 'Château Biac 2018', color: 'rouge', appellation: 'Cadillac Côtes de Bordeaux' }).family,
+    ).toBe('red_medium');
+    expect(classifyWine({ label: 'Mas Amiel 2019', color: 'rouge', appellation: 'Maury sec' }).family).toBe(
+      'red_structured',
+    );
+    // Les vrais Maury (VDN) et Cadillac (liquoreux blanc) restent reconnus.
+    expect(classifyWine({ label: 'Maury grenat 2015', color: 'rouge' }).family).toBe('fortified');
+    expect(classifyWine({ label: 'Cadillac 2015', color: 'blanc' }).family).toBe('sweet');
+  });
+
+  it('un Champagne déclaré blanc ou rosé reste un effervescent', () => {
+    expect(classifyWine({ label: 'Champagne Brut Réserve Billecart', color: 'blanc' }).family).toBe('sparkling');
+    const rose = classifyWine({ label: 'Champagne Brut Rosé', color: 'rosé' });
+    expect(rose.family).toBe('sparkling');
+    expect(rose.weights.rose).toBeCloseTo(0.5);
+    const chablis: CellarWineEntry = { itemId: 'chablis', label: 'Chablis 2022', color: 'blanc' };
+    const champagne: CellarWineEntry = { itemId: 'champ', label: 'Champagne Brut Réserve', color: 'blanc' };
+    expect(localPairing('apéritif', [chablis, champagne], YEAR).suggestions[0]?.itemId).toBe('champ');
+  });
+});
+
 describe('localPairingReason', () => {
   it('reste honnête quand le style est inconnu', () => {
     expect(
