@@ -74,7 +74,9 @@ await screen('22-arbitre', '/arbiter/demo-wine', 'Pourquoi ce signal');
 await screen('09-sommelier', '/cellar-sommelier', 'Bandol Domaine Tempier 2016', async () => {
   const input = page.locator('input, textarea').first();
   await input.fill('magret de canard aux figues');
-  await page.getByText('Trouver le vin dans ma cave').click().catch(() => {});
+  // Suggestion locale instantanée, puis affinage par le sommelier IA (Edge stubbée).
+  await page.waitForTimeout(500);
+  await page.getByText('Affiner avec le sommelier IA').click().catch(() => {});
   await page.waitForTimeout(1500);
 });
 // 10. Marché — notifications + alertes + communauté Platine.

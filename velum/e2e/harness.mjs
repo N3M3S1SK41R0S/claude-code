@@ -8,7 +8,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { extname, join, resolve } from 'node:path';
-import { ALERTS, ARBITER, CALIBRATION_RUN, ITEMS, LISTINGS, NOTIFICATIONS, ORDERS, PAIRING, PROFILE, SESSION, VALUATIONS } from './fixtures.mjs';
+import { ALERTS, ARBITER, CALIBRATION_RUN, CATALOGUE, ITEMS, LISTINGS, NOTIFICATIONS, ORDERS, PAIRING, PROFILE, REPUTATION, SESSION, VALUATIONS, WISHLIST } from './fixtures.mjs';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css',
@@ -79,9 +79,35 @@ export async function stubSupabase(page) {
     if (path.endsWith('/rest/v1/notifications')) return json(NOTIFICATIONS);
     if (path.endsWith('/rest/v1/listings')) {
       const status = eqParam(url, 'status');
-      return json(status ? LISTINGS.filter((l) => l.status === status) : LISTINGS);
+      const seller = eqParam(url, 'seller_id');
+      return json(
+        LISTINGS.filter((l) => (!status || l.status === status) && (!seller || l.seller_id === seller)),
+      );
     }
     if (path.endsWith('/rest/v1/orders')) return json(ORDERS);
+    if (path.endsWith('/rest/v1/wishlist_entries')) {
+      const domain = eqParam(url, 'domain');
+      return json(domain ? WISHLIST.filter((w) => w.domain === domain) : WISHLIST);
+    }
+    // Plateformes d'échange et de vente : RPC anonymisées (migration 20261023100300).
+    if (path.includes('/rest/v1/rpc/')) {
+      const fn = path.slice(path.lastIndexOf('/') + 1);
+      let args = {};
+      try {
+        args = JSON.parse(req.postData() ?? '{}') ?? {};
+      } catch {
+        args = {};
+      }
+      if (fn === 'market_catalogue') {
+        return json(CATALOGUE.filter((l) => !args.p_domain || l.domain === args.p_domain));
+      }
+      if (fn === 'member_reputation') return json(REPUTATION);
+      if (fn === 'my_commission_summary') {
+        return json({ currentRate: 0.05, completedSales: 0, commissions: 0, certificationFees: 0, payouts: 0, entries: [] });
+      }
+      // my_market_orders, my_exchanges, my_certifications, thread_messages…
+      return json([]);
+    }
     // Dernier run de calibration (lu en maybeSingle → objet, pas tableau).
     if (path.endsWith('/rest/v1/calibration_runs')) {
       const domain = eqParam(url, 'domain');
