@@ -8,7 +8,7 @@
  * Utilisable seul (ex. écran Profil : il lit alors la cave lui-même) ou avec
  * le rapport déjà calculé par l'écran hôte.
  */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Linking, StyleSheet, Switch, View } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -32,11 +32,13 @@ import {
   type ReminderPreset,
 } from '../../lib/drinkReminders';
 import {
+  cancelDrinkReminders,
   cancelReminder,
   ensureReminderPermission,
   remindersSupported,
   scheduleOneShotReminder,
   scheduleWeeklyReminder,
+  withReminderLock,
 } from '../../lib/drinkRemindersNative';
 import { errorMessage } from '../../lib/errors';
 import { useSettingsStore } from '../../stores/settingsStore';
@@ -85,29 +87,34 @@ export function DrinkReminderSettings({ report: hostReport }: DrinkReminderSetti
   const status = oneShotStatus(prefs, now);
 
   // Le contenu hebdomadaire est figé à la programmation : on le rafraîchit
-  // quand la cave change (une seule reprogrammation à la fois).
-  const refreshing = useRef(false);
+  // quand la cave change. Verrou PARTAGÉ (le réglage peut être monté deux
+  // fois : Profil et « Mes vins à leur apogée ») et état relu DANS le
+  // verrou : jamais deux hebdomadaires programmés, jamais de reprogrammation
+  // après que l'interrupteur a été coupé.
   useEffect(() => {
-    if (!supported || !hydrated || !prefs.weekly || !report || refreshing.current) return;
+    if (!supported || !hydrated || !prefs.weekly || !report) return;
     const content = buildWeeklyContent(report.entries, t);
     const key = contentKey(content);
     if (key === prefs.weeklyContentKey) return;
-    refreshing.current = true;
-    void (async () => {
-      try {
-        await cancelReminder(prefs.weeklyId);
-        const id = await scheduleWeeklyReminder(content, {
-          weekday: prefs.weeklyWeekday,
-          hour: prefs.weeklyHour,
-          minute: prefs.weeklyMinute,
-        });
-        setPrefs({ weeklyId: id, weeklyContentKey: key });
-      } catch {
-        // Best effort : l'ancien rappel reste valable, on retentera plus tard.
-      } finally {
-        refreshing.current = false;
+    void withReminderLock(async () => {
+      const current = useSettingsStore.getState().drinkReminder;
+      if (!current.weekly || current.weeklyContentKey === key) return;
+      await cancelReminder(current.weeklyId);
+      await cancelDrinkReminders('weekly', { keepId: current.oneShotId });
+      const id = await scheduleWeeklyReminder(content, {
+        weekday: current.weeklyWeekday,
+        hour: current.weeklyHour,
+        minute: current.weeklyMinute,
+      });
+      if (!useSettingsStore.getState().drinkReminder.weekly) {
+        // Coupé entre-temps (hors verrou) : on n'enregistre pas un rappel orphelin.
+        await cancelReminder(id);
+        return;
       }
-    })();
+      setPrefs({ weeklyId: id, weeklyContentKey: key });
+    }).catch(() => {
+      // Best effort : l'ancien rappel reste valable, on retentera plus tard.
+    });
   }, [supported, hydrated, prefs, report, setPrefs, t]);
 
   if (!supported) {
@@ -139,13 +146,15 @@ export function DrinkReminderSettings({ report: hostReport }: DrinkReminderSetti
       const when = nextReminderDate(prefs.preset, fresh, customTime ?? undefined);
       const content = when ? buildReminderContent(wine, when, t) : null;
       if (!when || !content) return;
-      await cancelReminder(prefs.oneShotId);
-      const id = await scheduleOneShotReminder(content, when);
-      setPrefs({
-        oneShotId: id,
-        oneShotAt: when.toISOString(),
-        oneShotLabel: wine.label,
-        ...(customTime ? { customHour: customTime.hour, customMinute: customTime.minute } : {}),
+      await withReminderLock(async () => {
+        await cancelReminder(useSettingsStore.getState().drinkReminder.oneShotId);
+        const id = await scheduleOneShotReminder(content, when);
+        setPrefs({
+          oneShotId: id,
+          oneShotAt: when.toISOString(),
+          oneShotLabel: wine.label,
+          ...(customTime ? { customHour: customTime.hour, customMinute: customTime.minute } : {}),
+        });
       });
       showToast(t('reminders.scheduled'), 'success');
     } catch {
@@ -160,8 +169,10 @@ export function DrinkReminderSettings({ report: hostReport }: DrinkReminderSetti
     if (busy) return;
     setBusy(true);
     try {
-      await cancelReminder(prefs.oneShotId);
-      setPrefs({ oneShotId: null, oneShotAt: null, oneShotLabel: null });
+      await withReminderLock(async () => {
+        await cancelReminder(useSettingsStore.getState().drinkReminder.oneShotId);
+        setPrefs({ oneShotId: null, oneShotAt: null, oneShotLabel: null });
+      });
       showToast(t('reminders.cancelled'), 'info');
     } catch {
       showToast(t('reminders.error'), 'danger');
@@ -175,8 +186,13 @@ export function DrinkReminderSettings({ report: hostReport }: DrinkReminderSetti
     setBusy(true);
     try {
       if (!enabled) {
-        await cancelReminder(prefs.weeklyId);
-        setPrefs({ weekly: false, weeklyId: null, weeklyContentKey: null });
+        await withReminderLock(async () => {
+          // Identifiant relu dans le verrou : une reprogrammation a pu le remplacer.
+          const current = useSettingsStore.getState().drinkReminder;
+          await cancelReminder(current.weeklyId);
+          setPrefs({ weekly: false, weeklyId: null, weeklyContentKey: null });
+          await cancelDrinkReminders('weekly', { keepId: current.oneShotId });
+        });
         showToast(t('reminders.weeklyOff'), 'info');
         return;
       }
@@ -185,15 +201,19 @@ export function DrinkReminderSettings({ report: hostReport }: DrinkReminderSetti
       if (!slotDate) return;
       const slot = { weekday: toExpoWeekday(slotDate.getDay()), hour: slotDate.getHours(), minute: slotDate.getMinutes() };
       const content = buildWeeklyContent(report?.entries ?? [], t);
-      await cancelReminder(prefs.weeklyId);
-      const id = await scheduleWeeklyReminder(content, slot);
-      setPrefs({
-        weekly: true,
-        weeklyId: id,
-        weeklyWeekday: slot.weekday,
-        weeklyHour: slot.hour,
-        weeklyMinute: slot.minute,
-        weeklyContentKey: contentKey(content),
+      await withReminderLock(async () => {
+        const current = useSettingsStore.getState().drinkReminder;
+        await cancelReminder(current.weeklyId);
+        await cancelDrinkReminders('weekly', { keepId: current.oneShotId });
+        const id = await scheduleWeeklyReminder(content, slot);
+        setPrefs({
+          weekly: true,
+          weeklyId: id,
+          weeklyWeekday: slot.weekday,
+          weeklyHour: slot.hour,
+          weeklyMinute: slot.minute,
+          weeklyContentKey: contentKey(content),
+        });
       });
       showToast(t('reminders.weeklyOn'), 'success');
     } catch {

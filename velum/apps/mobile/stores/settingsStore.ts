@@ -32,6 +32,8 @@ export interface SettingsState {
   setOnboardingDone(v: boolean): void;
   setAiConsent(v: boolean): void;
   setDrinkReminder(patch: Partial<DrinkReminderPrefs>): void;
+  /** Perte de session : plus aucune trace des rappels de l'ancien compte. */
+  resetDrinkReminder(): void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -52,6 +54,7 @@ export const useSettingsStore = create<SettingsState>()(
       setAiConsent: (v) => set({ aiConsent: v }),
       setDrinkReminder: (patch) =>
         set((state) => ({ drinkReminder: normalizeDrinkReminderPrefs({ ...state.drinkReminder, ...patch }) })),
+      resetDrinkReminder: () => set({ drinkReminder: { ...DEFAULT_DRINK_REMINDER_PREFS } }),
     }),
     {
       name: 'velum.settings.v1',

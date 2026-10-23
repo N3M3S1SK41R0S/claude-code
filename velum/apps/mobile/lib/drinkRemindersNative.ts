@@ -10,7 +10,13 @@
 import { Platform } from 'react-native';
 import type * as NotificationsModule from 'expo-notifications';
 
-import type { ReminderContent } from './drinkReminders';
+import { useSettingsStore } from '../stores/settingsStore';
+import {
+  createSerialQueue,
+  drinkReminderIdsToCancel,
+  resetDrinkReminders,
+  type ReminderContent,
+} from './drinkReminders';
 
 type NotificationsApi = typeof NotificationsModule;
 
@@ -98,4 +104,53 @@ export async function scheduleWeeklyReminder(
 export async function cancelReminder(id: string | null | undefined): Promise<void> {
   if (!id || !remindersSupported()) return;
   await notificationsApi().cancelScheduledNotificationAsync(id);
+}
+
+/**
+ * Verrou partagé par TOUTES les opérations sur les rappels (plusieurs écrans
+ * peuvent monter le réglage à la fois : Profil et « Mes vins à leur
+ * apogée ») : chacune relit l'état laissé par la précédente, ce qui évite un
+ * hebdomadaire en double impossible à annuler.
+ */
+export const withReminderLock = createSerialQueue();
+
+/**
+ * Annule les identifiants connus puis balaie les notifications programmées
+ * (`scope` : voir drinkReminderIdsToCancel). Liste illisible : on s'en tient
+ * aux identifiants connus. No-op hors iOS / Android.
+ */
+export async function cancelDrinkReminders(
+  scope: 'all' | 'weekly',
+  options: { knownIds?: readonly string[]; keepId?: string | null } = {},
+): Promise<void> {
+  if (!remindersSupported()) return;
+  const Notifications = notificationsApi();
+  const ids = new Set(options.knownIds ?? []);
+  try {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    const views = scheduled.map((request) => ({ identifier: request.identifier, data: request.content.data }));
+    for (const id of drinkReminderIdsToCancel(views, scope, options.keepId)) ids.add(id);
+  } catch {
+    // Liste indisponible : les identifiants connus restent annulés ci-dessous.
+  }
+  if (options.keepId) ids.delete(options.keepId);
+  for (const id of ids) {
+    await Notifications.cancelScheduledNotificationAsync(id).catch(() => undefined);
+  }
+}
+
+/**
+ * Perte de session (déconnexion, suppression du compte, expiration) — point
+ * d'entrée UNIQUE, appelé par le layout racine : annule tous les rappels
+ * « à boire » et remet les préférences à zéro (logique testée :
+ * resetDrinkReminders).
+ */
+export function resetDrinkRemindersAfterSignOut(): Promise<void> {
+  return withReminderLock(() =>
+    resetDrinkReminders({
+      readPrefs: () => useSettingsStore.getState().drinkReminder,
+      writePrefs: () => useSettingsStore.getState().resetDrinkReminder(),
+      cancelAll: (knownIds) => cancelDrinkReminders('all', { knownIds }),
+    }),
+  );
 }

@@ -104,10 +104,17 @@ export function pickReminderWine(entries: readonly CellarPeakEntry[]): CellarPea
   return mostUrgentPeakWine(entries);
 }
 
+/**
+ * Nature d'un rappel local (`data.kind`) : retrouve dans l'OS les rappels
+ * « à boire » à annuler, y compris des doublons qu'aucun identifiant
+ * mémorisé ne désigne plus.
+ */
+export type DrinkReminderKind = 'drink-oneshot' | 'drink-weekly';
+
 export interface ReminderContent {
   title: string;
   body: string;
-  data: { url: string; itemId?: string };
+  data: { url: string; itemId?: string; kind: DrinkReminderKind };
 }
 
 /**
@@ -130,7 +137,7 @@ export function buildReminderContent(
   return {
     title: t(`reminders.title.${wine.status === 'soon' ? 'peak' : wine.status}`),
     body,
-    data: { url: DRINK_REMINDER_ROUTE, itemId: wine.itemId },
+    data: { url: DRINK_REMINDER_ROUTE, itemId: wine.itemId, kind: 'drink-oneshot' },
   };
 }
 
@@ -145,18 +152,85 @@ export function buildWeeklyContent(entries: readonly CellarPeakEntry[], t: Trans
     return {
       title: t('reminders.weeklyTitle'),
       body: t('reminders.weeklyEmpty'),
-      data: { url: DRINK_REMINDER_ROUTE },
+      data: { url: DRINK_REMINDER_ROUTE, kind: 'drink-weekly' },
     };
   }
   const position = positionLabel(top.storageLocation, t, { short: true });
   let body = t('reminders.weeklyBody', { count: drinkable.length, label: top.label });
   if (position) body += t('reminders.bodyPosition', { position });
-  return { title: t('reminders.weeklyTitle'), body, data: { url: DRINK_REMINDER_ROUTE, itemId: top.itemId } };
+  return {
+    title: t('reminders.weeklyTitle'),
+    body,
+    data: { url: DRINK_REMINDER_ROUTE, itemId: top.itemId, kind: 'drink-weekly' },
+  };
 }
 
 /** Empreinte d'un contenu : évite de reprogrammer à l'identique. */
 export function contentKey(content: Pick<ReminderContent, 'title' | 'body'>): string {
   return `${content.title}\n${content.body}`;
+}
+
+/* ------------------------------------------------------------------ */
+/* Notifications programmées : annulation et mise en série             */
+/* ------------------------------------------------------------------ */
+
+/** Notification programmée, vue au minimum (identifiant natif + données). */
+export interface ScheduledReminder {
+  identifier: string;
+  data: unknown;
+}
+
+function reminderData(data: unknown): Record<string, unknown> | null {
+  return data && typeof data === 'object' && !Array.isArray(data) ? (data as Record<string, unknown>) : null;
+}
+
+/** Nature d'un rappel « à boire » (null : autre notification). Sans `kind` : version antérieure. */
+function drinkReminderKindOf(data: unknown): DrinkReminderKind | 'legacy' | null {
+  const record = reminderData(data);
+  if (!record) return null;
+  const kind = record['kind'];
+  if (kind === 'drink-oneshot' || kind === 'drink-weekly') return kind;
+  return record['url'] === DRINK_REMINDER_ROUTE ? 'legacy' : null;
+}
+
+/**
+ * Identifiants à annuler parmi les notifications programmées :
+ *  - 'all' (perte de session) : tous les rappels « à boire » ;
+ *  - 'weekly' (reprogrammation) : tous les hebdomadaires — doublons orphelins
+ *    compris — et les rappels d'une version antérieure (sans `kind`), sauf le
+ *    rappel ponctuel en cours `keepId`.
+ */
+export function drinkReminderIdsToCancel(
+  scheduled: readonly ScheduledReminder[],
+  scope: 'all' | 'weekly',
+  keepId?: string | null,
+): string[] {
+  const ids: string[] = [];
+  for (const request of scheduled) {
+    const kind = drinkReminderKindOf(request.data);
+    if (kind === null) continue;
+    if (scope === 'weekly' && (kind === 'drink-oneshot' || request.identifier === keepId)) continue;
+    ids.push(request.identifier);
+  }
+  return ids;
+}
+
+/** Exécute des tâches asynchrones une à une, dans l'ordre d'appel. */
+export type SerialQueue = <T>(task: () => Promise<T>) => Promise<T>;
+
+/**
+ * File en série : deux opérations sur les rappels (deux écrans montés à la
+ * fois, interrupteur pendant une reprogrammation, déconnexion) ne
+ * s'entrelacent jamais — chacune relit l'état laissé par la précédente. Une
+ * tâche en échec ne bloque pas les suivantes.
+ */
+export function createSerialQueue(): SerialQueue {
+  let tail: Promise<unknown> = Promise.resolve();
+  return <T>(task: () => Promise<T>): Promise<T> => {
+    const run = tail.then(task, task);
+    tail = run.catch(() => undefined);
+    return run;
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -236,4 +310,31 @@ export function oneShotStatus(prefs: DrinkReminderPrefs, now: Date): 'none' | 's
   const when = Date.parse(prefs.oneShotAt);
   if (!Number.isFinite(when)) return 'none';
   return when > now.getTime() ? 'scheduled' : 'delivered';
+}
+
+/** Accès aux préférences et à l'annulation native, injectés (testable sans React Native). */
+export interface DrinkReminderResetPort {
+  readPrefs(): DrinkReminderPrefs;
+  writePrefs(prefs: DrinkReminderPrefs): void;
+  /** Annule les identifiants connus puis tout rappel « à boire » encore programmé. */
+  cancelAll(knownIds: readonly string[]): Promise<void>;
+}
+
+/**
+ * Perte de session (déconnexion, suppression du compte, expiration) : aucun
+ * rappel ne doit continuer à afficher les vins et emplacements de l'ancien
+ * compte, ni être repris par le compte suivant sur le même appareil. Les
+ * préférences sont remises à zéro D'ABORD (plus rien à reprogrammer ni à
+ * afficher), puis l'annulation native est tentée (best effort : elle ne
+ * bloque jamais la déconnexion).
+ */
+export async function resetDrinkReminders(port: DrinkReminderResetPort): Promise<void> {
+  const prefs = port.readPrefs();
+  const knownIds = [prefs.oneShotId, prefs.weeklyId].filter((id): id is string => id !== null);
+  port.writePrefs({ ...DEFAULT_DRINK_REMINDER_PREFS });
+  try {
+    await port.cancelAll(knownIds);
+  } catch {
+    // Best effort : le balayage par `kind` rattrapera les restes à la prochaine reprogrammation.
+  }
 }
