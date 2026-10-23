@@ -349,15 +349,9 @@ export function pendingActionCount(input: {
   exchanges?: readonly ExchangeView[];
   certifications?: readonly Pick<CertificationRequest, 'status' | 'requestedByMe'>[];
 }): number {
-  const orders = (input.orders ?? []).filter((o) =>
-    orderActions(o).some((a) => PRIMARY_ORDER_ACTIONS.has(a)),
-  ).length;
-  const exchanges = (input.exchanges ?? []).filter((e) =>
-    exchangeActions(e).some((a) => PRIMARY_EXCHANGE_ACTIONS.has(a)),
-  ).length;
-  const certifications = (input.certifications ?? []).filter((c) =>
-    certificationActions(c).includes('agree'),
-  ).length;
+  const orders = (input.orders ?? []).filter(orderNeedsMe).length;
+  const exchanges = (input.exchanges ?? []).filter(exchangeNeedsMe).length;
+  const certifications = (input.certifications ?? []).filter(certificationNeedsMe).length;
   return orders + exchanges + certifications;
 }
 
@@ -374,4 +368,55 @@ export function isNotYetAvailable(error: unknown): boolean {
     error.code === 'SOURCE_UNAVAILABLE' &&
     /pas encore disponible/i.test(error.message)
   );
+}
+
+// ── Historique (éléments clos) ───────────────────────────────────────────────
+
+const CLOSED_ESCROW: ReadonlySet<EscrowState> = new Set(['released', 'refunded', 'cancelled']);
+const CLOSED_EXCHANGE: ReadonlySet<ExchangeState> = new Set([
+  'declined',
+  'withdrawn',
+  'expired',
+  'completed',
+  'cancelled',
+]);
+const CLOSED_CERTIFICATION: ReadonlySet<CertificationStatus> = new Set(['certified', 'rejected', 'cancelled']);
+const CLOSED_LISTING: ReadonlySet<ListingStatus> = new Set(['sold', 'exchanged', 'withdrawn']);
+
+export const isClosed = {
+  order: (o: Pick<MarketOrder, 'escrowState'>) => CLOSED_ESCROW.has(o.escrowState),
+  exchange: (e: Pick<ExchangeProposal, 'state'>) => CLOSED_EXCHANGE.has(e.state),
+  certification: (c: Pick<CertificationRequest, 'status'>) => CLOSED_CERTIFICATION.has(c.status),
+  listing: (l: { status: ListingStatus }) => CLOSED_LISTING.has(l.status),
+} as const;
+
+/**
+ * Sépare les éléments EN COURS (ceux qui attendent mon action d'abord, ordre
+ * conservé sinon) de l'HISTORIQUE (éléments clos) — moins de défilement.
+ */
+export function partitionActivity<T>(
+  entries: readonly T[],
+  closed: (entry: T) => boolean,
+  needsMe: (entry: T) => boolean = () => false,
+): { current: T[]; history: T[] } {
+  const current = entries.filter((e) => !closed(e));
+  return {
+    current: [...current.filter(needsMe), ...current.filter((e) => !needsMe(e))],
+    history: entries.filter(closed),
+  };
+}
+
+/** true si la commande attend une action principale de ma part. */
+export function orderNeedsMe(o: Pick<MarketOrder, 'role' | 'escrowState'>): boolean {
+  return orderActions(o).some((a) => PRIMARY_ORDER_ACTIONS.has(a));
+}
+
+/** true si l'échange attend une action principale de ma part. */
+export function exchangeNeedsMe(e: ExchangeView): boolean {
+  return exchangeActions(e).some((a) => PRIMARY_EXCHANGE_ACTIONS.has(a));
+}
+
+/** true si la certification attend MON accord. */
+export function certificationNeedsMe(c: Pick<CertificationRequest, 'status' | 'requestedByMe'>): boolean {
+  return certificationActions(c).includes('agree');
 }

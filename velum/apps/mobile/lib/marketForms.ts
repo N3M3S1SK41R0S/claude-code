@@ -78,15 +78,23 @@ export function estimateFromValuation(valuation: Pick<ValuationRecord, 'central'
   return roundCents(valuation.central);
 }
 
-/** Montant en euros AU CENTIME (commissions, frais) selon la locale. */
-export function formatPrice(value: number, locale: string): string {
+/**
+ * Montant AU CENTIME (prix, commissions, frais) selon la locale, dans SA
+ * devise : entier sans décimales, sinon deux décimales — jamais d'arrondi
+ * trompeur d'un prix à 1 250,50 €. Devise inconnue → repli lisible.
+ */
+export function formatPrice(value: number, locale: string, currency = 'EUR'): string {
   const rounded = roundCents(value);
-  return new Intl.NumberFormat(locale.startsWith('en') ? 'en-GB' : 'fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-    minimumFractionDigits: Number.isInteger(rounded) ? 0 : 2,
-    maximumFractionDigits: 2,
-  }).format(rounded);
+  try {
+    return new Intl.NumberFormat(locale.startsWith('en') ? 'en-GB' : 'fr-FR', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: Number.isInteger(rounded) ? 0 : 2,
+      maximumFractionDigits: 2,
+    }).format(rounded);
+  } catch {
+    return `${rounded} ${currency}`;
+  }
 }
 
 /** Taux (0.05) → « 5 % » selon la locale. */

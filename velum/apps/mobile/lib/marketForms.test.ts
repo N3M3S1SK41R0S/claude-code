@@ -64,6 +64,9 @@ describe('parseFrenchAmount', () => {
     expect(plain(formatPrice(15.5, 'fr'))).toBe('15,50 €');
     expect(plain(formatPrice(16, 'fr'))).toBe('16 €');
     expect(formatPrice(15.5, 'en')).toBe('€15.50');
+    expect(plain(formatPrice(1250.5, 'fr'))).toBe('1 250,50 €');
+    expect(formatPrice(12, 'en', 'USD')).toBe('US$12');
+    expect(formatPrice(12, 'fr', 'XX')).toBe('12 XX');
     expect(plain(formatRate(0.05, 'fr'))).toBe('5 %');
     expect(formatRate(0.035, 'en')).toBe('3.5%');
   });

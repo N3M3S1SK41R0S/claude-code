@@ -9,9 +9,12 @@ import {
   canTransitionOrder,
   canWithdrawListing,
   certificationActions,
+  certificationNeedsMe,
   completedSalesCount,
   exchangeActions,
+  exchangeNeedsMe,
   exchangeTimeline,
+  isClosed,
   isForSale,
   isNotYetAvailable,
   isOpenToExchange,
@@ -21,6 +24,8 @@ import {
   myTracking,
   orderActionTarget,
   orderActions,
+  orderNeedsMe,
+  partitionActivity,
   pendingActionCount,
   theirTracking,
 } from './marketState';
@@ -250,6 +255,34 @@ describe('certifications et annonces', () => {
       }),
     ).toBe(3);
     expect(pendingActionCount({})).toBe(0);
+  });
+});
+
+describe('historique de « Mon activité »', () => {
+  it('reconnaît les éléments clos', () => {
+    expect(isClosed.order({ escrowState: 'released' })).toBe(true);
+    expect(isClosed.order({ escrowState: 'disputed' })).toBe(false);
+    expect(isClosed.exchange({ state: 'completed' })).toBe(true);
+    expect(isClosed.exchange({ state: 'awaiting_certification' })).toBe(false);
+    expect(isClosed.certification({ status: 'certified' })).toBe(true);
+    expect(isClosed.certification({ status: 'in_review' })).toBe(false);
+    expect(isClosed.listing({ status: 'withdrawn' })).toBe(true);
+    expect(isClosed.listing({ status: 'pending_certification' })).toBe(false);
+  });
+
+  it('place d’abord ce qui attend mon action, l’historique à part', () => {
+    const orders = [
+      { id: 'a', role: 'seller' as const, escrowState: 'shipped' as const },
+      { id: 'b', role: 'seller' as const, escrowState: 'released' as const },
+      { id: 'c', role: 'buyer' as const, escrowState: 'shipped' as const },
+    ];
+    const { current, history } = partitionActivity(orders, isClosed.order, orderNeedsMe);
+    expect(current.map((o) => o.id)).toEqual(['c', 'a']);
+    expect(history.map((o) => o.id)).toEqual(['b']);
+    expect(exchangeNeedsMe(exchange())).toBe(true);
+    expect(exchangeNeedsMe(exchange({ role: 'proposer' }))).toBe(false);
+    expect(certificationNeedsMe({ status: 'awaiting_agreement', requestedByMe: false })).toBe(true);
+    expect(certificationNeedsMe({ status: 'awaiting_agreement', requestedByMe: true })).toBe(false);
   });
 });
 
