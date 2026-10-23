@@ -25,10 +25,14 @@ function item(id: string, patch: Partial<VelumItem> = {}): VelumItem {
   };
 }
 
-function setup(items: VelumItem[] = [item('it-coin'), item('it-watch', { domain: 'watch', title: 'Rolex Datejust' })]) {
+function setup(
+  items: VelumItem[] = [item('it-coin'), item('it-watch', { domain: 'watch', title: 'Rolex Datejust' })],
+  valuations: Record<string, number> = {},
+) {
   const repo = createDemoMarketplaceRepo((id) => items.find((i) => i.id === id) ?? null, {
     delayMs: 0,
     now: () => NOW,
+    latestValuation: (id) => valuations[id] ?? null,
   });
   return repo;
 }
@@ -86,7 +90,8 @@ describe('démo marketplace — catalogue', () => {
     const repo = setup();
     const withMine = await repo.catalogue({ includeMine: true });
     const mine = withMine.filter((l) => l.isMine);
-    expect(mine.map((l) => l.id)).toEqual(['demo-mine-5', 'demo-mine-1']);
+    // demo-mine-5 est réservée (paiement capturé) : hors catalogue, comme listing_is_engaged.
+    expect(mine.map((l) => l.id)).toEqual(['demo-mine-1']);
   });
 
   it('lecture directe : annonce hors catalogue visible de ses parties seulement', async () => {
@@ -137,10 +142,21 @@ describe('démo marketplace — mise en vente (règles @velum/config)', () => {
     expect(cert).toMatchObject({ reason: 'threshold', status: 'requested', feePayer: 'seller', requestedByMe: true });
   });
 
-  it('le seuil tient compte de l’estimation VELUM (pas de sous-déclaration)', async () => {
-    const repo = setup([item('it-under', { attributes: { quickEstimate: { central: 900 } } })]);
-    const rec = await repo.createListing({ itemId: 'it-under', askPrice: 300 });
-    expect(rec.status).toBe('pending_certification');
+  it('le seuil tient compte de la dernière valorisation VELUM (pas de sous-déclaration)', async () => {
+    // Comme _market_reference_value : max(prix, dernière valorisation) ; le
+    // scan éclair ({low, high}) n'est pas une valorisation et n'est pas lu.
+    const repo = setup(
+      [item('it-under'), item('it-quick', { attributes: { quickEstimate: { low: 300, high: 900, currency: 'EUR' } } })],
+      { 'it-under': 900 },
+    );
+    expect((await repo.createListing({ itemId: 'it-under', askPrice: 450 })).status).toBe('pending_certification');
+    expect((await repo.createListing({ itemId: 'it-quick', askPrice: 450 })).status).toBe('active');
+  });
+
+  it('titre dénormalisé expurgé des coordonnées, comme en SQL', async () => {
+    const repo = setup([item('it-phone', { title: 'Montre – appelez 06 12 34 56 78' })]);
+    const rec = await repo.createListing({ itemId: 'it-phone', askPrice: 100 });
+    expect(rec.title).toBe(`Montre – appelez ${REDACTION_TOKEN}`);
   });
 
   it('refuse un prix invalide, un objet inconnu, une double annonce ; retire une annonce', async () => {
@@ -178,16 +194,27 @@ describe('démo marketplace — achat sous séquestre', () => {
     const order = await repo.buy('demo-listing-3');
     expect(order).toMatchObject({ role: 'buyer', escrowState: 'pending_payment', commissionRate: 0.04 });
     expect(order.counterpartyAlias).toBe('Cave 92B1');
-    // Annonce réservée : hors catalogue.
-    expect((await repo.catalogue()).some((l) => l.id === 'demo-listing-3')).toBe(false);
-    // Le paiement place les fonds sous séquestre ; le vendeur (simulé) expédie.
+    // Commande NON payée : elle ne réserve rien, l'annonce reste au catalogue.
+    expect((await repo.catalogue()).some((l) => l.id === 'demo-listing-3')).toBe(true);
+    // Le paiement place les fonds sous séquestre (annonce réservée) ; le vendeur (simulé) expédie.
     const paid = await repo.advanceOrder(order.id, 'funds_held');
     expect(paid.escrowState).toBe('shipped');
     expect(paid.trackingNumber).toMatch(/^DEMO/);
+    expect((await repo.catalogue()).some((l) => l.id === 'demo-listing-3')).toBe(false);
     await expectInvalid(repo.advanceOrder(order.id, 'refunded'));
     const released = await repo.advanceOrder(order.id, 'released');
     expect(released.escrowState).toBe('released');
     expect(released.releasedAt).toBe(NOW);
+    // Vendue à la libération : elle ne revient pas au catalogue, mais reste consultable par l'acheteur.
+    expect((await repo.catalogue()).some((l) => l.id === 'demo-listing-3')).toBe(false);
+    expect(await repo.getListing?.('demo-listing-3')).toMatchObject({ id: 'demo-listing-3' });
+    await expectInvalid(repo.buy('demo-listing-3'));
+  });
+
+  it('une seule commande non payée par acheteur et par annonce', async () => {
+    const repo = setup();
+    await repo.buy('demo-listing-3');
+    await expectInvalid(repo.buy('demo-listing-3'));
   });
 
   it('refuse l’achat de mes annonces, des annonces d’échange et indisponibles', async () => {
@@ -197,7 +224,7 @@ describe('démo marketplace — achat sous séquestre', () => {
     await expectInvalid(repo.buy('demo-listing-9'));
   });
 
-  it('annulation avant expédition : l’annonce revient au catalogue', async () => {
+  it('annulation avant paiement : l’annonce reste au catalogue', async () => {
     const repo = setup();
     const order = await repo.buy('demo-listing-8');
     await repo.advanceOrder(order.id, 'cancelled');
@@ -288,7 +315,8 @@ describe('démo marketplace — échanges', () => {
       state: 'proposed',
       offeredTitle: 'Rolex Datejust',
       cashAdjustment: -100,
-      certificationRequired: true,
+      // Comme set_exchange_defaults : l'expertise se décide à l'acceptation.
+      certificationRequired: false,
       myCommission: null,
     });
     expect(ex.message).toBe(`Joignable au ${REDACTION_TOKEN}`);
@@ -304,6 +332,37 @@ describe('démo marketplace — échanges', () => {
     await expectInvalid(
       repo.proposeExchange({ listingId: 'demo-listing-4', offeredItemId: 'it-coin', offeredValue: 0 }),
     );
+  });
+
+  it('acceptation : l’annonce et l’objet sont réservés (hors catalogue), les autres propositions tombent', async () => {
+    const repo = setup();
+    await repo.respondExchange('demo-exchange-1', true);
+    expect((await repo.catalogue({ includeMine: true })).some((l) => l.id === 'demo-mine-1')).toBe(false);
+    await expectInvalid(repo.withdrawListing('demo-mine-1'));
+  });
+
+  it('expertise de seuil décidée à l’acceptation, objet par objet, à la charge de son propriétaire', async () => {
+    // Ma Semeuse (annonce demo-mine-1) est valorisée 900 € : elle dépasse le seuil.
+    const repo = setup(undefined, { 'demo-mine-1-item': 900 });
+    const accepted = await repo.respondExchange('demo-exchange-1', true);
+    expect(accepted).toMatchObject({ state: 'awaiting_certification', certificationRequired: true });
+    const certs = (await repo.myCertifications()).filter((c) => c.exchangeId === 'demo-exchange-1');
+    expect(certs).toHaveLength(1);
+    expect(certs[0]).toMatchObject({
+      reason: 'threshold',
+      status: 'requested',
+      feePayer: 'seller',
+      requestedByMe: true,
+      itemTitle: '5 Francs Semeuse argent 1960',
+    });
+    // Seuil d'échange : il ne s'annule qu'en annulant l'échange.
+    await expectInvalid(repo.cancelCertification(certs[0]?.id ?? ''));
+  });
+
+  it('proposition : titre de l’objet offert expurgé des coordonnées', async () => {
+    const repo = setup([item('it-phone', { title: 'Montre – appelez 06 12 34 56 78' })]);
+    const ex = await repo.proposeExchange({ listingId: 'demo-listing-4', offeredItemId: 'it-phone', offeredValue: 300 });
+    expect(ex.offeredTitle).toBe(`Montre – appelez ${REDACTION_TOKEN}`);
   });
 
   it('un échange accepté s’annule avant toute expédition, pas une proposition', async () => {

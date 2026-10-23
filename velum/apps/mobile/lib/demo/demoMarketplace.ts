@@ -6,8 +6,13 @@
  *  - @velum/config : masquage des coordonnées (`redactContactInfo`), taux
  *    dégressif (`commissionRateFor`) figé à la création de l'annonce,
  *    commission d'échange (`exchangeCommission`) figée à l'acceptation,
- *    certification obligatoire au-delà du seuil (`certificationRequirement`)
- *    → annonce `pending_certification` + demande ouverte ;
+ *    certification obligatoire au-delà du seuil (`certificationRequirement`,
+ *    sur max(prix, dernière valorisation)) → annonce `pending_certification`
+ *    + demande ouverte ; à l'acceptation d'un échange, objet par objet ;
+ *  - les règles SQL de réservation : une commande non payée ne bloque
+ *    personne, l'annonce est réservée au paiement capturé (ou à l'échange
+ *    accepté) et quitte alors le catalogue, « vendue » à la libération ;
+ *    titres dénormalisés expurgés des coordonnées ;
  *  - lib/marketState : actions légales par rôle × état (miroir serveur) ;
  *  - lib/search : recherche texte insensible aux accents.
  *
@@ -280,7 +285,8 @@ function seedListings(): ListingRecord[] {
       domain: 'coin',
       createdAt: '2026-08-15T09:00:00Z',
     }),
-    // Vendue (commande démo en cours de livraison vers moi).
+    // Réservée (commande démo payée, en cours de livraison vers moi) : encore
+    // « active » mais hors catalogue ; elle sera « vendue » à la libération.
     listing({
       id: 'demo-listing-9',
       sellerId: 'demo-seller-d',
@@ -288,7 +294,6 @@ function seedListings(): ListingRecord[] {
       kind: 'sale',
       title: 'Pomerol Château Gazin 2008',
       domain: 'wine',
-      status: 'sold',
       commissionRate: 0.04,
       createdAt: '2026-09-25T09:00:00Z',
     }),
@@ -568,6 +573,13 @@ export interface DemoMarketplaceOptions {
   delayMs?: number;
   /** Horloge injectable (ISO). */
   now?: () => string;
+  /**
+   * Dernière valorisation VELUM d'un objet (estimation centrale, EUR), comme
+   * _market_reference_value : le seuil d'expertise porte sur max(prix,
+   * valorisation). Le scan éclair (`attributes.quickEstimate`) n'est PAS une
+   * valorisation et n'est pas lu (le serveur ne le lit pas non plus).
+   */
+  latestValuation?: (itemId: string) => number | null;
 }
 
 function invalid(message: string): never {
@@ -580,15 +592,9 @@ function cleanText(text: string | undefined): { text: string | null; redacted: b
   return redactContactInfo(trimmed);
 }
 
-/** Estimation rapide éventuelle portée par l'objet (`attributes.quickEstimate`). */
-function quickEstimateOf(item: VelumItem): number | null {
-  const quick = item.attributes['quickEstimate'];
-  if (typeof quick === 'number' && Number.isFinite(quick)) return quick;
-  if (quick !== null && typeof quick === 'object' && !Array.isArray(quick)) {
-    const central = (quick as Record<string, unknown>)['central'];
-    if (typeof central === 'number' && Number.isFinite(central)) return central;
-  }
-  return null;
+/** Titre dénormalisé expurgé des coordonnées (miroir de redact_contact_info en SQL). */
+function redactTitle(title: string | null): string | null {
+  return title === null ? null : redactContactInfo(title).text;
 }
 
 const OPEN_CERTIFICATION: ReadonlySet<CertificationStatus> = new Set([
@@ -613,6 +619,8 @@ export function createDemoMarketplaceRepo(
 ): MarketplaceRepo {
   const delayMs = options.delayMs ?? 250;
   const now = options.now ?? (() => new Date().toISOString());
+  const valuationOf = (itemId: string | null): number | null =>
+    itemId === null ? null : (options.latestValuation?.(itemId) ?? null);
   let sequence = 0;
   // Préfixe distinct des données de départ : aucune collision d’identifiants.
   const newId = (prefix: string) => `demo-new-${prefix}-${++sequence}`;
@@ -780,6 +788,32 @@ export function createDemoMarketplaceRepo(
     );
   };
 
+  /** Objet de `owner` engagé : son annonce réservée, ou offert dans un échange accepté en cours. */
+  const offeredItemEngaged = (itemId: string, owner: string, exceptExchange?: string): boolean =>
+    listings.some((l) => l.itemId === itemId && l.sellerId === owner && isEngaged(l.id, { exchange: exceptExchange })) ||
+    exchanges.some(
+      (e) =>
+        e.id !== exceptExchange &&
+        e.offeredItemId === itemId &&
+        e.proposerId === owner &&
+        ENGAGING_EXCHANGE.has(e.state),
+    );
+
+  /**
+   * Objets d'un échange au-delà du seuil et pas encore certifiés
+   * (_exchange_threshold_targets) : celui de l'annonce et/ou celui proposé,
+   * chacun au max(valeur déclarée, dernière valorisation).
+   */
+  const thresholdSides = (e: DemoExchange): ('listing' | 'offered')[] => {
+    const l = listings.find((x) => x.id === e.listingId);
+    const sides: ('listing' | 'offered')[] = [];
+    const over = (value: number, itemId: string | null) =>
+      certificationRequirement({ value, estimatedValue: valuationOf(itemId) }).reason === 'threshold';
+    if (l && !l.certified && over(e.listingValue, l.itemId)) sides.push('listing');
+    if (e.offeredItemId !== null && over(e.offeredValue, e.offeredItemId)) sides.push('offered');
+    return sides;
+  };
+
   /** Miroir de has_open_certification : l'expédition attend la décision de l'expert. */
   const hasOpenCertification = (ctx: { orderId?: string; exchangeId?: string }): boolean =>
     certifications.some(
@@ -799,7 +833,8 @@ export function createDemoMarketplaceRepo(
   };
 
   const matches = (l: ListingRecord, q: CatalogueQuery, tokens: readonly string[]): boolean => {
-    if (l.status !== 'active') return false;
+    // Comme market_catalogue : annonces actives NON réservées.
+    if (l.status !== 'active' || isEngaged(l.id)) return false;
     if (!q.includeMine && l.sellerId === DEMO_OWNER) return false;
     if (q.domain && l.domain !== q.domain) return false;
     if (q.mode === 'sale' && !isForSale(l.kind)) return false;
@@ -818,7 +853,7 @@ export function createDemoMarketplaceRepo(
     async browseActive() {
       await tick();
       return listings
-        .filter((l) => l.status === 'active' && l.sellerId !== DEMO_OWNER)
+        .filter((l) => l.status === 'active' && l.sellerId !== DEMO_OWNER && !isEngaged(l.id))
         .map((l) => ({ ...l }));
     },
 
@@ -858,9 +893,10 @@ export function createDemoMarketplaceRepo(
       if (alreadyListed) invalid('Cet objet a déjà une annonce en cours');
 
       const kind = input.kind ?? 'sale';
+      // Seuil sur max(prix, dernière valorisation) — _market_reference_value.
       const requirement = certificationRequirement({
         value: input.askPrice,
-        estimatedValue: quickEstimateOf(item),
+        estimatedValue: valuationOf(input.itemId),
       });
       const rec: ListingRecord = {
         id: newId('listing'),
@@ -869,7 +905,7 @@ export function createDemoMarketplaceRepo(
         askPrice: input.askPrice,
         currency: input.currency ?? 'EUR',
         status: requirement.required ? 'pending_certification' : 'active',
-        title: item.title,
+        title: redactTitle(item.title),
         domain: item.domain,
         kind,
         description: cleanText(input.description).text,
@@ -930,6 +966,11 @@ export function createDemoMarketplaceRepo(
       if (l.status !== 'active') invalid('Annonce non disponible');
       if (!isForSale(l.kind)) invalid('Annonce ouverte à l’échange seulement');
       if (l.sellerId === DEMO_OWNER) invalid('On ne peut pas acheter sa propre annonce');
+      if (isEngaged(l.id)) invalid('Annonce déjà réservée par un autre membre');
+      // orders_one_pending_per_buyer_idx : une seule commande non payée par annonce.
+      if (orders.some((o) => o.listingId === l.id && o.buyerId === DEMO_OWNER && o.escrowState === 'pending_payment')) {
+        invalid('Vous avez déjà une commande en attente de paiement pour cette annonce');
+      }
       const rec: DemoOrder = {
         id: newId('order'),
         listingId,
@@ -949,8 +990,8 @@ export function createDemoMarketplaceRepo(
         certificationRequired: l.certificationRequired,
       };
       orders.unshift(rec);
-      // Annonce réservée : elle quitte le catalogue (rouverte si la commande est annulée).
-      l.status = 'sold';
+      // Commande NON payée : elle ne réserve rien (la réservation se fait au
+      // paiement capturé, la vente à la libération des fonds).
       return orderView(rec);
     },
 
@@ -972,14 +1013,34 @@ export function createDemoMarketplaceRepo(
       if (escrowState === 'shipped' && hasOpenCertification({ orderId: o.id })) {
         invalid('Expédition bloquée : une certification d’expert est en cours sur cette commande');
       }
+      const l = listings.find((x) => x.id === o.listingId);
+      // Paiement capturé : premier payé, premier servi (enforce_escrow_transition).
+      if (escrowState === 'funds_held' && isEngaged(o.listingId, { order: o.id })) {
+        invalid('Annonce déjà réservée par un autre membre');
+      }
       o.escrowState = escrowState;
       if (patch?.carrier !== undefined) o.carrier = patch.carrier;
       if (tracking.length > 0) o.trackingNumber = tracking;
       if (patch?.deliveredAt !== undefined) o.deliveredAt = patch.deliveredAt;
-      if (escrowState === 'released') o.releasedAt = now();
-      if (escrowState === 'cancelled') {
-        const l = listings.find((x) => x.id === o.listingId);
-        if (l && l.status === 'sold') l.status = 'active';
+      if (escrowState === 'funds_held') {
+        // order_after_change : l'annonce est réservée, les autres commandes non
+        // payées tombent, le vendeur n'offre plus cet objet dans un échange.
+        for (const other of orders) {
+          if (other.listingId === o.listingId && other.id !== o.id && other.escrowState === 'pending_payment') {
+            other.escrowState = 'cancelled';
+          }
+        }
+        for (const e of exchanges) {
+          if (l && e.offeredItemId === l.itemId && e.proposerId === l.sellerId && e.state === 'proposed') {
+            e.state = 'withdrawn';
+            touch(e);
+          }
+        }
+      }
+      if (escrowState === 'released') {
+        o.releasedAt = now();
+        // Commande libérée ⇒ annonce vendue (0006 : alimente commission et réputation).
+        if (l) l.status = 'sold';
       }
       // SIMULATION démo : le vendeur expédie dès que les fonds sont sous séquestre.
       if (escrowState === 'funds_held' && role === 'buyer') {
@@ -1068,8 +1129,10 @@ export function createDemoMarketplaceRepo(
         (e) => e.listingId === l.id && e.proposerId === DEMO_OWNER && e.state === 'proposed',
       );
       if (pending) invalid('Une proposition est déjà en attente sur cette annonce');
+      // set_exchange_defaults : annonce ou objet proposé déjà réservés ailleurs.
+      if (isEngaged(l.id)) invalid('Annonce déjà réservée par un autre membre');
+      if (offeredItemEngaged(offered.id, DEMO_OWNER)) invalid('Cet objet est déjà engagé dans une transaction en cours');
 
-      const requirement = certificationRequirement({ value: Math.max(l.askPrice, input.offeredValue) });
       const rec: DemoExchange = {
         id: newId('exchange'),
         listingId: l.id,
@@ -1079,7 +1142,7 @@ export function createDemoMarketplaceRepo(
         listingTitle: l.title,
         listingDomain: l.domain,
         listingValue: l.askPrice,
-        offeredTitle: offered.title,
+        offeredTitle: redactTitle(offered.title),
         offeredDomain: offered.domain,
         offeredValue: input.offeredValue,
         cashAdjustment: cash,
@@ -1087,7 +1150,8 @@ export function createDemoMarketplaceRepo(
         state: 'proposed',
         proposerCommission: null,
         recipientCommission: null,
-        certificationRequired: requirement.required,
+        // L'expertise de seuil se décide à l'acceptation (objet par objet).
+        certificationRequired: false,
         proposerTracking: null,
         recipientTracking: null,
         proposerReceived: false,
@@ -1116,36 +1180,61 @@ export function createDemoMarketplaceRepo(
         touch(e);
         return exchangeView(e);
       }
+      // exchange_acceptance_check : annonce active non réservée, objet proposé libre.
+      const l = listings.find((x) => x.id === e.listingId);
+      const available =
+        l !== undefined &&
+        l.status === 'active' &&
+        isOpenToExchange(l.kind) &&
+        !isEngaged(l.id, { exchange: e.id }) &&
+        (e.offeredItemId === null || !offeredItemEngaged(e.offeredItemId, e.proposerId, e.id));
+      if (!available) invalid('Annonce ou objet proposé plus disponible pour cet échange');
       // Commissions FIGÉES à l'acceptation : chacun sur la valeur de l'objet qu'il cède.
       e.proposerCommission = exchangeCommission(e.offeredValue, salesOf(e.proposerId)).commission;
       e.recipientCommission = exchangeCommission(e.listingValue, salesOf(e.recipientId)).commission;
+      // exchange_after_change : les autres propositions sur l'annonce sont
+      // déclinées, celles qui offrent le même objet retirées, les commandes
+      // non payées de l'annonce annulées.
+      for (const other of exchanges) {
+        if (other.id === e.id || other.state !== 'proposed') continue;
+        if (other.listingId === e.listingId) other.state = 'declined';
+        else if (e.offeredItemId !== null && other.offeredItemId === e.offeredItemId) other.state = 'withdrawn';
+        else if (other.offeredItemId === l.itemId && other.proposerId === e.recipientId) other.state = 'withdrawn';
+        else continue;
+        touch(other);
+      }
+      for (const o of orders) {
+        if (o.listingId === e.listingId && o.escrowState === 'pending_payment') o.escrowState = 'cancelled';
+      }
+      // Expertise de seuil décidée MAINTENANT, objet par objet, à la charge de
+      // son propriétaire (_open_exchange_threshold_certifications).
+      const sides = thresholdSides(e);
+      e.certificationRequired = sides.length > 0;
+      for (const side of sides) {
+        const owner = side === 'listing' ? e.recipientId : e.proposerId;
+        certifications.unshift({
+          id: newId('cert'),
+          listingId: null,
+          orderId: null,
+          exchangeId: e.id,
+          side,
+          itemTitle: side === 'listing' ? e.listingTitle : e.offeredTitle,
+          domain: side === 'listing' ? e.listingDomain : e.offeredDomain,
+          reason: 'threshold',
+          status: 'requested',
+          feePayer: defaultCertificationFeePayer('threshold'),
+          feeAmount: null,
+          requesterId: owner,
+          counterpartyId: owner === e.recipientId ? e.proposerId : e.recipientId,
+          counterpartyAgreed: true,
+          reportRef: null,
+          expertNote: null,
+          createdAt: now(),
+          decidedAt: null,
+        });
+      }
       if (e.certificationRequired) {
         e.state = 'awaiting_certification';
-        const thresholdOpen = certifications.some(
-          (c) => c.exchangeId === e.id && OPEN_CERTIFICATION.has(c.status),
-        );
-        if (!thresholdOpen) {
-          certifications.unshift({
-            id: newId('cert'),
-            listingId: null,
-            orderId: null,
-            exchangeId: e.id,
-            side: 'listing',
-            itemTitle: e.listingTitle,
-            domain: e.listingDomain,
-            reason: 'threshold',
-            status: 'requested',
-            feePayer: defaultCertificationFeePayer('threshold'),
-            feeAmount: null,
-            requesterId: DEMO_OWNER,
-            counterpartyId: null,
-            counterpartyAgreed: true,
-            reportRef: null,
-            expertNote: null,
-            createdAt: now(),
-            decidedAt: null,
-          });
-        }
       } else {
         // Comme exchange_after_change : l'état « accepté » n'est jamais
         // persisté, l'échange passe aussitôt en expédition.
@@ -1207,8 +1296,14 @@ export function createDemoMarketplaceRepo(
       }
       if (e.proposerReceived && e.recipientReceived) {
         e.state = 'completed';
+        // Objet de l'annonce parti dans l'échange ; l'objet cédé par l'auteur
+        // n'est plus disponible ailleurs (exchange_after_change).
         const l = listings.find((x) => x.id === e.listingId);
         if (l) l.status = 'exchanged';
+        for (const other of listings) {
+          const open = other.status === 'draft' || other.status === 'active' || other.status === 'pending_certification';
+          if (open && other.itemId === e.offeredItemId && other.sellerId === e.proposerId) other.status = 'withdrawn';
+        }
       }
       touch(e);
       return exchangeView(e);
