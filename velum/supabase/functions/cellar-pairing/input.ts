@@ -1,4 +1,5 @@
 import type { CellarWineEntry } from '@velum/core';
+import { peakStatus } from '@velum/domain-wine';
 import {
   validateJsonObject,
   type ValidationResult,
@@ -47,6 +48,25 @@ function drinkWindowFrom(attributes: Record<string, unknown>): { from: number; t
   return from !== undefined && to !== undefined && from <= to ? { from, to } : undefined;
 }
 
+/** Bloc `analysis.identification` de la fiche ZAPPA, s'il est exploitable. */
+function identificationFrom(attributes: Record<string, unknown>): Record<string, unknown> {
+  const analysis = attributes['analysis'];
+  if (!isRecord(analysis)) return {};
+  const identification = analysis['identification'];
+  return isRecord(identification) ? identification : {};
+}
+
+/** Cépages : chaînes ou objets `{ name }` (format ZAPPA), dédupliqués. */
+function grapesFrom(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const names: string[] = [];
+  for (const raw of value) {
+    const name = nonEmptyString(isRecord(raw) ? raw['name'] : raw);
+    if (name && !names.includes(name)) names.push(name);
+  }
+  return names.length > 0 ? names.slice(0, 8) : undefined;
+}
+
 function foodPairingsFrom(attributes: Record<string, unknown>): string[] | undefined {
   const analysis = attributes['analysis'];
   if (!isRecord(analysis)) return undefined;
@@ -58,12 +78,21 @@ function foodPairingsFrom(attributes: Record<string, unknown>): string[] | undef
   return pairings.length > 0 ? pairings : undefined;
 }
 
+export interface ParseCellarOptions {
+  /**
+   * Année de référence : si fournie, chaque vin porte son `peakStatus`
+   * (calculé ici, jamais par le modèle). Injectée pour des tests déterministes.
+   */
+  year?: number;
+}
+
 /**
  * Convertit les lignes JSONB/PostgREST en inventaire minimal transmis au modèle.
  * Les champs optionnels malformés sont omis ; une ligne sans identifiant bloque
- * le traitement, car l'anti-hallucination repose sur cet identifiant.
+ * le traitement, car l'anti-hallucination repose sur cet identifiant. Les
+ * attributs directs priment ; à défaut, l'identification ZAPPA est relue.
  */
-export function parseCellarRows(rows: unknown): CellarWineEntry[] {
+export function parseCellarRows(rows: unknown, options: ParseCellarOptions = {}): CellarWineEntry[] {
   if (!Array.isArray(rows)) {
     throw new TypeError('Résultat items invalide : tableau attendu');
   }
@@ -78,30 +107,38 @@ export function parseCellarRows(rows: unknown): CellarWineEntry[] {
     }
 
     const attributes = isRecord(rawRow['attributes']) ? rawRow['attributes'] : {};
+    const identification = identificationFrom(attributes);
     const title = nonEmptyString(rawRow['title']);
     const producer = nonEmptyString(attributes['producer']);
     const cuvee = nonEmptyString(attributes['cuvee']);
-    const vintage = finiteNumber(attributes['vintage']);
+    const vintage = finiteNumber(attributes['vintage']) ?? finiteNumber(identification['vintage']);
     const composedLabel = [producer, cuvee, vintage === undefined ? undefined : String(vintage)]
       .filter((part): part is string => part !== undefined)
       .join(' ');
     const label = title ?? (composedLabel.length > 0 ? composedLabel : 'Vin sans étiquette');
 
-    const region = nonEmptyString(attributes['region']);
-    const color = nonEmptyString(attributes['color']);
+    const region = nonEmptyString(attributes['region']) ?? nonEmptyString(identification['region']);
+    const color = nonEmptyString(attributes['color']) ?? nonEmptyString(identification['color']);
+    const appellation =
+      nonEmptyString(attributes['appellation']) ?? nonEmptyString(identification['appellation']);
+    const grapes = grapesFrom(attributes['grapes']) ?? grapesFrom(identification['grapes']);
     const storageLocation = nonEmptyString(rawRow['storage_location']);
     const quantity = finiteNumber(attributes['quantity']);
     const drinkWindow = drinkWindowFrom(attributes);
     const foodPairings = foodPairingsFrom(attributes);
+    const year = options.year;
 
     return {
       itemId,
       label,
       ...(vintage !== undefined ? { vintage } : {}),
       ...(region ? { region } : {}),
+      ...(appellation ? { appellation } : {}),
       ...(color ? { color } : {}),
+      ...(grapes ? { grapes } : {}),
       ...(storageLocation ? { storageLocation } : {}),
       ...(drinkWindow ? { drinkWindow } : {}),
+      ...(year !== undefined && Number.isFinite(year) ? { peakStatus: peakStatus(drinkWindow, year) } : {}),
       ...(foodPairings ? { foodPairings } : {}),
       ...(quantity !== undefined ? { quantity } : {}),
     };

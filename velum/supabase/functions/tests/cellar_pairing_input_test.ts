@@ -107,3 +107,64 @@ Deno.test('parseCellarRows bloque une ligne sans identifiant anti-hallucination'
     'id non vide attendu',
   );
 });
+
+Deno.test('parseCellarRows calcule le statut d’apogée de l’année injectée', () => {
+  const rows = [
+    {
+      id: 'closing',
+      title: 'Bandol 2015',
+      storage_location: 'Rangée 2 · Colonne 4 · Place 1',
+      attributes: { analysis: { tasting: { drinkWindow: { from: 2020, to: 2026 } } } },
+    },
+    {
+      id: 'young',
+      title: 'Barolo 2021',
+      attributes: { analysis: { tasting: { drinkWindow: { from: 2031, to: 2050 } } } },
+    },
+    { id: 'unknown', title: 'Vin sans fiche', attributes: {} },
+  ];
+  const parsed = parseCellarRows(rows, { year: 2026 });
+  assertEquals(parsed.map((wine) => [wine.itemId, wine.peakStatus]), [
+    ['closing', 'closing'],
+    ['young', 'young'],
+    ['unknown', 'unknown'],
+  ]);
+  assertEquals(parsed[0]?.storageLocation, 'Rangée 2 · Colonne 4 · Place 1');
+  // Sans année : aucun statut inventé (rétro-compatibilité).
+  assertEquals(parseCellarRows(rows)[0]?.peakStatus, undefined);
+});
+
+Deno.test('parseCellarRows relit l’identification ZAPPA à défaut d’attributs directs', () => {
+  const [wine] = parseCellarRows(
+    [
+      {
+        id: 'wine-1',
+        title: 'Domaine Tempier',
+        attributes: {
+          color: 'rouge',
+          analysis: {
+            identification: {
+              vintage: 2015,
+              color: 'blanc',
+              region: 'Provence',
+              appellation: ' Bandol ',
+              grapes: [{ name: 'mourvèdre', percent: 75 }, { name: 'grenache' }, { percent: 5 }, 'mourvèdre'],
+            },
+          },
+        },
+      },
+    ],
+    { year: 2026 },
+  );
+  assertEquals(wine, {
+    itemId: 'wine-1',
+    label: 'Domaine Tempier',
+    vintage: 2015,
+    region: 'Provence',
+    appellation: 'Bandol',
+    // L'attribut direct (corrigé par l'utilisateur) prime sur la fiche.
+    color: 'rouge',
+    grapes: ['mourvèdre', 'grenache'],
+    peakStatus: 'unknown',
+  });
+});

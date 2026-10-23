@@ -7,7 +7,9 @@
  * POST { dish: string }
  *   → auth (Bearer) → vérification du plan (gold | platine)
  *   → lecture de la cave de l'utilisateur (items domain='wine' + dernière
- *     analyse ZAPPA, RLS active) → sommelier IA contraint à l'inventaire
+ *     analyse ZAPPA, RLS active), statut d'apogée de l'année et emplacement
+ *     de chaque bouteille → sommelier IA contraint à l'inventaire, invité à
+ *     privilégier les vins à l'apogée et à citer leur emplacement
  *   → PairingResult (recommandations anti-hallucination : uniquement des
  *     itemId réellement en cave).
  */
@@ -77,7 +79,7 @@ export async function handler(req: Request): Promise<Response> {
 
     let cellar: ReturnType<typeof parseCellarRows>;
     try {
-      cellar = parseCellarRows(items ?? []);
+      cellar = parseCellarRows(items ?? [], { year: new Date().getUTCFullYear() });
     } catch (parseError) {
       console.error(
         JSON.stringify({
