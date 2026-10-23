@@ -400,6 +400,19 @@ describe('démo marketplace — alignement sur les règles serveur', () => {
     await expectInvalid(repo.decideCertification(cert?.id ?? '', { certified: false })); // déjà décidée
   });
 
+  it('objet renommé APRÈS publication puis expertisé : la demande porte son titre actuel, la certification le suit', async () => {
+    const watch = item('it-watch', { domain: 'watch', title: 'Omega Speedmaster' });
+    const repo = setup([watch]);
+    const rec = await repo.createListing({ itemId: 'it-watch', askPrice: 200 });
+    watch.title = 'Omega Speedmaster Moonwatch';
+    const voluntary = await repo.requestCertification({ reason: 'voluntary', listingId: rec.id });
+    expect(voluntary.itemTitle).toBe('Omega Speedmaster Moonwatch');
+    await repo.decideCertification(voluntary.id, { certified: true });
+    expect(
+      itemCertifiedByExpert(watch, await repo.myListings(), await repo.myCertifications(), await repo.myExchanges()),
+    ).toBe(true);
+  });
+
   it('aperçu aligné sur le dépôt : objet renommé après certification, ou refusé ensuite ⇒ pas « déjà certifié »', async () => {
     const watch = item('it-watch', { domain: 'watch', title: 'Omega Speedmaster' });
     const repo = setup([watch]);

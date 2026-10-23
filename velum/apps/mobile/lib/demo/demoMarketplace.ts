@@ -866,6 +866,18 @@ export function createDemoMarketplaceRepo(
     const content = itemContent(itemId, owner);
     return content !== null && d.title === content.title && d.domain === content.domain ? d.reportRef : null;
   };
+  /**
+   * Titre et catégorie qu'enregistre une demande d'expertise : contenu ACTUEL
+   * de l'objet (comme request_certification), à défaut celui figé sur
+   * l'annonce ou l'échange — la certification suit alors l'objet renommé.
+   */
+  const requestContent = (
+    itemId: string | null,
+    owner: string,
+    title: string | null,
+    domain: VelumDomain | null,
+  ): { title: string | null; domain: VelumDomain | null } =>
+    (itemId === null ? null : itemContent(itemId, owner)) ?? { title, domain };
   /** Objet CÉDÉ par `owner` (_market_item_ceded) : annonce vendue / échangée, ou offert dans un échange conclu. */
   const itemCeded = (itemId: string, owner: string): boolean =>
     listings.some(
@@ -1523,15 +1535,19 @@ export function createDemoMarketplaceRepo(
       e.certificationRequired = sides.length > 0;
       for (const side of sides) {
         const owner = side === 'listing' ? e.recipientId : e.proposerId;
+        const itemId = side === 'listing' ? (l.itemId === '' ? null : l.itemId) : e.offeredItemId;
+        const content = side === 'listing'
+          ? requestContent(itemId, owner, e.listingTitle, e.listingDomain)
+          : requestContent(itemId, owner, e.offeredTitle, e.offeredDomain);
         certifications.unshift({
           id: newId('cert'),
-          itemId: side === 'listing' ? (l.itemId === '' ? null : l.itemId) : e.offeredItemId,
+          itemId,
           listingId: null,
           orderId: null,
           exchangeId: e.id,
           side,
-          itemTitle: side === 'listing' ? e.listingTitle : e.offeredTitle,
-          domain: side === 'listing' ? e.listingDomain : e.offeredDomain,
+          itemTitle: content.title,
+          domain: content.domain,
           reason: 'threshold',
           status: 'requested',
           feePayer: defaultCertificationFeePayer('threshold'),
@@ -1682,6 +1698,7 @@ export function createDemoMarketplaceRepo(
           (c) => c.listingId === l.id && c.orderId === null && c.exchangeId === null && OPEN_CERTIFICATION.has(c.status),
         );
         if (open) invalid('Une demande de certification est déjà ouverte');
+        const content = requestContent(l.itemId === '' ? null : l.itemId, l.sellerId, l.title, l.domain);
         rec = {
           ...base,
           itemId: l.itemId === '' ? null : l.itemId,
@@ -1689,8 +1706,8 @@ export function createDemoMarketplaceRepo(
           orderId: null,
           exchangeId: null,
           side: null,
-          itemTitle: l.title,
-          domain: l.domain,
+          itemTitle: content.title,
+          domain: content.domain,
           status: 'requested',
           feePayer: 'seller',
           counterpartyId: null,
@@ -1709,15 +1726,17 @@ export function createDemoMarketplaceRepo(
           invalid('Objet déjà authentifié par un expert avant publication');
         }
         if (hasOpenCertification({ orderId: o.id })) invalid('Une demande de certification est déjà ouverte');
+        const itemId = l === undefined || l.itemId === '' ? null : l.itemId;
+        const content = requestContent(itemId, o.sellerId, o.listingTitle, l?.domain ?? null);
         rec = {
           ...base,
-          itemId: l === undefined || l.itemId === '' ? null : l.itemId,
+          itemId,
           listingId: o.listingId,
           orderId: o.id,
           exchangeId: null,
           side: null,
-          itemTitle: o.listingTitle,
-          domain: l?.domain ?? null,
+          itemTitle: content.title,
+          domain: content.domain,
           status: 'awaiting_agreement',
           feePayer: input.feePayer ?? 'split',
           counterpartyId: o.buyerId === DEMO_OWNER ? o.sellerId : o.buyerId,
@@ -1749,15 +1768,19 @@ export function createDemoMarketplaceRepo(
             (c) => c.exchangeId === e.id && c.side === side && (OPEN_CERTIFICATION.has(c.status) || c.status === 'certified'),
           );
         if (already) invalid('Certification déjà obtenue ou demandée pour cet objet');
+        const itemId = side === 'listing' ? (listingItem === '' ? null : listingItem) : e.offeredItemId;
+        const content = side === 'listing'
+          ? requestContent(itemId, e.recipientId, e.listingTitle, e.listingDomain)
+          : requestContent(itemId, e.proposerId, e.offeredTitle, e.offeredDomain);
         rec = {
           ...base,
-          itemId: side === 'listing' ? (listingItem === '' ? null : listingItem) : e.offeredItemId,
+          itemId,
           listingId: null,
           orderId: null,
           exchangeId: e.id,
           side,
-          itemTitle: side === 'listing' ? e.listingTitle : e.offeredTitle,
-          domain: side === 'listing' ? e.listingDomain : e.offeredDomain,
+          itemTitle: content.title,
+          domain: content.domain,
           status: 'awaiting_agreement',
           feePayer: input.feePayer ?? 'split',
           counterpartyId: iAmProposer ? e.recipientId : e.proposerId,
