@@ -483,7 +483,9 @@
       "delete": "Supprimer l’objet",
       "confirmQuestion": "Supprimer définitivement « {{name}} » ?",
       "confirm": "Oui, supprimer définitivement",
-      "queued": "Hors-ligne : suppression enregistrée, elle sera synchronisée."
+      "queued": "Hors-ligne : suppression enregistrée, elle sera synchronisée.",
+      "refused": "Suppression refusée par le serveur : l’objet n’a pas été supprimé. Un objet engagé dans une vente ou un échange en cours ne peut pas l’être.",
+      "refusedReason": "Suppression refusée — {{reason}}"
     },
     "labels": {
       "dimensions": "Dimensions",
@@ -633,7 +635,12 @@
       "tres_rare": "Très rare",
       "inconnue": "Inconnue"
     },
-    "whyThisRange": "Pourquoi cette fourchette ?"
+    "whyThisRange": "Pourquoi cette fourchette ?",
+    "acquiredAtInvalid": "Date illisible ou inexistante — saisissez par exemple 01/06/2020 (jour/mois/année) ou 2020-06-01.",
+    "offline": {
+      "title": "Hors-ligne",
+      "message": "Cette fiche n’a pas encore été chargée sur cet appareil : elle s’affichera au retour du réseau."
+    }
   },
   "collection": {
     "title": "Ma collection",
@@ -1810,6 +1817,10 @@
       "added": "Ajouté — voir mes envies",
       "openHint": "Ouvre votre liste d’envies de cette catégorie",
       "titleMissing": "Impossible d’ajouter : titre manquant."
+    },
+    "offline": {
+      "title": "Hors-ligne",
+      "message": "Vos envies n’ont pas encore été chargées sur cet appareil : elles s’afficheront au retour du réseau."
     }
   },
   "calibration": {

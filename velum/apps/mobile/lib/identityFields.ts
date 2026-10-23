@@ -10,7 +10,14 @@
  * valeur corrigée, horodatée) : l'utilisateur garde la main, et le signal
  * nourrit l'amélioration de la reconnaissance — jamais de réécriture muette.
  */
-import type { VelumDomain } from '@velum/core';
+import type {
+  ArtAttributes,
+  CoinAttributes,
+  StampAttributes,
+  VelumDomain,
+  WatchAttributes,
+  WineAttributes,
+} from '@velum/core';
 
 export interface IdentityField {
   /** Clé d'attribut du domaine (items.attributes). */
@@ -82,6 +89,100 @@ export function identityFieldsFor(domain: VelumDomain, primaryOnly = false): Ide
   return primaryOnly ? fields.filter((f) => f.primary === true) : [...fields];
 }
 
+// ── Attributs d'identité (liste d'INCLUSION) ─────────────────────────────────
+
+/*
+ * Attributs d'identité STRUCTURÉS documentés par domaine dans @velum/core
+ * (analysis/*.ts, interfaces `…Attributes`). Le type `Record<keyof …, true>`
+ * impose l'exhaustivité : un attribut ajouté au contrat doit l'être ici.
+ */
+const WINE_IDENTITY: Record<keyof WineAttributes, true> = {
+  producer: true,
+  winemaker: true,
+  winemakerRenown: true,
+  appellation: true,
+  cuvee: true,
+  vintage: true,
+  color: true,
+  grapes: true,
+  distinctiveness: true,
+  farming: true,
+  region: true,
+  country: true,
+  format: true,
+};
+const COIN_IDENTITY: Record<keyof CoinAttributes, true> = {
+  country: true,
+  issuer: true,
+  type: true,
+  year: true,
+  mintMark: true,
+  metal: true,
+  weightGrams: true,
+  diameterMm: true,
+  mintage: true,
+  numistaId: true,
+};
+const ART_IDENTITY: Record<keyof ArtAttributes, true> = {
+  artist: true,
+  attributionQualifier: true,
+  title: true,
+  technique: true,
+  support: true,
+  dimensionsCm: true,
+  estimatedPeriod: true,
+  school: true,
+  signatureDetected: true,
+};
+const STAMP_IDENTITY: Record<keyof StampAttributes, true> = {
+  country: true,
+  catalogNumber: true,
+  catalog: true,
+  title: true,
+  year: true,
+  faceValue: true,
+  color: true,
+  perforation: true,
+  watermark: true,
+  printingMethod: true,
+};
+const WATCH_IDENTITY: Record<keyof WatchAttributes, true> = {
+  brand: true,
+  model: true,
+  reference: true,
+  year: true,
+  gender: true,
+  caseMaterial: true,
+  caseDiameterMm: true,
+  dialColor: true,
+  bracelet: true,
+  crystal: true,
+  waterResistanceM: true,
+  boxPapers: true,
+  limitedEdition: true,
+};
+
+const STRUCTURED_IDENTITY: Record<VelumDomain, Record<string, true>> = {
+  wine: WINE_IDENTITY,
+  coin: COIN_IDENTITY,
+  art: ART_IDENTITY,
+  stamp: STAMP_IDENTITY,
+  watch: WATCH_IDENTITY,
+};
+
+/**
+ * Clés d'attributs qui décrivent l'IDENTITÉ d'un objet du domaine : champs
+ * d'identification éditables + attributs structurés du contrat. Liste
+ * d'INCLUSION : tout le reste (quantité, « bouteille bue », prix payé ou
+ * emplacement d'un import CSV, fiche, historique…) décrit l'exemplaire
+ * possédé ou l'analyse, jamais l'objet recherché.
+ */
+export function identityAttributeKeys(domain: VelumDomain): string[] {
+  const keys = new Set(IDENTITY_FIELDS[domain].map((field) => field.key));
+  for (const key of Object.keys(STRUCTURED_IDENTITY[domain])) keys.add(key);
+  return [...keys];
+}
+
 /** Valeurs texte des champs (pour pré-remplir un formulaire). */
 export function identityValuesFrom(
   attributes: Record<string, unknown>,
@@ -102,6 +203,58 @@ export function parseNumericInput(raw: string): number | null {
   if (normalized.length === 0) return null;
   const value = Number(normalized);
   return Number.isFinite(value) ? value : null;
+}
+
+// ── Acquisition (validée AVANT tout envoi) ───────────────────────────────────
+
+/** Plafond de `items.acquired_price numeric(12, 2)`. */
+export const ACQUIRED_PRICE_MAX = 9_999_999_999.99;
+
+/** ISO AAAA-MM-JJ si la date existe (31/02 refusé), sinon null. */
+function isoDate(year: number, month: number, day: number): string | null {
+  if (year < 1 || month < 1 || month > 12 || day < 1) return null;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  // Date.UTC interprète 0–99 comme 1900–1999 : on repose l'année exacte.
+  date.setUTCFullYear(year);
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+    return null;
+  }
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/**
+ * Date d'acquisition saisie → ISO AAAA-MM-JJ (colonne `date`). Accepte
+ * AAAA-MM-JJ et la saisie à la française JJ/MM/AAAA (ou JJ.MM.AAAA,
+ * JJ-MM-AAAA) ; vide → null ; illisible ou inexistante (31/02) → erreur.
+ * Jamais envoyée telle quelle : Postgres (DateStyle MDY) lirait « 01/06/2020 »
+ * comme le 6 janvier, et refuserait « 15/03/2019 ».
+ */
+export function parseAcquiredDate(raw: string): { ok: true; value: string | null } | { ok: false } {
+  const text = raw.trim();
+  if (text.length === 0) return { ok: true, value: null };
+  const iso = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(text);
+  const french = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/.exec(text);
+  const value = iso
+    ? isoDate(Number(iso[1]), Number(iso[2]), Number(iso[3]))
+    : french
+      ? isoDate(Number(french[3]), Number(french[2]), Number(french[1]))
+      : null;
+  return value === null ? { ok: false } : { ok: true, value };
+}
+
+/**
+ * Prix d'acquisition saisi (« 1 200,50 ») → montant ≥ 0 au centime ; vide →
+ * null. Illisible, négatif ou au-delà de `numeric(12, 2)` → clé i18n d'erreur.
+ */
+export function parseAcquiredPrice(
+  raw: string,
+): { ok: true; value: number | null } | { ok: false; errorKey: string } {
+  if (raw.trim().length === 0) return { ok: true, value: null };
+  const value = parseNumericInput(raw);
+  if (value === null) return { ok: false, errorKey: 'identity.errors.notANumber' };
+  const cents = Math.round(value * 100) / 100;
+  if (cents < 0 || cents > ACQUIRED_PRICE_MAX) return { ok: false, errorKey: 'identity.errors.outOfRange' };
+  return { ok: true, value: cents };
 }
 
 /** Erreurs de validation par clé de champ (clés i18n). Vide = valide. */
@@ -137,6 +290,25 @@ export interface IdentityCorrection {
 /** Nombre maximal de corrections conservées dans l'historique d'un objet. */
 export const MAX_CORRECTIONS_KEPT = 30;
 
+/**
+ * Clé RÉSERVÉE sous laquelle est tracée la correction de la DÉSIGNATION de
+ * l'objet (`items.title`). Distincte de toute clé d'attribut : l'art (titre de
+ * l'œuvre) et le timbre (sujet) ont un champ d'identité nommé `title`, qui ne
+ * doit pas passer pour un simple renommage.
+ */
+export const DESIGNATION_FIELD = '@title';
+
+/**
+ * true si l'entrée d'historique porte sur la désignation. Les historiques
+ * d'avant la clé réservée tracent la désignation sous `title` : relus comme
+ * tels seulement pour un domaine SANS champ d'identité `title` (vin, pièce,
+ * montre) — ailleurs, l'entrée est relue comme le champ du domaine.
+ */
+export function isDesignationCorrection(domain: VelumDomain, field: string): boolean {
+  if (field === DESIGNATION_FIELD) return true;
+  return field === 'title' && !IDENTITY_FIELDS[domain].some((f) => f.key === 'title');
+}
+
 export interface CorrectionResult {
   attributes: Record<string, unknown>;
   title: string | null;
@@ -152,7 +324,9 @@ function scalar(value: unknown): string | number | null {
 /**
  * Applique les valeurs saisies aux attributs : champ vidé → clé supprimée,
  * nombres parsés, tout changement tracé dans `attributes.corrections`.
- * Le titre est corrigé s'il diffère (`title` vide → inchangé).
+ * La désignation est corrigée si elle diffère (`newTitle` vide → inchangée),
+ * tracée sous `designationField` : DESIGNATION_FIELD pour la fiche objet ;
+ * `title` par défaut (comportement historique, encore attendu par la capture).
  * Pré-condition : `validateIdentityValues` sans erreur.
  */
 export function applyIdentityCorrections(input: {
@@ -162,6 +336,7 @@ export function applyIdentityCorrections(input: {
   values: Record<string, string>;
   newTitle?: string;
   now: Date;
+  designationField?: string;
 }): CorrectionResult {
   const at = input.now.toISOString();
   const attributes: Record<string, unknown> = { ...input.attributes };
@@ -181,7 +356,7 @@ export function applyIdentityCorrections(input: {
   let title = input.title;
   const trimmedTitle = input.newTitle?.trim() ?? '';
   if (trimmedTitle.length > 0 && trimmedTitle !== (input.title ?? '')) {
-    corrections.push({ field: 'title', from: input.title, to: trimmedTitle, at });
+    corrections.push({ field: input.designationField ?? 'title', from: input.title, to: trimmedTitle, at });
     title = trimmedTitle;
   }
 

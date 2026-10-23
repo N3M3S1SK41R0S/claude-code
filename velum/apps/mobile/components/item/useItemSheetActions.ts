@@ -9,8 +9,13 @@
  * contre le client démo) ; ce hook les branche sur React Query : cache de la
  * fiche mis à jour immédiatement (même hors-ligne), listes invalidées en ligne.
  * Les mutations survivent à la sortie de l'écran : une fiche lancée puis
- * quittée est tout de même enregistrée.
+ * quittée est tout de même enregistrée — sauf si l'objet a été supprimé
+ * entre-temps (marqueur posé par la zone sensible).
+ *
+ * Une estimation ou une fiche demandée PENDANT l'enregistrement d'une
+ * correction attend la fin de celle-ci : elle porte sur l'identité corrigée.
  */
+import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import type { VelumItem } from '@velum/core';
@@ -18,7 +23,11 @@ import type { VelumItem } from '@velum/core';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
 import {
+  createCorrectionGate,
   generateFullSheet,
+  itemQueryKey,
+  latestCachedItem,
+  refreshAfterValuation,
   revalueItem,
   saveIdentityCorrection,
   type CorrectionFlowResult,
@@ -27,14 +36,11 @@ import {
 } from '../../lib/itemSheetFlows';
 import { showToast } from '../../stores/toastStore';
 
+export { itemQueryKey } from '../../lib/itemSheetFlows';
+
 export interface CorrectionInput {
   title: string;
   values: Record<string, string>;
-}
-
-/** Clé React Query de la fiche d'un objet (partagée avec l'écran). */
-export function itemQueryKey(itemId: string): readonly unknown[] {
-  return ['items', itemId];
 }
 
 export function useItemSheetActions(item: VelumItem) {
@@ -46,9 +52,11 @@ export function useItemSheetActions(item: VelumItem) {
     now: () => new Date(),
     mutationId: () => `mut-${Date.now()}-${Math.random().toString(36).slice(2)}`,
   };
+  /** Correction en cours d'enregistrement : estimation et fiche l'attendent. */
+  const [gate] = useState(createCorrectionGate);
 
-  /** Dernière version connue de l'objet (une autre action a pu la modifier). */
-  const latest = (): VelumItem => queryClient.getQueryData<VelumItem | null>(key) ?? item;
+  /** Dernière version connue de l'objet ; lève s'il a été supprimé entre-temps. */
+  const latest = (): VelumItem => latestCachedItem(queryClient, item);
 
   const applySaved = (saved: PersistOutcome) => {
     queryClient.setQueryData(key, saved.item);
@@ -57,11 +65,12 @@ export function useItemSheetActions(item: VelumItem) {
   };
 
   const correct = useMutation({
-    mutationFn: async (input: CorrectionInput): Promise<CorrectionFlowResult> => {
-      const result = await saveIdentityCorrection(deps, latest(), input);
-      if (result.changed) applySaved(result);
-      return result;
-    },
+    mutationFn: (input: CorrectionInput): Promise<CorrectionFlowResult> =>
+      gate.run(async () => {
+        const result = await saveIdentityCorrection(deps, latest(), input);
+        if (result.changed) applySaved(result);
+        return result;
+      }),
     onSuccess: (result) => {
       if (!result.changed) showToast(t('item.identity.noChange'), 'info');
       else if (result.queued) showToast(t('item.identity.queued'), 'info');
@@ -71,6 +80,7 @@ export function useItemSheetActions(item: VelumItem) {
 
   const analyze = useMutation({
     mutationFn: async (): Promise<PersistOutcome> => {
+      await gate.settled();
       const saved = await generateFullSheet(deps, latest);
       applySaved(saved);
       return saved;
@@ -84,11 +94,14 @@ export function useItemSheetActions(item: VelumItem) {
   });
 
   const valuate = useMutation({
-    mutationFn: () => revalueItem(deps, latest()),
+    mutationFn: async () => {
+      await gate.settled();
+      return revalueItem(deps, latest());
+    },
     onSuccess: () => {
       showToast(t('item.valuation.updated'), 'success');
-      // Toutes les valorisations : fiche (dernière + historique), collection…
-      void queryClient.invalidateQueries({ queryKey: ['valuations'] });
+      // Valorisations de la fiche ET listes (collection, carnet, recherche).
+      refreshAfterValuation(queryClient, item.id);
     },
     // Visible même si le bloc valorisation n'est pas à l'écran.
     onError: (error) => showToast(errorMessage(error, t), 'danger'),

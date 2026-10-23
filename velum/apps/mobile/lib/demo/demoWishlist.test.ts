@@ -140,6 +140,32 @@ describe('dépôt démo de la liste d’envies', () => {
     expect((await r.list()).some((e) => e.id === 'demo-wish-9')).toBe(false);
   });
 
+  it('objet d’origine : refusé s’il n’existe pas, lien remis à NULL quand il est supprimé (comme le serveur)', async () => {
+    const items = new Set(['demo-item-1']);
+    let n = 0;
+    const r = createDemoWishlistRepo({
+      now: steppingClock(),
+      nextId: () => `wish-test-${++n}`,
+      latencyMs: 0,
+      itemExists: (id) => items.has(id),
+    });
+    await expectInvalid(r.add({ domain: 'wine', title: 'Inconnu', sourceItemId: 'disparu', source: 'item' }));
+    const linked = await r.add({ domain: 'wine', title: 'Tempier 2016', sourceItemId: 'demo-item-1', source: 'item' });
+    expect(linked.sourceItemId).toBe('demo-item-1');
+
+    items.delete('demo-item-1'); // l'objet est supprimé de la collection
+    const after = (await r.list()).find((e) => e.id === linked.id);
+    expect(after?.sourceItemId).toBeNull(); // ON DELETE SET NULL
+    expect(after?.updatedAt).not.toBe(linked.updatedAt);
+    expect(after?.title).toBe('Tempier 2016'); // l'envie, elle, est conservée
+  });
+
+  it('attributs plus volumineux que la contrainte SQL (16 Ko) refusés', async () => {
+    const r = repo();
+    await expectInvalid(r.add({ domain: 'wine', title: 'X', attributes: { note: 'x'.repeat(17_000) } }));
+    await expectInvalid(r.update('demo-wish-1', { attributes: { note: 'x'.repeat(17_000) } }));
+  });
+
   it('deux dépôts démo sont indépendants', async () => {
     const a = repo();
     const b = repo();

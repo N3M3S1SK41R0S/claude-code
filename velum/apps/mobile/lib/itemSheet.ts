@@ -14,10 +14,12 @@ import type { AlertRecord, AnalysisResult, ValuationRecord, VelumDomain, VelumIt
 
 import { analysisStatusOf, isAnalysisOutdated } from './analysisState';
 import {
+  DESIGNATION_FIELD,
   IDENTITY_FIELDS,
   MAX_CORRECTIONS_KEPT,
   applyIdentityCorrections,
   identityValuesFrom,
+  isDesignationCorrection,
   labelFromValues,
   parseNumericInput,
   validateIdentityValues,
@@ -60,9 +62,14 @@ export function formatIdentityValue(value: string | number, locale = 'fr'): stri
   }).format(value);
 }
 
-/** Clé i18n du libellé d'un champ corrigé (null : champ inconnu du domaine). */
+/**
+ * Clé i18n du libellé d'un champ corrigé (null : champ inconnu du domaine).
+ * La désignation (clé réservée, ou ancienne clé `title` d'un domaine sans
+ * champ homonyme) n'est jamais confondue avec le titre d'une œuvre ou le
+ * sujet d'un timbre.
+ */
 export function correctionFieldLabelKey(domain: VelumDomain, field: string): string | null {
-  if (field === 'title') return TITLE_FIELD_LABEL_KEY;
+  if (isDesignationCorrection(domain, field)) return TITLE_FIELD_LABEL_KEY;
   return IDENTITY_FIELDS[domain].find((f) => f.key === field)?.labelKey ?? null;
 }
 
@@ -229,7 +236,10 @@ export function hasFormErrors(errors: IdentityFormErrors): boolean {
 export interface IdentityCorrectionOutcome {
   /** false : rien à enregistrer (aucune valeur réellement modifiée). */
   changed: boolean;
-  /** true si un champ d'identité (pas seulement la désignation) a changé. */
+  /**
+   * true si un champ d'identité (pas seulement la désignation) a changé : la
+   * fourchette et le classement du scan éclair sont alors retirés.
+   */
   identityChanged: boolean;
   title: string | null;
   attributes: Record<string, unknown>;
@@ -243,8 +253,12 @@ export interface IdentityCorrectionOutcome {
  *    n'est pas une correction : la valeur lue est conservée, rien n'est tracé.
  *  - Chaque correction réelle est tracée dans `attributes.corrections`
  *    (historique borné à MAX_CORRECTIONS_KEPT).
- *  - Si l'identité change, la fourchette indicative du scan éclair — calculée
- *    pour l'objet MAL lu — est retirée (jamais de fausse certitude).
+ *  - La désignation est tracée sous une clé réservée (DESIGNATION_FIELD) :
+ *    corriger le titre d'une œuvre ou le sujet d'un timbre (champ `title`
+ *    du domaine) est bien un changement d'identité.
+ *  - Si l'identité change, la fourchette indicative ET le classement du scan
+ *    éclair — avis du modèle sur l'objet MAL lu — sont retirés (jamais de
+ *    fausse certitude).
  * Pré-condition : `validateIdentityForm` sans erreur.
  */
 export function correctItemIdentity(input: {
@@ -264,9 +278,10 @@ export function correctItemIdentity(input: {
     values,
     newTitle: input.title,
     now: input.now,
+    designationField: DESIGNATION_FIELD,
   });
   const real = result.corrections.filter(
-    (c) => c.field === 'title' || String(c.from ?? '') !== String(c.to ?? ''),
+    (c) => c.field === DESIGNATION_FIELD || String(c.from ?? '') !== String(c.to ?? ''),
   );
   if (real.length === 0) {
     return { changed: false, identityChanged: false, title: item.title, attributes: original, corrections: [] };
@@ -279,8 +294,11 @@ export function correctItemIdentity(input: {
   const history = Array.isArray(original['corrections']) ? (original['corrections'] as unknown[]) : [];
   attributes['corrections'] = [...history, ...real].slice(-MAX_CORRECTIONS_KEPT);
 
-  const identityChanged = real.some((c) => c.field !== 'title');
-  if (identityChanged) delete attributes['quickEstimate'];
+  const identityChanged = real.some((c) => c.field !== DESIGNATION_FIELD);
+  if (identityChanged) {
+    delete attributes['quickEstimate'];
+    delete attributes['classification'];
+  }
 
   return { changed: true, identityChanged, title: result.title, attributes, corrections: real };
 }

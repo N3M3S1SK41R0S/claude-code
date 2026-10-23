@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { VelumItem } from '@velum/core';
 
-import { MAX_CORRECTIONS_KEPT } from './identityFields';
+import { DESIGNATION_FIELD, MAX_CORRECTIONS_KEPT } from './identityFields';
 import {
   analysisMeta,
   analysisPayloadOf,
@@ -109,9 +109,17 @@ describe('historique des corrections', () => {
   it('relit défensivement, du plus récent au plus ancien', () => {
     expect(correctionHistory(attributes, 'stamp')).toEqual([
       { field: 'color', labelKey: 'candidates.fields.stampColor', from: null, to: 'noir', at: '2026-05-03T00:00:00Z' },
-      { field: 'title', labelKey: TITLE_FIELD_LABEL_KEY, from: 'Ceres', to: 'Cérès 1849', at: '2026-05-03T00:00:00Z' },
+      // Ancienne clé `title` d'un timbre : relue comme le champ « Sujet » du domaine.
+      { field: 'title', labelKey: 'candidates.fields.stampTitle', from: 'Ceres', to: 'Cérès 1849', at: '2026-05-03T00:00:00Z' },
       { field: 'year', labelKey: 'candidates.fields.stampYear', from: '1850', to: '1849', at: '2026-05-02T00:00:00Z' },
       { field: 'ancien', labelKey: null, from: 'x', to: null, at: '2026-05-01T00:00:00Z' },
+    ]);
+  });
+
+  it('historique d’avant la clé réservée relu sans perte (vin : `title` = désignation)', () => {
+    const legacy = { corrections: [{ field: 'title', from: 'Pauilac', to: 'Pauillac 2019', at: '2026-05-03T00:00:00Z' }] };
+    expect(correctionHistory(legacy, 'wine')).toEqual([
+      { field: 'title', labelKey: TITLE_FIELD_LABEL_KEY, from: 'Pauilac', to: 'Pauillac 2019', at: '2026-05-03T00:00:00Z' },
     ]);
   });
 
@@ -128,6 +136,12 @@ describe('historique des corrections', () => {
     expect(correctionFieldLabelKey('wine', 'vintage')).toBe('candidates.fields.wineVintage');
     expect(correctionFieldLabelKey('wine', 'title')).toBe(TITLE_FIELD_LABEL_KEY);
     expect(correctionFieldLabelKey('wine', 'inconnu')).toBeNull();
+    // Désignation (clé réservée) vs champ d'identité `title` de l'art et du timbre.
+    for (const domain of ['wine', 'art', 'stamp'] as const) {
+      expect(correctionFieldLabelKey(domain, DESIGNATION_FIELD)).toBe(TITLE_FIELD_LABEL_KEY);
+    }
+    expect(correctionFieldLabelKey('art', 'title')).toBe('candidates.fields.artTitle');
+    expect(correctionFieldLabelKey('stamp', 'title')).toBe('candidates.fields.stampTitle');
   });
 });
 
@@ -257,7 +271,7 @@ describe('correctItemIdentity', () => {
 
   it('une correction de désignation seule garde la fourchette indicative', () => {
     const out = correctItemIdentity({
-      item: item({ quickEstimate: { low: 10, high: 30, currency: 'EUR' } }),
+      item: item({ quickEstimate: { low: 10, high: 30, currency: 'EUR' }, classification: ['France', 'Cérès'] }),
       values: {},
       title: 'Cérès noir 1849',
       now: NOW,
@@ -266,6 +280,66 @@ describe('correctItemIdentity', () => {
     expect(out.identityChanged).toBe(false);
     expect(out.title).toBe('Cérès noir 1849');
     expect(out.attributes['quickEstimate']).toEqual({ low: 10, high: 30, currency: 'EUR' });
+    expect(out.attributes['classification']).toEqual(['France', 'Cérès']);
+    expect(out.corrections).toEqual([
+      { field: DESIGNATION_FIELD, from: 'Cérès 1849', to: 'Cérès noir 1849', at: NOW.toISOString() },
+    ]);
+  });
+
+  it('identité corrigée : fourchette ET classement de l’objet mal lu retirés', () => {
+    const out = correctItemIdentity({
+      item: item({
+        country: 'France',
+        catalogNumber: 'YT 3',
+        quickEstimate: { low: 300, high: 900, currency: 'EUR' },
+        classification: ['France', 'Cérès', '1849–1850'],
+      }),
+      values: { catalogNumber: 'YT 14' },
+      title: 'Napoléon III 1853',
+      now: NOW,
+    });
+    expect(out.identityChanged).toBe(true);
+    expect(out.attributes).not.toHaveProperty('quickEstimate');
+    expect(out.attributes).not.toHaveProperty('classification');
+    expect(classificationOf(out.attributes)).toBeNull();
+  });
+
+  it('titre d’une ŒUVRE corrigé (champ principal) : changement d’identité, pas un renommage', () => {
+    const before = item(
+      { artist: 'Léonard de Vinci', title: 'La Joconde', quickEstimate: { low: 1_000_000, high: 2_000_000 } },
+      { domain: 'art', title: 'Léonard de Vinci — La Joconde' },
+    );
+    const out = correctItemIdentity({
+      item: before,
+      values: { title: 'Portrait de femme' },
+      title: 'Léonard de Vinci — La Joconde',
+      now: NOW,
+    });
+    expect(out.identityChanged).toBe(true);
+    expect(out.attributes['title']).toBe('Portrait de femme');
+    expect(out.attributes).not.toHaveProperty('quickEstimate');
+    expect(correctionHistory(out.attributes, 'art')[0]).toMatchObject({
+      field: 'title',
+      labelKey: 'candidates.fields.artTitle',
+    });
+    expect(identityRows({ domain: 'art', attributes: out.attributes }).find((r) => r.key === 'title')?.corrected).toBe(
+      true,
+    );
+  });
+
+  it('désignation seule d’un TIMBRE : le champ « Sujet » n’est pas marqué corrigé', () => {
+    const out = correctItemIdentity({
+      item: item({ country: 'France', title: 'Cérès', quickEstimate: { low: 300, high: 900 } }),
+      values: {},
+      title: 'Cérès 20 c noir',
+      now: NOW,
+    });
+    expect(out.identityChanged).toBe(false);
+    expect(out.attributes['quickEstimate']).toEqual({ low: 300, high: 900 });
+    expect(identityRows({ domain: 'stamp', attributes: out.attributes }).find((r) => r.key === 'title')?.corrected).toBe(
+      false,
+    );
+    expect(correctionHistory(out.attributes, 'stamp')[0]?.labelKey).toBe(TITLE_FIELD_LABEL_KEY);
   });
 
   it('un champ vidé supprime l’attribut, un formulaire partiel n’efface rien', () => {

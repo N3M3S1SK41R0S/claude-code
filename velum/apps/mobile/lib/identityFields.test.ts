@@ -1,11 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ACQUIRED_PRICE_MAX,
+  DESIGNATION_FIELD,
   IDENTITY_FIELDS,
   MAX_CORRECTIONS_KEPT,
   applyIdentityCorrections,
+  identityAttributeKeys,
   identityFieldsFor,
   identityValuesFrom,
+  isDesignationCorrection,
   labelFromValues,
+  parseAcquiredDate,
+  parseAcquiredPrice,
   parseNumericInput,
   validateIdentityValues,
 } from './identityFields';
@@ -65,6 +71,7 @@ describe('applyIdentityCorrections', () => {
     expect('cuvee' in result.attributes).toBe(false);
     expect(result.attributes['analysis']).toEqual({ keep: true });
     expect(result.title).toBe('Domaine Tempier Bandol 2019');
+    // Par défaut (capture), la désignation reste tracée sous `title`.
     expect(result.corrections.map((c) => c.field).sort()).toEqual(
       ['appellation', 'cuvee', 'producer', 'title', 'vintage'],
     );
@@ -107,6 +114,99 @@ describe('applyIdentityCorrections', () => {
     const kept = result.attributes['corrections'] as unknown[];
     expect(kept).toHaveLength(MAX_CORRECTIONS_KEPT);
     expect(kept.at(-1)).toMatchObject({ from: 'A', to: 'B' });
+  });
+});
+
+describe('désignation vs champ d’identité « title » (œuvre, timbre)', () => {
+  it('avec la clé réservée, titre de l’œuvre et désignation ne partagent plus la même clé', () => {
+    const input = {
+      domain: 'art' as const,
+      attributes: { artist: 'Monet', title: 'Nymphéas' },
+      title: 'Monet — Nymphéas',
+      values: { artist: 'Monet', title: 'La Seine à Argenteuil' },
+      newTitle: 'Monet — La Seine à Argenteuil',
+      now: NOW,
+    };
+    // Comportement historique (défaut) : deux entrées indiscernables.
+    expect(applyIdentityCorrections(input).corrections.map((c) => c.field)).toEqual(['title', 'title']);
+    const result = applyIdentityCorrections({ ...input, designationField: DESIGNATION_FIELD });
+    expect(result.corrections.map((c) => c.field)).toEqual(['title', DESIGNATION_FIELD]);
+    expect(result.attributes['title']).toBe('La Seine à Argenteuil');
+    expect(result.title).toBe('Monet — La Seine à Argenteuil');
+  });
+
+  it('isDesignationCorrection : clé réservée ; ancienne clé « title » seulement sans champ homonyme', () => {
+    expect(DESIGNATION_FIELD).not.toBe('title');
+    for (const domain of ['wine', 'coin', 'art', 'stamp', 'watch'] as const) {
+      expect(isDesignationCorrection(domain, DESIGNATION_FIELD)).toBe(true);
+      expect(IDENTITY_FIELDS[domain].some((f) => f.key === DESIGNATION_FIELD)).toBe(false);
+    }
+    // Historique d'avant la clé réservée : relu sans perte.
+    expect(isDesignationCorrection('wine', 'title')).toBe(true);
+    expect(isDesignationCorrection('coin', 'title')).toBe(true);
+    expect(isDesignationCorrection('watch', 'title')).toBe(true);
+    expect(isDesignationCorrection('art', 'title')).toBe(false); // titre de l'œuvre
+    expect(isDesignationCorrection('stamp', 'title')).toBe(false); // sujet du timbre
+    expect(isDesignationCorrection('wine', 'vintage')).toBe(false);
+  });
+});
+
+describe('identityAttributeKeys (liste d’inclusion)', () => {
+  it('champs d’identification + attributs d’identité structurés documentés (@velum/core)', () => {
+    expect(identityAttributeKeys('wine')).toEqual(
+      expect.arrayContaining(['producer', 'vintage', 'appellation', 'grapes', 'farming', 'winemaker']),
+    );
+    expect(identityAttributeKeys('coin')).toEqual(
+      expect.arrayContaining(['country', 'type', 'year', 'weightGrams', 'diameterMm', 'mintage', 'numistaId']),
+    );
+    expect(identityAttributeKeys('art')).toEqual(
+      expect.arrayContaining(['artist', 'title', 'attributionQualifier', 'dimensionsCm', 'signatureDetected']),
+    );
+    expect(identityAttributeKeys('stamp')).toEqual(
+      expect.arrayContaining(['catalogNumber', 'catalog', 'watermark', 'printingMethod']),
+    );
+    expect(identityAttributeKeys('watch')).toEqual(
+      expect.arrayContaining(['brand', 'reference', 'gender', 'bracelet', 'boxPapers', 'limitedEdition']),
+    );
+    for (const domain of ['wine', 'coin', 'art', 'stamp', 'watch'] as const) {
+      for (const field of IDENTITY_FIELDS[domain]) expect(identityAttributeKeys(domain)).toContain(field.key);
+      for (const inventory of ['quantity', 'consumedAt', 'price_paid', 'location', 'corrections', 'analysis']) {
+        expect(identityAttributeKeys(domain)).not.toContain(inventory);
+      }
+    }
+  });
+});
+
+describe('parseAcquiredDate', () => {
+  it('accepte AAAA-MM-JJ et la saisie à la française, renvoie l’ISO', () => {
+    expect(parseAcquiredDate('2020-06-01')).toEqual({ ok: true, value: '2020-06-01' });
+    // 1er juin, jamais le 6 janvier (DateStyle MDY de Postgres).
+    expect(parseAcquiredDate('01/06/2020')).toEqual({ ok: true, value: '2020-06-01' });
+    expect(parseAcquiredDate(' 1/6/2020 ')).toEqual({ ok: true, value: '2020-06-01' });
+    expect(parseAcquiredDate('15.03.2019')).toEqual({ ok: true, value: '2019-03-15' });
+    expect(parseAcquiredDate('15-03-2019')).toEqual({ ok: true, value: '2019-03-15' });
+    expect(parseAcquiredDate('29/02/2024')).toEqual({ ok: true, value: '2024-02-29' });
+  });
+
+  it('vide → null ; illisible ou inexistante → erreur (jamais envoyée au serveur)', () => {
+    expect(parseAcquiredDate('   ')).toEqual({ ok: true, value: null });
+    for (const raw of ['juin 2020', '31/02/2020', '29/02/2023', '2020-13-01', '01/06/20', '2020/06', '0000-01-01']) {
+      expect(parseAcquiredDate(raw)).toEqual({ ok: false });
+    }
+  });
+});
+
+describe('parseAcquiredPrice', () => {
+  it('prix à la française, au centime ; vide → null', () => {
+    expect(parseAcquiredPrice('1 200,50')).toEqual({ ok: true, value: 1200.5 });
+    expect(parseAcquiredPrice('')).toEqual({ ok: true, value: null });
+  });
+
+  it('illisible, négatif ou au-delà de numeric(12, 2) → erreur de champ', () => {
+    expect(parseAcquiredPrice('abc')).toEqual({ ok: false, errorKey: 'identity.errors.notANumber' });
+    expect(parseAcquiredPrice('-5')).toEqual({ ok: false, errorKey: 'identity.errors.outOfRange' });
+    expect(parseAcquiredPrice('10000000000')).toEqual({ ok: false, errorKey: 'identity.errors.outOfRange' });
+    expect(parseAcquiredPrice(String(ACQUIRED_PRICE_MAX))).toEqual({ ok: true, value: ACQUIRED_PRICE_MAX });
   });
 });
 

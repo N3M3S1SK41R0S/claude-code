@@ -112,9 +112,45 @@ function checkedTargetPrice(price: number | null | undefined): number | null {
   return Math.round(price * 100) / 100;
 }
 
+/** Taille maximale des attributs (contrainte `wishlist_entries_attributes_check`). */
+export const WISHLIST_ATTRIBUTES_MAX_BYTES = 16384;
+
+/** Rendu texte d'une valeur comme Postgres l'imprime pour `jsonb::text`. */
+function jsonbText(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(jsonbText).join(', ')}]`;
+  if (isPlainRecord(value)) {
+    const members = Object.entries(value)
+      .filter(([, member]) => member !== undefined)
+      .map(([key, member]) => `${JSON.stringify(key)}: ${jsonbText(member)}`);
+    return `{${members.join(', ')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
+}
+
+/** Longueur UTF-8 d'une chaîne (octets). */
+function utf8Length(text: string): number {
+  let bytes = 0;
+  for (const char of text) {
+    const code = char.codePointAt(0) ?? 0;
+    bytes += code < 0x80 ? 1 : code < 0x800 ? 2 : code < 0x10000 ? 3 : 4;
+  }
+  return bytes;
+}
+
+/**
+ * Octets des attributs tels que mesurés par la contrainte SQL
+ * (`octet_length(attributes::text)`, rendu jsonb avec espaces).
+ */
+export function wishlistAttributesBytes(attributes: Record<string, unknown>): number {
+  return utf8Length(jsonbText(attributes));
+}
+
 function checkedAttributes(attributes: Record<string, unknown> | undefined): Record<string, unknown> {
   if (attributes === undefined) return {};
   if (!isPlainRecord(attributes)) invalid('Attributs d’identification invalides');
+  if (wishlistAttributesBytes(attributes) > WISHLIST_ATTRIBUTES_MAX_BYTES) {
+    invalid(`Attributs d’identification trop volumineux (${WISHLIST_ATTRIBUTES_MAX_BYTES} octets maximum)`);
+  }
   return attributes;
 }
 

@@ -128,7 +128,7 @@ export function sortWishlist(entries: readonly WishlistEntry[], sort: WishlistSo
 
 /** Document de recherche : titre + notes + attributs d'identité (sans données techniques). */
 export function wishlistSearchDocument(entry: WishlistEntry): SearchDocument {
-  return { title: entry.title, fields: [entry.notes, identityAttributes(entry.attributes)] };
+  return { title: entry.title, fields: [entry.notes, identityAttributes(entry.attributes, entry.domain)] };
 }
 
 export interface WishlistFilter {
@@ -280,6 +280,30 @@ export function findDuplicate(
   );
 }
 
+/**
+ * Doublon qui bloque l'enregistrement d'une MODIFICATION : seulement si
+ * l'envie modifiée est en cours. Une envie obtenue peut coexister avec une
+ * envie en cours de même titre (rachat) : modifier ses notes reste possible.
+ */
+export function duplicateForEdit(
+  entries: readonly WishlistEntry[],
+  edited: Pick<WishlistEntry, 'id' | 'acquired'>,
+  input: { domain: VelumDomain; title: string },
+): WishlistEntry | null {
+  return edited.acquired ? null : findDuplicate(entries, input, edited.id);
+}
+
+/**
+ * Doublon qui bloque « Remettre dans mes envies » : l'envie obtenue
+ * deviendrait une seconde envie en cours identique.
+ */
+export function duplicateForReopen(
+  entries: readonly WishlistEntry[],
+  entry: Pick<WishlistEntry, 'id' | 'domain' | 'title'>,
+): WishlistEntry | null {
+  return findDuplicate(entries, entry, entry.id);
+}
+
 // ── Conversions vers / depuis la collection ──────────────────────────────────
 
 /** Brouillon d'envie prêt pour `AddToWishlistButton` (props compatibles). */
@@ -310,14 +334,16 @@ function titleOrLabel(
 
 /**
  * Envie issue d'un objet de MA collection (« en racheter ») ou d'une note de
- * dégustation (`source: 'tasting'`). Seuls les attributs d'IDENTITÉ sont
- * copiés : ni la fiche complète, ni les avertissements, ni l'historique.
+ * dégustation (`source: 'tasting'`). Seuls les attributs d'IDENTITÉ du
+ * domaine sont copiés (liste d'inclusion) : ni la fiche complète, ni les
+ * avertissements, ni l'historique, ni ce qui décrit l'exemplaire possédé
+ * (quantité, « bouteille bue », prix payé, emplacement…).
  */
 export function entryFromItem(
   item: VelumItem,
   options: { source?: 'item' | 'tasting'; notes?: string | null } = {},
 ): WishlistDraft {
-  const attributes = identityAttributes(item.attributes);
+  const attributes = identityAttributes(item.attributes, item.domain);
   return {
     domain: item.domain,
     title: titleOrLabel(item.title, item.domain, attributes),
@@ -333,7 +359,7 @@ export function entryFromCandidate(
   candidate: Candidate,
   options: { notes?: string | null } = {},
 ): WishlistDraft {
-  const attributes = identityAttributes(candidate.attributes);
+  const attributes = identityAttributes(candidate.attributes, candidate.domain);
   return {
     domain: candidate.domain,
     title: titleOrLabel(candidate.label, candidate.domain, attributes),
@@ -363,19 +389,49 @@ export function draftToNewEntry(
 }
 
 /**
+ * Jour CIVIL (AAAA-MM-JJ) d'un horodatage dans le fuseau de l'appareil — le
+ * jour qu'affiche `formatDate` —, ou dans `timeZone` s'il est fourni (tests).
+ * Jamais le jour UTC tronqué (décalé d'un jour le soir et la nuit en France).
+ * Null si l'horodatage est illisible.
+ */
+export function localIsoDate(iso: string, timeZone?: string): string | null {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  const parts = new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    ...(timeZone !== undefined ? { timeZone } : {}),
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes): string | undefined =>
+    parts.find((p) => p.type === type)?.value;
+  const year = part('year');
+  const month = part('month');
+  const day = part('day');
+  if (year === undefined || month === undefined || day === undefined) return null;
+  return `${year.padStart(4, '0')}-${month}-${day}`;
+}
+
+/**
  * Envie obtenue → nouvel objet de la collection. La fiche complète n'est PAS
  * générée ici (lente) : `analysisStatus: 'pending'` la fait proposer à la
  * demande sur la fiche objet. Confiance inconnue (null) plutôt qu'inventée ;
- * prix d'acquisition inconnu (le prix cible n'est pas le prix payé).
+ * prix d'acquisition inconnu (le prix cible n'est pas le prix payé). Seule
+ * l'identité est reprise (une envie enregistrée avant le filtrage d'inclusion
+ * est nettoyée ici) ; date d'acquisition = jour LOCAL de l'obtention.
  */
-export function newItemFromEntry(entry: WishlistEntry, ownerId: string): NewItem {
+export function newItemFromEntry(
+  entry: WishlistEntry,
+  ownerId: string,
+  options: { timeZone?: string } = {},
+): NewItem {
   return {
     ownerId,
     domain: entry.domain,
     title: entry.title,
-    attributes: { ...identityAttributes(entry.attributes), analysisStatus: 'pending' },
+    attributes: { ...identityAttributes(entry.attributes, entry.domain), analysisStatus: 'pending' },
     confidence: null,
-    acquiredAt: entry.acquiredAt !== null ? entry.acquiredAt.slice(0, 10) : null,
+    acquiredAt: entry.acquiredAt !== null ? localIsoDate(entry.acquiredAt, options.timeZone) : null,
     acquiredPrice: null,
     notes: entry.notes,
   };
@@ -573,7 +629,7 @@ export function buildWishlistInput(
   }
 
   const attributes: Record<string, unknown> =
-    base !== undefined && base.domain === domain ? identityAttributes(base.attributes) : {};
+    base !== undefined && base.domain === domain ? identityAttributes(base.attributes, domain) : {};
   for (const field of identityFieldsFor(domain, true)) {
     const raw = (values.identity[field.key] ?? '').trim();
     if (raw.length === 0) {
