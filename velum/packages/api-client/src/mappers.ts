@@ -618,7 +618,7 @@ export interface ExchangeRow {
   recipient_tracking: string | null;
   proposer_received: boolean | null;
   recipient_received: boolean | null;
-  /** Échéance d'une proposition sans réponse (non exposée par le contrat core). */
+  /** Échéance d'une proposition sans réponse (ExchangeProposal.expiresAt). */
   expires_at?: string | null;
   created_at: string;
   updated_at: string;
@@ -646,6 +646,7 @@ export function rowToExchangeProposal(row: ExchangeRow): ExchangeProposal {
     recipientTracking: row.recipient_tracking ?? null,
     proposerReceived: row.proposer_received === true,
     recipientReceived: row.recipient_received === true,
+    expiresAt: typeof row.expires_at === 'string' && row.expires_at !== '' ? row.expires_at : null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
