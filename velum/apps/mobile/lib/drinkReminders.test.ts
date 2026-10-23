@@ -136,6 +136,13 @@ describe('contenu de la notification', () => {
     expect(buildReminderContent(null, local(23, 19), tFr)).toBeNull();
   });
 
+  it('vin sans libellé : nom traduit dans la notification (FR / EN)', () => {
+    const unlabeled = { ...bandol, label: '', storageLocation: undefined, suggestedDishes: [] };
+    expect(buildReminderContent(unlabeled, local(23, 19), tFr)?.body).toBe('Ce soir : Vin sans étiquette');
+    expect(buildReminderContent(unlabeled, local(23, 19), tEn)?.body).toBe('Tonight: Unlabelled wine');
+    expect(buildWeeklyContent([unlabeled], tEn).body).toContain('Unlabelled wine');
+  });
+
   it('rappel hebdomadaire : décompte et vin en tête, ou message neutre', () => {
     const weekly = buildWeeklyContent([soon, bandol], tFr);
     expect(weekly.body).toBe('1 vin(s) à boire — en tête : Bandol Tempier 2015 (Rangée 2 · Col. 4)');

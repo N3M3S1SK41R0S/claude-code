@@ -31,6 +31,7 @@ import { Screen } from '../components/Screen';
 import { SearchField } from '../components/search/SearchField';
 import {
   availableColorGroups,
+  displayWineLabel,
   filterPeakEntries,
   peakStatusTone,
   peakSummary,
@@ -206,7 +207,11 @@ export default function CellarPeak() {
             onPairTonight={(dish) => router.push(routes.cellarSommelier(dish) as Href)}
             onOpenItem={() => router.push(routes.item(entry.itemId) as Href)}
             onEditPosition={() =>
-              setEditing({ itemId: entry.itemId, label: entry.label, location: entry.storageLocation })
+              setEditing({
+                itemId: entry.itemId,
+                label: displayWineLabel(entry.label, t),
+                location: entry.storageLocation,
+              })
             }
           />
         ))

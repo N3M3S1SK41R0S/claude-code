@@ -76,7 +76,10 @@ function grapesOf(item: VelumItem): string[] | undefined {
   return undefined;
 }
 
-/** Libellé affiché : titre, sinon producteur / cuvée / millésime. */
+/**
+ * Libellé : titre, sinon producteur / cuvée / millésime, sinon chaîne VIDE —
+ * le repli « Vin sans étiquette » est traduit à l'affichage (displayWineLabel).
+ */
 function wineLabel(item: VelumItem): string {
   const title = nonEmpty(item.title);
   if (title) return title;
@@ -84,7 +87,7 @@ function wineLabel(item: VelumItem): string {
   const composed = [itemString(item, 'producer'), itemString(item, 'cuvee'), vintage === null ? null : String(vintage)]
     .filter((part): part is string => part !== null)
     .join(' ');
-  return composed.length > 0 ? composed : 'Vin sans étiquette';
+  return composed;
 }
 
 /**

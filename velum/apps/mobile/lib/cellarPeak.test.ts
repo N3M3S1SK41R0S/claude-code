@@ -7,6 +7,7 @@ import {
   availableColorGroups,
   colorGroupOf,
   describePosition,
+  displayWineLabel,
   filterPeakEntries,
   formatPosition,
   localSuggestionReason,
@@ -121,6 +122,14 @@ describe('statuts, couleurs et filtres', () => {
     expect(vintageToShow({ label: 'Bandol 2015', vintage: 2015 })).toBeNull();
     expect(vintageToShow({ label: 'Domaine Tempier', vintage: 2015 })).toBe(2015);
     expect(vintageToShow({ label: 'X' })).toBeNull();
+  });
+});
+
+describe('libellé affiché d’un vin', () => {
+  it('libellé vide → « Vin sans étiquette » / « Unlabelled wine »', () => {
+    expect(displayWineLabel('Bandol 2015', tFr)).toBe('Bandol 2015');
+    expect(displayWineLabel('', tFr)).toBe('Vin sans étiquette');
+    expect(displayWineLabel('  ', tEn)).toBe('Unlabelled wine');
   });
 });
 

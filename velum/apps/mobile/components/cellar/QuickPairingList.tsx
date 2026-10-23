@@ -8,7 +8,12 @@ import { useTranslation } from 'react-i18next';
 import type { LocalPairingSuggestion } from '@velum/core';
 import { ConfidenceBadge, VCard, VText, formatConfidence, velumSpacing } from '@velum/ui';
 
-import { localSuggestionReason, positionLabel, quickSuggestionA11yLabel } from '../../lib/cellarPeak';
+import {
+  displayWineLabel,
+  localSuggestionReason,
+  positionLabel,
+  quickSuggestionA11yLabel,
+} from '../../lib/cellarPeak';
 
 export interface QuickPairingListProps {
   suggestions: readonly LocalPairingSuggestion[];
@@ -23,7 +28,7 @@ export function QuickPairingList({ suggestions, onOpenItem, compact = false }: Q
     <View style={styles.list}>
       {suggestions.map((suggestion) => {
         const position = positionLabel(suggestion.storageLocation, t);
-        const label = suggestion.label.length > 0 ? suggestion.label : t('common.unknown');
+        const label = displayWineLabel(suggestion.label, t);
         return (
           <VCard
             key={suggestion.itemId}

@@ -924,6 +924,7 @@
     "emptyCellar": "Your cellar is empty: scan your first bottles to activate the sommelier.",
     "sommelierIntro": "Enter a dish: a quick suggestion from your cellar appears right away, then refine it with the AI sommelier if needed.",
     "quantity": "{{count}} bottle(s)",
+    "unlabeledWine": "Unlabelled wine",
     "quick": {
       "title": "Quick suggestion",
       "hint": "Instant match from your cellar — no AI, works offline.",

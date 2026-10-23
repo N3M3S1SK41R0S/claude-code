@@ -111,6 +111,12 @@ describe('toCellarWineEntries — inventaire de cave local', () => {
     ]);
   });
 
+  it('sans titre ni producteur, cuvée ou millésime : libellé vide, traduit à l’affichage (jamais de français en dur)', () => {
+    const analysis = { ...payload(2020, 2030), identification: {} };
+    const [entry] = toCellarWineEntries([item({ title: null, attributes: { analysis } })]);
+    expect(entry?.label).toBe('');
+  });
+
   it('ignore une fenêtre inversée (jamais d’apogée à tort)', () => {
     const [entry] = toCellarWineEntries([item({ attributes: { analysis: payload(2030, 2020) } })]);
     expect(entry?.drinkWindow).toBeUndefined();

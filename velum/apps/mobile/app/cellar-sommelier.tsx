@@ -28,7 +28,7 @@ import { isVelumError, type PairingResult } from '@velum/core';
 
 import { QuickPairingList } from '../components/cellar/QuickPairingList';
 import { Screen } from '../components/Screen';
-import { positionLabel, wishlistIdeaTitle } from '../lib/cellarPeak';
+import { displayWineLabel, positionLabel, wishlistIdeaTitle } from '../lib/cellarPeak';
 import { getVelumClient } from '../lib/client';
 import { localPairingForItems } from '../lib/drinkNow';
 import { errorMessage } from '../lib/errors';
@@ -251,7 +251,7 @@ export default function CellarSommelier() {
                 <VCard key={reco.itemId} style={styles.card} onPress={() => openItem(reco.itemId)}>
                   <View style={styles.recoHeader}>
                     <VText variant="heading" tone="gold" style={styles.flex}>
-                      {reco.label}
+                      {displayWineLabel(reco.label, t)}
                     </VText>
                     <ConfidenceBadge value={reco.score} />
                   </View>

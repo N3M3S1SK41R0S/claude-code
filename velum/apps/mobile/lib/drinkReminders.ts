@@ -8,7 +8,7 @@
 import type { CellarPeakEntry } from '@velum/core';
 import { mostUrgentPeakWine } from '@velum/domain-wine';
 
-import { positionLabel, type Translate } from './cellarPeak';
+import { displayWineLabel, positionLabel, type Translate } from './cellarPeak';
 
 /** Route ouverte quand on touche la notification. */
 export const DRINK_REMINDER_ROUTE = '/cellar-peak';
@@ -131,7 +131,7 @@ export function buildReminderContent(
   const lead = when.getHours() >= 16 ? t('reminders.leadEvening') : t('reminders.leadDay');
   const position = positionLabel(wine.storageLocation, t, { short: true });
   const dish = wine.suggestedDishes[0];
-  let body = t('reminders.bodyLabel', { lead, label: wine.label });
+  let body = t('reminders.bodyLabel', { lead, label: displayWineLabel(wine.label, t) });
   if (position) body += t('reminders.bodyPosition', { position });
   if (dish) body += t('reminders.bodyDish', { dish });
   return {
@@ -156,7 +156,7 @@ export function buildWeeklyContent(entries: readonly CellarPeakEntry[], t: Trans
     };
   }
   const position = positionLabel(top.storageLocation, t, { short: true });
-  let body = t('reminders.weeklyBody', { count: drinkable.length, label: top.label });
+  let body = t('reminders.weeklyBody', { count: drinkable.length, label: displayWineLabel(top.label, t) });
   if (position) body += t('reminders.bodyPosition', { position });
   return {
     title: t('reminders.weeklyTitle'),

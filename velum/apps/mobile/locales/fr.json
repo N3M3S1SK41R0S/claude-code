@@ -924,6 +924,7 @@
     "emptyCellar": "Votre cave est vide : scannez vos premières bouteilles pour activer le sommelier.",
     "sommelierIntro": "Entrez un plat : une suggestion rapide tirée de votre cave s’affiche aussitôt, puis affinez si besoin avec le sommelier IA.",
     "quantity": "{{count}} bouteille(s)",
+    "unlabeledWine": "Vin sans étiquette",
     "quick": {
       "title": "Suggestion rapide",
       "hint": "Calcul instantané sur votre cave — sans IA, même hors connexion.",

@@ -53,6 +53,11 @@ export function formatPosition(
   return parts.join(' · ');
 }
 
+/** Libellé d'un vin à l'écran ou dans un rappel : repli traduit s'il est vide. */
+export function displayWineLabel(label: string, t: Translate): string {
+  return label.trim().length > 0 ? label : t('cellar.unlabeledWine');
+}
+
 /** Raccourci : emplacement brut → libellé localisé (ou null). */
 export function positionLabel(
   location: string | null | undefined,

@@ -23,7 +23,7 @@ import { isVelumError, type PairingResult } from '@velum/core';
 
 import { QuickPairingList } from '../components/cellar/QuickPairingList';
 import { Screen } from '../components/Screen';
-import { positionLabel } from '../lib/cellarPeak';
+import { displayWineLabel, positionLabel } from '../lib/cellarPeak';
 import { getVelumClient } from '../lib/client';
 import { localPairingForItems } from '../lib/drinkNow';
 import { routes } from '../lib/routes';
@@ -205,7 +205,7 @@ export default function EventSommelier() {
             <View key={reco.itemId} style={styles.reco}>
               <View style={styles.recoHeader}>
                 <VText variant="body" tone="gold">
-                  {reco.label}
+                  {displayWineLabel(reco.label, t)}
                 </VText>
                 <ConfidenceBadge value={reco.score} />
               </View>

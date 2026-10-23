@@ -15,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import type { CellarPeakReport } from '@velum/core';
 import { VButton, VCard, VSpinner, VText, VTextInput, velumColors, velumSpacing } from '@velum/ui';
 
+import { displayWineLabel } from '../../lib/cellarPeak';
 import { getVelumClient } from '../../lib/client';
 import { cellarPeakForItems } from '../../lib/drinkNow';
 import {
@@ -152,7 +153,7 @@ export function DrinkReminderSettings({ report: hostReport }: DrinkReminderSetti
         setPrefs({
           oneShotId: id,
           oneShotAt: when.toISOString(),
-          oneShotLabel: wine.label,
+          oneShotLabel: displayWineLabel(wine.label, t),
           ...(customTime ? { customHour: customTime.hour, customMinute: customTime.minute } : {}),
         });
       });
