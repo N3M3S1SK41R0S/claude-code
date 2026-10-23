@@ -23,6 +23,7 @@ const BY_PREFIX: {
   { prefix: '/cellar-sommelier', title: { fr: 'Sommelier de cave', en: 'Cellar sommelier' } },
   { prefix: '/cellar-peak', title: { fr: 'Vins à leur apogée', en: 'Wines at their peak' } },
   { prefix: '/wishlist', title: { fr: 'Mes envies', en: 'My wishlist' } },
+  { prefix: '/search', title: { fr: 'Rechercher partout', en: 'Search everywhere' } },
   { prefix: '/blind-tasting', title: { fr: 'Dégustation à l’aveugle', en: 'Blind tasting' } },
   { prefix: '/event-sommelier', title: { fr: 'Sommelier d’événement', en: 'Event sommelier' } },
   { prefix: '/community', title: { fr: 'Échanges & ventes', en: 'Trade & sell' } },
