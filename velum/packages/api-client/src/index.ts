@@ -27,8 +27,15 @@ export {
 export {
   createMarketplaceRepo,
   fetchCommissionSummary,
+  MARKET_CARRIERS,
+  MARKET_CURRENCY,
+  MARKET_MAX_AMOUNT,
   MARKET_MESSAGE_MAX_LENGTH,
+  MARKET_MIN_ASK_PRICE,
+  normalizeCarrier,
+  normalizeTrackingNumber,
   toMarketplaceError,
+  type MarketCarrier,
   type MarketplaceRepo,
 } from './marketplace';
 export {

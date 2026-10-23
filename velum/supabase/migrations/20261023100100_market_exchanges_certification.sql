@@ -3,16 +3,22 @@
 -- ----------------------------------------------------------------------------
 -- Règles métier (source : packages/config/src/marketplace.ts) :
 --  - CERTIFICATION obligatoire quand la valeur de référence
---    max(prix demandé ou valeur déclarée, dernière estimation VELUM) DÉPASSE
---    listing_appraisal_threshold_eur() (500 €) : on ne contourne pas le seuil
+--    max(prix demandé ou valeur déclarée, plus haute estimation VELUM récente)
+--    DÉPASSE listing_appraisal_threshold_eur() (500 €) : on ne contourne pas le seuil
 --    en sous-déclarant. L'annonce naît (ou repasse) en 'pending_certification'
 --    et une demande 'threshold' (frais : vendeur) est ouverte d'office ; elle
 --    n'est JAMAIS 'active' sans certification obtenue. Sous le seuil :
 --    certification sur accord des deux parties d'une commande ou d'un échange
 --    (frais partagés), ou démarche volontaire du propriétaire.
 --  - Tant qu'une certification est ouverte sur une commande ou un échange,
---    l'expédition est bloquée. Refus de l'expert ⇒ transaction annulée,
---    annonce non publiée.
+--    l'expédition est bloquée. Refus de l'expert (quel que soit le contexte)
+--    ⇒ transaction annulée, toute annonce ouverte de l'objet dépubliée, refus
+--    mémorisé (republication = nouvelle certification). Une certification ne
+--    suit l'objet que s'il est resté celui qui a été certifié (titre, catégorie).
+--  - UNE SEULE annonce ouverte par objet ; un objet cédé (vente ou échange
+--    conclu) ne se réannonce ni ne s'échange plus ; euro uniquement ; prix
+--    plancher 1 € ; la capture d'un paiement revérifie l'annonce (statut,
+--    prix, devise, nature) ; le suivi d'expédition n'est jamais un texte libre.
 --  - ÉCHANGE : chaque partie paie SON taux dégressif sur la valeur déclarée de
 --    l'objet qu'elle CÈDE, commissions FIGÉES à l'acceptation ; la soulte n'est
 --    pas commissionnée.
@@ -57,7 +63,8 @@ create table public.exchange_proposals (
   offered_value numeric(14, 2) not null check (offered_value > 0),
   -- Soulte versée par l'auteur au destinataire (> 0) ou demandée (< 0).
   cash_adjustment numeric(14, 2) not null default 0,
-  currency text not null default 'EUR',
+  -- Euro uniquement (seuil, commissions et registre sont exprimés en EUR).
+  currency text not null default 'EUR' constraint exchange_proposals_currency_eur check (currency = 'EUR'),
   message text check (char_length(message) <= 2000),
   message_redacted boolean not null default false,
   state text not null default 'proposed' check (state in (
@@ -195,8 +202,12 @@ grant select (
 grant insert (id, listing_id, buyer_id) on public.orders to authenticated;
 grant update (escrow_state, carrier, tracking_number, delivered_at) on public.orders to authenticated;
 
+-- Litiges : lecture des colonnes non identifiantes ; AUCUNE écriture directe
+-- (un INSERT client forgeait un litige « déjà arbitré » ou un litige fantôme
+-- bloquant l'auto-libération) — ouverture via open_order_dispute (5/5),
+-- arbitrage via resolve_dispute (service_role).
 revoke all on public.disputes from anon;
-revoke select on public.disputes from authenticated;
+revoke select, insert, update, delete, truncate on public.disputes from authenticated;
 grant select (id, order_id, reason, status, resolution_note, created_at, resolved_at)
   on public.disputes to authenticated;
 
@@ -222,11 +233,52 @@ drop policy "disputes_select_party" on public.disputes;
 drop policy "disputes_insert_party" on public.disputes;
 create policy "disputes_select_party" on public.disputes
   for select using (public.is_order_party(order_id));
-create policy "disputes_insert_party" on public.disputes
-  for insert with check (opened_by = auth.uid() and public.is_order_party(order_id));
+
+-- Défense en profondeur : tout litige naît « ouvert », sans décision, sur une
+-- commande effectivement passée en litige, par l'une de ses parties (seul
+-- l'arbitrage — drapeau système — écrit statut, note et date de résolution).
+create or replace function public.set_dispute_defaults()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if public.is_escrow_system_action() then
+    return new;
+  end if;
+  if not exists (
+    select 1 from public.orders o
+    where o.id = new.order_id
+      and o.escrow_state = 'disputed'
+      and new.opened_by in (o.buyer_id, o.seller_id)
+  ) then
+    raise exception 'Litige possible uniquement par une partie d''une commande en litige'
+      using errcode = 'P0001';
+  end if;
+  new.status := 'open';
+  new.resolution_note := null;
+  new.resolved_at := null;
+  new.created_at := now();
+  return new;
+end;
+$$;
+
+create trigger disputes_set_defaults
+  before insert on public.disputes
+  for each row execute function public.set_dispute_defaults();
 
 -- ── 4. Fonctions de lecture privilégiée (internes) ───────────────────────────
--- Valeur de référence d'un objet : max(valeur déclarée, dernière estimation).
+-- Fenêtre des estimations VELUM retenues pour le seuil de certification.
+create or replace function public.market_valuation_window()
+returns interval language sql immutable as $$ select interval '18 months' $$;
+
+-- Valeur de référence d'un objet : max(valeur déclarée, PLUS HAUTE estimation
+-- VELUM récente). Les estimations sont écrites par le serveur seul (valuate,
+-- price-cron — migration 20261023131000), mais valuate estime un candidat
+-- fourni par le client : une estimation basse postérieure (candidat
+-- trompeur) ne masque donc pas une estimation haute récente. Une date
+-- future (invalide) ou trop ancienne est ignorée.
 create or replace function public._market_reference_value(p_item uuid, p_value numeric)
 returns numeric
 language sql
@@ -237,16 +289,20 @@ as $$
   select greatest(
     coalesce(p_value, 0),
     coalesce((
-      select v.central from public.valuations v
+      select max(v.central) from public.valuations v
       where v.item_id = p_item
-      order by v.valued_at desc
-      limit 1
+        and v.valued_at <= now()
+        and v.valued_at > now() - public.market_valuation_window()
     ), 0)
   )
 $$;
 
 -- Rapport d'expert d'un objet déjà certifié pour ce propriétaire (réutilisé
 -- par une nouvelle annonce du même objet : la certification suit l'objet).
+-- Uniquement si (1) la DERNIÈRE décision d'expert sur l'objet est une
+-- certification (un refus postérieur l'annule) et (2) l'objet est resté
+-- celui qui a été certifié : même titre public, même catégorie — renommer un
+-- objet certifié ne lui transmet jamais le badge « authentifié VELUM ».
 create or replace function public._market_item_certification_ref(p_item uuid, p_owner uuid)
 returns text
 language sql
@@ -254,18 +310,145 @@ stable
 security definer
 set search_path = public
 as $$
-  select c.report_ref
-  from public.certification_requests c
-  where p_item is not null
-    and c.item_id = p_item
-    and c.owner_id = p_owner
-    and c.status = 'certified'
-  order by c.decided_at desc nulls last
-  limit 1
+  select d.report_ref
+  from (
+    select c.status, c.report_ref, c.item_title, c.domain
+    from public.certification_requests c
+    where p_item is not null
+      and c.item_id = p_item
+      and c.owner_id = p_owner
+      and c.status in ('certified', 'rejected')
+    order by c.decided_at desc nulls last, c.created_at desc
+    limit 1
+  ) d
+  join public.items i on i.id = p_item
+  where d.status = 'certified'
+    and d.item_title is not distinct from public.redact_contact_info(i.title)
+    and d.domain is not distinct from i.domain
+$$;
+
+-- Dernière décision d'expert sur l'objet = REFUS : l'objet ne se republie
+-- (ni ne s'échange) plus sans nouvelle certification, quel que soit le prix.
+-- Indépendant du titre : renommer un objet refusé ne lève pas le refus.
+create or replace function public._market_item_rejected(p_item uuid, p_owner uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce((
+    select c.status = 'rejected'
+    from public.certification_requests c
+    where p_item is not null
+      and c.item_id = p_item
+      and c.owner_id = p_owner
+      and c.status in ('certified', 'rejected')
+    order by c.decided_at desc nulls last, c.created_at desc
+    limit 1
+  ), false)
+$$;
+
+-- Objet déjà CÉDÉ par ce membre (vente conclue, ou échange conclu où il
+-- l'a offert / où son annonce est partie) : il ne se remet plus en vente ni
+-- ne s'offre à l'échange — il reste dans la collection du cédant (transfert
+-- hors périmètre, spec §9), mais n'est plus à lui. Ne renseigne que le
+-- membre lui-même (ou le code serveur).
+create or replace function public._market_item_ceded(p_item uuid, p_owner uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p_item is not null
+    and (auth.uid() is null or auth.uid() = p_owner)
+    and (
+    exists (
+      select 1 from public.listings l
+      where l.item_id = p_item and l.seller_id = p_owner and l.status in ('sold', 'exchanged'))
+    or exists (
+      select 1 from public.exchange_proposals e
+      where e.offered_item_id = p_item and e.proposer_id = p_owner and e.state = 'completed'))
 $$;
 
 revoke all on function public._market_reference_value(uuid, numeric) from public, anon, authenticated;
 revoke all on function public._market_item_certification_ref(uuid, uuid) from public, anon, authenticated;
+revoke all on function public._market_item_rejected(uuid, uuid) from public, anon, authenticated;
+-- Appelée aussi par le trigger des annonces (identité du vendeur).
+revoke all on function public._market_item_ceded(uuid, uuid) from public, anon;
+grant execute on function public._market_item_ceded(uuid, uuid) to authenticated, service_role;
+
+-- ── Suivi d'expédition : jamais un canal de coordonnées ─────────────────────
+-- Transporteurs reconnus (le transporteur est facultatif : null = non
+-- précisé). Liste reprise par MARKET_CARRIERS (@velum/api-client).
+create or replace function public.market_carriers()
+returns text[]
+language sql
+immutable
+as $$
+  select array[
+    'Colissimo', 'Chronopost', 'La Poste', 'Lettre suivie', 'Mondial Relay',
+    'Relais Colis', 'Colis Privé', 'DPD', 'GLS', 'UPS', 'DHL', 'FedEx', 'TNT'
+  ]
+$$;
+
+-- Transporteur : nom canonique d'un transporteur reconnu (casse et accents
+-- indifférents), null si vide ; tout autre texte est refusé (un texte libre
+-- lisible par l'autre partie ferait fuiter nom, e-mail, téléphone…).
+create or replace function public.market_normalize_carrier(p_carrier text)
+returns text
+language plpgsql
+stable
+set search_path = public
+as $$
+declare
+  v_input text := nullif(btrim(coalesce(p_carrier, '')), '');
+  v_name text;
+begin
+  if v_input is null then
+    return null;
+  end if;
+  select c into v_name
+  from unnest(public.market_carriers()) as c
+  where public.market_fold(c) = public.market_fold(v_input);
+  if v_name is null then
+    raise exception 'Transporteur non reconnu : choisissez parmi %',
+      array_to_string(public.market_carriers(), ', ')
+      using errcode = 'P0001';
+  end if;
+  return v_name;
+end;
+$$;
+
+-- Numéro de suivi : lettres et chiffres (tirets admis), 4 à 40 caractères,
+-- majuscules ; les blancs saisis (copier-coller « 6A 123 456… ») sont
+-- retirés. Ni @, ni point, ni ponctuation : plus d'e-mail, d'URL ni de phrase.
+-- (Pas de masquage : redact_contact_info détruirait un numéro légitime.)
+create or replace function public.market_normalize_tracking(p_tracking text)
+returns text
+language plpgsql
+immutable
+as $$
+declare
+  v text := upper(regexp_replace(coalesce(p_tracking, ''), '\s+', '', 'g'));
+begin
+  if v = '' then
+    raise exception 'Numéro de suivi requis' using errcode = 'P0001';
+  end if;
+  if v !~ '^[A-Z0-9][A-Z0-9-]{3,39}$' then
+    raise exception 'Numéro de suivi invalide : lettres, chiffres et tirets uniquement (4 à 40 caractères)'
+      using errcode = 'P0001';
+  end if;
+  return v;
+end;
+$$;
+
+revoke all on function public.market_normalize_carrier(text) from public, anon;
+revoke all on function public.market_normalize_tracking(text) from public, anon;
+grant execute on function public.market_carriers() to authenticated, service_role;
+grant execute on function public.market_normalize_carrier(text) to authenticated, service_role;
+grant execute on function public.market_normalize_tracking(text) to authenticated, service_role;
 
 -- Point d'entrée du trigger des annonces (exécuté avec l'identité du vendeur) :
 -- certification exigée ? rapport déjà obtenu ? Réservé au vendeur lui-même
@@ -286,7 +469,9 @@ begin
   if auth.uid() is not null and auth.uid() is distinct from p_seller then
     raise exception 'Évaluation de certification réservée au vendeur' using errcode = '42501';
   end if;
-  required := public._market_reference_value(p_item, p_ask) > public.listing_appraisal_threshold_eur();
+  -- Au-delà du seuil, ou objet refusé par un expert (refus mémorisé).
+  required := public._market_reference_value(p_item, p_ask) > public.listing_appraisal_threshold_eur()
+    or public._market_item_rejected(p_item, p_seller);
   report_ref := public._market_item_certification_ref(p_item, p_seller);
 end;
 $$;
@@ -295,9 +480,11 @@ grant execute on function public.listing_certification_snapshot(uuid, uuid, nume
   to authenticated, service_role;
 
 -- Annonce RÉSERVÉE : paiement capturé (commande funds_held → litige) ou
--- échange accepté en cours — sur l'annonce elle-même ou sur l'objet de
--- l'annonce proposé ailleurs. Les commandes non payées ne réservent pas
--- (pas de blocage par un acheteur qui ne paie jamais).
+-- échange accepté en cours — sur l'annonce elle-même, sur une AUTRE annonce
+-- du même objet (défense en profondeur : une seule annonce ouverte par objet,
+-- index listings_one_open_per_item_idx), ou sur l'objet de l'annonce proposé
+-- ailleurs. Les commandes non payées ne réservent pas (pas de blocage par un
+-- acheteur qui ne paie jamais).
 create or replace function public.listing_is_engaged(
   p_listing uuid,
   p_except_order uuid default null,
@@ -324,6 +511,22 @@ as $$
       from public.listings l
       join public.exchange_proposals e
         on e.offered_item_id = l.item_id and e.proposer_id = l.seller_id
+      where l.id = p_listing
+        and e.state in ('accepted', 'awaiting_certification', 'shipping', 'disputed')
+        and e.id is distinct from p_except_exchange)
+    or exists (
+      select 1
+      from public.listings l
+      join public.listings l2 on l2.item_id = l.item_id and l2.id <> l.id
+      join public.orders o on o.listing_id = l2.id
+      where l.id = p_listing
+        and o.escrow_state in ('funds_held', 'shipped', 'disputed')
+        and o.id is distinct from p_except_order)
+    or exists (
+      select 1
+      from public.listings l
+      join public.listings l2 on l2.item_id = l.item_id and l2.id <> l.id
+      join public.exchange_proposals e on e.listing_id = l2.id
       where l.id = p_listing
         and e.state in ('accepted', 'awaiting_certification', 'shipping', 'disputed')
         and e.id is distinct from p_except_exchange)
@@ -401,7 +604,9 @@ $$;
 revoke all on function public.market_lock_for_reservation(uuid, uuid) from public, anon;
 grant execute on function public.market_lock_for_reservation(uuid, uuid) to authenticated, service_role;
 
--- Annonce ou objet ayant un historique de transactions (suppression interdite).
+-- Annonce ayant un historique (suppression interdite) : transactions, ou
+-- expertise engagée ou décidée (une suppression effacerait en cascade la
+-- certification payée, qui ne « suivrait » plus l'objet).
 create or replace function public.listing_has_history(p_listing uuid)
 returns boolean
 language sql
@@ -411,13 +616,16 @@ set search_path = public
 as $$
   select exists (select 1 from public.orders o where o.listing_id = p_listing)
       or exists (select 1 from public.exchange_proposals e where e.listing_id = p_listing)
+      or exists (
+        select 1 from public.certification_requests c
+        where c.listing_id = p_listing and c.status in ('in_review', 'certified', 'rejected'))
 $$;
 revoke all on function public.listing_has_history(uuid) from public, anon;
 grant execute on function public.listing_has_history(uuid) to authenticated, service_role;
 
--- Objets d'un échange dont la valeur de référence dépasse le seuil et qui ne
--- sont pas encore certifiés : 'listing' (objet du destinataire) et/ou
--- 'offered' (objet du proposeur).
+-- Objets d'un échange dont la valeur de référence dépasse le seuil (ou déjà
+-- refusés par un expert) et qui ne sont pas certifiés : 'listing' (objet du
+-- destinataire) et/ou 'offered' (objet du proposeur).
 create or replace function public._exchange_threshold_targets(p_exchange uuid)
 returns table (
   side text,
@@ -438,14 +646,16 @@ as $$
   where e.id = p_exchange
     and l.expert_appraisal_ref is null
     and public._market_item_certification_ref(l.item_id, e.recipient_id) is null
-    and public._market_reference_value(l.item_id, e.listing_value) > public.listing_appraisal_threshold_eur()
+    and (public._market_reference_value(l.item_id, e.listing_value) > public.listing_appraisal_threshold_eur()
+      or public._market_item_rejected(l.item_id, e.recipient_id))
   union all
   select 'offered', e.offered_item_id, e.offered_title, e.offered_domain, e.proposer_id, e.recipient_id
   from public.exchange_proposals e
   where e.id = p_exchange
     and e.offered_item_id is not null
     and public._market_item_certification_ref(e.offered_item_id, e.proposer_id) is null
-    and public._market_reference_value(e.offered_item_id, e.offered_value) > public.listing_appraisal_threshold_eur()
+    and (public._market_reference_value(e.offered_item_id, e.offered_value) > public.listing_appraisal_threshold_eur()
+      or public._market_item_rejected(e.offered_item_id, e.proposer_id))
 $$;
 revoke all on function public._exchange_threshold_targets(uuid) from public, anon, authenticated;
 
@@ -507,6 +717,91 @@ alter table public.listings drop constraint listings_item_id_fkey;
 alter table public.listings add constraint listings_item_id_fkey
   foreign key (item_id) references public.items (id) on delete set null;
 
+-- Rattrapage avant les garde-fous ci-dessous (annonces 0006) : une seule
+-- annonce OUVERTE par objet — on garde, par objet, l'annonce réservée s'il y
+-- en a une, sinon la plus récente ; les autres sont retirées. Les annonces
+-- ouvertes dans une autre devise que l'euro sont retirées (sauf transaction
+-- en cours, qui se poursuit). Les commandes non payées d'une annonce qui n'est
+-- plus publiée sont annulées (jamais capturables : enforce_escrow_transition).
+do $backfill$
+declare
+  v_prev text := public.market_system_begin();
+begin
+  with ranked as (
+    select l.id,
+           row_number() over (
+             partition by l.item_id
+             order by exists (
+                        select 1 from public.orders o
+                        where o.listing_id = l.id
+                          and o.escrow_state in ('funds_held', 'shipped', 'disputed')) desc,
+                      l.created_at desc,
+                      l.id) as rank
+    from public.listings l
+    where l.item_id is not null and l.status in ('draft', 'pending_certification', 'active')
+  )
+  update public.listings l set status = 'withdrawn'
+  from ranked r
+  where r.id = l.id and r.rank > 1;
+
+  update public.listings l set status = 'withdrawn'
+  where l.currency is distinct from 'EUR'
+    and l.status in ('draft', 'pending_certification', 'active')
+    and not exists (
+      select 1 from public.orders o
+      where o.listing_id = l.id and o.escrow_state in ('funds_held', 'shipped', 'disputed'));
+
+  update public.orders o set escrow_state = 'cancelled'
+  from public.listings l
+  where l.id = o.listing_id and l.status <> 'active' and o.escrow_state = 'pending_payment';
+  perform public.market_system_end(v_prev);
+end
+$backfill$;
+
+-- Une seule annonce ouverte par objet : un objet unique ne se paie pas deux
+-- fois (deux séquestres) ni ne se paie et s'échange en même temps. Garantie
+-- de dernier recours contre deux créations concurrentes (le trigger
+-- enforce_listing_rules refuse d'abord avec un message explicite).
+create unique index listings_one_open_per_item_idx on public.listings (item_id)
+  where item_id is not null and status in ('draft', 'pending_certification', 'active');
+
+-- Euro uniquement : le seuil de certification, la commission et le registre
+-- sont exprimés en EUR ; une devise libre contournait le seuil (« 450 BTC »)
+-- et servait de texte libre non masqué au catalogue. Garanti par trigger sur
+-- toute création, publication ou changement de devise d'une annonce
+-- (enforce_listing_rules) et à la création d'une commande (set_order_defaults),
+-- qui copie la devise de l'annonce ; contrainte CHECK sur exchange_proposals
+-- (table nouvelle). Pas de CHECK sur les tables historiques : une ligne 0006
+-- dans une autre devise, engagée dans une transaction, bloquerait sinon
+-- chaque mise à jour — dont l'auto-libération groupée (release_due_orders).
+
+-- Prix plancher (EUR) d'une annonce : pas de vente fictive à 0 € (qui ferait
+-- baisser le taux de commission dégressif).
+create or replace function public.market_min_ask_price_eur()
+returns numeric language sql immutable as $$ select 1::numeric $$;
+
+-- Une autre annonce OUVERTE existe-t-elle pour cet objet ? (lecture hors RLS ;
+-- ne renseigne que le propriétaire de l'objet, ou le code serveur).
+create or replace function public._market_item_has_open_listing(p_item uuid, p_except uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p_item is not null
+    and exists (
+      select 1 from public.items i
+      where i.id = p_item and (auth.uid() is null or i.owner_id = auth.uid()))
+    and exists (
+      select 1 from public.listings l
+      where l.item_id = p_item
+        and l.id is distinct from p_except
+        and l.status in ('draft', 'active', 'pending_certification'))
+$$;
+revoke all on function public._market_item_has_open_listing(uuid, uuid) from public, anon;
+grant execute on function public._market_item_has_open_listing(uuid, uuid) to authenticated, service_role;
+
 create or replace function public.enforce_listing_rules()
 returns trigger
 language plpgsql
@@ -515,6 +810,11 @@ declare
   v_trusted boolean := public.market_trusted_actor();
   v_required boolean;
   v_report_ref text;
+  -- Création, ou retour d'un statut clos (retirée) vers un statut ouvert.
+  v_opening boolean := new.status in ('draft', 'active', 'pending_certification')
+    and (tg_op = 'INSERT' or old.status not in ('draft', 'active', 'pending_certification'));
+  -- Ouverture, ou passage d'un brouillon à la publication.
+  v_publishing boolean;
 begin
   if tg_op = 'INSERT' then
     if not v_trusted then
@@ -527,6 +827,9 @@ begin
       if new.status not in ('draft', 'active', 'pending_certification') then
         raise exception 'Statut initial d''annonce interdit : %', new.status using errcode = 'P0001';
       end if;
+      -- Date de publication posée par le serveur (tri « récent » du catalogue :
+      -- une date future épinglerait l'annonce en tête).
+      new.created_at := now();
     end if;
   else
     if not v_trusted then
@@ -547,6 +850,13 @@ begin
       new.created_at := old.created_at;
       if new.status is distinct from old.status and new.status in ('sold', 'exchanged') then
         raise exception 'Seule la plateforme conclut une vente ou un échange' using errcode = 'P0001';
+      end if;
+      -- (Re)publication réservée à l'offre Platine (abonnement expiré : refus).
+      if new.status is distinct from old.status
+         and new.status in ('active', 'pending_certification')
+         and not public.can_list_on_marketplace(new.seller_id) then
+        raise exception 'Les plateformes d''échange et de vente sont réservées à l''offre Platine'
+          using errcode = 'VL402';
       end if;
       if (new.status is distinct from old.status
           or new.ask_price is distinct from old.ask_price
@@ -573,6 +883,35 @@ begin
   if new.kind in ('exchange', 'sale_or_exchange') and coalesce(new.ask_price, 0) <= 0 then
     raise exception 'Une annonce ouverte à l''échange exige une valeur déclarée positive'
       using errcode = 'P0001';
+  end if;
+
+  -- Prix plancher et euro, pour toute nature d'annonce : à la création, à
+  -- chaque changement de prix ou de devise, et à toute (re)publication (une
+  -- annonce historique ne se publie pas à 0 € ni dans une autre devise).
+  v_publishing := v_opening
+    or (new.status in ('active', 'pending_certification') and new.status is distinct from old.status);
+  if (v_publishing or new.ask_price is distinct from old.ask_price)
+     and coalesce(new.ask_price, 0) < public.market_min_ask_price_eur() then
+    raise exception 'Prix ou valeur déclarée minimum : % €', public.market_min_ask_price_eur()
+      using errcode = 'P0001';
+  end if;
+  if (v_publishing or new.currency is distinct from old.currency)
+     and new.currency is distinct from 'EUR' then
+    raise exception 'Seul l''euro (EUR) est accepté sur les plateformes d''échange et de vente'
+      using errcode = 'P0001';
+  end if;
+
+  if not v_trusted and v_opening then
+    -- Objet déjà vendu ou échangé par ce membre : il n'est plus à lui.
+    if public._market_item_ceded(new.item_id, new.seller_id) then
+      raise exception 'Objet déjà cédé (vente ou échange conclu) : il ne peut plus être mis en vente'
+        using errcode = 'P0001';
+    end if;
+    -- Une seule annonce ouverte par objet (index unique en dernier recours).
+    if public._market_item_has_open_listing(new.item_id, new.id) then
+      raise exception 'Cet objet a déjà une annonce ouverte : retirez-la d''abord'
+        using errcode = 'P0001';
+    end if;
   end if;
 
   -- Certification : à la création, puis à chaque (re)publication.
@@ -626,15 +965,30 @@ begin
       'threshold', 'requested', 'seller', true);
   end if;
 
-  if tg_op = 'UPDATE' and new.status is distinct from old.status then
+  if tg_op = 'UPDATE'
+     and (new.status, new.ask_price, new.kind, new.currency)
+         is distinct from (old.status, old.ask_price, old.kind, old.currency) then
     v_prev := public.market_system_begin();
-    if new.status in ('withdrawn', 'sold', 'exchanged') then
-      -- Annonce close ou retirée : propositions en attente déclinées, commandes
-      -- non payées annulées, certifications de l'annonce sans objet.
-      update public.exchange_proposals set state = 'declined'
-        where listing_id = new.id and state = 'proposed';
+    -- Commandes NON PAYÉES : elles portaient sur l'annonce publiée, à ce prix,
+    -- ouverte à la vente. Annonce suspendue (certification exigée), dépubliée,
+    -- close, ou termes modifiés (prix, devise, échange seul) ⇒ annulées : le
+    -- paiement ne se capture jamais sur une annonce qui a changé (la capture
+    -- le revérifie aussi, enforce_escrow_transition).
+    if (old.status = 'active' and new.status is distinct from 'active')
+       or new.status in ('withdrawn', 'sold', 'exchanged')
+       or new.ask_price is distinct from old.ask_price
+       or new.currency is distinct from old.currency
+       or (new.kind = 'exchange' and old.kind is distinct from 'exchange') then
       update public.orders set escrow_state = 'cancelled'
         where listing_id = new.id and escrow_state = 'pending_payment';
+    end if;
+    if new.status is not distinct from old.status then
+      null;
+    elsif new.status in ('withdrawn', 'sold', 'exchanged') then
+      -- Annonce close ou retirée : propositions en attente déclinées,
+      -- certifications de l'annonce sans objet.
+      update public.exchange_proposals set state = 'declined'
+        where listing_id = new.id and state = 'proposed';
       update public.certification_requests set status = 'cancelled'
         where listing_id = new.id and order_id is null and exchange_id is null
           and status in ('awaiting_agreement', 'requested', 'in_review');
@@ -741,11 +1095,19 @@ begin
   if v_listing.kind = 'exchange' then
     raise exception 'Cette annonce est proposée uniquement à l''échange' using errcode = 'P0001';
   end if;
+  if v_listing.currency is distinct from 'EUR' then
+    raise exception 'Seul l''euro (EUR) est accepté sur les plateformes d''échange et de vente'
+      using errcode = 'P0001';
+  end if;
   if not public.can_list_on_marketplace(new.buyer_id) then
     raise exception 'La communauté est réservée à l''offre Platine' using errcode = 'VL402';
   end if;
   if new.buyer_id = v_listing.seller_id then
     raise exception 'On ne peut pas acheter sa propre annonce' using errcode = 'P0001';
+  end if;
+  -- Abonnement du vendeur expiré : son annonce n'est plus proposée.
+  if not public.can_list_on_marketplace(v_listing.seller_id) then
+    raise exception 'Annonce non disponible (vendeur hors offre Platine)' using errcode = 'P0001';
   end if;
   if public.listing_is_engaged(v_listing.id) then
     raise exception 'Annonce déjà réservée par un autre membre' using errcode = 'P0001';
@@ -764,9 +1126,32 @@ begin
 end;
 $$;
 
+-- Termes actuels d'une annonce, pour la revérification de la capture
+-- (parties de la commande, ou code serveur).
+create or replace function public.market_listing_terms(p_listing uuid)
+returns table (status text, kind text, ask_price numeric, currency text)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select l.status, l.kind, l.ask_price, l.currency
+  from public.listings l
+  where l.id = p_listing
+    and (auth.uid() is null
+      or auth.uid() = l.seller_id
+      or exists (
+        select 1 from public.orders o
+        where o.listing_id = l.id and o.buyer_id = auth.uid()))
+$$;
+revoke all on function public.market_listing_terms(uuid) from public, anon;
+grant execute on function public.market_listing_terms(uuid) to authenticated, service_role;
+
 -- Machine à états de 0006, complétée : expédition bloquée tant qu'une
 -- certification est ouverte ; capture refusée si l'annonce a été réservée
--- entre-temps (premier payé, premier servi).
+-- entre-temps (premier payé, premier servi) ou si elle n'est plus celle qui a
+-- été commandée (suspendue pour certification, dépubliée, prix, devise ou
+-- nature modifiés).
 create or replace function public.enforce_escrow_transition()
 returns trigger
 language plpgsql
@@ -779,6 +1164,7 @@ declare
   v_from text := old.escrow_state;
   v_to text := new.escrow_state;
   v_ok boolean := false;
+  v_listing record;
 begin
   if v_from = v_to then
     return new; -- pas de changement d'état : colonnes gardées par guard_order_terms
@@ -815,6 +1201,17 @@ begin
     if public.listing_is_engaged(old.listing_id, old.id) then
       raise exception 'Annonce déjà réservée par un autre membre' using errcode = 'P0001';
     end if;
+    -- L'annonce est toujours celle qui a été commandée (lecture de confiance :
+    -- l'acheteur n'a aucun droit de lecture sur l'annonce d'autrui).
+    select l.status, l.kind, l.ask_price, l.currency into v_listing
+    from public.market_listing_terms(old.listing_id) l;
+    if v_listing.status is distinct from 'active'
+       or v_listing.kind is not distinct from 'exchange'
+       or v_listing.ask_price is distinct from old.amount
+       or v_listing.currency is distinct from old.currency then
+      raise exception 'Annonce modifiée ou suspendue depuis la commande : paiement impossible'
+        using errcode = 'P0001';
+    end if;
   end if;
   if v_to = 'released' and new.released_at is null then
     new.released_at := now();
@@ -825,7 +1222,10 @@ $$;
 
 -- Termes figés : prix, commission, parties ; livraison attestée par l'acheteur
 -- ou le transporteur (record_order_delivery) — jamais par le vendeur, qui
--- pourrait sinon déclencher l'auto-libération des fonds.
+-- pourrait sinon déclencher l'auto-libération des fonds. Suivi (transporteur,
+-- numéro) : lisible par l'autre partie, donc écrit par le SEUL vendeur, à
+-- l'expédition (funds_held → shipped), au format contrôlé — jamais un canal
+-- de coordonnées, jamais réécrit ensuite (preuve d'expédition).
 create or replace function public.guard_order_terms()
 returns trigger
 language plpgsql
@@ -833,6 +1233,15 @@ as $$
 begin
   if public.market_trusted_actor() then
     return new;
+  end if;
+  if (new.carrier, new.tracking_number) is distinct from (old.carrier, old.tracking_number) then
+    if auth.uid() is distinct from old.seller_id
+       or old.escrow_state <> 'funds_held'
+       or new.escrow_state <> 'shipped' then
+      raise exception 'Le suivi est renseigné par le vendeur, à l''expédition' using errcode = 'P0001';
+    end if;
+    new.carrier := public.market_normalize_carrier(new.carrier);
+    new.tracking_number := public.market_normalize_tracking(new.tracking_number);
   end if;
   if (new.listing_id, new.buyer_id, new.seller_id, new.amount, new.currency,
       new.commission_rate, new.created_at)
@@ -927,6 +1336,9 @@ begin
   if not public.can_list_on_marketplace(new.proposer_id) then
     raise exception 'La communauté est réservée à l''offre Platine' using errcode = 'VL402';
   end if;
+  if not public.can_list_on_marketplace(v_listing.seller_id) then
+    raise exception 'Annonce non disponible (vendeur hors offre Platine)' using errcode = 'P0001';
+  end if;
   if public.listing_is_engaged(v_listing.id) then
     raise exception 'Annonce déjà réservée par un autre membre' using errcode = 'P0001';
   end if;
@@ -934,6 +1346,14 @@ begin
   select * into v_item from public.items where id = new.offered_item_id;
   if not found or v_item.owner_id <> new.proposer_id then
     raise exception 'L''objet proposé doit appartenir à votre collection' using errcode = 'P0001';
+  end if;
+  if public._market_item_ceded(v_item.id, new.proposer_id) then
+    raise exception 'Objet déjà cédé (vente ou échange conclu) : il ne peut plus être proposé'
+      using errcode = 'P0001';
+  end if;
+  if public._market_item_rejected(v_item.id, new.proposer_id) then
+    raise exception 'Objet refusé par un expert : il ne peut pas être proposé sans nouvelle certification'
+      using errcode = 'P0001';
   end if;
   if exists (
        select 1 from public.exchange_proposals e
@@ -1093,6 +1513,12 @@ begin
     if old.expires_at <= now() then
       raise exception 'Proposition expirée' using errcode = 'P0001';
     end if;
+    -- Accepter engage une nouvelle transaction : offre Platine requise
+    -- (abonnement expiré depuis la publication de l'annonce : refus).
+    if not v_sys and not public.can_list_on_marketplace(v_uid) then
+      raise exception 'Les plateformes d''échange et de vente sont réservées à l''offre Platine'
+        using errcode = 'VL402';
+    end if;
     -- Verrou puis contrôle (instantané frais) : l'annonce et les deux objets
     -- ne peuvent pas être réservés deux fois en parallèle.
     perform public.market_lock_for_reservation(old.listing_id, old.offered_item_id);
@@ -1140,8 +1566,9 @@ begin
       raise exception 'Expédition bloquée : une certification d''expert est en cours'
         using errcode = 'P0001';
     end if;
-    new.proposer_tracking := btrim(new.proposer_tracking);
-    new.proposer_carrier := nullif(btrim(coalesce(new.proposer_carrier, '')), '');
+    -- Lisible par l'autre partie : format contrôlé, jamais de texte libre.
+    new.proposer_tracking := public.market_normalize_tracking(new.proposer_tracking);
+    new.proposer_carrier := public.market_normalize_carrier(new.proposer_carrier);
     new.proposer_shipped_at := coalesce(old.proposer_shipped_at, now());
   end if;
   if (new.recipient_tracking, new.recipient_carrier)
@@ -1162,8 +1589,8 @@ begin
       raise exception 'Expédition bloquée : une certification d''expert est en cours'
         using errcode = 'P0001';
     end if;
-    new.recipient_tracking := btrim(new.recipient_tracking);
-    new.recipient_carrier := nullif(btrim(coalesce(new.recipient_carrier, '')), '');
+    new.recipient_tracking := public.market_normalize_tracking(new.recipient_tracking);
+    new.recipient_carrier := public.market_normalize_carrier(new.recipient_carrier);
     new.recipient_shipped_at := coalesce(old.recipient_shipped_at, now());
   end if;
 
@@ -1517,12 +1944,13 @@ begin
     perform public.market_notify(new.owner_id, 'Objet certifié par un expert', v_label);
     perform public.market_notify(v_other, 'Objet certifié par un expert', v_label);
   elsif new.status = 'rejected' then
-    -- Refus de l'expert : l'annonce reste non publiée, la transaction tombe
-    -- (STRIPE : remboursement si les fonds étaient séquestrés).
-    if v_listing_only and new.listing_id is not null then
-      update public.listings set status = 'draft'
-        where id = new.listing_id and status = 'pending_certification';
-    end if;
+    -- Refus de l'expert, QUEL QUE SOIT le contexte (seuil, volontaire,
+    -- commande, échange) : la transaction tombe (STRIPE : remboursement si les
+    -- fonds étaient séquestrés), PUIS l'objet jugé non authentique quitte le
+    -- catalogue — annonce de la demande et toute annonce ouverte de l'objet
+    -- repassent en brouillon — et ses propositions d'échange en attente sont
+    -- retirées. Le refus reste mémorisé sur l'objet (_market_item_rejected) :
+    -- toute republication exige une nouvelle certification.
     if new.order_id is not null then
       update public.orders set escrow_state = 'cancelled'
         where id = new.order_id and escrow_state in ('pending_payment', 'funds_held');
@@ -1530,6 +1958,22 @@ begin
     if new.exchange_id is not null then
       update public.exchange_proposals set state = 'cancelled'
         where id = new.exchange_id and state in ('accepted', 'awaiting_certification', 'shipping');
+    end if;
+    update public.listings l set status = 'draft'
+      where l.seller_id = new.owner_id
+        and l.status in ('active', 'pending_certification')
+        and (l.id = new.listing_id or (new.item_id is not null and l.item_id = new.item_id))
+        and not public.listing_is_engaged(l.id);
+    update public.exchange_proposals e set state = 'declined'
+      from public.listings l
+      where e.listing_id = l.id
+        and e.state = 'proposed'
+        and l.seller_id = new.owner_id
+        and l.status = 'draft'
+        and (l.id = new.listing_id or (new.item_id is not null and l.item_id = new.item_id));
+    if new.item_id is not null then
+      update public.exchange_proposals set state = 'withdrawn'
+        where offered_item_id = new.item_id and proposer_id = new.owner_id and state = 'proposed';
     end if;
     perform public.market_notify(new.owner_id, 'Certification refusée par l’expert', v_label);
     perform public.market_notify(v_other, 'Certification refusée par l’expert', v_label);

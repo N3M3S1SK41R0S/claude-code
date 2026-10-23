@@ -844,12 +844,30 @@ begin
   select count(*) into v_count from public.market_catalogue() c where c.id = '71000000-0000-4000-8000-000000000001';
   if v_count <> 0 then raise exception 'acceptation : annonce réservée encore au catalogue'; end if;
 
-  -- Commission figée : Paul passe au palier 4 % après coup — sans effet.
+  -- Commission figée : Paul passe au palier 4 % après coup (10 ventes
+  -- libérées auprès de 4 acheteurs, fixture serveur) — sans effet.
   reset role;
   perform set_config('velum.uid', '', true);
-  insert into public.listings (item_id, seller_id, ask_price, status)
-  select '62000000-0000-4000-8000-000000000002', '52000000-0000-4000-8000-000000000002', 10, 'sold'
-  from generate_series(1, 10);
+  insert into auth.users (id, email)
+  values ('55000000-0000-4000-8000-000000000005', 'odile@market.test');
+  insert into public.items (id, owner_id, domain, title)
+  values ('62000000-0000-4000-8000-000000000009', '52000000-0000-4000-8000-000000000002', 'coin', 'Lot vendu de Paul');
+  insert into public.listings (id, item_id, seller_id, ask_price, status)
+  values ('72000000-0000-4000-8000-000000000009', '62000000-0000-4000-8000-000000000009',
+          '52000000-0000-4000-8000-000000000002', 30, 'sold');
+  perform set_config('session_replication_role', 'replica', true);
+  insert into public.orders (listing_id, buyer_id, seller_id, amount, currency, commission_rate, escrow_state, released_at)
+  select '72000000-0000-4000-8000-000000000009', b.buyer, '52000000-0000-4000-8000-000000000002',
+         30, 'EUR', 0.05, 'released', now()
+  from (values
+    ('51000000-0000-4000-8000-000000000001'::uuid), ('53000000-0000-4000-8000-000000000003'::uuid),
+    ('54000000-0000-4000-8000-000000000004'::uuid), ('55000000-0000-4000-8000-000000000005'::uuid)) b(buyer),
+    generate_series(1, 3) n
+  where not (b.buyer = '55000000-0000-4000-8000-000000000005' and n > 1);
+  perform set_config('session_replication_role', 'origin', true);
+  if public.commission_rate_for('52000000-0000-4000-8000-000000000002') <> 0.04 then
+    raise exception 'commission figée : fixture — Paul devrait être au palier 4 %%';
+  end if;
   set local role authenticated;
   perform set_config('velum.uid', '52000000-0000-4000-8000-000000000002', true);
   select my_commission into v_row from public.my_exchanges(v_ex);

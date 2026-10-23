@@ -2,8 +2,10 @@
 -- VELUM — plateformes d'échange et de vente (4/5) : RPC ANONYMISÉES.
 -- ----------------------------------------------------------------------------
 -- Surface client de @velum/api-client (packages/api-client/src/marketplace.ts) :
---  - lectures : market_catalogue (Platine), my_market_orders, my_exchanges,
---    my_certifications, thread_messages, member_reputation (Platine) — jamais
+--  - lectures : market_catalogue (Platine), market_listing (annonce par
+--    identifiant, hors catalogue pour ses parties), my_market_orders,
+--    my_exchanges, my_certifications, thread_messages, member_reputation
+--    (Platine) — jamais
 --    d'identifiant de membre ni d'objet d'autrui, uniquement des pseudonymes ;
 --  - actions : market_buy, advance_market_order, open_order_dispute,
 --    propose_exchange, respond_exchange, withdraw_exchange, cancel_exchange,
@@ -209,6 +211,8 @@ begin
     l.created_at
   from public.listings l
   where l.status = 'active'
+    -- Vendeur dont l'abonnement Platine a expiré : annonce plus proposée.
+    and public.can_list_on_marketplace(l.seller_id)
     and (coalesce(p_include_mine, false) or l.seller_id <> v_uid)
     and (p_domain is null or l.domain = p_domain)
     and (p_mode is null
@@ -227,6 +231,76 @@ begin
     l.created_at desc,
     l.id
   limit v_limit;
+end;
+$$;
+
+-- Une annonce par identifiant, mêmes colonnes (anonymisées) que le catalogue,
+-- y compris HORS catalogue pour ses parties : réservée, suspendue, vendue,
+-- échangée ou retirée, elle reste consultable par son vendeur, par l'acheteur
+-- d'une de ses commandes et par les parties d'un échange qui la vise. Pour
+-- les autres membres : annonce publiée d'un vendeur Platine uniquement, et
+-- offre Platine requise (VL402). Aucune ligne si l'annonce n'existe pas ou
+-- n'est pas visible (jamais d'identifiant de membre ni d'objet).
+create or replace function public.market_listing(p_id uuid)
+returns table (
+  id uuid,
+  kind text,
+  domain public.velum_domain,
+  title text,
+  description text,
+  ask_price numeric,
+  currency text,
+  exchange_wishes text,
+  seller_alias text,
+  certified boolean,
+  certification_required boolean,
+  is_mine boolean,
+  created_at timestamptz
+)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+#variable_conflict use_column
+declare
+  v_uid uuid := public._market_require_uid();
+  v_listing public.listings%rowtype;
+  v_party boolean;
+begin
+  select * into v_listing from public.listings l where l.id = p_id;
+  if not found then
+    return;
+  end if;
+  v_party := v_listing.seller_id = v_uid
+    or exists (
+      select 1 from public.orders o
+      where o.listing_id = v_listing.id and o.buyer_id = v_uid)
+    or exists (
+      select 1 from public.exchange_proposals e
+      where e.listing_id = v_listing.id and v_uid in (e.proposer_id, e.recipient_id));
+  if not v_party then
+    if v_listing.status <> 'active' or not public.can_list_on_marketplace(v_listing.seller_id) then
+      return;
+    end if;
+    perform public._market_require_platine();
+  end if;
+
+  return query
+  select
+    v_listing.id,
+    v_listing.kind,
+    v_listing.domain,
+    v_listing.title,
+    v_listing.description,
+    v_listing.ask_price,
+    v_listing.currency,
+    v_listing.exchange_wishes,
+    public.market_alias_of(v_listing.seller_id),
+    v_listing.expert_appraisal_ref is not null,
+    v_listing.expert_appraisal_required,
+    v_listing.seller_id = v_uid,
+    v_listing.created_at;
 end;
 $$;
 
@@ -664,6 +738,8 @@ begin
 
   begin
     if p_listing is not null then
+      -- Démarche sur une annonce (badge, republication) : offre Platine requise.
+      perform public._market_require_platine();
       select * into v_listing from public.listings where id = p_listing and seller_id = v_uid;
       if not found then
         raise exception 'Annonce introuvable parmi les vôtres' using errcode = 'P0001';
@@ -1027,6 +1103,7 @@ begin
     'public._market_require_uid()',
     'public._market_require_platine()',
     'public.market_catalogue(public.velum_domain, text, text, numeric, numeric, boolean, boolean, text, integer)',
+    'public.market_listing(uuid)',
     'public.member_reputation(text)',
     'public.my_market_orders(uuid)',
     'public.my_exchanges(uuid)',

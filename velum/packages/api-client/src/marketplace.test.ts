@@ -1,9 +1,15 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { isVelumError, type VelumErrorCode } from '@velum/core';
 import {
   createMarketplaceRepo,
   fetchCommissionSummary,
+  MARKET_CARRIERS,
+  MARKET_MAX_AMOUNT,
   MARKET_MESSAGE_MAX_LENGTH,
+  normalizeCarrier,
+  normalizeTrackingNumber,
   toMarketplaceError,
   type MarketplaceRepo,
 } from './marketplace';
@@ -281,10 +287,10 @@ describe('marketplace repo — commandes', () => {
 
   it('advanceOrder transmet l’état et le suivi (null si absents)', async () => {
     fake.rpcResponses['advance_market_order'] = { data: [orderView({ escrow_state: 'shipped', role: 'seller' })] };
-    const order = await repo.advanceOrder('o1', 'shipped', { carrier: 'Chronopost', trackingNumber: 'XY' });
+    const order = await repo.advanceOrder('o1', 'shipped', { carrier: ' chronopost ', trackingNumber: ' xy 1234 5678 9fr ' });
     expect(fake.rpcCalls[0]).toEqual({
       fn: 'advance_market_order',
-      args: { p_order: 'o1', p_state: 'shipped', p_carrier: 'Chronopost', p_tracking: 'XY', p_delivered_at: null },
+      args: { p_order: 'o1', p_state: 'shipped', p_carrier: 'Chronopost', p_tracking: 'XY123456789FR', p_delivered_at: null },
     });
     expect(order.escrowState).toBe('shipped');
     await repo.advanceOrder('o1', 'released');
@@ -295,7 +301,31 @@ describe('marketplace repo — commandes', () => {
     fake.rpcResponses['advance_market_order'] = {
       error: { message: 'Expédition bloquée : une certification d’expert est en cours sur cette commande', code: 'P0001' },
     };
-    await expectCode(repo.advanceOrder('o1', 'shipped', { trackingNumber: 'XY' }), 'INVALID_INPUT');
+    await expectCode(repo.advanceOrder('o1', 'shipped', { trackingNumber: 'XY01' }), 'INVALID_INPUT');
+  });
+
+  it('advanceOrder : suivi et transporteur au format contrôlé, refus local (aucun appel)', async () => {
+    // Le suivi est lu par l'autre partie : ni e-mail, ni phrase, ni transporteur libre.
+    const email = await expectCode(
+      repo.advanceOrder('o1', 'shipped', { trackingNumber: 'alice.martin@gmail.com' }),
+      'INVALID_INPUT',
+    );
+    expect(email.message).toContain('Numéro de suivi invalide');
+    await expectCode(repo.advanceOrder('o1', 'shipped', { trackingNumber: 'XY1' }), 'INVALID_INPUT');
+    const carrier = await expectCode(
+      repo.advanceOrder('o1', 'shipped', { carrier: 'Alice Martin, 06 12 34 56 78', trackingNumber: '6A12345678901' }),
+      'INVALID_INPUT',
+    );
+    expect(carrier.message).toContain('Transporteur non reconnu');
+    expect(fake.rpcCalls).toEqual([]);
+  });
+
+  it('montant hors numeric(14, 2) (SQLSTATE 22003) ⇒ INVALID_INPUT, jamais une panne', async () => {
+    fake.rpcResponses['market_buy'] = { error: { message: 'numeric field overflow', code: '22003' } };
+    await expectCode(repo.buy('l4'), 'INVALID_INPUT');
+    expect(toMarketplaceError('Mise en vente impossible', { message: 'value too long', code: '22001' }).code).toBe(
+      'INVALID_INPUT',
+    );
   });
 
   it('openDispute : appel atomique, motif obligatoire', async () => {
@@ -403,7 +433,7 @@ describe('marketplace repo — échanges', () => {
     expect((await repo.respondExchange('x1', true)).state).toBe('shipping');
     expect((await repo.withdrawExchange('x1')).state).toBe('withdrawn');
     expect((await repo.cancelExchange('x1')).state).toBe('cancelled');
-    expect((await repo.shipExchange('x1', ' PA-1 ', '  ')).state).toBe('shipping');
+    expect((await repo.shipExchange('x1', ' pa-1 ', '  ')).state).toBe('shipping');
     expect((await repo.confirmExchangeReceipt('x1')).state).toBe('completed');
     expect((await repo.disputeExchange('x1', ' objet abîmé ')).state).toBe('disputed');
     expect(fake.rpcCalls).toEqual([
@@ -541,6 +571,125 @@ describe('marketplace repo — certification et messagerie', () => {
   });
 });
 
+describe('marketplace repo — annonce par identifiant (market_listing)', () => {
+  let fake: FakeSupabase;
+  let repo: MarketplaceRepo;
+
+  beforeEach(() => {
+    fake = new FakeSupabase();
+    fake.session = { user: { id: ME } };
+    repo = createMarketplaceRepo(asSupabase(fake));
+  });
+
+  it('getListing lit la vue anonymisée, même hors catalogue (vendue, réservée…)', async () => {
+    fake.rpcResponses['market_listing'] = (args) =>
+      args['p_id'] === 'l1' ? { data: [catalogueRow({ is_mine: true })] } : { data: [] };
+    const listing = await repo.getListing?.(' l1 ');
+    expect(fake.rpcCalls[0]).toEqual({ fn: 'market_listing', args: { p_id: 'l1' } });
+    expect(listing).toEqual({
+      id: 'l1',
+      kind: 'sale_or_exchange',
+      domain: 'coin',
+      title: 'Napoléon III 20 Francs Or 1868',
+      description: 'Très bel exemplaire, appelez-moi au [coordonnées masquées]',
+      askPrice: 320,
+      currency: 'EUR',
+      exchangeWishes: 'Pièces or Second Empire',
+      sellerAlias: 'Collectionneur 7F3A',
+      certified: false,
+      isMine: true,
+      createdAt: '2026-10-20T10:00:00Z',
+    });
+    expect(Object.keys(listing ?? {})).not.toContain('sellerId');
+  });
+
+  it('getListing : annonce absente ou invisible ⇒ null (jamais une erreur trompeuse)', async () => {
+    fake.rpcResponses['market_listing'] = { data: [] };
+    await expect(repo.getListing?.('l404')).resolves.toBeNull();
+    fake.rpcResponses['market_listing'] = { data: null };
+    await expect(repo.getListing?.('l404')).resolves.toBeNull();
+  });
+
+  it('getListing : refus et pannes distingués du « introuvable »', async () => {
+    fake.rpcResponses['market_listing'] = { error: { message: 'réservé Platine', code: 'VL402' } };
+    await expectCode(repo.getListing?.('l1') ?? Promise.resolve(), 'PLAN_REQUIRED');
+    fake.rpcResponses['market_listing'] = { error: { message: 'invalid input syntax for type uuid', code: '22P02' } };
+    await expectCode(repo.getListing?.('pas-un-uuid') ?? Promise.resolve(), 'INVALID_INPUT');
+    fake.offline = true;
+    await expectCode(repo.getListing?.('l1') ?? Promise.resolve(), 'SOURCE_UNAVAILABLE');
+    fake.offline = false;
+    fake.session = null;
+    await expectCode(repo.getListing?.('l1') ?? Promise.resolve(), 'UNAUTHORIZED');
+    await expectCode(repo.getListing?.('   ') ?? Promise.resolve(), 'INVALID_INPUT');
+  });
+});
+
+describe('marketplace repo — garde-fous locaux (miroir des règles serveur)', () => {
+  let fake: FakeSupabase;
+  let repo: MarketplaceRepo;
+
+  beforeEach(() => {
+    fake = new FakeSupabase();
+    fake.session = { user: { id: ME } };
+    repo = createMarketplaceRepo(asSupabase(fake));
+  });
+
+  it('createListing : euro seulement, prix plancher 1 €, montant représentable', async () => {
+    const currency = await expectCode(repo.createListing({ itemId: 'i8', askPrice: 450, currency: 'BTC' }), 'INVALID_INPUT');
+    expect(currency.message).toContain('euro');
+    await expectCode(repo.createListing({ itemId: 'i8', askPrice: 0 }), 'INVALID_INPUT');
+    await expectCode(repo.createListing({ itemId: 'i8', askPrice: 0.5 }), 'INVALID_INPUT');
+    await expectCode(repo.createListing({ itemId: 'i8', askPrice: 1e15 }), 'INVALID_INPUT');
+    expect(fake.tables['listings'] ?? []).toEqual([]);
+    await repo.createListing({ itemId: 'i8', askPrice: MARKET_MAX_AMOUNT, currency: 'EUR' });
+    expect(fake.tables['listings']?.[0]).toMatchObject({ ask_price: MARKET_MAX_AMOUNT, currency: 'EUR' });
+  });
+
+  it('proposeExchange : valeur ou soulte hors numeric(14, 2) refusée localement', async () => {
+    await expectCode(repo.proposeExchange({ listingId: 'l1', offeredItemId: 'i5', offeredValue: 1e15 }), 'INVALID_INPUT');
+    await expectCode(
+      repo.proposeExchange({ listingId: 'l1', offeredItemId: 'i5', offeredValue: 10, cashAdjustment: -1e15 }),
+      'INVALID_INPUT',
+    );
+    expect(fake.rpcCalls).toEqual([]);
+  });
+
+  it('shipExchange : suivi normalisé, transporteur canonique, texte libre refusé', async () => {
+    fake.rpcResponses['ship_exchange'] = { data: [exchangeView({ state: 'shipping' })] };
+    await repo.shipExchange('x1', ' 6a 1234 5678 901 ', 'colis prive');
+    expect(fake.rpcCalls[0]).toEqual({
+      fn: 'ship_exchange',
+      args: { p_exchange: 'x1', p_tracking: '6A12345678901', p_carrier: 'Colis Privé' },
+    });
+    await expectCode(repo.shipExchange('x1', 'alice.martin@gmail.com'), 'INVALID_INPUT');
+    await expectCode(repo.shipExchange('x1', 'PA-11', 'Bob : bob@yahoo.fr'), 'INVALID_INPUT');
+    expect(fake.rpcCalls).toHaveLength(1);
+  });
+
+  it('normalizeCarrier / normalizeTrackingNumber', () => {
+    expect(normalizeCarrier(undefined)).toBeUndefined();
+    expect(normalizeCarrier('   ')).toBeUndefined();
+    expect(normalizeCarrier(' MONDIAL relay ')).toBe('Mondial Relay');
+    expect(() => normalizeCarrier('Royal Mail')).toThrow(/Transporteur non reconnu/);
+    expect(normalizeTrackingNumber(' ab-1234 ')).toBe('AB-1234');
+    expect(() => normalizeTrackingNumber('-ABCD')).toThrow(/invalide/);
+    expect(() => normalizeTrackingNumber('A'.repeat(41))).toThrow(/invalide/);
+    expect(() => normalizeTrackingNumber('écrivez-moi')).toThrow(/invalide/);
+  });
+
+  it('MARKET_CARRIERS est la réplique exacte de market_carriers() (SQL)', () => {
+    const path = fileURLToPath(
+      new URL('../../../supabase/migrations/20261023100100_market_exchanges_certification.sql', import.meta.url),
+    );
+    const sql = readFileSync(path, 'utf8');
+    const start = sql.indexOf('create or replace function public.market_carriers()');
+    expect(start).toBeGreaterThan(-1);
+    const body = sql.slice(sql.indexOf('array[', start), sql.indexOf(']', sql.indexOf('array[', start)));
+    const names = [...body.matchAll(/'((?:[^']|'')*)'/g)].map((m) => (m[1] ?? '').replace(/''/g, "'"));
+    expect(names).toEqual([...MARKET_CARRIERS]);
+  });
+});
+
 describe('toMarketplaceError', () => {
   it.each([
     ['VL402', 'PLAN_REQUIRED'],
@@ -551,6 +700,8 @@ describe('toMarketplaceError', () => {
     ['23505', 'INVALID_INPUT'],
     ['23514', 'INVALID_INPUT'],
     ['22P02', 'INVALID_INPUT'],
+    ['22003', 'INVALID_INPUT'],
+    ['22001', 'INVALID_INPUT'],
     ['PGRST116', 'INVALID_INPUT'],
     ['PGRST202', 'SOURCE_UNAVAILABLE'],
     ['57014', 'SOURCE_UNAVAILABLE'],

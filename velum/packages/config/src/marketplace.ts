@@ -25,9 +25,17 @@ import { EXPERT_APPRAISAL_THRESHOLD_EUR, commissionRateFor } from './index';
 export type CertificationReasonId = 'threshold' | 'mutual_agreement' | 'voluntary';
 export type CertificationFeePayerId = 'seller' | 'buyer' | 'split';
 
-/** Arrondi monétaire au centime (évite les 12.000000001 €). */
+/**
+ * Arrondi monétaire au centime (évite les 12.000000001 €), demi-centime au
+ * SUPÉRIEUR en valeur absolue — exactement round(numeric, 2) côté SQL. Le
+ * produit flottant est d'abord ramené à 15 chiffres significatifs (1,035 vaut
+ * 1,03499… en binaire, que Math.round arrondissait à 1,03 quand le registre
+ * inscrit 1,04) : montants affichés et registre concordent au centime.
+ */
 export function roundCents(value: number): number {
-  return Math.round(value * 100) / 100;
+  if (!Number.isFinite(value) || value === 0) return value;
+  const cents = Math.round(Number((Math.abs(value) * 100).toPrecision(15)));
+  return (Math.sign(value) * cents) / 100;
 }
 
 /** Décomposition d'une vente, affichée au vendeur AVANT publication. */

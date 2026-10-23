@@ -67,6 +67,66 @@ begin
 end
 $$;
 
+-- ── 2bis. Offre d'abonnement : écrite par le serveur seul ───────────────────
+-- (faille 0001 : un membre gratuit se passait lui-même en 'platine').
+do $$
+declare
+  v_plan text;
+  v_name text;
+begin
+  perform set_config('velum.uid', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', true);
+  set local role authenticated;
+
+  -- Préférences du profil : toujours modifiables (profilePatchToRow).
+  update public.profiles
+     set display_name = 'Bob B.', locale = 'en', a11y_mode = true, expo_push_token = 'ExponentPushToken[bob]'
+   where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  select display_name into v_name from public.profiles where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  if v_name <> 'Bob B.' then raise exception 'profil : préférences non enregistrées (%)', v_name; end if;
+
+  -- Auto-promotion refusée (privilège de colonne).
+  begin
+    update public.profiles set plan = 'platine' where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    raise exception 'profil : un membre a modifié lui-même son offre';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+  -- Ni création de profil, ni suppression directe.
+  begin
+    insert into public.profiles (id, plan) values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbc', 'platine');
+    raise exception 'profil : création directe d''un profil acceptée';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+  begin
+    delete from public.profiles where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    raise exception 'profil : suppression directe du profil acceptée';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+
+  reset role;
+  select plan into v_plan from public.profiles where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  if v_plan <> 'free' then raise exception 'profil : offre modifiée (%)', v_plan; end if;
+  -- Défense en profondeur : le trigger refuse aussi un changement d'offre
+  -- d'un client qui disposerait du privilège.
+  if not exists (select 1 from pg_trigger where tgname = 'profiles_guard_plan') then
+    raise exception 'profil : trigger de garde de l''offre absent';
+  end if;
+  raise notice 'OK 2bis — offre d''abonnement écrite par le serveur seul, préférences modifiables';
+end
+$$;
+
+-- Le service (revenuecat-webhook, service_role) écrit l'offre.
+do $$
+declare
+  v_plan text;
+begin
+  set local role service_role;
+  update public.profiles set plan = 'gold' where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  select plan into v_plan from public.profiles where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  if v_plan <> 'gold' then raise exception 'profil : offre non écrite par le service (%)', v_plan; end if;
+  update public.profiles set plan = 'free' where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+end
+$$;
+
 -- ── 3. Quota freemium : 5 scans / semaine / MODULE ──────────────────────────
 do $$
 declare
@@ -116,8 +176,19 @@ begin
 end
 $$;
 
--- ── 5. Valorisations : uniquement via la propriété de l'item ─────────────────
+-- ── 5. Valorisations : écrites par le serveur, lues via la propriété de l'item ─
+-- Estimation de service (valuate / price-cron : service_role).
 do $$
+begin
+  set local role service_role;
+  insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, sources)
+  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01', 40, 35, 45, 30, 50, 60, '[]'::jsonb);
+end
+$$;
+
+do $$
+declare
+  v_count integer;
 begin
   perform set_config('velum.uid', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', true);
   set local role authenticated;
@@ -128,9 +199,39 @@ begin
   exception
     when insufficient_privilege or check_violation then null; -- attendu
   end;
-  raise notice 'OK 5 — valuations protégées par la propriété de l''item';
+  select count(*) into v_count from public.valuations;
+  if v_count <> 0 then raise exception 'RLS valuations : Bob lit % estimation(s) d''autrui', v_count; end if;
+
+  -- La propriétaire LIT ses estimations mais n'en écrit, modifie ni supprime
+  -- aucune (seuil de certification des plateformes : jamais falsifiable).
+  perform set_config('velum.uid', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', true);
+  select count(*) into v_count from public.valuations;
+  if v_count <> 1 then raise exception 'RLS valuations : Alice devrait lire 1 estimation, vu %', v_count; end if;
+  begin
+    insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, sources, valued_at)
+    values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01', 1, 1, 1, 1, 1, 10, '[]'::jsonb, now() + interval '50 years');
+    raise exception 'valuations : estimation forgée par la propriétaire acceptée';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+  begin
+    update public.valuations set central = 1;
+    raise exception 'valuations : estimation modifiée par la propriétaire';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+  begin
+    delete from public.valuations;
+    raise exception 'valuations : estimation supprimée par la propriétaire';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+  raise notice 'OK 5 — valuations : écriture serveur seule, lecture via la propriété de l''item';
 end
 $$;
+
+-- Objets supplémentaires d'Alice (une seule annonce ouverte par objet).
+insert into public.items (id, owner_id, domain, title) values
+  ('cccccccc-cccc-4ccc-8ccc-cccccccccc02', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'coin', 'Pièce d''Alice'),
+  ('cccccccc-cccc-4ccc-8ccc-cccccccccc04', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'stamp', 'Timbre d''Alice'),
+  ('cccccccc-cccc-4ccc-8ccc-cccccccccc05', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'art', 'Estampe d''Alice');
 
 -- ── 6. Marketplace Platine : policy d'insertion + expertise > 500 € ─────────
 do $$
@@ -209,12 +310,22 @@ begin
 
   -- Petite annonce (≤ 500 €) : publiée sans certification.
   insert into public.listings (item_id, seller_id, ask_price)
-  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01',
+  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc02',
           'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100)
   returning status into v_status;
   if v_status <> 'active' then
     raise exception 'listings : 100 € devait être publiée directement, vu %', v_status;
   end if;
+
+  -- Une seule annonce ouverte par objet.
+  begin
+    insert into public.listings (item_id, seller_id, ask_price)
+    values ('cccccccc-cccc-4ccc-8ccc-cccccccccc02',
+            'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 90);
+    raise exception 'listings : seconde annonce ouverte sur le même objet acceptée';
+  exception when raise_exception then
+    if sqlerrm not like '%déjà une annonce ouverte%' then raise; end if;
+  end;
 
   raise notice 'OK 6b — Platine : commission 5 %%, certification imposée > 500 € (annonce retenue)';
 end
@@ -272,56 +383,90 @@ end
 $$;
 
 -- ── 7bis. Commission dégressive : 5 % → 2 % selon les ventes conclues ────────
+-- Vendeur dédié (Gaston, Platine) et 18 acheteurs : seules comptent les
+-- commandes LIBÉRÉES d'au moins 20 €, 3 au plus par acheteur.
+insert into auth.users (id, email)
+values ('77777777-7777-4777-8777-777777777777', 'gaston@test.dev');
+insert into auth.users (id, email)
+select ('78000000-0000-4000-8000-0000000000' || lpad(g::text, 2, '0'))::uuid, 'acheteur' || g || '@test.dev'
+from generate_series(1, 18) g;
+update public.profiles set plan = 'platine' where id = '77777777-7777-4777-8777-777777777777';
+insert into public.items (id, owner_id, domain, title) values
+  ('cccccccc-cccc-4ccc-8ccc-cccccccccc71', '77777777-7777-4777-8777-777777777777', 'coin', 'Pièce de Gaston'),
+  ('cccccccc-cccc-4ccc-8ccc-cccccccccc72', '77777777-7777-4777-8777-777777777777', 'coin', 'Lot vendu de Gaston');
+-- Annonce support de l'historique de ventes (fixture serveur).
+insert into public.listings (id, item_id, seller_id, ask_price, status)
+values ('dddddddd-dddd-4ddd-8ddd-dddddddddd72', 'cccccccc-cccc-4ccc-8ccc-cccccccccc72',
+        '77777777-7777-4777-8777-777777777777', 50, 'sold');
+
 do $$
 declare
   v_rate numeric;
   v_id uuid;
 begin
-  perform set_config('velum.uid', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', true);
+  perform set_config('velum.uid', '77777777-7777-4777-8777-777777777777', true);
   set local role authenticated;
 
   -- Nouveau vendeur : 5 % — et le client ne peut PAS choisir son taux.
   insert into public.listings (id, item_id, seller_id, ask_price, commission_rate)
-  values (gen_random_uuid(), 'cccccccc-cccc-4ccc-8ccc-cccccccccc01',
-          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100, 0.001)
+  values (gen_random_uuid(), 'cccccccc-cccc-4ccc-8ccc-cccccccccc71',
+          '77777777-7777-4777-8777-777777777777', 100, 0.001)
   returning id, commission_rate into v_id, v_rate;
   if v_rate <> 0.05 then
     raise exception 'commission : attendu 5 %% pour un nouveau vendeur, vu %', v_rate;
   end if;
+  update public.listings set status = 'withdrawn' where id = v_id;
 
+  -- Historique (fixture, triggers neutralisés) : 10 ventes libérées à 50 €,
+  -- auprès de 4 acheteurs (3 + 3 + 3 + 1) → palier 4 %.
   reset role;
-  -- 10 ventes conclues (petites, sous le seuil d''expertise) → palier 4 %.
-  insert into public.listings (item_id, seller_id, ask_price, status)
-  select 'cccccccc-cccc-4ccc-8ccc-cccccccccc01',
-         'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 50, 'sold'
-  from generate_series(1, 10);
+  perform set_config('session_replication_role', 'replica', true);
+  insert into public.orders (listing_id, buyer_id, seller_id, amount, currency, commission_rate, escrow_state, released_at)
+  select 'dddddddd-dddd-4ddd-8ddd-dddddddddd72',
+         ('78000000-0000-4000-8000-0000000000' || lpad((((n - 1) / 3) + 1)::text, 2, '0'))::uuid,
+         '77777777-7777-4777-8777-777777777777', 50, 'EUR', 0.05, 'released', now()
+  from generate_series(1, 10) n;
+  -- Ventes à vil prix (< 20 €) ou en surnombre chez un même acheteur : ignorées.
+  insert into public.orders (listing_id, buyer_id, seller_id, amount, currency, commission_rate, escrow_state, released_at)
+  select 'dddddddd-dddd-4ddd-8ddd-dddddddddd72', '78000000-0000-4000-8000-000000000001',
+         '77777777-7777-4777-8777-777777777777', amount, 'EUR', 0.05, 'released', now()
+  from (values (50), (50), (50), (5), (5), (5), (5), (5)) v(amount);
+  perform set_config('session_replication_role', 'origin', true);
 
+  perform set_config('velum.uid', '77777777-7777-4777-8777-777777777777', true);
   set local role authenticated;
   insert into public.listings (item_id, seller_id, ask_price)
-  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01',
-          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100)
-  returning commission_rate into v_rate;
+  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc71',
+          '77777777-7777-4777-8777-777777777777', 100)
+  returning id, commission_rate into v_id, v_rate;
   if v_rate <> 0.04 then
-    raise exception 'commission : attendu 4 %% après 10 ventes, vu %', v_rate;
+    raise exception 'commission : attendu 4 %% après 10 ventes retenues, vu %', v_rate;
   end if;
+  update public.listings set status = 'withdrawn' where id = v_id;
 
+  -- 40 ventes retenues de plus (acheteurs 5 à 18, 3 chacun, 1 pour le dernier) → plancher 2 %.
   reset role;
-  -- Jusqu''à 50 ventes conclues → plancher 2 %.
-  insert into public.listings (item_id, seller_id, ask_price, status)
-  select 'cccccccc-cccc-4ccc-8ccc-cccccccccc01',
-         'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 50, 'sold'
-  from generate_series(1, 40);
+  perform set_config('session_replication_role', 'replica', true);
+  insert into public.orders (listing_id, buyer_id, seller_id, amount, currency, commission_rate, escrow_state, released_at)
+  select 'dddddddd-dddd-4ddd-8ddd-dddddddddd72',
+         ('78000000-0000-4000-8000-0000000000' || lpad((((n - 1) / 3) + 5)::text, 2, '0'))::uuid,
+         '77777777-7777-4777-8777-777777777777', 50, 'EUR', 0.05, 'released', now()
+  from generate_series(1, 40) n;
+  perform set_config('session_replication_role', 'origin', true);
 
+  perform set_config('velum.uid', '77777777-7777-4777-8777-777777777777', true);
   set local role authenticated;
   insert into public.listings (item_id, seller_id, ask_price)
-  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01',
-          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100)
-  returning commission_rate into v_rate;
+  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc71',
+          '77777777-7777-4777-8777-777777777777', 100)
+  returning id, commission_rate into v_id, v_rate;
   if v_rate <> 0.02 then
-    raise exception 'commission : attendu 2 %% (plancher) après 50 ventes, vu %', v_rate;
+    raise exception 'commission : attendu 2 %% (plancher) après 50 ventes retenues, vu %', v_rate;
   end if;
+  -- Hors catalogue des fichiers de tests suivants.
+  update public.listings set status = 'withdrawn' where id = v_id;
 
-  raise notice 'OK 7bis — commission dégressive 5 %% → 4 %% → 2 %%, non choisie par le client';
+  raise notice 'OK 7bis — commission dégressive 5 %% → 4 %% → 2 %% (ventes réelles), non choisie par le client';
 end
 $$;
 
@@ -377,9 +522,9 @@ where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 insert into public.listings (id, item_id, seller_id, ask_price, status)
 values
   ('dddddddd-dddd-4ddd-8ddd-dddddddddd02',
-   'cccccccc-cccc-4ccc-8ccc-cccccccccc01', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 120, 'active'),
+   'cccccccc-cccc-4ccc-8ccc-cccccccccc04', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 120, 'active'),
   ('dddddddd-dddd-4ddd-8ddd-dddddddddd03',
-   'cccccccc-cccc-4ccc-8ccc-cccccccccc01', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 90, 'active');
+   'cccccccc-cccc-4ccc-8ccc-cccccccccc05', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 90, 'active');
 
 do $$
 declare
@@ -438,12 +583,16 @@ begin
   update public.orders set escrow_state = 'funds_held'
   where id in ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02','eeeeeeee-eeee-4eee-8eee-eeeeeeeeee03');
 
-  -- Litige ouvert par l'acheteur sur la commande 02.
-  update public.orders set escrow_state = 'disputed'
-  where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02';
-  insert into public.disputes (order_id, opened_by, reason)
-  values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02',
-          'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'objet non conforme');
+  -- Litige ouvert par l'acheteur sur la commande 02 (RPC atomique : aucune
+  -- écriture directe dans disputes, qui forgerait un litige « arbitré »).
+  begin
+    insert into public.disputes (order_id, opened_by, reason, status)
+    values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02',
+            'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'objet non conforme', 'resolved_refund');
+    raise exception 'litige : insertion directe acceptée';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+  perform public.open_order_dispute('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee02', 'objet non conforme');
 end
 $$;
 

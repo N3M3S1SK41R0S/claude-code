@@ -60,6 +60,80 @@ import {
 /** Longueur maximale d'un message (contrainte SQL market_messages.body). */
 export const MARKET_MESSAGE_MAX_LENGTH = 2000;
 
+/** Plus grand montant représentable (colonnes SQL numeric(14, 2)), en EUR. */
+export const MARKET_MAX_AMOUNT = 999_999_999_999.99;
+
+/** Prix ou valeur déclarée minimum d'une annonce (market_min_ask_price_eur()). */
+export const MARKET_MIN_ASK_PRICE = 1;
+
+/** Seule devise des plateformes (seuil, commissions et registre en EUR). */
+export const MARKET_CURRENCY = 'EUR';
+
+/**
+ * Transporteurs reconnus — réplique EXACTE de market_carriers() (migration
+ * 20261023100100, relue par marketplace.test.ts). Le transporteur est
+ * facultatif ; aucun texte libre n'est accepté (il serait lu par l'autre
+ * partie : canal de coordonnées).
+ */
+export const MARKET_CARRIERS = [
+  'Colissimo',
+  'Chronopost',
+  'La Poste',
+  'Lettre suivie',
+  'Mondial Relay',
+  'Relais Colis',
+  'Colis Privé',
+  'DPD',
+  'GLS',
+  'UPS',
+  'DHL',
+  'FedEx',
+  'TNT',
+] as const;
+
+export type MarketCarrier = (typeof MARKET_CARRIERS)[number];
+
+/** Repli casse + accents (même règle que market_fold côté SQL). */
+function foldText(value: string): string {
+  return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+/**
+ * Transporteur saisi → nom canonique (casse et accents indifférents),
+ * `undefined` si vide ; refus local (INVALID_INPUT) d'un transporteur inconnu
+ * — même règle que market_normalize_carrier() côté serveur.
+ */
+export function normalizeCarrier(value: string | null | undefined): MarketCarrier | undefined {
+  const trimmed = value?.trim() ?? '';
+  if (trimmed === '') return undefined;
+  const folded = foldText(trimmed);
+  const match = MARKET_CARRIERS.find((carrier) => foldText(carrier) === folded);
+  if (match === undefined) {
+    throw new VelumError(
+      'INVALID_INPUT',
+      `Transporteur non reconnu : choisissez parmi ${MARKET_CARRIERS.join(', ')}`,
+    );
+  }
+  return match;
+}
+
+/**
+ * Numéro de suivi normalisé (majuscules, blancs retirés) ; refus local
+ * (INVALID_INPUT) hors format — lettres, chiffres et tirets, 4 à 40
+ * caractères : même règle que market_normalize_tracking() côté serveur.
+ */
+export function normalizeTrackingNumber(value: string): string {
+  const compact = value.replace(/\s+/g, '').toUpperCase();
+  if (compact === '') throw new VelumError('INVALID_INPUT', 'Numéro de suivi requis');
+  if (!/^[A-Z0-9][A-Z0-9-]{3,39}$/.test(compact)) {
+    throw new VelumError(
+      'INVALID_INPUT',
+      'Numéro de suivi invalide : lettres, chiffres et tirets uniquement (4 à 40 caractères)',
+    );
+  }
+  return compact;
+}
+
 /** Erreur PostgREST minimale (supabase-js : message, code SQLSTATE ou PGRST…). */
 interface PostgrestLikeError {
   message: string;
@@ -78,7 +152,8 @@ function codeFor(sqlstate: string | null | undefined): VelumErrorCode {
     case 'PGRST301':
     case 'PGRST302':
       return 'UNAUTHORIZED';
-    // Règle métier (raise exception), contrainte, valeur invalide, ligne absente.
+    // Règle métier (raise exception), contrainte, valeur invalide (dont
+    // montant hors numeric(14, 2) et texte trop long), ligne absente.
     case 'P0001':
     case '23505':
     case '23514':
@@ -86,6 +161,8 @@ function codeFor(sqlstate: string | null | undefined): VelumErrorCode {
     case '23502':
     case '22P02':
     case '22023':
+    case '22003':
+    case '22001':
     case 'PGRST116':
       return 'INVALID_INPUT';
     default:
@@ -116,10 +193,17 @@ function requireText(value: string, label: string): string {
   return trimmed;
 }
 
-/** Montant fini (et strictement positif si demandé) — refus local sinon. */
+/**
+ * Montant fini, représentable côté serveur (≤ MARKET_MAX_AMOUNT), et
+ * strictement positif si demandé — refus local sinon (jamais présenté comme
+ * une panne du service).
+ */
 function requireAmount(value: number, label: string, strictlyPositive: boolean): number {
   if (!Number.isFinite(value) || value < 0 || (strictlyPositive && value === 0)) {
     throw new VelumError('INVALID_INPUT', `${label} invalide : ${String(value)}`);
+  }
+  if (value > MARKET_MAX_AMOUNT) {
+    throw new VelumError('INVALID_INPUT', `${label} trop élevé : ${String(value)}`);
   }
   return value;
 }
@@ -277,6 +361,18 @@ export function createMarketplaceRepo(supabase: SupabaseClient): MarketplaceRepo
 
     async createListing(input) {
       requireAmount(input.askPrice, 'Prix ou valeur déclarée', false);
+      if (input.askPrice < MARKET_MIN_ASK_PRICE) {
+        throw new VelumError(
+          'INVALID_INPUT',
+          `Prix ou valeur déclarée minimum : ${String(MARKET_MIN_ASK_PRICE)} €`,
+        );
+      }
+      if (input.currency !== undefined && input.currency !== MARKET_CURRENCY) {
+        throw new VelumError(
+          'INVALID_INPUT',
+          `Seul l’euro (EUR) est accepté sur les plateformes d’échange et de vente (reçu : ${input.currency})`,
+        );
+      }
       const uid = await requireUid(supabase);
       // Aucun statut imposé : le serveur publie ('active') ou retient
       // l'annonce ('pending_certification') selon le seuil de certification.
@@ -320,14 +416,21 @@ export function createMarketplaceRepo(supabase: SupabaseClient): MarketplaceRepo
     },
 
     async advanceOrder(orderId, escrowState, patch) {
+      // Suivi lisible par l'autre partie : format contrôlé avant tout appel
+      // (mêmes règles que le serveur, qui reste seul juge).
+      const carrier = normalizeCarrier(patch?.carrier);
+      const tracking =
+        patch?.trackingNumber !== undefined && patch.trackingNumber.trim() !== ''
+          ? normalizeTrackingNumber(patch.trackingNumber)
+          : null;
       const uid = await requireUid(supabase);
       const row = await rpcOne<OrderRow>(
         'advance_market_order',
         {
           p_order: orderId,
           p_state: escrowState,
-          p_carrier: patch?.carrier ?? null,
-          p_tracking: patch?.trackingNumber ?? null,
+          p_carrier: carrier ?? null,
+          p_tracking: tracking,
           p_delivered_at: patch?.deliveredAt ?? null,
         },
         'Transition de commande impossible',
@@ -351,6 +454,19 @@ export function createMarketplaceRepo(supabase: SupabaseClient): MarketplaceRepo
       return jsonToReputation((data ?? null) as Record<string, unknown> | null);
     },
 
+    async getListing(listingId) {
+      const id = requireText(listingId, "Identifiant d'annonce");
+      // Vue anonymisée (mêmes colonnes que le catalogue) ; aucune ligne =
+      // annonce inexistante ou non visible pour cette session.
+      const rows = await rpcRows<CatalogueRow>(
+        'market_listing',
+        { p_id: id },
+        "Lecture de l'annonce impossible",
+      );
+      const first = rows[0];
+      return first === undefined ? null : rowToCatalogueListing(first);
+    },
+
     async reputationByAlias(alias) {
       const pseudonym = requireText(alias, 'Pseudonyme');
       await requireUid(supabase);
@@ -369,6 +485,7 @@ export function createMarketplaceRepo(supabase: SupabaseClient): MarketplaceRepo
       if (!Number.isFinite(cash)) {
         throw new VelumError('INVALID_INPUT', `Soulte invalide : ${String(cash)}`);
       }
+      requireAmount(Math.abs(cash), 'Soulte', false);
       const message = input.message?.trim() ?? '';
       return exchangeAction(
         'propose_exchange',
@@ -409,14 +526,14 @@ export function createMarketplaceRepo(supabase: SupabaseClient): MarketplaceRepo
     },
 
     async shipExchange(exchangeId, trackingNumber, carrier) {
-      const tracking = requireText(trackingNumber, 'Numéro de suivi');
-      const carrierName = carrier?.trim() ?? '';
+      const tracking = normalizeTrackingNumber(trackingNumber);
+      const carrierName = normalizeCarrier(carrier);
       return exchangeAction(
         'ship_exchange',
         {
           p_exchange: exchangeId,
           p_tracking: tracking,
-          p_carrier: carrierName === '' ? null : carrierName,
+          p_carrier: carrierName ?? null,
         },
         "Déclaration d'expédition impossible",
       );

@@ -35,6 +35,20 @@ describe('saleBreakdown', () => {
     expect(saleBreakdown(19.99, 12).commission).toBe(0.8);
     expect(roundCents(0.1 + 0.2)).toBe(0.3);
   });
+
+  it('arrondit le demi-centime au supérieur, comme round(numeric, 2) en SQL', () => {
+    // Vecteurs partagés avec marketplace_hardening_checks.sql (bloc X15) :
+    // 20,70 × 5 % = 1,035 (1,03499… en flottant) → 1,04 au registre.
+    expect(saleBreakdown(20.7, 0)).toMatchObject({ commission: 1.04, sellerNet: 19.66 });
+    expect(exchangeCommission(20.7, 0).commission).toBe(1.04);
+    expect(splitCertificationFee(2.01, 'split')).toEqual({ seller: 1.01, buyer: 1 });
+    expect(roundCents(1.005)).toBe(1.01);
+    expect(roundCents(-1.005)).toBe(-1.01);
+    expect(roundCents(2.675)).toBe(2.68);
+    expect(roundCents(1.004999)).toBe(1);
+    expect(roundCents(0)).toBe(0);
+    expect(roundCents(999_999_999_999.99)).toBe(999_999_999_999.99);
+  });
 });
 
 describe('exchangeCommission', () => {
