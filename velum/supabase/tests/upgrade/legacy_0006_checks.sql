@@ -16,6 +16,13 @@
 --      récente) : l'index unique se crée ;
 --   U5 annonces épargnées (hors euro, sous le plancher) : commandes en attente
 --      d'un tiers annulées (tiers prévenu), capture refusée ;
+--   U6 seuil de certification (R1) réévalué : annonce publiée sous-déclarée
+--      (estimation récente ou de repli) suspendue, contenu public de l'objet
+--      recopié, demande « seuil » ouverte, parties prévenues ; annonce engagée
+--      intacte ;
+--   U7 références d'expertise déclarées par le vendeur (0003) effacées,
+--      statut recalculé, vendeur prévenu ; l'expertise d'un commun accord
+--      redevient possible ;
 --   U8 une commande en attente ne fait primer qu'une annonce publiée (pas un
 --      brouillon) ;
 --   U9 un seul paiement capturé par objet : commande expédiée ou en litige,
@@ -246,6 +253,141 @@ begin
     $q$select * from public.advance_market_order('e1000000-0000-4000-8000-000000000032', 'funds_held')$q$,
     '%minimum%paiement impossible%');
   raise notice 'OK U5 — annonces hors euro ou sous le plancher : commandes en attente annulées, capture refusée';
+end
+$$;
+
+-- ── U6. Seuil de certification (R1) réévalué sur les annonces 0006 ──────────
+do $$
+declare
+  v_row record;
+  v_count integer;
+begin
+  -- Annonces publiées à 400 € d'objets estimés 5 000 € (il y a 1 mois ; il y
+  -- a 19 mois, repli sur la dernière estimation passée) : suspendues.
+  for v_row in
+    select l.id, l.status, l.expert_appraisal_ref, l.expert_appraisal_required
+    from public.listings l
+    where l.id in ('d1000000-0000-4000-8000-000000000014', 'd1000000-0000-4000-8000-000000000015')
+  loop
+    if v_row.status <> 'pending_certification' or v_row.expert_appraisal_ref is not null
+       or not v_row.expert_appraisal_required then
+      raise exception 'U6 : annonce sous-déclarée suspendue (certification exigée) attendue (%)',
+        row_to_json(v_row);
+    end if;
+  end loop;
+  select count(*) into v_count from public.certification_requests c
+  where c.listing_id in ('d1000000-0000-4000-8000-000000000014', 'd1000000-0000-4000-8000-000000000015')
+    and c.order_id is null and c.exchange_id is null
+    and c.reason = 'threshold' and c.status = 'requested' and c.fee_payer = 'seller'
+    and c.owner_id = 'b1000000-0000-4000-8000-000000000001'
+    and c.item_title in ('Ducat de Venise, doge Mocenigo', 'Florin de Florence');
+  if v_count <> 2 then
+    raise exception 'U6 : une demande « seuil » ouverte par annonce suspendue, au titre actuel de l''objet, attendue (%)', v_count;
+  end if;
+  -- R6 : l'annonce réévaluée reprend d'abord le contenu public de l'objet
+  -- (renommé depuis sa création sous 0006).
+  select l.title into v_row from public.listings l where l.id = 'd1000000-0000-4000-8000-000000000014';
+  if v_row.title is distinct from 'Ducat de Venise, doge Mocenigo' then
+    raise exception 'U6 : titre actuel de l''objet recopié attendu, vu %', v_row.title;
+  end if;
+  select count(*) into v_count from public.notifications
+  where owner_id = 'b1000000-0000-4000-8000-000000000001'
+    and title = 'Certification d’expert requise'
+    and (body like '%Ducat de Venise%' or body like '%Florin de Florence%');
+  if v_count <> 2 then
+    raise exception 'U6 : vendeur prévenu des deux suspensions attendu (%)', v_count;
+  end if;
+  -- Commande non payée de l'annonce suspendue : annulée, acheteuse prévenue.
+  select escrow_state into v_row from public.orders where id = 'e1000000-0000-4000-8000-000000000027';
+  if v_row.escrow_state <> 'cancelled' then
+    raise exception 'U6 : commande en attente de l''annonce suspendue annulée attendue, vu %', v_row.escrow_state;
+  end if;
+  select count(*) into v_count from public.notifications
+  where owner_id = 'b3000000-0000-4000-8000-000000000003'
+    and title = 'Commande annulée' and body like '%Florin de Florence%';
+  if v_count <> 1 then
+    raise exception 'U6 : acheteuse prévenue de l''annulation attendue (%)', v_count;
+  end if;
+  -- Annonce engagée (paiement capturé) : la transaction se poursuit.
+  select l.status into v_row from public.listings l where l.id = 'd1000000-0000-4000-8000-000000000016';
+  if v_row.status <> 'active' then
+    raise exception 'U6 : annonce engagée conservée attendue, vu %', v_row.status;
+  end if;
+  select count(*) into v_count from public.certification_requests
+  where listing_id = 'd1000000-0000-4000-8000-000000000016';
+  if v_count <> 0 then raise exception 'U6 : aucune demande sur l''annonce engagée attendue (%)', v_count; end if;
+  select escrow_state into v_row from public.orders where id = 'e1000000-0000-4000-8000-000000000028';
+  if v_row.escrow_state <> 'funds_held' then
+    raise exception 'U6 : paiement capturé intact attendu, vu %', v_row.escrow_state;
+  end if;
+
+  -- Ni exposées, ni achetables.
+  set local role authenticated;
+  perform set_config('velum.uid', 'b3000000-0000-4000-8000-000000000003', true);
+  select count(*) into v_count from public.market_catalogue()
+  where id in ('d1000000-0000-4000-8000-000000000014', 'd1000000-0000-4000-8000-000000000015');
+  if v_count <> 0 then raise exception 'U6 : annonce suspendue au catalogue (%)', v_count; end if;
+  perform public._upg_expect_error(
+    $q$select * from public.market_buy('d1000000-0000-4000-8000-000000000014')$q$,
+    '%Annonce non disponible%');
+  raise notice 'OK U6 — seuil réévalué : annonces 0006 sous-déclarées suspendues, demande ouverte, parties prévenues';
+end
+$$;
+
+-- ── U7. Références d'expertise déclarées par le vendeur (0003/0006) ─────────
+do $$
+declare
+  v_row record;
+  v_count integer;
+  v_order uuid;
+begin
+  -- Aucune décision d'expert VELUM : la référence est effacée, le statut
+  -- recalculé (au-delà du seuil : suspendue, demande « seuil » ouverte).
+  select status, expert_appraisal_ref into v_row from public.listings
+  where id = 'd1000000-0000-4000-8000-000000000017';
+  if v_row.status <> 'pending_certification' or v_row.expert_appraisal_ref is not null then
+    raise exception 'U7 : annonce à 800 € sans décision d''expert suspendue attendue (%)', row_to_json(v_row);
+  end if;
+  select count(*) into v_count from public.certification_requests
+  where listing_id = 'd1000000-0000-4000-8000-000000000017' and order_id is null and exchange_id is null
+    and reason = 'threshold' and status = 'requested';
+  if v_count <> 1 then raise exception 'U7 : demande « seuil » ouverte attendue (%)', v_count; end if;
+  select status, expert_appraisal_ref into v_row from public.listings
+  where id = 'd1000000-0000-4000-8000-000000000018';
+  if v_row.status <> 'active' or v_row.expert_appraisal_ref is not null then
+    raise exception 'U7 : annonce sous le seuil publiée sans badge attendue (%)', row_to_json(v_row);
+  end if;
+  select status, expert_appraisal_ref into v_row from public.listings
+  where id = 'd1000000-0000-4000-8000-000000000019';
+  if v_row.status <> 'draft' or v_row.expert_appraisal_ref is not null then
+    raise exception 'U7 : brouillon sans référence attendu (%)', row_to_json(v_row);
+  end if;
+  select count(*) into v_count from public.notifications
+  where owner_id = 'b1000000-0000-4000-8000-000000000001'
+    and ((title = 'Certification d’expert requise' and body like '%Louis aux palmes%n’émane pas d’un expert%')
+      or (title = 'Badge « authentifié VELUM » retiré' and body like '%Sol de Louis XV%n’émane pas d’un expert%'));
+  if v_count <> 2 then raise exception 'U7 : vendeur prévenu des deux annonces publiées attendu (%)', v_count; end if;
+  select count(*) into v_count from public.notifications where body like '%Blanc guénar%';
+  if v_count <> 0 then raise exception 'U7 : brouillon sans notification attendu (%)', v_count; end if;
+
+  -- Côté acheteuse : pas de badge, et l'expertise d'un commun accord est possible.
+  set local role authenticated;
+  perform set_config('velum.uid', 'b3000000-0000-4000-8000-000000000003', true);
+  select certified into v_row from public.market_catalogue()
+  where id = 'd1000000-0000-4000-8000-000000000018';
+  if v_row.certified is distinct from false then
+    raise exception 'U7 : annonce sans badge au catalogue attendue (%)', row_to_json(v_row);
+  end if;
+  select id into v_order from public.market_buy('d1000000-0000-4000-8000-000000000018');
+  select listing_certified into v_row from public.my_market_orders(v_order);
+  if v_row.listing_certified is distinct from false then
+    raise exception 'U7 : commande sur un objet non certifié attendue (%)', row_to_json(v_row);
+  end if;
+  select status into v_row from public.request_certification('mutual_agreement', p_order => v_order);
+  if v_row.status <> 'awaiting_agreement' then
+    raise exception 'U7 : demande d''expertise d''un commun accord attendue (%)', row_to_json(v_row);
+  end if;
+  raise notice 'OK U7 — références déclarées par le vendeur effacées : statut recalculé, vendeur prévenu, expertise possible';
 end
 $$;
 

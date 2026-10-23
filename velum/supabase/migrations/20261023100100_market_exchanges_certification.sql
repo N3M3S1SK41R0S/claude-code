@@ -2297,3 +2297,97 @@ grant execute on function public.resolve_dispute(uuid, boolean, text) to service
 revoke all on function public.release_due_orders() from public, anon, authenticated;
 grant execute on function public.release_due_orders() to service_role;
 
+-- ── 11. Rattrapage : certification des annonces 0006 ─────────────────────────
+-- En fin de migration : la demande « seuil » qu'ouvre listing_after_change
+-- passe alors par les triggers de certification_requests (section 8). Les
+-- annonces ouvertes et NON ENGAGÉES repassent par enforce_listing_rules
+-- (acteur de confiance : statut recalculé, référence non réécrite), dans cet
+-- ordre :
+--  1. la référence d'expertise 0003/0006, saisie par le vendeur lui-même
+--     (« rapport d'expertise fourni par le vendeur »), est effacée faute de
+--     décision d'expert VELUM (R3 : le badge ne se déclare pas) ;
+--  2. sous 0003/0006, le seuil ne regardait que le prix demandé : une annonce
+--     publiée à 400 € d'un objet estimé 5 000 € restait achetable sans
+--     certification (recheck_listing_certification ne réagit qu'à une
+--     NOUVELLE estimation) ; chaque annonce publiée non certifiée qui dépasse
+--     le seuil (R1) est donc réévaluée.
+-- Comme à toute (re)publication (R6), l'annonce réévaluée reprend d'abord le
+-- contenu public de l'objet (titre expurgé, catégorie ; 0006 ne le copiait
+-- qu'à la création) : la demande « seuil » enregistre le titre actuel. Au-delà
+-- du seuil, l'annonce est suspendue en 'pending_certification', une demande
+-- « seuil » est ouverte et ses commandes non payées sont annulées ; vendeur
+-- et acheteurs prévenus. Une annonce engagée (paiement capturé) poursuit sa
+-- transaction. Sans effet sur une base vierge ; idempotent.
+do $legacy_certification$
+declare
+  v_prev text := public.market_system_begin();
+  -- Commandes non payées des annonces réévaluées : leurs acheteurs sont
+  -- prévenus si la suspension les annule.
+  v_pending uuid[] := array(
+    select o.id
+    from public.orders o
+    join public.listings l on l.id = o.listing_id
+    where o.escrow_state = 'pending_payment'
+      and l.status = 'active');
+  r record;
+begin
+  for r in
+    update public.listings l
+    set expert_appraisal_ref = null,
+        status = l.status,
+        title = coalesce(
+          (select public.redact_contact_info(i.title) from public.items i where i.id = l.item_id),
+          l.title),
+        domain = coalesce((select i.domain from public.items i where i.id = l.item_id), l.domain)
+    where l.status in ('draft', 'pending_certification', 'active')
+      and l.expert_appraisal_ref is not null
+      and public._market_item_certification_ref(l.item_id, l.seller_id) is null
+      and not public.listing_is_engaged(l.id)
+    returning l.seller_id, l.title, l.status
+  loop
+    if r.status = 'pending_certification' then
+      perform public.market_notify(r.seller_id, 'Certification d’expert requise',
+        format('La référence d’expertise de « %s » n’émane pas d’un expert VELUM : l’annonce est suspendue jusqu’à sa certification par un expert (frais à la charge du vendeur).',
+          coalesce(r.title, 'votre objet')));
+    elsif r.status = 'active' then
+      perform public.market_notify(r.seller_id, 'Badge « authentifié VELUM » retiré',
+        format('La référence d’expertise de « %s » n’émane pas d’un expert VELUM : l’annonce reste publiée, sans le badge (certification volontaire possible).',
+          coalesce(r.title, 'votre objet')));
+    end if;
+  end loop;
+
+  for r in
+    update public.listings l
+    set status = 'active',
+        title = coalesce(
+          (select public.redact_contact_info(i.title) from public.items i where i.id = l.item_id),
+          l.title),
+        domain = coalesce((select i.domain from public.items i where i.id = l.item_id), l.domain)
+    where l.status = 'active'
+      and l.expert_appraisal_ref is null
+      and not public.listing_is_engaged(l.id)
+      -- Même décision que le trigger (référence nulle : suspendue si exigée).
+      and (select s.required
+           from public.listing_certification_snapshot(l.item_id, l.seller_id, l.ask_price) s)
+    returning l.seller_id, l.title, l.status
+  loop
+    if r.status = 'pending_certification' then
+      perform public.market_notify(r.seller_id, 'Certification d’expert requise',
+        format('L’estimation de « %s » dépasse %s € : l’annonce est suspendue jusqu’à sa certification par un expert (frais à la charge du vendeur).',
+          coalesce(r.title, 'votre objet'), public.listing_appraisal_threshold_eur()));
+    end if;
+  end loop;
+
+  for r in
+    select o.buyer_id, l.title
+    from public.orders o
+    join public.listings l on l.id = o.listing_id
+    where o.id = any (v_pending) and o.escrow_state = 'cancelled'
+  loop
+    perform public.market_notify(r.buyer_id, 'Commande annulée',
+      format('L’annonce « %s » est suspendue jusqu’à sa certification par un expert : votre commande en attente de paiement est annulée.',
+        coalesce(r.title, 'objet')));
+  end loop;
+  perform public.market_system_end(v_prev);
+end
+$legacy_certification$;
