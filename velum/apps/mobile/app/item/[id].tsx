@@ -1,179 +1,79 @@
 /**
- * Fiche objet complète : en-tête (titre, domaine, confiance), sections
- * d'analyse par domaine, bloc VALORISATION (centrale, IC80/IC95, fiabilité,
- * sources), disclaimers TOUJOURS visibles, courbe de valeur, métadonnées
- * d'acquisition éditables, actions (alerte, export PDF, suppression).
+ * Fiche objet. Ordre pensé pour limiter le défilement :
+ *   en-tête (titre, catégorie, confiance) → barre d'actions rapides (Corriger,
+ *   Estimer, Alerte, PDF, Arbitre) → vendre / échanger / envies →
+ *   valorisation (+ avertissements toujours visibles) → identification
+ *   (correction en texte) → fiche complète (ou carte « Charger ») → histoire &
+ *   rareté → journal → acquisition → zone sensible (suppression).
+ * Les sections longues sont repliables. Le retour passe par l'en-tête de
+ * `Screen` (« ‹ Retour », repli sur la collection) : pas de bouton en bas.
  */
-import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRef, useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import {
-  ConfidenceBadge,
-  VBadge,
-  VButton,
-  VCard,
-  VSpinner,
-  VText,
-  VTextInput,
-  velumSpacing,
-} from '@velum/ui';
-import type {
-  ArtAnalysisPayload,
-  CoinAnalysisPayload,
-  HeritageProfile,
-  StampAnalysisPayload,
-  ValuationRecord,
-  VelumItem,
-  WatchAnalysisPayload,
-  WineAnalysisPayload,
-} from '@velum/core';
-import { resolveReliabilityForResult } from '@velum/valuation';
+import { ConfidenceBadge, VBadge, VButton, VSpinner, VText, velumSpacing } from '@velum/ui';
+import type { HeritageProfile, VelumItem } from '@velum/core';
 
 import { Screen } from '../../components/Screen';
-import { ValueChart } from '../../components/ValueChart';
-import { ValuationExplanation } from '../../components/ValuationExplanation';
-import { CalibrationEvidence } from '../../components/CalibrationEvidence';
-import { ArtSheet } from '../../components/sheets/ArtSheet';
-import { CoinSheet } from '../../components/sheets/CoinSheet';
-import { StampSheet } from '../../components/sheets/StampSheet';
-import { WatchSheet } from '../../components/sheets/WatchSheet';
-import { WineSheet } from '../../components/sheets/WineSheet';
-import { KV, SheetSection } from '../../components/sheets/SheetSection';
+import { AcquisitionSection } from '../../components/item/AcquisitionSection';
+import { DangerZone } from '../../components/item/DangerZone';
+import { FullSheetSection } from '../../components/item/FullSheetSection';
+import { HeritageSection } from '../../components/item/HeritageSection';
+import { IdentitySection } from '../../components/item/IdentitySection';
 import { ProvenanceSection, TastingNotesSection } from '../../components/item/ItemJournalSections';
-import { HeritageSection, RecentSalesSection } from '../../components/item/HeritageSection';
+import { PriceAlertForm } from '../../components/item/PriceAlertForm';
+import { QuickAction, QuickActionsBar } from '../../components/item/QuickActionsBar';
 import { SellButton } from '../../components/item/SellButton';
+import { ValuationSection } from '../../components/item/ValuationSection';
+import { itemQueryKey, useItemSheetActions } from '../../components/item/useItemSheetActions';
 import { getVelumClient } from '../../lib/client';
-import { errorMessage } from '../../lib/errors';
 import { buildItemSheetHtml } from '../../lib/exporters';
-import { formatEUR } from '../../lib/i18n';
+import { analysisPayloadOf, analysisResultFromItem, fullSheetState } from '../../lib/itemSheet';
+import { routes } from '../../lib/routes';
 import { showToast } from '../../stores/toastStore';
 
-/** Extrait le payload d'analyse stocké dans attributes.analysis. */
-function analysisPayload(item: VelumItem): Record<string, unknown> | null {
-  const payload = item.attributes['analysis'];
-  return payload && typeof payload === 'object' ? (payload as Record<string, unknown>) : null;
-}
+/** Marge au-dessus d'une section atteinte par défilement automatique. */
+const SCROLL_MARGIN = velumSpacing.md;
 
-function itemDisclaimers(item: VelumItem): string[] {
-  const raw = item.attributes['disclaimers'];
-  if (Array.isArray(raw)) return raw.filter((d): d is string => typeof d === 'string');
-  return [];
-}
-
-export default function ItemSheet() {
+function ItemSheetBody({ item }: { item: VelumItem }) {
   const { t } = useTranslation();
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const params = useLocalSearchParams<{ id: string }>();
-  const itemId = params.id ?? '';
   const client = getVelumClient();
+  const actions = useItemSheetActions(item);
+  const scrollRef = useRef<ScrollView>(null);
+  const identityY = useRef(0);
+  const [identityEditing, setIdentityEditing] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
-  const itemQuery = useQuery({
-    queryKey: ['items', itemId],
-    queryFn: () => client.items.get(itemId),
-    enabled: itemId.length > 0,
-  });
   const latestQuery = useQuery({
-    queryKey: ['valuations', itemId, 'latest'],
-    queryFn: () => client.valuations.latest(itemId),
-    enabled: itemId.length > 0,
+    queryKey: ['valuations', item.id, 'latest'],
+    queryFn: () => client.valuations.latest(item.id),
   });
   const historyQuery = useQuery({
-    queryKey: ['valuations', itemId, 'history'],
-    queryFn: () => client.valuations.history(itemId),
-    enabled: itemId.length > 0,
+    queryKey: ['valuations', item.id, 'history'],
+    queryFn: () => client.valuations.history(item.id),
   });
-
-  const [editOpen, setEditOpen] = useState(false);
-  const [acquiredAt, setAcquiredAt] = useState('');
-  const [acquiredPrice, setAcquiredPrice] = useState('');
-  const [condition, setCondition] = useState('');
-  const [notes, setNotes] = useState('');
-  const [location, setLocation] = useState('');
-  const [alertOpen, setAlertOpen] = useState(false);
-  const [alertThreshold, setAlertThreshold] = useState('');
-
-  const item = itemQuery.data ?? null;
   const valuation = latestQuery.data ?? null;
 
-  const saveMutation = useMutation({
-    mutationFn: async (patch: Partial<VelumItem>) => {
-      const updatedAt = new Date().toISOString();
-      try {
-        return await client.items.update(itemId, { ...patch, updatedAt });
-      } catch {
-        // Hors-ligne : mutation en file (last-write-wins au rejeu).
-        await client.queue.enqueue({
-          id: `mut-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-          table: 'items',
-          type: 'update',
-          payload: { id: itemId, ...patch, updatedAt },
-          queuedAt: updatedAt,
-        });
-        showToast(t('item.editQueued'), 'info');
-        return null;
-      }
-    },
-    onSuccess: (updated) => {
-      if (updated !== null) showToast(t('item.editSaved'), 'success');
-      setEditOpen(false);
-      void queryClient.invalidateQueries({ queryKey: ['items'] });
-    },
-    onError: (error) => showToast(errorMessage(error, t), 'danger'),
-  });
-
-  const openEdit = () => {
-    if (!item) return;
-    setAcquiredAt(item.acquiredAt ?? '');
-    setAcquiredPrice(item.acquiredPrice === null ? '' : String(item.acquiredPrice));
-    setCondition(item.condition ?? '');
-    setNotes(item.notes ?? '');
-    setLocation(item.storageLocation ?? '');
-    setEditOpen(true);
-  };
-
-  const saveEdit = () => {
-    const price = acquiredPrice.trim() === '' ? null : Number(acquiredPrice);
-    saveMutation.mutate({
-      acquiredAt: acquiredAt.trim() === '' ? null : acquiredAt.trim(),
-      acquiredPrice: price !== null && Number.isNaN(price) ? null : price,
-      condition: condition.trim() === '' ? null : condition.trim(),
-      notes: notes.trim() === '' ? null : notes.trim(),
-      storageLocation: location.trim() === '' ? null : location.trim(),
+  /** « Corriger » : ouvre le formulaire d'identification et y amène l'écran. */
+  const openCorrection = () => {
+    setIdentityEditing(true);
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ y: Math.max(0, identityY.current - SCROLL_MARGIN), animated: true });
     });
   };
 
-  const saveAlert = async () => {
-    const threshold = Number(alertThreshold);
-    if (Number.isNaN(threshold) || threshold <= 0) {
-      showToast(t('errors.INVALID_INPUT'), 'info');
-      return;
-    }
-    try {
-      await client.alerts.upsert({
-        itemId,
-        type: 'price_threshold',
-        // Schéma lu par price-cron : { direction: 'above'|'below', threshold }.
-        config: { direction: 'above', threshold },
-        active: true,
-      });
-      showToast(t('item.alertSet', { value: formatEUR(threshold) }), 'success');
-      setAlertOpen(false);
-    } catch (error) {
-      showToast(errorMessage(error, t), 'danger');
-    }
-  };
-
   const exportPdf = async () => {
-    if (!item) return;
+    setExporting(true);
     try {
       const html = buildItemSheetHtml(
         item,
-        null,
+        analysisResultFromItem(item),
         valuation,
         (key, options) => t(key, options ?? {}) as string,
       );
@@ -183,218 +83,182 @@ export default function ItemSheet() {
       }
     } catch {
       showToast(t('item.exportError'), 'danger');
+    } finally {
+      setExporting(false);
     }
   };
 
-  const confirmDelete = () => {
-    Alert.alert(t('item.deleteTitle'), t('item.deleteMessage'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('common.delete'),
-        style: 'destructive',
-        onPress: () => {
-          void (async () => {
-            try {
-              await client.items.remove(itemId);
-            } catch {
-              await client.queue.enqueue({
-                id: `mut-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-                table: 'items',
-                type: 'delete',
-                payload: { id: itemId },
-                queuedAt: new Date().toISOString(),
-              });
-            }
-            showToast(t('item.deleted'), 'success');
-            void queryClient.invalidateQueries({ queryKey: ['items'] });
-            router.back();
-          })();
-        },
-      },
-    ]);
-  };
-
-  if (itemQuery.isLoading) {
-    return (
-      <Screen scroll={false}>
-        <View style={styles.center}>
-          <VSpinner />
-        </View>
-      </Screen>
-    );
-  }
-
-  if (!item) {
-    return (
-      <Screen scroll={false}>
-        <View style={styles.center}>
-          <VText variant="heading" center>
-            {t('item.notFound')}
-          </VText>
-          <VButton label={t('common.back')} variant="ghost" onPress={() => router.back()} />
-        </View>
-      </Screen>
-    );
-  }
-
-  const payload = analysisPayload(item);
-  const disclaimers = itemDisclaimers(item);
-  const history: ValuationRecord[] = historyQuery.data ?? [];
-  const valuationReliability = valuation
-    ? resolveReliabilityForResult({
-        central: valuation.central,
-        ci80: [valuation.ci80Low, valuation.ci80High],
-        reliability: valuation.reliability,
-        observations: valuation.sources,
-      })
-    : null;
+  const sheetState = fullSheetState(item);
+  const payload = analysisPayloadOf(item.attributes);
+  const heritage = (payload as { heritage?: HeritageProfile } | null)?.heritage ?? null;
 
   return (
-    <Screen>
+    <ScrollView
+      ref={scrollRef}
+      style={styles.flex}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
       {/* En-tête */}
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <VText variant="title">{item.title ?? t('common.unknown')}</VText>
-          <VBadge label={t(`domains.${item.domain}.name`)} tone="gold" />
+          <VText variant="title" accessibilityRole="header">
+            {item.title ?? t('common.unknown')}
+          </VText>
+          <View style={styles.badges}>
+            <VBadge label={t(`domains.${item.domain}.name`)} tone="gold" />
+            {sheetState === 'missing' || sheetState === 'failed' ? (
+              <VBadge label={t('item.fullSheet.badgeMissing')} tone="warning" />
+            ) : null}
+          </View>
         </View>
         {item.confidence !== null ? <ConfidenceBadge value={item.confidence} /> : null}
       </View>
 
-      {/* Bloc VALORISATION */}
-      <SheetSection title={t('item.valuationTitle')}>
-        {valuation && valuationReliability ? (
-          <>
-            <VText variant="title" tone="gold" tabularNums accessibilityLabel={formatEUR(valuation.central)}>
-              {formatEUR(valuation.central)}
-            </VText>
-            <KV
-              label={t('item.ci80')}
-              tabular
-              value={`${formatEUR(valuation.ci80Low)} – ${formatEUR(valuation.ci80High)}`}
-            />
-            <KV
-              label={t('item.ci95')}
-              tabular
-              value={`${formatEUR(valuation.ci95Low)} – ${formatEUR(valuation.ci95High)}`}
-            />
-            <KV
-              label={t('item.reliability')}
-              tabular
-              value={`${valuationReliability.value} / 100 · ${t('item.nSources', { count: valuationReliability.nSources })}`}
-            />
-            {valuation.sources.length > 0 ? (
-              <ValuationExplanation valuation={valuation} label={t('item.whyThisRange')} />
-            ) : null}
-            {/* Pari #1 — preuve de calibration du domaine (jamais trompeuse). */}
-            <CalibrationEvidence domain={item.domain} />
-          </>
-        ) : (
-          <VText variant="body" tone="dim">
-            {t('item.noValuation')}
-          </VText>
-        )}
-      </SheetSection>
+      {/* Actions rapides : visibles sans défiler. */}
+      <QuickActionsBar label={t('item.actionsTitle')}>
+        <QuickAction
+          icon="create-outline"
+          label={t('item.quick.correct')}
+          accessibilityHint={t('item.quick.correctHint')}
+          onPress={openCorrection}
+          expanded={identityEditing}
+        />
+        <QuickAction
+          icon="pricetag-outline"
+          label={valuation ? t('item.quick.reestimate') : t('item.quick.estimate')}
+          accessibilityHint={t('item.quick.estimateHint')}
+          onPress={() => actions.valuate.mutate()}
+          loading={actions.valuate.isPending}
+          highlighted={!latestQuery.isLoading && !latestQuery.isError && valuation === null}
+        />
+        <QuickAction
+          icon="notifications-outline"
+          label={t('item.quick.alert')}
+          accessibilityHint={t('item.quick.alertHint')}
+          onPress={() => setAlertOpen((open) => !open)}
+          expanded={alertOpen}
+        />
+        <QuickAction
+          icon="document-text-outline"
+          label={t('item.quick.exportPdf')}
+          accessibilityHint={t('item.quick.exportHint')}
+          onPress={() => void exportPdf()}
+          loading={exporting}
+        />
+        <QuickAction
+          icon="scale-outline"
+          label={t('item.quick.arbiter')}
+          accessibilityHint={t('arbiter.title')}
+          onPress={() => router.push(`/arbiter/${encodeURIComponent(item.id)}` as Href)}
+        />
+      </QuickActionsBar>
 
-      {/* Dernières ventes comparables — observations réelles retenues (§7). */}
-      {valuation ? <RecentSalesSection observations={valuation.sources} /> : null}
+      {alertOpen ? (
+        <View style={styles.panel}>
+          <PriceAlertForm itemId={item.id} onDone={() => setAlertOpen(false)} />
+        </View>
+      ) : null}
 
-      {/* Disclaimers TOUJOURS visibles */}
-      <SheetSection title={t('item.disclaimersTitle')}>
-        {(disclaimers.length > 0 ? disclaimers : [t('item.defaultDisclaimer')]).map((d, i) => (
-          <VText key={i} variant="caption" tone="gold">
-            {d}
-          </VText>
-        ))}
-      </SheetSection>
+      {/* Marché et envies, juste sous les actions rapides. */}
+      <View style={styles.panel}>
+        {/* Emplacement « Mettre en vente / échanger » : SellButton (chantier
+            plateformes) ouvre routes.sell(itemId) ou les offres. */}
+        <SellButton itemId={item.id} />
+        {/* Emplacement « Ajouter à mes envies » — branché par l'intégrateur :
+            <AddToWishlistButton {...entryFromItem(item)} /> */}
+      </View>
 
-      {/* Courbe de valeur */}
-      <SheetSection title={t('item.chartTitle')}>
-        <ValueChart records={history} emptyLabel={t('item.chartNeedsMore')} />
-      </SheetSection>
+      <ValuationSection item={item} latestQuery={latestQuery} historyQuery={historyQuery} actions={actions} />
 
-      {/* Sections d'analyse par domaine */}
-      {item.domain === 'wine' ? (
-        <WineSheet payload={payload as Partial<WineAnalysisPayload> | null} />
-      ) : null}
-      {item.domain === 'coin' ? (
-        <CoinSheet payload={payload as Partial<CoinAnalysisPayload> | null} />
-      ) : null}
-      {item.domain === 'art' ? (
-        <ArtSheet payload={payload as Partial<ArtAnalysisPayload> | null} />
-      ) : null}
-      {item.domain === 'stamp' ? (
-        <StampSheet payload={payload as Partial<StampAnalysisPayload> | null} />
-      ) : null}
-      {item.domain === 'watch' ? (
-        <WatchSheet payload={payload as Partial<WatchAnalysisPayload> | null} />
-      ) : null}
+      <View
+        onLayout={(event) => {
+          identityY.current = event.nativeEvent.layout.y;
+        }}
+      >
+        <IdentitySection
+          item={item}
+          valuation={valuation}
+          editing={identityEditing}
+          onEditingChange={setIdentityEditing}
+          actions={actions}
+        />
+      </View>
+
+      <FullSheetSection item={item} actions={actions} />
 
       {/* Histoire, rareté, nombre d'exemplaires — commun aux 5 modules. */}
-      <HeritageSection heritage={(payload as { heritage?: HeritageProfile } | null)?.heritage ?? null} />
+      <HeritageSection heritage={heritage} />
 
       {/* Journal : dégustation (historique perso) + provenance (chaîne de possession) */}
       <TastingNotesSection item={item} />
       <ProvenanceSection itemId={item.id} />
 
-      {/* Acquisition (éditable) */}
-      <SheetSection title={t('item.acquisitionTitle')}>
-        {editOpen ? (
-          <>
-            <VTextInput label={t('item.acquiredAt')} value={acquiredAt} onChangeText={setAcquiredAt} placeholder="2020-06-01" />
-            <VTextInput label={t('item.acquiredPrice')} value={acquiredPrice} onChangeText={setAcquiredPrice} keyboardType="numeric" />
-            <VTextInput label={t('item.condition')} value={condition} onChangeText={setCondition} />
-            <VTextInput label={t('item.storageLocation')} value={location} onChangeText={setLocation} />
-            <VTextInput label={t('item.notes')} value={notes} onChangeText={setNotes} />
-            <VButton label={t('common.save')} onPress={saveEdit} loading={saveMutation.isPending} />
-            <VButton label={t('common.cancel')} variant="ghost" onPress={() => setEditOpen(false)} />
-          </>
-        ) : (
-          <>
-            <KV label={t('item.acquiredAt')} value={item.acquiredAt ?? '—'} />
-            <KV
-              label={t('item.acquiredPrice')}
-              value={item.acquiredPrice === null ? '—' : formatEUR(item.acquiredPrice)}
-            />
-            <KV label={t('item.condition')} value={item.condition ?? '—'} />
-            <KV label={t('item.storageLocation')} value={item.storageLocation ?? '—'} />
-            <KV label={t('item.notes')} value={item.notes ?? '—'} />
-            <VButton label={t('common.edit')} variant="secondary" onPress={openEdit} accessibilityHint={t('item.acquisitionTitle')} />
-          </>
-        )}
-      </SheetSection>
+      <AcquisitionSection item={item} />
 
-      {/* Actions */}
-      <SheetSection title={t('item.actionsTitle')}>
-        {alertOpen ? (
-          <>
-            <VTextInput
-              label={t('item.alertPrompt')}
-              value={alertThreshold}
-              onChangeText={setAlertThreshold}
-              keyboardType="numeric"
-            />
-            <VButton label={t('common.confirm')} onPress={() => void saveAlert()} />
-            <VButton label={t('common.cancel')} variant="ghost" onPress={() => setAlertOpen(false)} />
-          </>
-        ) : (
-          <VButton label={t('item.setAlert')} variant="secondary" onPress={() => setAlertOpen(true)} />
-        )}
-        <VButton label={t('item.exportPdf')} variant="secondary" onPress={() => void exportPdf()} />
+      <DangerZone item={item} />
+    </ScrollView>
+  );
+}
+
+export default function ItemSheet() {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const params = useLocalSearchParams<{ id: string }>();
+  const itemId = typeof params.id === 'string' ? params.id : '';
+  const client = getVelumClient();
+
+  const itemQuery = useQuery({
+    queryKey: itemQueryKey(itemId),
+    queryFn: () => client.items.get(itemId),
+    enabled: itemId.length > 0,
+  });
+  const item = itemQuery.data ?? null;
+
+  let content;
+  if (itemQuery.isLoading) {
+    content = (
+      <View style={styles.center}>
+        <VSpinner />
+      </View>
+    );
+  } else if (item !== null) {
+    content = <ItemSheetBody item={item} />;
+  } else if (itemQuery.isError) {
+    // Panne : jamais présentée comme un objet introuvable.
+    content = (
+      <View style={styles.center}>
+        <VText variant="heading" center>
+          {t('item.loadError')}
+        </VText>
+        <VButton label={t('common.retry')} onPress={() => void itemQuery.refetch()} />
+      </View>
+    );
+  } else {
+    content = (
+      <View style={styles.center}>
+        <VText variant="heading" center>
+          {t('item.notFound')}
+        </VText>
         <VButton
-          label={t('arbiter.openButton')}
+          label={t('item.toCollection')}
           variant="secondary"
-          onPress={() => router.push(`/arbiter/${item.id}`)}
-          accessibilityHint={t('arbiter.title')}
+          onPress={() => router.replace(routes.collection() as Href)}
         />
-        <SellButton itemId={item.id} />
-        <VButton label={t('common.delete')} variant="danger" onPress={confirmDelete} />
-        <VButton label={t('common.back')} variant="ghost" onPress={() => router.back()} />
-      </SheetSection>
+      </View>
+    );
+  }
+
+  return (
+    <Screen scroll={false} title={t('item.screenTitle')} backFallback={routes.collection()}>
+      {content}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
+  content: { flexGrow: 1, paddingBottom: velumSpacing.xxl },
   center: { flex: 1, justifyContent: 'center', gap: velumSpacing.md },
   header: {
     flexDirection: 'row',
@@ -403,4 +267,6 @@ const styles = StyleSheet.create({
     gap: velumSpacing.sm,
   },
   headerText: { flex: 1, gap: velumSpacing.sm, alignItems: 'flex-start' },
+  badges: { flexDirection: 'row', flexWrap: 'wrap', gap: velumSpacing.xs },
+  panel: { marginTop: velumSpacing.md, gap: velumSpacing.sm },
 });
