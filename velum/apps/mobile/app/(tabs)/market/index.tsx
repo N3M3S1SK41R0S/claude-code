@@ -1,6 +1,7 @@
 /**
- * Onglet Marché : centre de notifications (table `notifications`), alertes
- * actives, section Marketplace « Bientôt disponible » (flag OFF).
+ * Onglet Marché : plateformes d'échange et de vente (une par catégorie +
+ * « Mon activité », Platine), centre de notifications (table
+ * `notifications`) et alertes actives.
  *
  * Chaque source possède son propre état loading/error/empty : une panne ne doit
  * jamais être présentée comme l'absence réelle de notifications ou d'alertes.
@@ -20,12 +21,15 @@ import {
 } from '@velum/ui';
 
 import { Screen } from '../../../components/Screen';
+import { PlatformTiles } from '../../../components/market/PlatformTiles';
 import { getVelumClient } from '../../../lib/client';
+import { isDemoMode } from '../../../lib/env';
 import { errorMessage } from '../../../lib/errors';
 import { getFeatures } from '../../../lib/features';
 import { formatDate, formatEUR } from '../../../lib/i18n';
 import { parseMarketNotifications } from '../../../lib/marketNotifications';
 import { usePlan } from '../../../lib/plan';
+import { routes } from '../../../lib/routes';
 
 export default function Market() {
   const { t } = useTranslation();
@@ -33,6 +37,9 @@ export default function Market() {
   const client = getVelumClient();
   const features = getFeatures();
   const planState = usePlan();
+  // Plateformes : flag produit (rails de paiement / KYC), toujours visibles en
+  // démo (aucune transaction réelle) ; l'accès reste gaté par l'offre Platine.
+  const showPlatforms = features.enableMarketplace || isDemoMode();
 
   const notificationsQuery = useQuery({
     queryKey: ['notifications'],
@@ -58,6 +65,53 @@ export default function Market() {
   return (
     <Screen back={false}>
       <VText variant="title">{t('market.title')}</VText>
+
+      {showPlatforms ? (
+        <View style={styles.section}>
+          <VText variant="heading" tone="gold" accessibilityRole="header">
+            {t('market.platformsTitle')}
+          </VText>
+          {planState.status === 'loading' ? (
+            <VButton
+              label={t('common.loading')}
+              disabled={true}
+              loading={true}
+              onPress={() => undefined}
+            />
+          ) : planState.status === 'error' ? (
+            <VCard style={styles.errorCard}>
+              <VText variant="body" tone="dim">
+                {errorMessage(planState.error, t)}
+              </VText>
+              <VButton
+                label={t('common.retry')}
+                variant="secondary"
+                onPress={planState.retry}
+              />
+            </VCard>
+          ) : planState.entitlements.community ? (
+            <>
+              <VText variant="caption" tone="dim">
+                {t('market.platformsIntro')}
+              </VText>
+              <PlatformTiles />
+            </>
+          ) : (
+            <VCard tone="gilded">
+              <View style={styles.marketplace}>
+                <VText variant="body" tone="dim">
+                  {t('market.communityBody')}
+                </VText>
+                <VButton
+                  label={t('market.communityCta')}
+                  variant="secondary"
+                  onPress={() => router.push(routes.paywall())}
+                />
+              </View>
+            </VCard>
+          )}
+        </View>
+      ) : null}
 
       <View style={styles.section}>
         <VText variant="heading" tone="gold">
@@ -130,52 +184,6 @@ export default function Market() {
           })
         )}
       </View>
-
-      {features.enableMarketplace ? (
-        <View style={styles.section}>
-          <VText variant="heading" tone="gold">
-            {t('market.communityTitle')}
-          </VText>
-          <VCard tone="gilded">
-            <View style={styles.marketplace}>
-              <VText variant="body" tone="dim">
-                {t('market.communityBody')}
-              </VText>
-              {planState.status === 'loading' ? (
-                <VButton
-                  label={t('common.loading')}
-                  disabled={true}
-                  loading={true}
-                  onPress={() => undefined}
-                />
-              ) : planState.status === 'error' ? (
-                <>
-                  <VText variant="caption" tone="dim">
-                    {errorMessage(planState.error, t)}
-                  </VText>
-                  <VButton
-                    label={t('common.retry')}
-                    variant="secondary"
-                    onPress={planState.retry}
-                  />
-                </>
-              ) : planState.entitlements.community ? (
-                <VButton
-                  label={t('community.open')}
-                  onPress={() => router.push('/community')}
-                  accessibilityHint={t('community.intro')}
-                />
-              ) : (
-                <VButton
-                  label={t('market.communityCta')}
-                  variant="secondary"
-                  onPress={() => router.push('/paywall')}
-                />
-              )}
-            </View>
-          </VCard>
-        </View>
-      ) : null}
     </Screen>
   );
 }
