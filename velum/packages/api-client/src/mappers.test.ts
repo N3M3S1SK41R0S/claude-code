@@ -321,6 +321,53 @@ describe('mappers marketplace (vues anonymisées)', () => {
     expect('listingCertified' in rowToExchangeProposal(legacyExchange)).toBe(false);
   });
 
+  it('rowToExchangeProposal : offeredItemId et offeredItemCertified seulement s’ils sont fournis', () => {
+    const exchange: ExchangeRow = {
+      id: 'x1',
+      listing_id: 'l1',
+      role: 'proposer',
+      counterparty_alias: 'Collectionneur 7F3A',
+      listing_title: 'Bloc CITEX',
+      listing_domain: 'stamp',
+      listing_value: '780',
+      offered_title: 'Pièce',
+      offered_domain: 'coin',
+      offered_value: '700',
+      cash_adjustment: '0',
+      currency: 'EUR',
+      message: null,
+      state: 'proposed',
+      my_commission: null,
+      certification_required: false,
+      listing_certified: false,
+      offered_item_id: 'i5',
+      offered_item_certified: true,
+      proposer_tracking: null,
+      recipient_tracking: null,
+      proposer_received: false,
+      recipient_received: false,
+      created_at: '2026-10-01T00:00:00Z',
+      updated_at: '2026-10-01T00:00:00Z',
+    };
+    // Auteur : son objet offert, et sa certification.
+    expect(rowToExchangeProposal(exchange)).toMatchObject({ offeredItemId: 'i5', offeredItemCertified: true });
+    // Destinataire : identifiant masqué par le serveur (null conservé), booléen recopié.
+    const recipient = rowToExchangeProposal({
+      ...exchange,
+      role: 'recipient',
+      offered_item_id: null,
+      offered_item_certified: false,
+    });
+    expect(recipient.offeredItemId).toBeNull();
+    expect(recipient.offeredItemCertified).toBe(false);
+    // Absents (serveur antérieur) ou booléen null : propriétés omises.
+    const legacy: ExchangeRow = { ...exchange, offered_item_certified: null };
+    delete legacy.offered_item_id;
+    const mapped = rowToExchangeProposal(legacy);
+    expect('offeredItemId' in mapped).toBe(false);
+    expect('offeredItemCertified' in mapped).toBe(false);
+  });
+
   it('rowToListing : nature, textes publics, certification', () => {
     const row: ListingRow = {
       id: 'l1',

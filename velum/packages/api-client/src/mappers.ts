@@ -619,8 +619,12 @@ export interface ExchangeRow {
   state: ExchangeState;
   my_commission: number | string | null;
   certification_required: boolean | null;
-  /** L'annonce visée porte déjà une certification d'expert. */
+  /** L'objet de l'annonce visée est déjà certifié (annonce ou objet). */
   listing_certified?: boolean | null;
+  /** MON objet offert : renseigné pour l'auteur seulement (null sinon). */
+  offered_item_id?: string | null;
+  /** L'objet offert est déjà certifié. */
+  offered_item_certified?: boolean | null;
   proposer_tracking: string | null;
   recipient_tracking: string | null;
   proposer_received: boolean | null;
@@ -650,6 +654,14 @@ export function rowToExchangeProposal(row: ExchangeRow): ExchangeProposal {
     myCommission: toNullableNumber(row.my_commission),
     certificationRequired: row.certification_required === true,
     ...(typeof row.listing_certified === 'boolean' ? { listingCertified: row.listing_certified } : {}),
+    // Colonnes additives : omises quand le dépôt ne les fournit pas (serveur
+    // antérieur) ; offered_item_id null (destinataire) est conservé.
+    ...(row.offered_item_id === undefined
+      ? {}
+      : { offeredItemId: typeof row.offered_item_id === 'string' && row.offered_item_id !== '' ? row.offered_item_id : null }),
+    ...(typeof row.offered_item_certified === 'boolean'
+      ? { offeredItemCertified: row.offered_item_certified }
+      : {}),
     proposerTracking: row.proposer_tracking ?? null,
     recipientTracking: row.recipient_tracking ?? null,
     proposerReceived: row.proposer_received === true,

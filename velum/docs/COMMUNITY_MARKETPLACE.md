@@ -131,7 +131,7 @@ pending_payment ─► funds_held ─► shipped ─► released      (heureux)
 |---|---|
 | `pending_payment → funds_held` | acheteur (**STRIPE** capture) — refusée si l'annonce a été réservée entre-temps, ou n'est plus celle qui a été commandée (statut, prix, devise, nature) |
 | `pending_payment / funds_held → cancelled` | acheteur ou vendeur (avant expédition) ; système quand l'annonce change avant paiement |
-| `funds_held → shipped` | vendeur, **suivi requis** (format contrôlé, transporteur de la liste ou aucun), **sans date de livraison** (posée par l'acheteur ou le transporteur), **bloquée tant qu'une certification est ouverte** |
+| `funds_held → shipped` | vendeur, **suivi requis** (format contrôlé, transporteur de la liste ou aucun), **sans date de livraison** (posée par l'acheteur ou le transporteur), **bloquée tant qu'une certification est ouverte** sur la commande ou sur l'annonce elle-même (seuil, volontaire) |
 | `funds_held / shipped → disputed` | acheteur |
 | `shipped → released` | acheteur, ou système (auto-libération `release_due_orders`, **STRIPE** payout) |
 | `disputed → released / refunded` | système (`resolve_dispute`, service_role) |
@@ -169,7 +169,9 @@ proposed ─► accepted ─► awaiting_certification ─► shipping ─► co
 l'annonce **déclinées**, propositions offrant les mêmes objets ailleurs
 **retirées**, commandes non payées annulées, annonce **réservée**. Chacun ne
 déclare que **son** envoi et ne confirme que la réception de l'objet **de
-l'autre** (une fois expédié). À la conclusion : annonce `exchanged`, annonce
+l'autre** (une fois expédié). Aucun envoi tant qu'une certification est
+ouverte sur l'échange, sur l'annonce visée ou sur une annonce de l'objet
+offert par l'auteur. À la conclusion : annonce `exchanged`, annonce
 éventuelle de l'objet reçu en contrepartie retirée.
 
 ## 4. Anonymat
@@ -187,10 +189,16 @@ l'autre** (une fois expédié). À la conclusion : annonce `exchanged`, annonce
   `my_certifications`, `thread_messages`) renvoient `role`,
   `counterparty_alias`, `mine`… et l'identifiant du seul utilisateur courant.
   `my_market_orders` et `my_exchanges` exposent aussi `listing_certified`
-  (`listingCertified`) : l'**annonce** porte déjà une certification d'expert —
+  (`listingCertified`) : l'objet de l'annonce est **déjà certifié** —
+  référence posée sur l'annonce, ou certification qui **suit l'objet** du
+  vendeur (§ 5 ; par exemple obtenue sur une commande ensuite annulée) —
   distinct de `certification_required` (demande portée par la transaction) ;
   aucune nouvelle expertise n'est alors recevable sur la commande, ni à la
-  demande de l'auteur d'une proposition d'échange.
+  demande de l'auteur d'une proposition d'échange. `my_exchanges` expose en
+  outre `offered_item_certified` (`offeredItemCertified` : l'objet **offert**
+  est déjà certifié, le destinataire ne peut plus en demander l'expertise) et
+  `offered_item_id` (`offeredItemId`) : **mon** objet offert, renseigné pour
+  l'**auteur** seulement (null pour le destinataire — jamais l'objet d'autrui).
 - **Masquage des coordonnées** (`redact_contact_info`, réplique exacte de
   `redactContactInfo`) : e-mails ENTIERS, partie locale comprise (accents,
   majuscules, maquillages « arobase », « (at) », « [at] », « point »,
@@ -229,10 +237,24 @@ sa catégorie sont inchangés** (renommer un objet certifié ne lui transmet pas
 badge). La même règle est **recalculée** à toute (re)publication ou
 réouverture par le vendeur (retirée → brouillon ou publiée, brouillon →
 publiée) : une annonce ne garde jamais un badge que la dernière décision ou le
-contenu de l'objet démentent. Deux décisions ex aequo (même horodatage) : le
-refus l'emporte. Un **refus** annule toute transaction non expédiée sur
-l'objet, le dépublie quel que soit le motif ou le contexte et reste mémorisé :
-toute republication passe par une nouvelle certification.
+contenu de l'objet démentent. Cette (re)publication **recopie d'abord** le
+contenu public de l'objet (titre expurgé, catégorie) dans l'annonce, avant le
+calcul : l'annonce montre l'objet tel qu'il sera expertisé, et la demande
+« seuil » enregistre son titre **actuel** — un objet renommé avant sa
+certification garde donc son badge aux republications suivantes ; renommé
+après, il exige **une** nouvelle expertise, une seule (le titre d'une demande
+n'est jamais réécrit à la décision de l'expert). Deux décisions ex aequo (même
+horodatage) : le refus l'emporte. Un **refus** annule toute transaction non
+expédiée sur l'objet, le dépublie quel que soit le motif ou le contexte et
+reste mémorisé : toute republication passe par une nouvelle certification.
+L'expédition étant bloquée tant qu'une expertise est ouverte sur la
+transaction **ou sur l'annonce qu'elle engage**, un refus trouve normalement
+la transaction non expédiée. Une transaction **déjà expédiée** (ou en litige)
+reste en place : son acheteur, ou l'autre partie de l'échange, est prévenu du
+refus pour ouvrir un litige, et l'annonce qu'elle réserve n'est pas modifiée
+(ni statut, ni référence, aucune demande « seuil ») ; si elle se termine
+**sans vente** (commande annulée ou remboursée, échange annulé), l'annonce de
+l'objet refusé passe en **brouillon**, sans référence de certification.
 
 ## 6. Commissionnement transparent
 

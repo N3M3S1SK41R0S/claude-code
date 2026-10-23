@@ -93,6 +93,8 @@ function exchangeView(overrides: Record<string, unknown> = {}): Record<string, u
     my_commission: null,
     certification_required: false,
     listing_certified: false,
+    offered_item_id: 'i5',
+    offered_item_certified: false,
     proposer_tracking: null,
     recipient_tracking: null,
     proposer_received: false,
@@ -400,6 +402,8 @@ describe('marketplace repo — échanges', () => {
       myCommission: null,
       certificationRequired: false,
       listingCertified: false,
+      offeredItemId: 'i5',
+      offeredItemCertified: false,
       proposerTracking: null,
       recipientTracking: null,
       proposerReceived: false,
@@ -424,14 +428,24 @@ describe('marketplace repo — échanges', () => {
   it('myExchanges : propositions émises et reçues, commission figée', async () => {
     fake.rpcResponses['my_exchanges'] = {
       data: [
-        exchangeView({ role: 'recipient', state: 'shipping', my_commission: '16.00', recipient_tracking: 'SO-1', recipient_received: true }),
+        exchangeView({
+          role: 'recipient',
+          state: 'shipping',
+          my_commission: '16.00',
+          recipient_tracking: 'SO-1',
+          recipient_received: true,
+          offered_item_id: null,
+          offered_item_certified: true,
+        }),
         exchangeView({ id: 'x2', listing_certified: true }),
       ],
     };
     const [exchange, onCertified] = await repo.myExchanges();
     expect(exchange).toMatchObject({ role: 'recipient', state: 'shipping', myCommission: 16, recipientTracking: 'SO-1', recipientReceived: true, proposerReceived: false, listingCertified: false });
+    // Destinataire : l'objet offert n'est jamais identifié ; déjà certifié ⇒ plus d'expertise à en demander.
+    expect(exchange).toMatchObject({ offeredItemId: null, offeredItemCertified: true });
     // Annonce visée déjà certifiée : l'auteur ne peut plus en demander l'expertise.
-    expect(onCertified).toMatchObject({ role: 'proposer', listingCertified: true });
+    expect(onCertified).toMatchObject({ role: 'proposer', listingCertified: true, offeredItemId: 'i5' });
     // Échéance relue de my_exchanges (expires_at) : l'interface masque « Accepter » une fois échue.
     expect(exchange?.expiresAt).toBe('2026-10-28T08:00:00Z');
   });

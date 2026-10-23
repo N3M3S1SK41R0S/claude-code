@@ -619,7 +619,11 @@ revoke all on function public.item_is_engaged(uuid, uuid) from public, anon;
 grant execute on function public.item_is_engaged(uuid, uuid) to authenticated, service_role;
 
 -- Certification OUVERTE (accord attendu, demandée, en cours d'expertise) sur
--- une commande ou un échange : l'expédition est bloquée.
+-- une commande ou un échange, ou sur une annonce que la transaction engage
+-- (demande de l'annonce elle-même, sans commande ni échange : seuil,
+-- volontaire) — l'annonce de la commande ; pour un échange, l'annonce visée
+-- et les annonces de l'objet offert par l'auteur : l'expédition est bloquée.
+-- Un refus trouve ainsi la transaction non expédiée, que la cascade annule.
 create or replace function public.has_open_certification(p_order uuid, p_exchange uuid)
 returns boolean
 language sql
@@ -628,11 +632,29 @@ security definer
 set search_path = public
 as $$
   select exists (
-    select 1 from public.certification_requests c
-    where c.status in ('awaiting_agreement', 'requested', 'in_review')
-      and ((p_order is not null and c.order_id = p_order)
-        or (p_exchange is not null and c.exchange_id = p_exchange))
-  )
+      select 1 from public.certification_requests c
+      where c.status in ('awaiting_agreement', 'requested', 'in_review')
+        and ((p_order is not null and c.order_id = p_order)
+          or (p_exchange is not null and c.exchange_id = p_exchange)))
+    or exists (
+      select 1
+      from public.orders o
+      join public.certification_requests c on c.listing_id = o.listing_id
+      where p_order is not null
+        and o.id = p_order
+        and c.order_id is null and c.exchange_id is null
+        and c.status in ('awaiting_agreement', 'requested', 'in_review'))
+    or exists (
+      select 1
+      from public.exchange_proposals e
+      join public.listings l
+        on l.id = e.listing_id
+        or (l.item_id = e.offered_item_id and l.seller_id = e.proposer_id)
+      join public.certification_requests c on c.listing_id = l.id
+      where p_exchange is not null
+        and e.id = p_exchange
+        and c.order_id is null and c.exchange_id is null
+        and c.status in ('awaiting_agreement', 'requested', 'in_review'))
 $$;
 revoke all on function public.has_open_certification(uuid, uuid) from public, anon;
 grant execute on function public.has_open_certification(uuid, uuid) to authenticated, service_role;
@@ -910,6 +932,8 @@ declare
   v_trusted boolean := public.market_trusted_actor();
   v_required boolean;
   v_report_ref text;
+  v_title text;
+  v_domain public.velum_domain;
   -- Création, ou retour d'un statut clos (retirée) vers un statut ouvert.
   v_opening boolean := new.status in ('draft', 'active', 'pending_certification')
     and (tg_op = 'INSERT' or old.status not in ('draft', 'active', 'pending_certification'));
@@ -941,7 +965,9 @@ begin
           using errcode = 'P0001';
       end if;
       -- Colonnes calculées par le serveur : toute valeur client est ignorée
-      -- (le badge « authentifié VELUM » ne se déclare pas, il vient d'un expert).
+      -- (le badge « authentifié VELUM » ne se déclare pas, il vient d'un
+      -- expert ; titre et catégorie sont recopiés de l'objet à la
+      -- (re)publication, plus bas).
       new.commission_rate := old.commission_rate;
       new.title := old.title;
       new.domain := old.domain;
@@ -1011,6 +1037,22 @@ begin
     if public._market_item_has_open_listing(new.item_id, new.id) then
       raise exception 'Cet objet a déjà une annonce ouverte : retirez-la d''abord'
         using errcode = 'P0001';
+    end if;
+  end if;
+
+  -- (Re)publication ou réouverture par le client : le contenu public de
+  -- l'objet (titre expurgé, catégorie) est d'abord RECOPIÉ dans l'annonce,
+  -- comme à la création (set_listing_display). L'annonce montre l'objet tel
+  -- qu'il sera expertisé, et la demande « seuil » (listing_after_change)
+  -- enregistre ce titre — celui que _market_item_certification_ref compare
+  -- au titre actuel de l'objet. Lecture sous RLS (le vendeur possède l'objet) :
+  -- objet illisible ⇒ affichage inchangé (jamais de titre effacé).
+  if tg_op = 'UPDATE' and not v_trusted and v_publishing and new.item_id is not null then
+    select public.redact_contact_info(i.title), i.domain into v_title, v_domain
+    from public.items i where i.id = new.item_id;
+    if found then
+      new.title := v_title;
+      new.domain := v_domain;
     end if;
   end if;
 
@@ -1422,6 +1464,22 @@ begin
   elsif new.escrow_state in ('cancelled', 'refunded') then
     update public.certification_requests set status = 'cancelled'
       where order_id = new.id and status in ('awaiting_agreement', 'requested', 'in_review');
+    -- Fin SANS vente d'une commande qui réservait l'annonce d'un objet refusé
+    -- par un expert (refus intervenu après l'expédition : l'annonce était
+    -- restée en place) : les annonces de l'objet qui ne sont plus réservées
+    -- quittent le catalogue — brouillon, référence de certification effacée.
+    update public.listings l
+       set status = case when l.status in ('active', 'pending_certification') then 'draft' else l.status end,
+           expert_appraisal_ref = null
+      from public.listings t
+     where t.id = new.listing_id
+       and t.item_id is not null
+       and l.item_id = t.item_id
+       and l.seller_id = t.seller_id
+       and l.status not in ('sold', 'exchanged')
+       and (l.status in ('active', 'pending_certification') or l.expert_appraisal_ref is not null)
+       and public._market_item_rejected(t.item_id, t.seller_id)
+       and not public.listing_is_engaged(l.id);
   end if;
   perform public.market_system_end(v_prev);
   return null;
@@ -1868,6 +1926,28 @@ begin
   elsif new.state in ('declined', 'withdrawn', 'expired', 'cancelled') then
     update public.certification_requests set status = 'cancelled'
       where exchange_id = new.id and status in ('awaiting_agreement', 'requested', 'in_review');
+    if new.state = 'cancelled' then
+      -- Fin SANS échange d'une transaction qui réservait un objet refusé par
+      -- un expert (refus intervenu après l'expédition) : les annonces de cet
+      -- objet — celui de l'annonce visée (destinataire), celui offert
+      -- (auteur) — qui ne sont plus réservées quittent le catalogue :
+      -- brouillon, référence de certification effacée.
+      update public.listings l
+         set status = case when l.status in ('active', 'pending_certification') then 'draft' else l.status end,
+             expert_appraisal_ref = null
+        from (
+          select t.item_id, t.seller_id from public.listings t where t.id = new.listing_id
+          union all
+          select new.offered_item_id, new.proposer_id
+        ) t
+       where t.item_id is not null
+         and l.item_id = t.item_id
+         and l.seller_id = t.seller_id
+         and l.status not in ('sold', 'exchanged')
+         and (l.status in ('active', 'pending_certification') or l.expert_appraisal_ref is not null)
+         and public._market_item_rejected(t.item_id, t.seller_id)
+         and not public.listing_is_engaged(l.id);
+    end if;
     if new.state = 'declined' then
       perform public.market_notify(new.proposer_id, 'Proposition d’échange déclinée', v_label);
     elsif new.state = 'expired' then
@@ -2084,13 +2164,18 @@ begin
     --     tombe (STRIPE : remboursement si les fonds étaient séquestrés) —
     --     commandes de ses annonces de l'objet (acheteur prévenu), échanges
     --     visant l'une d'elles ou offrant l'objet (les deux parties prévenues
-    --     par exchange_after_change) ; une transaction déjà expédiée reste en
-    --     place : elle relève du litige ;
+    --     par exchange_after_change) ; une transaction déjà expédiée (ou en
+    --     litige) reste en place : elle relève du litige, et l'acheteur ou
+    --     l'autre partie de l'échange est prévenu du refus ;
     --  2. PUIS l'objet jugé non authentique quitte le catalogue : ses annonces
     --     ouvertes repassent en brouillon, ses propositions d'échange en
     --     attente sont retirées, et la référence d'une certification
     --     antérieure est effacée de ses annonces non closes (une réouverture
-    --     ne ressuscite pas le badge).
+    --     ne ressuscite pas le badge). Une annonce encore RÉSERVÉE par une
+    --     transaction expédiée n'est pas touchée (ni statut, ni référence, ni
+    --     nouvelle demande « seuil ») : elle passe en brouillon, sans
+    --     référence, si cette transaction se termine sans vente
+    --     (order_after_change, exchange_after_change).
     -- Le refus reste mémorisé sur l'objet (_market_item_rejected) : toute
     -- republication exige une nouvelle certification.
     for v_order in
@@ -2121,6 +2206,39 @@ begin
                 where l.seller_id = new.owner_id
                   and (l.id = new.listing_id
                     or (new.item_id is not null and l.item_id = new.item_id))))));
+    -- Transactions déjà expédiées (ou en litige) sur cet objet : l'acheteur,
+    -- ou l'autre partie de l'échange, est prévenu (litige possible). Celles
+    -- de la demande elle-même ont déjà leur notification (v_other).
+    for v_order in
+      select o.buyer_id, l.title
+      from public.orders o
+      join public.listings l on l.id = o.listing_id
+      where o.escrow_state in ('shipped', 'disputed')
+        and o.id is distinct from new.order_id
+        and l.seller_id = new.owner_id
+        and (l.id = new.listing_id or (new.item_id is not null and l.item_id = new.item_id))
+    loop
+      perform public.market_notify(v_order.buyer_id, 'Certification refusée par l’expert',
+        format('« %s » a été jugé non authentique par un expert. Votre commande, déjà expédiée ou en litige, n’est pas annulée d’office : ouvrez un litige pour être remboursé.',
+          coalesce(v_order.title, v_label)));
+    end loop;
+    for v_order in
+      select case when e.proposer_id = new.owner_id then e.recipient_id else e.proposer_id end as party
+      from public.exchange_proposals e
+      where e.state in ('shipping', 'disputed')
+        and e.id is distinct from new.exchange_id
+        and ((new.item_id is not null and e.offered_item_id = new.item_id
+              and e.proposer_id = new.owner_id)
+          or e.listing_id in (
+            select l.id from public.listings l
+            where l.seller_id = new.owner_id
+              and (l.id = new.listing_id
+                or (new.item_id is not null and l.item_id = new.item_id))))
+    loop
+      perform public.market_notify(v_order.party, 'Certification refusée par l’expert',
+        format('« %s » a été jugé non authentique par un expert. Votre échange, déjà expédié ou en litige, n’est pas annulé d’office : ouvrez un litige pour l’annuler.',
+          v_label));
+    end loop;
     update public.listings l set status = 'draft'
       where l.seller_id = new.owner_id
         and l.status in ('active', 'pending_certification')
@@ -2130,7 +2248,8 @@ begin
       where l.seller_id = new.owner_id
         and l.expert_appraisal_ref is not null
         and l.status not in ('sold', 'exchanged')
-        and (l.id = new.listing_id or (new.item_id is not null and l.item_id = new.item_id));
+        and (l.id = new.listing_id or (new.item_id is not null and l.item_id = new.item_id))
+        and not public.listing_is_engaged(l.id);
     update public.exchange_proposals e set state = 'declined'
       from public.listings l
       where e.listing_id = l.id
