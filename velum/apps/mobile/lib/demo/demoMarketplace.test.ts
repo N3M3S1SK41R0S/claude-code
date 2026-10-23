@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { REDACTION_TOKEN } from '@velum/config';
 import { VelumError, type VelumItem } from '@velum/core';
 
-import { canRequestOrderCertification, itemCertifiedByExpert } from '../marketState';
+import {
+  canRequestExchangeCertification,
+  canRequestOrderCertification,
+  exchangeActions,
+  hasOpenCertificationOn,
+  itemCertifiedByExpert,
+  shipmentListingIds,
+} from '../marketState';
 import { createDemoMarketplaceRepo } from './demoMarketplace';
 
 const NOW = '2026-10-23T10:00:00.000Z';
@@ -306,14 +313,34 @@ describe('démo marketplace — alignement sur les règles serveur', () => {
     expect((await repo.myListings()).find((l) => l.id === 'demo-mine-1')).toMatchObject({ status: 'draft', certified: false });
   });
 
-  it('refus d’expert : une transaction DÉJÀ expédiée reste en place (litige), l’annonce qu’elle réserve aussi', async () => {
+  it('expertise de l’ANNONCE elle-même ouverte : pas d’expédition (R7), le refus trouve l’échange non expédié', async () => {
     const repo = setup();
     const voluntary = await repo.requestCertification({ reason: 'voluntary', listingId: 'demo-mine-1' });
     await repo.respondExchange('demo-exchange-1', true);
-    await repo.shipExchange('demo-exchange-1', 'LL000FR');
+    // Miroir de has_open_certification étendu : l'expertise de l'annonce visée bloque l'envoi…
+    await expect(repo.shipExchange('demo-exchange-1', 'LL000FR')).rejects.toMatchObject({ code: 'INVALID_INPUT' });
+    // … et l'interface, avec les mêmes données, ne propose pas « Expédier ».
+    const ex = (await repo.myExchanges()).find((e) => e.id === 'demo-exchange-1');
+    expect(ex).toBeDefined();
+    if (ex === undefined) return;
+    const blocked = hasOpenCertificationOn(await repo.myCertifications(), {
+      exchangeId: ex.id,
+      listingIds: shipmentListingIds(ex, await repo.myListings()),
+    });
+    expect(blocked).toBe(true);
+    expect(exchangeActions(ex, { hasOpenCertification: blocked })).not.toContain('ship');
+    // Refus : l'échange, jamais expédié, tombe ; l'annonce repasse en brouillon sans badge.
     await repo.decideCertification(voluntary.id, { certified: false });
-    expect((await repo.myExchanges()).find((e) => e.id === 'demo-exchange-1')?.state).toBe('shipping');
-    expect((await repo.myListings()).find((l) => l.id === 'demo-mine-1')?.status).toBe('active');
+    expect((await repo.myExchanges()).find((e) => e.id === 'demo-exchange-1')?.state).toBe('cancelled');
+    expect((await repo.myListings()).find((l) => l.id === 'demo-mine-1')).toMatchObject({ status: 'draft', certified: false });
+  });
+
+  it('expertise de l’annonce tranchée (certifiée) : l’expédition reprend', async () => {
+    const repo = setup();
+    const voluntary = await repo.requestCertification({ reason: 'voluntary', listingId: 'demo-mine-1' });
+    await repo.respondExchange('demo-exchange-1', true);
+    await repo.decideCertification(voluntary.id, { certified: true });
+    expect((await repo.shipExchange('demo-exchange-1', 'LL000FR')).recipientTracking).toBe('LL000FR');
   });
 
   it('certification puis refus postérieur : le badge quitte toutes mes annonces non closes de l’objet', async () => {
@@ -609,6 +636,46 @@ describe('démo marketplace — échanges', () => {
     });
     // Seuil d'échange : il ne s'annule qu'en annulant l'échange.
     await expectInvalid(repo.cancelCertification(certs[0]?.id ?? ''));
+  });
+
+  it('offeredItemId : MON objet offert, exposé à l’auteur seulement (anonymat de l’autre partie)', async () => {
+    const repo = setup();
+    const byId = async (id: string) => (await repo.myExchanges()).find((e) => e.id === id);
+    expect(await byId('demo-exchange-2')).toMatchObject({ role: 'proposer', offeredItemId: 'demo-exchange-2-offered' });
+    expect(await byId('demo-exchange-1')).toMatchObject({ role: 'recipient', offeredItemId: null });
+    const sent = await repo.proposeExchange({ listingId: 'demo-listing-4', offeredItemId: 'it-coin', offeredValue: 300 });
+    expect(sent.offeredItemId).toBe('it-coin');
+  });
+
+  it('objet certifié sans badge d’annonce (expertise d’échange) : listingCertified / offeredItemCertified (R8)', async () => {
+    // Ma Semeuse (annonce demo-mine-1) et l'Hercule offert dépassent le seuil.
+    const repo = setup(undefined, { 'demo-mine-1-item': 900, 'demo-listing-8-item': 900 });
+    await repo.respondExchange('demo-exchange-1', true);
+    const before = (await repo.myExchanges()).find((e) => e.id === 'demo-exchange-1');
+    expect(before).toMatchObject({ listingCertified: false, offeredItemCertified: false });
+    for (const c of (await repo.myCertifications()).filter((x) => x.exchangeId === 'demo-exchange-1')) {
+      await repo.decideCertification(c.id, { certified: true });
+    }
+    // Certification d'échange : aucun badge posé sur l'annonce, mais l'objet est certifié (il la suit).
+    expect((await repo.myListings()).find((l) => l.id === 'demo-mine-1')?.certified).toBe(false);
+    const after = (await repo.myExchanges()).find((e) => e.id === 'demo-exchange-1');
+    expect(after).toMatchObject({ state: 'shipping', listingCertified: true, offeredItemCertified: true });
+    // Aucune expertise de l'objet reçu (déjà certifié) ne m'est proposée, et le dépôt la refuse.
+    if (after !== undefined) expect(canRequestExchangeCertification(after, [])).toBe(false);
+    await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', exchangeId: 'demo-exchange-1' }));
+  });
+
+  it('commande sur l’annonce d’un objet certifié ailleurs : listingCertified, aucune seconde expertise (R8)', async () => {
+    // L'Hercule offert (annonce demo-listing-8 de son propriétaire) est certifié à l'échange, qui tombe ensuite.
+    const repo = setup(undefined, { 'demo-listing-8-item': 900 });
+    await repo.respondExchange('demo-exchange-1', true);
+    const threshold = (await repo.myCertifications()).find((c) => c.exchangeId === 'demo-exchange-1');
+    await repo.decideCertification(threshold?.id ?? '', { certified: true });
+    await repo.cancelExchange('demo-exchange-1');
+    const order = await repo.buy('demo-listing-8');
+    expect(order).toMatchObject({ listingCertified: true, certificationRequired: false });
+    expect(canRequestOrderCertification(order, [])).toBe(false);
+    await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', orderId: order.id }));
   });
 
   it('listingCertified : l’annonce visée porte déjà une certification (comme my_exchanges)', async () => {
