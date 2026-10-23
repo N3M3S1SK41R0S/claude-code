@@ -367,56 +367,90 @@ end
 $$;
 
 -- ── 7bis. Commission dégressive : 5 % → 2 % selon les ventes conclues ────────
+-- Vendeur dédié (Gaston, Platine) et 18 acheteurs : seules comptent les
+-- commandes LIBÉRÉES d'au moins 20 €, 3 au plus par acheteur.
+insert into auth.users (id, email)
+values ('77777777-7777-4777-8777-777777777777', 'gaston@test.dev');
+insert into auth.users (id, email)
+select ('78000000-0000-4000-8000-0000000000' || lpad(g::text, 2, '0'))::uuid, 'acheteur' || g || '@test.dev'
+from generate_series(1, 18) g;
+update public.profiles set plan = 'platine' where id = '77777777-7777-4777-8777-777777777777';
+insert into public.items (id, owner_id, domain, title) values
+  ('cccccccc-cccc-4ccc-8ccc-cccccccccc71', '77777777-7777-4777-8777-777777777777', 'coin', 'Pièce de Gaston'),
+  ('cccccccc-cccc-4ccc-8ccc-cccccccccc72', '77777777-7777-4777-8777-777777777777', 'coin', 'Lot vendu de Gaston');
+-- Annonce support de l'historique de ventes (fixture serveur).
+insert into public.listings (id, item_id, seller_id, ask_price, status)
+values ('dddddddd-dddd-4ddd-8ddd-dddddddddd72', 'cccccccc-cccc-4ccc-8ccc-cccccccccc72',
+        '77777777-7777-4777-8777-777777777777', 50, 'sold');
+
 do $$
 declare
   v_rate numeric;
   v_id uuid;
 begin
-  perform set_config('velum.uid', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', true);
+  perform set_config('velum.uid', '77777777-7777-4777-8777-777777777777', true);
   set local role authenticated;
 
   -- Nouveau vendeur : 5 % — et le client ne peut PAS choisir son taux.
   insert into public.listings (id, item_id, seller_id, ask_price, commission_rate)
-  values (gen_random_uuid(), 'cccccccc-cccc-4ccc-8ccc-cccccccccc01',
-          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100, 0.001)
+  values (gen_random_uuid(), 'cccccccc-cccc-4ccc-8ccc-cccccccccc71',
+          '77777777-7777-4777-8777-777777777777', 100, 0.001)
   returning id, commission_rate into v_id, v_rate;
   if v_rate <> 0.05 then
     raise exception 'commission : attendu 5 %% pour un nouveau vendeur, vu %', v_rate;
   end if;
+  update public.listings set status = 'withdrawn' where id = v_id;
 
+  -- Historique (fixture, triggers neutralisés) : 10 ventes libérées à 50 €,
+  -- auprès de 4 acheteurs (3 + 3 + 3 + 1) → palier 4 %.
   reset role;
-  -- 10 ventes conclues (petites, sous le seuil d''expertise) → palier 4 %.
-  insert into public.listings (item_id, seller_id, ask_price, status)
-  select 'cccccccc-cccc-4ccc-8ccc-cccccccccc01',
-         'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 50, 'sold'
-  from generate_series(1, 10);
+  perform set_config('session_replication_role', 'replica', true);
+  insert into public.orders (listing_id, buyer_id, seller_id, amount, currency, commission_rate, escrow_state, released_at)
+  select 'dddddddd-dddd-4ddd-8ddd-dddddddddd72',
+         ('78000000-0000-4000-8000-0000000000' || lpad((((n - 1) / 3) + 1)::text, 2, '0'))::uuid,
+         '77777777-7777-4777-8777-777777777777', 50, 'EUR', 0.05, 'released', now()
+  from generate_series(1, 10) n;
+  -- Ventes à vil prix (< 20 €) ou en surnombre chez un même acheteur : ignorées.
+  insert into public.orders (listing_id, buyer_id, seller_id, amount, currency, commission_rate, escrow_state, released_at)
+  select 'dddddddd-dddd-4ddd-8ddd-dddddddddd72', '78000000-0000-4000-8000-000000000001',
+         '77777777-7777-4777-8777-777777777777', amount, 'EUR', 0.05, 'released', now()
+  from (values (50), (50), (50), (5), (5), (5), (5), (5)) v(amount);
+  perform set_config('session_replication_role', 'origin', true);
 
+  perform set_config('velum.uid', '77777777-7777-4777-8777-777777777777', true);
   set local role authenticated;
   insert into public.listings (item_id, seller_id, ask_price)
-  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01',
-          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100)
-  returning commission_rate into v_rate;
+  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc71',
+          '77777777-7777-4777-8777-777777777777', 100)
+  returning id, commission_rate into v_id, v_rate;
   if v_rate <> 0.04 then
-    raise exception 'commission : attendu 4 %% après 10 ventes, vu %', v_rate;
+    raise exception 'commission : attendu 4 %% après 10 ventes retenues, vu %', v_rate;
   end if;
+  update public.listings set status = 'withdrawn' where id = v_id;
 
+  -- 40 ventes retenues de plus (acheteurs 5 à 18, 3 chacun, 1 pour le dernier) → plancher 2 %.
   reset role;
-  -- Jusqu''à 50 ventes conclues → plancher 2 %.
-  insert into public.listings (item_id, seller_id, ask_price, status)
-  select 'cccccccc-cccc-4ccc-8ccc-cccccccccc01',
-         'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 50, 'sold'
-  from generate_series(1, 40);
+  perform set_config('session_replication_role', 'replica', true);
+  insert into public.orders (listing_id, buyer_id, seller_id, amount, currency, commission_rate, escrow_state, released_at)
+  select 'dddddddd-dddd-4ddd-8ddd-dddddddddd72',
+         ('78000000-0000-4000-8000-0000000000' || lpad((((n - 1) / 3) + 5)::text, 2, '0'))::uuid,
+         '77777777-7777-4777-8777-777777777777', 50, 'EUR', 0.05, 'released', now()
+  from generate_series(1, 40) n;
+  perform set_config('session_replication_role', 'origin', true);
 
+  perform set_config('velum.uid', '77777777-7777-4777-8777-777777777777', true);
   set local role authenticated;
   insert into public.listings (item_id, seller_id, ask_price)
-  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01',
-          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100)
-  returning commission_rate into v_rate;
+  values ('cccccccc-cccc-4ccc-8ccc-cccccccccc71',
+          '77777777-7777-4777-8777-777777777777', 100)
+  returning id, commission_rate into v_id, v_rate;
   if v_rate <> 0.02 then
-    raise exception 'commission : attendu 2 %% (plancher) après 50 ventes, vu %', v_rate;
+    raise exception 'commission : attendu 2 %% (plancher) après 50 ventes retenues, vu %', v_rate;
   end if;
+  -- Hors catalogue des fichiers de tests suivants.
+  update public.listings set status = 'withdrawn' where id = v_id;
 
-  raise notice 'OK 7bis — commission dégressive 5 %% → 4 %% → 2 %%, non choisie par le client';
+  raise notice 'OK 7bis — commission dégressive 5 %% → 4 %% → 2 %% (ventes réelles), non choisie par le client';
 end
 $$;
 
