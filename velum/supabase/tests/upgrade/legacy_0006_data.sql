@@ -211,4 +211,46 @@ from (values
 ) as v(id, listing_id, buyer_id, amount, currency, state, age);
 set session_replication_role = origin;
 
+-- Edmond : offre Platine EXPIRÉE sous 0006 (aucun retrait à l'époque), ses
+-- annonces toujours publiées — référence d'expertise déclarée par le vendeur
+-- au-delà du seuil, annonce sous-déclarée (estimation 5 000 €) portant une
+-- commande en attente de Camille, et annonce sous-déclarée dont le paiement
+-- de Bérénice est capturé (engagée).
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('b5000000-0000-4000-8000-000000000005', 'edmond@legacy.test', '{"display_name":"Edmond"}');
+update public.profiles set plan = 'platine' where id = 'b5000000-0000-4000-8000-000000000005';
+insert into public.items (id, owner_id, domain, title) values
+  ('c5000000-0000-4000-8000-000000000001', 'b5000000-0000-4000-8000-000000000005', 'watch', 'Jaeger Reverso'),
+  ('c5000000-0000-4000-8000-000000000002', 'b5000000-0000-4000-8000-000000000005', 'watch', 'Omega Constellation'),
+  ('c5000000-0000-4000-8000-000000000003', 'b5000000-0000-4000-8000-000000000005', 'watch', 'Longines Conquest');
+insert into public.valuations (
+  item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, valued_at)
+select v.item_id::uuid, 5000, 4500, 5500, 4000, 6000, 70, now() - interval '1 month'
+from (values
+  ('c5000000-0000-4000-8000-000000000002'),
+  ('c5000000-0000-4000-8000-000000000003')
+) as v(item_id);
+insert into public.listings (
+  id, item_id, seller_id, ask_price, currency, status, expert_appraisal_ref, created_at) values
+  ('d5000000-0000-4000-8000-000000000001', 'c5000000-0000-4000-8000-000000000001',
+   'b5000000-0000-4000-8000-000000000005', 800, 'EUR', 'active', 'moi/rapport-reverso.pdf',
+   now() - interval '20 days'),
+  ('d5000000-0000-4000-8000-000000000002', 'c5000000-0000-4000-8000-000000000002',
+   'b5000000-0000-4000-8000-000000000005', 300, 'EUR', 'active', null, now() - interval '20 days'),
+  ('d5000000-0000-4000-8000-000000000003', 'c5000000-0000-4000-8000-000000000003',
+   'b5000000-0000-4000-8000-000000000005', 300, 'EUR', 'active', null, now() - interval '20 days');
+-- Expiration RevenueCat sous 0006.
+update public.profiles set plan = 'free' where id = 'b5000000-0000-4000-8000-000000000005';
+set session_replication_role = replica;
+insert into public.orders (
+  id, listing_id, buyer_id, seller_id, amount, currency, commission_rate, escrow_state, created_at)
+values
+  ('e5000000-0000-4000-8000-000000000001', 'd5000000-0000-4000-8000-000000000002',
+   'b3000000-0000-4000-8000-000000000003', 'b5000000-0000-4000-8000-000000000005',
+   300, 'EUR', 0.05, 'pending_payment', now() - interval '2 days'),
+  ('e5000000-0000-4000-8000-000000000002', 'd5000000-0000-4000-8000-000000000003',
+   'b2000000-0000-4000-8000-000000000002', 'b5000000-0000-4000-8000-000000000005',
+   300, 'EUR', 0.05, 'funds_held', now() - interval '2 days');
+set session_replication_role = origin;
+
 select 'LEGACY 0006 DATA LOADED' as result;

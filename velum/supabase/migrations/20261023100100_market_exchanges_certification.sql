@@ -629,6 +629,8 @@ grant execute on function public.item_is_engaged(uuid, uuid) to authenticated, s
 -- volontaire) — l'annonce de la commande ; pour un échange, l'annonce visée
 -- et les annonces de l'objet offert par l'auteur : l'expédition est bloquée.
 -- Un refus trouve ainsi la transaction non expédiée, que la cascade annule.
+-- Une demande « seuil » de l'annonce seule devenue sans objet (objet certifié
+-- depuis, _market_item_certification_ref) ne bloque rien.
 create or replace function public.has_open_certification(p_order uuid, p_exchange uuid)
 returns boolean
 language sql
@@ -648,7 +650,9 @@ as $$
       where p_order is not null
         and o.id = p_order
         and c.order_id is null and c.exchange_id is null
-        and c.status in ('awaiting_agreement', 'requested', 'in_review'))
+        and c.status in ('awaiting_agreement', 'requested', 'in_review')
+        and not (c.reason = 'threshold'
+                 and public._market_item_certification_ref(c.item_id, c.owner_id) is not null))
     or exists (
       select 1
       from public.exchange_proposals e
@@ -659,7 +663,9 @@ as $$
       where p_exchange is not null
         and e.id = p_exchange
         and c.order_id is null and c.exchange_id is null
-        and c.status in ('awaiting_agreement', 'requested', 'in_review'))
+        and c.status in ('awaiting_agreement', 'requested', 'in_review')
+        and not (c.reason = 'threshold'
+                 and public._market_item_certification_ref(c.item_id, c.owner_id) is not null))
 $$;
 revoke all on function public.has_open_certification(uuid, uuid) from public, anon;
 grant execute on function public.has_open_certification(uuid, uuid) to authenticated, service_role;
@@ -1171,20 +1177,32 @@ set search_path = public
 as $$
 declare
   v_prev text;
+  v_title text;
+  v_domain public.velum_domain;
 begin
   -- Entrée en 'pending_certification' : demande « seuil » ouverte d'office,
-  -- à la charge du vendeur (defaultCertificationFeePayer('threshold')).
+  -- à la charge du vendeur (defaultCertificationFeePayer('threshold')). Elle
+  -- enregistre le contenu ACTUEL de l'objet (titre expurgé, catégorie), celui
+  -- que _market_item_certification_ref compare : une suspension par le
+  -- serveur (estimation, fin de transaction) ne recopie pas le titre dans
+  -- l'annonce. Objet illisible : titre de l'annonce.
   if new.status = 'pending_certification'
      and (tg_op = 'INSERT' or old.status is distinct from 'pending_certification')
      and not exists (
        select 1 from public.certification_requests c
        where c.listing_id = new.id and c.order_id is null and c.exchange_id is null
          and c.status in ('awaiting_agreement', 'requested', 'in_review')) then
+    select public.redact_contact_info(i.title), i.domain into v_title, v_domain
+    from public.items i where i.id = new.item_id;
+    if not found then
+      v_title := new.title;
+      v_domain := new.domain;
+    end if;
     insert into public.certification_requests (
       listing_id, item_id, item_title, domain, owner_id, requested_by,
       reason, status, fee_payer, counterparty_agreed)
     values (
-      new.id, new.item_id, new.title, new.domain, new.seller_id, new.seller_id,
+      new.id, new.item_id, v_title, v_domain, new.seller_id, new.seller_id,
       'threshold', 'requested', 'seller', true);
   end if;
 
@@ -1294,12 +1312,26 @@ create trigger valuations_recheck_listing_certification
   after insert on public.valuations
   for each row execute function public.recheck_listing_certification();
 
--- Fin SANS vente d'une transaction : les annonces publiées de l'objet qui ne
--- sont plus réservées sont réévaluées comme des annonces neuves.
+-- Fin SANS vente d'une transaction (commande PAYÉE annulée ou remboursée,
+-- échange annulé) : les annonces publiées de l'objet qui ne sont plus
+-- réservées sont réévaluées comme des annonces neuves.
 -- recheck_listing_certification les épargnait pendant la réservation : une
--- estimation au-delà du seuil arrivée entre-temps s'applique maintenant, et
--- une référence d'expertise que la dernière décision d'expert ne confirme
--- pas (référence saisie sous 0006, objet modifié depuis) tombe.
+-- estimation au-delà du seuil arrivée entre-temps s'applique maintenant. La
+-- référence d'expertise est recalculée sans jamais effacer une certification
+-- VELUM réelle :
+--  - dernière décision d'expert sur l'objet = refus ⇒ effacée ;
+--  - objet certifié (_market_item_certification_ref : la certification suit
+--    l'objet, obtenue par exemple pendant la réservation) ⇒ référence de
+--    l'annonce, à défaut celle de l'objet ;
+--  - référence posée par une décision 'certified' d'expert sur l'objet du
+--    vendeur ⇒ conservée (objet renommé depuis : une republication par le
+--    vendeur la recalculera) ;
+--  - sinon (référence saisie par le vendeur sous 0006) ⇒ effacée.
+-- Vendeur SANS offre Platine (abonnement terminé pendant la réservation :
+-- profile_after_plan_change avait épargné l'annonce engagée) : ses annonces
+-- libérées sont d'abord RETIRÉES, comme à la fin d'abonnement (même
+-- notification), jamais réévaluées — ni suspension, ni expertise « seuil »
+-- à ses frais.
 create or replace function public._market_recheck_freed_listings(p_item uuid, p_owner uuid)
 returns void
 language plpgsql
@@ -1308,17 +1340,41 @@ set search_path = public
 as $$
 declare
   r record;
+  v_withdrawn integer;
 begin
   if p_item is null then
     return;
+  end if;
+  update public.listings l set status = 'withdrawn'
+   where l.item_id = p_item
+     and l.seller_id = p_owner
+     and l.status in ('active', 'pending_certification')
+     and not public.listing_is_engaged(l.id)
+     and not public.can_list_on_marketplace(l.seller_id);
+  get diagnostics v_withdrawn = row_count;
+  if v_withdrawn > 0 then
+    perform public.market_notify(
+      p_owner,
+      'Annonces retirées',
+      format(
+        'Votre offre Platine a pris fin : %s annonce(s) ont été retirées des plateformes d’échange et de vente. Les transactions en cours se poursuivent.',
+        v_withdrawn));
   end if;
   for r in
     -- Ré-évaluation par le trigger des annonces (statut demandé : 'active').
     update public.listings l
        set status = 'active',
            expert_appraisal_ref = case
-             when public._market_item_certification_ref(l.item_id, l.seller_id) is null then null
-             else l.expert_appraisal_ref end
+             when public._market_item_rejected(l.item_id, l.seller_id) then null
+             when public._market_item_certification_ref(l.item_id, l.seller_id) is not null then
+               coalesce(l.expert_appraisal_ref, public._market_item_certification_ref(l.item_id, l.seller_id))
+             when exists (
+               select 1 from public.certification_requests c
+               where c.status = 'certified'
+                 and c.item_id = l.item_id
+                 and c.owner_id = l.seller_id
+                 and c.report_ref = l.expert_appraisal_ref) then l.expert_appraisal_ref
+             else null end
      where l.item_id = p_item
        and l.seller_id = p_owner
        and l.status = 'active'
@@ -1593,24 +1649,29 @@ begin
   elsif new.escrow_state in ('cancelled', 'refunded') then
     update public.certification_requests set status = 'cancelled'
       where order_id = new.id and status in ('awaiting_agreement', 'requested', 'in_review');
-    -- Fin SANS vente d'une commande qui réservait l'annonce d'un objet refusé
-    -- par un expert (refus intervenu après l'expédition : l'annonce était
-    -- restée en place) : les annonces de l'objet qui ne sont plus réservées
-    -- quittent le catalogue — brouillon, référence de certification effacée.
-    update public.listings l
-       set status = case when l.status in ('active', 'pending_certification') then 'draft' else l.status end,
-           expert_appraisal_ref = null
-      from public.listings t
-     where t.id = new.listing_id
-       and t.item_id is not null
-       and l.item_id = t.item_id
-       and l.seller_id = t.seller_id
-       and l.status not in ('sold', 'exchanged')
-       and (l.status in ('active', 'pending_certification') or l.expert_appraisal_ref is not null)
-       and public._market_item_rejected(t.item_id, t.seller_id)
-       and not public.listing_is_engaged(l.id);
-    perform public._market_recheck_freed_listings(l.item_id, l.seller_id)
-      from public.listings l where l.id = new.listing_id;
+    -- Une commande jamais payée ne réservait rien (listing_is_engaged) : son
+    -- annulation ne libère ni ne réévalue aucune annonce.
+    if old.escrow_state in ('funds_held', 'shipped', 'disputed') then
+      -- Fin SANS vente d'une commande qui réservait l'annonce d'un objet
+      -- refusé par un expert (refus intervenu après l'expédition : l'annonce
+      -- était restée en place) : les annonces de l'objet qui ne sont plus
+      -- réservées quittent le catalogue — brouillon, référence de
+      -- certification effacée.
+      update public.listings l
+         set status = case when l.status in ('active', 'pending_certification') then 'draft' else l.status end,
+             expert_appraisal_ref = null
+        from public.listings t
+       where t.id = new.listing_id
+         and t.item_id is not null
+         and l.item_id = t.item_id
+         and l.seller_id = t.seller_id
+         and l.status not in ('sold', 'exchanged')
+         and (l.status in ('active', 'pending_certification') or l.expert_appraisal_ref is not null)
+         and public._market_item_rejected(t.item_id, t.seller_id)
+         and not public.listing_is_engaged(l.id);
+      perform public._market_recheck_freed_listings(l.item_id, l.seller_id)
+        from public.listings l where l.id = new.listing_id;
+    end if;
   end if;
   perform public.market_system_end(v_prev);
   return null;
@@ -2264,6 +2325,7 @@ declare
     else new.requested_by
   end;
   v_order record;
+  v_ref text;
 begin
   if new.status is not distinct from old.status then
     return null;
@@ -2286,6 +2348,27 @@ begin
       -- Badge « authentifié VELUM » : l'annonce en attente est publiée.
       update public.listings set expert_appraisal_ref = new.report_ref
         where id = new.listing_id and status not in ('sold', 'exchanged', 'withdrawn');
+    end if;
+    -- La certification suit l'objet (_market_item_certification_ref) : ses
+    -- annonces en attente de certification, sans référence, la reprennent
+    -- (mise à jour de confiance ⇒ statut recalculé), PUIS les autres demandes
+    -- « seuil » de l'annonce seule encore ouvertes pour cet objet du
+    -- propriétaire, devenues sans objet, sont annulées (jamais une seconde
+    -- expertise facturée ; l'annonce, déjà référencée, reste publiée).
+    v_ref := public._market_item_certification_ref(new.item_id, new.owner_id);
+    if v_ref is not null then
+      update public.listings l set expert_appraisal_ref = v_ref
+        where l.item_id = new.item_id
+          and l.seller_id = new.owner_id
+          and l.status = 'pending_certification'
+          and l.expert_appraisal_ref is null;
+      update public.certification_requests c set status = 'cancelled'
+        where c.id <> new.id
+          and c.item_id = new.item_id
+          and c.owner_id = new.owner_id
+          and c.order_id is null and c.exchange_id is null
+          and c.reason = 'threshold'
+          and c.status in ('awaiting_agreement', 'requested', 'in_review');
     end if;
     if new.exchange_id is not null then
       perform public._exchange_resume_after_certification(new.exchange_id);
@@ -2485,6 +2568,12 @@ grant execute on function public.release_due_orders() to service_role;
 -- annonces ouvertes et NON ENGAGÉES repassent par enforce_listing_rules
 -- (acteur de confiance : statut recalculé, référence non réécrite), dans cet
 -- ordre :
+--  0. un membre dont l'offre Platine a expiré sous 0006 (aucun retrait à
+--     l'époque) ne vend plus : ses annonces publiées ou en attente de
+--     certification sont RETIRÉES, comme à la fin d'abonnement
+--     (profile_after_plan_change, même notification ; commandes non payées
+--     annulées, acheteurs prévenus) — jamais suspendues ni soumises à une
+--     expertise « seuil » à ses frais ;
 --  1. la référence d'expertise 0003/0006, saisie par le vendeur lui-même
 --     (« rapport d'expertise fourni par le vendeur »), est effacée faute de
 --     décision d'expert VELUM (R3 : le badge ne se déclare pas) ;
@@ -2511,8 +2600,28 @@ declare
     join public.listings l on l.id = o.listing_id
     where o.escrow_state = 'pending_payment'
       and l.status = 'active');
+  v_sellers uuid[] := '{}';
   r record;
 begin
+  for r in
+    update public.listings l set status = 'withdrawn'
+    where l.status in ('active', 'pending_certification')
+      and not public.can_list_on_marketplace(l.seller_id)
+      and not public.listing_is_engaged(l.id)
+    returning l.seller_id
+  loop
+    v_sellers := v_sellers || r.seller_id;
+  end loop;
+  for r in
+    select s.seller_id, count(*) as withdrawn
+    from unnest(v_sellers) as s(seller_id)
+    group by s.seller_id
+  loop
+    perform public.market_notify(r.seller_id, 'Annonces retirées',
+      format('Votre offre Platine a pris fin : %s annonce(s) ont été retirées des plateformes d’échange et de vente. Les transactions en cours se poursuivent.',
+        r.withdrawn));
+  end loop;
+
   for r in
     update public.listings l
     set expert_appraisal_ref = null,
@@ -2548,6 +2657,7 @@ begin
     where l.status = 'active'
       and l.expert_appraisal_ref is null
       and not public.listing_is_engaged(l.id)
+      and public.can_list_on_marketplace(l.seller_id)
       -- Même décision que le trigger (référence nulle : suspendue si exigée).
       and (select s.required
            from public.listing_certification_snapshot(l.item_id, l.seller_id, l.ask_price) s)
@@ -2561,14 +2671,19 @@ begin
   end loop;
 
   for r in
-    select o.buyer_id, l.title
+    select o.buyer_id, l.title, l.status
     from public.orders o
     join public.listings l on l.id = o.listing_id
     where o.id = any (v_pending) and o.escrow_state = 'cancelled'
   loop
     perform public.market_notify(r.buyer_id, 'Commande annulée',
-      format('L’annonce « %s » est suspendue jusqu’à sa certification par un expert : votre commande en attente de paiement est annulée.',
-        coalesce(r.title, 'objet')));
+      case when r.status = 'withdrawn' then
+        format('L’annonce « %s » n’est plus publiée : votre commande en attente de paiement est annulée.',
+          coalesce(r.title, 'objet'))
+      else
+        format('L’annonce « %s » est suspendue jusqu’à sa certification par un expert : votre commande en attente de paiement est annulée.',
+          coalesce(r.title, 'objet'))
+      end);
   end loop;
   perform public.market_system_end(v_prev);
 end

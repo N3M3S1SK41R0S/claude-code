@@ -368,6 +368,46 @@ describe('mappers marketplace (vues anonymisées)', () => {
     expect('offeredItemCertified' in mapped).toBe(false);
   });
 
+  it('rowToExchangeProposal : shipmentBlocked recopié du serveur, omis s’il est absent', () => {
+    const exchange: ExchangeRow = {
+      id: 'x1',
+      listing_id: 'l1',
+      role: 'proposer',
+      counterparty_alias: 'Collectionneur 7F3A',
+      listing_title: 'Écu de Louis XV',
+      listing_domain: 'coin',
+      listing_value: '200',
+      offered_title: 'Teston Henri II',
+      offered_domain: 'coin',
+      offered_value: '180',
+      cash_adjustment: '0',
+      currency: 'EUR',
+      message: null,
+      state: 'shipping',
+      my_commission: '9.00',
+      certification_required: false,
+      listing_certified: false,
+      offered_item_id: 'i5',
+      offered_item_certified: false,
+      proposer_tracking: null,
+      recipient_tracking: null,
+      proposer_received: false,
+      recipient_received: false,
+      created_at: '2026-10-01T00:00:00Z',
+      updated_at: '2026-10-01T00:00:00Z',
+      // Expertise de l'annonce d'autrui en cours : invisible ici, mais
+      // l'expédition est bloquée (calcul du serveur).
+      shipment_blocked: true,
+    };
+    expect(rowToExchangeProposal(exchange).shipmentBlocked).toBe(true);
+    expect(rowToExchangeProposal({ ...exchange, shipment_blocked: false }).shipmentBlocked).toBe(false);
+    // Absent ou null (serveur antérieur) : propriété omise, jamais « non bloquée » présumé.
+    expect('shipmentBlocked' in rowToExchangeProposal({ ...exchange, shipment_blocked: null })).toBe(false);
+    const legacy: ExchangeRow = { ...exchange };
+    delete legacy.shipment_blocked;
+    expect('shipmentBlocked' in rowToExchangeProposal(legacy)).toBe(false);
+  });
+
   it('rowToListing : nature, textes publics, certification', () => {
     const row: ListingRow = {
       id: 'l1',

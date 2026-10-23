@@ -83,7 +83,11 @@ create type public.market_exchange_view as (
   recipient_received boolean,
   expires_at timestamptz,
   created_at timestamptz,
-  updated_at timestamptz
+  updated_at timestamptz,
+  -- Une expertise en cours bloque l'expédition (has_open_certification) —
+  -- y compris celle de l'annonce de l'AUTRE partie, absente de
+  -- my_certifications : un booléen, jamais l'expertise ni son demandeur.
+  shipment_blocked boolean
 );
 
 create type public.market_certification_view as (
@@ -427,7 +431,9 @@ as $$
     e.recipient_received,
     e.expires_at,
     e.created_at,
-    e.updated_at
+    e.updated_at,
+    -- Même règle que l'expédition (enforce_exchange_transition).
+    public.has_open_certification(null, e.id)
   from public.exchange_proposals e
   left join public.listings l on l.id = e.listing_id
   where auth.uid() in (e.proposer_id, e.recipient_id)
@@ -797,11 +803,21 @@ begin
         raise exception 'Annonce engagée dans une transaction : demandez l''expertise sur la transaction'
           using errcode = 'P0001';
       end if;
+      -- Contenu ACTUEL de l'objet (titre expurgé, catégorie), celui que
+      -- _market_item_certification_ref compare : la certification suit
+      -- l'objet même renommé depuis la publication (titre de l'annonce figé).
+      -- Objet illisible : titre de l'annonce.
+      select public.redact_contact_info(i.title), i.domain into v_title, v_domain
+      from public.items i where i.id = v_listing.item_id;
+      if not found then
+        v_title := v_listing.title;
+        v_domain := v_listing.domain;
+      end if;
       insert into public.certification_requests (
         listing_id, item_id, item_title, domain, owner_id, requested_by,
         reason, status, fee_payer)
       values (
-        v_listing.id, v_listing.item_id, v_listing.title, v_listing.domain, v_uid, v_uid,
+        v_listing.id, v_listing.item_id, v_title, v_domain, v_uid, v_uid,
         p_reason, 'requested', 'seller')
       returning id into v_id;
 
@@ -825,6 +841,18 @@ begin
       if v_listing.expert_appraisal_ref is not null
          or public._market_item_certification_ref(v_listing.item_id, v_order.seller_id) is not null then
         raise exception 'Objet déjà authentifié par un expert avant publication'
+          using errcode = 'P0001';
+      end if;
+      -- Expertise de l'annonce seule (volontaire, « seuil ») déjà en cours
+      -- sur cet objet du vendeur : elle bloque déjà l'expédition ; une
+      -- seconde expertise du même objet serait facturée deux fois.
+      if exists (
+           select 1 from public.certification_requests c
+           where c.order_id is null and c.exchange_id is null
+             and c.status in ('awaiting_agreement', 'requested', 'in_review')
+             and (c.listing_id = v_order.listing_id
+               or (c.item_id = v_listing.item_id and c.owner_id = v_order.seller_id))) then
+        raise exception 'Une expertise de cet objet est déjà en cours : attendez la décision de l''expert'
           using errcode = 'P0001';
       end if;
       insert into public.certification_requests (
@@ -873,6 +901,17 @@ begin
            where c.exchange_id = v_ex.id and c.item_id = v_item
              and c.status in ('awaiting_agreement', 'requested', 'in_review', 'certified')) then
         raise exception 'Certification déjà obtenue ou demandée pour cet objet' using errcode = 'P0001';
+      end if;
+      -- Expertise de l'annonce seule déjà en cours sur cet objet de son
+      -- propriétaire (annonce visée, ou annonce de l'objet offert) : elle
+      -- bloque déjà l'expédition (shipment_blocked) ; pas de double expertise.
+      if exists (
+           select 1 from public.certification_requests c
+           where c.order_id is null and c.exchange_id is null
+             and c.item_id = v_item and c.owner_id = v_owner
+             and c.status in ('awaiting_agreement', 'requested', 'in_review')) then
+        raise exception 'Une expertise de cet objet est déjà en cours : attendez la décision de l''expert'
+          using errcode = 'P0001';
       end if;
       insert into public.certification_requests (
         exchange_id, item_id, item_title, domain, owner_id, requested_by,

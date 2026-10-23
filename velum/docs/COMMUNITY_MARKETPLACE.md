@@ -65,7 +65,7 @@
 | Objet cédé | Un objet vendu ou cédé dans un échange conclu ne se **remet plus en vente** et ne s'**offre plus à l'échange** (il reste dans la collection du cédant, sans lui appartenir). |
 | Devise, prix | **Euro uniquement** (seuil, commissions et registre en EUR) ; prix ou valeur déclarée **1 € minimum**. Une annonce historique (0006) hors euro ou sous le plancher est retirée à la migration (vendeur prévenu), sauf transaction en cours ; libérée ensuite, elle n'est ni exposée aux autres membres, ni achetable, ni ouverte à l'échange (refus explicite). |
 | Suivi d'expédition | Lisible par l'autre partie : écrit par le **seul expéditeur, à l'expédition**, jamais réécrit ; transporteur choisi dans une **liste fermée** (`market_carriers()` / `MARKET_CARRIERS`) ou absent ; numéro `[A-Z0-9-]`, 4 à 40 caractères — jamais un texte libre (canal de coordonnées). Suivis historiques (0006) rattrapés à la migration : transporteur hors liste effacé, numéro non conforme effacé avant expédition (un suivi conforme est alors exigé) et masqué après, numéros conformes normalisés. |
-| Fin d'abonnement Platine | Annonces publiées ou en attente de certification **retirées** (les transactions en cours se poursuivent), propositions en attente retirées ; plus de (re)publication, d'acceptation d'échange ni de demande de certification sur annonce (`VL402`) ; annonces d'un vendeur hors Platine absentes du catalogue et non achetables. L'offre n'est écrite que par le serveur (webhook RevenueCat). |
+| Fin d'abonnement Platine | Annonces publiées ou en attente de certification **retirées** (les transactions en cours se poursuivent ; une annonce qu'elles réservaient est retirée à son tour si elles se terminent sans vente, jamais suspendue ni soumise à une expertise « seuil » à ses frais), propositions en attente retirées ; plus de (re)publication, d'acceptation d'échange ni de demande de certification sur annonce (`VL402`) ; annonces d'un vendeur hors Platine absentes du catalogue et non achetables. L'offre n'est écrite que par le serveur (webhook RevenueCat). |
 | Attestation de livraison | **Acheteur ou transporteur** uniquement (`record_order_delivery`), jamais le vendeur — sinon il déclencherait lui-même l'auto-libération des fonds. |
 | Refus de l'expert | **Quel que soit le motif** (seuil, accord mutuel, volontaire) **et le contexte** (annonce, commande, échange) : **toute transaction non expédiée** sur l'objet tombe — commandes en attente de paiement ou payées annulées (remboursement **STRIPE**, acheteur prévenu), échanges acceptés sans aucun envoi annulés (les deux parties prévenues) ; une transaction déjà expédiée relève du litige. Puis **toute annonce ouverte de l'objet** repasse en brouillon, ses propositions d'échange en attente sont retirées et la référence d'une certification antérieure est **effacée** de ses annonces non closes. Le refus est **mémorisé** sur l'objet : republier exige une nouvelle certification, même sous le seuil ; l'objet ne s'offre plus à l'échange ; achat et capture du paiement le refusent (défense en profondeur). |
 | Publication | Le **serveur** décide : une annonce créée sans statut naît `active`, ou `pending_certification` si le seuil l'exige. Le client ne déclare jamais un badge ni un taux. |
@@ -113,9 +113,15 @@ draft ⇄ active ⇄ pending_certification          (serveur : seuil de certific
 - Une **nouvelle estimation** au-delà du seuil fait repasser une annonce publiée
   non certifiée en `pending_certification` (le vendeur est notifié). Une
   annonce **réservée** est épargnée (statut figé, même quand le vendeur en
-  retouche la description) ; si la transaction se termine **sans vente**,
-  elle est réévaluée comme une annonce neuve : seuil recalculé, référence
-  d'expertise qu'aucune décision d'expert ne confirme effacée.
+  retouche la description) ; si la transaction se termine **sans vente**
+  (commande **payée** annulée ou remboursée, échange annulé — une commande
+  jamais payée ne réservait rien et ne libère rien), elle est réévaluée comme
+  une annonce neuve : seuil recalculé, référence d'expertise qu'aucune
+  décision d'expert ne confirme effacée (ou après un refus). Une
+  certification VELUM n'est jamais effacée : la référence posée par l'expert
+  reste, et une certification de l'objet obtenue **pendant** la réservation
+  (accord mutuel) est reprise par l'annonce, qui reste publiée sans nouvelle
+  expertise « seuil ».
 - Un objet engagé dans une transaction en cours ne peut pas être supprimé ;
   hors transaction, sa suppression **détache** ses annonces (retirées si
   ouvertes), propositions et certifications : l'historique de l'autre partie
@@ -219,7 +225,11 @@ offert par l'auteur. À la conclusion : annonce `exchanged`, annonce
   outre `offered_item_certified` (`offeredItemCertified` : l'objet **offert**
   est déjà certifié, le destinataire ne peut plus en demander l'expertise) et
   `offered_item_id` (`offeredItemId`) : **mon** objet offert, renseigné pour
-  l'**auteur** seulement (null pour le destinataire — jamais l'objet d'autrui).
+  l'**auteur** seulement (null pour le destinataire — jamais l'objet d'autrui),
+  et `shipment_blocked` (`shipmentBlocked`) : une expertise en cours bloque
+  l'expédition (`has_open_certification`), y compris celle de l'annonce de
+  l'**autre** partie, absente de `my_certifications` — un booléen, jamais
+  l'expertise ni son demandeur.
 - **Masquage des coordonnées** (`redact_contact_info`, réplique exacte de
   `redactContactInfo`) : e-mails ENTIERS, partie locale comprise (accents,
   majuscules, maquillages « arobase », « (at) », « [at] », « point »,
@@ -260,17 +270,26 @@ réouverture par le vendeur (retirée → brouillon ou publiée, brouillon →
 publiée) : une annonce ne garde jamais un badge que la dernière décision ou le
 contenu de l'objet démentent. Cette (re)publication **recopie d'abord** le
 contenu public de l'objet (titre expurgé, catégorie) dans l'annonce, avant le
-calcul : l'annonce montre l'objet tel qu'il sera expertisé, et la demande
-« seuil » enregistre son titre **actuel** — un objet renommé avant sa
+calcul : l'annonce montre l'objet tel qu'il sera expertisé. Toute demande
+d'expertise de l'annonce (volontaire, ou « seuil » ouverte d'office — y
+compris quand une estimation suspend l'annonce sans republication)
+enregistre le titre **actuel de l'objet** — un objet renommé avant sa
 certification garde donc son badge aux republications suivantes ; renommé
 après, il exige **une** nouvelle expertise, une seule (le titre d'une demande
-n'est jamais réécrit à la décision de l'expert). Deux décisions ex aequo (même
-horodatage) : le refus l'emporte. Un **refus** annule toute transaction non
+n'est jamais réécrit à la décision de l'expert). Une certification qui suit
+l'objet (sur l'annonce, une commande ou un échange) publie aussi ses annonces
+en attente de certification avec la référence, puis **annule** ses autres
+demandes « seuil » d'annonce encore ouvertes, devenues sans objet (aucune
+seconde expertise facturée) ; une telle demande ne bloque jamais
+l'expédition. Deux décisions ex aequo (même horodatage) : le refus
+l'emporte. Un **refus** annule toute transaction non
 expédiée sur l'objet, le dépublie quel que soit le motif ou le contexte et
 reste mémorisé : toute republication passe par une nouvelle certification.
 L'expédition étant bloquée tant qu'une expertise est ouverte sur la
 transaction **ou sur l'annonce qu'elle engage**, un refus trouve normalement
-la transaction non expédiée. Une transaction **déjà expédiée** (ou en litige)
+la transaction non expédiée ; pendant une expertise de l'annonce seule
+(volontaire, « seuil »), une seconde expertise du même objet sur la commande
+ou l'échange est refusée. Une transaction **déjà expédiée** (ou en litige)
 reste en place : son acheteur, ou l'autre partie de l'échange, est prévenu du
 refus pour ouvrir un litige, et l'annonce qu'elle réserve n'est pas modifiée
 (ni statut, ni référence, aucune demande « seuil ») ; si elle se termine

@@ -102,6 +102,7 @@ function exchangeView(overrides: Record<string, unknown> = {}): Record<string, u
     expires_at: '2026-10-28T08:00:00Z',
     created_at: '2026-10-21T08:00:00Z',
     updated_at: '2026-10-21T08:00:00Z',
+    shipment_blocked: false,
     ...overrides,
   };
 }
@@ -404,6 +405,7 @@ describe('marketplace repo — échanges', () => {
       listingCertified: false,
       offeredItemId: 'i5',
       offeredItemCertified: false,
+      shipmentBlocked: false,
       proposerTracking: null,
       recipientTracking: null,
       proposerReceived: false,
@@ -436,12 +438,16 @@ describe('marketplace repo — échanges', () => {
           recipient_received: true,
           offered_item_id: null,
           offered_item_certified: true,
+          shipment_blocked: true,
         }),
         exchangeView({ id: 'x2', listing_certified: true }),
       ],
     };
     const [exchange, onCertified] = await repo.myExchanges();
     expect(exchange).toMatchObject({ role: 'recipient', state: 'shipping', myCommission: 16, recipientTracking: 'SO-1', recipientReceived: true, proposerReceived: false, listingCertified: false });
+    // Expédition bloquée par une expertise que cette partie ne voit pas (calcul du serveur).
+    expect(exchange?.shipmentBlocked).toBe(true);
+    expect(onCertified?.shipmentBlocked).toBe(false);
     // Destinataire : l'objet offert n'est jamais identifié ; déjà certifié ⇒ plus d'expertise à en demander.
     expect(exchange).toMatchObject({ offeredItemId: null, offeredItemCertified: true });
     // Annonce visée déjà certifiée : l'auteur ne peut plus en demander l'expertise.
