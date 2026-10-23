@@ -142,6 +142,21 @@ describe('sellPreview', () => {
     expect(p.sale).toBeNull();
     expect(p.certificationFee).toBe(0);
   });
+
+  it('objet déjà certifié : la certification le suit — ni « obligatoire » ni frais', () => {
+    const p = sellPreview({
+      kind: 'sale',
+      priceInput: '900',
+      completedSales: 0,
+      estimatedValue: 950,
+      voluntaryCertification: true,
+      alreadyCertified: true,
+    });
+    expect(p.certification).toBe('already');
+    expect(p.requirement.required).toBe(false);
+    expect(p.certificationFee).toBe(0);
+    expect(p.sale).toEqual({ price: 900, commissionRate: 0.05, commission: 45, certificationFee: 0, sellerNet: 855 });
+  });
 });
 
 describe('proposition d’échange', () => {
@@ -181,6 +196,65 @@ describe('proposition d’échange', () => {
     expect(p.requirement).toEqual({ required: true, reason: 'threshold', referenceValue: 800 });
     expect(p.myCertificationShare).toBe(0);
     expect(p.balance).toBe(500);
+  });
+
+  it('seuil évalué objet par objet : mon objet = max(valeur déclarée, estimation VELUM)', () => {
+    // Estimé 800 €, déclaré 400 € contre une annonce à 300 € : le serveur
+    // ouvre une expertise de seuil sur MON objet, à ma charge.
+    const p = exchangePreview({
+      listingValue: 300,
+      listingCertified: false,
+      offeredValueInput: '400',
+      offeredEstimate: 800,
+      cashDirection: 'add',
+      cashInput: '',
+      completedSales: 0,
+    });
+    expect(p.requirement).toEqual({ required: true, reason: 'threshold', referenceValue: 800 });
+    expect(p.thresholdItems).toEqual({ mine: true, theirs: false });
+    expect(p.certificationFee).toBe(30); // à ma charge (frais indicatifs)
+  });
+
+  it('annonce déjà certifiée : aucune expertise de seuil pour elle', () => {
+    const certified = exchangePreview({
+      listingValue: 780,
+      listingCertified: true,
+      offeredValueInput: '50',
+      offeredEstimate: null,
+      cashDirection: 'add',
+      cashInput: '',
+      completedSales: 0,
+    });
+    expect(certified.requirement.required).toBe(false);
+    expect(certified.certificationFee).toBe(0);
+    // Non certifiée : expertise de l'objet de l'annonce, à la charge de son propriétaire (pas la mienne).
+    const notCertified = exchangePreview({
+      listingValue: 780,
+      listingCertified: false,
+      offeredValueInput: '50',
+      offeredEstimate: null,
+      cashDirection: 'add',
+      cashInput: '',
+      completedSales: 0,
+    });
+    expect(notCertified.requirement.reason).toBe('threshold');
+    expect(notCertified.thresholdItems).toEqual({ mine: false, theirs: true });
+    expect(notCertified.certificationFee).toBe(0);
+  });
+
+  it('mon objet déjà certifié : pas de nouvelle expertise malgré l’estimation', () => {
+    const p = exchangePreview({
+      listingValue: 300,
+      listingCertified: false,
+      offeredValueInput: '400',
+      offeredEstimate: 800,
+      offeredCertified: true,
+      cashDirection: 'add',
+      cashInput: '',
+      completedSales: 0,
+    });
+    expect(p.requirement.required).toBe(false);
+    expect(p.thresholdItems).toEqual({ mine: false, theirs: false });
   });
 
   it('valeur invalide : pas de commission ni d’équilibre', () => {

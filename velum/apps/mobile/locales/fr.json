@@ -1574,7 +1574,8 @@
       "balanceEven": "Offre équivalente à la valeur de l’annonce",
       "balanceAbove": "Votre offre dépasse la valeur de l’annonce",
       "balanceBelow": "Votre offre est inférieure à la valeur de l’annonce",
-      "certificationRequired": "Au-delà de 500 €, les objets sont expertisés par un partenaire avant l’expédition (frais indicatifs : {{fee}}).",
+      "certificationRequiredMine": "Au-delà de 500 € (le plus élevé de votre valeur déclarée et de l’estimation VELUM), votre objet est expertisé par un partenaire avant l’expédition, frais à votre charge (indicatif : {{fee}}).",
+      "certificationRequiredTheirs": "L’objet de l’annonce dépasse 500 € : il est expertisé par un partenaire avant l’expédition, frais à la charge de son propriétaire.",
       "certificationLater": "Sous 500 € : une fois la proposition acceptée et avant tout envoi, chaque partie pourra demander l’expertise de l’objet qu’elle reçoit, depuis le détail de l’échange (réalisée si l’autre partie l’accepte, frais partagés par moitié).",
       "submit": "Envoyer la proposition",
       "sent": "Proposition envoyée."
@@ -1610,6 +1611,7 @@
       "nextTier": "Plus que {{count}} vente(s) conclue(s) pour passer à {{rate}}.",
       "bestTier": "Vous bénéficiez du taux le plus bas.",
       "certificationRequired": "Expertise obligatoire au-delà de {{threshold}} — annonce publiée après certification par un expert partenaire, frais à votre charge (indicatif : {{fee}}).",
+      "alreadyCertified": "Objet déjà authentifié par un expert : l’annonce sera publiée avec le badge, sans nouvelle expertise.",
       "estimateRule": "Le seuil s’applique au plus élevé du prix saisi et de l’estimation VELUM.",
       "voluntary": "Faire authentifier mon objet",
       "voluntaryHint": "Badge « Authentifié VELUM » après expertise, frais à votre charge.",

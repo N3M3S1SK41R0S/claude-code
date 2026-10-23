@@ -18,6 +18,7 @@ import {
   type ExchangeProposal,
   type ExchangeState,
   type ListingKind,
+  type ListingRecord,
   type ListingStatus,
   type MarketOrder,
 } from '@velum/core';
@@ -367,6 +368,38 @@ export function canRequestOrderCertification(
 ): boolean {
   if (order.escrowState !== 'pending_payment' && order.escrowState !== 'funds_held') return false;
   return !related.some((c) => OPEN_CERTIFICATION.has(c.status) || c.status === 'certified');
+}
+
+/**
+ * true si MON objet est déjà certifié par un expert — la certification le
+ * suit (_market_item_certification_ref) : badge d'une de mes annonces de cet
+ * objet, ou certification obtenue sur l'une d'elles (annonce, commande, ou
+ * échange reçu quand l'expertise portait sur MON objet). Prudent : false dès
+ * que ce n'est pas établi, et un objet déjà cédé (annonce vendue ou
+ * échangée) ne compte pas.
+ */
+export function itemCertifiedByExpert(
+  itemId: string,
+  listings: readonly Pick<ListingRecord, 'id' | 'itemId' | 'status' | 'certified'>[],
+  certifications: readonly Pick<
+    CertificationRequest,
+    'listingId' | 'orderId' | 'exchangeId' | 'reason' | 'status' | 'requestedByMe'
+  >[],
+  exchanges: readonly Pick<ExchangeProposal, 'id' | 'listingId' | 'role'>[] = [],
+): boolean {
+  const ofItem = listings.filter((l) => l.itemId === itemId && l.status !== 'sold' && l.status !== 'exchanged');
+  if (ofItem.some((l) => l.certified)) return true;
+  const ids = new Set(ofItem.map((l) => l.id));
+  return certifications.some((c) => {
+    if (c.status !== 'certified') return false;
+    if (c.exchangeId === null) return c.listingId !== null && ids.has(c.listingId);
+    // Échange sur MON annonce : seuil de mon objet (demandé par moi, son
+    // propriétaire) ou accord mutuel demandé par l'autre partie (il le reçoit).
+    const ex = exchanges.find((e) => e.id === c.exchangeId);
+    const onMyItem =
+      (c.reason === 'threshold' && c.requestedByMe) || (c.reason === 'mutual_agreement' && !c.requestedByMe);
+    return ex !== undefined && ex.role === 'recipient' && ids.has(ex.listingId) && onMyItem;
+  });
 }
 
 // ── Annonces ─────────────────────────────────────────────────────────────────

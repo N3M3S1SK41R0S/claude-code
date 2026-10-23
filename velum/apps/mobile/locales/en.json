@@ -1574,7 +1574,8 @@
       "balanceEven": "Offer equal to the listing's value",
       "balanceAbove": "Your offer exceeds the listing's value",
       "balanceBelow": "Your offer is below the listing's value",
-      "certificationRequired": "Above €500, items are appraised by a partner before shipping (indicative fee: {{fee}}).",
+      "certificationRequiredMine": "Above €500 (the higher of your declared value and the VELUM estimate), your item is appraised by a partner before shipping, fee at your charge (indicative: {{fee}}).",
+      "certificationRequiredTheirs": "The listed item is above €500: it is appraised by a partner before shipping, fee at its owner’s charge.",
       "certificationLater": "Below €500: once the proposal is accepted and before anything is shipped, each party can request an appraisal of the item they receive from the trade details (carried out if the other party agrees, fee split equally).",
       "submit": "Send the proposal",
       "sent": "Proposal sent."
@@ -1610,6 +1611,7 @@
       "nextTier": "{{count}} more completed sale(s) to move to {{rate}}.",
       "bestTier": "You already enjoy the lowest rate.",
       "certificationRequired": "Expert appraisal required above {{threshold}} — listing published after certification by a partner expert, fee at your charge (indicative: {{fee}}).",
+      "alreadyCertified": "Item already authenticated by an expert: the listing will be published with the badge, with no new appraisal.",
       "estimateRule": "The threshold applies to the higher of the price entered and the VELUM estimate.",
       "voluntary": "Have my item authenticated",
       "voluntaryHint": "“VELUM authenticated” badge after appraisal, fee at your charge.",

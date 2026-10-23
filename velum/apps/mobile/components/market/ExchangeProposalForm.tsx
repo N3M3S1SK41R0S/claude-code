@@ -23,9 +23,17 @@ import {
   redactionPreview,
   type CashDirection,
 } from '../../lib/marketForms';
+import { itemCertifiedByExpert } from '../../lib/marketState';
 import { showToast } from '../../stores/toastStore';
 import { AmountRows, Notice, Segmented, type AmountRow } from './controls';
-import { useCompletedSales, useInvalidateCommunity, useMarketErrorToast } from './hooks';
+import {
+  useCompletedSales,
+  useInvalidateCommunity,
+  useMarketErrorToast,
+  useMyCertifications,
+  useMyExchanges,
+  useMyListings,
+} from './hooks';
 import { ItemPicker } from './ItemPicker';
 
 export interface ExchangeProposalFormProps {
@@ -62,9 +70,21 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
     if (!valueTouched && estimate !== null) setValue(amountToInput(estimate));
   }, [estimate, valueTouched]);
 
+  // Mon objet déjà certifié : la certification le suit (pas de nouvelle expertise).
+  const myListings = useMyListings();
+  const myCertifications = useMyCertifications();
+  const myExchanges = useMyExchanges();
+  const offeredCertified =
+    item !== null &&
+    itemCertifiedByExpert(item.id, myListings.data ?? [], myCertifications.data ?? [], myExchanges.data ?? []);
+
+  // Seuil évalué objet par objet, comme le serveur (_exchange_threshold_targets).
   const preview = exchangePreview({
     listingValue: listing.askPrice,
+    listingCertified: listing.certified,
     offeredValueInput: value,
+    offeredEstimate: estimate,
+    offeredCertified,
     cashDirection: direction,
     cashInput: cash,
     completedSales: sales.completedSales,
@@ -235,9 +255,20 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
 
           {preview.requirement.reason === 'threshold' ? (
             <Notice tone="warning" title={t('community.certification.requiredTitle')}>
-              {t('community.proposal.certificationRequired', {
-                fee: formatPrice(preview.certificationFee, locale),
-              })}
+              <>
+                {preview.thresholdItems.mine ? (
+                  <VText variant="caption" tone="dim">
+                    {t('community.proposal.certificationRequiredMine', {
+                      fee: formatPrice(preview.certificationFee, locale),
+                    })}
+                  </VText>
+                ) : null}
+                {preview.thresholdItems.theirs ? (
+                  <VText variant="caption" tone="dim">
+                    {t('community.proposal.certificationRequiredTheirs')}
+                  </VText>
+                ) : null}
+              </>
             </Notice>
           ) : (
             <VText variant="caption" tone="dim">

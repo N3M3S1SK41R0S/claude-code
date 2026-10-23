@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { VelumError, type EscrowState, type ExchangeProposal, type ExchangeState } from '@velum/core';
+import {
+  VelumError,
+  type CertificationRequest,
+  type EscrowState,
+  type ExchangeProposal,
+  type ExchangeState,
+  type ListingRecord,
+  type ListingStatus,
+} from '@velum/core';
 
 import {
   CERTIFICATION_TONE,
@@ -20,6 +28,7 @@ import {
   isForSale,
   isNotYetAvailable,
   isOpenToExchange,
+  itemCertifiedByExpert,
   listingAvailability,
   marketLabelKeys,
   marketRetry,
@@ -305,6 +314,48 @@ describe('expertise d’un commun accord : demandée sur la transaction (miroir 
     expect(canRequestOrderCertification(order('funds_held'), [{ status: 'awaiting_agreement' }])).toBe(false);
     expect(canRequestOrderCertification(order('funds_held'), [{ status: 'certified' }])).toBe(false);
     expect(canRequestOrderCertification(order('funds_held'), [{ status: 'cancelled' }])).toBe(true);
+  });
+});
+
+describe('objet déjà certifié (la certification suit l’objet)', () => {
+  const listing = (patch: Partial<Pick<ListingRecord, 'id' | 'itemId' | 'status' | 'certified'>>) => ({
+    id: 'l-1',
+    itemId: 'it-1',
+    status: 'withdrawn' as ListingStatus,
+    certified: false,
+    ...patch,
+  });
+  const cert = (patch: Partial<Pick<CertificationRequest, 'listingId' | 'orderId' | 'exchangeId' | 'reason' | 'status' | 'requestedByMe'>>) => ({
+    listingId: null,
+    orderId: null,
+    exchangeId: null,
+    reason: 'voluntary' as const,
+    status: 'certified' as const,
+    requestedByMe: true,
+    ...patch,
+  });
+
+  it('badge d’une de mes annonces de l’objet, ou certification obtenue sur elle', () => {
+    expect(itemCertifiedByExpert('it-1', [listing({ certified: true })], [])).toBe(true);
+    expect(itemCertifiedByExpert('it-1', [listing({})], [cert({ listingId: 'l-1' })])).toBe(true);
+    // Expertise d'un commun accord sur une commande de mon annonce (j'en suis le propriétaire).
+    expect(
+      itemCertifiedByExpert('it-1', [listing({})], [cert({ listingId: 'l-1', orderId: 'o-1', reason: 'mutual_agreement', requestedByMe: false })]),
+    ).toBe(true);
+  });
+
+  it('échange sur mon annonce : seule l’expertise de MON objet compte', () => {
+    const exchanges = [{ id: 'e-1', listingId: 'l-1', role: 'recipient' as const }];
+    const onMine = cert({ exchangeId: 'e-1', reason: 'threshold', requestedByMe: true });
+    const onTheirs = cert({ exchangeId: 'e-1', reason: 'mutual_agreement', requestedByMe: true });
+    expect(itemCertifiedByExpert('it-1', [listing({})], [onMine], exchanges)).toBe(true);
+    expect(itemCertifiedByExpert('it-1', [listing({})], [onTheirs], exchanges)).toBe(false);
+  });
+
+  it('prudent : autre objet, demande non aboutie, objet déjà cédé → non', () => {
+    expect(itemCertifiedByExpert('it-2', [listing({ certified: true })], [])).toBe(false);
+    expect(itemCertifiedByExpert('it-1', [listing({})], [cert({ listingId: 'l-1', status: 'in_review' })])).toBe(false);
+    expect(itemCertifiedByExpert('it-1', [listing({ certified: true, status: 'sold' })], [])).toBe(false);
   });
 });
 
