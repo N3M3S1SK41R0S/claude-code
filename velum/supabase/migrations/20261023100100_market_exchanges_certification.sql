@@ -717,7 +717,11 @@ grant execute on function public.listing_has_history(uuid) to authenticated, ser
 
 -- Objets d'un échange dont la valeur de référence dépasse le seuil (ou déjà
 -- refusés par un expert) et qui ne sont pas certifiés : 'listing' (objet du
--- destinataire) et/ou 'offered' (objet du proposeur).
+-- destinataire) et/ou 'offered' (objet du proposeur). Titre et catégorie :
+-- contenu ACTUEL de l'objet (titre expurgé), celui que
+-- _market_item_certification_ref compare — les titres de l'échange sont
+-- figés à la proposition, celui de l'annonce à sa publication ; objet
+-- illisible (supprimé) : titre figé de l'échange.
 create or replace function public._exchange_threshold_targets(p_exchange uuid)
 returns table (
   side text,
@@ -732,17 +736,25 @@ stable
 security definer
 set search_path = public
 as $$
-  select 'listing', l.item_id, e.listing_title, e.listing_domain, e.recipient_id, e.proposer_id
+  select 'listing', l.item_id,
+         case when i.id is null then e.listing_title else public.redact_contact_info(i.title) end,
+         case when i.id is null then e.listing_domain else i.domain end,
+         e.recipient_id, e.proposer_id
   from public.exchange_proposals e
   join public.listings l on l.id = e.listing_id
+  left join public.items i on i.id = l.item_id
   where e.id = p_exchange
     and l.expert_appraisal_ref is null
     and public._market_item_certification_ref(l.item_id, e.recipient_id) is null
     and (public._market_reference_value(l.item_id, e.listing_value) > public.listing_appraisal_threshold_eur()
       or public._market_item_rejected(l.item_id, e.recipient_id))
   union all
-  select 'offered', e.offered_item_id, e.offered_title, e.offered_domain, e.proposer_id, e.recipient_id
+  select 'offered', e.offered_item_id,
+         case when i.id is null then e.offered_title else public.redact_contact_info(i.title) end,
+         case when i.id is null then e.offered_domain else i.domain end,
+         e.proposer_id, e.recipient_id
   from public.exchange_proposals e
+  left join public.items i on i.id = e.offered_item_id
   where e.id = p_exchange
     and e.offered_item_id is not null
     and public._market_item_certification_ref(e.offered_item_id, e.proposer_id) is null
@@ -2017,7 +2029,8 @@ create trigger exchange_proposals_enforce_transition
   for each row execute function public.enforce_exchange_transition();
 
 -- Ouvre les certifications « seuil » d'un échange accepté (frais : le
--- propriétaire de chaque objet concerné, defaultCertificationFeePayer).
+-- propriétaire de chaque objet concerné, defaultCertificationFeePayer), au
+-- titre et à la catégorie ACTUELS de chaque objet (_exchange_threshold_targets).
 create or replace function public._open_exchange_threshold_certifications(p_exchange uuid)
 returns integer
 language plpgsql
@@ -2326,6 +2339,7 @@ declare
   end;
   v_order record;
   v_ref text;
+  v_closed record;
 begin
   if new.status is not distinct from old.status then
     return null;
@@ -2352,9 +2366,15 @@ begin
     -- La certification suit l'objet (_market_item_certification_ref) : ses
     -- annonces en attente de certification, sans référence, la reprennent
     -- (mise à jour de confiance ⇒ statut recalculé), PUIS les autres demandes
-    -- « seuil » de l'annonce seule encore ouvertes pour cet objet du
-    -- propriétaire, devenues sans objet, sont annulées (jamais une seconde
-    -- expertise facturée ; l'annonce, déjà référencée, reste publiée).
+    -- « seuil » encore ouvertes pour cet objet du propriétaire — de l'annonce
+    -- seule comme d'un ÉCHANGE —, devenues sans objet, sont annulées par le
+    -- serveur, même confiées à un expert : jamais une seconde expertise ni
+    -- de frais au registre (seule une décision en inscrit). L'annonce, déjà
+    -- référencée, reste publiée ; l'annulation d'une demande d'échange
+    -- n'annule pas l'échange : elle le relance (branche « cancelled »,
+    -- _exchange_resume_after_certification ⇒ expédition dès qu'aucune autre
+    -- expertise n'y est en cours) et l'autre partie apprend que l'objet
+    -- qu'elle reçoit est certifié.
     v_ref := public._market_item_certification_ref(new.item_id, new.owner_id);
     if v_ref is not null then
       update public.listings l set expert_appraisal_ref = v_ref
@@ -2362,13 +2382,21 @@ begin
           and l.seller_id = new.owner_id
           and l.status = 'pending_certification'
           and l.expert_appraisal_ref is null;
-      update public.certification_requests c set status = 'cancelled'
-        where c.id <> new.id
-          and c.item_id = new.item_id
-          and c.owner_id = new.owner_id
-          and c.order_id is null and c.exchange_id is null
-          and c.reason = 'threshold'
-          and c.status in ('awaiting_agreement', 'requested', 'in_review');
+      for v_closed in
+        update public.certification_requests c set status = 'cancelled'
+          where c.id <> new.id
+            and c.item_id = new.item_id
+            and c.owner_id = new.owner_id
+            and c.order_id is null
+            and c.reason = 'threshold'
+            and c.status in ('awaiting_agreement', 'requested', 'in_review')
+          returning c.exchange_id, c.counterparty_id, c.item_title
+      loop
+        if v_closed.exchange_id is not null then
+          perform public.market_notify(v_closed.counterparty_id, 'Objet certifié par un expert',
+            coalesce(v_closed.item_title, 'l’objet'));
+        end if;
+      end loop;
     end if;
     if new.exchange_id is not null then
       perform public._exchange_resume_after_certification(new.exchange_id);

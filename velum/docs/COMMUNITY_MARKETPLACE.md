@@ -257,7 +257,8 @@ offert par l'auteur. À la conclusion : annonce `exchanged`, annonce
 Cycle : `awaiting_agreement → requested → in_review → certified | rejected`,
 `cancelled` avant la décision (refus de l'accord, retrait par le demandeur,
 abandon d'une certification de seuil d'annonce ⇒ annonce en brouillon ; une
-certification de seuil d'**échange** ne s'annule qu'en annulant l'échange).
+certification de seuil d'**échange** ne s'annule qu'en annulant l'échange, ou
+par le serveur quand l'objet est certifié par ailleurs — l'échange continue).
 L'expert partenaire agit via des fonctions **service_role** :
 `assign_certification_expert(id, frais)` puis
 `decide_certification(id, certifié, rapport, avis, frais)` — comme
@@ -271,17 +272,25 @@ publiée) : une annonce ne garde jamais un badge que la dernière décision ou l
 contenu de l'objet démentent. Cette (re)publication **recopie d'abord** le
 contenu public de l'objet (titre expurgé, catégorie) dans l'annonce, avant le
 calcul : l'annonce montre l'objet tel qu'il sera expertisé. Toute demande
-d'expertise de l'annonce (volontaire, ou « seuil » ouverte d'office — y
-compris quand une estimation suspend l'annonce sans republication)
-enregistre le titre **actuel de l'objet** — un objet renommé avant sa
-certification garde donc son badge aux republications suivantes ; renommé
+d'expertise d'un objet — sur l'annonce (volontaire, ou « seuil » ouverte
+d'office, y compris quand une estimation suspend l'annonce sans
+republication), sur une commande ou un échange (accord mutuel, « seuil »
+ouverte à l'acceptation) — enregistre le titre **actuel de l'objet** (et non
+celui, figé, de l'annonce à sa publication ou de l'échange à sa proposition ;
+objet supprimé : titre figé). Un objet renommé avant sa certification garde
+donc son badge aux republications suivantes, y compris quand la commande ou
+l'échange qui l'a fait certifier se termine sans vente ; renommé
 après, il exige **une** nouvelle expertise, une seule (le titre d'une demande
 n'est jamais réécrit à la décision de l'expert). Une certification qui suit
 l'objet (sur l'annonce, une commande ou un échange) publie aussi ses annonces
 en attente de certification avec la référence, puis **annule** ses autres
-demandes « seuil » d'annonce encore ouvertes, devenues sans objet (aucune
-seconde expertise facturée) ; une telle demande ne bloque jamais
-l'expédition. Deux décisions ex aequo (même horodatage) : le refus
+demandes « seuil » encore ouvertes — d'annonce comme d'**échange** —,
+devenues sans objet (aucune seconde expertise ni aucun frais, même déjà
+confiées à un expert) ; une demande « seuil » d'annonce restée ouverte sur
+un objet certifié ne bloque jamais l'expédition. L'échange dont la demande
+est ainsi close n'est **pas** annulé : il passe en expédition dès qu'aucune
+autre expertise n'y est en cours, et l'autre partie est prévenue que l'objet
+qu'elle reçoit est certifié. Deux décisions ex aequo (même horodatage) : le refus
 l'emporte. Un **refus** annule toute transaction non
 expédiée sur l'objet, le dépublie quel que soit le motif ou le contexte et
 reste mémorisé : toute republication passe par une nouvelle certification.
