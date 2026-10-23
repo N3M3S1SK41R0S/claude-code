@@ -101,6 +101,8 @@ export async function stubSupabase(page) {
       if (fn === 'market_catalogue') {
         return json(CATALOGUE.filter((l) => !args.p_domain || l.domain === args.p_domain));
       }
+      // Une annonce par identifiant (même vue anonymisée que le catalogue).
+      if (fn === 'market_listing') return json(CATALOGUE.filter((l) => l.id === args.p_id));
       if (fn === 'member_reputation') return json(REPUTATION);
       if (fn === 'my_commission_summary') {
         return json({ currentRate: 0.05, completedSales: 0, commissions: 0, certificationFees: 0, payouts: 0, entries: [] });
