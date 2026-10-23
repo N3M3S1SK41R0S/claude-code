@@ -8,6 +8,7 @@ import type {
   CatalogueQuery,
   CatalogueSort,
   ListingRecord,
+  ListingStatus,
   VelumDomain,
 } from '@velum/core';
 
@@ -67,12 +68,45 @@ export function priceRangeIssue(filters: Pick<CatalogueFilters, 'minPrice' | 'ma
   return null;
 }
 
+/** Annonces affichées par page du catalogue (défaut serveur de market_catalogue). */
+export const CATALOGUE_PAGE_SIZE = 50;
+/** Plafond serveur du catalogue (market_catalogue borne p_limit à 100). */
+export const CATALOGUE_MAX_LIMIT = 100;
+
+/**
+ * Limite demandée pour `pages` pages : une annonce de plus que l'affichage,
+ * pour savoir s'il en reste — dans la limite du plafond serveur.
+ */
+export function catalogueRequestLimit(pages: number): number {
+  return Math.min(CATALOGUE_PAGE_SIZE * Math.max(1, Math.floor(pages)) + 1, CATALOGUE_MAX_LIMIT);
+}
+
+export interface CataloguePage<T> {
+  visible: T[];
+  /** D'autres annonces suivent : « Voir plus ». */
+  hasMore: boolean;
+  /** Plafond serveur atteint : d'autres peuvent exister, seule une recherche plus fine les montre. */
+  capped: boolean;
+}
+
+/** Découpe la réponse du serveur : jamais une liste tronquée présentée comme complète. */
+export function cataloguePage<T>(listings: readonly T[], pages: number): CataloguePage<T> {
+  const shown = Math.min(CATALOGUE_PAGE_SIZE * Math.max(1, Math.floor(pages)), CATALOGUE_MAX_LIMIT);
+  const probed = catalogueRequestLimit(pages) > shown;
+  return {
+    visible: listings.slice(0, shown),
+    hasMore: probed && listings.length > shown,
+    capped: !probed && listings.length >= shown,
+  };
+}
+
 /**
  * Filtres UI → requête catalogue. Montants invalides ignorés (signalés à part
  * par `priceRangeIssue`) ; fourchette inversée remise dans l'ordre ; texte
- * nettoyé ; seuls les critères actifs sont transmis.
+ * nettoyé ; seuls les critères actifs sont transmis, avec la limite de la
+ * page demandée (voir `cataloguePage`).
  */
-export function buildCatalogueQuery(filters: CatalogueFilters): CatalogueQuery {
+export function buildCatalogueQuery(filters: CatalogueFilters, pages = 1): CatalogueQuery {
   const query: CatalogueQuery = { sort: filters.sort };
   if (filters.domain !== null) query.domain = filters.domain;
   if (filters.mode !== 'all') query.mode = filters.mode;
@@ -84,6 +118,7 @@ export function buildCatalogueQuery(filters: CatalogueFilters): CatalogueQuery {
   if (min !== null && min > 0) query.minPrice = min;
   if (max !== null) query.maxPrice = max;
   if (filters.certifiedOnly) query.certifiedOnly = true;
+  query.limit = catalogueRequestLimit(pages);
   return query;
 }
 
@@ -182,6 +217,79 @@ export function findCatalogueListing(pages: readonly unknown[], id: string): Cat
     }
   }
   return null;
+}
+
+export interface ListingLookup {
+  listing: CatalogueListing;
+  /** Statut connu seulement pour MES annonces (relu dans `myListings`). */
+  myStatus: ListingStatus | null;
+}
+
+/** Sources d'une annonce, injectées (dépôt MarketplaceRepo + cache React Query). */
+export interface ListingLookupDeps {
+  /** Pages de catalogue déjà en cache (données `unknown`, forme vérifiée). */
+  cachedPages: readonly unknown[];
+  /** Lecture directe par id (contrat optionnel `getListing`) : même hors catalogue. */
+  getListing?: (id: string) => Promise<CatalogueListing | null>;
+  catalogue: (query: CatalogueQuery) => Promise<CatalogueListing[]>;
+  myListings: () => Promise<ListingRecord[]>;
+  /** Libellé de MON pseudonyme dans la vue (« Vous »). */
+  myAlias: string;
+}
+
+/**
+ * Retrouve une annonce par id : cache du catalogue, puis LECTURE DIRECTE
+ * (annonce réservée, vendue ou échangée visible de ses parties — le catalogue
+ * ne liste que les annonces actives non réservées, 50 par défaut), repli sur
+ * le catalogue pour un client sans lecture directe, enfin mes annonces (avec
+ * leur statut). Jamais « introuvable » (null) quand une source est en panne :
+ * l'erreur remonte alors.
+ */
+export async function lookupListing(id: string, deps: ListingLookupDeps): Promise<ListingLookup | null> {
+  const cached = findCatalogueListing(deps.cachedPages, id);
+  if (cached && !cached.isMine) return { listing: cached, myStatus: null };
+
+  let failure: unknown = null;
+  // undefined : lecture directe indisponible (client historique ou panne).
+  let direct: CatalogueListing | null | undefined;
+  if (deps.getListing) {
+    try {
+      direct = await deps.getListing(id);
+    } catch (error) {
+      failure = error;
+    }
+  }
+  if (direct && !direct.isMine) return { listing: direct, myStatus: null };
+
+  if (direct === undefined) {
+    try {
+      const all = await deps.catalogue({ includeMine: true, limit: CATALOGUE_MAX_LIMIT });
+      const found = all.find((l) => l.id === id);
+      if (found && !found.isMine) return { listing: found, myStatus: null };
+    } catch (error) {
+      failure ??= error;
+    }
+  }
+
+  // Mon annonce (éventuellement non publiée : expertise en attente, retirée…).
+  const mine = (await deps.myListings()).find((l) => l.id === id);
+  if (mine) return { listing: catalogueViewOfMine(mine, deps.myAlias), myStatus: mine.status };
+  if (direct) return { listing: direct, myStatus: null };
+  if (failure !== null) throw failure;
+  return null;
+}
+
+/**
+ * Envie (« Ajouter à mes envies ») tirée d'une annonce d'AUTRUI : catégorie et
+ * titre seulement (source 'market'), rien d'identifiant. null pour mes
+ * propres annonces ou sans catégorie / titre exploitables.
+ */
+export function wishlistDraftFromListing(
+  listing: Pick<CatalogueListing, 'domain' | 'title' | 'isMine'>,
+): { domain: VelumDomain; title: string; source: 'market' } | null {
+  const title = listing.title?.trim() ?? '';
+  if (listing.isMine || listing.domain === null || title.length === 0) return null;
+  return { domain: listing.domain, title, source: 'market' };
 }
 
 /** Ma propre annonce (dépôt `myListings`) vue comme une annonce du catalogue. */

@@ -39,6 +39,7 @@ function CommunityHub() {
     orders: orders.data,
     exchanges: exchanges.data,
     certifications: certifications.data,
+    now: new Date().toISOString(),
   });
 
   const changeTab = (next: CommunityTab) => {

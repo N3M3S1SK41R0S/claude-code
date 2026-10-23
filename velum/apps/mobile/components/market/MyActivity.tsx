@@ -14,7 +14,9 @@ import { sellPickerHref } from '../../lib/marketQuery';
 import {
   certificationNeedsMe,
   exchangeNeedsMe,
+  hasOpenCertificationOn,
   isClosed,
+  myListingEngaged,
   orderNeedsMe,
   partitionActivity,
 } from '../../lib/marketState';
@@ -82,20 +84,31 @@ export function MyActivity() {
   const orders = useMyOrders();
   const exchanges = useMyExchanges();
   const certifications = useMyCertifications();
+  // Expertises ouvertes : elles bloquent l'expédition (rien « à traiter » alors).
+  const certs = certifications.data ?? [];
+  const now = new Date().toISOString();
+  const exchangeBlocked = (id: string) => hasOpenCertificationOn(certs, { exchangeId: id });
 
   return (
     <View style={styles.container}>
       <Section title={t('community.activity.exchanges')} hint={t('community.activity.exchangesHint')}>
         <AsyncBlock source={exchanges}>
           {(data) => {
-            const { current, history } = partitionActivity(data, isClosed.exchange, exchangeNeedsMe);
+            const { current, history } = partitionActivity(data, isClosed.exchange, (e) =>
+              exchangeNeedsMe(e, { hasOpenCertification: exchangeBlocked(e.id), now }),
+            );
             return (
               <Partitioned
                 current={current}
                 history={history}
                 emptyText={t('community.activity.exchangesEmpty')}
                 render={(e) => (
-                  <ExchangeSummaryCard key={e.id} exchange={e} onOpen={() => router.push(routes.exchange(e.id))} />
+                  <ExchangeSummaryCard
+                    key={e.id}
+                    exchange={e}
+                    hasOpenCertification={exchangeBlocked(e.id)}
+                    onOpen={() => router.push(routes.exchange(e.id))}
+                  />
                 )}
               />
             );
@@ -106,7 +119,9 @@ export function MyActivity() {
       <Section title={t('community.myOrders')} hint={t('community.activity.ordersHint')}>
         <AsyncBlock source={orders}>
           {(data) => {
-            const { current, history } = partitionActivity(data, isClosed.order, orderNeedsMe);
+            const { current, history } = partitionActivity(data, isClosed.order, (o) =>
+              orderNeedsMe(o, { hasOpenCertification: hasOpenCertificationOn(certs, { orderId: o.id }) }),
+            );
             return (
               <Partitioned
                 current={current}
@@ -134,7 +149,12 @@ export function MyActivity() {
                 history={history}
                 emptyText={t('community.activity.listingsEmpty')}
                 render={(l) => (
-                  <MyListingCard key={l.id} listing={l} onOpen={() => router.push(routes.listing(l.id))} />
+                  <MyListingCard
+                    key={l.id}
+                    listing={l}
+                    engaged={myListingEngaged(l.id, orders.data ?? [], exchanges.data ?? [])}
+                    onOpen={() => router.push(routes.listing(l.id))}
+                  />
                 )}
               />
             );

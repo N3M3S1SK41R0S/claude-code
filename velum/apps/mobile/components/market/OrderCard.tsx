@@ -2,8 +2,9 @@
  * Commande sous séquestre (achat OU vente) : état, montant, pseudonyme de
  * l'autre partie, commission figée (vendeur), suivi, et SEULES les actions
  * légales pour mon rôle (payer, expédier avec suivi, confirmer la réception,
- * litige, annuler — lib/marketState, miroir du trigger serveur). Fil de
- * messages anonymisé dépliable.
+ * litige, annuler — lib/marketState, miroir du trigger serveur) ; demande
+ * d'expertise d'un commun accord avant expédition. Fil de messages anonymisé
+ * dépliable.
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -18,6 +19,8 @@ import { formatPrice, formatRate } from '../../lib/marketForms';
 import {
   ESCROW_TONE,
   PRIMARY_ORDER_ACTIONS,
+  canRequestOrderCertification,
+  hasOpenCertificationOn,
   marketLabelKeys,
   orderActionTarget,
   orderActions,
@@ -25,9 +28,17 @@ import {
 } from '../../lib/marketState';
 import { showToast } from '../../stores/toastStore';
 import { MessageThread } from './MessageThread';
-import { useInvalidateCommunity, useMarketErrorToast } from './hooks';
+import { ShipPanel, type Shipment } from './ShipPanel';
+import { Notice } from './controls';
+import { useInvalidateCommunity, useMarketErrorToast, useMyCertifications } from './hooks';
 
 type Panel = 'ship' | 'dispute' | 'cancel' | null;
+
+interface AdvanceInput {
+  action: OrderAction;
+  /** Expédition : suivi et transporteur choisi, rien d'autre. */
+  shipment?: Shipment;
+}
 
 const CLOSED: ReadonlySet<EscrowState> = new Set(['released', 'refunded', 'cancelled']);
 
@@ -37,33 +48,48 @@ export function OrderCard({ order }: { order: MarketOrder }) {
   const invalidate = useInvalidateCommunity();
   const onError = useMarketErrorToast();
   const [panel, setPanel] = useState<Panel>(null);
-  const [tracking, setTracking] = useState('');
-  const [carrier, setCarrier] = useState('');
   const [reason, setReason] = useState('');
   const [showThread, setShowThread] = useState(false);
+  const certifications = useMyCertifications();
 
-  const actions = orderActions(order);
+  const related = (certifications.data ?? []).filter((c) => c.orderId === order.id);
+  // Expertise ouverte (même un accord attendu) : le serveur bloque l'expédition.
+  const hasOpenCertification = hasOpenCertificationOn(related, { orderId: order.id });
+  const actions = orderActions(order, { hasOpenCertification });
   const isSeller = order.role === 'seller';
+  const shipBlocked = isSeller && order.escrowState === 'funds_held' && hasOpenCertification;
+  // Expertise d'un commun accord : demandée SUR LA COMMANDE, avant expédition
+  // (seul contexte accepté par le serveur hors vendeur). Mes demandes lues
+  // d'abord, pour ne jamais proposer un doublon.
+  const canAskCertification =
+    certifications.data !== undefined &&
+    !order.certificationRequired &&
+    canRequestOrderCertification(order, related);
+
+  const askCertification = useMutation({
+    mutationFn: () =>
+      client.marketplace.requestCertification({ reason: 'mutual_agreement', orderId: order.id, feePayer: 'split' }),
+    onSuccess: () => {
+      showToast(t('community.order.certificationAsked'), 'success');
+      invalidate();
+    },
+    onError,
+  });
 
   const advance = useMutation({
-    mutationFn: async (action: OrderAction) => {
+    mutationFn: async ({ action, shipment }: AdvanceInput) => {
       const target = orderActionTarget(order.escrowState, action);
       if (target === null) throw new VelumError('INVALID_INPUT', 'Action impossible dans cet état');
       if (action === 'ship') {
-        // Sans intégration transporteur, la remise est datée à l'expédition :
-        // le délai d'auto-libération (ESCROW_RELEASE_DAYS) part de là.
-        return client.marketplace.advanceOrder(order.id, target, {
-          trackingNumber: tracking.trim(),
-          ...(carrier.trim().length > 0 ? { carrier: carrier.trim() } : {}),
-          deliveredAt: new Date().toISOString(),
-        });
+        if (shipment === undefined) throw new VelumError('INVALID_INPUT', 'Numéro de suivi requis');
+        // Suivi + transporteur seulement : la livraison est attestée par
+        // l'acheteur (ou le transporteur), jamais par le vendeur (guard_order_terms).
+        return client.marketplace.advanceOrder(order.id, target, shipment);
       }
       return client.marketplace.advanceOrder(order.id, target);
     },
-    onSuccess: (_updated, action) => {
+    onSuccess: (_updated, { action }) => {
       setPanel(null);
-      setTracking('');
-      setCarrier('');
       showToast(t(`community.order.done.${action}`), 'success');
       invalidate();
     },
@@ -81,7 +107,7 @@ export function OrderCard({ order }: { order: MarketOrder }) {
     onError,
   });
 
-  const busy = advance.isPending || dispute.isPending;
+  const busy = advance.isPending || dispute.isPending || askCertification.isPending;
   const title = order.listingTitle ?? t('common.unknown');
   const roleLabel = isSeller ? t('community.asSeller') : t('community.asBuyer');
   const commission = order.amount * order.commissionRate;
@@ -109,6 +135,9 @@ export function OrderCard({ order }: { order: MarketOrder }) {
       <VText variant="caption" tone="dim">
         {t(`community.order.hint.${order.escrowState}.${order.role}`)}
       </VText>
+      {shipBlocked ? (
+        <Notice tone="warning">{t('community.order.shipBlocked')}</Notice>
+      ) : null}
       {isSeller ? (
         <VText variant="caption" tone="dim">
           {t('community.order.commission', {
@@ -131,28 +160,13 @@ export function OrderCard({ order }: { order: MarketOrder }) {
         .map((action) =>
           action === 'ship' ? (
             panel === 'ship' ? (
-              <View key={action} style={styles.panel}>
-                <VTextInput
-                  label={t('community.trackingLabel')}
-                  value={tracking}
-                  onChangeText={setTracking}
-                  placeholder="XY123456789FR"
-                  autoCapitalize="characters"
-                />
-                <VTextInput
-                  label={t('community.carrierLabel')}
-                  value={carrier}
-                  onChangeText={setCarrier}
-                  placeholder={t('community.carrierPlaceholder')}
-                />
-                <VButton
-                  label={t('community.confirmShip')}
-                  onPress={() => advance.mutate('ship')}
-                  disabled={tracking.trim().length === 0 || busy}
-                  loading={advance.isPending}
-                />
-                <VButton label={t('common.cancel')} variant="ghost" onPress={() => setPanel(null)} />
-              </View>
+              <ShipPanel
+                key={action}
+                onConfirm={(shipment) => advance.mutate({ action: 'ship', shipment })}
+                onCancel={() => setPanel(null)}
+                loading={advance.isPending}
+                disabled={busy}
+              />
             ) : (
               <VButton key={action} label={t('community.ship')} onPress={() => setPanel('ship')} />
             )
@@ -160,13 +174,28 @@ export function OrderCard({ order }: { order: MarketOrder }) {
             <VButton
               key={action}
               label={t(action === 'pay' ? 'community.pay' : 'community.confirmReceipt')}
-              onPress={() => advance.mutate(action)}
+              onPress={() => advance.mutate({ action })}
               disabled={busy}
-              loading={advance.isPending && advance.variables === action}
+              loading={advance.isPending && advance.variables?.action === action}
               accessibilityHint={action === 'pay' ? t('community.escrowHint') : t('community.confirmReceiptHint')}
             />
           ),
         )}
+
+      {canAskCertification ? (
+        <>
+          <VText variant="caption" tone="dim">
+            {t('community.order.certificationOptional')}
+          </VText>
+          <VButton
+            label={t('community.listing.askCertification')}
+            variant="ghost"
+            onPress={() => askCertification.mutate()}
+            disabled={busy}
+            loading={askCertification.isPending}
+          />
+        </>
+      ) : null}
 
       {actions.includes('dispute') ? (
         panel === 'dispute' ? (
@@ -199,9 +228,9 @@ export function OrderCard({ order }: { order: MarketOrder }) {
             <VButton
               label={t('community.order.cancelYes')}
               variant="danger"
-              onPress={() => advance.mutate('cancel')}
+              onPress={() => advance.mutate({ action: 'cancel' })}
               disabled={busy}
-              loading={advance.isPending && advance.variables === 'cancel'}
+              loading={advance.isPending && advance.variables?.action === 'cancel'}
             />
             <VButton label={t('community.keep')} variant="ghost" onPress={() => setPanel(null)} />
           </View>

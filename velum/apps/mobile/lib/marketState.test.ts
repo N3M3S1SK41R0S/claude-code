@@ -1,11 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { VelumError, type EscrowState, type ExchangeProposal, type ExchangeState } from '@velum/core';
+import {
+  VelumError,
+  type CertificationRequest,
+  type EscrowState,
+  type ExchangeProposal,
+  type ExchangeState,
+  type ListingRecord,
+  type ListingStatus,
+} from '@velum/core';
 
 import {
   CERTIFICATION_TONE,
   ESCROW_TONE,
   EXCHANGE_TONE,
   LISTING_STATUS_TONE,
+  canRequestExchangeCertification,
+  canRequestOrderCertification,
   canTransitionOrder,
   canWithdrawListing,
   certificationActions,
@@ -14,12 +24,16 @@ import {
   exchangeActions,
   exchangeNeedsMe,
   exchangeTimeline,
+  hasOpenCertificationOn,
   isClosed,
   isForSale,
   isNotYetAvailable,
   isOpenToExchange,
+  itemCertifiedByExpert,
+  listingAvailability,
   marketLabelKeys,
   marketRetry,
+  myListingEngaged,
   myCashPayment,
   myCededValue,
   myTracking,
@@ -117,6 +131,17 @@ describe('commandes : actions par rôle × état (miroir migration 0006)', () =>
     expect(canTransitionOrder('buyer', 'disputed', 'refunded')).toBe(false);
   });
 
+  it('expédition bloquée tant qu’une expertise est ouverte (has_open_certification)', () => {
+    expect(orderActions({ escrowState: 'funds_held', role: 'seller' }, { hasOpenCertification: true })).toEqual([
+      'cancel',
+    ]);
+    expect(orderNeedsMe({ escrowState: 'funds_held', role: 'seller' }, { hasOpenCertification: true })).toBe(false);
+    expect(orderActions({ escrowState: 'funds_held', role: 'seller' }, { hasOpenCertification: false })).toEqual([
+      'ship',
+      'cancel',
+    ]);
+  });
+
   it('compte les ventes conclues (vendeur + fonds libérés)', () => {
     expect(
       completedSalesCount([
@@ -165,6 +190,23 @@ describe('échanges : actions par rôle × état', () => {
       'ship',
       'cancel',
     ]);
+  });
+
+  it('expertise ouverte (même un accord attendu) : pas d’expédition proposée', () => {
+    expect(exchangeActions(exchange({ state: 'shipping' }), { hasOpenCertification: true })).toEqual(['cancel']);
+    expect(
+      exchangeActions(exchange({ state: 'shipping', proposerTracking: 'XY1' }), { hasOpenCertification: true }),
+    ).toEqual(['confirm_receipt', 'dispute']);
+  });
+
+  it('proposition expirée (avant le passage du cron) : plus d’acceptation, refus et retrait restent', () => {
+    const expired = { ...exchange(), expiresAt: '2026-10-20T00:00:00Z' };
+    const now = '2026-10-23T10:00:00Z';
+    expect(exchangeActions(expired, { now })).toEqual(['decline']);
+    expect(exchangeActions({ ...expired, role: 'proposer' }, { now })).toEqual(['withdraw']);
+    expect(exchangeActions({ ...expired, expiresAt: '2026-10-30T00:00:00Z' }, { now })).toEqual(['accept', 'decline']);
+    // Échéance inconnue : le serveur tranche.
+    expect(exchangeActions(exchange(), { now })).toEqual(['accept', 'decline']);
   });
 
   it('aucune action sur les états terminaux et en litige', () => {
@@ -225,23 +267,60 @@ describe('frise d’un échange', () => {
 });
 
 describe('certifications et annonces', () => {
+  type CertView = Parameters<typeof certificationActions>[0];
+  const certView = (patch: Partial<CertView>): CertView => ({
+    status: 'requested',
+    requestedByMe: true,
+    reason: 'mutual_agreement',
+    orderId: null,
+    exchangeId: null,
+    ...patch,
+  });
+
   it('accord mutuel : l’autre partie accepte/refuse, l’auteur annule', () => {
-    expect(certificationActions({ status: 'awaiting_agreement', requestedByMe: false })).toEqual([
+    expect(certificationActions(certView({ status: 'awaiting_agreement', requestedByMe: false }))).toEqual([
       'agree',
       'refuse',
     ]);
-    expect(certificationActions({ status: 'awaiting_agreement', requestedByMe: true })).toEqual(['cancel']);
-    expect(certificationActions({ status: 'in_review', requestedByMe: true })).toEqual(['cancel']);
-    expect(certificationActions({ status: 'in_review', requestedByMe: false })).toEqual([]);
-    expect(certificationActions({ status: 'certified', requestedByMe: true })).toEqual([]);
+    expect(certificationActions(certView({ status: 'awaiting_agreement', requestedByMe: true }))).toEqual(['cancel']);
+    expect(certificationActions(certView({ status: 'in_review', requestedByMe: true }))).toEqual(['cancel']);
+    expect(certificationActions(certView({ status: 'in_review', requestedByMe: false }))).toEqual([]);
+    expect(certificationActions(certView({ status: 'certified', requestedByMe: true }))).toEqual([]);
   });
 
-  it('retrait possible tant que l’annonce n’est ni vendue ni échangée', () => {
+  it('annulation selon le motif et le contexte (enforce_certification_transition)', () => {
+    // Démarche volontaire : son auteur l'annule.
+    expect(certificationActions(certView({ reason: 'voluntary' }))).toEqual(['cancel']);
+    // Seuil d'une annonce seule : son propriétaire l'annule (l'annonce repasse en brouillon).
+    expect(certificationActions(certView({ reason: 'threshold' }))).toEqual(['cancel']);
+    // Seuil d'un échange ou d'une commande : on n'annule qu'en annulant la transaction.
+    expect(certificationActions(certView({ reason: 'threshold', exchangeId: 'e-1' }))).toEqual([]);
+    expect(certificationActions(certView({ reason: 'threshold', orderId: 'o-1' }))).toEqual([]);
+    expect(certificationActions(certView({ reason: 'threshold', exchangeId: 'e-1', status: 'in_review' }))).toEqual([]);
+  });
+
+  it('retrait possible tant que l’annonce n’est ni vendue, ni échangée, ni réservée', () => {
     expect(canWithdrawListing('active')).toBe(true);
     expect(canWithdrawListing('pending_certification')).toBe(true);
+    expect(canWithdrawListing('draft')).toBe(true);
     expect(canWithdrawListing('sold')).toBe(false);
     expect(canWithdrawListing('exchanged')).toBe(false);
     expect(canWithdrawListing('withdrawn')).toBe(false);
+    // Réservée (paiement capturé ou échange accepté) : statut figé côté serveur.
+    expect(canWithdrawListing('active', true)).toBe(false);
+  });
+
+  it('reconnaît MON annonce réservée par une transaction en cours', () => {
+    const order = (escrowState: EscrowState) => ({ listingId: 'l-1', escrowState });
+    const ex = (state: ExchangeState) => ({ listingId: 'l-1', state });
+    expect(myListingEngaged('l-1', [order('funds_held')], [])).toBe(true);
+    expect(myListingEngaged('l-1', [order('disputed')], [])).toBe(true);
+    expect(myListingEngaged('l-1', [], [ex('shipping')])).toBe(true);
+    // Commande non payée, échange proposé ou clos : pas de réservation.
+    expect(myListingEngaged('l-1', [order('pending_payment'), order('cancelled')], [ex('proposed'), ex('completed')])).toBe(
+      false,
+    );
+    expect(myListingEngaged('l-2', [order('funds_held')], [ex('shipping')])).toBe(false);
   });
 
   it('compte les éléments qui attendent MON action', () => {
@@ -256,6 +335,172 @@ describe('certifications et annonces', () => {
       }),
     ).toBe(3);
     expect(pendingActionCount({})).toBe(0);
+  });
+
+  it('une expédition bloquée par une expertise ouverte n’attend pas mon action', () => {
+    const certifications = [
+      { status: 'awaiting_agreement' as const, requestedByMe: true, orderId: 'o-1', exchangeId: null },
+      { status: 'requested' as const, requestedByMe: false, orderId: null, exchangeId: 'ex-1' },
+    ];
+    expect(hasOpenCertificationOn(certifications, { orderId: 'o-1' })).toBe(true);
+    expect(hasOpenCertificationOn(certifications, { exchangeId: 'ex-1' })).toBe(true);
+    expect(hasOpenCertificationOn(certifications, { orderId: 'o-2' })).toBe(false);
+    expect(
+      pendingActionCount({
+        orders: [{ id: 'o-1', role: 'seller', escrowState: 'funds_held' }],
+        exchanges: [exchange({ state: 'shipping' })],
+        certifications,
+      }),
+    ).toBe(0);
+  });
+});
+
+describe('expertise d’un commun accord : demandée sur la transaction (miroir de request_certification)', () => {
+  type Cert = Parameters<typeof canRequestExchangeCertification>[1][number];
+  const cert = (patch: Partial<Cert>): Cert => ({
+    reason: 'mutual_agreement',
+    status: 'awaiting_agreement',
+    requestedByMe: true,
+    ...patch,
+  });
+
+  it('échange : seulement accepté et AVANT toute expédition (jamais sur une simple proposition)', () => {
+    expect(canRequestExchangeCertification(exchange({ state: 'proposed' }), [])).toBe(false);
+    expect(canRequestExchangeCertification(exchange({ state: 'shipping' }), [])).toBe(true);
+    expect(canRequestExchangeCertification(exchange({ state: 'awaiting_certification' }), [])).toBe(true);
+    expect(canRequestExchangeCertification(exchange({ state: 'shipping', recipientTracking: 'LL1FR' }), [])).toBe(false);
+    expect(canRequestExchangeCertification(exchange({ state: 'shipping', proposerTracking: 'LL1FR' }), [])).toBe(false);
+    expect(canRequestExchangeCertification(exchange({ state: 'completed' }), [])).toBe(false);
+  });
+
+  it('échange : porte sur l’objet que je REÇOIS — pas de doublon, l’expertise de mon objet n’empêche rien', () => {
+    const shipping = exchange({ state: 'awaiting_certification' });
+    // Expertise de seuil de MON objet (demandée par moi, propriétaire) : sans effet.
+    expect(canRequestExchangeCertification(shipping, [cert({ reason: 'threshold', status: 'requested' })])).toBe(true);
+    // Expertise de seuil de l'objet que je reçois (demandée par l'autre partie) : déjà prévue.
+    expect(
+      canRequestExchangeCertification(shipping, [cert({ reason: 'threshold', status: 'in_review', requestedByMe: false })]),
+    ).toBe(false);
+    // Ma demande en cours ou déjà certifiée : pas de seconde ; refusée/annulée : renouvelable.
+    expect(canRequestExchangeCertification(shipping, [cert({})])).toBe(false);
+    expect(canRequestExchangeCertification(shipping, [cert({ status: 'certified' })])).toBe(false);
+    expect(canRequestExchangeCertification(shipping, [cert({ status: 'cancelled' })])).toBe(true);
+    // Demande de l'autre partie (elle porte sur MON objet) : sans effet.
+    expect(canRequestExchangeCertification(shipping, [cert({ requestedByMe: false })])).toBe(true);
+  });
+
+  it('commande : avant expédition, une seule demande ouverte, rien après certification', () => {
+    const order = (escrowState: EscrowState) => ({ escrowState });
+    expect(canRequestOrderCertification(order('pending_payment'), [])).toBe(true);
+    expect(canRequestOrderCertification(order('funds_held'), [])).toBe(true);
+    expect(canRequestOrderCertification(order('shipped'), [])).toBe(false);
+    expect(canRequestOrderCertification(order('released'), [])).toBe(false);
+    expect(canRequestOrderCertification(order('funds_held'), [{ status: 'awaiting_agreement' }])).toBe(false);
+    expect(canRequestOrderCertification(order('funds_held'), [{ status: 'certified' }])).toBe(false);
+    expect(canRequestOrderCertification(order('funds_held'), [{ status: 'cancelled' }])).toBe(true);
+  });
+});
+
+describe('objet déjà certifié (la certification suit l’objet)', () => {
+  const listing = (patch: Partial<Pick<ListingRecord, 'id' | 'itemId' | 'status' | 'certified'>>) => ({
+    id: 'l-1',
+    itemId: 'it-1',
+    status: 'withdrawn' as ListingStatus,
+    certified: false,
+    ...patch,
+  });
+  const cert = (patch: Partial<Pick<CertificationRequest, 'listingId' | 'orderId' | 'exchangeId' | 'reason' | 'status' | 'requestedByMe'>>) => ({
+    listingId: null,
+    orderId: null,
+    exchangeId: null,
+    reason: 'voluntary' as const,
+    status: 'certified' as const,
+    requestedByMe: true,
+    ...patch,
+  });
+
+  it('badge d’une de mes annonces de l’objet, ou certification obtenue sur elle', () => {
+    expect(itemCertifiedByExpert('it-1', [listing({ certified: true })], [])).toBe(true);
+    expect(itemCertifiedByExpert('it-1', [listing({})], [cert({ listingId: 'l-1' })])).toBe(true);
+    // Expertise d'un commun accord sur une commande de mon annonce (j'en suis le propriétaire).
+    expect(
+      itemCertifiedByExpert('it-1', [listing({})], [cert({ listingId: 'l-1', orderId: 'o-1', reason: 'mutual_agreement', requestedByMe: false })]),
+    ).toBe(true);
+  });
+
+  it('échange sur mon annonce : seule l’expertise de MON objet compte', () => {
+    const exchanges = [{ id: 'e-1', listingId: 'l-1', role: 'recipient' as const }];
+    const onMine = cert({ exchangeId: 'e-1', reason: 'threshold', requestedByMe: true });
+    const onTheirs = cert({ exchangeId: 'e-1', reason: 'mutual_agreement', requestedByMe: true });
+    expect(itemCertifiedByExpert('it-1', [listing({})], [onMine], exchanges)).toBe(true);
+    expect(itemCertifiedByExpert('it-1', [listing({})], [onTheirs], exchanges)).toBe(false);
+  });
+
+  it('prudent : autre objet, demande non aboutie, objet déjà cédé → non', () => {
+    expect(itemCertifiedByExpert('it-2', [listing({ certified: true })], [])).toBe(false);
+    expect(itemCertifiedByExpert('it-1', [listing({})], [cert({ listingId: 'l-1', status: 'in_review' })])).toBe(false);
+    expect(itemCertifiedByExpert('it-1', [listing({ certified: true, status: 'sold' })], [])).toBe(false);
+  });
+});
+
+describe('annonce d’autrui : actions selon MES transactions (miroir des refus serveur)', () => {
+  const listing = { id: 'l-1', kind: 'sale_or_exchange', isMine: false } as const;
+  const order = (escrowState: EscrowState, listingId = 'l-1') =>
+    ({ id: `o-${escrowState}`, listingId, role: 'buyer', escrowState }) as const;
+  const ex = (state: ExchangeState, listingId = 'l-1') =>
+    ({ id: `e-${state}`, listingId, role: 'proposer', state }) as const;
+
+  it('sans transaction : acheter et proposer selon la nature de l’annonce', () => {
+    expect(listingAvailability(listing, [], [])).toEqual({ canBuy: true, canPropose: true, mine: null });
+    expect(listingAvailability({ ...listing, kind: 'sale' }, [], []).canPropose).toBe(false);
+    expect(listingAvailability({ ...listing, kind: 'exchange' }, [], []).canBuy).toBe(false);
+    // Transactions sur une AUTRE annonce, ou closes sans suite : sans effet.
+    expect(listingAvailability(listing, [order('funds_held', 'l-2'), order('cancelled')], [ex('declined')])).toEqual({
+      canBuy: true,
+      canPropose: true,
+      mine: null,
+    });
+  });
+
+  it('commande en attente de paiement : pas de seconde commande, l’échange reste possible', () => {
+    expect(listingAvailability(listing, [order('pending_payment')], [])).toEqual({
+      canBuy: false,
+      canPropose: true,
+      mine: { kind: 'order', id: 'o-pending_payment' },
+    });
+  });
+
+  it('annonce réservée ou conclue par MA transaction : plus aucune action, lien vers elle', () => {
+    for (const state of ['funds_held', 'shipped', 'disputed', 'released'] as const) {
+      expect(listingAvailability(listing, [order(state)], [])).toEqual({
+        canBuy: false,
+        canPropose: false,
+        mine: { kind: 'order', id: `o-${state}` },
+      });
+    }
+    for (const state of ['accepted', 'awaiting_certification', 'shipping', 'disputed', 'completed'] as const) {
+      expect(listingAvailability(listing, [], [ex(state)])).toEqual({
+        canBuy: false,
+        canPropose: false,
+        mine: { kind: 'exchange', id: `e-${state}` },
+      });
+    }
+  });
+
+  it('proposition en attente : pas de seconde proposition, l’achat reste possible', () => {
+    expect(listingAvailability(listing, [], [ex('proposed')])).toEqual({
+      canBuy: true,
+      canPropose: false,
+      mine: { kind: 'exchange', id: 'e-proposed' },
+    });
+  });
+
+  it('ma propre annonce : aucune action d’achat ni d’échange', () => {
+    expect(listingAvailability({ ...listing, isMine: true }, [], [])).toEqual({
+      canBuy: false,
+      canPropose: false,
+      mine: null,
+    });
   });
 });
 

@@ -3,7 +3,8 @@
  * catégorie d'abord), valeur déclarée pré-remplie avec la dernière estimation
  * VELUM, soulte signée (« j'ajoute » / « je demande »), message (coordonnées
  * masquées automatiquement, aperçu avant envoi), aperçu de MA commission ;
- * expertise obligatoire au-delà du seuil ou demandée d'un commun accord.
+ * expertise obligatoire au-delà du seuil. L'expertise d'un commun accord se
+ * demande ensuite, sur l'échange accepté (seul moment où le serveur l'accepte).
  */
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -22,9 +23,17 @@ import {
   redactionPreview,
   type CashDirection,
 } from '../../lib/marketForms';
+import { itemCertifiedByExpert } from '../../lib/marketState';
 import { showToast } from '../../stores/toastStore';
-import { AmountRows, CheckRow, Notice, Segmented, type AmountRow } from './controls';
-import { useCompletedSales, useInvalidateCommunity, useMarketErrorToast } from './hooks';
+import { AmountRows, Notice, Segmented, type AmountRow } from './controls';
+import {
+  useCompletedSales,
+  useInvalidateCommunity,
+  useMarketErrorToast,
+  useMyCertifications,
+  useMyExchanges,
+  useMyListings,
+} from './hooks';
 import { ItemPicker } from './ItemPicker';
 
 export interface ExchangeProposalFormProps {
@@ -47,7 +56,6 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
   const [direction, setDirection] = useState<CashDirection>('add');
   const [cash, setCash] = useState('');
   const [message, setMessage] = useState('');
-  const [mutual, setMutual] = useState(false);
 
   const itemId = item?.id ?? '';
   const latest = useQuery({
@@ -62,13 +70,26 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
     if (!valueTouched && estimate !== null) setValue(amountToInput(estimate));
   }, [estimate, valueTouched]);
 
+  // Mon objet déjà certifié : la certification le suit (pas de nouvelle expertise).
+  const myListings = useMyListings();
+  const myCertifications = useMyCertifications();
+  const myExchanges = useMyExchanges();
+  const offeredCertified =
+    item !== null &&
+    itemCertifiedByExpert(item.id, myListings.data ?? [], myCertifications.data ?? [], myExchanges.data ?? []);
+
+  // Seuil évalué objet par objet, comme le serveur (_exchange_threshold_targets).
   const preview = exchangePreview({
     listingValue: listing.askPrice,
+    listingCertified: listing.certified,
     offeredValueInput: value,
+    offeredEstimate: estimate,
+    offeredCertified,
     cashDirection: direction,
     cashInput: cash,
     completedSales: sales.completedSales,
-    mutualCertification: mutual,
+    // Accord mutuel : demandé plus tard, sur l'échange accepté (pas ici).
+    mutualCertification: false,
   });
   const messagePreview = redactionPreview(message);
   const locale = i18n.language;
@@ -78,31 +99,18 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
       if (item === null || preview.offeredValue === null || preview.cashAdjustment === null) {
         throw new VelumError('INVALID_INPUT', 'Proposition incomplète ou montant invalide');
       }
-      const created = await client.marketplace.proposeExchange({
+      // L'expertise d'un commun accord ne se demande PAS ici : le serveur ne
+      // l'accepte qu'une fois l'échange accepté (détail de l'échange).
+      return client.marketplace.proposeExchange({
         listingId: listing.id,
         offeredItemId: item.id,
         offeredValue: preview.offeredValue,
         cashAdjustment: preview.cashAdjustment,
         ...(message.trim().length > 0 ? { message: message.trim() } : {}),
       });
-      // Expertise d'un commun accord (sous le seuil) : demandée à l'autre partie.
-      let certificationFailed = false;
-      if (mutual && preview.requirement.reason === 'mutual_agreement') {
-        try {
-          await client.marketplace.requestCertification({
-            reason: 'mutual_agreement',
-            exchangeId: created.id,
-            feePayer: 'split',
-          });
-        } catch {
-          certificationFailed = true;
-        }
-      }
-      return { created, certificationFailed };
     },
-    onSuccess: ({ created, certificationFailed }) => {
+    onSuccess: (created) => {
       showToast(t('community.proposal.sent'), 'success');
-      if (certificationFailed) showToast(t('community.proposal.certificationFailed'), 'danger');
       invalidate();
       onProposed(created.id);
     },
@@ -247,17 +255,25 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
 
           {preview.requirement.reason === 'threshold' ? (
             <Notice tone="warning" title={t('community.certification.requiredTitle')}>
-              {t('community.proposal.certificationRequired', {
-                fee: formatPrice(preview.certificationFee, locale),
-              })}
+              <>
+                {preview.thresholdItems.mine ? (
+                  <VText variant="caption" tone="dim">
+                    {t('community.proposal.certificationRequiredMine', {
+                      fee: formatPrice(preview.certificationFee, locale),
+                    })}
+                  </VText>
+                ) : null}
+                {preview.thresholdItems.theirs ? (
+                  <VText variant="caption" tone="dim">
+                    {t('community.proposal.certificationRequiredTheirs')}
+                  </VText>
+                ) : null}
+              </>
             </Notice>
           ) : (
-            <CheckRow
-              label={t('community.proposal.askCertification')}
-              hint={t('community.proposal.askCertificationHint')}
-              checked={mutual}
-              onChange={setMutual}
-            />
+            <VText variant="caption" tone="dim">
+              {t('community.proposal.certificationLater')}
+            </VText>
           )}
         </>
       ) : null}

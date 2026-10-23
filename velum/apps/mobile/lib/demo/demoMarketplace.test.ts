@@ -25,10 +25,14 @@ function item(id: string, patch: Partial<VelumItem> = {}): VelumItem {
   };
 }
 
-function setup(items: VelumItem[] = [item('it-coin'), item('it-watch', { domain: 'watch', title: 'Rolex Datejust' })]) {
+function setup(
+  items: VelumItem[] = [item('it-coin'), item('it-watch', { domain: 'watch', title: 'Rolex Datejust' })],
+  valuations: Record<string, number> = {},
+) {
   const repo = createDemoMarketplaceRepo((id) => items.find((i) => i.id === id) ?? null, {
     delayMs: 0,
     now: () => NOW,
+    latestValuation: (id) => valuations[id] ?? null,
   });
   return repo;
 }
@@ -86,7 +90,17 @@ describe('démo marketplace — catalogue', () => {
     const repo = setup();
     const withMine = await repo.catalogue({ includeMine: true });
     const mine = withMine.filter((l) => l.isMine);
+    // demo-mine-5 est réservée (paiement capturé) : hors catalogue, comme listing_is_engaged.
     expect(mine.map((l) => l.id)).toEqual(['demo-mine-1']);
+  });
+
+  it('lecture directe : annonce hors catalogue visible de ses parties seulement', async () => {
+    const repo = setup();
+    // Vendue (je suis l'acheteur de demo-order-1) : absente du catalogue, mais consultable.
+    expect((await repo.catalogue()).some((l) => l.id === 'demo-listing-9')).toBe(false);
+    expect(await repo.getListing?.('demo-listing-9')).toMatchObject({ id: 'demo-listing-9', isMine: false });
+    expect(await repo.getListing?.('demo-mine-3')).toMatchObject({ isMine: true });
+    expect(await repo.getListing?.('absente')).toBeNull();
   });
 
   it('expose une réputation par pseudonyme sans identifiant', async () => {
@@ -128,10 +142,21 @@ describe('démo marketplace — mise en vente (règles @velum/config)', () => {
     expect(cert).toMatchObject({ reason: 'threshold', status: 'requested', feePayer: 'seller', requestedByMe: true });
   });
 
-  it('le seuil tient compte de l’estimation VELUM (pas de sous-déclaration)', async () => {
-    const repo = setup([item('it-under', { attributes: { quickEstimate: { central: 900 } } })]);
-    const rec = await repo.createListing({ itemId: 'it-under', askPrice: 300 });
-    expect(rec.status).toBe('pending_certification');
+  it('le seuil tient compte de la dernière valorisation VELUM (pas de sous-déclaration)', async () => {
+    // Comme _market_reference_value : max(prix, dernière valorisation) ; le
+    // scan éclair ({low, high}) n'est pas une valorisation et n'est pas lu.
+    const repo = setup(
+      [item('it-under'), item('it-quick', { attributes: { quickEstimate: { low: 300, high: 900, currency: 'EUR' } } })],
+      { 'it-under': 900 },
+    );
+    expect((await repo.createListing({ itemId: 'it-under', askPrice: 450 })).status).toBe('pending_certification');
+    expect((await repo.createListing({ itemId: 'it-quick', askPrice: 450 })).status).toBe('active');
+  });
+
+  it('titre dénormalisé expurgé des coordonnées, comme en SQL', async () => {
+    const repo = setup([item('it-phone', { title: 'Montre – appelez 06 12 34 56 78' })]);
+    const rec = await repo.createListing({ itemId: 'it-phone', askPrice: 100 });
+    expect(rec.title).toBe(`Montre – appelez ${REDACTION_TOKEN}`);
   });
 
   it('refuse un prix invalide, un objet inconnu, une double annonce ; retire une annonce', async () => {
@@ -147,13 +172,19 @@ describe('démo marketplace — mise en vente (règles @velum/config)', () => {
     await expectInvalid(repo.withdrawListing('demo-listing-1')); // pas la mienne
   });
 
-  it('annuler l’expertise obligatoire retire l’annonce en attente', async () => {
+  it('annuler l’expertise obligatoire repasse l’annonce en brouillon (comme le serveur)', async () => {
     const repo = setup();
     const cert = (await repo.myCertifications()).find((c) => c.listingId === 'demo-mine-2');
     expect(cert?.status).toBe('in_review');
     await repo.cancelCertification(cert?.id ?? '');
     const mine = await repo.myListings();
-    expect(mine.find((l) => l.id === 'demo-mine-2')?.status).toBe('withdrawn');
+    expect(mine.find((l) => l.id === 'demo-mine-2')?.status).toBe('draft');
+  });
+
+  it('une annonce réservée (paiement capturé) ne se retire pas', async () => {
+    const repo = setup();
+    // demo-mine-5 : commande demo-order-4 sous séquestre.
+    await expectInvalid(repo.withdrawListing('demo-mine-5'));
   });
 });
 
@@ -163,16 +194,27 @@ describe('démo marketplace — achat sous séquestre', () => {
     const order = await repo.buy('demo-listing-3');
     expect(order).toMatchObject({ role: 'buyer', escrowState: 'pending_payment', commissionRate: 0.04 });
     expect(order.counterpartyAlias).toBe('Cave 92B1');
-    // Annonce réservée : hors catalogue.
-    expect((await repo.catalogue()).some((l) => l.id === 'demo-listing-3')).toBe(false);
-    // Le paiement place les fonds sous séquestre ; le vendeur (simulé) expédie.
+    // Commande NON payée : elle ne réserve rien, l'annonce reste au catalogue.
+    expect((await repo.catalogue()).some((l) => l.id === 'demo-listing-3')).toBe(true);
+    // Le paiement place les fonds sous séquestre (annonce réservée) ; le vendeur (simulé) expédie.
     const paid = await repo.advanceOrder(order.id, 'funds_held');
     expect(paid.escrowState).toBe('shipped');
     expect(paid.trackingNumber).toMatch(/^DEMO/);
+    expect((await repo.catalogue()).some((l) => l.id === 'demo-listing-3')).toBe(false);
     await expectInvalid(repo.advanceOrder(order.id, 'refunded'));
     const released = await repo.advanceOrder(order.id, 'released');
     expect(released.escrowState).toBe('released');
     expect(released.releasedAt).toBe(NOW);
+    // Vendue à la libération : elle ne revient pas au catalogue, mais reste consultable par l'acheteur.
+    expect((await repo.catalogue()).some((l) => l.id === 'demo-listing-3')).toBe(false);
+    expect(await repo.getListing?.('demo-listing-3')).toMatchObject({ id: 'demo-listing-3' });
+    await expectInvalid(repo.buy('demo-listing-3'));
+  });
+
+  it('une seule commande non payée par acheteur et par annonce', async () => {
+    const repo = setup();
+    await repo.buy('demo-listing-3');
+    await expectInvalid(repo.buy('demo-listing-3'));
   });
 
   it('refuse l’achat de mes annonces, des annonces d’échange et indisponibles', async () => {
@@ -182,7 +224,7 @@ describe('démo marketplace — achat sous séquestre', () => {
     await expectInvalid(repo.buy('demo-listing-9'));
   });
 
-  it('annulation avant expédition : l’annonce revient au catalogue', async () => {
+  it('annulation avant paiement : l’annonce reste au catalogue', async () => {
     const repo = setup();
     const order = await repo.buy('demo-listing-8');
     await repo.advanceOrder(order.id, 'cancelled');
@@ -196,6 +238,22 @@ describe('démo marketplace — achat sous séquestre', () => {
     expect(dispute.status).toBe('open');
     const orders = await repo.myOrders();
     expect(orders.find((o) => o.id === 'demo-order-1')?.escrowState).toBe('disputed');
+  });
+
+  it('vente : j’expédie avec le seul suivi ; une date de livraison posée par le vendeur est refusée', async () => {
+    const repo = setup();
+    const sale = (await repo.myOrders()).find((o) => o.role === 'seller' && o.escrowState === 'funds_held');
+    expect(sale).toBeDefined();
+    const id = sale?.id ?? '';
+    // L'acheteur a demandé une expertise : je la refuse, l'expédition est débloquée.
+    const asked = (await repo.myCertifications()).find((c) => c.orderId === id && c.status === 'awaiting_agreement');
+    await repo.respondCertification(asked?.id ?? '', false);
+    // Miroir de guard_order_terms : seul l’acheteur (ou le transporteur) atteste la livraison.
+    await expectInvalid(
+      repo.advanceOrder(id, 'shipped', { trackingNumber: 'LL123456789FR', deliveredAt: NOW }),
+    );
+    const shipped = await repo.advanceOrder(id, 'shipped', { trackingNumber: 'LL123456789FR', carrier: 'La Poste' });
+    expect(shipped).toMatchObject({ escrowState: 'shipped', trackingNumber: 'LL123456789FR', carrier: 'La Poste', deliveredAt: null });
   });
 
   it('compte mes ventes conclues dans les commandes (rôle vendeur, fonds libérés)', async () => {
@@ -219,8 +277,9 @@ describe('démo marketplace — échanges', () => {
   it('acceptation : commission figée sur l’objet que je cède, puis cycle complet', async () => {
     const repo = setup();
     const accepted = await repo.respondExchange('demo-exchange-1', true);
-    // Je cède ma Semeuse déclarée 45 € à 5 % (2 ventes conclues).
-    expect(accepted).toMatchObject({ state: 'accepted', myCommission: 2.25 });
+    // Je cède ma Semeuse déclarée 45 € à 5 % (2 ventes conclues). Comme le
+    // serveur, l'acceptation passe aussitôt en expédition (sans expertise).
+    expect(accepted).toMatchObject({ state: 'shipping', myCommission: 2.25 });
     const shipped = await repo.shipExchange('demo-exchange-1', 'LL000FR');
     expect(shipped.state).toBe('shipping');
     expect(shipped.recipientTracking).toBe('LL000FR');
@@ -256,7 +315,8 @@ describe('démo marketplace — échanges', () => {
       state: 'proposed',
       offeredTitle: 'Rolex Datejust',
       cashAdjustment: -100,
-      certificationRequired: true,
+      // Comme set_exchange_defaults : l'expertise se décide à l'acceptation.
+      certificationRequired: false,
       myCommission: null,
     });
     expect(ex.message).toBe(`Joignable au ${REDACTION_TOKEN}`);
@@ -274,10 +334,42 @@ describe('démo marketplace — échanges', () => {
     );
   });
 
+  it('acceptation : l’annonce et l’objet sont réservés (hors catalogue), les autres propositions tombent', async () => {
+    const repo = setup();
+    await repo.respondExchange('demo-exchange-1', true);
+    expect((await repo.catalogue({ includeMine: true })).some((l) => l.id === 'demo-mine-1')).toBe(false);
+    await expectInvalid(repo.withdrawListing('demo-mine-1'));
+  });
+
+  it('expertise de seuil décidée à l’acceptation, objet par objet, à la charge de son propriétaire', async () => {
+    // Ma Semeuse (annonce demo-mine-1) est valorisée 900 € : elle dépasse le seuil.
+    const repo = setup(undefined, { 'demo-mine-1-item': 900 });
+    const accepted = await repo.respondExchange('demo-exchange-1', true);
+    expect(accepted).toMatchObject({ state: 'awaiting_certification', certificationRequired: true });
+    const certs = (await repo.myCertifications()).filter((c) => c.exchangeId === 'demo-exchange-1');
+    expect(certs).toHaveLength(1);
+    expect(certs[0]).toMatchObject({
+      reason: 'threshold',
+      status: 'requested',
+      feePayer: 'seller',
+      requestedByMe: true,
+      itemTitle: '5 Francs Semeuse argent 1960',
+    });
+    // Seuil d'échange : il ne s'annule qu'en annulant l'échange.
+    await expectInvalid(repo.cancelCertification(certs[0]?.id ?? ''));
+  });
+
+  it('proposition : titre de l’objet offert expurgé des coordonnées', async () => {
+    const repo = setup([item('it-phone', { title: 'Montre – appelez 06 12 34 56 78' })]);
+    const ex = await repo.proposeExchange({ listingId: 'demo-listing-4', offeredItemId: 'it-phone', offeredValue: 300 });
+    expect(ex.offeredTitle).toBe(`Montre – appelez ${REDACTION_TOKEN}`);
+  });
+
   it('un échange accepté s’annule avant toute expédition, pas une proposition', async () => {
     const repo = setup();
     await expectInvalid(repo.cancelExchange('demo-exchange-1'));
     await repo.respondExchange('demo-exchange-1', true);
+    await repo.requestCertification({ reason: 'mutual_agreement', exchangeId: 'demo-exchange-1' });
     const cancelled = await repo.cancelExchange('demo-exchange-1');
     expect(cancelled.state).toBe('cancelled');
     // L'expertise d'accord mutuel en attente sur cet échange est annulée avec lui.
@@ -287,27 +379,60 @@ describe('démo marketplace — échanges', () => {
 });
 
 describe('démo marketplace — certifications et messages', () => {
-  it('accord mutuel : j’accepte la demande reçue, l’expertise conditionne l’échange', async () => {
+  it('accord mutuel reçu sur ma vente : je l’accepte, l’expédition attend l’expert', async () => {
     const repo = setup();
     const pending = (await repo.myCertifications()).find((c) => c.status === 'awaiting_agreement');
-    expect(pending).toMatchObject({ requestedByMe: false, feePayer: 'split', exchangeId: 'demo-exchange-1' });
+    expect(pending).toMatchObject({ requestedByMe: false, feePayer: 'split', orderId: 'demo-order-4' });
     const agreed = await repo.respondCertification(pending?.id ?? '', true);
     expect(agreed).toMatchObject({ status: 'requested', counterpartyAgreed: true });
-    const accepted = await repo.respondExchange('demo-exchange-1', true);
-    expect(accepted.state).toBe('awaiting_certification');
-    await expectInvalid(repo.shipExchange('demo-exchange-1', 'X'));
+    const order = (await repo.myOrders()).find((o) => o.id === 'demo-order-4');
+    expect(order?.certificationRequired).toBe(true);
+    // Miroir de has_open_certification : expédition bloquée tant que l'expert n'a pas rendu sa décision.
+    await expectInvalid(repo.advanceOrder('demo-order-4', 'shipped', { trackingNumber: 'LL123456789FR' }));
   });
 
-  it('je demande une expertise d’accord mutuel sur une annonce (frais partagés)', async () => {
+  it('expertise ouverte sur un échange : pas d’expédition tant qu’elle n’est pas tranchée', async () => {
     const repo = setup();
-    const req = await repo.requestCertification({ reason: 'mutual_agreement', listingId: 'demo-listing-3' });
-    expect(req).toMatchObject({ status: 'awaiting_agreement', feePayer: 'split', requestedByMe: true, counterpartyAgreed: false });
+    await repo.respondExchange('demo-exchange-1', true);
+    await repo.requestCertification({ reason: 'mutual_agreement', exchangeId: 'demo-exchange-1' });
+    // Accord attendu (awaiting_agreement) : has_open_certification bloque déjà l'envoi.
+    await expectInvalid(repo.shipExchange('demo-exchange-1', 'LL123456789FR'));
+  });
+
+  it('échange : expertise d’un commun accord seulement une fois accepté, avant tout envoi', async () => {
+    const repo = setup();
+    // Simple proposition : refusé (le serveur répond « Trop tard… ou pas en cours »).
+    await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', exchangeId: 'demo-exchange-2' }));
+    await repo.respondExchange('demo-exchange-1', true);
+    const req = await repo.requestCertification({ reason: 'mutual_agreement', exchangeId: 'demo-exchange-1' });
+    // Elle porte sur l'objet que je REÇOIS (l'Hercule proposé).
+    expect(req).toMatchObject({
+      status: 'awaiting_agreement',
+      feePayer: 'split',
+      requestedByMe: true,
+      itemTitle: 'Hercule 10 Francs argent 1967',
+    });
+    await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', exchangeId: 'demo-exchange-1' }));
+    await expectInvalid(repo.requestCertification({ reason: 'voluntary', exchangeId: 'demo-exchange-1' }));
+    await expectInvalid(repo.respondCertification(req.id, true)); // c'est ma demande
+    expect((await repo.cancelCertification(req.id)).status).toBe('cancelled');
+  });
+
+  it('commande : je demande l’expertise avant expédition ; jamais sur l’annonce d’autrui', async () => {
+    const repo = setup();
+    // Annonce d'autrui : le contexte annonce est réservé au vendeur (« introuvable parmi les vôtres »).
     await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', listingId: 'demo-listing-3' }));
     await expectInvalid(repo.requestCertification({ reason: 'voluntary', listingId: 'demo-listing-3' }));
     await expectInvalid(repo.requestCertification({ reason: 'voluntary' }));
-    await expectInvalid(repo.respondCertification(req.id, true)); // c'est ma demande
-    const cancelled = await repo.cancelCertification(req.id);
-    expect(cancelled.status).toBe('cancelled');
+    // Commande déjà expédiée : trop tard.
+    await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', orderId: 'demo-order-1' }));
+    const order = await repo.buy('demo-listing-3');
+    const req = await repo.requestCertification({ reason: 'mutual_agreement', orderId: order.id });
+    expect(req).toMatchObject({ status: 'awaiting_agreement', feePayer: 'split', requestedByMe: true, counterpartyAgreed: false });
+    await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', orderId: order.id }));
+    // Expertise ouverte : après paiement, le vendeur (simulé) n'expédie pas.
+    expect((await repo.advanceOrder(order.id, 'funds_held')).escrowState).toBe('funds_held');
+    expect((await repo.cancelCertification(req.id)).status).toBe('cancelled');
   });
 
   it('fil anonymisé : pseudonymes, coordonnées masquées, fils d’autrui inaccessibles', async () => {

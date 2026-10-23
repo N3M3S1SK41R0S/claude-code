@@ -80,6 +80,47 @@ export function Segmented<T extends string>({ value, options, onChange, accessib
   );
 }
 
+// ── Choix dans une liste fermée (puces) ──────────────────────────────────────
+
+export interface ChoiceChipsProps<T extends string> {
+  value: T;
+  options: readonly { value: T; label: string }[];
+  onChange: (value: T) => void;
+  /** Libellé du groupe pour les lecteurs d'écran. */
+  accessibilityLabel: string;
+}
+
+/** Groupe radio en puces qui passent à la ligne (listes plus longues qu'un sélecteur segmenté). */
+export function ChoiceChips<T extends string>({ value, options, onChange, accessibilityLabel }: ChoiceChipsProps<T>) {
+  const { senior, scale } = useSeniorMode();
+  return (
+    <View style={styles.chips} accessibilityRole="radiogroup" accessibilityLabel={accessibilityLabel}>
+      {options.map((option) => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            onPress={() => onChange(option.value)}
+            accessibilityRole="radio"
+            accessibilityLabel={option.label}
+            accessibilityState={{ selected, checked: selected }}
+            aria-checked={selected}
+            style={[styles.chip, { minHeight: senior ? 56 : 44 }, selected ? styles.segmentSelected : null]}
+          >
+            <Text
+              allowFontScaling
+              maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
+              style={[styles.segmentLabel, { fontSize: scale(14) }, selected ? styles.segmentLabelSelected : null]}
+            >
+              {option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 // ── Case à cocher ────────────────────────────────────────────────────────────
 
 export interface CheckRowProps {
@@ -205,6 +246,8 @@ export interface AsyncSource<T> {
   isError: boolean;
   error: unknown;
   refetch: () => unknown;
+  /** 'paused' : requête en attente du réseau (hors-ligne). */
+  fetchStatus?: 'fetching' | 'paused' | 'idle';
 }
 
 export interface AsyncBlockProps<T> {
@@ -216,8 +259,10 @@ export interface AsyncBlockProps<T> {
 }
 
 /**
- * Chargement / erreur (avec Réessayer) / vide / contenu. Une fonction serveur
- * pas encore câblée est annoncée comme telle (« bientôt disponible »).
+ * Chargement / erreur (avec Réessayer) / hors-ligne / vide / contenu. Une
+ * fonction serveur pas encore câblée est annoncée comme telle (« bientôt
+ * disponible ») ; une lecture en attente du réseau sans données en cache est
+ * annoncée hors-ligne (jamais « vide »).
  */
 export function AsyncBlock<T>({ source, isEmpty, emptyText, children }: AsyncBlockProps<T>) {
   const { t } = useTranslation();
@@ -230,6 +275,13 @@ export function AsyncBlock<T>({ source, isEmpty, emptyText, children }: AsyncBlo
         </VText>
         <VButton label={t('common.retry')} variant="secondary" onPress={() => void source.refetch()} />
       </VCard>
+    );
+  }
+  if (source.data === undefined && source.fetchStatus === 'paused') {
+    return (
+      <VText variant="body" tone="dim" accessibilityLiveRegion="polite">
+        {t('community.offline')}
+      </VText>
     );
   }
   if (source.isPending || source.data === undefined) {
@@ -272,6 +324,16 @@ const styles = StyleSheet.create({
     borderRadius: velumRadius.field - 4,
   },
   segmentSelected: { backgroundColor: velumColors.ink.raised, borderWidth: 1, borderColor: velumColors.gold.DEFAULT },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: velumSpacing.xs },
+  chip: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: velumSpacing.md,
+    borderRadius: velumRadius.field,
+    backgroundColor: velumColors.ink.soft,
+    borderWidth: 1,
+    borderColor: velumColors.ink.border,
+  },
   segmentLabel: { color: velumColors.parchment.dim, fontWeight: '600', textAlign: 'center' },
   segmentLabelSelected: { color: velumColors.gold.soft },
   pill: {

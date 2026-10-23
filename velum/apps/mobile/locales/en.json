@@ -1219,6 +1219,7 @@
     "ship": "I've shipped it",
     "confirmShip": "Confirm shipment",
     "trackingLabel": "Tracking number",
+    "trackingInvalid": "Invalid tracking number: letters and digits only (e.g. 6A12345678901).",
     "confirmReceipt": "Received — release the funds",
     "confirmReceiptHint": "Funds are paid to the seller, minus commission",
     "reportProblem": "Report a problem",
@@ -1229,7 +1230,7 @@
     "tracking": "Tracking: {{number}}",
     "trackingWithCarrier": "{{carrier}} tracking: {{number}}",
     "carrierLabel": "Carrier (optional)",
-    "carrierPlaceholder": "e.g. Royal Mail",
+    "carrierNone": "Not specified",
     "sell": "List for sale",
     "sellOrExchange": "Sell or trade",
     "sellHint": "List for sale or trade under a pseudonym; expert appraisal required above €500.",
@@ -1239,6 +1240,8 @@
     "invalidPrice": "Invalid price.",
     "invalidAmount": "Invalid amount (e.g. 1,250.50).",
     "notYetAvailable": "This feature is coming to the server very soon. Please try again later.",
+    "offlineTitle": "Offline",
+    "offline": "Offline: this information will appear as soon as you are back online.",
     "you": "You",
     "yourListing": "Your listing",
     "byAlias": "Listed by {{alias}}",
@@ -1273,6 +1276,9 @@
       "reset": "Reset filters"
     },
     "resultsCount": "{{count}} listing(s)",
+    "resultsCountPartial": "First {{count}} listings shown",
+    "showMore": "Show more listings",
+    "resultsCapped": "At least {{count}} listings match: refine the search or the filters to see the others.",
     "updating": "Updating results…",
     "noResultFor": "No result for “{{query}}”.",
     "tabsLabel": "Trade & sell sections",
@@ -1367,6 +1373,9 @@
     "order": {
       "with": "{{role}} · with {{alias}}",
       "certified": "Appraisal required",
+      "certificationOptional": "Before shipping, you can request an appraisal of the item by a partner expert: it happens if the other party agrees, fee split equally.",
+      "certificationAsked": "Appraisal request sent to the other party.",
+      "shipBlocked": "Shipping on hold: an appraisal is under way on this order (awaiting agreement or with the expert). You can ship once it is settled.",
       "illegal": "Action not possible in this state.",
       "commission": "{{rate}} commission fixed at purchase: {{amount}}, taken when funds are released.",
       "cancel": "Cancel the order",
@@ -1389,8 +1398,8 @@
           "seller": "Funds in escrow: ship the item and enter the tracking number."
         },
         "shipped": {
-          "buyer": "Item shipped: confirm receipt on arrival (otherwise automatic release after delivery, unless disputed).",
-          "seller": "Shipped: funds released on receipt, or automatically after delivery unless disputed."
+          "buyer": "Item shipped: when it arrives, check it, then confirm receipt to release the funds. If something is wrong, report it before confirming.",
+          "seller": "Shipped: the funds are paid out to you once the buyer confirms receipt (or after arbitration if there is a dispute)."
         },
         "released": {
           "buyer": "Transaction completed.",
@@ -1438,8 +1447,9 @@
       "certification": "Appraisal",
       "certificationBadge": "Appraisal required",
       "certificationRequired": "A certification by a partner expert is required before shipping: items only leave once the appraisal is done.",
-      "certificationOptional": "Below €500, an appraisal is possible if both parties agree (fee split).",
+      "certificationOptional": "Before anything is shipped, you can request an appraisal of the item you receive: it happens if the other party agrees, fee split equally.",
       "certificationAsked": "Appraisal request sent to the other party.",
+      "shipBlocked": "Shipping on hold: an appraisal is under way on this trade (awaiting agreement or with the expert). You can ship once it is settled.",
       "noCertification": "No appraisal for this trade.",
       "viewListing": "View the listing",
       "anonymity": "You appear under a pseudonym; shipping addresses are hidden by the platform. Never share your contact details.",
@@ -1495,7 +1505,7 @@
       "refuse": "Decline",
       "cancel": "Cancel the request",
       "cancelConfirm": "Cancel this appraisal request?",
-      "cancelThresholdConfirm": "Without this required appraisal, the listing cannot be published: it will be withdrawn. Cancel?",
+      "cancelThresholdConfirm": "Without this required appraisal, the listing cannot be published: it will go back to draft. Cancel?",
       "cancelYes": "Yes, cancel"
     },
     "activity": {
@@ -1517,6 +1527,8 @@
       "withdrawn": "Listing withdrawn.",
       "viewListing": "View the listing",
       "pendingCertification": "Above €500, the listing is published after certification by a partner expert (fee at your charge).",
+      "engaged": "Reserved: a transaction is under way on this listing (payment received or trade accepted). It can no longer be withdrawn.",
+      "draftHint": "Draft: the listing is not published. To restart the appraisal, withdraw it, then list the item again.",
       "listedOn": "Created on {{date}} · {{rate}} commission"
     },
     "listing": {
@@ -1527,9 +1539,14 @@
       "declaredHint": "Declared value for the trade",
       "mineHint": "Manage it (withdrawal, status) from My activity.",
       "mineStatus": "Status: {{status}}. Manage it from My activity.",
+      "involvedTitle": "Your transaction on this listing",
+      "involvedOrder": "You have an order on this listing: follow it (payment, shipping, receipt) from My activity.",
+      "involvedExchange": "You have a trade proposal on this listing: follow it from the trade details.",
+      "openOrder": "View my order",
+      "openExchange": "View my trade",
       "buyTitle": "Confirm purchase",
       "youPay": "You pay",
-      "buyEscrow": "Payment is held in escrow: it is only paid to the seller after you confirm receipt (or automatically after proven delivery, unless disputed).",
+      "buyEscrow": "Payment is held in escrow: it is only paid to the seller after you confirm receipt (or after arbitration if there is a dispute).",
       "confirmBuy": "Confirm purchase",
       "proposeExchange": "Propose a trade",
       "description": "Description",
@@ -1542,9 +1559,8 @@
       "publishedOn": "Published on {{date}}",
       "certifiedHint": "Item certified by a partner expert before publication.",
       "certificationRequired": "Above €500, the item is appraised by a partner before any transaction.",
-      "certificationOptional": "Below €500, you can request an appraisal: it happens if the seller agrees, fee split equally.",
+      "certificationOptional": "Below €500, an appraisal is still possible by mutual agreement, fee split equally: request it from your order (before shipping) or from the trade once accepted.",
       "askCertification": "Request an appraisal",
-      "certificationAsked": "Appraisal request sent to the seller.",
       "certificationPending": "Your appraisal request:",
       "anonymity": "You never exchange contact details: pseudonyms, redacted messages, masked shipping labels. Payment stays in escrow until receipt."
     },
@@ -1565,12 +1581,11 @@
       "balanceEven": "Offer equal to the listing's value",
       "balanceAbove": "Your offer exceeds the listing's value",
       "balanceBelow": "Your offer is below the listing's value",
-      "certificationRequired": "Above €500, items are appraised by a partner before shipping (indicative fee: {{fee}}).",
-      "askCertification": "Request an appraisal",
-      "askCertificationHint": "Below €500: carried out if the other party agrees, fee split equally.",
+      "certificationRequiredMine": "Above €500 (the higher of your declared value and the VELUM estimate), your item is appraised by a partner before shipping, fee at your charge (indicative: {{fee}}).",
+      "certificationRequiredTheirs": "The listed item is above €500: it is appraised by a partner before shipping, fee at its owner's charge.",
+      "certificationLater": "Below €500: once the proposal is accepted and before anything is shipped, each party can request an appraisal of the item they receive from the trade details (carried out if the other party agrees, fee split equally).",
       "submit": "Send the proposal",
-      "sent": "Proposal sent.",
-      "certificationFailed": "The appraisal request could not be sent: request it again from the trade details."
+      "sent": "Proposal sent."
     },
     "picker": {
       "empty": "Your collection is empty: add an item first.",
@@ -1603,6 +1618,7 @@
       "nextTier": "{{count}} more completed sale(s) to move to {{rate}}.",
       "bestTier": "You already enjoy the lowest rate.",
       "certificationRequired": "Expert appraisal required above {{threshold}} — listing published after certification by a partner expert, fee at your charge (indicative: {{fee}}).",
+      "alreadyCertified": "Item already authenticated by an expert: the listing will be published with the badge, with no new appraisal.",
       "estimateRule": "The threshold applies to the higher of the price entered and the VELUM estimate.",
       "voluntary": "Have my item authenticated",
       "voluntaryHint": "“VELUM authenticated” badge after appraisal, fee at your charge.",

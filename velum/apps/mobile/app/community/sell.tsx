@@ -20,7 +20,14 @@ import { Screen } from '../../components/Screen';
 import { CommunityGate } from '../../components/market/CommunityGate';
 import { ItemPicker } from '../../components/market/ItemPicker';
 import { AmountRows, AsyncBlock, CheckRow, Notice, Segmented, type AmountRow } from '../../components/market/controls';
-import { useCompletedSales, useInvalidateCommunity, useMarketErrorToast } from '../../components/market/hooks';
+import {
+  useCompletedSales,
+  useInvalidateCommunity,
+  useMarketErrorToast,
+  useMyCertifications,
+  useMyExchanges,
+  useMyListings,
+} from '../../components/market/hooks';
 import { getVelumClient } from '../../lib/client';
 import {
   amountToInput,
@@ -31,7 +38,7 @@ import {
   sellPreview,
 } from '../../lib/marketForms';
 import { communityActivityHref, isVelumDomain, stringParam } from '../../lib/marketQuery';
-import { isForSale, isOpenToExchange } from '../../lib/marketState';
+import { isForSale, isOpenToExchange, itemCertifiedByExpert } from '../../lib/marketState';
 import { routes } from '../../lib/routes';
 import { showToast } from '../../stores/toastStore';
 
@@ -61,12 +68,24 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
     if (!priceTouched && estimate !== null) setPrice(amountToInput(estimate));
   }, [estimate, priceTouched]);
 
+  // Objet déjà certifié : la certification le suit, l'annonce naît authentifiée.
+  const myListings = useMyListings();
+  const myCertifications = useMyCertifications();
+  const myExchanges = useMyExchanges();
+  const alreadyCertified = itemCertifiedByExpert(
+    item.id,
+    myListings.data ?? [],
+    myCertifications.data ?? [],
+    myExchanges.data ?? [],
+  );
+
   const preview = sellPreview({
     kind,
     priceInput: price,
     completedSales: sales.completedSales,
     estimatedValue: estimate,
     voluntaryCertification: voluntary,
+    alreadyCertified,
   });
   const descriptionPreview = redactionPreview(description);
   const wishesPreview = isOpenToExchange(kind) ? redactionPreview(wishes) : null;
@@ -222,7 +241,11 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
         </VCard>
       ) : null}
 
-      {preview.certification === 'required' ? (
+      {preview.certification === 'already' ? (
+        <Notice tone="success" title={t('community.authenticated')}>
+          {t('community.sellForm.alreadyCertified')}
+        </Notice>
+      ) : preview.certification === 'required' ? (
         <Notice tone="warning" title={t('community.certification.requiredTitle')}>
           {t('community.sellForm.certificationRequired', {
             threshold: formatPrice(EXPERT_APPRAISAL_THRESHOLD_EUR, locale),

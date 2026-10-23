@@ -1219,6 +1219,7 @@
     "ship": "J’ai expédié",
     "confirmShip": "Confirmer l’expédition",
     "trackingLabel": "Numéro de suivi",
+    "trackingInvalid": "Numéro de suivi invalide : lettres et chiffres seulement (ex. 6A12345678901).",
     "confirmReceipt": "J’ai bien reçu — libérer les fonds",
     "confirmReceiptHint": "Les fonds sont versés au vendeur, commission déduite",
     "reportProblem": "Signaler un problème",
@@ -1229,7 +1230,7 @@
     "tracking": "Suivi : {{number}}",
     "trackingWithCarrier": "Suivi {{carrier}} : {{number}}",
     "carrierLabel": "Transporteur (facultatif)",
-    "carrierPlaceholder": "ex. Colissimo",
+    "carrierNone": "Non précisé",
     "sell": "Mettre en vente",
     "sellOrExchange": "Vendre ou échanger",
     "sellHint": "Mise en vente ou à l’échange sous pseudonyme ; expertise obligatoire au-delà de 500 €.",
@@ -1239,6 +1240,8 @@
     "invalidPrice": "Prix invalide.",
     "invalidAmount": "Montant invalide (ex. 1 250,50).",
     "notYetAvailable": "Cette fonction arrive très bientôt sur le serveur. Réessayez plus tard.",
+    "offlineTitle": "Hors-ligne",
+    "offline": "Hors-ligne : ces informations s’afficheront dès le retour du réseau.",
     "you": "Vous",
     "yourListing": "Votre annonce",
     "byAlias": "Proposé par {{alias}}",
@@ -1273,6 +1276,9 @@
       "reset": "Réinitialiser les filtres"
     },
     "resultsCount": "{{count}} annonce(s)",
+    "resultsCountPartial": "{{count}} premières annonces affichées",
+    "showMore": "Voir plus d’annonces",
+    "resultsCapped": "Au moins {{count}} annonces correspondent : affinez la recherche ou les filtres pour voir les autres.",
     "updating": "Mise à jour des résultats…",
     "noResultFor": "Aucun résultat pour « {{query}} ».",
     "tabsLabel": "Sections des échanges & ventes",
@@ -1367,6 +1373,9 @@
     "order": {
       "with": "{{role}} · avec {{alias}}",
       "certified": "Expertise requise",
+      "certificationOptional": "Avant l’expédition, vous pouvez demander l’expertise de l’objet par un expert partenaire : elle a lieu si l’autre partie l’accepte, frais partagés par moitié.",
+      "certificationAsked": "Demande d’expertise envoyée à l’autre partie.",
+      "shipBlocked": "Expédition en attente : une expertise est en cours sur cette commande (accord attendu ou expert à l’œuvre). Vous pourrez expédier une fois l’expertise tranchée.",
       "illegal": "Action impossible dans cet état.",
       "commission": "Commission {{rate}} figée à l’achat : {{amount}}, prélevée à la libération des fonds.",
       "cancel": "Annuler la commande",
@@ -1389,8 +1398,8 @@
           "seller": "Fonds sous séquestre : expédiez l’objet et saisissez le numéro de suivi."
         },
         "shipped": {
-          "buyer": "Objet expédié : confirmez la réception dès son arrivée (sinon libération automatique après livraison, sauf litige).",
-          "seller": "Expédié : fonds libérés à la réception, ou automatiquement après livraison sauf litige."
+          "buyer": "Objet expédié : à son arrivée, vérifiez-le puis confirmez la réception pour libérer les fonds. En cas de problème, signalez-le avant de confirmer.",
+          "seller": "Expédié : les fonds vous sont versés quand l’acheteur confirme la réception (ou après arbitrage en cas de litige)."
         },
         "released": {
           "buyer": "Transaction conclue.",
@@ -1438,8 +1447,9 @@
       "certification": "Expertise",
       "certificationBadge": "Expertise requise",
       "certificationRequired": "Une certification par un expert partenaire conditionne l’expédition : les objets ne partent qu’une fois l’expertise rendue.",
-      "certificationOptional": "Sous 500 €, une expertise est possible si les deux parties l’acceptent (frais partagés).",
+      "certificationOptional": "Avant tout envoi, vous pouvez demander l’expertise de l’objet que vous recevez : elle a lieu si l’autre partie l’accepte, frais partagés par moitié.",
       "certificationAsked": "Demande d’expertise envoyée à l’autre partie.",
+      "shipBlocked": "Expédition en attente : une expertise est en cours sur cet échange (accord attendu ou expert à l’œuvre). Vous pourrez expédier une fois l’expertise tranchée.",
       "noCertification": "Aucune expertise pour cet échange.",
       "viewListing": "Voir l’annonce",
       "anonymity": "Vous apparaissez sous un pseudonyme ; les adresses d’expédition sont masquées par la plateforme. Ne communiquez jamais vos coordonnées.",
@@ -1495,7 +1505,7 @@
       "refuse": "Refuser",
       "cancel": "Annuler la demande",
       "cancelConfirm": "Annuler cette demande d’expertise ?",
-      "cancelThresholdConfirm": "Sans cette expertise obligatoire, l’annonce ne peut pas être publiée : elle sera retirée. Annuler ?",
+      "cancelThresholdConfirm": "Sans cette expertise obligatoire, l’annonce ne peut pas être publiée : elle repassera en brouillon. Annuler ?",
       "cancelYes": "Oui, annuler"
     },
     "activity": {
@@ -1517,6 +1527,8 @@
       "withdrawn": "Annonce retirée.",
       "viewListing": "Voir l’annonce",
       "pendingCertification": "Au-delà de 500 €, l’annonce est publiée après certification par un expert partenaire (frais à votre charge).",
+      "engaged": "Réservée : une transaction est en cours sur cette annonce (paiement reçu ou échange accepté). Elle ne peut plus être retirée.",
+      "draftHint": "Brouillon : l’annonce n’est pas publiée. Pour relancer l’expertise, retirez-la puis remettez l’objet en vente.",
       "listedOn": "Créée le {{date}} · commission {{rate}}"
     },
     "listing": {
@@ -1527,9 +1539,14 @@
       "declaredHint": "Valeur déclarée pour l’échange",
       "mineHint": "Gérez-la (retrait, statut) depuis Mon activité.",
       "mineStatus": "Statut : {{status}}. Gérez-la depuis Mon activité.",
+      "involvedTitle": "Votre transaction sur cette annonce",
+      "involvedOrder": "Vous avez une commande sur cette annonce : suivez-la (paiement, expédition, réception) depuis Mon activité.",
+      "involvedExchange": "Vous avez une proposition d’échange sur cette annonce : suivez-la depuis le détail de l’échange.",
+      "openOrder": "Voir ma commande",
+      "openExchange": "Voir mon échange",
       "buyTitle": "Confirmer l’achat",
       "youPay": "Vous payez",
-      "buyEscrow": "Le paiement est bloqué sous séquestre : il n’est versé au vendeur qu’après votre confirmation de réception (ou automatiquement après livraison prouvée, sauf litige).",
+      "buyEscrow": "Le paiement est bloqué sous séquestre : il n’est versé au vendeur qu’après votre confirmation de réception (ou après arbitrage en cas de litige).",
       "confirmBuy": "Confirmer l’achat",
       "proposeExchange": "Proposer un échange",
       "description": "Description",
@@ -1542,9 +1559,8 @@
       "publishedOn": "Publiée le {{date}}",
       "certifiedHint": "Objet certifié par un expert partenaire avant publication.",
       "certificationRequired": "Au-delà de 500 €, l’objet est expertisé par un partenaire avant toute transaction.",
-      "certificationOptional": "Sous 500 €, vous pouvez demander une expertise : elle a lieu si le vendeur l’accepte, frais partagés par moitié.",
+      "certificationOptional": "Sous 500 €, une expertise reste possible d’un commun accord, frais partagés par moitié : demandez-la depuis votre commande (avant l’expédition) ou depuis l’échange une fois accepté.",
       "askCertification": "Demander une expertise",
-      "certificationAsked": "Demande d’expertise envoyée au vendeur.",
       "certificationPending": "Votre demande d’expertise :",
       "anonymity": "Vous n’échangez jamais vos coordonnées : pseudonymes, messages expurgés, étiquettes d’expédition masquées. Le paiement reste sous séquestre jusqu’à la réception."
     },
@@ -1565,12 +1581,11 @@
       "balanceEven": "Offre équivalente à la valeur de l’annonce",
       "balanceAbove": "Votre offre dépasse la valeur de l’annonce",
       "balanceBelow": "Votre offre est inférieure à la valeur de l’annonce",
-      "certificationRequired": "Au-delà de 500 €, les objets sont expertisés par un partenaire avant l’expédition (frais indicatifs : {{fee}}).",
-      "askCertification": "Demander une expertise",
-      "askCertificationHint": "Sous 500 € : réalisée si l’autre partie accepte, frais partagés par moitié.",
+      "certificationRequiredMine": "Au-delà de 500 € (le plus élevé de votre valeur déclarée et de l’estimation VELUM), votre objet est expertisé par un partenaire avant l’expédition, frais à votre charge (indicatif : {{fee}}).",
+      "certificationRequiredTheirs": "L’objet de l’annonce dépasse 500 € : il est expertisé par un partenaire avant l’expédition, frais à la charge de son propriétaire.",
+      "certificationLater": "Sous 500 € : une fois la proposition acceptée et avant tout envoi, chaque partie pourra demander l’expertise de l’objet qu’elle reçoit, depuis le détail de l’échange (réalisée si l’autre partie l’accepte, frais partagés par moitié).",
       "submit": "Envoyer la proposition",
-      "sent": "Proposition envoyée.",
-      "certificationFailed": "La demande d’expertise n’a pas pu être envoyée : renouvelez-la depuis le détail de l’échange."
+      "sent": "Proposition envoyée."
     },
     "picker": {
       "empty": "Votre collection est vide : ajoutez d’abord un objet.",
@@ -1603,6 +1618,7 @@
       "nextTier": "Plus que {{count}} vente(s) conclue(s) pour passer à {{rate}}.",
       "bestTier": "Vous bénéficiez du taux le plus bas.",
       "certificationRequired": "Expertise obligatoire au-delà de {{threshold}} — annonce publiée après certification par un expert partenaire, frais à votre charge (indicatif : {{fee}}).",
+      "alreadyCertified": "Objet déjà authentifié par un expert : l’annonce sera publiée avec le badge, sans nouvelle expertise.",
       "estimateRule": "Le seuil s’applique au plus élevé du prix saisi et de l’estimation VELUM.",
       "voluntary": "Faire authentifier mon objet",
       "voluntaryHint": "Badge « Authentifié VELUM » après expertise, frais à votre charge.",

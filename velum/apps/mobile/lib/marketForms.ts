@@ -128,7 +128,8 @@ export function nextCommissionTier(completedSales: number): NextCommissionTier |
 
 // ── Mise en vente / à l'échange ──────────────────────────────────────────────
 
-export type SellCertification = 'required' | 'voluntary' | 'none';
+/** 'already' : objet déjà certifié — la certification le suit, l'annonce naît authentifiée. */
+export type SellCertification = 'required' | 'voluntary' | 'none' | 'already';
 
 export interface SellPreview {
   /** Prix demandé / valeur déclarée saisi (null si invalide). */
@@ -151,19 +152,27 @@ export function sellPreview(input: {
   completedSales: number;
   estimatedValue: number | null;
   voluntaryCertification: boolean;
+  /** Objet déjà certifié par un expert (lib/marketState `itemCertifiedByExpert`). */
+  alreadyCertified?: boolean;
 }): SellPreview {
   const value = parsePositiveAmount(input.priceInput);
-  const requirement = certificationRequirement({
+  const rule = certificationRequirement({
     value: value ?? 0,
     estimatedValue: input.estimatedValue,
   });
-  const certification: SellCertification = requirement.required
-    ? 'required'
-    : input.voluntaryCertification
-      ? 'voluntary'
-      : 'none';
+  // Certification déjà obtenue : elle suit l'objet, l'annonce n'est pas retenue.
+  const requirement: CertificationRequirement =
+    input.alreadyCertified === true ? { required: false, reason: null, referenceValue: rule.referenceValue } : rule;
+  const certification: SellCertification =
+    input.alreadyCertified === true
+      ? 'already'
+      : requirement.required
+        ? 'required'
+        : input.voluntaryCertification
+          ? 'voluntary'
+          : 'none';
   const certificationFee =
-    certification === 'none' || requirement.referenceValue <= 0
+    (certification !== 'required' && certification !== 'voluntary') || requirement.referenceValue <= 0
       ? 0
       : estimateCertificationFee(requirement.referenceValue);
   return {
@@ -205,9 +214,17 @@ export interface ExchangePreview {
   cashAdjustment: number | null;
   /** Ma commission (sur la valeur de l'objet que je cède), figée à l'acceptation. */
   myCommission: ExchangeCommission | null;
-  /** Expertise : obligatoire au-delà du seuil (objet le plus cher), ou convenue. */
+  /** Expertise : obligatoire au-delà du seuil (un des objets), ou convenue. */
   requirement: CertificationRequirement;
-  /** Frais d'expertise indicatifs (0 sans expertise). */
+  /**
+   * Expertise de seuil objet par objet (miroir de _exchange_threshold_targets) :
+   * le mien (frais à ma charge) et celui de l'annonce (à la charge de son propriétaire).
+   */
+  thresholdItems: { mine: boolean; theirs: boolean };
+  /**
+   * Frais d'expertise INDICATIFS à MA charge : seuil de MON objet, ou total
+   * d'un accord mutuel (partagé, voir myCertificationShare) ; 0 sinon.
+   */
   certificationFee: number;
   /** Ma part des frais en cas d'accord mutuel (partage par moitié). */
   myCertificationShare: number;
@@ -220,21 +237,45 @@ export interface ExchangePreview {
 
 export function exchangePreview(input: {
   listingValue: number;
+  /** Annonce déjà authentifiée par un expert : pas d'expertise de seuil pour elle. */
+  listingCertified?: boolean;
   offeredValueInput: string;
+  /** Estimation VELUM de MON objet : on ne contourne pas le seuil en sous-déclarant. */
+  offeredEstimate?: number | null;
+  /** Mon objet déjà certifié (la certification le suit). */
+  offeredCertified?: boolean;
   cashDirection: CashDirection;
   cashInput: string;
   completedSales: number;
-  mutualCertification: boolean;
+  mutualCertification?: boolean;
 }): ExchangePreview {
   const offeredValue = parsePositiveAmount(input.offeredValueInput);
   const cashAdjustment = signedCashAdjustment(input.cashDirection, input.cashInput);
-  const requirement = certificationRequirement({
-    value: Math.max(input.listingValue, offeredValue ?? 0),
-    mutualAgreement: input.mutualCertification,
-  });
-  const certificationFee = requirement.required
-    ? estimateCertificationFee(requirement.referenceValue)
-    : 0;
+  // Objet par objet, comme le serveur : mon objet = max(valeur déclarée,
+  // estimation) ; l'objet de l'annonce = sa valeur déclarée ; un objet déjà
+  // certifié ne repasse pas en expertise.
+  const mineRule = certificationRequirement({ value: offeredValue ?? 0, estimatedValue: input.offeredEstimate ?? null });
+  const theirsRule = certificationRequirement({ value: input.listingValue });
+  const mine = mineRule.required && input.offeredCertified !== true;
+  const theirs = theirsRule.required && input.listingCertified !== true;
+  const mutual = input.mutualCertification === true;
+  const requirement: CertificationRequirement =
+    mine || theirs
+      ? {
+          required: true,
+          reason: 'threshold',
+          referenceValue: Math.max(mine ? mineRule.referenceValue : 0, theirs ? theirsRule.referenceValue : 0),
+        }
+      : {
+          required: mutual,
+          reason: mutual ? 'mutual_agreement' : null,
+          referenceValue: Math.max(mineRule.referenceValue, theirsRule.referenceValue),
+        };
+  const certificationFee = mine
+    ? estimateCertificationFee(mineRule.referenceValue)
+    : requirement.reason === 'mutual_agreement'
+      ? estimateCertificationFee(requirement.referenceValue)
+      : 0;
   const myCertificationShare =
     requirement.reason === 'mutual_agreement'
       ? splitCertificationFee(certificationFee, 'split').buyer
@@ -244,6 +285,7 @@ export function exchangePreview(input: {
     cashAdjustment,
     myCommission: offeredValue !== null ? exchangeCommission(offeredValue, input.completedSales) : null,
     requirement,
+    thresholdItems: { mine, theirs },
     certificationFee,
     myCertificationShare,
     balance:
@@ -260,6 +302,41 @@ export function sortItemsForExchange(
 ): VelumItem[] {
   if (domain === null) return [...items];
   return [...items.filter((i) => i.domain === domain), ...items.filter((i) => i.domain !== domain)];
+}
+
+// ── Expédition ───────────────────────────────────────────────────────────────
+
+/**
+ * Transporteurs proposés à l'expédition : liste FERMÉE (pas de texte libre,
+ * donc aucun canal de coordonnées).
+ */
+export const MARKET_CARRIERS = ['La Poste', 'Colissimo', 'Chronopost', 'Mondial Relay', 'DHL', 'UPS', 'FedEx'] as const;
+export type MarketCarrier = (typeof MARKET_CARRIERS)[number];
+
+/**
+ * Numéro de suivi saisi → forme normalisée (blancs retirés, majuscules), ou
+ * null s'il ne ressemble pas à un numéro de suivi (4 à 40 lettres, chiffres
+ * ou tirets, au moins un chiffre) : une phrase, un e-mail ou un lien ne
+ * passent pas.
+ */
+export function normalizeTrackingNumber(raw: string): string | null {
+  const value = raw.replace(/\s+/g, '').toUpperCase();
+  return /^(?=.*[0-9])[A-Z0-9][A-Z0-9-]{3,39}$/.test(value) ? value : null;
+}
+
+/**
+ * Données envoyées au serveur pour déclarer une expédition : le suivi et le
+ * transporteur choisi, RIEN d'autre. Jamais de date de livraison : le serveur
+ * (guard_order_terms) la refuse au vendeur — seule la livraison attestée par
+ * l'acheteur ou le transporteur compte. null si le suivi est invalide.
+ */
+export function shipmentInput(
+  trackingInput: string,
+  carrier: MarketCarrier | null,
+): { trackingNumber: string; carrier?: MarketCarrier } | null {
+  const trackingNumber = normalizeTrackingNumber(trackingInput);
+  if (trackingNumber === null) return null;
+  return carrier !== null ? { trackingNumber, carrier } : { trackingNumber };
 }
 
 // ── Anonymat ─────────────────────────────────────────────────────────────────

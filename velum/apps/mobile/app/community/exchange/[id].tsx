@@ -19,6 +19,7 @@ import { CertificationCard } from '../../../components/market/ActivityCards';
 import { CommunityGate } from '../../../components/market/CommunityGate';
 import { ExchangeTimeline } from '../../../components/market/ExchangeTimeline';
 import { MessageThread } from '../../../components/market/MessageThread';
+import { ShipPanel, type Shipment } from '../../../components/market/ShipPanel';
 import { AmountRows, AsyncBlock, Notice, type AmountRow } from '../../../components/market/controls';
 import {
   useCompletedSales,
@@ -33,7 +34,9 @@ import { formatPrice, formatRate } from '../../../lib/marketForms';
 import { communityActivityHref, stringParam } from '../../../lib/marketQuery';
 import {
   EXCHANGE_TONE,
+  canRequestExchangeCertification,
   exchangeActions,
+  hasOpenCertificationOn,
   isClosed,
   marketLabelKeys,
   myCashPayment,
@@ -49,20 +52,26 @@ import { showToast } from '../../../stores/toastStore';
 
 type Panel = 'ship' | 'dispute' | 'decline' | 'withdraw' | 'cancel' | null;
 
-function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
+function ExchangeActions({
+  exchange,
+  hasOpenCertification,
+}: {
+  exchange: ExchangeProposal;
+  /** Expertise ouverte : le serveur bloque l'expédition (has_open_certification). */
+  hasOpenCertification: boolean;
+}) {
   const { t, i18n } = useTranslation();
   const client = getVelumClient();
   const invalidate = useInvalidateCommunity();
   const onError = useMarketErrorToast();
   const sales = useCompletedSales();
   const [panel, setPanel] = useState<Panel>(null);
-  const [tracking, setTracking] = useState('');
-  const [carrier, setCarrier] = useState('');
   const [reason, setReason] = useState('');
-  const actions = exchangeActions(exchange);
+  const actions = exchangeActions(exchange, { hasOpenCertification, now: new Date().toISOString() });
+  const shipBlocked = exchange.state === 'shipping' && hasOpenCertification && myTracking(exchange) === null;
 
   const run = useMutation({
-    mutationFn: (action: ExchangeAction) => {
+    mutationFn: (action: Exclude<ExchangeAction, 'ship'>) => {
       const m = client.marketplace;
       switch (action) {
         case 'accept':
@@ -73,8 +82,6 @@ function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
           return m.withdrawExchange(exchange.id);
         case 'cancel':
           return m.cancelExchange(exchange.id);
-        case 'ship':
-          return m.shipExchange(exchange.id, tracking.trim(), carrier.trim().length > 0 ? carrier.trim() : undefined);
         case 'confirm_receipt':
           return m.confirmExchangeReceipt(exchange.id);
         case 'dispute':
@@ -83,10 +90,20 @@ function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
     },
     onSuccess: (_r, action) => {
       setPanel(null);
-      setTracking('');
-      setCarrier('');
       setReason('');
       showToast(t(`community.exchange.done.${action}`), 'success');
+      invalidate();
+    },
+    onError,
+  });
+
+  // Expédition : suivi + transporteur choisi dans une liste, rien d'autre.
+  const ship = useMutation({
+    mutationFn: (shipment: Shipment) =>
+      client.marketplace.shipExchange(exchange.id, shipment.trackingNumber, shipment.carrier),
+    onSuccess: () => {
+      setPanel(null);
+      showToast(t('community.exchange.done.ship'), 'success');
       invalidate();
     },
     onError,
@@ -95,12 +112,12 @@ function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
   if (actions.length === 0) {
     return (
       <VText variant="caption" tone="dim">
-        {t(`community.exchange.waiting.${exchange.state}`)}
+        {shipBlocked ? t('community.exchange.shipBlocked') : t(`community.exchange.waiting.${exchange.state}`)}
       </VText>
     );
   }
 
-  const busy = run.isPending;
+  const busy = run.isPending || ship.isPending;
   const loadingFor = (a: ExchangeAction) => run.isPending && run.variables === a;
   const confirmPanel = (action: 'decline' | 'withdraw' | 'cancel') => (
     <View style={styles.panel} key={action}>
@@ -119,6 +136,9 @@ function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
 
   return (
     <View style={styles.actions}>
+      {shipBlocked ? (
+        <Notice tone="warning">{t('community.exchange.shipBlocked')}</Notice>
+      ) : null}
       {actions.includes('accept') ? (
         <>
           <VText variant="caption" tone="dim">
@@ -138,28 +158,12 @@ function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
 
       {actions.includes('ship') ? (
         panel === 'ship' ? (
-          <View style={styles.panel}>
-            <VTextInput
-              label={t('community.trackingLabel')}
-              value={tracking}
-              onChangeText={setTracking}
-              placeholder="XY123456789FR"
-              autoCapitalize="characters"
-            />
-            <VTextInput
-              label={t('community.carrierLabel')}
-              value={carrier}
-              onChangeText={setCarrier}
-              placeholder={t('community.carrierPlaceholder')}
-            />
-            <VButton
-              label={t('community.confirmShip')}
-              onPress={() => run.mutate('ship')}
-              disabled={tracking.trim().length === 0 || busy}
-              loading={loadingFor('ship')}
-            />
-            <VButton label={t('common.cancel')} variant="ghost" onPress={() => setPanel(null)} />
-          </View>
+          <ShipPanel
+            onConfirm={(shipment) => ship.mutate(shipment)}
+            onCancel={() => setPanel(null)}
+            loading={ship.isPending}
+            disabled={busy}
+          />
         ) : (
           <VButton label={t('community.exchange.action.ship')} onPress={() => setPanel('ship')} />
         )
@@ -232,6 +236,16 @@ function ExchangeDetail({ id }: { id: string }) {
     onError,
   });
 
+  if (exchanges.data === undefined && exchanges.fetchStatus === 'paused') {
+    // Hors-ligne, rien en cache : jamais présenté comme « introuvable ».
+    return (
+      <Screen scroll={false} title={t('community.exchange.title')} backFallback={communityActivityHref()}>
+        <View style={styles.center}>
+          <VEmptyState title={t('community.offlineTitle')} message={t('community.offline')} />
+        </View>
+      </Screen>
+    );
+  }
   if (exchanges.isError || exchanges.isPending) {
     return (
       <Screen scroll={false} title={t('community.exchange.title')} backFallback={communityActivityHref()}>
@@ -263,11 +277,11 @@ function ExchangeDetail({ id }: { id: string }) {
   const theirValue = iAmProposer ? exchange.listingValue : exchange.offeredValue;
   const cash = myCashPayment(exchange);
   const related = (certifications.data ?? []).filter((c) => c.exchangeId === id);
-  const hasOpenCertification = related.some((c) => !isClosed.certification(c));
+  const hasOpenCertification = hasOpenCertificationOn(related, { exchangeId: id });
+  // Miroir de request_certification : échange accepté, avant tout envoi, sur
+  // l'objet que je reçois (mes demandes lues d'abord : jamais de doublon).
   const canAskCertification =
-    !exchange.certificationRequired &&
-    !hasOpenCertification &&
-    (exchange.state === 'proposed' || exchange.state === 'accepted');
+    certifications.data !== undefined && canRequestExchangeCertification(exchange, related);
 
   const rows: AmountRow[] = [
     { label: t('community.exchange.youGive', { title: mineTitle }), value: formatPrice(mineValue, locale, exchange.currency) },
@@ -305,7 +319,7 @@ function ExchangeDetail({ id }: { id: string }) {
         </View>
 
         {/* Actions en tête. */}
-        <ExchangeActions exchange={exchange} />
+        <ExchangeActions exchange={exchange} hasOpenCertification={hasOpenCertification} />
 
         <VCard style={styles.card}>
           <AmountRows rows={rows} />

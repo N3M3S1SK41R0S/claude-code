@@ -3,16 +3,19 @@ import { REDACTION_TOKEN } from '@velum/config';
 import type { VelumItem } from '@velum/core';
 
 import {
+  MARKET_CARRIERS,
   amountToInput,
   estimateFromValuation,
   exchangePreview,
   formatPrice,
   formatRate,
   nextCommissionTier,
+  normalizeTrackingNumber,
   parseFrenchAmount,
   parsePositiveAmount,
   redactionPreview,
   sellPreview,
+  shipmentInput,
   signedCashAdjustment,
   sortItemsForExchange,
 } from './marketForms';
@@ -139,6 +142,21 @@ describe('sellPreview', () => {
     expect(p.sale).toBeNull();
     expect(p.certificationFee).toBe(0);
   });
+
+  it('objet déjà certifié : la certification le suit — ni « obligatoire » ni frais', () => {
+    const p = sellPreview({
+      kind: 'sale',
+      priceInput: '900',
+      completedSales: 0,
+      estimatedValue: 950,
+      voluntaryCertification: true,
+      alreadyCertified: true,
+    });
+    expect(p.certification).toBe('already');
+    expect(p.requirement.required).toBe(false);
+    expect(p.certificationFee).toBe(0);
+    expect(p.sale).toEqual({ price: 900, commissionRate: 0.05, commission: 45, certificationFee: 0, sellerNet: 855 });
+  });
 });
 
 describe('proposition d’échange', () => {
@@ -180,6 +198,65 @@ describe('proposition d’échange', () => {
     expect(p.balance).toBe(500);
   });
 
+  it('seuil évalué objet par objet : mon objet = max(valeur déclarée, estimation VELUM)', () => {
+    // Estimé 800 €, déclaré 400 € contre une annonce à 300 € : le serveur
+    // ouvre une expertise de seuil sur MON objet, à ma charge.
+    const p = exchangePreview({
+      listingValue: 300,
+      listingCertified: false,
+      offeredValueInput: '400',
+      offeredEstimate: 800,
+      cashDirection: 'add',
+      cashInput: '',
+      completedSales: 0,
+    });
+    expect(p.requirement).toEqual({ required: true, reason: 'threshold', referenceValue: 800 });
+    expect(p.thresholdItems).toEqual({ mine: true, theirs: false });
+    expect(p.certificationFee).toBe(30); // à ma charge (frais indicatifs)
+  });
+
+  it('annonce déjà certifiée : aucune expertise de seuil pour elle', () => {
+    const certified = exchangePreview({
+      listingValue: 780,
+      listingCertified: true,
+      offeredValueInput: '50',
+      offeredEstimate: null,
+      cashDirection: 'add',
+      cashInput: '',
+      completedSales: 0,
+    });
+    expect(certified.requirement.required).toBe(false);
+    expect(certified.certificationFee).toBe(0);
+    // Non certifiée : expertise de l'objet de l'annonce, à la charge de son propriétaire (pas la mienne).
+    const notCertified = exchangePreview({
+      listingValue: 780,
+      listingCertified: false,
+      offeredValueInput: '50',
+      offeredEstimate: null,
+      cashDirection: 'add',
+      cashInput: '',
+      completedSales: 0,
+    });
+    expect(notCertified.requirement.reason).toBe('threshold');
+    expect(notCertified.thresholdItems).toEqual({ mine: false, theirs: true });
+    expect(notCertified.certificationFee).toBe(0);
+  });
+
+  it('mon objet déjà certifié : pas de nouvelle expertise malgré l’estimation', () => {
+    const p = exchangePreview({
+      listingValue: 300,
+      listingCertified: false,
+      offeredValueInput: '400',
+      offeredEstimate: 800,
+      offeredCertified: true,
+      cashDirection: 'add',
+      cashInput: '',
+      completedSales: 0,
+    });
+    expect(p.requirement.required).toBe(false);
+    expect(p.thresholdItems).toEqual({ mine: false, theirs: false });
+  });
+
   it('valeur invalide : pas de commission ni d’équilibre', () => {
     const p = exchangePreview({
       listingValue: 300,
@@ -199,6 +276,28 @@ describe('proposition d’échange', () => {
     const sorted = sortItemsForExchange([item('a', 'wine'), item('b', 'coin'), item('c', 'wine'), item('d', 'coin')], 'coin');
     expect(sorted.map((i) => i.id)).toEqual(['b', 'd', 'a', 'c']);
     expect(sortItemsForExchange([item('a', 'wine')], null).map((i) => i.id)).toEqual(['a']);
+  });
+});
+
+describe('expédition', () => {
+  it('normalise le numéro de suivi (blancs retirés, majuscules) et refuse le texte libre', () => {
+    expect(normalizeTrackingNumber(' 6a 1234 5678 901 ')).toBe('6A12345678901');
+    expect(normalizeTrackingNumber('ll123456789fr')).toBe('LL123456789FR');
+    expect(normalizeTrackingNumber('')).toBeNull();
+    expect(normalizeTrackingNumber('AB1')).toBeNull();
+    expect(normalizeTrackingNumber('appelez-moi@exemple.com')).toBeNull();
+    expect(normalizeTrackingNumber('Colis remis en main propre')).toBeNull();
+  });
+
+  it('n’envoie que le suivi et le transporteur choisi — jamais de date de livraison', () => {
+    // Le serveur (guard_order_terms) refuse toute date de livraison posée par
+    // le vendeur : seule celle de l’acheteur ou du transporteur compte.
+    const withCarrier = shipmentInput(' ll 123 456 789 fr', 'Colissimo');
+    expect(withCarrier).toEqual({ trackingNumber: 'LL123456789FR', carrier: 'Colissimo' });
+    expect(withCarrier).not.toHaveProperty('deliveredAt');
+    expect(shipmentInput('LL123456789FR', null)).toEqual({ trackingNumber: 'LL123456789FR' });
+    expect(shipmentInput('  ', 'La Poste')).toBeNull();
+    expect(MARKET_CARRIERS).toContain('Colissimo');
   });
 });
 
