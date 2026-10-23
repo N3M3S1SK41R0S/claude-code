@@ -224,11 +224,16 @@ declare
 begin
   set local role authenticated;
 
-  -- Nina (premium) : création refusée.
+  -- Nina (premium) : création refusée, motif explicite « offre Platine ».
   perform set_config('velum.uid', '54000000-0000-4000-8000-000000000004', true);
   perform public._mkt_expect_error(
     $q$insert into public.listings (item_id, seller_id, ask_price)
        values ('64000000-0000-4000-8000-000000000001', '54000000-0000-4000-8000-000000000004', 50)$q$,
+    'VL402');
+  -- Annonce au nom d'un autre membre (Platine) : refusée.
+  perform public._mkt_expect_error(
+    $q$insert into public.listings (item_id, seller_id, ask_price)
+       values ('64000000-0000-4000-8000-000000000001', '51000000-0000-4000-8000-000000000001', 50)$q$,
     '42501');
 
   perform set_config('velum.uid', '51000000-0000-4000-8000-000000000001', true);

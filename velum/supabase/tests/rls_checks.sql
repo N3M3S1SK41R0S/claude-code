@@ -144,7 +144,8 @@ begin
             'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100);
     raise exception 'listings : un plan premium a pu créer une annonce (réservé Platine)';
   exception
-    when insufficient_privilege or check_violation then null; -- attendu
+    -- Refus explicite « offre Platine requise » (VL402), ou policy RLS.
+    when insufficient_privilege or check_violation or sqlstate 'VL402' then null; -- attendu
   end;
   raise notice 'OK 6a — annonce refusée hors Platine';
 end

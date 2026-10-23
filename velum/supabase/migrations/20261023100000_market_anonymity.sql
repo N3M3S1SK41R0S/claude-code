@@ -186,7 +186,8 @@ create table public.market_aliases (
 );
 
 alter table public.market_aliases enable row level security;
-revoke all on public.market_aliases from anon;
+revoke all on public.market_aliases from anon, authenticated;
+grant select on public.market_aliases to authenticated;
 -- Chacun ne lit que SON pseudonyme : la table de correspondance n'est jamais
 -- exposée (elle permettrait de relier un pseudonyme à un membre).
 create policy "market_aliases_select_own" on public.market_aliases

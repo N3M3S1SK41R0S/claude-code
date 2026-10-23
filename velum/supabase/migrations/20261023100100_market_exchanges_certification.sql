@@ -517,8 +517,16 @@ declare
   v_report_ref text;
 begin
   if tg_op = 'INSERT' then
-    if not v_trusted and new.status not in ('draft', 'active', 'pending_certification') then
-      raise exception 'Statut initial d''annonce interdit : %', new.status using errcode = 'P0001';
+    if not v_trusted then
+      -- Refus explicite (VL402 → PLAN_REQUIRED côté client) avant la policy
+      -- RLS d'insertion, qui reste la garantie de dernier ressort.
+      if not public.can_list_on_marketplace(new.seller_id) then
+        raise exception 'Les plateformes d''échange et de vente sont réservées à l''offre Platine'
+          using errcode = 'VL402';
+      end if;
+      if new.status not in ('draft', 'active', 'pending_certification') then
+        raise exception 'Statut initial d''annonce interdit : %', new.status using errcode = 'P0001';
+      end if;
     end if;
   else
     if not v_trusted then
