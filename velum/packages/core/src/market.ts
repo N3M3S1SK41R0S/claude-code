@@ -113,6 +113,12 @@ export interface ExchangeProposal {
   myCommission: number | null;
   /** true si une certification d'expert conditionne l'expédition. */
   certificationRequired: boolean;
+  /**
+   * true si l'ANNONCE visée porte déjà une certification d'expert : l'auteur
+   * de la proposition ne peut plus demander l'expertise de cet objet-là.
+   * Optionnel (ajout additif) : absent quand le dépôt ne le fournit pas.
+   */
+  listingCertified?: boolean;
   /** Suivi d'expédition de chaque partie. */
   proposerTracking: string | null;
   recipientTracking: string | null;

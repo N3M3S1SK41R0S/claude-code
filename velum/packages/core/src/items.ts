@@ -176,6 +176,13 @@ export interface MarketOrder {
   listingTitle: string | null;
   /** true si une certification d'expert conditionne l'expédition. */
   certificationRequired: boolean;
+  /**
+   * true si l'ANNONCE porte déjà une certification d'expert (rapport rattaché
+   * avant la vente) : aucune nouvelle demande d'expertise n'est alors
+   * recevable sur la commande. Optionnel (ajout additif) : absent quand le
+   * dépôt ne le fournit pas.
+   */
+  listingCertified?: boolean;
 }
 
 export type DisputeStatus = 'open' | 'resolved_release' | 'resolved_refund';
