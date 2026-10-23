@@ -142,6 +142,23 @@ que par `open_order_dispute` (aucune écriture directe dans `disputes` : un
 litige forgé « déjà arbitré », ou fantôme bloquant l'auto-libération, est
 impossible).
 
+**Données historiques (0006).** La migration rattrape les ventes antérieures
+avant de poser ses garde-fous : un objet payé plusieurs fois ne garde qu'un
+paiement (la commande déjà expédiée ou en litige, sinon le premier payé ; les
+autres sont annulés et remboursés, acheteur et vendeur prévenus) ; une seule annonce ouverte par
+objet (la plus engagée : paiement capturé, puis annonce publiée portant une
+commande en attente, puis publiée) ; une seule commande en attente par
+acheteur et annonce (la plus récente) ; les commandes en attente d'une
+annonce dépubliée, hors euro ou sous le plancher sont annulées (acheteur
+prévenu) — la capture les refuse de toute façon. En fin de migration, les
+annonces ouvertes non engagées repassent par les règles de publication : la
+référence d'expertise saisie par le vendeur lui-même (0003) est effacée faute
+de décision d'expert, et toute annonce publiée dont la valeur de référence
+(prix ou estimation VELUM, repli compris) dépasse le seuil est suspendue
+jusqu'à sa certification (contenu public de l'objet recopié, demande
+« seuil » ouverte, vendeur et acheteurs prévenus). Une annonce engagée
+poursuit sa transaction.
+
 ### 3.2 Échange (`exchange_proposals`)
 
 ```
