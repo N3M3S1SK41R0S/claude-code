@@ -3,9 +3,10 @@
  * (deux étapes, pas de boîte système : `Alert.alert` est inopérant sur le web).
  * Hors-ligne (panne de transport confirmée), la suppression part dans la file
  * de mutations. Un REFUS du serveur (objet engagé dans une vente ou un échange
- * en cours…) n'est jamais mis en file : il est expliqué et l'utilisateur
- * reste sur la fiche. Après suppression : retour à l'écran précédent (repli :
- * la collection).
+ * en cours…) n'est jamais mis en file : l'utilisateur reste sur la fiche, avec
+ * le motif rédigé par la règle serveur, ou à défaut un message neutre (on
+ * n'affirme pas un motif que le serveur n'a pas donné). Après suppression :
+ * retour à l'écran précédent (repli : la collection).
  */
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -55,6 +56,7 @@ export function DangerZone({ item }: { item: VelumItem }) {
         // Le serveur a répondu et refusé : rien n'est supprimé ni mis en file.
         setDeleting(false);
         setConfirming(false);
+        // Sans motif métier (contrainte, droit…) : message neutre, aucun motif supposé.
         const reason = businessRefusalReason(error);
         showToast(reason !== null ? t('item.danger.refusedReason', { reason }) : t('item.danger.refused'), 'danger');
         return;

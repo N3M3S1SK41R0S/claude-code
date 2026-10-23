@@ -484,7 +484,7 @@
       "confirmQuestion": "Permanently delete “{{name}}”?",
       "confirm": "Yes, delete permanently",
       "queued": "Offline: deletion saved, it will be synced.",
-      "refused": "The server refused the deletion: the object was not deleted. An object committed to an ongoing sale or exchange cannot be deleted.",
+      "refused": "Deletion not possible right now: the object was not deleted.",
       "refusedReason": "Deletion refused — {{reason}}"
     },
     "labels": {

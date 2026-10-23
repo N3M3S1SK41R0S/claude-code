@@ -20,7 +20,7 @@ import {
   type WishlistSource,
 } from '@velum/core';
 
-import { identityAttributes } from './analysisState';
+import { NON_IDENTITY_ATTRIBUTE_KEYS, identityAttributes } from './analysisState';
 import {
   identityFieldsFor,
   identityValuesFrom,
@@ -647,6 +647,28 @@ export function parseTargetPriceInput(raw: string): { ok: true; value: number | 
   return { ok: true, value: roundCents(value) };
 }
 
+/**
+ * Clés d'un EXEMPLAIRE possédé (quantité, « bouteille bue », prix payé ou
+ * emplacement d'un import CSV) : jamais celles d'une envie — une envie
+ * enregistrée avant le filtrage par inclusion peut encore en porter.
+ */
+const EXEMPLAR_ATTRIBUTE_KEYS: ReadonlySet<string> = new Set(['quantity', 'consumedAt', 'price_paid', 'location']);
+
+/**
+ * Attributs d'une envie conservés à sa MODIFICATION (même catégorie) : liste
+ * d'EXCLUSION, car l'app y écrit elle-même des clés hors identité du domaine
+ * (plat et styles d'une idée du sommelier). La liste d'inclusion
+ * (`identityAttributes`) reste réservée aux COPIES depuis un objet ou un
+ * candidat, et vers le nouvel objet.
+ */
+function editableAttributes(attributes: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(attributes)) {
+    if (!NON_IDENTITY_ATTRIBUTE_KEYS.has(key) && !EXEMPLAR_ATTRIBUTE_KEYS.has(key)) out[key] = value;
+  }
+  return out;
+}
+
 /** Champs validés, communs à la création et à la modification. */
 export interface WishlistInput {
   domain: VelumDomain;
@@ -668,8 +690,10 @@ export type WishlistFormResult =
  * champs d'identification ; les deux vides → erreur.
  *
  * `base` (modification) : les attributs existants hors formulaire sont
- * conservés si la catégorie ne change pas ; sinon ils sont abandonnés (ils
- * décrivaient un objet d'une autre catégorie).
+ * conservés si la catégorie ne change pas (ex. plat et styles d'une idée du
+ * sommelier), moins les clés techniques et celles d'un exemplaire possédé
+ * (`editableAttributes`) ; sinon ils sont abandonnés (ils décrivaient un
+ * objet d'une autre catégorie).
  */
 export function buildWishlistInput(
   values: WishlistFormValues,
@@ -683,7 +707,7 @@ export function buildWishlistInput(
   }
 
   const attributes: Record<string, unknown> =
-    base !== undefined && base.domain === domain ? identityAttributes(base.attributes, domain) : {};
+    base !== undefined && base.domain === domain ? editableAttributes(base.attributes) : {};
   for (const field of identityFieldsFor(domain, true)) {
     const raw = (values.identity[field.key] ?? '').trim();
     if (raw.length === 0) {

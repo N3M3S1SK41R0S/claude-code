@@ -77,12 +77,14 @@ export type WriteFailure =
 /**
  * Qualifie l'échec d'une écriture AVANT toute mise en file. Le dépôt
  * PostgREST des objets qualifie ses erreurs (`toItemsError`) : un refus y est
- * INVALID_INPUT / UNAUTHORIZED, une ligne absente porte PGRST116, et un
- * SOURCE_UNAVAILABLE qui porte un SQLSTATE est une erreur serveur
- * transitoire — aucune relecture nécessaire. Repli pour un client injecté qui
- * ne qualifie pas ses refus (échec sans SQLSTATE) : on relit l'objet ; si la
- * relecture aboutit, le serveur était joignable et a donc refusé l'écriture
- * (ou l'objet a disparu) ; seule une relecture impossible confirme la panne.
+ * INVALID_INPUT / UNAUTHORIZED, une ligne absente porte PGRST116, et tout
+ * SOURCE_UNAVAILABLE restant est une panne — avec SQLSTATE (délai, surcharge)
+ * comme sans (fetch en échec, page HTML d'une passerelle 502/504) — aucune
+ * relecture nécessaire : une panne passagère dont la relecture aboutirait
+ * n'est pas un refus. Repli pour un client injecté qui lève une exception
+ * brute (non qualifiée) : on relit l'objet ; si la relecture aboutit, le
+ * serveur était joignable et a donc refusé l'écriture (ou l'objet a
+ * disparu) ; seule une relecture impossible confirme la panne.
  */
 export async function classifyWriteFailure(
   items: Pick<VelumClient['items'], 'get'>,
@@ -92,7 +94,7 @@ export async function classifyWriteFailure(
   const sqlstate = sqlstateOf(error);
   if (sqlstate === ROW_NOT_FOUND) return 'missing';
   if (!isOfflineFailure(error)) return 'refused';
-  if (sqlstate !== null) return 'offline';
+  if (isVelumError(error)) return 'offline'; // SOURCE_UNAVAILABLE, avec ou sans SQLSTATE
   try {
     return (await items.get(itemId)) === null ? 'missing' : 'refused';
   } catch {
