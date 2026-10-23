@@ -782,21 +782,52 @@ create or replace function public.market_min_ask_price_eur()
 returns numeric language sql immutable as $$ select 1::numeric $$;
 
 -- Rattrapage avant les garde-fous ci-dessous (annonces 0006), dans cet ordre :
---  1. les annonces ouvertes dans une autre devise que l'euro, ou sous le prix
+--  1. un seul paiement capturé par objet (0006 n'avait aucun verrou à la
+--     capture : un objet unique payé deux fois se vendrait deux fois) — on
+--     garde la commande déjà expédiée ou en litige, sinon le paiement le
+--     plus ancien ; les autres paiements capturés de l'objet sont annulés
+--     avant envoi (STRIPE : remboursement) ;
+--  2. les annonces ouvertes dans une autre devise que l'euro, ou sous le prix
 --     plancher, sont retirées (sauf transaction en cours, qui se poursuit) ;
---  2. une seule annonce OUVERTE par objet parmi les restantes — on garde, par
---     objet, la plus engagée : paiement capturé, puis commande en attente de
---     paiement, puis publiée, puis en attente de certification, puis la plus
---     récente ; les autres sont retirées ;
---  3. les commandes non payées d'une annonce qui n'est plus publiée sont
---     annulées (jamais capturables : enforce_escrow_transition).
--- Chaque vendeur (annonce retirée) et chaque acheteur (commande annulée) est
--- prévenu.
+--  3. une seule annonce OUVERTE par objet parmi les restantes — on garde, par
+--     objet, la plus engagée : paiement capturé, puis publiée avec une
+--     commande en attente de paiement, puis publiée, puis en attente de
+--     certification, puis la plus récente ; les autres sont retirées ;
+--  4. une seule commande non payée par acheteur et annonce : la plus récente
+--     (avant l'index orders_one_pending_per_buyer_idx) ;
+--  5. les commandes non payées d'une annonce qui n'est plus publiée, ou
+--     épargnée à l'étape 2 (hors euro, sous le plancher), sont annulées
+--     (jamais capturables : enforce_escrow_transition).
+-- Chaque vendeur (annonce retirée) et chaque acheteur (commande annulée ou
+-- remboursée) est prévenu — sauf pour un doublon de commande en attente,
+-- l'acheteur gardant l'autre. Sans effet sur une base vierge ; idempotent.
 do $backfill$
 declare
   v_prev text := public.market_system_begin();
   r record;
 begin
+  for r in
+    update public.orders o set escrow_state = 'cancelled'
+    from (
+      select o2.id, l2.title,
+             row_number() over (
+               partition by coalesce(l2.item_id, l2.id)
+               order by (o2.escrow_state <> 'funds_held') desc, o2.created_at, o2.id) as rank
+      from public.orders o2
+      join public.listings l2 on l2.id = o2.listing_id
+      where o2.escrow_state in ('funds_held', 'shipped', 'disputed')
+    ) d
+    where d.id = o.id and d.rank > 1 and o.escrow_state = 'funds_held'
+    returning o.buyer_id, o.seller_id, d.title
+  loop
+    perform public.market_notify(r.buyer_id, 'Commande annulée',
+      format('« %s » a déjà été payé par un autre membre (un seul paiement par objet) : votre commande est annulée et vous êtes remboursé.',
+        coalesce(r.title, 'L’objet')));
+    perform public.market_notify(r.seller_id, 'Commande annulée',
+      format('« %s » ne se vend qu’une fois : une commande payée en double a été annulée et son acheteur remboursé ; seule la première vente se poursuit.',
+        coalesce(r.title, 'Votre objet')));
+  end loop;
+
   for r in
     update public.listings l set status = 'withdrawn'
     where l.status in ('draft', 'pending_certification', 'active')
@@ -825,9 +856,11 @@ begin
                           select 1 from public.orders o
                           where o.listing_id = l.id
                             and o.escrow_state in ('funds_held', 'shipped', 'disputed')) desc,
-                        exists (
+                        -- Commande en attente sur une annonce PUBLIÉE seulement
+                        -- (celle d'un brouillon est annulée ci-dessous).
+                        (l.status = 'active' and exists (
                           select 1 from public.orders o
-                          where o.listing_id = l.id and o.escrow_state = 'pending_payment') desc,
+                          where o.listing_id = l.id and o.escrow_state = 'pending_payment')) desc,
                         (l.status = 'active') desc,
                         (l.status = 'pending_certification') desc,
                         l.created_at desc,
@@ -845,15 +878,44 @@ begin
         coalesce(r.title, 'votre objet')));
   end loop;
 
+  -- Une seule commande non payée par acheteur et annonce (0006 n'imposait
+  -- aucune unicité : double appui sur « Acheter ») : la plus récente est
+  -- gardée, avant l'index orders_one_pending_per_buyer_idx. Pas de
+  -- notification : l'acheteur garde sa commande en attente.
+  update public.orders o set escrow_state = 'cancelled'
+  from (
+    select o2.id,
+           row_number() over (
+             partition by o2.listing_id, o2.buyer_id
+             order by o2.created_at desc, o2.id desc) as rank
+    from public.orders o2
+    where o2.escrow_state = 'pending_payment'
+  ) d
+  where d.id = o.id and d.rank > 1;
+
   for r in
     update public.orders o set escrow_state = 'cancelled'
     from public.listings l
-    where l.id = o.listing_id and l.status <> 'active' and o.escrow_state = 'pending_payment'
-    returning o.buyer_id, l.title
+    where l.id = o.listing_id
+      and o.escrow_state = 'pending_payment'
+      and (l.status <> 'active'
+        or l.currency is distinct from 'EUR'
+        or coalesce(l.ask_price, 0) < public.market_min_ask_price_eur())
+    returning o.buyer_id, l.title, l.status,
+              l.currency is distinct from 'EUR' as foreign_currency
   loop
     perform public.market_notify(r.buyer_id, 'Commande annulée',
-      format('L’annonce « %s » n’est plus publiée : votre commande en attente de paiement est annulée.',
-        coalesce(r.title, 'objet')));
+      case
+        when r.status <> 'active' then
+          format('L’annonce « %s » n’est plus publiée : votre commande en attente de paiement est annulée.',
+            coalesce(r.title, 'objet'))
+        when r.foreign_currency then
+          format('Seul l’euro est désormais accepté : votre commande en attente de paiement de « %s » est annulée.',
+            coalesce(r.title, 'objet'))
+        else
+          format('Prix minimum de %s € : votre commande en attente de paiement de « %s » est annulée.',
+            public.market_min_ask_price_eur(), coalesce(r.title, 'objet'))
+      end);
   end loop;
   perform public.market_system_end(v_prev);
 end
@@ -1333,6 +1395,16 @@ begin
        or v_listing.currency is distinct from old.currency then
       raise exception 'Annonce modifiée ou suspendue depuis la commande : paiement impossible'
         using errcode = 'P0001';
+    end if;
+    -- Euro et prix plancher, comme à la commande (set_order_defaults) : une
+    -- annonce 0006 épargnée car engagée, puis libérée, ne se paie jamais.
+    if v_listing.currency is distinct from 'EUR' then
+      raise exception 'Seul l''euro (EUR) est accepté sur les plateformes d''échange et de vente : paiement impossible'
+        using errcode = 'P0001';
+    end if;
+    if coalesce(v_listing.ask_price, 0) < public.market_min_ask_price_eur() then
+      raise exception 'Annonce non disponible (prix inférieur au minimum de % €) : paiement impossible',
+        public.market_min_ask_price_eur() using errcode = 'P0001';
     end if;
     -- Défense en profondeur : objet refusé par un expert, non recertifié.
     if v_listing.item_rejected then
@@ -2224,3 +2296,4 @@ revoke all on function public.resolve_dispute(uuid, boolean, text) from public, 
 grant execute on function public.resolve_dispute(uuid, boolean, text) to service_role;
 revoke all on function public.release_due_orders() from public, anon, authenticated;
 grant execute on function public.release_due_orders() to service_role;
+
