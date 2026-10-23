@@ -235,6 +235,29 @@ export function newItemFromCandidate(
   };
 }
 
+// ── Fin de session ───────────────────────────────────────────────────────────
+
+/** État de capture gardé en mémoire le temps d'une session. */
+export interface CaptureSessionState {
+  /** Brouillon (clichés en base64, texte, lignes de fichier, candidats). */
+  draft: { reset(): void };
+  /** Téléversements lancés dès la prise de vue (`captureUploads`). */
+  uploads: { clear(): void };
+}
+
+/**
+ * Déconnexion, suppression du compte ou session révoquée : le brouillon de
+ * capture et les téléversements en cours de la session close sont oubliés.
+ * Le compte suivant sur l'appareil n'hérite jamais des photos ni des
+ * candidats du précédent (ses chemins Storage, préfixés par l'ancien uid,
+ * lui seraient d'ailleurs refusés). Un téléversement encore en vol ne
+ * repeuple rien : le suivi l'ignore une fois vidé.
+ */
+export function discardCaptureSession(state: CaptureSessionState): void {
+  state.uploads.clear();
+  state.draft.reset();
+}
+
 // ── Valorisations en arrière-plan ────────────────────────────────────────────
 
 export type BackgroundOutcome = 'ok' | 'failed';

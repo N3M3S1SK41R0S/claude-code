@@ -2,9 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { isVelumError, type Candidate, type VelumItem } from '@velum/core';
 import type { NewItemMedia } from '@velum/api-client';
 
+import { useCaptureStore } from '../stores/captureStore';
+import { createUploadTracker } from './batchCapture';
 import {
   correctCandidate,
   createSerialQueue,
+  discardCaptureSession,
   fullCaptureAttributes,
   insertCapturedItem,
   newItemFromCandidate,
@@ -296,6 +299,38 @@ describe('correctCandidate — correction avant enregistrement', () => {
     expect(candidate.attributes['corrections']).toEqual([
       { field: 'year', from: 1849, to: null, at: '2026-10-23T09:00:00.000Z' },
     ]);
+  });
+});
+
+describe('discardCaptureSession — fin de session', () => {
+  it('oublie le brouillon et les téléversements ; un envoi encore en vol ne repeuple rien', async () => {
+    let finish: (path: string | null) => void = () => undefined;
+    const uploads = createUploadTracker(
+      () =>
+        new Promise<string | null>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const store = useCaptureStore.getState();
+    store.setDomain('stamp');
+    store.addMedia({ role: 'front', base64: 'data:photo-A', uri: 'file://A.jpg' });
+    store.setText('Cérès 20c noir');
+    store.setRecognition({ candidates: [stampCandidate], stage: 'llm_vision', needsAssistedEntry: false }, 1200);
+    const inFlight = uploads.start('data:photo-A');
+
+    discardCaptureSession({ draft: useCaptureStore.getState(), uploads });
+
+    const after = useCaptureStore.getState();
+    expect(after.domain).toBeNull();
+    expect(after.media).toEqual([]);
+    expect(after.text).toBe('');
+    expect(after.recognition).toBeNull();
+    expect(uploads.peek('data:photo-A')).toBeUndefined();
+    // Le téléversement de l'ancienne session aboutit après coup : il est ignoré.
+    finish('ancien-uid/photo-A.jpg');
+    await inFlight;
+    expect(uploads.peek('data:photo-A')).toBeUndefined();
+    expect(uploads.wait('data:photo-A')).toBeUndefined();
   });
 });
 
