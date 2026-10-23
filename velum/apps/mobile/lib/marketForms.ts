@@ -268,6 +268,11 @@ export interface SellPreview {
   certification: SellCertification;
   /** Frais d'expertise INDICATIFS à la charge du vendeur (0 sans expertise). */
   certificationFee: number;
+  /**
+   * Objet refusé par un expert : expertise exigée quel que soit le prix
+   * (motif à afficher à la place du seuil).
+   */
+  rejectedByExpert: boolean;
 }
 
 export function sellPreview(input: {
@@ -282,6 +287,12 @@ export function sellPreview(input: {
   voluntaryCertification: boolean;
   /** Objet déjà certifié par un expert (lib/marketState `itemCertifiedByExpert`). */
   alreadyCertified?: boolean;
+  /**
+   * Objet refusé par un expert (lib/marketState `itemRejectedByExpert`) : comme
+   * le serveur (_market_item_rejected), l'annonce attend une nouvelle
+   * expertise, à la charge du vendeur, quel que soit le prix.
+   */
+  rejectedByExpert?: boolean;
 }): SellPreview {
   const check = checkMarketAmount(input.priceInput);
   const value = check.ok ? check.value : null;
@@ -289,11 +300,17 @@ export function sellPreview(input: {
     value: value ?? 0,
     estimatedValue: input.estimatedValue,
   });
-  // Certification déjà obtenue : elle suit l'objet, l'annonce n'est pas retenue.
-  const requirement: CertificationRequirement =
-    input.alreadyCertified === true ? { required: false, reason: null, referenceValue: rule.referenceValue } : rule;
+  const rejected = input.rejectedByExpert === true;
+  // Refus mémorisé : expertise exigée, base des frais = max(prix, estimation) ;
+  // certification déjà obtenue : elle suit l'objet, l'annonce n'est pas retenue.
+  const alreadyCertified = input.alreadyCertified === true && !rejected;
+  const requirement: CertificationRequirement = rejected
+    ? { required: true, reason: 'threshold', referenceValue: rule.referenceValue }
+    : alreadyCertified
+      ? { required: false, reason: null, referenceValue: rule.referenceValue }
+      : rule;
   const certification: SellCertification =
-    input.alreadyCertified === true
+    alreadyCertified
       ? 'already'
       : requirement.required
         ? 'required'
@@ -320,6 +337,7 @@ export function sellPreview(input: {
     requirement,
     certification,
     certificationFee,
+    rejectedByExpert: rejected,
   };
 }
 
@@ -377,6 +395,12 @@ export function exchangePreview(input: {
   offeredEstimate?: number | null;
   /** Mon objet déjà certifié (la certification le suit). */
   offeredCertified?: boolean;
+  /**
+   * Mon objet refusé par un expert (lib/marketState `itemRejectedByExpert`) :
+   * expertise exigée quel que soit le prix (_exchange_threshold_targets) — et
+   * le serveur refuse de toute façon de le proposer (set_exchange_defaults).
+   */
+  offeredRejected?: boolean;
   cashDirection: CashDirection;
   cashInput: string;
   /** Base de commission (lib/marketCommission) : taux serveur, ou le maximum en repli. */
@@ -387,11 +411,12 @@ export function exchangePreview(input: {
   const offeredValue = offeredCheck.ok ? offeredCheck.value : null;
   const cashAdjustment = signedCashAdjustment(input.cashDirection, input.cashInput);
   // Objet par objet, comme le serveur : mon objet = max(valeur déclarée,
-  // estimation) ; l'objet de l'annonce = sa valeur déclarée ; un objet déjà
-  // certifié ne repasse pas en expertise.
+  // estimation), ou refusé par un expert ; l'objet de l'annonce = sa valeur
+  // déclarée ; un objet déjà certifié ne repasse pas en expertise.
   const mineRule = certificationRequirement({ value: offeredValue ?? 0, estimatedValue: input.offeredEstimate ?? null });
   const theirsRule = certificationRequirement({ value: input.listingValue });
-  const mine = mineRule.required && input.offeredCertified !== true;
+  const mine =
+    input.offeredRejected === true || (mineRule.required && input.offeredCertified !== true);
   const theirs = theirsRule.required && input.listingCertified !== true;
   const mutual = input.mutualCertification === true;
   const requirement: CertificationRequirement =
@@ -406,8 +431,11 @@ export function exchangePreview(input: {
           reason: mutual ? 'mutual_agreement' : null,
           referenceValue: Math.max(mineRule.referenceValue, theirsRule.referenceValue),
         };
+  // Valeur encore inconnue (saisie invalide, sans estimation) : pas de frais inventés.
   const certificationFee = mine
-    ? estimateCertificationFee(mineRule.referenceValue)
+    ? mineRule.referenceValue > 0
+      ? estimateCertificationFee(mineRule.referenceValue)
+      : 0
     : requirement.reason === 'mutual_agreement'
       ? estimateCertificationFee(requirement.referenceValue)
       : 0;

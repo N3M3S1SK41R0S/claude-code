@@ -46,6 +46,7 @@ import {
   isOpenToExchange,
   itemCertifiedByExpert,
   itemMarketBlock,
+  itemRejectedByExpert,
   type ItemMarketBlock,
 } from '../../lib/marketState';
 import { routes } from '../../lib/routes';
@@ -94,13 +95,21 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
   }, [estimate, priceTouched]);
 
   // Objet déjà certifié (dernière décision d'expert, titre public et catégorie
-  // inchangés) : la certification le suit, l'annonce naît authentifiée.
+  // inchangés) : la certification le suit, l'annonce naît authentifiée. Objet
+  // refusé (dernière décision = refus, quel que soit le titre) : nouvelle
+  // expertise exigée quel que soit le prix, comme le serveur.
   const myListings = useMyListings();
   const myCertifications = useMyCertifications();
   const myExchanges = useMyExchanges();
   // Objet déjà annoncé ou déjà cédé (miroir d'enforce_listing_rules) : pas de publication.
   const block = myListings.data ? itemMarketBlock(item.id, myListings.data) : null;
   const alreadyCertified = itemCertifiedByExpert(
+    item,
+    myListings.data ?? [],
+    myCertifications.data ?? [],
+    myExchanges.data ?? [],
+  );
+  const rejectedByExpert = itemRejectedByExpert(
     item,
     myListings.data ?? [],
     myCertifications.data ?? [],
@@ -114,6 +123,7 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
     estimatedValue: reference,
     voluntaryCertification: voluntary,
     alreadyCertified,
+    rejectedByExpert,
   });
   const descriptionPreview = redactionPreview(description);
   const wishesPreview = isOpenToExchange(kind) ? redactionPreview(wishes) : null;
@@ -303,10 +313,12 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
         </Notice>
       ) : preview.certification === 'required' ? (
         <Notice tone="warning" title={t('community.certification.requiredTitle')}>
-          {t('community.sellForm.certificationRequired', {
-            threshold: formatPrice(EXPERT_APPRAISAL_THRESHOLD_EUR, locale),
-            fee: formatPrice(preview.certificationFee, locale),
-          })}
+          {preview.rejectedByExpert
+            ? t('community.sellForm.certificationRejected', { fee: formatPrice(preview.certificationFee, locale) })
+            : t('community.sellForm.certificationRequired', {
+                threshold: formatPrice(EXPERT_APPRAISAL_THRESHOLD_EUR, locale),
+                fee: formatPrice(preview.certificationFee, locale),
+              })}
         </Notice>
       ) : (
         <CheckRow
@@ -316,7 +328,10 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
           onChange={setVoluntary}
         />
       )}
-      {preview.requirement.required && preview.value !== null && preview.requirement.referenceValue > preview.value ? (
+      {preview.requirement.required &&
+      !preview.rejectedByExpert &&
+      preview.value !== null &&
+      preview.requirement.referenceValue > preview.value ? (
         <VText variant="caption" tone="dim">
           {t('community.sellForm.estimateRule', {
             amount: formatPrice(preview.requirement.referenceValue, locale),
@@ -360,8 +375,16 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
           preview.certification === 'required' ? t('community.sellForm.publishAfterCertification') : t('community.publish')
         }
         onPress={() => publish.mutate()}
-        // Estimations en cours de lecture : le seuil d'expertise n'est pas encore connu.
-        disabled={preview.value === null || locked || history.isLoading || myListings.isLoading || block !== null}
+        // Estimations ou décisions d'expert en cours de lecture : l'expertise exigée n'est pas encore connue.
+        disabled={
+          preview.value === null ||
+          locked ||
+          history.isLoading ||
+          myListings.isLoading ||
+          myCertifications.isLoading ||
+          myExchanges.isLoading ||
+          block !== null
+        }
         loading={publish.isPending}
       />
     </View>

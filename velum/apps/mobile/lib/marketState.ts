@@ -542,6 +542,26 @@ export function itemCertifiedByExpert(
   );
 }
 
+/**
+ * true si MON objet a été REFUSÉ par un expert — miroir de
+ * _market_item_rejected : la plus récente des décisions ÉTABLIES sur l'objet
+ * (myItemDecisions) est un refus, quel que soit son titre (renommer un objet
+ * refusé ne lève pas le refus). Toute (re)mise en vente exige alors une
+ * nouvelle expertise, quel que soit le prix, et l'objet ne s'offre plus à
+ * l'échange (set_exchange_defaults). Une décision seulement possible (objet
+ * offert non identifié) ne compte pas : on ne bloque jamais un objet sur une
+ * supposition, le serveur reste l'arbitre.
+ */
+export function itemRejectedByExpert(
+  item: Pick<VelumItem, 'id' | 'title' | 'domain'>,
+  listings: readonly Pick<ListingRecord, 'id' | 'itemId' | 'status'>[],
+  certifications: readonly CertificationDecision[],
+  exchanges: readonly DecisionExchange[] = [],
+): boolean {
+  const last = myItemDecisions(item, listings, certifications, exchanges).find((d) => d.sure);
+  return last !== undefined && last.c.status === 'rejected';
+}
+
 // ── Annonces ─────────────────────────────────────────────────────────────────
 
 /** Commande qui RÉSERVE l'annonce (listing_is_engaged : paiement capturé, jusqu'au litige). */

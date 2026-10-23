@@ -1651,6 +1651,7 @@
       "balanceBelow": "Your offer is below the listing's value",
       "certificationRequiredMine": "Above €500 (the higher of your declared value and the VELUM estimate), your item is appraised by a partner before shipping, fee at your charge (indicative: {{fee}}).",
       "certificationRequiredTheirs": "The listed item is above €500: it is appraised by a partner before shipping, fee at its owner's charge.",
+      "rejectedItem": "Item rejected by an expert: it cannot be offered in a trade without a new certification. Choose another item.",
       "certificationLater": "Below €500: once the proposal is accepted and before anything is shipped, each party can request an appraisal of the item they receive from the trade details (carried out if the other party agrees, fee split equally).",
       "submit": "Send the proposal",
       "sent": "Proposal sent."
@@ -1662,7 +1663,8 @@
       "more": "Show {{count}} more item(s)",
       "less": "Show less",
       "blockedOpen": "Already has a listing in progress (draft, awaiting appraisal or published)",
-      "blockedCeded": "Already parted with (sale or trade completed)"
+      "blockedCeded": "Already parted with (sale or trade completed)",
+      "blockedRejected": "Rejected by an expert: a new certification is needed before any trade"
     },
     "sellForm": {
       "title": "Sell or trade",
@@ -1692,6 +1694,7 @@
       "nextTier": "{{count}} more qualifying sale(s) (completed, of at least €20) to move to {{rate}}.",
       "bestTier": "You already enjoy the lowest rate.",
       "certificationRequired": "Expert appraisal required above {{threshold}} — listing published after certification by a partner expert, fee at your charge (indicative: {{fee}}).",
+      "certificationRejected": "Item rejected by an expert: any new listing goes through a new appraisal, whatever the price — listing published after certification, fee at your charge (indicative: {{fee}}).",
       "alreadyCertified": "Item already authenticated by an expert: the listing will be published with the badge, with no new appraisal.",
       "estimateRule": "The threshold applies to the higher of the price entered and the highest VELUM estimate of the last 18 months ({{amount}}).",
       "voluntary": "Have my item authenticated",

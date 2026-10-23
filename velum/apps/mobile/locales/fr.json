@@ -1651,6 +1651,7 @@
       "balanceBelow": "Votre offre est inférieure à la valeur de l’annonce",
       "certificationRequiredMine": "Au-delà de 500 € (le plus élevé de votre valeur déclarée et de l’estimation VELUM), votre objet est expertisé par un partenaire avant l’expédition, frais à votre charge (indicatif : {{fee}}).",
       "certificationRequiredTheirs": "L’objet de l’annonce dépasse 500 € : il est expertisé par un partenaire avant l’expédition, frais à la charge de son propriétaire.",
+      "rejectedItem": "Objet refusé par un expert : il ne peut pas être proposé à l’échange sans nouvelle certification. Choisissez un autre objet.",
       "certificationLater": "Sous 500 € : une fois la proposition acceptée et avant tout envoi, chaque partie pourra demander l’expertise de l’objet qu’elle reçoit, depuis le détail de l’échange (réalisée si l’autre partie l’accepte, frais partagés par moitié).",
       "submit": "Envoyer la proposition",
       "sent": "Proposition envoyée."
@@ -1662,7 +1663,8 @@
       "more": "Afficher {{count}} objet(s) de plus",
       "less": "Afficher moins",
       "blockedOpen": "Déjà une annonce en cours (brouillon, en attente d’expertise ou publiée)",
-      "blockedCeded": "Déjà cédé (vente ou échange conclu)"
+      "blockedCeded": "Déjà cédé (vente ou échange conclu)",
+      "blockedRejected": "Refusé par un expert : nouvelle certification nécessaire avant tout échange"
     },
     "sellForm": {
       "title": "Vendre ou échanger",
@@ -1692,6 +1694,7 @@
       "nextTier": "Plus que {{count}} vente(s) retenue(s) (conclue(s), d’au moins 20 €) pour passer à {{rate}}.",
       "bestTier": "Vous bénéficiez du taux le plus bas.",
       "certificationRequired": "Expertise obligatoire au-delà de {{threshold}} — annonce publiée après certification par un expert partenaire, frais à votre charge (indicatif : {{fee}}).",
+      "certificationRejected": "Objet refusé par un expert : toute nouvelle mise en vente passe par une nouvelle expertise, quel que soit le prix — annonce publiée après certification, frais à votre charge (indicatif : {{fee}}).",
       "alreadyCertified": "Objet déjà authentifié par un expert : l’annonce sera publiée avec le badge, sans nouvelle expertise.",
       "estimateRule": "Le seuil s’applique au plus élevé du prix saisi et de la plus haute estimation VELUM des 18 derniers mois ({{amount}}).",
       "voluntary": "Faire authentifier mon objet",
