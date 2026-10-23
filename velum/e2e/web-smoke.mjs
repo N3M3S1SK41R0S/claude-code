@@ -58,6 +58,9 @@ async function verifyVercelDynamicRoutes() {
     ['/item/:id', '/item/[id]'],
     ['/capture/:domain', '/capture/[domain]'],
     ['/arbiter/:id', '/arbiter/[id]'],
+    ['/community/listing/:id', '/community/listing/[id]'],
+    ['/community/exchange/:id', '/community/exchange/[id]'],
+    ['/wishlist/:id', '/wishlist/[id]'],
   ]);
 
   for (const [source, destination] of required) {
@@ -65,7 +68,9 @@ async function verifyVercelDynamicRoutes() {
       fail(`Réécriture Vercel absente ou invalide : ${source} → ${destination}`);
     }
   }
-  console.log('✓ Les routes dynamiques Vercel couvrent capture, fiche et arbitre');
+  console.log(
+    '✓ Les routes dynamiques Vercel couvrent capture, fiche, arbitre, annonce, échange et envie',
+  );
 }
 
 await verifyVercelDynamicRoutes();
