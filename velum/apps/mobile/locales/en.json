@@ -1502,6 +1502,8 @@
       "iReceived": "receipt confirmed",
       "theyReceived": "received by the other party",
       "updatedOn": "Updated on {{date}}",
+      "expiresOn": "Without a reply, the proposal expires on {{date}}.",
+      "expiredOn": "Proposal expired on {{date}}: it can no longer be accepted.",
       "certification": "Appraisal",
       "certificationBadge": "Appraisal required",
       "certificationRequired": "A certification by a partner expert is required before shipping: items only leave once the appraisal is done.",

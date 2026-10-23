@@ -188,7 +188,7 @@ type ExchangeView = Pick<
   | 'proposerReceived'
   | 'recipientReceived'
 > & {
-  /** Échéance d'une proposition (expires_at), si le dépôt la fournit. */
+  /** Échéance d'une proposition (ExchangeProposal.expiresAt), si le dépôt la fournit. */
   expiresAt?: string | null;
 };
 
@@ -217,6 +217,28 @@ function hasText(value: string | null): boolean {
 }
 
 /**
+ * Durée de validité d'une proposition sans réponse, en jours — réplique de
+ * exchange_proposal_ttl_days() (migration 20261023100100, relue par les tests).
+ */
+export const EXCHANGE_PROPOSAL_TTL_DAYS = 7;
+
+/**
+ * true si la proposition `proposed` est ÉCHUE à `now` (échéance atteinte,
+ * avant même le passage du cron qui la passe en « expirée ») : elle ne
+ * s'accepte plus (« Proposition expirée » côté serveur). Échéance inconnue
+ * ou illisible : false (le serveur tranche).
+ */
+export function isExchangeExpired(
+  ex: Pick<ExchangeView, 'state' | 'expiresAt'>,
+  now: string | undefined,
+): boolean {
+  if (ex.state !== 'proposed' || now === undefined || typeof ex.expiresAt !== 'string') return false;
+  const expires = Date.parse(ex.expiresAt);
+  const at = Date.parse(now);
+  return Number.isFinite(expires) && Number.isFinite(at) && expires <= at;
+}
+
+/**
  * Actions légales sur un échange pour l'utilisateur courant (rôle × état) :
  *  - proposed : le destinataire accepte/refuse, l'auteur peut retirer ;
  *  - accepted : expédier (si aucune expertise n'est exigée) ou annuler ;
@@ -234,12 +256,8 @@ export function exchangeActions(ex: ExchangeView, context: ActionContext = {}): 
   const shipBlocked = context.hasOpenCertification === true;
   switch (ex.state) {
     case 'proposed': {
-      const expired =
-        context.now !== undefined &&
-        typeof ex.expiresAt === 'string' &&
-        Date.parse(ex.expiresAt) <= Date.parse(context.now);
       if (ex.role !== 'recipient') return ['withdraw'];
-      return expired ? ['decline'] : ['accept', 'decline'];
+      return isExchangeExpired(ex, context.now) ? ['decline'] : ['accept', 'decline'];
     }
     case 'accepted':
       return !ex.certificationRequired && !mine && !shipBlocked ? ['ship', 'cancel'] : ['cancel'];

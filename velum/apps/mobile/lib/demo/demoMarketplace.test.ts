@@ -290,6 +290,27 @@ describe('démo marketplace — échanges', () => {
     expect(mine.find((l) => l.id === 'demo-mine-1')?.status).toBe('exchanged');
   });
 
+  it('échéance : une proposition échue ne s’accepte plus (refus et retrait restent possibles)', async () => {
+    let clock = NOW;
+    const items = [item('it-coin')];
+    const repo = createDemoMarketplaceRepo((id) => items.find((i) => i.id === id) ?? null, {
+      delayMs: 0,
+      now: () => clock,
+    });
+    const received = (await repo.myExchanges()).find((e) => e.id === 'demo-exchange-1');
+    // Comme expires_at (exchange_proposal_ttl_days) : 7 jours, jamais déjà échue à l’ouverture.
+    expect(received?.expiresAt).toBe('2026-10-30T10:00:00.000Z');
+    const proposed = await repo.proposeExchange({ listingId: 'demo-listing-1', offeredItemId: 'it-coin', offeredValue: 300 });
+    expect(proposed.expiresAt).toBe('2026-10-30T10:00:00.000Z');
+    clock = '2026-10-30T10:00:00.000Z';
+    await expect(repo.respondExchange('demo-exchange-1', true)).rejects.toMatchObject({
+      code: 'INVALID_INPUT',
+      message: expect.stringContaining('Proposition expirée'),
+    });
+    expect((await repo.respondExchange('demo-exchange-1', false)).state).toBe('declined');
+    expect((await repo.withdrawExchange(proposed.id)).state).toBe('withdrawn');
+  });
+
   it('refuse les actions illégales selon le rôle et l’état', async () => {
     const repo = setup();
     await expectInvalid(repo.respondExchange('demo-exchange-2', true)); // je suis l’auteur

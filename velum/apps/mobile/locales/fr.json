@@ -1502,6 +1502,8 @@
       "iReceived": "réception confirmée",
       "theyReceived": "reçu par l’autre partie",
       "updatedOn": "Mis à jour le {{date}}",
+      "expiresOn": "Sans réponse, la proposition expire le {{date}}.",
+      "expiredOn": "Proposition échue le {{date}} : elle ne peut plus être acceptée.",
       "certification": "Expertise",
       "certificationBadge": "Expertise requise",
       "certificationRequired": "Une certification par un expert partenaire conditionne l’expédition : les objets ne partent qu’une fois l’expertise rendue.",

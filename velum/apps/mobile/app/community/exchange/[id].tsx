@@ -38,6 +38,7 @@ import {
   exchangeActions,
   hasOpenCertificationOn,
   isClosed,
+  isExchangeExpired,
   marketLabelKeys,
   myCashPayment,
   myCededValue,
@@ -67,8 +68,19 @@ function ExchangeActions({
   const sales = useCompletedSales();
   const [panel, setPanel] = useState<Panel>(null);
   const [reason, setReason] = useState('');
-  const actions = exchangeActions(exchange, { hasOpenCertification, now: new Date().toISOString() });
+  const now = new Date().toISOString();
+  // Proposition échue (même avant le passage du cron) : « Accepter » masqué.
+  const actions = exchangeActions(exchange, { hasOpenCertification, now });
+  const expired = isExchangeExpired(exchange, now);
   const shipBlocked = exchange.state === 'shipping' && hasOpenCertification && myTracking(exchange) === null;
+  const deadline =
+    exchange.state === 'proposed' && typeof exchange.expiresAt === 'string' ? (
+      <VText variant="caption" tone={expired ? 'danger' : 'dim'} accessibilityLiveRegion="polite">
+        {expired
+          ? t('community.exchange.expiredOn', { date: formatDate(exchange.expiresAt) })
+          : t('community.exchange.expiresOn', { date: formatDate(exchange.expiresAt) })}
+      </VText>
+    ) : null;
 
   const run = useMutation({
     mutationFn: (action: Exclude<ExchangeAction, 'ship'>) => {
@@ -111,9 +123,12 @@ function ExchangeActions({
 
   if (actions.length === 0) {
     return (
-      <VText variant="caption" tone="dim">
-        {shipBlocked ? t('community.exchange.shipBlocked') : t(`community.exchange.waiting.${exchange.state}`)}
-      </VText>
+      <View style={styles.actions}>
+        <VText variant="caption" tone="dim">
+          {shipBlocked ? t('community.exchange.shipBlocked') : t(`community.exchange.waiting.${exchange.state}`)}
+        </VText>
+        {deadline}
+      </View>
     );
   }
 
@@ -139,6 +154,7 @@ function ExchangeActions({
       {shipBlocked ? (
         <Notice tone="warning">{t('community.exchange.shipBlocked')}</Notice>
       ) : null}
+      {deadline}
       {actions.includes('accept') ? (
         <>
           <VText variant="caption" tone="dim">

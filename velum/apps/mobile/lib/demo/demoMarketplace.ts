@@ -50,10 +50,12 @@ import {
 } from '@velum/core';
 
 import {
+  EXCHANGE_PROPOSAL_TTL_DAYS,
   canTransitionOrder,
   canWithdrawListing,
   certificationActions,
   exchangeActions,
+  isExchangeExpired,
   isForSale,
   isOpenToExchange,
   type ExchangeAction,
@@ -136,6 +138,8 @@ interface DemoExchange {
   recipientTracking: string | null;
   proposerReceived: boolean;
   recipientReceived: boolean;
+  /** Échéance de la proposition (expires_at : création + EXCHANGE_PROPOSAL_TTL_DAYS). */
+  expiresAt: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -429,7 +433,16 @@ function seedOrders(): DemoOrder[] {
   ];
 }
 
-function seedExchanges(): DemoExchange[] {
+/** Échéance d'une proposition faite à `from` (ISO) : + EXCHANGE_PROPOSAL_TTL_DAYS. */
+function proposalExpiry(from: string): string {
+  return new Date(Date.parse(from) + EXCHANGE_PROPOSAL_TTL_DAYS * 86_400_000).toISOString();
+}
+
+/**
+ * `now` : horloge du dépôt — les propositions de départ en attente échoient
+ * une semaine après l'ouverture de la démo (jamais déjà échues).
+ */
+function seedExchanges(now: string): DemoExchange[] {
   const base = {
     currency: 'EUR',
     proposerCommission: null,
@@ -439,6 +452,7 @@ function seedExchanges(): DemoExchange[] {
     recipientTracking: null,
     proposerReceived: false,
     recipientReceived: false,
+    expiresAt: proposalExpiry(now),
   };
   return [
     // REÇUE : on me propose un Hercule (+ soulte) contre ma Semeuse.
@@ -631,7 +645,7 @@ export function createDemoMarketplaceRepo(
   const listings = seedListings();
   const orders = seedOrders();
   const disputes: DisputeRecord[] = [];
-  const exchanges = seedExchanges();
+  const exchanges = seedExchanges(now());
   const certifications = seedCertifications();
   const messages = seedMessages();
 
@@ -684,6 +698,7 @@ export function createDemoMarketplaceRepo(
       recipientTracking: e.recipientTracking,
       proposerReceived: e.proposerReceived,
       recipientReceived: e.recipientReceived,
+      expiresAt: e.expiresAt,
       createdAt: e.createdAt,
       updatedAt: e.updatedAt,
     };
@@ -743,7 +758,9 @@ export function createDemoMarketplaceRepo(
   };
 
   const requireExchangeAction = (e: DemoExchange, action: ExchangeAction) => {
-    const context = { hasOpenCertification: hasOpenCertification({ exchangeId: e.id }) };
+    // Miroir d'enforce_exchange_transition : une proposition échue ne s'accepte plus.
+    if (action === 'accept' && isExchangeExpired(e, now())) invalid('Proposition expirée');
+    const context = { hasOpenCertification: hasOpenCertification({ exchangeId: e.id }), now: now() };
     if (!exchangeActions(exchangeView(e), context).includes(action)) {
       invalid(`Action « ${action} » impossible dans l’état ${e.state}`);
     }
@@ -1158,6 +1175,7 @@ export function createDemoMarketplaceRepo(
         recipientTracking: null,
         proposerReceived: false,
         recipientReceived: false,
+        expiresAt: proposalExpiry(now()),
         createdAt: now(),
         updatedAt: now(),
       };

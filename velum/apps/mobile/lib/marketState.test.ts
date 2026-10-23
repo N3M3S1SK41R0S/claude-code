@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   VelumError,
@@ -12,6 +15,7 @@ import {
 import {
   CERTIFICATION_TONE,
   ESCROW_TONE,
+  EXCHANGE_PROPOSAL_TTL_DAYS,
   EXCHANGE_TONE,
   LISTING_STATUS_TONE,
   canRequestExchangeCertification,
@@ -26,6 +30,7 @@ import {
   exchangeTimeline,
   hasOpenCertificationOn,
   isClosed,
+  isExchangeExpired,
   isForSale,
   isNotYetAvailable,
   isOpenToExchange,
@@ -207,6 +212,28 @@ describe('échanges : actions par rôle × état', () => {
     expect(exchangeActions({ ...expired, expiresAt: '2026-10-30T00:00:00Z' }, { now })).toEqual(['accept', 'decline']);
     // Échéance inconnue : le serveur tranche.
     expect(exchangeActions(exchange(), { now })).toEqual(['accept', 'decline']);
+  });
+
+  it('isExchangeExpired : échéance atteinte d’une proposition seulement, illisible ⇒ le serveur tranche', () => {
+    const now = '2026-10-23T10:00:00Z';
+    expect(isExchangeExpired({ state: 'proposed', expiresAt: '2026-10-23T10:00:00Z' }, now)).toBe(true);
+    expect(isExchangeExpired({ state: 'proposed', expiresAt: '2026-10-23T10:00:01Z' }, now)).toBe(false);
+    expect(isExchangeExpired({ state: 'shipping', expiresAt: '2026-10-01T00:00:00Z' }, now)).toBe(false);
+    expect(isExchangeExpired({ state: 'proposed', expiresAt: null }, now)).toBe(false);
+    expect(isExchangeExpired({ state: 'proposed', expiresAt: 'pas une date' }, now)).toBe(false);
+    expect(isExchangeExpired({ state: 'proposed', expiresAt: '2026-10-01T00:00:00Z' }, undefined)).toBe(false);
+  });
+
+  it('EXCHANGE_PROPOSAL_TTL_DAYS est la réplique de exchange_proposal_ttl_days() (SQL)', () => {
+    const sql = readFileSync(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../../supabase/migrations/20261023100100_market_exchanges_certification.sql',
+      ),
+      'utf8',
+    );
+    const match = /function public\.exchange_proposal_ttl_days\(\)[\s\S]*?select (\d+)/.exec(sql);
+    expect(Number(match?.[1])).toBe(EXCHANGE_PROPOSAL_TTL_DAYS);
   });
 
   it('aucune action sur les états terminaux et en litige', () => {
