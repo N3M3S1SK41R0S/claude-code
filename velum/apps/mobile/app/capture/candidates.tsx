@@ -123,6 +123,8 @@ export default function Candidates() {
   const fullSave = useMutation({
     mutationFn: async (candidate: Candidate) => {
       const client = getVelumClient();
+      // Session vérifiée AVANT l'analyse : pas d'appel IA payant pour rien.
+      if (!session?.user?.id) throw new VelumError('UNAUTHORIZED', 'Session requise');
       setStep(t('candidates.processing'));
       const analysis = await client.edge.analyze(domain, candidate);
       setStep(t('candidates.saving'));

@@ -60,6 +60,8 @@ export function IdentityCorrectionForm({
   const [label, setLabel] = useState(base?.label ?? '');
   const [expanded, setExpanded] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  /** Action lancée en dernier : c'est elle qui affiche le chargement. */
+  const [lastAction, setLastAction] = useState<string | null>(null);
 
   const allFields = useMemo(() => identityFieldsFor(domain), [domain]);
   const primaryFields = useMemo(() => identityFieldsFor(domain, true), [domain]);
@@ -71,6 +73,7 @@ export function IdentityCorrectionForm({
   const submit = (action: CorrectionAction) => {
     setSubmitted(true);
     if (busy || Object.keys(errors).length > 0 || effectiveLabel === '') return;
+    setLastAction(action.label);
     action.onSubmit({ values, label: effectiveLabel });
   };
 
@@ -119,7 +122,7 @@ export function IdentityCorrectionForm({
             variant={action.variant ?? 'primary'}
             accessibilityHint={action.accessibilityHint}
             onPress={() => submit(action)}
-            loading={busy && action === actions[0]}
+            loading={busy && action.label === lastAction}
             disabled={busy}
           />
         ))}
