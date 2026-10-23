@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ListingRecord } from '@velum/core';
+import { VelumError, type CatalogueListing, type ListingRecord } from '@velum/core';
 
 import {
   DEFAULT_CATALOGUE_FILTERS,
@@ -11,10 +11,12 @@ import {
   communityKeys,
   findCatalogueListing,
   isVelumDomain,
+  lookupListing,
   parseCommunityParams,
   priceRangeIssue,
   sellPickerHref,
   stringParam,
+  type ListingLookupDeps,
 } from './marketQuery';
 
 describe('buildCatalogueQuery', () => {
@@ -153,5 +155,103 @@ describe('cache des annonces', () => {
     expect(view.sellerAlias).toBe('Vous');
     expect(view).not.toHaveProperty('sellerId');
     expect(view).not.toHaveProperty('itemId');
+  });
+});
+
+describe('lookupListing — annonce par identifiant', () => {
+  const other: CatalogueListing = {
+    id: 'l-9',
+    kind: 'sale_or_exchange',
+    domain: 'coin',
+    title: 'Napoléon III',
+    description: null,
+    askPrice: 320,
+    currency: 'EUR',
+    exchangeWishes: null,
+    sellerAlias: 'Collectionneur 7F3A',
+    certified: false,
+    isMine: false,
+    createdAt: '2026-07-08T00:00:00Z',
+  };
+  const mine: ListingRecord = {
+    id: 'mine-1',
+    itemId: 'it-1',
+    sellerId: 'me',
+    askPrice: 40,
+    currency: 'EUR',
+    status: 'pending_certification',
+    title: 'Semeuse',
+    domain: 'coin',
+    kind: 'exchange',
+    description: null,
+    exchangeWishes: null,
+    commissionRate: 0.05,
+    certificationRequired: true,
+    certified: false,
+    createdAt: '2026-10-01T00:00:00Z',
+  };
+  const deps = (patch: Partial<ListingLookupDeps> = {}): ListingLookupDeps => ({
+    cachedPages: [],
+    catalogue: async () => [],
+    myListings: async () => [mine],
+    myAlias: 'Vous',
+    ...patch,
+  });
+  const outage = new VelumError('SOURCE_UNAVAILABLE', 'panne');
+  const failing = async (): Promise<CatalogueListing | null> => {
+    throw outage;
+  };
+
+  it('retrouve une annonce HORS catalogue (réservée, vendue, échangée) par lecture directe', async () => {
+    // Échange accepté : l'annonce est engagée, donc absente du catalogue.
+    const calls: string[] = [];
+    const found = await lookupListing(
+      'l-9',
+      deps({
+        getListing: async (id) => (id === 'l-9' ? other : null),
+        catalogue: async () => {
+          calls.push('catalogue');
+          return [];
+        },
+      }),
+    );
+    expect(found).toEqual({ listing: other, myStatus: null });
+    expect(calls).toEqual([]); // le catalogue (50 plus récentes, actives) n'est plus la source
+  });
+
+  it('ma propre annonce : statut relu dans mes annonces', async () => {
+    const found = await lookupListing('mine-1', deps({ getListing: async () => ({ ...other, id: 'mine-1', isMine: true }) }));
+    expect(found?.myStatus).toBe('pending_certification');
+    expect(found?.listing.isMine).toBe(true);
+  });
+
+  it('introuvable seulement si la lecture directe ET mes annonces n’en savent rien', async () => {
+    expect(await lookupListing('absente', deps({ getListing: async () => null }))).toBeNull();
+  });
+
+  it('sans lecture directe (client historique) : repli sur le catalogue au plafond serveur', async () => {
+    const queries: unknown[] = [];
+    const found = await lookupListing(
+      'l-9',
+      deps({
+        catalogue: async (q) => {
+          queries.push(q);
+          return [other];
+        },
+      }),
+    );
+    expect(found?.listing.id).toBe('l-9');
+    expect(queries).toEqual([{ includeMine: true, limit: 100 }]);
+  });
+
+  it('lecture directe en panne : repli, puis l’ERREUR plutôt que « introuvable »', async () => {
+    const viaFallback = await lookupListing('l-9', deps({ getListing: failing, catalogue: async () => [other] }));
+    expect(viaFallback?.listing.id).toBe('l-9');
+    await expect(lookupListing('l-9', deps({ getListing: failing }))).rejects.toBe(outage);
+  });
+
+  it('une annonce d’autrui déjà en cache est servie sans appel réseau', async () => {
+    const found = await lookupListing('l-9', deps({ cachedPages: [[other]], getListing: failing }));
+    expect(found?.listing).toEqual(other);
   });
 });

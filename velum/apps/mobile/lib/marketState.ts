@@ -336,6 +336,61 @@ export function certificationActions(
 
 // ── Annonces ─────────────────────────────────────────────────────────────────
 
+/** Commande qui réserve l'annonce (paiement capturé) ou l'a conclue. */
+const ORDER_HOLDS_LISTING: ReadonlySet<EscrowState> = new Set(['funds_held', 'shipped', 'disputed', 'released']);
+/** Échange qui réserve l'annonce (accepté, en cours) ou l'a conclue. */
+const EXCHANGE_HOLDS_LISTING: ReadonlySet<ExchangeState> = new Set([
+  'accepted',
+  'awaiting_certification',
+  'shipping',
+  'disputed',
+  'completed',
+]);
+
+export interface ListingAvailability {
+  canBuy: boolean;
+  canPropose: boolean;
+  /** Ma transaction en cours ou conclue sur cette annonce (lien vers elle), sinon null. */
+  mine: { kind: 'order' | 'exchange'; id: string } | null;
+}
+
+/**
+ * Actions sur l'annonce d'AUTRUI d'après MES transactions — miroir des refus
+ * serveur : annonce réservée (listing_is_engaged) ou conclue → plus rien ;
+ * une seule commande non payée par acheteur (orders_one_pending_per_buyer)
+ * et une seule proposition en attente par membre (exchange_proposals_one_pending).
+ * Une annonce retrouvée hors catalogue pour une transaction à laquelle je ne
+ * participe pas n'est pas connue ici : le serveur reste l'arbitre.
+ */
+export function listingAvailability(
+  listing: { id: string; kind: ListingKind; isMine: boolean },
+  orders: readonly Pick<MarketOrder, 'id' | 'listingId' | 'role' | 'escrowState'>[],
+  exchanges: readonly Pick<ExchangeProposal, 'id' | 'listingId' | 'role' | 'state'>[],
+): ListingAvailability {
+  if (listing.isMine) return { canBuy: false, canPropose: false, mine: null };
+  const myOrders = orders.filter((o) => o.listingId === listing.id && o.role === 'buyer');
+  const myProposals = exchanges.filter((e) => e.listingId === listing.id && e.role === 'proposer');
+  const holdingOrder = myOrders.find((o) => ORDER_HOLDS_LISTING.has(o.escrowState));
+  const holdingExchange = myProposals.find((e) => EXCHANGE_HOLDS_LISTING.has(e.state));
+  const unpaid = myOrders.find((o) => o.escrowState === 'pending_payment');
+  const pending = myProposals.find((e) => e.state === 'proposed');
+  const held = holdingOrder !== undefined || holdingExchange !== undefined;
+  const mine = holdingOrder
+    ? { kind: 'order' as const, id: holdingOrder.id }
+    : holdingExchange
+      ? { kind: 'exchange' as const, id: holdingExchange.id }
+      : unpaid
+        ? { kind: 'order' as const, id: unpaid.id }
+        : pending
+          ? { kind: 'exchange' as const, id: pending.id }
+          : null;
+  return {
+    canBuy: isForSale(listing.kind) && !held && unpaid === undefined,
+    canPropose: isOpenToExchange(listing.kind) && !held && pending === undefined,
+    mine,
+  };
+}
+
 /** Une annonce peut être retirée tant qu'elle n'est pas vendue / échangée. */
 export function canWithdrawListing(status: ListingStatus): boolean {
   return status === 'draft' || status === 'pending_certification' || status === 'active';

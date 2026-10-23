@@ -18,6 +18,7 @@ import {
   isForSale,
   isNotYetAvailable,
   isOpenToExchange,
+  listingAvailability,
   marketLabelKeys,
   marketRetry,
   myCashPayment,
@@ -256,6 +257,67 @@ describe('certifications et annonces', () => {
       }),
     ).toBe(3);
     expect(pendingActionCount({})).toBe(0);
+  });
+});
+
+describe('annonce d’autrui : actions selon MES transactions (miroir des refus serveur)', () => {
+  const listing = { id: 'l-1', kind: 'sale_or_exchange', isMine: false } as const;
+  const order = (escrowState: EscrowState, listingId = 'l-1') =>
+    ({ id: `o-${escrowState}`, listingId, role: 'buyer', escrowState }) as const;
+  const ex = (state: ExchangeState, listingId = 'l-1') =>
+    ({ id: `e-${state}`, listingId, role: 'proposer', state }) as const;
+
+  it('sans transaction : acheter et proposer selon la nature de l’annonce', () => {
+    expect(listingAvailability(listing, [], [])).toEqual({ canBuy: true, canPropose: true, mine: null });
+    expect(listingAvailability({ ...listing, kind: 'sale' }, [], []).canPropose).toBe(false);
+    expect(listingAvailability({ ...listing, kind: 'exchange' }, [], []).canBuy).toBe(false);
+    // Transactions sur une AUTRE annonce, ou closes sans suite : sans effet.
+    expect(listingAvailability(listing, [order('funds_held', 'l-2'), order('cancelled')], [ex('declined')])).toEqual({
+      canBuy: true,
+      canPropose: true,
+      mine: null,
+    });
+  });
+
+  it('commande en attente de paiement : pas de seconde commande, l’échange reste possible', () => {
+    expect(listingAvailability(listing, [order('pending_payment')], [])).toEqual({
+      canBuy: false,
+      canPropose: true,
+      mine: { kind: 'order', id: 'o-pending_payment' },
+    });
+  });
+
+  it('annonce réservée ou conclue par MA transaction : plus aucune action, lien vers elle', () => {
+    for (const state of ['funds_held', 'shipped', 'disputed', 'released'] as const) {
+      expect(listingAvailability(listing, [order(state)], [])).toEqual({
+        canBuy: false,
+        canPropose: false,
+        mine: { kind: 'order', id: `o-${state}` },
+      });
+    }
+    for (const state of ['accepted', 'awaiting_certification', 'shipping', 'disputed', 'completed'] as const) {
+      expect(listingAvailability(listing, [], [ex(state)])).toEqual({
+        canBuy: false,
+        canPropose: false,
+        mine: { kind: 'exchange', id: `e-${state}` },
+      });
+    }
+  });
+
+  it('proposition en attente : pas de seconde proposition, l’achat reste possible', () => {
+    expect(listingAvailability(listing, [], [ex('proposed')])).toEqual({
+      canBuy: true,
+      canPropose: false,
+      mine: { kind: 'exchange', id: 'e-proposed' },
+    });
+  });
+
+  it('ma propre annonce : aucune action d’achat ni d’échange', () => {
+    expect(listingAvailability({ ...listing, isMine: true }, [], [])).toEqual({
+      canBuy: false,
+      canPropose: false,
+      mine: null,
+    });
   });
 });
 

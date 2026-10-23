@@ -8,6 +8,7 @@ import type {
   CatalogueQuery,
   CatalogueSort,
   ListingRecord,
+  ListingStatus,
   VelumDomain,
 } from '@velum/core';
 
@@ -181,6 +182,69 @@ export function findCatalogueListing(pages: readonly unknown[], id: string): Cat
       if (isCatalogueListing(entry) && entry.id === id) return entry;
     }
   }
+  return null;
+}
+
+/** Plafond serveur du catalogue (market_catalogue borne p_limit à 100). */
+export const CATALOGUE_MAX_LIMIT = 100;
+
+export interface ListingLookup {
+  listing: CatalogueListing;
+  /** Statut connu seulement pour MES annonces (relu dans `myListings`). */
+  myStatus: ListingStatus | null;
+}
+
+/** Sources d'une annonce, injectées (dépôt MarketplaceRepo + cache React Query). */
+export interface ListingLookupDeps {
+  /** Pages de catalogue déjà en cache (données `unknown`, forme vérifiée). */
+  cachedPages: readonly unknown[];
+  /** Lecture directe par id (contrat optionnel `getListing`) : même hors catalogue. */
+  getListing?: (id: string) => Promise<CatalogueListing | null>;
+  catalogue: (query: CatalogueQuery) => Promise<CatalogueListing[]>;
+  myListings: () => Promise<ListingRecord[]>;
+  /** Libellé de MON pseudonyme dans la vue (« Vous »). */
+  myAlias: string;
+}
+
+/**
+ * Retrouve une annonce par id : cache du catalogue, puis LECTURE DIRECTE
+ * (annonce réservée, vendue ou échangée visible de ses parties — le catalogue
+ * ne liste que les annonces actives non réservées, 50 par défaut), repli sur
+ * le catalogue pour un client sans lecture directe, enfin mes annonces (avec
+ * leur statut). Jamais « introuvable » (null) quand une source est en panne :
+ * l'erreur remonte alors.
+ */
+export async function lookupListing(id: string, deps: ListingLookupDeps): Promise<ListingLookup | null> {
+  const cached = findCatalogueListing(deps.cachedPages, id);
+  if (cached && !cached.isMine) return { listing: cached, myStatus: null };
+
+  let failure: unknown = null;
+  // undefined : lecture directe indisponible (client historique ou panne).
+  let direct: CatalogueListing | null | undefined;
+  if (deps.getListing) {
+    try {
+      direct = await deps.getListing(id);
+    } catch (error) {
+      failure = error;
+    }
+  }
+  if (direct && !direct.isMine) return { listing: direct, myStatus: null };
+
+  if (direct === undefined) {
+    try {
+      const all = await deps.catalogue({ includeMine: true, limit: CATALOGUE_MAX_LIMIT });
+      const found = all.find((l) => l.id === id);
+      if (found && !found.isMine) return { listing: found, myStatus: null };
+    } catch (error) {
+      failure ??= error;
+    }
+  }
+
+  // Mon annonce (éventuellement non publiée : expertise en attente, retirée…).
+  const mine = (await deps.myListings()).find((l) => l.id === id);
+  if (mine) return { listing: catalogueViewOfMine(mine, deps.myAlias), myStatus: mine.status };
+  if (direct) return { listing: direct, myStatus: null };
+  if (failure !== null) throw failure;
   return null;
 }
 

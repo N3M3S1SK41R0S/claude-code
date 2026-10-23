@@ -976,10 +976,16 @@ export function createDemoMarketplaceRepo(
 
     async getListing(listingId: string): Promise<CatalogueListing | null> {
       await tick();
-      // Démo : toute annonce connue reste consultable (vendue, réservée…),
-      // comme le fait le serveur pour les parties de la transaction.
+      // Comme le serveur : une annonce active, la mienne, ou celle d'une de
+      // mes transactions (réservée, vendue, échangée) reste consultable.
       const listing = listings.find((l) => l.id === listingId);
-      return listing ? toCatalogue(listing) : null;
+      if (!listing) return null;
+      const visible =
+        listing.status === 'active' ||
+        listing.sellerId === DEMO_OWNER ||
+        orders.some((o) => o.listingId === listing.id && o.buyerId === DEMO_OWNER) ||
+        exchanges.some((e) => e.listingId === listing.id && e.proposerId === DEMO_OWNER);
+      return visible ? toCatalogue(listing) : null;
     },
 
     async reputationByAlias(alias: string): Promise<SellerReputation> {

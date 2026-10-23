@@ -5,8 +5,11 @@
  * (échange) ; demander une expertise d'un commun accord sous 500 €, ou
  * explication si elle est obligatoire.
  *
- * L'annonce est retrouvée par id : d'abord dans le catalogue en cache, sinon
- * relue (catalogue complet, puis mes annonces).
+ * L'annonce est retrouvée par id (lib/marketQuery `lookupListing`) : cache du
+ * catalogue, puis lecture directe — une annonce réservée, vendue ou échangée
+ * reste consultable par les parties de la transaction —, enfin mes annonces.
+ * Acheter / proposer ne sont offerts que si le serveur les accepterait au vu
+ * de MES transactions sur l'annonce (lib/marketState `listingAvailability`).
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -14,7 +17,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { certificationRequirement } from '@velum/config';
-import type { CatalogueListing, ListingStatus } from '@velum/core';
 import { VBadge, VButton, VCard, VEmptyState, VSpinner, VText, velumSpacing } from '@velum/ui';
 
 import { Screen } from '../../../components/Screen';
@@ -27,65 +29,52 @@ import {
   useInvalidateCommunity,
   useMarketErrorToast,
   useMyCertifications,
+  useMyExchanges,
+  useMyOrders,
 } from '../../../components/market/hooks';
 import { getVelumClient } from '../../../lib/client';
 import { formatDate } from '../../../lib/i18n';
 import { formatPrice } from '../../../lib/marketForms';
 import {
-  catalogueViewOfMine,
   communityActivityHref,
   communityKeys,
-  findCatalogueListing,
+  lookupListing,
   stringParam,
+  type ListingLookup,
 } from '../../../lib/marketQuery';
 import {
   CERTIFICATION_TONE,
   LISTING_STATUS_TONE,
-  isForSale,
   isClosed,
+  isForSale,
   isOpenToExchange,
+  listingAvailability,
   marketLabelKeys,
 } from '../../../lib/marketState';
 import { routes } from '../../../lib/routes';
 import { showToast } from '../../../stores/toastStore';
 
-interface ListingLookup {
-  listing: CatalogueListing;
-  /** Statut connu seulement pour mes annonces (le catalogue ne liste que les actives). */
-  myStatus: ListingStatus | null;
-}
-
-/** Retrouve une annonce par id : cache du catalogue, puis serveur. */
+/** Retrouve une annonce par id : cache du catalogue, lecture directe, mes annonces. */
 function useListing(id: string) {
   const { t } = useTranslation();
   const client = getVelumClient();
   const queryClient = useQueryClient();
-  const cachedPages = () =>
-    queryClient.getQueriesData({ queryKey: communityKeys.catalogueRoot }).map(([, data]) => data);
+  const market = client.marketplace;
+  // Contrat optionnel : absent d'un client historique (repli sur le catalogue).
+  const getListing = market.getListing?.bind(market);
 
   return useQuery<ListingLookup | null>({
     queryKey: communityKeys.listing(id),
     enabled: id.length > 0,
     retry: marketRetry,
-    queryFn: async () => {
-      const cached = findCatalogueListing(cachedPages(), id);
-      if (cached && !cached.isMine) return { listing: cached, myStatus: null };
-      let catalogueError: unknown = null;
-      try {
-        const all = await client.marketplace.catalogue({ includeMine: true });
-        const found = all.find((l) => l.id === id);
-        if (found && !found.isMine) return { listing: found, myStatus: null };
-      } catch (error) {
-        // Catalogue indisponible : on tente encore mes annonces avant d'échouer.
-        catalogueError = error;
-      }
-      // Mon annonce (éventuellement non publiée : expertise en attente, retirée…).
-      const mine = (await client.marketplace.myListings()).find((l) => l.id === id);
-      if (mine) return { listing: catalogueViewOfMine(mine, t('community.you')), myStatus: mine.status };
-      // Jamais « introuvable » quand c'est en réalité le catalogue qui est en panne.
-      if (catalogueError !== null) throw catalogueError;
-      return null;
-    },
+    queryFn: () =>
+      lookupListing(id, {
+        cachedPages: queryClient.getQueriesData({ queryKey: communityKeys.catalogueRoot }).map(([, data]) => data),
+        ...(getListing ? { getListing } : {}),
+        catalogue: (query) => market.catalogue(query),
+        myListings: () => market.myListings(),
+        myAlias: t('community.you'),
+      }),
   });
 }
 
@@ -124,6 +113,8 @@ function ListingDetail({ id }: { id: string }) {
   const onError = useMarketErrorToast();
   const lookup = useListing(id);
   const certifications = useMyCertifications();
+  const orders = useMyOrders();
+  const exchanges = useMyExchanges();
   const [panel, setPanel] = useState<'buy' | 'exchange' | null>(null);
 
   const buy = useMutation({
@@ -156,6 +147,16 @@ function ListingDetail({ id }: { id: string }) {
       </Screen>
     );
   }
+  if (lookup.data === undefined && lookup.fetchStatus === 'paused') {
+    // Hors-ligne, rien en cache : jamais présenté comme « introuvable ».
+    return (
+      <Screen scroll={false} title={t('community.listing.title')} backFallback={routes.community()}>
+        <View style={styles.center}>
+          <VEmptyState title={t('community.offlineTitle')} message={t('community.offline')} />
+        </View>
+      </Screen>
+    );
+  }
   if (lookup.isPending) {
     return (
       <Screen scroll={false} title={t('community.listing.title')} backFallback={routes.community()}>
@@ -182,6 +183,8 @@ function ListingDetail({ id }: { id: string }) {
   const { listing, myStatus } = lookup.data;
   const forSale = isForSale(listing.kind);
   const forExchange = isOpenToExchange(listing.kind);
+  const availability = listingAvailability(listing, orders.data ?? [], exchanges.data ?? []);
+  const myTransaction = availability.mine;
   const requirement = certificationRequirement({ value: listing.askPrice });
   const myRequest = (certifications.data ?? []).find((c) => c.listingId === id && !isClosed.certification(c));
   const price = formatPrice(listing.askPrice, i18n.language, listing.currency);
@@ -221,7 +224,28 @@ function ListingDetail({ id }: { id: string }) {
           </View>
         ) : (
           <View style={styles.actions}>
-            {forSale ? (
+            {/* Ma transaction sur l'annonce : lien direct, et plus d'action refusée par le serveur. */}
+            {myTransaction !== null ? (
+              <>
+                <Notice title={t('community.listing.involvedTitle')}>
+                  {myTransaction.kind === 'order'
+                    ? t('community.listing.involvedOrder')
+                    : t('community.listing.involvedExchange')}
+                </Notice>
+                <VButton
+                  label={
+                    myTransaction.kind === 'order' ? t('community.listing.openOrder') : t('community.listing.openExchange')
+                  }
+                  variant="secondary"
+                  onPress={() =>
+                    router.push(
+                      myTransaction.kind === 'order' ? communityActivityHref() : routes.exchange(myTransaction.id),
+                    )
+                  }
+                />
+              </>
+            ) : null}
+            {availability.canBuy ? (
               panel === 'buy' ? (
                 <VCard tone="gilded" style={styles.panel}>
                   <VText variant="heading" tone="gold" accessibilityRole="header">
@@ -243,7 +267,7 @@ function ListingDetail({ id }: { id: string }) {
                 <VButton label={t('community.buy')} onPress={() => setPanel('buy')} accessibilityHint={t('community.escrowHint')} />
               )
             ) : null}
-            {forExchange ? (
+            {availability.canPropose ? (
               panel === 'exchange' ? (
                 <ExchangeProposalForm
                   listing={listing}
@@ -253,7 +277,7 @@ function ListingDetail({ id }: { id: string }) {
               ) : (
                 <VButton
                   label={t('community.listing.proposeExchange')}
-                  variant={forSale ? 'secondary' : 'primary'}
+                  variant={availability.canBuy ? 'secondary' : 'primary'}
                   onPress={() => setPanel('exchange')}
                 />
               )

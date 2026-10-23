@@ -223,6 +223,16 @@ function ExchangeDetail({ id }: { id: string }) {
     onError,
   });
 
+  if (exchanges.data === undefined && exchanges.fetchStatus === 'paused') {
+    // Hors-ligne, rien en cache : jamais présenté comme « introuvable ».
+    return (
+      <Screen scroll={false} title={t('community.exchange.title')} backFallback={communityActivityHref()}>
+        <View style={styles.center}>
+          <VEmptyState title={t('community.offlineTitle')} message={t('community.offline')} />
+        </View>
+      </Screen>
+    );
+  }
   if (exchanges.isError || exchanges.isPending) {
     return (
       <Screen scroll={false} title={t('community.exchange.title')} backFallback={communityActivityHref()}>

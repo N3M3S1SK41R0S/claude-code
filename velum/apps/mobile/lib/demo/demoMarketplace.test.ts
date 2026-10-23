@@ -89,6 +89,15 @@ describe('démo marketplace — catalogue', () => {
     expect(mine.map((l) => l.id)).toEqual(['demo-mine-5', 'demo-mine-1']);
   });
 
+  it('lecture directe : annonce hors catalogue visible de ses parties seulement', async () => {
+    const repo = setup();
+    // Vendue (je suis l'acheteur de demo-order-1) : absente du catalogue, mais consultable.
+    expect((await repo.catalogue()).some((l) => l.id === 'demo-listing-9')).toBe(false);
+    expect(await repo.getListing?.('demo-listing-9')).toMatchObject({ id: 'demo-listing-9', isMine: false });
+    expect(await repo.getListing?.('demo-mine-3')).toMatchObject({ isMine: true });
+    expect(await repo.getListing?.('absente')).toBeNull();
+  });
+
   it('expose une réputation par pseudonyme sans identifiant', async () => {
     const repo = setup();
     const [first] = await repo.catalogue({ text: 'napoleon' });

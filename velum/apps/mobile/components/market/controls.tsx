@@ -246,6 +246,8 @@ export interface AsyncSource<T> {
   isError: boolean;
   error: unknown;
   refetch: () => unknown;
+  /** 'paused' : requête en attente du réseau (hors-ligne). */
+  fetchStatus?: 'fetching' | 'paused' | 'idle';
 }
 
 export interface AsyncBlockProps<T> {
@@ -257,8 +259,10 @@ export interface AsyncBlockProps<T> {
 }
 
 /**
- * Chargement / erreur (avec Réessayer) / vide / contenu. Une fonction serveur
- * pas encore câblée est annoncée comme telle (« bientôt disponible »).
+ * Chargement / erreur (avec Réessayer) / hors-ligne / vide / contenu. Une
+ * fonction serveur pas encore câblée est annoncée comme telle (« bientôt
+ * disponible ») ; une lecture en attente du réseau sans données en cache est
+ * annoncée hors-ligne (jamais « vide »).
  */
 export function AsyncBlock<T>({ source, isEmpty, emptyText, children }: AsyncBlockProps<T>) {
   const { t } = useTranslation();
@@ -271,6 +275,13 @@ export function AsyncBlock<T>({ source, isEmpty, emptyText, children }: AsyncBlo
         </VText>
         <VButton label={t('common.retry')} variant="secondary" onPress={() => void source.refetch()} />
       </VCard>
+    );
+  }
+  if (source.data === undefined && source.fetchStatus === 'paused') {
+    return (
+      <VText variant="body" tone="dim" accessibilityLiveRegion="polite">
+        {t('community.offline')}
+      </VText>
     );
   }
   if (source.isPending || source.data === undefined) {
