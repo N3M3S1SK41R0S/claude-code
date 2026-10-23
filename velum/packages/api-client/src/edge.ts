@@ -1,6 +1,7 @@
 /**
  * Appels aux Edge Functions VELUM via `supabase.functions.invoke` :
- *   - recognize                       → étage 1 du pipeline (§10.1)
+ *   - recognize                       → étage 1 du pipeline (§10.1) : scan éclair,
+ *                                       ou planche multi-objets (mode 'sheet')
  *   - analyze-wine|coin|art|stamp|watch → fiche d'analyse, routée par domaine
  *   - valuate                         → moteur de valorisation (§7)
  *   - arbiter                         → signal boire/garder/vendre (Gold+)
@@ -18,6 +19,7 @@ import {
   type CaptureInput,
   type PairingResult,
   type RecognitionResult,
+  type SheetRecognitionResult,
   type ValuationResult,
   type VelumDomain,
   type VelumErrorCode,
@@ -98,8 +100,18 @@ export async function invokeEdgeFunction<T>(
 }
 
 export interface EdgeApi {
-  /** Identification (top-3 candidats) — Edge Function `recognize`. */
+  /**
+   * Scan éclair (top-3 candidats + classement + fourchette indicative) —
+   * Edge Function `recognize`.
+   */
   recognize(domain: VelumDomain, input: CaptureInput): Promise<RecognitionResult>;
+  /**
+   * Mode classeur : UNE photo de planche (page de classeur, plateau de pièces)
+   * → plusieurs objets détectés — `recognize` avec `mode: 'sheet'`. Timbres et
+   * pièces uniquement (INVALID_INPUT sinon) ; une photo = un scan de quota.
+   * Optionnel pour les anciens clients injectés ; `createEdgeApi` le fournit.
+   */
+  recognizeSheet?(domain: VelumDomain, input: CaptureInput): Promise<SheetRecognitionResult>;
   /** Fiche d'analyse — routée vers `analyze-<domaine>`. */
   analyze(domain: VelumDomain, candidate: Candidate): Promise<AnalysisResult>;
   /** Valorisation §7 — Edge Function `valuate` (persiste si itemId fourni). */
@@ -119,6 +131,7 @@ export interface EdgeApi {
 
 /** Client Edge complet construit par la fabrique officielle. */
 export interface CompleteEdgeApi extends EdgeApi {
+  recognizeSheet(domain: VelumDomain, input: CaptureInput): Promise<SheetRecognitionResult>;
   arbitrate(itemId: string, currentYear?: number): Promise<ArbiterSignal>;
 }
 
@@ -126,6 +139,13 @@ export function createEdgeApi(supabase: SupabaseClient): CompleteEdgeApi {
   return {
     recognize(domain, input) {
       return invokeEdgeFunction<RecognitionResult>(supabase, 'recognize', { domain, input });
+    },
+    recognizeSheet(domain, input) {
+      return invokeEdgeFunction<SheetRecognitionResult>(supabase, 'recognize', {
+        domain,
+        input,
+        mode: 'sheet',
+      });
     },
     analyze(domain, candidate) {
       return invokeEdgeFunction<AnalysisResult>(supabase, `analyze-${domain}`, { candidate });
