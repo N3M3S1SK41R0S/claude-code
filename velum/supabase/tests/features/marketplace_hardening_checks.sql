@@ -40,7 +40,9 @@
 --   X18 fin sans vente : commande non payée sans effet ; certification
 --       d'expert jamais effacée ; demandes d'annonce au titre actuel de l'objet ;
 --   X19 objet certifié pendant la réservation (commande, échange) : annonce
---       libérée publiée avec la référence, aucune expertise « seuil ».
+--       libérée publiée avec la référence, aucune expertise « seuil » ;
+--   X20 certification d'un objet : demandes « seuil » de ses annonces
+--       annulées, référence posée, expédition jamais bloquée par elles.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 \set ON_ERROR_STOP on
@@ -2209,6 +2211,110 @@ begin
   reset role;
   perform set_config('velum.uid', '', true);
   raise notice 'OK X19 — objet certifié pendant la réservation : annonce libérée publiée avec la référence, aucune expertise « seuil »';
+end
+$$;
+
+-- ── X20. Certification d'un objet : ses autres demandes « seuil » closes ────
+-- L'objet offert a une annonce en attente de certification (demande « seuil »
+-- de l'annonce seule) ; l'échange accepté ouvre SA demande « seuil » pour le
+-- même objet. Certifié sur l'échange, l'objet n'a plus besoin de la demande
+-- de son annonce : elle est annulée (aucune seconde facturation), l'annonce
+-- reprend la référence, et les deux parties expédient. Une demande « seuil »
+-- de l'annonce seule restée ouverte sur un objet certifié ne bloque jamais
+-- l'expédition (has_open_certification).
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000108', '81000000-0000-4000-8000-000000000001', 'coin', 'Ducat de Venise'),
+  ('92000000-0000-4000-8000-000000000108', '82000000-0000-4000-8000-000000000002', 'coin', 'Florin de Florence');
+
+do $$
+declare
+  v_ex uuid;
+  v_lx_cert uuid;
+  v_row record;
+  v_count integer;
+begin
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a2000000-0000-4000-8000-000000000108', '91000000-0000-4000-8000-000000000108',
+     '81000000-0000-4000-8000-000000000001', 300);
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  insert into public.listings (id, item_id, seller_id, ask_price, kind) values
+    ('a2000000-0000-4000-8000-000000000208', '92000000-0000-4000-8000-000000000108',
+     '82000000-0000-4000-8000-000000000002', 300, 'exchange');
+  reset role;
+  perform set_config('velum.uid', '', true);
+  -- Estimation au-delà du seuil : l'annonce LX de l'objet est suspendue.
+  insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, sources)
+  values ('91000000-0000-4000-8000-000000000108', 2000, 1800, 2200, 1700, 2300, 70, '[]');
+  select id into v_lx_cert from public.certification_requests
+  where listing_id = 'a2000000-0000-4000-8000-000000000108' and reason = 'threshold' and status = 'requested';
+  if v_lx_cert is null then
+    raise exception 'X20 : demande « seuil » de l''annonce suspendue attendue';
+  end if;
+
+  -- Alice offre l'objet ; Bruno accepte : expertise « seuil » de l'échange.
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select id into v_ex from public.propose_exchange(
+    'a2000000-0000-4000-8000-000000000208', '91000000-0000-4000-8000-000000000108', 300);
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  if (select e.state from public.respond_exchange(v_ex, true) e) <> 'awaiting_certification' then
+    raise exception 'X20 : échange en attente de certification attendu';
+  end if;
+  reset role;
+  perform set_config('velum.uid', '', true);
+  perform public.decide_certification(
+    (select id from public.certification_requests where exchange_id = v_ex and status = 'requested'),
+    true, 'expertises/alice/ducat-venise.pdf', 'Authentique', 80);
+  if (select state from public.exchange_proposals where id = v_ex) <> 'shipping' then
+    raise exception 'X20 : objet certifié ⇒ échange en phase d''expédition attendu';
+  end if;
+
+  -- Les deux parties expédient.
+  set local role authenticated;
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select * into v_row from public.ship_exchange(v_ex, '6A12345678901', 'Colissimo');
+  if v_row.recipient_tracking is distinct from '6A12345678901' then
+    raise exception 'X20 : expédition du destinataire attendue (%)', row_to_json(v_row);
+  end if;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select * into v_row from public.ship_exchange(v_ex, '6A12345678902', 'Colissimo');
+  if v_row.proposer_tracking is distinct from '6A12345678902' then
+    raise exception 'X20 : expédition de l''auteur attendue (%)', row_to_json(v_row);
+  end if;
+  reset role;
+  perform set_config('velum.uid', '', true);
+
+  -- La demande de l'annonce, sans objet, est annulée (jamais facturée) ;
+  -- l'annonce reprend la référence de l'expert.
+  select status into v_row from public.certification_requests where id = v_lx_cert;
+  if v_row.status <> 'cancelled' then
+    raise exception 'X20 : demande « seuil » redondante de l''annonce annulée attendue, vu %', v_row.status;
+  end if;
+  select count(*) into v_count from public.certification_requests
+  where item_id = '91000000-0000-4000-8000-000000000108' and status = 'certified';
+  if v_count <> 1 then
+    raise exception 'X20 : une seule expertise facturée attendue (% certifiée(s))', v_count;
+  end if;
+  select status, expert_appraisal_ref into v_row from public.listings
+  where id = 'a2000000-0000-4000-8000-000000000108';
+  if v_row.status <> 'active' or v_row.expert_appraisal_ref is distinct from 'expertises/alice/ducat-venise.pdf' then
+    raise exception 'X20 : annonce de l''objet certifié publiée avec la référence attendue (%)', row_to_json(v_row);
+  end if;
+
+  -- Défense en profondeur : une demande « seuil » de l'annonce seule restée
+  -- ouverte sur un objet certifié ne compte pas (état simulé).
+  perform set_config('session_replication_role', 'replica', true);
+  update public.certification_requests set status = 'requested' where id = v_lx_cert;
+  perform set_config('session_replication_role', 'origin', true);
+  if public.has_open_certification(null, v_ex) then
+    raise exception 'X20 : demande « seuil » d''un objet certifié ⇒ expédition non bloquée attendue';
+  end if;
+  perform set_config('session_replication_role', 'replica', true);
+  update public.certification_requests set status = 'cancelled' where id = v_lx_cert;
+  perform set_config('session_replication_role', 'origin', true);
+  raise notice 'OK X20 — objet certifié : demandes « seuil » redondantes de ses annonces annulées, référence posée, expéditions possibles';
 end
 $$;
 

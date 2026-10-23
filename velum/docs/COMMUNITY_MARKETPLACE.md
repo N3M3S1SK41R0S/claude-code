@@ -272,8 +272,12 @@ compris quand une estimation suspend l'annonce sans republication)
 enregistre le titre **actuel de l'objet** — un objet renommé avant sa
 certification garde donc son badge aux republications suivantes ; renommé
 après, il exige **une** nouvelle expertise, une seule (le titre d'une demande
-n'est jamais réécrit à la décision de l'expert). Deux décisions ex aequo (même
-horodatage) : le refus l'emporte. Un **refus** annule toute transaction non
+n'est jamais réécrit à la décision de l'expert). Une certification qui suit
+l'objet (sur l'annonce, une commande ou un échange) publie aussi ses annonces
+en attente de certification avec la référence, puis **annule** ses autres
+demandes « seuil » d'annonce encore ouvertes, devenues sans objet (aucune
+seconde expertise facturée) ; une telle demande ne bloque jamais
+l'expédition. Deux décisions ex aequo (même horodatage) : le refus l'emporte. Un **refus** annule toute transaction non
 expédiée sur l'objet, le dépublie quel que soit le motif ou le contexte et
 reste mémorisé : toute republication passe par une nouvelle certification.
 L'expédition étant bloquée tant qu'une expertise est ouverte sur la

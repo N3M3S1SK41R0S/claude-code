@@ -629,6 +629,8 @@ grant execute on function public.item_is_engaged(uuid, uuid) to authenticated, s
 -- volontaire) — l'annonce de la commande ; pour un échange, l'annonce visée
 -- et les annonces de l'objet offert par l'auteur : l'expédition est bloquée.
 -- Un refus trouve ainsi la transaction non expédiée, que la cascade annule.
+-- Une demande « seuil » de l'annonce seule devenue sans objet (objet certifié
+-- depuis, _market_item_certification_ref) ne bloque rien.
 create or replace function public.has_open_certification(p_order uuid, p_exchange uuid)
 returns boolean
 language sql
@@ -648,7 +650,9 @@ as $$
       where p_order is not null
         and o.id = p_order
         and c.order_id is null and c.exchange_id is null
-        and c.status in ('awaiting_agreement', 'requested', 'in_review'))
+        and c.status in ('awaiting_agreement', 'requested', 'in_review')
+        and not (c.reason = 'threshold'
+                 and public._market_item_certification_ref(c.item_id, c.owner_id) is not null))
     or exists (
       select 1
       from public.exchange_proposals e
@@ -659,7 +663,9 @@ as $$
       where p_exchange is not null
         and e.id = p_exchange
         and c.order_id is null and c.exchange_id is null
-        and c.status in ('awaiting_agreement', 'requested', 'in_review'))
+        and c.status in ('awaiting_agreement', 'requested', 'in_review')
+        and not (c.reason = 'threshold'
+                 and public._market_item_certification_ref(c.item_id, c.owner_id) is not null))
 $$;
 revoke all on function public.has_open_certification(uuid, uuid) from public, anon;
 grant execute on function public.has_open_certification(uuid, uuid) to authenticated, service_role;
@@ -2298,6 +2304,7 @@ declare
     else new.requested_by
   end;
   v_order record;
+  v_ref text;
 begin
   if new.status is not distinct from old.status then
     return null;
@@ -2320,6 +2327,27 @@ begin
       -- Badge « authentifié VELUM » : l'annonce en attente est publiée.
       update public.listings set expert_appraisal_ref = new.report_ref
         where id = new.listing_id and status not in ('sold', 'exchanged', 'withdrawn');
+    end if;
+    -- La certification suit l'objet (_market_item_certification_ref) : ses
+    -- annonces en attente de certification, sans référence, la reprennent
+    -- (mise à jour de confiance ⇒ statut recalculé), PUIS les autres demandes
+    -- « seuil » de l'annonce seule encore ouvertes pour cet objet du
+    -- propriétaire, devenues sans objet, sont annulées (jamais une seconde
+    -- expertise facturée ; l'annonce, déjà référencée, reste publiée).
+    v_ref := public._market_item_certification_ref(new.item_id, new.owner_id);
+    if v_ref is not null then
+      update public.listings l set expert_appraisal_ref = v_ref
+        where l.item_id = new.item_id
+          and l.seller_id = new.owner_id
+          and l.status = 'pending_certification'
+          and l.expert_appraisal_ref is null;
+      update public.certification_requests c set status = 'cancelled'
+        where c.id <> new.id
+          and c.item_id = new.item_id
+          and c.owner_id = new.owner_id
+          and c.order_id is null and c.exchange_id is null
+          and c.reason = 'threshold'
+          and c.status in ('awaiting_agreement', 'requested', 'in_review');
     end if;
     if new.exchange_id is not null then
       perform public._exchange_resume_after_certification(new.exchange_id);
