@@ -4,20 +4,29 @@
 -- propres). Chaque bloc rejoue un contournement constaté et exige son refus :
 --   X1  paiement : l'annonce est revalidée à la capture (statut, prix, nature) ;
 --   X2  refus d'expert : annonce dépubliée, refus mémorisé sur l'objet ;
+--   X2b refus (même volontaire) : toute transaction non expédiée sur l'objet
+--       annulée, parties prévenues ; ni achat ni capture d'un objet refusé ;
+--   X2c republication après refus : certification recalculée, pas de badge ;
 --   X3  une seule annonce ouverte par objet ;
 --   X4  objet cédé (vente ou échange conclu) : plus de remise en vente ;
---   X5  certification liée au CONTENU certifié (titre, catégorie) ;
+--   X5  certification liée au CONTENU certifié (titre, catégorie),
+--       recalculée à la republication ;
 --   X6  suivi et transporteur : vendeur seul, à l'expédition, format contrôlé ;
 --       expédition SANS date de livraison (posée par l'acheteur / le transporteur) ;
 --   X7  litiges : écriture via la RPC uniquement ;
---   X8  devise : euro uniquement ;
---   X9  seuil : max des estimations VELUM récentes, dates futures ignorées ;
+--   X8  devise : euro uniquement ; prix plancher (catalogue, achat) ;
+--   X9  seuil : max des estimations VELUM récentes (à défaut, la dernière
+--       estimation passée), dates futures ignorées ;
 --   X10 prix plancher et paliers de commission (commandes libérées réelles) ;
 --   X11 date de publication posée par le serveur ;
 --   X12 annonce certifiée : suppression interdite (historique d'expertise) ;
 --   X13 fin d'abonnement Platine : annonces retirées, actions refusées ;
 --   X14 market_listing() : annonce par identifiant, anonymisée, hors catalogue ;
---   X16 expédition du vendeur avec date de livraison : P0001 ; sans date, elle passe.
+--       annonce réservée invisible d'un tiers ;
+--   X15 arrondi au centime sur les écritures réelles du registre (vecteurs
+--       partagés avec packages/config) ;
+--   X16 expédition du vendeur avec date de livraison : P0001 ; sans date, elle passe ;
+--   X17 listing_certified : annonce déjà certifiée, exposée aux parties.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 \set ON_ERROR_STOP on
@@ -241,6 +250,235 @@ begin
 end
 $$;
 
+-- ── X2b. Refus VOLONTAIRE pendant une transaction en cours ──────────────────
+-- La demande ne porte que sur l'annonce, mais le refus annule toute
+-- transaction NON EXPÉDIÉE sur l'objet : commande payée (acheteur prévenu),
+-- échange accepté (les deux parties prévenues) ; l'annonce repasse en
+-- brouillon. Défense en profondeur : ni achat ni capture d'un objet refusé.
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000018', '81000000-0000-4000-8000-000000000001', 'coin', 'Denier carolingien'),
+  ('91000000-0000-4000-8000-000000000019', '81000000-0000-4000-8000-000000000001', 'art', 'Statuette Chiparus'),
+  ('91000000-0000-4000-8000-000000000020', '81000000-0000-4000-8000-000000000001', 'art', 'Bronze animalier'),
+  ('93000000-0000-4000-8000-000000000003', '83000000-0000-4000-8000-000000000003', 'coin', 'Teston Henri II');
+
+do $$
+declare
+  v_order uuid;
+  v_cert uuid;
+  v_ex uuid;
+  v_state text;
+  v_status text;
+  v_count integer;
+begin
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price, kind) values
+    ('a2b00000-0000-4000-8000-000000000018', '91000000-0000-4000-8000-000000000018',
+     '81000000-0000-4000-8000-000000000001', 100, 'sale'),
+    ('a2b00000-0000-4000-8000-000000000019', '91000000-0000-4000-8000-000000000019',
+     '81000000-0000-4000-8000-000000000001', 200, 'sale_or_exchange');
+  select c.id into v_cert
+  from public.request_certification('voluntary', p_listing => 'a2b00000-0000-4000-8000-000000000018') c;
+
+  -- Commande payée pendant l'expertise volontaire, puis refus : annulée.
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select id into v_order from public.market_buy('a2b00000-0000-4000-8000-000000000018');
+  perform public.advance_market_order(v_order, 'funds_held');
+  reset role;
+  perform set_config('velum.uid', '', true);
+  perform public.decide_certification(v_cert, false, null, 'Refrappe moderne');
+  select escrow_state into v_state from public.orders where id = v_order;
+  select status into v_status from public.listings where id = 'a2b00000-0000-4000-8000-000000000018';
+  if v_state <> 'cancelled' or v_status <> 'draft' then
+    raise exception 'X2b : refus volontaire ⇒ commande payée annulée et annonce en brouillon attendues (% / %)',
+      v_state, v_status;
+  end if;
+  select count(*) into v_count from public.notifications
+  where owner_id = '82000000-0000-4000-8000-000000000002'
+    and title = 'Commande annulée' and body like '%Denier carolingien%';
+  if v_count <> 1 then
+    raise exception 'X2b : acheteur prévenu de l''annulation attendu (% notification(s))', v_count;
+  end if;
+  set local role authenticated;
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  select count(*) into v_count from public.market_catalogue()
+  where id = 'a2b00000-0000-4000-8000-000000000018';
+  if v_count <> 0 then raise exception 'X2b : objet refusé encore au catalogue'; end if;
+
+  -- Défense en profondeur : annonce republiée et commande remise en attente
+  -- de paiement sans effet de bord (triggers neutralisés) ⇒ ni achat ni capture.
+  reset role;
+  perform set_config('session_replication_role', 'replica', true);
+  update public.listings set status = 'active' where id = 'a2b00000-0000-4000-8000-000000000018';
+  update public.orders set escrow_state = 'pending_payment' where id = v_order;
+  perform set_config('session_replication_role', 'origin', true);
+  set local role authenticated;
+  perform public._mkh_expect_error(
+    $q$select * from public.market_buy('a2b00000-0000-4000-8000-000000000018')$q$, '%refusé par un expert%');
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  perform public._mkh_expect_error(
+    format('select * from public.advance_market_order(%L, ''funds_held'')', v_order), '%refusé par un expert%');
+  reset role;
+  perform set_config('session_replication_role', 'replica', true);
+  update public.listings set status = 'draft' where id = 'a2b00000-0000-4000-8000-000000000018';
+  update public.orders set escrow_state = 'cancelled' where id = v_order;
+  perform set_config('session_replication_role', 'origin', true);
+
+  -- Échange accepté (phase d'expédition, rien d'expédié), puis refus de
+  -- l'expertise volontaire de l'annonce visée : échange annulé.
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select c.id into v_cert
+  from public.request_certification('voluntary', p_listing => 'a2b00000-0000-4000-8000-000000000019') c;
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  select id into v_ex from public.propose_exchange(
+    'a2b00000-0000-4000-8000-000000000019', '93000000-0000-4000-8000-000000000003', 180);
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  perform public.respond_exchange(v_ex, true);
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select state into v_state from public.exchange_proposals where id = v_ex;
+  if v_state <> 'shipping' then
+    raise exception 'X2b : échange accepté en phase d''expédition attendu, vu %', v_state;
+  end if;
+  perform public.decide_certification(v_cert, false, null, 'Fonte posthume');
+  select state into v_state from public.exchange_proposals where id = v_ex;
+  select status into v_status from public.listings where id = 'a2b00000-0000-4000-8000-000000000019';
+  if v_state <> 'cancelled' or v_status <> 'draft' then
+    raise exception 'X2b : refus volontaire ⇒ échange non expédié annulé et annonce en brouillon attendus (% / %)',
+      v_state, v_status;
+  end if;
+  select count(*) into v_count from public.notifications
+  where owner_id in ('81000000-0000-4000-8000-000000000001', '83000000-0000-4000-8000-000000000003')
+    and title = 'Échange annulé' and body like '%Statuette Chiparus%';
+  if v_count <> 2 then
+    raise exception 'X2b : les deux parties prévenues de l''annulation attendues (% notification(s))', v_count;
+  end if;
+  raise notice 'OK X2b — refus volontaire : commande payée et échange non expédié annulés, parties prévenues, objet ni vendable ni payable';
+end
+$$;
+
+-- ── X2c. Republication après un refus : la certification est RECALCULÉE ────
+-- Trois transactions (horodatages de décision distincts). L1 est certifiée,
+-- puis retirée ; l'objet renommé est refusé sur L2 ; enfin l'objet reprend
+-- son titre certifié. La dernière décision est un refus : ni retirée →
+-- publiée, ni retirée → brouillon → publiée ne ressuscite le badge, même si
+-- une référence subsistait sur L1 (donnée antérieure au correctif).
+do $$
+declare
+  v_cert uuid;
+  v_status text;
+  v_ref text;
+begin
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a2c00000-0000-4000-8000-000000000001', '91000000-0000-4000-8000-000000000020',
+     '81000000-0000-4000-8000-000000000001', 800);
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select id into v_cert from public.certification_requests
+  where listing_id = 'a2c00000-0000-4000-8000-000000000001' and status = 'requested';
+  perform public.decide_certification(v_cert, true, 'expertises/alice/bronze-r1.pdf', 'Authentique');
+  select status, expert_appraisal_ref into v_status, v_ref
+  from public.listings where id = 'a2c00000-0000-4000-8000-000000000001';
+  if v_status <> 'active' or v_ref is null then
+    raise exception 'X2c : L1 certifiée et publiée attendue (% / %)', v_status, v_ref;
+  end if;
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  update public.listings set status = 'withdrawn' where id = 'a2c00000-0000-4000-8000-000000000001';
+end
+$$;
+
+do $$
+declare
+  v_cert uuid;
+  v_status text;
+  v_ref text;
+begin
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  update public.items set title = 'Bronze animalier de Barye'
+  where id = '91000000-0000-4000-8000-000000000020';
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a2c00000-0000-4000-8000-000000000002', '91000000-0000-4000-8000-000000000020',
+     '81000000-0000-4000-8000-000000000001', 800)
+  returning status into v_status;
+  if v_status <> 'pending_certification' then
+    raise exception 'X2c : objet renommé ⇒ L2 en attente de certification attendue, vu %', v_status;
+  end if;
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select id into v_cert from public.certification_requests
+  where listing_id = 'a2c00000-0000-4000-8000-000000000002' and status = 'requested';
+  perform public.decide_certification(v_cert, false, null, 'Surmoulage');
+  select status into v_status from public.listings where id = 'a2c00000-0000-4000-8000-000000000002';
+  select expert_appraisal_ref into v_ref from public.listings where id = 'a2c00000-0000-4000-8000-000000000001';
+  if v_status <> 'draft' or v_ref is not null then
+    raise exception 'X2c : refus ⇒ L2 en brouillon et référence effacée de L1 retirée attendus (% / %)',
+      v_status, v_ref;
+  end if;
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  update public.listings set status = 'withdrawn' where id = 'a2c00000-0000-4000-8000-000000000002';
+end
+$$;
+
+do $$
+declare
+  v_status text;
+  v_ref text;
+  v_count integer;
+begin
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  update public.items set title = 'Bronze animalier' where id = '91000000-0000-4000-8000-000000000020';
+  -- Référence résiduelle simulée sur L1 (triggers neutralisés).
+  reset role;
+  perform set_config('session_replication_role', 'replica', true);
+  update public.listings set expert_appraisal_ref = 'expertises/alice/bronze-r1.pdf'
+  where id = 'a2c00000-0000-4000-8000-000000000001';
+  perform set_config('session_replication_role', 'origin', true);
+
+  -- Retirée → publiée : référence recalculée (dernière décision = refus).
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  update public.listings set status = 'active' where id = 'a2c00000-0000-4000-8000-000000000001'
+  returning status, expert_appraisal_ref into v_status, v_ref;
+  if v_status <> 'pending_certification' or v_ref is not null then
+    raise exception 'X2c : retirée → publiée après refus ⇒ pending_certification sans badge attendu (% / %)',
+      v_status, v_ref;
+  end if;
+  update public.listings set status = 'withdrawn' where id = 'a2c00000-0000-4000-8000-000000000001';
+
+  -- Retirée → brouillon (référence résiduelle de nouveau), puis brouillon → publiée.
+  reset role;
+  perform set_config('session_replication_role', 'replica', true);
+  update public.listings set expert_appraisal_ref = 'expertises/alice/bronze-r1.pdf'
+  where id = 'a2c00000-0000-4000-8000-000000000001';
+  perform set_config('session_replication_role', 'origin', true);
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  update public.listings set status = 'draft' where id = 'a2c00000-0000-4000-8000-000000000001'
+  returning status, expert_appraisal_ref into v_status, v_ref;
+  if v_status <> 'draft' or v_ref is not null then
+    raise exception 'X2c : retirée → brouillon après refus ⇒ référence recalculée attendue (% / %)', v_status, v_ref;
+  end if;
+  update public.listings set status = 'active' where id = 'a2c00000-0000-4000-8000-000000000001'
+  returning status, expert_appraisal_ref into v_status, v_ref;
+  if v_status <> 'pending_certification' or v_ref is not null then
+    raise exception 'X2c : brouillon → publiée après refus ⇒ pending_certification sans badge attendu (% / %)',
+      v_status, v_ref;
+  end if;
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  select count(*) into v_count from public.market_catalogue(p_certified_only => true) c
+  where c.title like 'Bronze animalier%';
+  if v_count <> 0 then raise exception 'X2c : objet refusé présenté comme certifié'; end if;
+  raise notice 'OK X2c — republication après refus : référence recalculée, ni badge ni publication sans nouvelle certification';
+end
+$$;
+
 -- ── X3. Une seule annonce ouverte par objet ─────────────────────────────────
 do $$
 declare
@@ -370,6 +608,9 @@ end
 $$;
 
 -- ── X5. Certification liée au contenu certifié ──────────────────────────────
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000021', '81000000-0000-4000-8000-000000000001', 'art', 'Pendule Empire');
+
 do $$
 declare
   v_cert uuid;
@@ -416,7 +657,30 @@ begin
   select count(*) into v_count from public.market_catalogue(p_certified_only => true) c
   where c.title like 'Rolex%';
   if v_count <> 0 then raise exception 'X5 : objet renommé présenté comme certifié'; end if;
-  raise notice 'OK X5 — certification liée au contenu certifié (titre, catégorie)';
+
+  -- Annonce certifiée passée en brouillon, objet renommé : la republication
+  -- recalcule la référence (plus de badge hérité, seuil de nouveau exigé).
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a5000000-0000-4000-8000-000000000021', '91000000-0000-4000-8000-000000000021',
+     '81000000-0000-4000-8000-000000000001', 700);
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select id into v_cert from public.certification_requests
+  where listing_id = 'a5000000-0000-4000-8000-000000000021' and status = 'requested';
+  perform public.decide_certification(v_cert, true, 'expertises/alice/pendule.pdf', 'Authentique');
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  update public.listings set status = 'draft' where id = 'a5000000-0000-4000-8000-000000000021';
+  update public.items set title = 'Pendule Empire de Thomire'
+  where id = '91000000-0000-4000-8000-000000000021';
+  update public.listings set status = 'active' where id = 'a5000000-0000-4000-8000-000000000021'
+  returning status, expert_appraisal_ref into v_status, v_ref;
+  if v_status <> 'pending_certification' or v_ref is not null then
+    raise exception 'X5 : brouillon → publiée d''un objet renommé ⇒ pending_certification sans badge attendu (% / %)',
+      v_status, v_ref;
+  end if;
+  raise notice 'OK X5 — certification liée au contenu certifié (titre, catégorie), recalculée à la republication';
 end
 $$;
 
@@ -532,10 +796,44 @@ begin
   perform public._mkh_expect_error(
     $q$update public.listings set status = 'active' where id = 'a3000000-0000-4000-8000-000000000006'$q$,
     '%euro%');
+  -- Proposition d'échange : refus métier explicite (P0001), jamais la
+  -- violation brute de la contrainte CHECK (23514).
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  begin
+    perform public.propose_exchange(
+      'a3000000-0000-4000-8000-000000000007', '92000000-0000-4000-8000-000000000003', 200);
+    raise exception 'X8 : proposition d''échange sur une annonce en USD acceptée';
+  exception when others then
+    if sqlstate <> 'P0001' or sqlerrm not like '%euro%' then
+      raise exception 'X8 : refus explicite (P0001, euro) attendu, vu % — %', sqlstate, sqlerrm;
+    end if;
+  end;
+  -- Dans le catalogue ni par identifiant (tiers), une annonce hors euro n'apparaît pas.
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  select count(*) into v_count from public.market_catalogue()
+  where id = 'a3000000-0000-4000-8000-000000000007';
+  if v_count <> 0 then raise exception 'X8 : annonce hors euro au catalogue'; end if;
+  select count(*) into v_count from public.market_listing('a3000000-0000-4000-8000-000000000007');
+  if v_count <> 0 then raise exception 'X8 : annonce hors euro visible d''un tiers'; end if;
   reset role;
   perform set_config('session_replication_role', 'replica', true);
   update public.listings set currency = 'EUR'
   where id in ('a3000000-0000-4000-8000-000000000006', 'a3000000-0000-4000-8000-000000000007');
+  -- Annonce historique sous le prix plancher : ni proposée, ni achetable.
+  update public.listings set ask_price = 0.5 where id = 'a3000000-0000-4000-8000-000000000007';
+  perform set_config('session_replication_role', 'origin', true);
+  set local role authenticated;
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  select count(*) into v_count from public.market_catalogue()
+  where id = 'a3000000-0000-4000-8000-000000000007';
+  if v_count <> 0 then raise exception 'X8 : annonce sous le prix plancher au catalogue'; end if;
+  select count(*) into v_count from public.market_listing('a3000000-0000-4000-8000-000000000007');
+  if v_count <> 0 then raise exception 'X8 : annonce sous le prix plancher visible d''un tiers'; end if;
+  perform public._mkh_expect_error(
+    $q$select * from public.market_buy('a3000000-0000-4000-8000-000000000007')$q$, '%minimum%');
+  reset role;
+  perform set_config('session_replication_role', 'replica', true);
+  update public.listings set ask_price = 210 where id = 'a3000000-0000-4000-8000-000000000007';
   perform set_config('session_replication_role', 'origin', true);
 
   set local role authenticated;
@@ -552,18 +850,25 @@ begin
   perform public._mkh_expect_error(
     $q$update public.listings set currency = 'USD' where id = 'a3000000-0000-4000-8000-000000000007'$q$,
     '%euro%');
-  raise notice 'OK X8 — devise : euro uniquement (annonces, commandes, échanges)';
+  raise notice 'OK X8 — devise : euro uniquement, prix plancher (annonces, catalogue, commandes, échanges)';
 end
 $$;
 
 -- ── X9. Seuil : max des estimations VELUM récentes, dates futures ignorées ───
 -- Écritures « service » (valuate / price-cron) : une estimation basse
--- postérieure (candidat trompeur) ne masque pas l'estimation haute récente.
+-- postérieure (candidat trompeur) ne masque pas l'estimation haute récente ;
+-- sans estimation dans la fenêtre de 18 mois, la DERNIÈRE estimation passée
+-- compte (quel que soit son âge) ; une estimation récente dans la fenêtre
+-- l'emporte sur une ancienne.
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000017', '81000000-0000-4000-8000-000000000001', 'art', 'Plaque Lalique aux moineaux');
 insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, sources, valued_at) values
   ('91000000-0000-4000-8000-000000000011', 5000, 4500, 5500, 4000, 6000, 70, '[]', now() - interval '2 days'),
   ('91000000-0000-4000-8000-000000000011', 100, 90, 110, 80, 120, 40, '[]', now() - interval '1 hour'),
   ('91000000-0000-4000-8000-000000000012', 5000, 4500, 5500, 4000, 6000, 70, '[]', now() + interval '1 year'),
-  ('91000000-0000-4000-8000-000000000013', 5000, 4500, 5500, 4000, 6000, 70, '[]', now() - interval '2 years');
+  ('91000000-0000-4000-8000-000000000013', 5000, 4500, 5500, 4000, 6000, 70, '[]', now() - interval '2 years'),
+  ('91000000-0000-4000-8000-000000000017', 5000, 4500, 5500, 4000, 6000, 70, '[]', now() - interval '2 years'),
+  ('91000000-0000-4000-8000-000000000017', 100, 90, 110, 80, 120, 40, '[]', now() - interval '1 month');
 
 do $$
 declare
@@ -591,11 +896,21 @@ begin
   if v_status <> 'active' then
     raise exception 'X9 : estimation datée dans le futur ignorée attendue, vu %', v_status;
   end if;
+  -- Seule estimation : 5 000 € il y a 2 ans (hors fenêtre) ⇒ elle compte
+  -- (price-cron n'écrit rien sans observation : pas de sous-déclaration).
   insert into public.listings (item_id, seller_id, ask_price)
   values ('91000000-0000-4000-8000-000000000013', '81000000-0000-4000-8000-000000000001', 400)
   returning status into v_status;
+  if v_status <> 'pending_certification' then
+    raise exception 'X9 : seule estimation (2 ans, 5 000 €) ⇒ pending_certification attendu, vu %', v_status;
+  end if;
+  -- Ancienne estimation haute, puis récente basse DANS la fenêtre ⇒ la
+  -- récente seule compte : l'objet a perdu de sa valeur.
+  insert into public.listings (item_id, seller_id, ask_price)
+  values ('91000000-0000-4000-8000-000000000017', '81000000-0000-4000-8000-000000000001', 400)
+  returning status into v_status;
   if v_status <> 'active' then
-    raise exception 'X9 : estimation périmée (2 ans) ignorée attendue, vu %', v_status;
+    raise exception 'X9 : estimation récente basse dans la fenêtre ⇒ active attendu, vu %', v_status;
   end if;
   -- Supprimer un objet efface toujours ses estimations (cascade référentielle).
   delete from public.items where id = '91000000-0000-4000-8000-000000000013';
@@ -603,7 +918,7 @@ begin
   if exists (select 1 from public.valuations where item_id = '91000000-0000-4000-8000-000000000013') then
     raise exception 'X9 : estimations d''un objet supprimé conservées';
   end if;
-  raise notice 'OK X9 — seuil : max des estimations VELUM récentes, écrites par le serveur seul';
+  raise notice 'OK X9 — seuil : max des estimations VELUM récentes (à défaut, la dernière), écrites par le serveur seul';
 end
 $$;
 
@@ -778,11 +1093,15 @@ end
 $$;
 
 -- ── X14. market_listing() : annonce par identifiant, hors catalogue ─────────
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000022', '81000000-0000-4000-8000-000000000001', 'coin', 'Écu de six livres 1726');
+
 do $$
 declare
   v_row record;
   v_result text;
   v_count integer;
+  v_order uuid;
 begin
   v_result := pg_get_function_result('public.market_listing(uuid)'::regprocedure);
   if v_result like '%seller_id%' or v_result like '%item_id%' or v_result like '%buyer_id%' then
@@ -822,6 +1141,26 @@ begin
   -- Identifiant inconnu : aucune ligne (jamais d'erreur trompeuse).
   select count(*) into v_count from public.market_listing(gen_random_uuid());
   if v_count <> 0 then raise exception 'X14 : identifiant inconnu ⇒ aucune ligne attendue'; end if;
+  -- Annonce RÉSERVÉE (paiement capturé par Bruno) : invisible d'un tiers,
+  -- comme dans le catalogue ; visible de l'acheteur et du vendeur.
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a1400000-0000-4000-8000-000000000022', '91000000-0000-4000-8000-000000000022',
+     '81000000-0000-4000-8000-000000000001', 150);
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select id into v_order from public.market_buy('a1400000-0000-4000-8000-000000000022');
+  perform public.advance_market_order(v_order, 'funds_held');
+  select count(*) into v_count from public.market_listing('a1400000-0000-4000-8000-000000000022');
+  if v_count <> 1 then raise exception 'X14 : annonce réservée invisible de son acheteur'; end if;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select count(*) into v_count from public.market_listing('a1400000-0000-4000-8000-000000000022');
+  if v_count <> 1 then raise exception 'X14 : annonce réservée invisible de son vendeur'; end if;
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  select count(*) into v_count from public.market_catalogue()
+  where id = 'a1400000-0000-4000-8000-000000000022';
+  if v_count <> 0 then raise exception 'X14 : annonce réservée au catalogue'; end if;
+  select count(*) into v_count from public.market_listing('a1400000-0000-4000-8000-000000000022');
+  if v_count <> 0 then raise exception 'X14 : annonce réservée visible d''un tiers'; end if;
   -- Hors Platine : une annonce publiée exige l'offre ; sans session : refus.
   perform set_config('velum.uid', '84000000-0000-4000-8000-000000000004', true);
   perform public._mkh_expect_error(
@@ -829,17 +1168,85 @@ begin
   perform set_config('velum.uid', '', true);
   perform public._mkh_expect_error(
     $q$select * from public.market_listing('a3000000-0000-4000-8000-000000000007')$q$, 'VL401');
-  raise notice 'OK X14 — market_listing : annonce par identifiant, anonymisée, visible des seules parties hors catalogue';
+  raise notice 'OK X14 — market_listing : annonce par identifiant, anonymisée ; réservée ou hors catalogue, visible des seules parties';
 end
 $$;
 
--- Arrondi monétaire : vecteurs partagés avec packages/config (roundCents).
+-- ── X15. Arrondi au centime : écritures RÉELLES du registre ─────────────────
+-- Vecteurs PARTAGÉS avec packages/config : marketplace.test.ts relit les deux
+-- tableaux v_sale et v_fee ci-dessous et les passe à saleBreakdown et
+-- splitCertificationFee. Une vente libérée et une expertise à frais partagés
+-- doivent produire au registre, au centime près, les montants affichés par
+-- l'application (demi-centime arrondi au supérieur des deux côtés).
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('87000000-0000-4000-8000-000000000001', 'gaelle@harden.test', '{"display_name":"Gaëlle"}');
+update public.profiles set plan = 'platine' where id = '87000000-0000-4000-8000-000000000001';
+insert into public.items (id, owner_id, domain, title) values
+  ('97000000-0000-4000-8000-000000000001', '87000000-0000-4000-8000-000000000001', 'coin', 'Obole de Melle'),
+  ('97000000-0000-4000-8000-000000000002', '87000000-0000-4000-8000-000000000001', 'coin', 'Denier tournois');
+
 do $$
+declare
+  -- Vente : prix, taux (vendeuse sans vente conclue), commission, versement net.
+  v_sale constant numeric[] := array[20.70, 0.05, 1.04, 19.66];
+  -- Expertise à frais partagés : frais, part du propriétaire, part de l'autre partie.
+  v_fee constant numeric[] := array[2.01, 1.01, 1.00];
+  v_order uuid;
+  v_cert uuid;
+  v_rate numeric;
+  v_amount numeric;
 begin
-  if round(20.70 * 0.0500, 2) <> 1.04 or round(2.01 / 2, 2) <> 1.01 or round(2.01 - round(2.01 / 2, 2), 2) <> 1.00 then
-    raise exception 'arrondi : demi-centime arrondi au supérieur attendu';
+  set local role authenticated;
+  perform set_config('velum.uid', '87000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a1500000-0000-4000-8000-000000000001', '97000000-0000-4000-8000-000000000001',
+     '87000000-0000-4000-8000-000000000001', v_sale[1]),
+    ('a1500000-0000-4000-8000-000000000002', '97000000-0000-4000-8000-000000000002',
+     '87000000-0000-4000-8000-000000000001', 50);
+  select commission_rate into v_rate from public.listings where id = 'a1500000-0000-4000-8000-000000000001';
+  if v_rate <> v_sale[2] then
+    raise exception 'X15 : taux figé % attendu, vu %', v_sale[2], v_rate;
   end if;
-  raise notice 'OK X15 — arrondi au centime (demi supérieur), vecteurs partagés avec roundCents';
+
+  -- Vente libérée : commission et versement net au registre.
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select id into v_order from public.market_buy('a1500000-0000-4000-8000-000000000001');
+  perform public.advance_market_order(v_order, 'funds_held');
+  perform set_config('velum.uid', '87000000-0000-4000-8000-000000000001', true);
+  perform public.advance_market_order(v_order, 'shipped', 'La Poste', '1A00000000015');
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  perform public.advance_market_order(v_order, 'released');
+  reset role;
+  select amount into v_amount from public.platform_ledger where order_id = v_order and kind = 'commission';
+  if v_amount is distinct from v_sale[3] then
+    raise exception 'X15 : commission % attendue au registre, vu %', v_sale[3], v_amount;
+  end if;
+  select amount into v_amount from public.platform_ledger where order_id = v_order and kind = 'payout';
+  if v_amount is distinct from v_sale[4] then
+    raise exception 'X15 : versement net % attendu au registre, vu %', v_sale[4], v_amount;
+  end if;
+
+  -- Expertise demandée par l'acheteur, frais partagés (défaut), décidée à 2,01 €.
+  set local role authenticated;
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select id into v_order from public.market_buy('a1500000-0000-4000-8000-000000000002');
+  select c.id into v_cert from public.request_certification('mutual_agreement', p_order => v_order) c;
+  perform set_config('velum.uid', '87000000-0000-4000-8000-000000000001', true);
+  perform public.respond_certification(v_cert, true);
+  reset role;
+  perform set_config('velum.uid', '', true);
+  perform public.decide_certification(v_cert, true, 'expertises/gaelle/denier.pdf', null, v_fee[1]);
+  select amount into v_amount from public.platform_ledger
+  where certification_id = v_cert and member_id = '87000000-0000-4000-8000-000000000001';
+  if v_amount is distinct from v_fee[2] then
+    raise exception 'X15 : part du propriétaire % attendue au registre, vu %', v_fee[2], v_amount;
+  end if;
+  select amount into v_amount from public.platform_ledger
+  where certification_id = v_cert and member_id = '82000000-0000-4000-8000-000000000002';
+  if v_amount is distinct from v_fee[3] then
+    raise exception 'X15 : part de l''autre partie % attendue au registre, vu %', v_fee[3], v_amount;
+  end if;
+  raise notice 'OK X15 — arrondi au centime (demi supérieur) sur les écritures réelles du registre, vecteurs partagés';
 end
 $$;
 
@@ -891,6 +1298,74 @@ begin
     raise exception 'X16 : aucune date de livraison ne doit être enregistrée (%)', v_delivered;
   end if;
   raise notice 'OK X16 — vendeur : date de livraison à l''expédition ⇒ P0001 ; sans date, l''expédition passe';
+end
+$$;
+
+-- ── X17. listing_certified : l'annonce porte déjà une certification ─────────
+-- Exposé par my_market_orders et my_exchanges (aux deux parties), distinct
+-- de certification_required (demande portée par la transaction elle-même) :
+-- l'interface ne propose plus une expertise que le serveur refuse.
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000023', '81000000-0000-4000-8000-000000000001', 'coin', 'Médaille de Roty'),
+  ('91000000-0000-4000-8000-000000000024', '81000000-0000-4000-8000-000000000001', 'coin', 'Jeton de Louis XIII'),
+  ('92000000-0000-4000-8000-000000000004', '82000000-0000-4000-8000-000000000002', 'coin', 'Liard de Bouillon');
+
+do $$
+declare
+  v_cert uuid;
+  v_order uuid;
+  v_ex uuid;
+  v_row record;
+begin
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price, kind) values
+    ('a1700000-0000-4000-8000-000000000023', '91000000-0000-4000-8000-000000000023',
+     '81000000-0000-4000-8000-000000000001', 600, 'sale_or_exchange'),
+    ('a1700000-0000-4000-8000-000000000024', '91000000-0000-4000-8000-000000000024',
+     '81000000-0000-4000-8000-000000000001', 40, 'sale');
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select id into v_cert from public.certification_requests
+  where listing_id = 'a1700000-0000-4000-8000-000000000023' and status = 'requested';
+  perform public.decide_certification(v_cert, true, 'expertises/alice/roty.pdf', 'Authentique');
+
+  -- Commande sur l'annonce certifiée : listing_certified vrai, aucune demande.
+  set local role authenticated;
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select * into v_row from public.market_buy('a1700000-0000-4000-8000-000000000023');
+  v_order := v_row.id;
+  if v_row.listing_certified is distinct from true or v_row.certification_required then
+    raise exception 'X17 : commande sur annonce certifiée ⇒ listing_certified vrai attendu (%)', row_to_json(v_row);
+  end if;
+  perform public._mkh_expect_error(
+    format('select * from public.request_certification(''mutual_agreement'', p_order => %L)', v_order),
+    '%déjà authentifié%');
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select * into v_row from public.my_market_orders(v_order);
+  if v_row.listing_certified is distinct from true then
+    raise exception 'X17 : vendeur ⇒ listing_certified vrai attendu (%)', row_to_json(v_row);
+  end if;
+  -- Annonce non certifiée : listing_certified faux.
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select * into v_row from public.market_buy('a1700000-0000-4000-8000-000000000024');
+  if v_row.listing_certified is distinct from false then
+    raise exception 'X17 : annonce non certifiée ⇒ listing_certified faux attendu (%)', row_to_json(v_row);
+  end if;
+
+  -- Proposition d'échange sur l'annonce certifiée : vrai pour les deux parties.
+  select * into v_row from public.propose_exchange(
+    'a1700000-0000-4000-8000-000000000023', '92000000-0000-4000-8000-000000000004', 450);
+  v_ex := v_row.id;
+  if v_row.listing_certified is distinct from true then
+    raise exception 'X17 : auteur ⇒ listing_certified vrai attendu (%)', row_to_json(v_row);
+  end if;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select * into v_row from public.my_exchanges(v_ex);
+  if v_row.listing_certified is distinct from true then
+    raise exception 'X17 : destinataire ⇒ listing_certified vrai attendu (%)', row_to_json(v_row);
+  end if;
+  raise notice 'OK X17 — listing_certified exposé aux parties d''une commande et d''un échange';
 end
 $$;
 

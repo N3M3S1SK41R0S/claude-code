@@ -37,17 +37,51 @@ describe('saleBreakdown', () => {
   });
 
   it('arrondit le demi-centime au supérieur, comme round(numeric, 2) en SQL', () => {
-    // Vecteurs partagés avec marketplace_hardening_checks.sql (bloc X15) :
-    // 20,70 × 5 % = 1,035 (1,03499… en flottant) → 1,04 au registre.
-    expect(saleBreakdown(20.7, 0)).toMatchObject({ commission: 1.04, sellerNet: 19.66 });
+    // 20,70 × 5 % = 1,035 (1,03499… en flottant) → 1,04 (vecteurs du registre
+    // relus plus bas dans le bloc X15 du test SQL).
     expect(exchangeCommission(20.7, 0).commission).toBe(1.04);
-    expect(splitCertificationFee(2.01, 'split')).toEqual({ seller: 1.01, buyer: 1 });
     expect(roundCents(1.005)).toBe(1.01);
     expect(roundCents(-1.005)).toBe(-1.01);
     expect(roundCents(2.675)).toBe(2.68);
     expect(roundCents(1.004999)).toBe(1);
     expect(roundCents(0)).toBe(0);
     expect(roundCents(999_999_999_999.99)).toBe(999_999_999_999.99);
+  });
+});
+
+/**
+ * Vecteurs PARTAGÉS avec le registre SQL : lus dans le bloc X15 de
+ * supabase/tests/features/marketplace_hardening_checks.sql, que run-local.sh
+ * rejoue sur les VRAIES écritures de platform_ledger (vente libérée,
+ * expertise à frais partagés). Même entrée ⇒ mêmes montants au centime près.
+ */
+function readLedgerVectors(): { sale: number[]; fee: number[] } {
+  const path = fileURLToPath(
+    new URL('../../../supabase/tests/features/marketplace_hardening_checks.sql', import.meta.url),
+  );
+  const sql = readFileSync(path, 'utf8');
+  const block = sql.slice(sql.indexOf('-- ── X15.'), sql.indexOf('-- ── X16.'));
+  const vector = (name: string): number[] => {
+    const literal = new RegExp(`${name} constant numeric\\[\\] := array\\[([^\\]]*)\\]`).exec(block)?.[1];
+    if (literal === undefined) throw new Error(`bloc X15 : vecteur ${name} introuvable`);
+    return literal.split(',').map((value) => Number(value.trim()));
+  };
+  return { sale: vector('v_sale'), fee: vector('v_fee') };
+}
+
+describe('registre : mêmes montants que les écritures SQL (bloc X15)', () => {
+  const { sale, fee } = readLedgerVectors();
+
+  it('vente libérée : taux, commission et versement net', () => {
+    expect(sale).toHaveLength(4);
+    const [price = Number.NaN, rate, commission, net] = sale;
+    expect(saleBreakdown(price, 0)).toMatchObject({ commissionRate: rate, commission, sellerNet: net });
+  });
+
+  it('expertise à frais partagés : part du propriétaire, part de l’autre partie', () => {
+    expect(fee).toHaveLength(3);
+    const [amount = Number.NaN, ownerShare, otherShare] = fee;
+    expect(splitCertificationFee(amount, 'split')).toEqual({ seller: ownerShare, buyer: otherShare });
   });
 });
 
