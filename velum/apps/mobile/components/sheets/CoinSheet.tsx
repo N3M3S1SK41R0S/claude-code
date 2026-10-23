@@ -20,15 +20,15 @@ export function CoinSheet({ payload }: { payload: Partial<CoinAnalysisPayload> |
   return (
     <>
       {identification ? (
-        <SheetSection title={t('item.sections.identification')}>
+        <SheetSection title={t('item.sections.expertIdentification')}>
           {identification.type ? <KV label={t('candidates.fields.coinType')} value={identification.type} /> : null}
           {identification.country ? <KV label={t('candidates.fields.coinCountry')} value={identification.country} /> : null}
           {identification.year !== undefined ? <KV label={t('candidates.fields.coinYear')} value={String(identification.year)} /> : null}
-          {identification.mintMark ? <KV label="Atelier" value={identification.mintMark} /> : null}
-          {identification.metal ? <KV label="Métal" value={identification.metal} /> : null}
-          {identification.weightGrams !== undefined ? <KV label="Poids" value={`${identification.weightGrams} g`} /> : null}
-          {identification.diameterMm !== undefined ? <KV label="Diamètre" value={`${identification.diameterMm} mm`} /> : null}
-          {identification.mintage !== undefined ? <KV label="Tirage" value={String(identification.mintage)} /> : null}
+          {identification.mintMark ? <KV label={t('item.labels.mintMark')} value={identification.mintMark} /> : null}
+          {identification.metal ? <KV label={t('item.labels.metal')} value={identification.metal} /> : null}
+          {identification.weightGrams !== undefined ? <KV label={t('item.labels.weight')} value={`${identification.weightGrams} g`} /> : null}
+          {identification.diameterMm !== undefined ? <KV label={t('item.labels.diameter')} value={`${identification.diameterMm} mm`} /> : null}
+          {identification.mintage !== undefined ? <KV label={t('item.labels.mintage')} value={String(identification.mintage)} /> : null}
         </SheetSection>
       ) : null}
 
@@ -68,7 +68,7 @@ export function CoinSheet({ payload }: { payload: Partial<CoinAnalysisPayload> |
       ) : null}
 
       {uncertainties && uncertainties.length > 0 ? (
-        <SheetSection title={t('item.sections.uncertainties')}>
+        <SheetSection title={t('item.sections.uncertainties')} defaultOpen>
           <Bullets items={uncertainties} />
         </SheetSection>
       ) : null}

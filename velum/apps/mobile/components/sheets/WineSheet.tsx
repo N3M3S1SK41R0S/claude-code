@@ -46,13 +46,13 @@ export function WineSheet({ payload }: { payload: Partial<WineAnalysisPayload> |
   return (
     <>
       {identification ? (
-        <SheetSection title={t('item.sections.identification')}>
+        <SheetSection title={t('item.sections.expertIdentification')}>
           {identification.producer ? <KV label={t('candidates.fields.wineProducer')} value={identification.producer} /> : null}
           {identification.winemaker ? <KV label={t('item.wine.winemaker')} value={identification.winemaker} /> : null}
           {identification.winemakerRenown ? <KV label={t('item.wine.winemakerRenown')} value={identification.winemakerRenown} /> : null}
           {identification.appellation ? <KV label={t('candidates.fields.wineAppellation')} value={identification.appellation} /> : null}
           {identification.vintage !== undefined ? <KV label={t('candidates.fields.wineVintage')} value={String(identification.vintage)} /> : null}
-          {identification.region ? <KV label={t('candidates.fields.stampCountry')} value={[identification.region, identification.country].filter(Boolean).join(', ')} /> : null}
+          {identification.region ? <KV label={t('candidates.fields.wineRegion')} value={[identification.region, identification.country].filter(Boolean).join(', ')} /> : null}
           {identification.color ? <VText variant="body">{identification.color}</VText> : null}
           {identification.grapes && identification.grapes.length > 0 ? (
             <KV label={t('item.wine.grapes')} value={formatGrapes(identification.grapes)} />
@@ -81,7 +81,7 @@ export function WineSheet({ payload }: { payload: Partial<WineAnalysisPayload> |
 
       {tasting ? (
         <SheetSection title={t('item.sections.tasting')}>
-          <KV label="Robe" value={tasting.robe} />
+          <KV label={t('item.labels.robe')} value={tasting.robe} />
           {tasting.nose.length > 0 ? <Bullets items={tasting.nose} /> : null}
           {tasting.noseFirst && tasting.noseFirst.length > 0 ? (
             <KV label={t('item.wine.noseFirst')} value={tasting.noseFirst.join(', ')} />
@@ -89,7 +89,7 @@ export function WineSheet({ payload }: { payload: Partial<WineAnalysisPayload> |
           {tasting.noseSecond && tasting.noseSecond.length > 0 ? (
             <KV label={t('item.wine.noseSecond')} value={tasting.noseSecond.join(', ')} />
           ) : null}
-          <KV label="Bouche" value={[tasting.palate.structure, tasting.palate.tannins, tasting.palate.acidity].filter(Boolean).join(' · ')} />
+          <KV label={t('item.labels.palate')} value={[tasting.palate.structure, tasting.palate.tannins, tasting.palate.acidity].filter(Boolean).join(' · ')} />
           {tasting.palateAttack ? (
             <KV label={t('item.wine.palateAttack')} value={tasting.palateAttack} />
           ) : null}
@@ -151,7 +151,7 @@ export function WineSheet({ payload }: { payload: Partial<WineAnalysisPayload> |
             <KV label={t('item.wine.priceRestaurant')} value={formatEURRange(market.priceByChannel.restaurantEUR)} />
           ) : null}
           <KV label={t('item.sections.market')} value={market.assetClass} />
-          {market.marketTension ? <KV label="Tension" value={market.marketTension} /> : null}
+          {market.marketTension ? <KV label={t('item.labels.marketTension')} value={market.marketTension} /> : null}
         </SheetSection>
       ) : null}
 
@@ -173,7 +173,7 @@ export function WineSheet({ payload }: { payload: Partial<WineAnalysisPayload> |
       ) : null}
 
       {uncertainties && uncertainties.length > 0 ? (
-        <SheetSection title={t('item.sections.uncertainties')}>
+        <SheetSection title={t('item.sections.uncertainties')} defaultOpen>
           <Bullets items={uncertainties} />
         </SheetSection>
       ) : null}

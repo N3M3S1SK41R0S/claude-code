@@ -26,7 +26,7 @@ export function WatchSheet({ payload }: { payload: Partial<WatchAnalysisPayload>
   return (
     <>
       {identification ? (
-        <SheetSection title={t('item.sections.identification')}>
+        <SheetSection title={t('item.sections.expertIdentification')}>
           {identification.brand ? <KV label={t('candidates.fields.watchBrand')} value={identification.brand} /> : null}
           {identification.model ? <KV label={t('candidates.fields.watchModel')} value={identification.model} /> : null}
           {identification.reference ? <KV label={t('candidates.fields.watchReference')} value={identification.reference} /> : null}
@@ -134,7 +134,7 @@ export function WatchSheet({ payload }: { payload: Partial<WatchAnalysisPayload>
       ) : null}
 
       {uncertaintyList.length > 0 ? (
-        <SheetSection title={t('item.sections.uncertainties')}>
+        <SheetSection title={t('item.sections.uncertainties')} defaultOpen>
           <Bullets items={uncertaintyList} />
         </SheetSection>
       ) : null}

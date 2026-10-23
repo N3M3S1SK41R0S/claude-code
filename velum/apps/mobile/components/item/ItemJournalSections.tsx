@@ -3,13 +3,23 @@
  *  - TastingNotesSection : notes de dégustation personnelles (historique) +
  *    marquage « bouteille bue » (attributes.consumedAt, vins) ;
  *  - ProvenanceSection : chaîne de possession (propriétaire, source, date).
- * Chaque section gère sa propre requête/mutation et l'invalidation du cache.
+ * Chaque section gère sa propre requête/mutation et l'invalidation du cache ;
+ * repliées par défaut (le nombre d'entrées reste visible dans l'en-tête).
  */
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { MIN_TOUCH_TARGET, VBadge, VButton, VText, VTextInput, velumSpacing } from '@velum/ui';
+import {
+  VBadge,
+  VButton,
+  VSpinner,
+  VText,
+  VTextInput,
+  touchTargetSize,
+  useSeniorMode,
+  velumSpacing,
+} from '@velum/ui';
 import type { VelumItem } from '@velum/core';
 import { sealFromEntries, verifyPassport } from '@velum/carnet';
 
@@ -19,20 +29,34 @@ import { errorMessage } from '../../lib/errors';
 import { formatDate } from '../../lib/i18n';
 import { showToast } from '../../stores/toastStore';
 
-/** Bouton « Supprimer » discret (cible ≥ 44 pt) pour une entrée de journal. */
+/** Bouton « Supprimer » discret (cible ≥ 44 pt, 56 en mode senior) pour une entrée de journal. */
 function DeleteButton({ label, onPress }: { label: string; onPress: () => void }) {
+  const { senior } = useSeniorMode();
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
       hitSlop={velumSpacing.xs}
-      style={({ pressed }) => [styles.delete, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.delete, { minHeight: touchTargetSize(senior) }, pressed && styles.pressed]}
     >
       <VText variant="caption" tone="danger">
         {label}
       </VText>
     </Pressable>
+  );
+}
+
+/** Panne de chargement : jamais présentée comme une liste vide. */
+function LoadError({ message, onRetry }: { message: string; onRetry: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.loadError}>
+      <VText variant="body" tone="danger">
+        {message}
+      </VText>
+      <VButton label={t('common.retry')} variant="ghost" onPress={onRetry} />
+    </View>
   );
 }
 
@@ -89,7 +113,7 @@ export function TastingNotesSection({ item }: { item: VelumItem }) {
       }),
     onSuccess: () => {
       showToast(t('journal.consumedDone'), 'success');
-      void queryClient.invalidateQueries({ queryKey: ['item', item.id] });
+      // ['items'] couvre aussi la fiche (['items', id]).
       void queryClient.invalidateQueries({ queryKey: ['items'] });
     },
     onError: (error) => showToast(errorMessage(error, t), 'danger'),
@@ -98,7 +122,12 @@ export function TastingNotesSection({ item }: { item: VelumItem }) {
   const notes = notesQuery.data ?? [];
 
   return (
-    <SheetSection title={t('journal.tastingTitle')}>
+    <SheetSection
+      title={t('journal.tastingTitle')}
+      collapsible
+      defaultOpen={false}
+      headerRight={notes.length > 0 ? <VBadge label={String(notes.length)} tone="neutral" /> : null}
+    >
       {item.domain === 'wine' ? (
         consumedAt ? (
           <VBadge tone="neutral" label={t('journal.consumedOn', { date: formatDate(consumedAt) })} />
@@ -112,7 +141,11 @@ export function TastingNotesSection({ item }: { item: VelumItem }) {
         )
       ) : null}
 
-      {notes.length === 0 ? (
+      {notesQuery.isLoading ? (
+        <VSpinner />
+      ) : notesQuery.isError ? (
+        <LoadError message={t('journal.tastingLoadError')} onRetry={() => void notesQuery.refetch()} />
+      ) : notes.length === 0 ? (
         <VText variant="body" tone="dim">
           {t('journal.tastingEmpty')}
         </VText>
@@ -215,8 +248,17 @@ export function ProvenanceSection({ itemId }: { itemId: string }) {
   const sealVerified = seal ? verifyPassport(seal).valid : false;
 
   return (
-    <SheetSection title={t('journal.provenanceTitle')}>
-      {entries.length === 0 ? (
+    <SheetSection
+      title={t('journal.provenanceTitle')}
+      collapsible
+      defaultOpen={false}
+      headerRight={entries.length > 0 ? <VBadge label={String(entries.length)} tone="neutral" /> : null}
+    >
+      {query.isLoading ? (
+        <VSpinner />
+      ) : query.isError ? (
+        <LoadError message={t('journal.provenanceLoadError')} onRetry={() => void query.refetch()} />
+      ) : entries.length === 0 ? (
         <VText variant="body" tone="dim">
           {t('journal.provenanceEmpty')}
         </VText>
@@ -271,9 +313,9 @@ const styles = StyleSheet.create({
     gap: velumSpacing.sm,
   },
   delete: {
-    minHeight: MIN_TOUCH_TARGET,
     justifyContent: 'center',
     paddingHorizontal: velumSpacing.xs,
   },
   pressed: { opacity: 0.6 },
+  loadError: { gap: velumSpacing.xs },
 });

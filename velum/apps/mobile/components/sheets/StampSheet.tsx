@@ -21,23 +21,23 @@ export function StampSheet({ payload }: { payload: Partial<StampAnalysisPayload>
   return (
     <>
       {identification ? (
-        <SheetSection title={t('item.sections.identification')}>
+        <SheetSection title={t('item.sections.expertIdentification')}>
           {identification.catalogNumber ? <KV label={t('item.sections.catalog')} value={identification.catalogNumber} /> : null}
           {identification.country ? <KV label={t('candidates.fields.stampCountry')} value={identification.country} /> : null}
           {identification.title ? <KV label={t('candidates.fields.label')} value={identification.title} /> : null}
           {identification.year !== undefined ? <KV label={t('candidates.fields.stampYear')} value={String(identification.year)} /> : null}
-          {identification.faceValue ? <KV label="Valeur faciale" value={identification.faceValue} /> : null}
-          {identification.perforation ? <KV label="Dentelure" value={identification.perforation} /> : null}
-          {identification.watermark ? <KV label="Filigrane" value={identification.watermark} /> : null}
-          {identification.printingMethod ? <KV label="Impression" value={identification.printingMethod} /> : null}
+          {identification.faceValue ? <KV label={t('item.labels.faceValue')} value={identification.faceValue} /> : null}
+          {identification.perforation ? <KV label={t('item.labels.perforation')} value={identification.perforation} /> : null}
+          {identification.watermark ? <KV label={t('item.labels.watermark')} value={identification.watermark} /> : null}
+          {identification.printingMethod ? <KV label={t('item.labels.printing')} value={identification.printingMethod} /> : null}
         </SheetSection>
       ) : null}
 
       {condition ? (
         <SheetSection title={t('item.sections.condition')}>
           <VText variant="heading">{t(`item.stamp.status.${condition.status}`)}</VText>
-          {condition.gum ? <KV label="Gomme" value={condition.gum} /> : null}
-          {condition.centering ? <KV label="Centrage" value={condition.centering} /> : null}
+          {condition.gum ? <KV label={t('item.labels.gum')} value={condition.gum} /> : null}
+          {condition.centering ? <KV label={t('item.labels.centering')} value={condition.centering} /> : null}
           {condition.faults.length > 0 ? <Bullets items={condition.faults} /> : null}
           {grade ? (
             <KV label={t('item.stamp.valueCoefficient')} value={`×${grade.valueMultiplier}`} tabular />
@@ -78,7 +78,7 @@ export function StampSheet({ payload }: { payload: Partial<StampAnalysisPayload>
       ) : null}
 
       {uncertainties && uncertainties.length > 0 ? (
-        <SheetSection title={t('item.sections.uncertainties')}>
+        <SheetSection title={t('item.sections.uncertainties')} defaultOpen>
           <Bullets items={uncertainties} />
         </SheetSection>
       ) : null}
