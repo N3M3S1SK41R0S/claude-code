@@ -1107,6 +1107,167 @@
     "denied": "Refusé",
     "notAsked": "Non demandé"
   },
+  "wishlist": {
+    "title": "Mes envies",
+    "intro": "Ce que vous aimeriez acquérir plus tard, et vos idées à creuser — par catégorie.",
+    "add": "Ajouter une envie",
+    "addHint": "Ouvre le formulaire d’ajout dans la catégorie affichée",
+    "segments": {
+      "label": "Afficher",
+      "wish": "Envies",
+      "idea": "Idées",
+      "acquired": "Obtenues",
+      "withCount": "{{label}} ({{count}})"
+    },
+    "sort": {
+      "label": "Trier par",
+      "priority": "Priorité",
+      "recent": "Récentes",
+      "targetPrice": "Prix cible"
+    },
+    "kind": {
+      "label": "Type",
+      "wish": "Envie",
+      "idea": "Idée",
+      "wishHint": "Un objet que je veux acquérir",
+      "ideaHint": "Une piste à creuser, une inspiration"
+    },
+    "priority": {
+      "label": "Priorité",
+      "low": "Basse",
+      "medium": "Moyenne",
+      "high": "Haute",
+      "badgeLow": "Priorité basse",
+      "badgeMedium": "Priorité moyenne",
+      "badgeHigh": "Priorité haute"
+    },
+    "source": {
+      "manual": "Saisie manuelle",
+      "item": "Depuis ma collection",
+      "scan": "Depuis un scan",
+      "tasting": "Depuis une dégustation",
+      "market": "Depuis la communauté",
+      "label": "Origine : {{source}}"
+    },
+    "stats": {
+      "summary": "{{wishes}} envie(s) · {{ideas}} idée(s) · {{acquired}} obtenue(s)",
+      "budget": "Budget cible des envies : {{amount}}"
+    },
+    "search": {
+      "label": "Rechercher dans mes envies",
+      "placeholder": "Titre, producteur, note…",
+      "otherSegment": "{{count}} dans « {{segment}} »",
+      "everywhere": "Chercher dans toutes les catégories ({{count}})"
+    },
+    "row": {
+      "targetPrice": "Prix cible : {{price}}",
+      "acquiredOn": "Obtenue le {{date}}",
+      "openHint": "Ouvre l’envie : obtenue, communauté, modification"
+    },
+    "empty": {
+      "title": "Votre liste d’envies est vide",
+      "message": "Notez ce que vous aimeriez acquérir plus tard ou vos idées à creuser. Exemple : un vin goûté chez des amis — « Domaine Tempier, Bandol 2019 », prix cible 60 €.",
+      "cta": "Ajouter ma première envie",
+      "segment": "Rien dans « {{segment}} » pour l’instant."
+    },
+    "loadError": "Impossible de charger vos envies.",
+    "staleWarning": "La liste n’a pas pu être actualisée : elle est peut-être incomplète.",
+    "form": {
+      "createTitle": "Nouvelle envie",
+      "editTitle": "Modifier l’envie",
+      "category": "Catégorie",
+      "title": "Titre (obligatoire)",
+      "titlePlaceholder": "Ex. ce que vous recherchez",
+      "titlePlaceholderWine": "Ex. Domaine Tempier, Bandol 2019",
+      "identityShow": "Préciser l’identification (facultatif)",
+      "identityHide": "Masquer l’identification",
+      "identityHint": "Si le titre est vide, il est composé à partir de ces champs.",
+      "notes": "Notes — pourquoi je l’ai aimé",
+      "notesPlaceholder": "Ex. goûté chez des amis, superbe sur un gigot",
+      "targetPrice": "Prix cible en € (facultatif)",
+      "targetPricePlaceholder": "Ex. 60 ou 59,90",
+      "create": "Ajouter à mes envies",
+      "save": "Enregistrer",
+      "cancel": "Annuler la modification",
+      "invalid": "Vérifiez les champs signalés."
+    },
+    "errors": {
+      "titleRequired": "Indiquez un titre (ou au moins un champ d’identification).",
+      "titleTooLong": "Titre trop long (200 caractères maximum).",
+      "notesTooLong": "Notes trop longues (2000 caractères maximum).",
+      "priceInvalid": "Prix invalide — saisissez un montant positif, ex. 60 ou 59,90."
+    },
+    "duplicate": {
+      "title": "Déjà dans vos envies",
+      "message": "« {{title}} » figure déjà dans vos envies en cours de cette catégorie.",
+      "view": "Voir l’envie existante"
+    },
+    "toast": {
+      "added": "Ajouté à vos envies.",
+      "updated": "Envie mise à jour.",
+      "deleted": "Envie supprimée.",
+      "acquired": "Bravo ! Envie marquée comme obtenue.",
+      "reopened": "Remise dans vos envies.",
+      "addedToCollection": "Ajouté à votre collection — la fiche complète se chargera à la demande.",
+      "duplicate": "Déjà dans vos envies."
+    },
+    "detail": {
+      "notFoundTitle": "Envie introuvable",
+      "notFoundMessage": "Elle a peut-être été supprimée.",
+      "backToList": "Voir mes envies",
+      "identity": "Identification",
+      "notes": "Notes",
+      "targetPrice": "Prix cible",
+      "noTargetPrice": "Aucun prix cible",
+      "createdAt": "Ajoutée le {{date}}",
+      "field": "{{label}} : {{value}}",
+      "acquiredTitle": "Envie comblée !",
+      "acquiredMessage": "Obtenue le {{date}}. Ajoutez-la à votre collection pour la suivre et la valoriser."
+    },
+    "actions": {
+      "markAcquired": "Je l’ai obtenue",
+      "markAcquiredHint": "Marque l’envie comme obtenue et propose de l’ajouter à votre collection",
+      "reopen": "Remettre dans mes envies",
+      "addToCollection": "Ajouter à ma collection",
+      "addToCollectionHint": "Crée l’objet dans votre collection ; la fiche complète se chargera à la demande",
+      "searchCommunity": "Chercher dans la communauté",
+      "searchCommunityHint": "Ouvre les échanges et ventes de cette catégorie, recherche pré-remplie",
+      "checkCommunity": "Disponible dans la communauté ?",
+      "checkCommunityHint": "Cherche jusqu’à 3 annonces correspondantes",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "viewSourceItem": "Voir l’objet d’origine",
+      "viewInCollection": "Voir dans ma collection"
+    },
+    "deleteConfirm": {
+      "title": "Supprimer cette envie ?",
+      "message": "« {{title}} » sera définitivement retirée de votre liste.",
+      "confirm": "Supprimer définitivement",
+      "cancel": "Conserver"
+    },
+    "community": {
+      "checking": "Recherche d’annonces…",
+      "found": "{{count}} annonce(s) correspondante(s)",
+      "none": "Aucune annonce correspondante pour l’instant.",
+      "listing": "{{price}} · {{alias}}",
+      "certified": "Authentifié VELUM",
+      "openListingHint": "Ouvre l’annonce dans la communauté",
+      "seeAll": "Voir toutes les annonces",
+      "plan": "Les échanges et ventes entre collectionneurs sont réservés à l’offre Platine.",
+      "seePlans": "Voir les offres",
+      "notYet": "La recherche dans la communauté n’est pas encore disponible. Réessayez bientôt.",
+      "unavailable": "Communauté momentanément indisponible.",
+      "generic": "La vérification a échoué."
+    },
+    "button": {
+      "add": "Ajouter à mes envies",
+      "addHint": "Garde cet objet dans votre liste d’envies « {{domain}} »",
+      "already": "Dans vos envies — voir",
+      "added": "Ajouté — voir mes envies",
+      "openHint": "Ouvre votre liste d’envies de cette catégorie",
+      "titleMissing": "Impossible d’ajouter : titre manquant."
+    }
+  },
   "calibration": {
     "inProgress": "Calibration en cours",
     "inProgressHint": "{{count}} prédiction(s) confrontée(s) au prix réel — la preuve s’affiche dès 30.",
