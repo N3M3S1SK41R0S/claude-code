@@ -473,6 +473,14 @@ grant execute on function public.exchange_acceptance_check(uuid) to authenticate
 drop trigger listings_expert_appraisal on public.listings;
 drop function public.enforce_expert_appraisal();
 
+-- Historique préservé : supprimer un objet DÉTACHE ses annonces (item_id
+-- null, annonce retirée si elle était encore ouverte) au lieu d'effacer en
+-- cascade les commandes, échanges et certifications de l'autre partie.
+alter table public.listings alter column item_id drop not null;
+alter table public.listings drop constraint listings_item_id_fkey;
+alter table public.listings add constraint listings_item_id_fkey
+  foreign key (item_id) references public.items (id) on delete set null;
+
 create or replace function public.enforce_listing_rules()
 returns trigger
 language plpgsql
@@ -515,6 +523,12 @@ begin
           using errcode = 'P0001';
       end if;
     end if;
+  end if;
+
+  -- Objet supprimé (action référentielle) : une annonce encore ouverte est retirée.
+  if tg_op = 'UPDATE' and new.item_id is null and old.item_id is not null
+     and new.status in ('draft', 'active', 'pending_certification') then
+    new.status := 'withdrawn';
   end if;
 
   if new.kind in ('exchange', 'sale_or_exchange') and coalesce(new.ask_price, 0) <= 0 then
@@ -962,12 +976,15 @@ declare
   v_check record;
 begin
   if not v_sys then
-    -- Termes contractuels figés dès la proposition.
-    if (new.listing_id, new.proposer_id, new.recipient_id, new.offered_item_id,
+    -- Termes contractuels figés dès la proposition. Seule exception : le
+    -- détachement (→ null) par une action référentielle ON DELETE SET NULL
+    -- (objet ou membre supprimé) — aucun client n'écrit la table en direct.
+    if (new.listing_id, new.proposer_id, new.recipient_id,
         new.offered_value, new.listing_value, new.cash_adjustment, new.currency, new.message)
        is distinct from
-       (old.listing_id, old.proposer_id, old.recipient_id, old.offered_item_id,
-        old.offered_value, old.listing_value, old.cash_adjustment, old.currency, old.message) then
+       (old.listing_id, old.proposer_id, old.recipient_id,
+        old.offered_value, old.listing_value, old.cash_adjustment, old.currency, old.message)
+       or (new.offered_item_id is distinct from old.offered_item_id and new.offered_item_id is not null) then
       raise exception 'Les termes d''une proposition d''échange sont figés' using errcode = 'P0001';
     end if;
     -- Colonnes calculées par le serveur : toute valeur client est ignorée.
@@ -985,7 +1002,7 @@ begin
     new.recipient_shipped_at := old.recipient_shipped_at;
     new.proposer_delivered_at := old.proposer_delivered_at;
     new.recipient_delivered_at := old.recipient_delivered_at;
-    new.disputed_by := old.disputed_by;
+    new.disputed_by := case when new.disputed_by is null then null else old.disputed_by end;
     new.disputed_at := old.disputed_at;
     new.resolution_note := old.resolution_note;
     new.expires_at := old.expires_at;
@@ -1349,11 +1366,14 @@ declare
   v_ok boolean := false;
 begin
   if not v_sys then
-    if (new.listing_id, new.order_id, new.exchange_id, new.item_id, new.owner_id,
+    -- Termes figés ; seul le détachement de l'objet supprimé (item_id → null,
+    -- action référentielle) est admis.
+    if (new.listing_id, new.order_id, new.exchange_id, new.owner_id,
         new.requested_by, new.counterparty_id, new.reason, new.fee_payer)
        is distinct from
-       (old.listing_id, old.order_id, old.exchange_id, old.item_id, old.owner_id,
-        old.requested_by, old.counterparty_id, old.reason, old.fee_payer) then
+       (old.listing_id, old.order_id, old.exchange_id, old.owner_id,
+        old.requested_by, old.counterparty_id, old.reason, old.fee_payer)
+       or (new.item_id is distinct from old.item_id and new.item_id is not null) then
       raise exception 'Les termes d''une demande de certification sont figés' using errcode = 'P0001';
     end if;
     -- Décision, frais et rapport : réservés à l'expert (fonctions système).
@@ -1520,8 +1540,10 @@ create trigger certification_requests_after_insert
   for each row execute function public.certification_after_insert();
 
 -- ── 9. Objets : suppression bloquée pendant une transaction en cours ─────────
--- (une cascade effacerait les annonces, commandes et certifications de
--- l'autre partie). Les cascades RGPD (suppression de compte) restent permises.
+-- (le détachement retirerait une annonce réservée et laisserait l'autre
+-- partie sans objet). Hors transaction, supprimer un objet détache ses
+-- annonces et propositions (historique conservé). Les cascades RGPD
+-- (suppression de compte) restent permises.
 create or replace function public.guard_item_market_delete()
 returns trigger
 language plpgsql

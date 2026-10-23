@@ -312,6 +312,8 @@ describe('mappers marketplace (vues anonymisées)', () => {
       certified: true,
       kind: 'sale',
     });
+    // Objet supprimé depuis : annonce détachée, historique conservé.
+    expect(rowToListing({ ...row, item_id: null, status: 'sold' })).toMatchObject({ itemId: '', status: 'sold' });
   });
 
   it('catalogue : ligne anonymisée et projection dépréciée', () => {

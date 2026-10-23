@@ -79,6 +79,10 @@ draft ⇄ active ⇄ pending_certification          (serveur : seuil de certific
   accepté en cours), ni supprimer une annonce ayant un historique de transactions.
 - Une **nouvelle estimation** au-delà du seuil fait repasser une annonce publiée
   non certifiée en `pending_certification` (le vendeur est notifié).
+- Un objet engagé dans une transaction en cours ne peut pas être supprimé ;
+  hors transaction, sa suppression **détache** ses annonces (retirées si
+  ouvertes), propositions et certifications : l'historique de l'autre partie
+  (commande, registre) est conservé. La suppression de compte (RGPD) purge tout.
 
 ## 3. Machines à états
 

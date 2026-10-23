@@ -1084,6 +1084,85 @@ begin
 end
 $$;
 
+-- ── 12. Suppressions : historique conservé, purge RGPD complète ──────────────
+do $$
+declare
+  v_item uuid;
+  v_status text;
+  v_count integer;
+begin
+  set local role authenticated;
+  -- Sophie supprime l'écu VENDU : l'annonce est détachée, la commande de
+  -- l'acheteur et le registre restent intacts.
+  perform set_config('velum.uid', '51000000-0000-4000-8000-000000000001', true);
+  delete from public.items where id = '61000000-0000-4000-8000-000000000004';
+  -- Objet d'une annonce ouverte (bloc certifié) : annonce retirée, certification détachée.
+  delete from public.items where id = '61000000-0000-4000-8000-000000000002';
+  -- Tiers supprime un objet déjà offert dans une proposition déclinée.
+  perform set_config('velum.uid', '53000000-0000-4000-8000-000000000003', true);
+  delete from public.items where id = '63000000-0000-4000-8000-000000000001';
+  reset role;
+  perform set_config('velum.uid', '', true);
+
+  select item_id, status into v_item, v_status
+  from public.listings where id = '71000000-0000-4000-8000-000000000004';
+  if v_item is not null or v_status <> 'sold' then
+    raise exception 'suppression : annonce vendue détachée attendue (% / %)', v_item, v_status;
+  end if;
+  select count(*) into v_count from public.orders where listing_id = '71000000-0000-4000-8000-000000000004';
+  if v_count <> 1 then raise exception 'suppression : commande de l''acheteur perdue (%)', v_count; end if;
+
+  select item_id, status into v_item, v_status
+  from public.listings where id = '71000000-0000-4000-8000-000000000002';
+  if v_item is not null or v_status <> 'withdrawn' then
+    raise exception 'suppression : annonce ouverte retirée attendue (% / %)', v_item, v_status;
+  end if;
+  select count(*) into v_count from public.certification_requests
+  where listing_id = '71000000-0000-4000-8000-000000000002' and status = 'certified' and item_id is null;
+  if v_count <> 1 then raise exception 'suppression : certification détachée attendue, vu %', v_count; end if;
+
+  select count(*) into v_count from public.exchange_proposals
+  where offered_title = 'Louis d''or 1786' and offered_item_id is null and state = 'declined';
+  if v_count <> 1 then raise exception 'suppression : proposition détachée attendue, vu %', v_count; end if;
+  raise notice 'OK M14 — supprimer un objet détache ses annonces et propositions (historique conservé)';
+end
+$$;
+
+-- Purge RGPD d'un membre très actif (commandes, échanges, certifications,
+-- messages, registre) : tout disparaît, sans blocage par les garde-fous.
+delete from auth.users where id = '52000000-0000-4000-8000-000000000002';
+
+do $$
+declare
+  v_count integer;
+begin
+  select
+    (select count(*) from public.exchange_proposals
+      where '52000000-0000-4000-8000-000000000002' in (proposer_id, recipient_id))
+    + (select count(*) from public.orders
+      where '52000000-0000-4000-8000-000000000002' in (buyer_id, seller_id))
+    + (select count(*) from public.certification_requests
+      where '52000000-0000-4000-8000-000000000002' in (owner_id, requested_by, counterparty_id))
+    + (select count(*) from public.market_messages
+      where author_id = '52000000-0000-4000-8000-000000000002')
+    + (select count(*) from public.platform_ledger
+      where member_id = '52000000-0000-4000-8000-000000000002')
+    + (select count(*) from public.market_aliases
+      where member_id = '52000000-0000-4000-8000-000000000002')
+    + (select count(*) from public.listings
+      where seller_id = '52000000-0000-4000-8000-000000000002')
+  into v_count;
+  if v_count <> 0 then
+    raise exception 'purge RGPD : % ligne(s) du membre subsistent', v_count;
+  end if;
+  -- Les écritures de l'autre partie (Sophie) restent, détachées de l'échange purgé.
+  select count(*) into v_count from public.platform_ledger
+  where member_id = '51000000-0000-4000-8000-000000000001' and kind = 'payout' and note like 'Soulte%';
+  if v_count <> 1 then raise exception 'purge RGPD : registre de la vendeuse altéré (%)', v_count; end if;
+  raise notice 'OK M15 — purge RGPD : cascades complètes malgré les garde-fous';
+end
+$$;
+
 drop function public._mkt_expect_error(text, text);
 
 select 'MARKETPLACE CHECKS PASSED' as result;

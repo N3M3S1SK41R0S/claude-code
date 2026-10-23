@@ -348,7 +348,8 @@ export function newProvenanceToRow(input: NewProvenanceEntry): Record<string, un
 
 export interface ListingRow {
   id: string;
-  item_id: string;
+  /** null si l'objet a été supprimé depuis (annonce détachée, historique conservé). */
+  item_id: string | null;
   seller_id: string;
   ask_price: number | string;
   currency: string;
@@ -376,10 +377,11 @@ export interface NewListing {
   exchangeWishes?: string;
 }
 
+/** `itemId` vaut '' pour une annonce détachée de son objet (objet supprimé). */
 export function rowToListing(row: ListingRow): ListingRecord {
   return {
     id: row.id,
-    itemId: row.item_id,
+    itemId: row.item_id ?? '',
     sellerId: row.seller_id,
     askPrice: toNumber(row.ask_price),
     currency: row.currency,

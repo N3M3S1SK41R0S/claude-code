@@ -94,7 +94,7 @@ Annonce d'un objet, par catégorie.
 
 | Colonne | Type | Notes |
 |---|---|---|
-| `id` PK · `item_id` FK → `items` · `seller_id` FK → `profiles` | | cascades ; jamais exposés aux autres membres |
+| `id` PK · `item_id` FK → `items` · `seller_id` FK → `profiles` | | jamais exposés aux autres membres ; `seller_id` en cascade ; `item_id` **null** si l'objet est supprimé (annonce détachée et retirée, historique des transactions conservé) |
 | `ask_price` / `currency` | `numeric` / `text` | prix (vente) ou valeur déclarée (échange, > 0) |
 | `kind` | `text` CHECK | `sale`, `exchange`, `sale_or_exchange` (défaut `sale`) |
 | `status` | `text` CHECK, défaut `active` | `draft`, `pending_certification`, `active`, `sold`, `exchanged`, `withdrawn` — décidé par le serveur |
