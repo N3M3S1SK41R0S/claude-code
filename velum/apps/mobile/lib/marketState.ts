@@ -688,18 +688,34 @@ export function myListingEngaged(
 
 /** Nombre d'éléments qui attendent une action de MA part (badge « Mon activité »). */
 export function pendingActionCount(input: {
-  orders?: readonly (Pick<MarketOrder, 'role' | 'escrowState'> & { id?: string })[];
-  exchanges?: readonly (ExchangeView & { id?: string })[];
+  orders?: readonly (Pick<MarketOrder, 'role' | 'escrowState'> & { id?: string; listingId?: string })[];
+  exchanges?: readonly (ExchangeView & Partial<Pick<ExchangeProposal, 'id' | 'listingId' | 'offeredItemId'>>)[];
   certifications?: readonly CertificationContext[];
+  /** Mes annonces (annonces de mon objet offert, R7) ; absentes : seule l'annonce visée compte. */
+  listings?: readonly Pick<ListingRecord, 'id' | 'itemId'>[];
   now?: string;
 }): number {
   const certs = input.certifications ?? [];
   const orders = (input.orders ?? []).filter((o) =>
-    orderNeedsMe(o, { hasOpenCertification: o.id !== undefined && hasOpenCertificationOn(certs, { orderId: o.id }) }),
+    orderNeedsMe(o, {
+      hasOpenCertification:
+        o.id !== undefined &&
+        hasOpenCertificationOn(certs, {
+          orderId: o.id,
+          ...(o.listingId !== undefined ? { listingIds: shipmentListingIds({ listingId: o.listingId }) } : {}),
+        }),
+    }),
   ).length;
   const exchanges = (input.exchanges ?? []).filter((e) =>
     exchangeNeedsMe(e, {
-      hasOpenCertification: e.id !== undefined && hasOpenCertificationOn(certs, { exchangeId: e.id }),
+      hasOpenCertification:
+        e.id !== undefined &&
+        hasOpenCertificationOn(certs, {
+          exchangeId: e.id,
+          ...(e.listingId !== undefined
+            ? { listingIds: shipmentListingIds({ ...e, listingId: e.listingId }, input.listings) }
+            : {}),
+        }),
       ...(input.now !== undefined ? { now: input.now } : {}),
     }),
   ).length;
@@ -707,23 +723,47 @@ export function pendingActionCount(input: {
   return orders + exchanges + certifications;
 }
 
-/** Certification vue avec son contexte (commande / échange), quand il est connu. */
+/** Certification vue avec son contexte (annonce / commande / échange), quand il est connu. */
 type CertificationContext = Pick<CertificationRequest, 'status' | 'requestedByMe'> &
-  Partial<Pick<CertificationRequest, 'orderId' | 'exchangeId'>>;
+  Partial<Pick<CertificationRequest, 'listingId' | 'orderId' | 'exchangeId'>>;
+
+/**
+ * Annonces dont une expertise ouverte bloque l'expédition d'une transaction
+ * (R7, has_open_certification) : celle de la commande ; pour un échange,
+ * l'annonce visée et, pour l'AUTEUR, ses annonces de l'objet offert (lues
+ * dans MES annonces grâce à `offeredItemId`). Les annonces de l'objet offert
+ * par l'autre partie ne sont pas visibles ici : le serveur reste l'arbitre.
+ */
+export function shipmentListingIds(
+  tx: { listingId: string } & Partial<Pick<ExchangeProposal, 'role' | 'offeredItemId'>>,
+  myListings: readonly Pick<ListingRecord, 'id' | 'itemId'>[] = [],
+): string[] {
+  const offered = tx.role === 'proposer' && typeof tx.offeredItemId === 'string' ? tx.offeredItemId : null;
+  const ofOffered = offered === null ? [] : myListings.filter((l) => l.itemId !== '' && l.itemId === offered);
+  return [tx.listingId, ...ofOffered.map((l) => l.id).filter((id) => id !== tx.listingId)];
+}
 
 /**
  * Miroir de has_open_certification : une expertise ouverte (accord attendu,
- * demandée, en cours) sur la commande ou l'échange bloque l'expédition.
+ * demandée, en cours) sur la commande ou l'échange bloque l'expédition — de
+ * même qu'une expertise de l'ANNONCE elle-même (ni commande ni échange :
+ * démarche volontaire, seuil) sur l'une de `listingIds` (shipmentListingIds) :
+ * un refus de l'expert trouve ainsi toujours la transaction non expédiée.
  */
 export function hasOpenCertificationOn(
   certifications: readonly CertificationContext[],
-  target: { orderId?: string; exchangeId?: string },
+  target: { orderId?: string; exchangeId?: string; listingIds?: readonly string[] },
 ): boolean {
+  const listingIds = target.listingIds ?? [];
   return certifications.some(
     (c) =>
       OPEN_CERTIFICATION.has(c.status) &&
       ((target.orderId !== undefined && c.orderId === target.orderId) ||
-        (target.exchangeId !== undefined && c.exchangeId === target.exchangeId)),
+        (target.exchangeId !== undefined && c.exchangeId === target.exchangeId) ||
+        (c.orderId === null &&
+          c.exchangeId === null &&
+          typeof c.listingId === 'string' &&
+          listingIds.includes(c.listingId))),
   );
 }
 

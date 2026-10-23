@@ -50,6 +50,7 @@ import {
   orderNeedsMe,
   partitionActivity,
   pendingActionCount,
+  shipmentListingIds,
   theirTracking,
 } from './marketState';
 
@@ -380,6 +381,39 @@ describe('certifications et annonces', () => {
         orders: [{ id: 'o-1', role: 'seller', escrowState: 'funds_held' }],
         exchanges: [exchange({ state: 'shipping' })],
         certifications,
+      }),
+    ).toBe(0);
+  });
+
+  it('expertise de l’ANNONCE elle-même (sans commande ni échange) : l’expédition attend aussi (R7)', () => {
+    // Démarche volontaire sur mon annonce l-1, ouverte avant la vente ou l'acceptation.
+    const open = { status: 'in_review' as const, requestedByMe: true, listingId: 'l-1', orderId: null, exchangeId: null };
+    const voluntary = [open];
+    expect(hasOpenCertificationOn(voluntary, { orderId: 'o-1', listingIds: ['l-1'] })).toBe(true);
+    expect(hasOpenCertificationOn(voluntary, { exchangeId: 'ex-1', listingIds: ['l-1'] })).toBe(true);
+    expect(hasOpenCertificationOn(voluntary, { orderId: 'o-1', listingIds: ['l-2'] })).toBe(false);
+    // Tranchée ou annulée : plus de blocage ; une demande de commande ne compte que pour sa commande.
+    expect(hasOpenCertificationOn([{ ...open, status: 'rejected' as const }], { listingIds: ['l-1'] })).toBe(false);
+    const onOrder = [{ status: 'requested' as const, requestedByMe: true, listingId: 'l-1', orderId: 'o-9', exchangeId: null }];
+    expect(hasOpenCertificationOn(onOrder, { orderId: 'o-1', listingIds: ['l-1'] })).toBe(false);
+    // Annonces concernées : celle de la commande ; pour un échange, l'annonce visée et, pour
+    // l'auteur, ses annonces de l'objet offert.
+    expect(shipmentListingIds({ listingId: 'l-1' })).toEqual(['l-1']);
+    const myListings = [
+      { id: 'l-7', itemId: 'it-7' },
+      { id: 'l-8', itemId: 'it-8' },
+    ];
+    expect(shipmentListingIds({ listingId: 'l-1', role: 'proposer', offeredItemId: 'it-7' }, myListings)).toEqual([
+      'l-1',
+      'l-7',
+    ]);
+    expect(shipmentListingIds({ listingId: 'l-1', role: 'recipient', offeredItemId: null }, myListings)).toEqual(['l-1']);
+    // Rien à traiter : l'expédition de la commande payée et de l'échange attend l'expert.
+    expect(
+      pendingActionCount({
+        orders: [{ id: 'o-1', listingId: 'l-1', role: 'seller', escrowState: 'funds_held' }],
+        exchanges: [exchange({ id: 'ex-2', listingId: 'l-1', state: 'shipping' })],
+        certifications: voluntary,
       }),
     ).toBe(0);
   });
