@@ -2,13 +2,15 @@
  * « Mes envies » — liste d'envies et d'idées PAR CATÉGORIE.
  *
  * En haut : « Ajouter une envie », puis catégorie (une liste par catégorie +
- * Toutes, paramètre de route `domain`), statistiques, recherche, segments
- * Envies / Idées / Obtenues et tri. Chargement, hors-ligne sans cache, panne
+ * Toutes, paramètre de route `domain`), statistiques, recherche (pré-remplie
+ * par le paramètre `q` : « Ouvrir mes envies » de la recherche globale, sur le
+ * premier segment qui contient un résultat), segments Envies / Idées /
+ * Obtenues et tri. Chargement, hors-ligne sans cache, panne
  * (Réessayer) et liste vide sont des états distincts : ni une panne ni une
  * requête en pause hors-ligne ne sont présentées comme une liste vide.
  * Toute la logique (filtres, tri, recherche, stats) est dans lib/wishlist.ts.
  */
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
@@ -22,6 +24,7 @@ import { SearchField } from '../../components/search/SearchField';
 import { ChoiceChips } from '../../components/wishlist/ChoiceChips';
 import { WishlistRow } from '../../components/wishlist/WishlistRow';
 import { getVelumClient } from '../../lib/client';
+import { parseTextParam } from '../../lib/collectionView';
 import { errorMessage } from '../../lib/errors';
 import { getActiveDomains } from '../../lib/features';
 import { queryScreenState } from '../../lib/itemSheetFlows';
@@ -35,6 +38,7 @@ import {
   parseDomainParam,
   searchHints,
   segmentCounts,
+  segmentForQuery,
   wishlistRoutes,
   wishlistStats,
   type WishlistSegment,
@@ -45,12 +49,13 @@ export default function WishlistScreen() {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const client = getVelumClient();
-  const params = useLocalSearchParams<{ domain?: string }>();
+  const params = useLocalSearchParams<{ domain?: string; q?: string }>();
   const domains = useMemo(() => getActiveDomains(), []);
+  const paramQuery = parseTextParam(params.q).trim();
 
   const [domain, setDomain] = useState<VelumDomain | null>(() => parseDomainParam(params.domain, domains));
   const [segment, setSegment] = useState<WishlistSegment>('wish');
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(paramQuery);
   const [sort, setSort] = useState<WishlistSort>('priority');
 
   // Lien profond / navigation vers une autre catégorie alors que l'écran est monté.
@@ -63,6 +68,18 @@ export default function WishlistScreen() {
     queryFn: () => client.wishlist.list(),
   });
   const all = useMemo(() => listQuery.data ?? [], [listQuery.data]);
+
+  // Recherche reçue en lien (recherche globale), y compris sur un écran déjà
+  // monté : appliquée une fois par valeur, dès que la liste est là, sur le
+  // premier segment qui contient un résultat. Les saisies suivantes restent libres.
+  const appliedParamQuery = useRef<string | null>(null);
+  useEffect(() => {
+    if (paramQuery.length === 0 || listQuery.data === undefined) return;
+    if (appliedParamQuery.current === paramQuery) return;
+    appliedParamQuery.current = paramQuery;
+    setQuery(paramQuery);
+    setSegment(segmentForQuery(listQuery.data, parseDomainParam(params.domain, domains), paramQuery));
+  }, [paramQuery, listQuery.data, params.domain, domains]);
 
   const filter = { domain, segment, query, sort };
   const visible = useMemo(

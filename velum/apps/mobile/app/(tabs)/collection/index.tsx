@@ -55,6 +55,7 @@ import { displayWineLabel, positionLabel } from '../../../lib/cellarPeak';
 import { drinkNowBannerEntries } from '../../../lib/drinkNow';
 import { errorMessage } from '../../../lib/errors';
 import { getActiveDomains, marketplaceEnabled } from '../../../lib/features';
+import { rejectedMutationsNotice } from '../../../lib/itemSheetFlows';
 import { globalSearchHref } from '../../../lib/globalSearch';
 import { formatEUR } from '../../../lib/i18n';
 import { routes } from '../../../lib/routes';
@@ -101,6 +102,16 @@ export default function Collection() {
       try {
         if ((await client.queue.size()) > 0) {
           const report = await client.queue.replay();
+          // Refusées par le serveur et retirées de la file : jamais en silence.
+          const rejected = rejectedMutationsNotice(report);
+          if (rejected !== null) {
+            showToast(
+              rejected.reason === null
+                ? t('collection.rejectedNotice', { count: rejected.count })
+                : t('collection.rejectedNoticeReason', { count: rejected.count, reason: rejected.reason }),
+              'danger',
+            );
+          }
           if (report.failed > 0) {
             showToast(t('collection.offlineNotice', { count: report.failed }), 'info');
           }

@@ -46,7 +46,7 @@ export const WISHLIST_QUERY_KEY = ['wishlist'] as const;
 // ── Routes propres au chantier ───────────────────────────────────────────────
 
 /**
- * Sous-routes de /wishlist (la racine est `routes.wishlist(domain)` dans
+ * Sous-routes de /wishlist (la racine est `routes.wishlist(domain, q)` dans
  * lib/routes.ts). « new » n'entre jamais en collision avec un identifiant
  * (uuid côté serveur, `demo-…`/`wish-…` en démo).
  */
@@ -174,6 +174,28 @@ export function searchHints(entries: readonly WishlistEntry[], filter: WishlistF
   return { otherSegments, everywhere: matching.length };
 }
 
+/**
+ * Segment à ouvrir pour une recherche reçue en lien (« Ouvrir mes envies » de
+ * la recherche globale, qui compte tous les segments) : le premier segment
+ * — Envies, Idées, puis Obtenues — qui contient une correspondance dans la
+ * catégorie, pour que les résultats annoncés soient visibles d'emblée.
+ * `fallback` si la recherche est vide ou ne trouve rien.
+ */
+export function segmentForQuery(
+  entries: readonly WishlistEntry[],
+  domain: VelumDomain | null,
+  query: string,
+  fallback: WishlistSegment = 'wish',
+): WishlistSegment {
+  if (normalizeText(query).length === 0) return fallback;
+  const matching = searchEntries(
+    entries.filter((entry) => inDomain(entry, domain)),
+    query,
+    wishlistSearchDocument,
+  );
+  return WISHLIST_SEGMENTS.find((segment) => matching.some((e) => segmentOf(e) === segment)) ?? fallback;
+}
+
 /** Nombre d'entrées par segment (pour les libellés « Envies (3) »). */
 export function segmentCounts(
   entries: readonly WishlistEntry[],
@@ -278,6 +300,38 @@ export function findDuplicate(
         wishlistTitleKey(entry.title) === key,
     ) ?? null
   );
+}
+
+/** Issue d'un ajout aux envies : l'envie créée, ou l'envie en cours déjà présente. */
+export interface WishlistAddOutcome {
+  entry: WishlistEntry;
+  /** true : doublon (même catégorie, même titre normalisé) — rien n'a été créé. */
+  duplicate: boolean;
+}
+
+/**
+ * Ajoute une envie SAUF doublon — règle commune au bouton « Ajouter à mes
+ * envies », à l'écran Candidats et au sommelier de cave (hook
+ * `useAddToWishlist`). La liste est relue fraîche juste avant (une envie
+ * identique a pu être ajoutée ailleurs) ; si cette lecture échoue, l'ajout
+ * est tenté quand même : le serveur tranchera.
+ */
+export async function addUnlessDuplicate(
+  input: NewWishlistEntry,
+  deps: {
+    list: () => Promise<readonly WishlistEntry[]>;
+    add: (input: NewWishlistEntry) => Promise<WishlistEntry>;
+  },
+): Promise<WishlistAddOutcome> {
+  let current: readonly WishlistEntry[] | null = null;
+  try {
+    current = await deps.list();
+  } catch {
+    current = null;
+  }
+  const duplicate = current ? findDuplicate(current, { domain: input.domain, title: input.title }) : null;
+  if (duplicate) return { entry: duplicate, duplicate: true };
+  return { entry: await deps.add(input), duplicate: false };
 }
 
 /**

@@ -25,8 +25,12 @@ export const routes = {
   candidates: () => '/capture/candidates',
   item: (id: string) => `/item/${encodeURIComponent(id)}`,
   carnet: () => '/carnet',
-  /** Liste d'envies et d'idées, filtrée sur une catégorie si fournie. */
-  wishlist: (domain?: VelumDomain | null) => withQuery('/wishlist', { domain: domain ?? undefined }),
+  /**
+   * Liste d'envies et d'idées, filtrée sur une catégorie si fournie ; `query`
+   * pré-remplit sa recherche (« Ouvrir mes envies » de la recherche globale).
+   */
+  wishlist: (domain?: VelumDomain | null, query?: string) =>
+    withQuery('/wishlist', { domain: domain ?? undefined, q: query?.trim() || undefined }),
   /** Vins de MA cave à leur apogée, avec leur emplacement. */
   cellarPeak: () => '/cellar-peak',
   /** Plat → vins (de ma cave d'abord) ; `dish` pré-remplit la recherche. */

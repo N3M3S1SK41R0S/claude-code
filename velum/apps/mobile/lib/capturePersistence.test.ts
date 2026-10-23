@@ -2,9 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { isVelumError, type Candidate, type VelumItem } from '@velum/core';
 import type { NewItemMedia } from '@velum/api-client';
 
+import { useCaptureStore } from '../stores/captureStore';
+import { createUploadTracker } from './batchCapture';
 import {
   correctCandidate,
   createSerialQueue,
+  discardCaptureSession,
   fullCaptureAttributes,
   insertCapturedItem,
   newItemFromCandidate,
@@ -12,6 +15,7 @@ import {
   runInBackground,
 } from './capturePersistence';
 import { analysisStatusOf, hasFullAnalysis } from './analysisState';
+import { DESIGNATION_FIELD, isDesignationCorrection } from './identityFields';
 
 const item: VelumItem = {
   id: 'item-1',
@@ -206,7 +210,8 @@ describe('correctCandidate — correction avant enregistrement', () => {
     expect(candidate.attributes['faceValue']).toBe(20);
     expect(candidate.attributes['corrections']).toEqual([
       { field: 'catalogNumber', from: 'YT 3', to: 'YT 4', at: '2026-10-23T09:00:00.000Z' },
-      { field: 'title', from: 'Cérès 20c noir', to: 'Cérès 40c orange', at: '2026-10-23T09:00:00.000Z' },
+      // Désignation tracée sous la clé réservée, comme sur la fiche objet.
+      { field: DESIGNATION_FIELD, from: 'Cérès 20c noir', to: 'Cérès 40c orange', at: '2026-10-23T09:00:00.000Z' },
     ]);
     // Avis du modèle sur l'objet MAL lu : ni sa fourchette ni son classement ne suivent.
     expect(candidate.quickEstimate).toBeUndefined();
@@ -225,6 +230,55 @@ describe('correctCandidate — correction avant enregistrement', () => {
     });
     expect(candidate.quickEstimate).toEqual(stampCandidate.quickEstimate);
     expect(candidate.classification).toEqual(stampCandidate.classification);
+    expect(candidate.attributes['corrections']).toEqual([
+      { field: DESIGNATION_FIELD, from: 'Cérès 20c noir', to: 'Cérès 20 c. noir sur blanc', at: '2026-10-23T09:00:00.000Z' },
+    ]);
+  });
+
+  it('sujet d’un timbre (champ d’identité `title`) corrigé : changement d’identité, pas un renommage', () => {
+    const { candidate, changed } = correctCandidate({
+      candidate: { ...stampCandidate, attributes: { ...stampCandidate.attributes, title: 'Cérès' } },
+      domain: 'stamp',
+      values: { title: 'Napoléon III' },
+      label: '',
+      now,
+    });
+    expect(changed).toBe(true);
+    expect(candidate.label).toBe('Cérès 20c noir');
+    expect(candidate.attributes['title']).toBe('Napoléon III');
+    expect(candidate.attributes['corrections']).toEqual([
+      { field: 'title', from: 'Cérès', to: 'Napoléon III', at: '2026-10-23T09:00:00.000Z' },
+    ]);
+    // Relu par la fiche objet comme le champ du domaine, jamais comme la désignation.
+    expect(isDesignationCorrection('stamp', 'title')).toBe(false);
+    expect(candidate.quickEstimate).toBeUndefined();
+    expect(candidate.classification).toBeUndefined();
+  });
+
+  it('titre d’une œuvre ET désignation corrigés : deux entrées distinctes, identité changée', () => {
+    const artCandidate: Candidate = {
+      id: 'art-1',
+      domain: 'art',
+      label: 'Paysage',
+      confidence: 0.6,
+      attributes: { artist: 'Anonyme', title: 'Paysage' },
+      quickEstimate: { low: 200, high: 400, currency: 'EUR' },
+      classification: ['Peinture', 'XIXe'],
+    };
+    const { candidate } = correctCandidate({
+      candidate: artCandidate,
+      domain: 'art',
+      values: { title: 'Bord de Seine' },
+      label: 'Bord de Seine, huile sur toile',
+      now,
+    });
+    expect(candidate.attributes['corrections']).toEqual([
+      { field: 'title', from: 'Paysage', to: 'Bord de Seine', at: '2026-10-23T09:00:00.000Z' },
+      { field: DESIGNATION_FIELD, from: 'Paysage', to: 'Bord de Seine, huile sur toile', at: '2026-10-23T09:00:00.000Z' },
+    ]);
+    expect(candidate.label).toBe('Bord de Seine, huile sur toile');
+    expect('quickEstimate' in candidate).toBe(false);
+    expect('classification' in candidate).toBe(false);
   });
 
   it('aucune modification → candidat inchangé', () => {
@@ -245,6 +299,38 @@ describe('correctCandidate — correction avant enregistrement', () => {
     expect(candidate.attributes['corrections']).toEqual([
       { field: 'year', from: 1849, to: null, at: '2026-10-23T09:00:00.000Z' },
     ]);
+  });
+});
+
+describe('discardCaptureSession — fin de session', () => {
+  it('oublie le brouillon et les téléversements ; un envoi encore en vol ne repeuple rien', async () => {
+    let finish: (path: string | null) => void = () => undefined;
+    const uploads = createUploadTracker(
+      () =>
+        new Promise<string | null>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const store = useCaptureStore.getState();
+    store.setDomain('stamp');
+    store.addMedia({ role: 'front', base64: 'data:photo-A', uri: 'file://A.jpg' });
+    store.setText('Cérès 20c noir');
+    store.setRecognition({ candidates: [stampCandidate], stage: 'llm_vision', needsAssistedEntry: false }, 1200);
+    const inFlight = uploads.start('data:photo-A');
+
+    discardCaptureSession({ draft: useCaptureStore.getState(), uploads });
+
+    const after = useCaptureStore.getState();
+    expect(after.domain).toBeNull();
+    expect(after.media).toEqual([]);
+    expect(after.text).toBe('');
+    expect(after.recognition).toBeNull();
+    expect(uploads.peek('data:photo-A')).toBeUndefined();
+    // Le téléversement de l'ancienne session aboutit après coup : il est ignoré.
+    finish('ancien-uid/photo-A.jpg');
+    await inFlight;
+    expect(uploads.peek('data:photo-A')).toBeUndefined();
+    expect(uploads.wait('data:photo-A')).toBeUndefined();
   });
 });
 
