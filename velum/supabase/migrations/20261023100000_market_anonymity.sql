@@ -113,12 +113,18 @@ end
 $migration$;
 
 -- ── 3. Masquage des coordonnées (anonymat, anti-contournement) ───────────────
--- Réplique EXACTE, dans le même ordre, des motifs JavaScript de
--- redactContactInfo (@velum/config). Différences de moteur neutralisées :
---  - `\b` JS (frontière de mot ASCII) → assertions sur [A-Za-z0-9_] ;
---  - `\w` / `\d` JS (ASCII) → classes explicites [A-Za-z0-9_] / [0-9] ;
---  - `\s` JS (espaces Unicode, dont les insécables) → classe explicite ;
---  - `\p{L}` (drapeau u) → [[:alpha:]] (lettres Unicode en UTF-8).
+-- Réplique EXACTE de redactContactInfo (@velum/config) : mêmes briques, mêmes
+-- motifs (texte recopié tel quel), même ordre, mêmes drapeaux ; vecteurs
+-- partagés (bloc M1 de supabase/tests/features/marketplace_checks.sql, relu
+-- par marketplace.test.ts), sortie identique au caractère près.
+-- Différences de moteur neutralisées :
+--  - les motifs n'emploient ni `\b`, ni `\w`, ni `\d`, ni `\p{…}` (sens
+--    différent d'un moteur à l'autre) : classes explicites ;
+--  - `\s` / `\S` JavaScript (blancs Unicode, dont les insécables) sont
+--    réécrits à l'emploi en classes explicites (voir `sp` et la boucle) ;
+--  - PostgreSQL retient la correspondance la plus LONGUE au point de départ le
+--    plus à gauche : les motifs JS sont écrits pour que leur premier succès
+--    soit justement celui-là (quantificateurs gloutons, assertions de bord).
 -- Pure et idempotente : le jeton ne correspond à aucun motif.
 create or replace function public.redact_contact_info(p_text text)
 returns text
@@ -127,49 +133,81 @@ immutable
 parallel safe
 as $$
 declare
-  -- Espaces au sens de `\s` JavaScript.
-  sp constant text := '\t\n\v\f\r    -     　﻿';
-  -- Frontière de mot `\b` JavaScript (caractères de mot ASCII).
-  b constant text := '(?:(?<![A-Za-z0-9_])(?=[A-Za-z0-9_])|(?<=[A-Za-z0-9_])(?![A-Za-z0-9_]))';
+  -- Blancs au sens de `\s` JavaScript, contenu d'une classe [...] :
+  -- \t \n \v \f \r, espace, U+00A0, U+1680, U+2000–U+200A, U+2028, U+2029,
+  -- U+202F, U+205F, U+3000, U+FEFF.
+  sp constant text := '\t\n\v\f\r ' || chr(160) || chr(5760) || chr(8192) || '-' || chr(8202)
+    || chr(8232) || chr(8233) || chr(8239) || chr(8287) || chr(12288) || chr(65279);
+
+  -- Briques : mêmes noms (en minuscules) et même texte que dans marketplace.ts.
+  letter constant text := 'A-Za-zÀ-ÖØ-öø-ÿĀ-ſ';
+  word constant text := letter || '0-9_';
+  domain_label constant text := '[' || word || '][' || word || '-]*';
+  domain_tld constant text := '(?:com|fr|net|org|eu|be|ch|lu|io|me|info|biz|co|art|shop|store|online)';
+  email_dot constant text := '(?:\.+|\s+\.\s+|\s*[(\[](?:dot|point)[)\]]\s*|\s+(?:point|dot)\s+)';
+  email_at constant text := '(?:@\s*|\s+@\s+|\s+@(?=(?:' || domain_label || '\.)+' || domain_tld
+    || '(?![' || word || ']))|\s*[(\[](?:at|ar{1,2}obase?)[)\]]\s*|\s+ar{1,2}obase?\s+|\s+at\s+(?=['
+    || word || '+-]+' || email_dot || '[' || word || ']))';
+  email_chunk constant text := '[' || word || '+-]+(?:' || email_dot || '[' || word || '+-]+)*';
+  digit_sep constant text := '[\s.,/_\u2010-\u2015-]';
+  street_type constant text :=
+    '(?:rue|avenue|av\.?|boulevard|bd|chemin|allée|allee|impasse|place|quai|route|cours|chaussée|chaussee|passage|square|faubourg|sentier)';
+  street_word constant text := '[' || letter || '''’-]+';
+
+  -- Motifs et drapeaux, dans l'ordre de CONTACT_PATTERNS (commentaires
+  -- détaillés côté TypeScript).
+  patterns constant text[] := array[
+    -- 1. URL explicites (http, https) : tout jusqu'au prochain blanc.
+    ['https?://\S+', 'gi'],
+    -- 2. E-mails ENTIERS, partie locale comprise, y compris maquillés.
+    [email_chunk || email_at || email_chunk, 'gi'],
+    -- 3. Adresses « www. » : tout jusqu'au prochain blanc.
+    ['(?<![' || word || '])www\.\S+', 'gi'],
+    -- 4. Domaines nus, sous-domaines et suffixes à deux lettres compris, chemin compris.
+    ['(?:' || domain_label || '\.)+' || domain_tld || '(?:\.[a-z]{2})?(?![' || word || '])(?:/\S*)?', 'gi'],
+    -- 5. IBAN, insensible à la casse ; garde : au moins 8 chiffres dans la suite.
+    ['(?<![' || word || '])[A-Z]{2}[0-9]{2}(?=(?:[\sA-Z]*[0-9]){8})(?:\s?[A-Z0-9]{4}){3,7}(?:\s?[A-Z0-9]{1,4})?(?!['
+      || word || '])', 'gi'],
+    -- 6a. Téléphone international : « + » ou « 00 », indicatif, 8 à 15 chiffres en tout.
+    ['(?:\+|(?<![0-9])00)[\s.]?[1-9](?:' || digit_sep || '?\(?[0-9]\)?){7,14}(?![0-9])', 'g'],
+    -- 6b. Téléphone national : 0 + chiffre non nul + 8 chiffres ; pas une date jj/mm/aaaa.
+    ['(?<![0-9])(?![0-9]{2}[./-][0-9]{2}[./-][0-9]{4})\(?0\)?' || digit_sep || '?[1-9]\)?(?:' || digit_sep
+      || '?[0-9]){8}(?![0-9])', 'g'],
+    -- 6c. Longue suite de 9 à 15 chiffres d'un seul tenant.
+    ['(?<![0-9])[0-9]{9,15}(?![0-9])', 'g'],
+    -- 6d. Numéro national sans son 0, groupé par paires.
+    ['(?<![0-9])[1-9](?:' || digit_sep || '[0-9]{2}){4}(?!' || digit_sep || '?[0-9])', 'g'],
+    -- 7. Pseudonymes de réseaux sociaux (@pseudo) — après les e-mails.
+    ['(?<![' || word || '.])@[' || word || '][' || word || '.]*[' || word || ']', 'gi'],
+    -- 8. Adresses postales : numéro (bis, ter) + type de voie + nom de 1 à 6 mots.
+    ['(?<![' || word || '])[0-9]{1,4}(?:\s?(?:bis|ter))?,?\s+' || street_type || '\s+' || street_word
+      || '(?:\s' || street_word || '){0,5}', 'gi']
+  ];
+  -- Passes au plus (MAX_REDACTION_PASSES) : un masquage peut créer une
+  -- frontière de mot qui en révèle un autre au passage suivant ; on répète
+  -- jusqu'à stabilité → sortie idempotente par construction.
+  max_passes constant integer := 5;
   tok constant text := '[coordonnées masquées]';
+  rx text[] := '{}';
   v text := p_text;
+  v_before text;
 begin
   if v is null then
     return null;
   end if;
-
-  -- URL explicites et domaines nus (www.x.fr, x.com/…)
-  v := regexp_replace(v, b || 'https?://[^' || sp || ']+', tok, 'gi');
-  v := regexp_replace(v, b || 'www\.[^' || sp || ']+', tok, 'gi');
-  v := regexp_replace(
-    v,
-    b || '[A-Za-z0-9_-]+\.(?:com|fr|net|org|eu|be|ch|io|me|info|biz|co)' || b
-      || '(?:/[^' || sp || ']*)?',
-    tok, 'gi');
-  -- E-mails, y compris « arobase » / « (at) » écrits en toutes lettres
-  v := regexp_replace(
-    v,
-    '[A-Za-z0-9_.+-]+[' || sp || ']*(?:@|\(at\)|\[at\]|' || b || 'arobase' || b || ')['
-      || sp || ']*[A-Za-z0-9_-]+[' || sp || ']*(?:\.|\(dot\)|' || b || 'point' || b || ')['
-      || sp || ']*[a-z]{2,}',
-    tok, 'gi');
-  -- IBAN (sensible à la casse, comme le motif JS sans drapeau i)
-  v := regexp_replace(
-    v,
-    b || '[A-Z]{2}[0-9]{2}(?:[' || sp || ']?[A-Z0-9]{4}){3,7}(?:[' || sp || ']?[A-Z0-9]{1,4})?' || b,
-    tok, 'g');
-  -- Téléphones : 8 chiffres ou plus, séparés ou non
-  v := regexp_replace(v, '(?:\+|00)?[0-9](?:[' || sp || '.-]?\(?[0-9]\)?){7,}', tok, 'g');
-  -- Pseudonymes de réseaux sociaux (@pseudo) — après les e-mails
-  v := regexp_replace(v, '(?<![A-Za-z0-9_.])@[a-z0-9_.]{3,}', tok, 'gi');
-  -- Adresses postales : numéro + type de voie + nom
-  v := regexp_replace(
-    v,
-    b || '[0-9]{1,4}(?:[' || sp || ']?(?:bis|ter))?,?[' || sp || ']+'
-      || '(?:rue|avenue|av\.?|boulevard|bd|chemin|allée|allee|impasse|place|quai|route|cours)['
-      || sp || ']+[[:alpha:]'' -]{2,40}',
-    tok, 'gi');
-
+  -- `\s` JavaScript : dans une classe (« [\s… ») → ses blancs ; seul → [blancs] ;
+  -- `\S` → [^blancs].
+  for i in 1 .. array_length(patterns, 1) loop
+    rx := rx || replace(replace(replace(patterns[i][1], '[\s', '[' || sp), '\s', '[' || sp || ']'),
+                        '\S', '[^' || sp || ']');
+  end loop;
+  for pass in 1 .. max_passes loop
+    v_before := v;
+    for i in 1 .. array_length(patterns, 1) loop
+      v := regexp_replace(v, rx[i], tok, patterns[i][2]);
+    end loop;
+    exit when v = v_before;
+  end loop;
   return v;
 end;
 $$;

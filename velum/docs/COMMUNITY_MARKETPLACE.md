@@ -150,10 +150,18 @@ l'autre** (une fois expédié). À la conclusion : annonce `exchanged`, annonce
   `my_certifications`, `thread_messages`) renvoient `role`,
   `counterparty_alias`, `mine`… et l'identifiant du seul utilisateur courant.
 - **Masquage des coordonnées** (`redact_contact_info`, réplique exacte de
-  `redactContactInfo`) : e-mails (y compris « arobase »), téléphones, URL et
-  domaines, IBAN, pseudos de réseaux sociaux, adresses postales → jeton
-  « [coordonnées masquées] ». Appliqué à l'écriture aux descriptions, souhaits,
-  titres publics, messages d'échange, messages des fils et motifs de litige.
+  `redactContactInfo`) : e-mails ENTIERS, partie locale comprise (accents,
+  majuscules, maquillages « arobase », « (at) », « [at] », « point »,
+  « (dot) »), téléphones (+33 / 0033 / 0X, parenthèses, séparateurs
+  « . - / _ » ou blancs, numéros étrangers), URL et domaines (www, sous-domaines,
+  `.co.uk`, liens wa.me / t.me), IBAN quelle que soit la casse, pseudos de
+  réseaux sociaux, adresses postales (le code postal qui suit peut rester) →
+  jeton « [coordonnées masquées] ». Jamais les années ni plages d'années
+  (1868-1870), prix (1.250,00 €, 12 500 €), cotes (YT 1234), tirages (125/500),
+  références ou dates. Sortie identique au caractère près en TypeScript et en
+  SQL (vecteurs partagés, bloc M1 de `marketplace_checks.sql`) et idempotente.
+  Appliqué à l'écriture aux descriptions, souhaits, titres publics, messages
+  d'échange, messages des fils et motifs de litige.
 - **Messagerie** (`market_messages`) : un fil par commande ou échange, lu et
   alimenté par les **seules parties**, immuable, purgé avec la transaction.
 
