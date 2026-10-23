@@ -47,6 +47,7 @@ import {
 import { formatEUR, formatMoney } from '../lib/i18n';
 import { usePlan } from '../lib/plan';
 import { routes } from '../lib/routes';
+import { formatTargetPrice } from '../lib/wishlist';
 
 /** Délai avant d'interroger le catalogue serveur pendant la saisie. */
 const CATALOGUE_DEBOUNCE_MS = 350;
@@ -118,7 +119,7 @@ function SectionStatus<T>({
 }
 
 export default function GlobalSearch() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const client = getVelumClient();
   const planState = usePlan();
@@ -218,7 +219,8 @@ export default function GlobalSearch() {
   const wishSubtitle = (entry: WishlistEntry): string => {
     const parts = [t(`domains.${entry.domain}.name`), t(`globalSearch.wishKind.${entry.kind}`)];
     if (entry.targetPrice !== null) {
-      parts.push(t('globalSearch.targetPrice', { price: formatEUR(entry.targetPrice) }));
+      // Prix cible au centime près (jamais arrondi comme une estimation).
+      parts.push(t('globalSearch.targetPrice', { price: formatTargetPrice(entry.targetPrice, i18n.language) }));
     }
     if (entry.acquired) parts.push(t('globalSearch.acquired'));
     return parts.join(' · ');
@@ -302,6 +304,10 @@ export default function GlobalSearch() {
               {t('globalSearch.noResultHint')}
             </VText>
           </VCard>
+        ) : outcome === 'partial' ? (
+          <VText variant="caption" tone="dim">
+            {t('globalSearch.partial')}
+          </VText>
         ) : (
           <VText variant="caption" tone="dim">
             {t('globalSearch.searching')}
@@ -358,7 +364,7 @@ export default function GlobalSearch() {
                       key={entry.id}
                       title={entry.title}
                       subtitle={wishSubtitle(entry)}
-                      onPress={() => router.push(routes.wishlist(entry.domain))}
+                      onPress={() => router.push(routes.wishlistEntry(entry.id))}
                     />
                   ))}
                   {hasMore ? (

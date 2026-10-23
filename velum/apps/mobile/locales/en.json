@@ -1842,6 +1842,7 @@
     "placeholder": "Object, wine, wish, listing…",
     "intro": "Find an object from your collection, a wish or a trade & sell listing directly: name, vintage, location, note…",
     "searching": "Searching…",
+    "partial": "Incomplete results: one source did not respond.",
     "noResultHint": "Check the spelling or try another word.",
     "sectionEmpty": "No result in this section.",
     "sections": {

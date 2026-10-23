@@ -1842,6 +1842,7 @@
     "placeholder": "Objet, vin, envie, annonce…",
     "intro": "Retrouvez directement un objet de votre collection, une envie ou une annonce d’échange et de vente : nom, millésime, emplacement, note…",
     "searching": "Recherche en cours…",
+    "partial": "Résultats incomplets : une source n’a pas répondu.",
     "noResultHint": "Vérifiez l’orthographe ou essayez un autre mot.",
     "sectionEmpty": "Aucun résultat dans cette section.",
     "sections": {
