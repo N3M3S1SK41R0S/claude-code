@@ -86,7 +86,7 @@ describe('démo marketplace — catalogue', () => {
     const repo = setup();
     const withMine = await repo.catalogue({ includeMine: true });
     const mine = withMine.filter((l) => l.isMine);
-    expect(mine.map((l) => l.id)).toEqual(['demo-mine-1']);
+    expect(mine.map((l) => l.id)).toEqual(['demo-mine-5', 'demo-mine-1']);
   });
 
   it('expose une réputation par pseudonyme sans identifiant', async () => {
@@ -196,6 +196,19 @@ describe('démo marketplace — achat sous séquestre', () => {
     expect(dispute.status).toBe('open');
     const orders = await repo.myOrders();
     expect(orders.find((o) => o.id === 'demo-order-1')?.escrowState).toBe('disputed');
+  });
+
+  it('vente : j’expédie avec le seul suivi ; une date de livraison posée par le vendeur est refusée', async () => {
+    const repo = setup();
+    const sale = (await repo.myOrders()).find((o) => o.role === 'seller' && o.escrowState === 'funds_held');
+    expect(sale).toBeDefined();
+    const id = sale?.id ?? '';
+    // Miroir de guard_order_terms : seul l’acheteur (ou le transporteur) atteste la livraison.
+    await expectInvalid(
+      repo.advanceOrder(id, 'shipped', { trackingNumber: 'LL123456789FR', deliveredAt: NOW }),
+    );
+    const shipped = await repo.advanceOrder(id, 'shipped', { trackingNumber: 'LL123456789FR', carrier: 'La Poste' });
+    expect(shipped).toMatchObject({ escrowState: 'shipped', trackingNumber: 'LL123456789FR', carrier: 'La Poste', deliveredAt: null });
   });
 
   it('compte mes ventes conclues dans les commandes (rôle vendeur, fonds libérés)', async () => {

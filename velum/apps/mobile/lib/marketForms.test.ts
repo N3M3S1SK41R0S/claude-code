@@ -3,16 +3,19 @@ import { REDACTION_TOKEN } from '@velum/config';
 import type { VelumItem } from '@velum/core';
 
 import {
+  MARKET_CARRIERS,
   amountToInput,
   estimateFromValuation,
   exchangePreview,
   formatPrice,
   formatRate,
   nextCommissionTier,
+  normalizeTrackingNumber,
   parseFrenchAmount,
   parsePositiveAmount,
   redactionPreview,
   sellPreview,
+  shipmentInput,
   signedCashAdjustment,
   sortItemsForExchange,
 } from './marketForms';
@@ -199,6 +202,28 @@ describe('proposition d’échange', () => {
     const sorted = sortItemsForExchange([item('a', 'wine'), item('b', 'coin'), item('c', 'wine'), item('d', 'coin')], 'coin');
     expect(sorted.map((i) => i.id)).toEqual(['b', 'd', 'a', 'c']);
     expect(sortItemsForExchange([item('a', 'wine')], null).map((i) => i.id)).toEqual(['a']);
+  });
+});
+
+describe('expédition', () => {
+  it('normalise le numéro de suivi (blancs retirés, majuscules) et refuse le texte libre', () => {
+    expect(normalizeTrackingNumber(' 6a 1234 5678 901 ')).toBe('6A12345678901');
+    expect(normalizeTrackingNumber('ll123456789fr')).toBe('LL123456789FR');
+    expect(normalizeTrackingNumber('')).toBeNull();
+    expect(normalizeTrackingNumber('AB1')).toBeNull();
+    expect(normalizeTrackingNumber('appelez-moi@exemple.com')).toBeNull();
+    expect(normalizeTrackingNumber('Colis remis en main propre')).toBeNull();
+  });
+
+  it('n’envoie que le suivi et le transporteur choisi — jamais de date de livraison', () => {
+    // Le serveur (guard_order_terms) refuse toute date de livraison posée par
+    // le vendeur : seule celle de l’acheteur ou du transporteur compte.
+    const withCarrier = shipmentInput(' ll 123 456 789 fr', 'Colissimo');
+    expect(withCarrier).toEqual({ trackingNumber: 'LL123456789FR', carrier: 'Colissimo' });
+    expect(withCarrier).not.toHaveProperty('deliveredAt');
+    expect(shipmentInput('LL123456789FR', null)).toEqual({ trackingNumber: 'LL123456789FR' });
+    expect(shipmentInput('  ', 'La Poste')).toBeNull();
+    expect(MARKET_CARRIERS).toContain('Colissimo');
   });
 });
 

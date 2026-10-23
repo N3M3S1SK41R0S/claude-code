@@ -1219,6 +1219,7 @@
     "ship": "I've shipped it",
     "confirmShip": "Confirm shipment",
     "trackingLabel": "Tracking number",
+    "trackingInvalid": "Invalid tracking number: letters and digits only (e.g. 6A12345678901).",
     "confirmReceipt": "Received — release the funds",
     "confirmReceiptHint": "Funds are paid to the seller, minus commission",
     "reportProblem": "Report a problem",
@@ -1229,7 +1230,7 @@
     "tracking": "Tracking: {{number}}",
     "trackingWithCarrier": "{{carrier}} tracking: {{number}}",
     "carrierLabel": "Carrier (optional)",
-    "carrierPlaceholder": "e.g. Royal Mail",
+    "carrierNone": "Not specified",
     "sell": "List for sale",
     "sellOrExchange": "Sell or trade",
     "sellHint": "List for sale or trade under a pseudonym; expert appraisal required above €500.",
@@ -1389,8 +1390,8 @@
           "seller": "Funds in escrow: ship the item and enter the tracking number."
         },
         "shipped": {
-          "buyer": "Item shipped: confirm receipt on arrival (otherwise automatic release after delivery, unless disputed).",
-          "seller": "Shipped: funds released on receipt, or automatically after delivery unless disputed."
+          "buyer": "Item shipped: when it arrives, check it, then confirm receipt to release the funds. If something is wrong, report it before confirming.",
+          "seller": "Shipped: the funds are paid out to you once the buyer confirms receipt (or after arbitration if there is a dispute)."
         },
         "released": {
           "buyer": "Transaction completed.",
@@ -1529,7 +1530,7 @@
       "mineStatus": "Status: {{status}}. Manage it from My activity.",
       "buyTitle": "Confirm purchase",
       "youPay": "You pay",
-      "buyEscrow": "Payment is held in escrow: it is only paid to the seller after you confirm receipt (or automatically after proven delivery, unless disputed).",
+      "buyEscrow": "Payment is held in escrow: it is only paid to the seller after you confirm receipt (or after arbitration if there is a dispute).",
       "confirmBuy": "Confirm purchase",
       "proposeExchange": "Propose a trade",
       "description": "Description",

@@ -80,6 +80,47 @@ export function Segmented<T extends string>({ value, options, onChange, accessib
   );
 }
 
+// ── Choix dans une liste fermée (puces) ──────────────────────────────────────
+
+export interface ChoiceChipsProps<T extends string> {
+  value: T;
+  options: readonly { value: T; label: string }[];
+  onChange: (value: T) => void;
+  /** Libellé du groupe pour les lecteurs d'écran. */
+  accessibilityLabel: string;
+}
+
+/** Groupe radio en puces qui passent à la ligne (listes plus longues qu'un sélecteur segmenté). */
+export function ChoiceChips<T extends string>({ value, options, onChange, accessibilityLabel }: ChoiceChipsProps<T>) {
+  const { senior, scale } = useSeniorMode();
+  return (
+    <View style={styles.chips} accessibilityRole="radiogroup" accessibilityLabel={accessibilityLabel}>
+      {options.map((option) => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            onPress={() => onChange(option.value)}
+            accessibilityRole="radio"
+            accessibilityLabel={option.label}
+            accessibilityState={{ selected, checked: selected }}
+            aria-checked={selected}
+            style={[styles.chip, { minHeight: senior ? 56 : 44 }, selected ? styles.segmentSelected : null]}
+          >
+            <Text
+              allowFontScaling
+              maxFontSizeMultiplier={MAX_FONT_SIZE_MULTIPLIER}
+              style={[styles.segmentLabel, { fontSize: scale(14) }, selected ? styles.segmentLabelSelected : null]}
+            >
+              {option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 // ── Case à cocher ────────────────────────────────────────────────────────────
 
 export interface CheckRowProps {
@@ -272,6 +313,16 @@ const styles = StyleSheet.create({
     borderRadius: velumRadius.field - 4,
   },
   segmentSelected: { backgroundColor: velumColors.ink.raised, borderWidth: 1, borderColor: velumColors.gold.DEFAULT },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: velumSpacing.xs },
+  chip: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: velumSpacing.md,
+    borderRadius: velumRadius.field,
+    backgroundColor: velumColors.ink.soft,
+    borderWidth: 1,
+    borderColor: velumColors.ink.border,
+  },
   segmentLabel: { color: velumColors.parchment.dim, fontWeight: '600', textAlign: 'center' },
   segmentLabelSelected: { color: velumColors.gold.soft },
   pill: {

@@ -1219,6 +1219,7 @@
     "ship": "J’ai expédié",
     "confirmShip": "Confirmer l’expédition",
     "trackingLabel": "Numéro de suivi",
+    "trackingInvalid": "Numéro de suivi invalide : lettres et chiffres seulement (ex. 6A12345678901).",
     "confirmReceipt": "J’ai bien reçu — libérer les fonds",
     "confirmReceiptHint": "Les fonds sont versés au vendeur, commission déduite",
     "reportProblem": "Signaler un problème",
@@ -1229,7 +1230,7 @@
     "tracking": "Suivi : {{number}}",
     "trackingWithCarrier": "Suivi {{carrier}} : {{number}}",
     "carrierLabel": "Transporteur (facultatif)",
-    "carrierPlaceholder": "ex. Colissimo",
+    "carrierNone": "Non précisé",
     "sell": "Mettre en vente",
     "sellOrExchange": "Vendre ou échanger",
     "sellHint": "Mise en vente ou à l’échange sous pseudonyme ; expertise obligatoire au-delà de 500 €.",
@@ -1389,8 +1390,8 @@
           "seller": "Fonds sous séquestre : expédiez l’objet et saisissez le numéro de suivi."
         },
         "shipped": {
-          "buyer": "Objet expédié : confirmez la réception dès son arrivée (sinon libération automatique après livraison, sauf litige).",
-          "seller": "Expédié : fonds libérés à la réception, ou automatiquement après livraison sauf litige."
+          "buyer": "Objet expédié : à son arrivée, vérifiez-le puis confirmez la réception pour libérer les fonds. En cas de problème, signalez-le avant de confirmer.",
+          "seller": "Expédié : les fonds vous sont versés quand l’acheteur confirme la réception (ou après arbitrage en cas de litige)."
         },
         "released": {
           "buyer": "Transaction conclue.",
@@ -1529,7 +1530,7 @@
       "mineStatus": "Statut : {{status}}. Gérez-la depuis Mon activité.",
       "buyTitle": "Confirmer l’achat",
       "youPay": "Vous payez",
-      "buyEscrow": "Le paiement est bloqué sous séquestre : il n’est versé au vendeur qu’après votre confirmation de réception (ou automatiquement après livraison prouvée, sauf litige).",
+      "buyEscrow": "Le paiement est bloqué sous séquestre : il n’est versé au vendeur qu’après votre confirmation de réception (ou après arbitrage en cas de litige).",
       "confirmBuy": "Confirmer l’achat",
       "proposeExchange": "Proposer un échange",
       "description": "Description",

@@ -19,6 +19,7 @@ import { CertificationCard } from '../../../components/market/ActivityCards';
 import { CommunityGate } from '../../../components/market/CommunityGate';
 import { ExchangeTimeline } from '../../../components/market/ExchangeTimeline';
 import { MessageThread } from '../../../components/market/MessageThread';
+import { ShipPanel, type Shipment } from '../../../components/market/ShipPanel';
 import { AmountRows, AsyncBlock, Notice, type AmountRow } from '../../../components/market/controls';
 import {
   useCompletedSales,
@@ -56,13 +57,11 @@ function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
   const onError = useMarketErrorToast();
   const sales = useCompletedSales();
   const [panel, setPanel] = useState<Panel>(null);
-  const [tracking, setTracking] = useState('');
-  const [carrier, setCarrier] = useState('');
   const [reason, setReason] = useState('');
   const actions = exchangeActions(exchange);
 
   const run = useMutation({
-    mutationFn: (action: ExchangeAction) => {
+    mutationFn: (action: Exclude<ExchangeAction, 'ship'>) => {
       const m = client.marketplace;
       switch (action) {
         case 'accept':
@@ -73,8 +72,6 @@ function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
           return m.withdrawExchange(exchange.id);
         case 'cancel':
           return m.cancelExchange(exchange.id);
-        case 'ship':
-          return m.shipExchange(exchange.id, tracking.trim(), carrier.trim().length > 0 ? carrier.trim() : undefined);
         case 'confirm_receipt':
           return m.confirmExchangeReceipt(exchange.id);
         case 'dispute':
@@ -83,10 +80,20 @@ function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
     },
     onSuccess: (_r, action) => {
       setPanel(null);
-      setTracking('');
-      setCarrier('');
       setReason('');
       showToast(t(`community.exchange.done.${action}`), 'success');
+      invalidate();
+    },
+    onError,
+  });
+
+  // Expédition : suivi + transporteur choisi dans une liste, rien d'autre.
+  const ship = useMutation({
+    mutationFn: (shipment: Shipment) =>
+      client.marketplace.shipExchange(exchange.id, shipment.trackingNumber, shipment.carrier),
+    onSuccess: () => {
+      setPanel(null);
+      showToast(t('community.exchange.done.ship'), 'success');
       invalidate();
     },
     onError,
@@ -100,7 +107,7 @@ function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
     );
   }
 
-  const busy = run.isPending;
+  const busy = run.isPending || ship.isPending;
   const loadingFor = (a: ExchangeAction) => run.isPending && run.variables === a;
   const confirmPanel = (action: 'decline' | 'withdraw' | 'cancel') => (
     <View style={styles.panel} key={action}>
@@ -138,28 +145,12 @@ function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
 
       {actions.includes('ship') ? (
         panel === 'ship' ? (
-          <View style={styles.panel}>
-            <VTextInput
-              label={t('community.trackingLabel')}
-              value={tracking}
-              onChangeText={setTracking}
-              placeholder="XY123456789FR"
-              autoCapitalize="characters"
-            />
-            <VTextInput
-              label={t('community.carrierLabel')}
-              value={carrier}
-              onChangeText={setCarrier}
-              placeholder={t('community.carrierPlaceholder')}
-            />
-            <VButton
-              label={t('community.confirmShip')}
-              onPress={() => run.mutate('ship')}
-              disabled={tracking.trim().length === 0 || busy}
-              loading={loadingFor('ship')}
-            />
-            <VButton label={t('common.cancel')} variant="ghost" onPress={() => setPanel(null)} />
-          </View>
+          <ShipPanel
+            onConfirm={(shipment) => ship.mutate(shipment)}
+            onCancel={() => setPanel(null)}
+            loading={ship.isPending}
+            disabled={busy}
+          />
         ) : (
           <VButton label={t('community.exchange.action.ship')} onPress={() => setPanel('ship')} />
         )

@@ -25,9 +25,16 @@ import {
 } from '../../lib/marketState';
 import { showToast } from '../../stores/toastStore';
 import { MessageThread } from './MessageThread';
+import { ShipPanel, type Shipment } from './ShipPanel';
 import { useInvalidateCommunity, useMarketErrorToast } from './hooks';
 
 type Panel = 'ship' | 'dispute' | 'cancel' | null;
+
+interface AdvanceInput {
+  action: OrderAction;
+  /** Expédition : suivi et transporteur choisi, rien d'autre. */
+  shipment?: Shipment;
+}
 
 const CLOSED: ReadonlySet<EscrowState> = new Set(['released', 'refunded', 'cancelled']);
 
@@ -37,8 +44,6 @@ export function OrderCard({ order }: { order: MarketOrder }) {
   const invalidate = useInvalidateCommunity();
   const onError = useMarketErrorToast();
   const [panel, setPanel] = useState<Panel>(null);
-  const [tracking, setTracking] = useState('');
-  const [carrier, setCarrier] = useState('');
   const [reason, setReason] = useState('');
   const [showThread, setShowThread] = useState(false);
 
@@ -46,24 +51,19 @@ export function OrderCard({ order }: { order: MarketOrder }) {
   const isSeller = order.role === 'seller';
 
   const advance = useMutation({
-    mutationFn: async (action: OrderAction) => {
+    mutationFn: async ({ action, shipment }: AdvanceInput) => {
       const target = orderActionTarget(order.escrowState, action);
       if (target === null) throw new VelumError('INVALID_INPUT', 'Action impossible dans cet état');
       if (action === 'ship') {
-        // Sans intégration transporteur, la remise est datée à l'expédition :
-        // le délai d'auto-libération (ESCROW_RELEASE_DAYS) part de là.
-        return client.marketplace.advanceOrder(order.id, target, {
-          trackingNumber: tracking.trim(),
-          ...(carrier.trim().length > 0 ? { carrier: carrier.trim() } : {}),
-          deliveredAt: new Date().toISOString(),
-        });
+        if (shipment === undefined) throw new VelumError('INVALID_INPUT', 'Numéro de suivi requis');
+        // Suivi + transporteur seulement : la livraison est attestée par
+        // l'acheteur (ou le transporteur), jamais par le vendeur (guard_order_terms).
+        return client.marketplace.advanceOrder(order.id, target, shipment);
       }
       return client.marketplace.advanceOrder(order.id, target);
     },
-    onSuccess: (_updated, action) => {
+    onSuccess: (_updated, { action }) => {
       setPanel(null);
-      setTracking('');
-      setCarrier('');
       showToast(t(`community.order.done.${action}`), 'success');
       invalidate();
     },
@@ -131,28 +131,13 @@ export function OrderCard({ order }: { order: MarketOrder }) {
         .map((action) =>
           action === 'ship' ? (
             panel === 'ship' ? (
-              <View key={action} style={styles.panel}>
-                <VTextInput
-                  label={t('community.trackingLabel')}
-                  value={tracking}
-                  onChangeText={setTracking}
-                  placeholder="XY123456789FR"
-                  autoCapitalize="characters"
-                />
-                <VTextInput
-                  label={t('community.carrierLabel')}
-                  value={carrier}
-                  onChangeText={setCarrier}
-                  placeholder={t('community.carrierPlaceholder')}
-                />
-                <VButton
-                  label={t('community.confirmShip')}
-                  onPress={() => advance.mutate('ship')}
-                  disabled={tracking.trim().length === 0 || busy}
-                  loading={advance.isPending}
-                />
-                <VButton label={t('common.cancel')} variant="ghost" onPress={() => setPanel(null)} />
-              </View>
+              <ShipPanel
+                key={action}
+                onConfirm={(shipment) => advance.mutate({ action: 'ship', shipment })}
+                onCancel={() => setPanel(null)}
+                loading={advance.isPending}
+                disabled={busy}
+              />
             ) : (
               <VButton key={action} label={t('community.ship')} onPress={() => setPanel('ship')} />
             )
@@ -160,9 +145,9 @@ export function OrderCard({ order }: { order: MarketOrder }) {
             <VButton
               key={action}
               label={t(action === 'pay' ? 'community.pay' : 'community.confirmReceipt')}
-              onPress={() => advance.mutate(action)}
+              onPress={() => advance.mutate({ action })}
               disabled={busy}
-              loading={advance.isPending && advance.variables === action}
+              loading={advance.isPending && advance.variables?.action === action}
               accessibilityHint={action === 'pay' ? t('community.escrowHint') : t('community.confirmReceiptHint')}
             />
           ),
@@ -199,9 +184,9 @@ export function OrderCard({ order }: { order: MarketOrder }) {
             <VButton
               label={t('community.order.cancelYes')}
               variant="danger"
-              onPress={() => advance.mutate('cancel')}
+              onPress={() => advance.mutate({ action: 'cancel' })}
               disabled={busy}
-              loading={advance.isPending && advance.variables === 'cancel'}
+              loading={advance.isPending && advance.variables?.action === 'cancel'}
             />
             <VButton label={t('community.keep')} variant="ghost" onPress={() => setPanel(null)} />
           </View>

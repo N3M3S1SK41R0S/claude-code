@@ -333,6 +333,17 @@ function seedListings(): ListingRecord[] {
       status: 'sold',
       createdAt: '2026-07-21T09:00:00Z',
     }),
+    // Vendue, paiement sous séquestre : à moi d'expédier (commande demo-order-4).
+    listing({
+      id: 'demo-mine-5',
+      sellerId: DEMO_OWNER,
+      askPrice: 150,
+      kind: 'sale',
+      title: 'Château Lynch-Bages 2005',
+      domain: 'wine',
+      description: 'Cave enterrée, niveau haut épaule.',
+      createdAt: '2026-10-16T09:00:00Z',
+    }),
   ];
 }
 
@@ -391,6 +402,19 @@ function seedOrders(): DemoOrder[] {
       releasedAt: '2026-05-14T09:00:00Z',
       createdAt: '2026-05-05T09:00:00Z',
       listingTitle: 'Lot de 10 Semeuses camées',
+    },
+    // VENTE en cours : l'acheteur a payé, j'expédie avec le numéro de suivi.
+    {
+      ...base,
+      id: 'demo-order-4',
+      listingId: 'demo-mine-5',
+      buyerId: 'demo-seller-e',
+      sellerId: DEMO_OWNER,
+      amount: 150,
+      commissionRate: 0.05,
+      escrowState: 'funds_held',
+      createdAt: '2026-10-20T09:00:00Z',
+      listingTitle: 'Château Lynch-Bages 2005',
     },
   ];
 }
@@ -889,6 +913,12 @@ export function createDemoMarketplaceRepo(
       }
       const tracking = patch?.trackingNumber?.trim() ?? '';
       if (escrowState === 'shipped' && tracking.length === 0) invalid('Numéro de suivi requis');
+      // Miroir de guard_order_terms : la livraison est attestée par l'acheteur
+      // (ou le transporteur), jamais par le vendeur — elle déclencherait sinon
+      // l'auto-libération des fonds.
+      if (patch?.deliveredAt !== undefined && role !== 'buyer') {
+        invalid('Seul l’acheteur (ou le transporteur) atteste la livraison');
+      }
       o.escrowState = escrowState;
       if (patch?.carrier !== undefined) o.carrier = patch.carrier;
       if (tracking.length > 0) o.trackingNumber = tracking;

@@ -262,6 +262,41 @@ export function sortItemsForExchange(
   return [...items.filter((i) => i.domain === domain), ...items.filter((i) => i.domain !== domain)];
 }
 
+// ── Expédition ───────────────────────────────────────────────────────────────
+
+/**
+ * Transporteurs proposés à l'expédition : liste FERMÉE (pas de texte libre,
+ * donc aucun canal de coordonnées).
+ */
+export const MARKET_CARRIERS = ['La Poste', 'Colissimo', 'Chronopost', 'Mondial Relay', 'DHL', 'UPS', 'FedEx'] as const;
+export type MarketCarrier = (typeof MARKET_CARRIERS)[number];
+
+/**
+ * Numéro de suivi saisi → forme normalisée (blancs retirés, majuscules), ou
+ * null s'il ne ressemble pas à un numéro de suivi (4 à 40 lettres, chiffres
+ * ou tirets, au moins un chiffre) : une phrase, un e-mail ou un lien ne
+ * passent pas.
+ */
+export function normalizeTrackingNumber(raw: string): string | null {
+  const value = raw.replace(/\s+/g, '').toUpperCase();
+  return /^(?=.*[0-9])[A-Z0-9][A-Z0-9-]{3,39}$/.test(value) ? value : null;
+}
+
+/**
+ * Données envoyées au serveur pour déclarer une expédition : le suivi et le
+ * transporteur choisi, RIEN d'autre. Jamais de date de livraison : le serveur
+ * (guard_order_terms) la refuse au vendeur — seule la livraison attestée par
+ * l'acheteur ou le transporteur compte. null si le suivi est invalide.
+ */
+export function shipmentInput(
+  trackingInput: string,
+  carrier: MarketCarrier | null,
+): { trackingNumber: string; carrier?: MarketCarrier } | null {
+  const trackingNumber = normalizeTrackingNumber(trackingInput);
+  if (trackingNumber === null) return null;
+  return carrier !== null ? { trackingNumber, carrier } : { trackingNumber };
+}
+
 // ── Anonymat ─────────────────────────────────────────────────────────────────
 
 /**
