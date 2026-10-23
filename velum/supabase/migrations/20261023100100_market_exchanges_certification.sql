@@ -469,6 +469,46 @@ grant execute on function public.market_carriers() to authenticated, service_rol
 grant execute on function public.market_normalize_carrier(text) to authenticated, service_role;
 grant execute on function public.market_normalize_tracking(text) to authenticated, service_role;
 
+-- Rattrapage : suivis 0006 saisis en texte libre, lisibles par l'autre partie
+-- (guard_order_terms ne contrôle un suivi que lorsqu'il CHANGE : l'expédition
+-- reprendrait tel quel un texte ancien). Transporteur reconnu ⇒ nom canonique,
+-- sinon null (facultatif). Numéro conforme ⇒ normalisé ; non conforme ⇒ null
+-- tant que l'objet n'est pas expédié (le vendeur en fournira un conforme à
+-- l'expédition), sinon masqué (trace de l'envoi conservée, sans coordonnées).
+do $backfill_tracking$
+declare
+  v_prev text := public.market_system_begin();
+begin
+  update public.orders o
+  set carrier = t.canonical
+  from (
+    select o2.id,
+           (select c from unnest(public.market_carriers()) as c
+            where public.market_fold(c) = public.market_fold(btrim(o2.carrier))
+            limit 1) as canonical
+    from public.orders o2
+    where o2.carrier is not null
+  ) t
+  where t.id = o.id and o.carrier is distinct from t.canonical;
+
+  update public.orders o
+  set tracking_number = t.cleaned
+  from (
+    select o2.id,
+           case
+             when upper(regexp_replace(o2.tracking_number, '\s+', '', 'g')) ~ '^[A-Z0-9][A-Z0-9-]{3,39}$'
+               then upper(regexp_replace(o2.tracking_number, '\s+', '', 'g'))
+             when o2.escrow_state in ('pending_payment', 'funds_held') then null
+             else public.redact_contact_info(o2.tracking_number)
+           end as cleaned
+    from public.orders o2
+    where o2.tracking_number is not null
+  ) t
+  where t.id = o.id and o.tracking_number is distinct from t.cleaned;
+  perform public.market_system_end(v_prev);
+end
+$backfill_tracking$;
+
 -- Point d'entrée du trigger des annonces (exécuté avec l'identité du vendeur) :
 -- certification exigée ? rapport déjà obtenu ? Réservé au vendeur lui-même
 -- ou au code serveur (pas d'estimation d'autrui divulguée).
@@ -736,43 +776,85 @@ alter table public.listings drop constraint listings_item_id_fkey;
 alter table public.listings add constraint listings_item_id_fkey
   foreign key (item_id) references public.items (id) on delete set null;
 
--- Rattrapage avant les garde-fous ci-dessous (annonces 0006) : une seule
--- annonce OUVERTE par objet — on garde, par objet, l'annonce réservée s'il y
--- en a une, sinon la plus récente ; les autres sont retirées. Les annonces
--- ouvertes dans une autre devise que l'euro sont retirées (sauf transaction
--- en cours, qui se poursuit). Les commandes non payées d'une annonce qui n'est
--- plus publiée sont annulées (jamais capturables : enforce_escrow_transition).
+-- Prix plancher (EUR) d'une annonce : pas de vente fictive à 0 € (qui ferait
+-- baisser le taux de commission dégressif).
+create or replace function public.market_min_ask_price_eur()
+returns numeric language sql immutable as $$ select 1::numeric $$;
+
+-- Rattrapage avant les garde-fous ci-dessous (annonces 0006), dans cet ordre :
+--  1. les annonces ouvertes dans une autre devise que l'euro, ou sous le prix
+--     plancher, sont retirées (sauf transaction en cours, qui se poursuit) ;
+--  2. une seule annonce OUVERTE par objet parmi les restantes — on garde, par
+--     objet, la plus engagée : paiement capturé, puis commande en attente de
+--     paiement, puis publiée, puis en attente de certification, puis la plus
+--     récente ; les autres sont retirées ;
+--  3. les commandes non payées d'une annonce qui n'est plus publiée sont
+--     annulées (jamais capturables : enforce_escrow_transition).
+-- Chaque vendeur (annonce retirée) et chaque acheteur (commande annulée) est
+-- prévenu.
 do $backfill$
 declare
   v_prev text := public.market_system_begin();
+  r record;
 begin
-  with ranked as (
-    select l.id,
-           row_number() over (
-             partition by l.item_id
-             order by exists (
-                        select 1 from public.orders o
-                        where o.listing_id = l.id
-                          and o.escrow_state in ('funds_held', 'shipped', 'disputed')) desc,
-                      l.created_at desc,
-                      l.id) as rank
+  for r in
+    update public.listings l set status = 'withdrawn'
+    where l.status in ('draft', 'pending_certification', 'active')
+      and (l.currency is distinct from 'EUR'
+        or coalesce(l.ask_price, 0) < public.market_min_ask_price_eur())
+      and not public.listing_is_engaged(l.id)
+    returning l.seller_id, l.title, l.currency is distinct from 'EUR' as foreign_currency
+  loop
+    perform public.market_notify(r.seller_id, 'Annonce retirée',
+      case when r.foreign_currency then
+        format('Seul l’euro est désormais accepté : « %s » a été retirée ; republiez-la en euros.',
+          coalesce(r.title, 'votre objet'))
+      else
+        format('Prix minimum de %s € : « %s » a été retirée ; republiez-la à un prix d’au moins %s €.',
+          public.market_min_ask_price_eur(), coalesce(r.title, 'votre objet'),
+          public.market_min_ask_price_eur())
+      end);
+  end loop;
+
+  for r in
+    with ranked as (
+      select l.id,
+             row_number() over (
+               partition by l.item_id
+               order by exists (
+                          select 1 from public.orders o
+                          where o.listing_id = l.id
+                            and o.escrow_state in ('funds_held', 'shipped', 'disputed')) desc,
+                        exists (
+                          select 1 from public.orders o
+                          where o.listing_id = l.id and o.escrow_state = 'pending_payment') desc,
+                        (l.status = 'active') desc,
+                        (l.status = 'pending_certification') desc,
+                        l.created_at desc,
+                        l.id) as rank
+      from public.listings l
+      where l.item_id is not null and l.status in ('draft', 'pending_certification', 'active')
+    )
+    update public.listings l set status = 'withdrawn'
+    from ranked rk
+    where rk.id = l.id and rk.rank > 1
+    returning l.seller_id, l.title
+  loop
+    perform public.market_notify(r.seller_id, 'Annonce retirée',
+      format('Une seule annonce ouverte par objet est désormais admise : « %s » a été retirée au profit de votre autre annonce de cet objet.',
+        coalesce(r.title, 'votre objet')));
+  end loop;
+
+  for r in
+    update public.orders o set escrow_state = 'cancelled'
     from public.listings l
-    where l.item_id is not null and l.status in ('draft', 'pending_certification', 'active')
-  )
-  update public.listings l set status = 'withdrawn'
-  from ranked r
-  where r.id = l.id and r.rank > 1;
-
-  update public.listings l set status = 'withdrawn'
-  where l.currency is distinct from 'EUR'
-    and l.status in ('draft', 'pending_certification', 'active')
-    and not exists (
-      select 1 from public.orders o
-      where o.listing_id = l.id and o.escrow_state in ('funds_held', 'shipped', 'disputed'));
-
-  update public.orders o set escrow_state = 'cancelled'
-  from public.listings l
-  where l.id = o.listing_id and l.status <> 'active' and o.escrow_state = 'pending_payment';
+    where l.id = o.listing_id and l.status <> 'active' and o.escrow_state = 'pending_payment'
+    returning o.buyer_id, l.title
+  loop
+    perform public.market_notify(r.buyer_id, 'Commande annulée',
+      format('L’annonce « %s » n’est plus publiée : votre commande en attente de paiement est annulée.',
+        coalesce(r.title, 'objet')));
+  end loop;
   perform public.market_system_end(v_prev);
 end
 $backfill$;
@@ -793,11 +875,10 @@ create unique index listings_one_open_per_item_idx on public.listings (item_id)
 -- (table nouvelle). Pas de CHECK sur les tables historiques : une ligne 0006
 -- dans une autre devise, engagée dans une transaction, bloquerait sinon
 -- chaque mise à jour — dont l'auto-libération groupée (release_due_orders).
-
--- Prix plancher (EUR) d'une annonce : pas de vente fictive à 0 € (qui ferait
--- baisser le taux de commission dégressif).
-create or replace function public.market_min_ask_price_eur()
-returns numeric language sql immutable as $$ select 1::numeric $$;
+-- Une annonce 0006 épargnée par le rattrapage parce qu'engagée (autre devise,
+-- prix sous le plancher) n'est jamais exposée aux autres membres
+-- (market_catalogue, market_listing), et toute nouvelle transaction la
+-- refuse (set_order_defaults, set_exchange_defaults).
 
 -- Une autre annonce OUVERTE existe-t-elle pour cet objet ? (lecture hors RLS ;
 -- ne renseigne que le propriétaire de l'objet, ou le code serveur).
@@ -1126,6 +1207,11 @@ begin
     raise exception 'Seul l''euro (EUR) est accepté sur les plateformes d''échange et de vente'
       using errcode = 'P0001';
   end if;
+  -- Annonce 0006 sous le prix plancher (épargnée car engagée, puis libérée).
+  if coalesce(v_listing.ask_price, 0) < public.market_min_ask_price_eur() then
+    raise exception 'Annonce non disponible (prix inférieur au minimum de % €)',
+      public.market_min_ask_price_eur() using errcode = 'P0001';
+  end if;
   -- Défense en profondeur : objet dont la dernière décision d'expert est un
   -- refus (le refus dépublie déjà ses annonces ; jamais de vente sans
   -- nouvelle certification).
@@ -1370,6 +1456,12 @@ begin
   end if;
   if v_listing.kind not in ('exchange', 'sale_or_exchange') then
     raise exception 'Cette annonce n''est pas ouverte à l''échange' using errcode = 'P0001';
+  end if;
+  -- Annonce 0006 dans une autre devise : refus explicite (la contrainte CHECK
+  -- exchange_proposals_currency_eur ne donnerait qu'une violation brute).
+  if v_listing.currency is distinct from 'EUR' then
+    raise exception 'Seul l''euro (EUR) est accepté sur les plateformes d''échange et de vente'
+      using errcode = 'P0001';
   end if;
   if new.proposer_id = v_listing.seller_id then
     raise exception 'On ne peut pas proposer un échange sur sa propre annonce' using errcode = 'P0001';

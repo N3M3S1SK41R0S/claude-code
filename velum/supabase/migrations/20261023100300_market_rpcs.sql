@@ -213,6 +213,10 @@ begin
   where l.status = 'active'
     -- Vendeur dont l'abonnement Platine a expiré : annonce plus proposée.
     and public.can_list_on_marketplace(l.seller_id)
+    -- Annonce 0006 épargnée par le rattrapage (autre devise, prix sous le
+    -- plancher) : jamais proposée (achat et échange la refusent).
+    and l.currency = 'EUR'
+    and l.ask_price >= public.market_min_ask_price_eur()
     and (coalesce(p_include_mine, false) or l.seller_id <> v_uid)
     and (p_domain is null or l.domain = p_domain)
     and (p_mode is null
@@ -238,9 +242,11 @@ $$;
 -- y compris HORS catalogue pour ses parties : réservée, suspendue, vendue,
 -- échangée ou retirée, elle reste consultable par son vendeur, par l'acheteur
 -- d'une de ses commandes et par les parties d'un échange qui la vise. Pour
--- les autres membres : annonce publiée d'un vendeur Platine uniquement, et
--- offre Platine requise (VL402). Aucune ligne si l'annonce n'existe pas ou
--- n'est pas visible (jamais d'identifiant de membre ni d'objet).
+-- les autres membres : mêmes règles que le catalogue — annonce publiée d'un
+-- vendeur Platine, NON réservée (paiement capturé ou échange accepté par un
+-- autre membre), en euros et au moins au prix plancher — et offre Platine
+-- requise (VL402). Aucune ligne si l'annonce n'existe pas ou n'est pas
+-- visible (jamais d'identifiant de membre ni d'objet).
 create or replace function public.market_listing(p_id uuid)
 returns table (
   id uuid,
@@ -280,7 +286,11 @@ begin
       select 1 from public.exchange_proposals e
       where e.listing_id = v_listing.id and v_uid in (e.proposer_id, e.recipient_id));
   if not v_party then
-    if v_listing.status <> 'active' or not public.can_list_on_marketplace(v_listing.seller_id) then
+    if v_listing.status <> 'active'
+       or not public.can_list_on_marketplace(v_listing.seller_id)
+       or public.listing_is_engaged(v_listing.id)
+       or v_listing.currency is distinct from 'EUR'
+       or coalesce(v_listing.ask_price, 0) < public.market_min_ask_price_eur() then
       return;
     end if;
     perform public._market_require_platine();

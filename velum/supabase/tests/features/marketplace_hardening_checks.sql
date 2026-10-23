@@ -14,7 +14,7 @@
 --   X6  suivi et transporteur : vendeur seul, à l'expédition, format contrôlé ;
 --       expédition SANS date de livraison (posée par l'acheteur / le transporteur) ;
 --   X7  litiges : écriture via la RPC uniquement ;
---   X8  devise : euro uniquement ;
+--   X8  devise : euro uniquement ; prix plancher (catalogue, achat) ;
 --   X9  seuil : max des estimations VELUM récentes (à défaut, la dernière
 --       estimation passée), dates futures ignorées ;
 --   X10 prix plancher et paliers de commission (commandes libérées réelles) ;
@@ -22,6 +22,7 @@
 --   X12 annonce certifiée : suppression interdite (historique d'expertise) ;
 --   X13 fin d'abonnement Platine : annonces retirées, actions refusées ;
 --   X14 market_listing() : annonce par identifiant, anonymisée, hors catalogue ;
+--       annonce réservée invisible d'un tiers ;
 --   X16 expédition du vendeur avec date de livraison : P0001 ; sans date, elle passe.
 -- ─────────────────────────────────────────────────────────────────────────────
 
@@ -792,10 +793,44 @@ begin
   perform public._mkh_expect_error(
     $q$update public.listings set status = 'active' where id = 'a3000000-0000-4000-8000-000000000006'$q$,
     '%euro%');
+  -- Proposition d'échange : refus métier explicite (P0001), jamais la
+  -- violation brute de la contrainte CHECK (23514).
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  begin
+    perform public.propose_exchange(
+      'a3000000-0000-4000-8000-000000000007', '92000000-0000-4000-8000-000000000003', 200);
+    raise exception 'X8 : proposition d''échange sur une annonce en USD acceptée';
+  exception when others then
+    if sqlstate <> 'P0001' or sqlerrm not like '%euro%' then
+      raise exception 'X8 : refus explicite (P0001, euro) attendu, vu % — %', sqlstate, sqlerrm;
+    end if;
+  end;
+  -- Dans le catalogue ni par identifiant (tiers), une annonce hors euro n'apparaît pas.
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  select count(*) into v_count from public.market_catalogue()
+  where id = 'a3000000-0000-4000-8000-000000000007';
+  if v_count <> 0 then raise exception 'X8 : annonce hors euro au catalogue'; end if;
+  select count(*) into v_count from public.market_listing('a3000000-0000-4000-8000-000000000007');
+  if v_count <> 0 then raise exception 'X8 : annonce hors euro visible d''un tiers'; end if;
   reset role;
   perform set_config('session_replication_role', 'replica', true);
   update public.listings set currency = 'EUR'
   where id in ('a3000000-0000-4000-8000-000000000006', 'a3000000-0000-4000-8000-000000000007');
+  -- Annonce historique sous le prix plancher : ni proposée, ni achetable.
+  update public.listings set ask_price = 0.5 where id = 'a3000000-0000-4000-8000-000000000007';
+  perform set_config('session_replication_role', 'origin', true);
+  set local role authenticated;
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  select count(*) into v_count from public.market_catalogue()
+  where id = 'a3000000-0000-4000-8000-000000000007';
+  if v_count <> 0 then raise exception 'X8 : annonce sous le prix plancher au catalogue'; end if;
+  select count(*) into v_count from public.market_listing('a3000000-0000-4000-8000-000000000007');
+  if v_count <> 0 then raise exception 'X8 : annonce sous le prix plancher visible d''un tiers'; end if;
+  perform public._mkh_expect_error(
+    $q$select * from public.market_buy('a3000000-0000-4000-8000-000000000007')$q$, '%minimum%');
+  reset role;
+  perform set_config('session_replication_role', 'replica', true);
+  update public.listings set ask_price = 210 where id = 'a3000000-0000-4000-8000-000000000007';
   perform set_config('session_replication_role', 'origin', true);
 
   set local role authenticated;
@@ -812,7 +847,7 @@ begin
   perform public._mkh_expect_error(
     $q$update public.listings set currency = 'USD' where id = 'a3000000-0000-4000-8000-000000000007'$q$,
     '%euro%');
-  raise notice 'OK X8 — devise : euro uniquement (annonces, commandes, échanges)';
+  raise notice 'OK X8 — devise : euro uniquement, prix plancher (annonces, catalogue, commandes, échanges)';
 end
 $$;
 
@@ -1055,11 +1090,15 @@ end
 $$;
 
 -- ── X14. market_listing() : annonce par identifiant, hors catalogue ─────────
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000022', '81000000-0000-4000-8000-000000000001', 'coin', 'Écu de six livres 1726');
+
 do $$
 declare
   v_row record;
   v_result text;
   v_count integer;
+  v_order uuid;
 begin
   v_result := pg_get_function_result('public.market_listing(uuid)'::regprocedure);
   if v_result like '%seller_id%' or v_result like '%item_id%' or v_result like '%buyer_id%' then
@@ -1099,6 +1138,26 @@ begin
   -- Identifiant inconnu : aucune ligne (jamais d'erreur trompeuse).
   select count(*) into v_count from public.market_listing(gen_random_uuid());
   if v_count <> 0 then raise exception 'X14 : identifiant inconnu ⇒ aucune ligne attendue'; end if;
+  -- Annonce RÉSERVÉE (paiement capturé par Bruno) : invisible d'un tiers,
+  -- comme dans le catalogue ; visible de l'acheteur et du vendeur.
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a1400000-0000-4000-8000-000000000022', '91000000-0000-4000-8000-000000000022',
+     '81000000-0000-4000-8000-000000000001', 150);
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select id into v_order from public.market_buy('a1400000-0000-4000-8000-000000000022');
+  perform public.advance_market_order(v_order, 'funds_held');
+  select count(*) into v_count from public.market_listing('a1400000-0000-4000-8000-000000000022');
+  if v_count <> 1 then raise exception 'X14 : annonce réservée invisible de son acheteur'; end if;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select count(*) into v_count from public.market_listing('a1400000-0000-4000-8000-000000000022');
+  if v_count <> 1 then raise exception 'X14 : annonce réservée invisible de son vendeur'; end if;
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  select count(*) into v_count from public.market_catalogue()
+  where id = 'a1400000-0000-4000-8000-000000000022';
+  if v_count <> 0 then raise exception 'X14 : annonce réservée au catalogue'; end if;
+  select count(*) into v_count from public.market_listing('a1400000-0000-4000-8000-000000000022');
+  if v_count <> 0 then raise exception 'X14 : annonce réservée visible d''un tiers'; end if;
   -- Hors Platine : une annonce publiée exige l'offre ; sans session : refus.
   perform set_config('velum.uid', '84000000-0000-4000-8000-000000000004', true);
   perform public._mkh_expect_error(
@@ -1106,7 +1165,7 @@ begin
   perform set_config('velum.uid', '', true);
   perform public._mkh_expect_error(
     $q$select * from public.market_listing('a3000000-0000-4000-8000-000000000007')$q$, 'VL401');
-  raise notice 'OK X14 — market_listing : annonce par identifiant, anonymisée, visible des seules parties hors catalogue';
+  raise notice 'OK X14 — market_listing : annonce par identifiant, anonymisée ; réservée ou hors catalogue, visible des seules parties';
 end
 $$;
 

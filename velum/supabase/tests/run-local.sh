@@ -3,6 +3,8 @@
 # Validation SQL locale sans Docker : rejoue TOUTES les migrations VELUM sur un
 # PostgreSQL 16 nu (stub des schémas Supabase), puis le seed et les tests de
 # comportement (RLS, quota, Platine, Storage, purge RGPD, alertes idempotentes).
+# Enfin, une base intermédiaire (nom de la base suivi de « _upgrade ») éprouve
+# les rattrapages des données historiques 0006 (supabase/tests/upgrade/).
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 cd "$(dirname "$0")/../.."
@@ -122,6 +124,49 @@ for feature_checks in supabase/tests/features/*.sql; do
   run_sql_file "tests ${feature_checks##*/}" "$feature_checks"
 done
 shopt -u nullglob
+
+# Rattrapages des données historiques (0006) : ils ne s'exécutent qu'une fois,
+# sur des lignes que la base fraîche ci-dessus n'a pas. Seconde base : les
+# migrations jusqu'au niveau 0006 (UPGRADE_BASELINE), les données de
+# supabase/tests/upgrade/legacy_0006_data.sql, puis les migrations suivantes
+# et leurs contrôles (legacy_0006_checks.sql).
+UPGRADE_DB="${DB}_upgrade"
+UPGRADE_BASELINE=20260717161000
+: >"$COMMAND_LOG"
+if ! "${PG_RUN[@]}" dropdb --if-exists "$UPGRADE_DB" >"$COMMAND_LOG" 2>&1 \
+   || ! "${PG_RUN[@]}" createdb "$UPGRADE_DB" >>"$COMMAND_LOG" 2>&1; then
+  record_failure "création de la base intermédiaire (rattrapages 0006)" "$COMMAND_LOG"
+  cat "$COMMAND_LOG" >&2
+  exit 1
+fi
+PSQL=("${PG_RUN[@]}" psql -v ON_ERROR_STOP=1 -q -d "$UPGRADE_DB")
+echo "· base intermédiaire $UPGRADE_DB : stub Supabase"
+run_sql_file "stub Supabase (base intermédiaire)" supabase/tests/supabase_stub.sql
+legacy_loaded=false
+for plan_entry in "${MIGRATION_PLAN[@]}"; do
+  IFS=$'\t' read -r action migration_path <<<"$plan_entry"
+  migration_name=${migration_path##*/}
+  migration_version=${migration_name%%_*}
+  if [[ $legacy_loaded == false && ${#migration_version} -eq 14 \
+        && $migration_version > $UPGRADE_BASELINE ]]; then
+    echo "· base intermédiaire : données 0006"
+    run_sql_file "données 0006 (base intermédiaire)" supabase/tests/upgrade/legacy_0006_data.sql
+    legacy_loaded=true
+  fi
+  if [[ $action == apply ]]; then
+    echo "· base intermédiaire : migration $migration_name"
+    run_sql_file "migration $migration_name (base intermédiaire)" "$migration_path"
+  fi
+done
+if [[ $legacy_loaded == false ]]; then
+  printf 'Aucune migration postérieure à %s : rattrapages 0006 non éprouvés\n' \
+    "$UPGRADE_BASELINE" >"$COMMAND_LOG"
+  record_failure "base intermédiaire (rattrapages 0006)" "$COMMAND_LOG"
+  cat "$COMMAND_LOG" >&2
+  exit 1
+fi
+echo "· tests des rattrapages 0006"
+run_sql_file "tests des rattrapages 0006" supabase/tests/upgrade/legacy_0006_checks.sql
 
 rm -f "$COMMAND_LOG" "$PLAN_FILE" "$DIAGNOSTIC_FILE"
 
