@@ -102,7 +102,7 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
   const myCertifications = useMyCertifications();
   const myExchanges = useMyExchanges();
   // Objet déjà annoncé ou déjà cédé (miroir d'enforce_listing_rules) : pas de publication.
-  const block = myListings.data ? itemMarketBlock(item.id, myListings.data) : null;
+  const block = myListings.data ? itemMarketBlock(item.id, myListings.data, myExchanges.data ?? []) : null;
   const alreadyCertified = itemCertifiedByExpert(
     item,
     myListings.data ?? [],
@@ -406,8 +406,10 @@ function SellContent() {
     enabled: itemId !== null,
   });
   // Mes annonces d'abord : un objet déjà annoncé ou déjà cédé est désactivé
-  // (avec son motif) plutôt que proposé puis refusé par le serveur.
+  // (avec son motif) plutôt que proposé puis refusé par le serveur. Mes
+  // échanges complètent (objet cédé en l'offrant) sans retarder la liste.
   const myListings = useMyListings();
+  const myExchanges = useMyExchanges();
 
   return (
     <Screen title={t('community.sellForm.title')} backFallback={routes.community()}>
@@ -430,7 +432,7 @@ function SellContent() {
                 preferredDomain={domain}
                 label={t('community.sellForm.pick')}
                 blockReason={(item) => {
-                  const block = itemMarketBlock(item.id, listings);
+                  const block = itemMarketBlock(item.id, listings, myExchanges.data ?? []);
                   return block === null ? null : t(BLOCK_PICKER_KEY[block.reason]);
                 }}
               />

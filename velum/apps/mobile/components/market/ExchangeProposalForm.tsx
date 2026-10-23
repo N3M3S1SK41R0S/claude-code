@@ -203,7 +203,7 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
           // Objet déjà cédé (vente ou échange conclu) ou refusé par un expert :
           // le serveur refuse de le proposer (set_exchange_defaults).
           blockReason={(candidate) =>
-            itemMarketBlock(candidate.id, myListings.data ?? [])?.reason === 'ceded'
+            itemMarketBlock(candidate.id, myListings.data ?? [], myExchanges.data ?? [])?.reason === 'ceded'
               ? t('community.picker.blockedCeded')
               : rejectedByExpert(candidate)
                 ? t('community.picker.blockedRejected')

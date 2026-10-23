@@ -516,6 +516,24 @@ describe('objet non remettable en vente (miroir d’enforce_listing_rules)', () 
     expect(itemMarketBlock('', [l('l-1', '', 'sold')])).toBeNull();
     expect(itemMarketBlock('it-1', [])).toBeNull();
   });
+
+  it('objet cédé en l’OFFRANT dans un échange conclu (_market_item_ceded)', () => {
+    const ex = (state: ExchangeState, role: 'proposer' | 'recipient', offeredItemId: string | null) => ({
+      listingId: 'theirs-1',
+      role,
+      state,
+      offeredItemId,
+    });
+    expect(itemMarketBlock('it-1', [], [ex('completed', 'proposer', 'it-1')])).toEqual({
+      reason: 'ceded',
+      listingId: 'theirs-1',
+    });
+    // Échange non conclu, autre objet, rôle destinataire ou identifiant inconnu : rien.
+    expect(itemMarketBlock('it-1', [], [ex('shipping', 'proposer', 'it-1')])).toBeNull();
+    expect(itemMarketBlock('it-1', [], [ex('completed', 'proposer', 'it-2')])).toBeNull();
+    expect(itemMarketBlock('it-1', [], [ex('completed', 'recipient', null)])).toBeNull();
+    expect(itemMarketBlock('it-1', [], [ex('completed', 'proposer', null)])).toBeNull();
+  });
 });
 
 describe('objet déjà certifié (la certification suit l’objet, miroir de _market_item_certification_ref)', () => {

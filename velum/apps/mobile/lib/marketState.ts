@@ -642,19 +642,25 @@ export interface ItemMarketBlock {
 
 /**
  * Objet de MA collection qui ne peut pas être (re)mis en vente — miroir des
- * refus d'enforce_listing_rules d'après mes annonces : déjà CÉDÉ (annonce
- * vendue ou échangée) ou déjà une annonce OUVERTE (brouillon, en attente
- * d'expertise, publiée). Un objet cédé ne s'offre pas non plus à l'échange.
- * Seules mes annonces sont connues ici (un échange conclu où j'ai OFFERT
- * l'objet n'en expose pas l'identifiant) : le serveur reste l'arbitre.
+ * refus d'enforce_listing_rules (_market_item_ceded) : déjà CÉDÉ (annonce
+ * vendue ou échangée, ou échange conclu où je l'ai OFFERT — reconnu par
+ * offeredItemId quand le dépôt le fournit) ou déjà une annonce OUVERTE
+ * (brouillon, en attente d'expertise, publiée). Un objet cédé ne s'offre pas
+ * non plus à l'échange. Le serveur reste l'arbitre.
  */
 export function itemMarketBlock(
   itemId: string,
   listings: readonly Pick<ListingRecord, 'id' | 'itemId' | 'status'>[],
+  exchanges: readonly Pick<ExchangeProposal, 'listingId' | 'role' | 'state' | 'offeredItemId'>[] = [],
 ): ItemMarketBlock | null {
   const ofItem = listings.filter((l) => l.itemId !== '' && l.itemId === itemId);
   const ceded = ofItem.find((l) => CEDED_LISTING.has(l.status));
   if (ceded) return { reason: 'ceded', listingId: ceded.id };
+  const offeredAway = exchanges.find(
+    (e) => e.role === 'proposer' && e.state === 'completed' && e.offeredItemId === itemId,
+  );
+  // Annonce visée par l'échange : consultable par les parties (market_listing).
+  if (offeredAway) return { reason: 'ceded', listingId: offeredAway.listingId };
   const open = ofItem.find((l) => OPEN_LISTING.has(l.status));
   return open ? { reason: 'openListing', listingId: open.id } : null;
 }
