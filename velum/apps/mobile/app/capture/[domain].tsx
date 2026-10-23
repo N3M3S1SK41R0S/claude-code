@@ -324,8 +324,9 @@ export default function CaptureModal() {
         </View>
       ) : null}
 
-      {/* En scan éclair photo, la prise de vue lance l'identification : pas de bouton en plus. */}
-      {mode === 'full' || tab !== 'photo' ? (
+      {/* En scan éclair photo, la prise de vue lance l'identification ; le bouton ne sert
+          qu'à relancer après un échec (photo déjà prise). */}
+      {mode === 'full' || tab !== 'photo' || media.length > 0 ? (
         <View style={styles.analyze}>
           <VButton
             label={pending ? t('capture.analyzing') : t('capture.analyze')}

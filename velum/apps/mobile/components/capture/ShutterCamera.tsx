@@ -15,6 +15,9 @@ import { errorMessage } from '../../lib/errors';
 import { showToast } from '../../stores/toastStore';
 import { WebCamera } from '../WebCamera';
 
+/** Photos importées d'un coup depuis la galerie (mode série). */
+const MAX_GALLERY_SELECTION = 12;
+
 export interface CapturedShot {
   /** Data URL JPEG (envoyée à la reconnaissance, clé du téléversement). */
   dataUrl: string;
@@ -76,7 +79,8 @@ export function ShutterCamera({
         base64: true,
         quality,
         allowsMultipleSelection: multipleGallery,
-        ...(multipleGallery ? { selectionLimit: 30 } : {}),
+        // Borne mémoire : chaque photo est gardée en base64 jusqu'à son identification.
+        ...(multipleGallery ? { selectionLimit: MAX_GALLERY_SELECTION } : {}),
       });
       if (result.canceled) return;
       for (const asset of result.assets ?? []) {

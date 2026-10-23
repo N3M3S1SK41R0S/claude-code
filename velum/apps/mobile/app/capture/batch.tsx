@@ -46,6 +46,7 @@ import {
   displayOrder,
   effectiveCandidate,
   nextToRun,
+  photosInUse,
   reliableRows,
   supportsSheet,
   unsavedCount,
@@ -108,6 +109,7 @@ export default function BatchCapture() {
   const stateRef = useRef(state);
   stateRef.current = state;
   const tracker = useRef(createUploadTracker(uploadCaptureMedia)).current;
+  const trackedPhotos = useRef(new Set<string>());
   const inFlight = useRef(new Set<string>());
   const savingIds = useRef(new Set<string>());
   const idSeq = useRef(0);
@@ -157,6 +159,16 @@ export default function BatchCapture() {
     }
   };
 
+  // Mémoire bornée : une photo qu'aucune ligne en cours n'utilise est oubliée.
+  useEffect(() => {
+    const inUse = photosInUse(state);
+    for (const photo of trackedPhotos.current) {
+      if (inUse.has(photo)) continue;
+      tracker.forget(photo);
+      trackedPhotos.current.delete(photo);
+    }
+  }, [state, tracker]);
+
   useEffect(() => {
     if (quotaBlocked || aiConsent !== true) return;
     for (const id of nextToRun(state, BATCH_CONCURRENCY, inFlight.current)) {
@@ -188,6 +200,7 @@ export default function BatchCapture() {
       media: [{ role: sheet ? 'detail' : PRIMARY_ROLE[domain], base64: shot.dataUrl }],
     });
     // Téléversement immédiat : la reconnaissance ne l'attend pas, l'enregistrement s'en sert.
+    trackedPhotos.current.add(shot.dataUrl);
     void tracker.start(shot.dataUrl).then((path) => {
       if (path) dispatch({ type: 'uploaded', photo: shot.dataUrl, storagePath: path });
     });

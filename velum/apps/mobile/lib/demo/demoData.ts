@@ -4,23 +4,26 @@
  * ces dernières calculées par le VRAI moteur §7 (@velum/valuation). Tout est
  * en mémoire ; rien ne part sur le réseau.
  */
+import type {
+  AlertRecord,
+  AnalysisResult,
+  Candidate,
+  CaptureInput,
+  PriceObservation,
+  RecognitionResult,
+  ValuationResult,
+  VelumDomain,
+  VelumItem,
+} from '@velum/core';
+import { valuate as runValuation } from '@velum/valuation';
+// Scan éclair et mode classeur (reconnaissance démo).
 import {
   ASSISTED_ENTRY_THRESHOLD,
   VelumError,
-  type AlertRecord,
-  type AnalysisResult,
-  type Candidate,
-  type CaptureInput,
-  type PriceObservation,
   type QuickEstimate,
-  type RecognitionResult,
   type SheetDetection,
   type SheetRecognitionResult,
-  type ValuationResult,
-  type VelumDomain,
-  type VelumItem,
 } from '@velum/core';
-import { valuate as runValuation } from '@velum/valuation';
 
 export const DEMO_OWNER = 'demo-user';
 

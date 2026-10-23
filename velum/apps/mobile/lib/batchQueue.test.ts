@@ -12,6 +12,7 @@ import {
   isBinderFirst,
   isReliable,
   nextToRun,
+  photosInUse,
   reliableRows,
   statusForCandidates,
   supportsSheet,
@@ -219,6 +220,36 @@ describe('ordre d’affichage et lignes restantes', () => {
     ]);
     expect(displayOrder(state).map((r) => r.id)).toEqual(['b', 'p-0', 'p-1', 'p-2', 'a']);
     expect(row(state, 'p-1').groupId).toBe('p');
+  });
+
+  it('une ligne enregistrée libère sa photo ; une photo de planche reste tant qu’un objet en dépend', () => {
+    const detections: SheetDetection[] = [0, 1].map((index) => ({
+      index,
+      candidates: [candidate(`t${index}`, 0.8)],
+      needsAssistedEntry: false,
+    }));
+    let state = run([
+      shot('a'),
+      { type: 'start', id: 'a' },
+      { type: 'recognized', id: 'a', candidates: [candidate('x', 0.9)] },
+      { type: 'enqueue', id: 'p', source: 'sheet', media: [{ role: 'detail', base64: 'data:p' }] },
+      { type: 'start', id: 'p' },
+      { type: 'sheetRecognized', id: 'p', detections, truncated: false },
+    ]);
+    expect([...photosInUse(state)].sort()).toEqual(['data:a', 'data:p']);
+    state = run(
+      [
+        { type: 'saving', id: 'a' },
+        { type: 'saved', id: 'a', itemId: 'i-a' },
+        { type: 'saving', id: 'p-0' },
+        { type: 'saved', id: 'p-0', itemId: 'i-p0' },
+      ],
+      state,
+    );
+    expect(row(state, 'a').media).toEqual([{ role: 'front' }]);
+    expect([...photosInUse(state)]).toEqual(['data:p']);
+    state = run([{ type: 'skip', id: 'p-1' }, { type: 'remove', id: 'p-1' }], state);
+    expect(photosInUse(state).size).toBe(0);
   });
 
   it('compte ce qui serait perdu en quittant (ni enregistré, ni ignoré)', () => {

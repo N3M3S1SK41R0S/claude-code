@@ -294,7 +294,9 @@ export function batchReducer(state: BatchState, action: BatchAction): BatchState
       return updateRow(state, action.id, (row) => {
         if (row.status !== 'saving') return null;
         const { previousStatus: _drop, ...rest } = row;
-        return { ...rest, status: 'saved', itemId: action.itemId };
+        // La photo est rattachée à l'objet : la ligne n'a plus besoin de la garder en mémoire.
+        const media = row.media.map(({ base64: _photo, ...kept }) => kept);
+        return { ...rest, media, status: 'saved', itemId: action.itemId };
       });
 
     case 'saveFailed':
@@ -325,6 +327,19 @@ export function displayOrder(state: BatchState): BatchRow[] {
   return [...state.rows].sort((a, b) =>
     a.groupSeq !== b.groupSeq ? b.groupSeq - a.groupSeq : a.seq - b.seq,
   );
+}
+
+/**
+ * Photos encore utiles (data URL des lignes non enregistrées) : les autres
+ * peuvent être oubliées par le suivi des téléversements — la mémoire reste
+ * bornée aux lignes en cours, même sur une longue série.
+ */
+export function photosInUse(state: BatchState): Set<string> {
+  const photos = new Set<string>();
+  for (const row of state.rows) {
+    for (const media of row.media) if (media.base64 !== undefined) photos.add(media.base64);
+  }
+  return photos;
 }
 
 /** Lignes encore à traiter avant de quitter (rien n'est perdu en silence). */
