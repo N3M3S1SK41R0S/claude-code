@@ -10,8 +10,10 @@
 >
 > Sources de vérité : règles pures `packages/config/src/marketplace.ts` (répliquées
 > à l'identique en SQL), contrats `packages/core/src/market.ts` et `items.ts`,
-> schéma `supabase/migrations/20261023100000…100400_*.sql`, client
-> `packages/api-client/src/marketplace.ts`. Tests : `supabase/tests/features/marketplace_checks.sql`.
+> schéma `supabase/migrations/20261023100000…100400_*.sql` et `20261023130000…132000_*.sql`
+> (garde de l'offre, estimations serveur, paliers de commission), client
+> `packages/api-client/src/marketplace.ts`. Tests : `supabase/tests/features/marketplace_checks.sql`
+> et `marketplace_hardening_checks.sql` (contournements rejoués et refusés).
 
 ## 1. Décisions verrouillées
 
@@ -25,18 +27,26 @@
    - **> 500 €** : l'**expert / coffre partenaire devient le tiers de confiance** —
      il **authentifie**, puis l'objet circule assuré (remise contre signature).
 3. **Certification AVANT publication au-delà du seuil** : toute annonce dont la
-   **valeur de référence = max(prix demandé ou valeur déclarée, dernière
-   estimation VELUM)** dépasse **strictement 500 €** est retenue en
-   `pending_certification` jusqu'à la décision de l'expert ; un faux n'atteint
-   **jamais** le catalogue. Badge « **authentifié VELUM** » une fois certifiée.
-   Sous-déclarer ne contourne pas le seuil : l'estimation compte.
+   **valeur de référence = max(prix demandé ou valeur déclarée, plus haute
+   estimation VELUM des 18 derniers mois)** dépasse **strictement 500 €** est
+   retenue en `pending_certification` jusqu'à la décision de l'expert ; un faux
+   n'atteint **jamais** le catalogue. Badge « **authentifié VELUM** » une fois
+   certifiée. Sous-déclarer ne contourne pas le seuil : l'estimation compte. Les
+   estimations sont écrites par le **serveur seul** (`valuate` après contrôle de
+   propriété, `price-cron`) ; une estimation basse postérieure (candidat
+   trompeur soumis à `valuate`) ne masque pas une estimation haute récente, une
+   date future est ignorée. Limite assumée : un objet **jamais estimé** n'est
+   jugé que sur son prix déclaré.
 4. **Libération du séquestre automatique à J+X après livraison prouvée** (suivi
    transporteur ; remise contre signature pour le high-value), **sauf litige**.
    X = `escrow_release_days()` = 5 jours. Le silence de l'acheteur ne bloque pas
    le vendeur ; le faux « non reçu » est cassé par la preuve de remise.
 5. **Commission dégressive (5 % → 2 %) prélevée à la conclusion**, jamais à la
    mise en ligne ; taux **figé** (sur l'annonce à sa création, sur la commande à
-   l'achat, sur l'échange à l'acceptation).
+   l'achat, sur l'échange à l'acceptation). Le palier ne compte que des ventes
+   **réelles** : commandes **libérées** d'au moins **20 €**, **3 au plus par
+   acheteur** (`commission_qualifying_sales`) — des ventes fictives à 0 € entre
+   comptes complices ne font plus baisser le taux.
 
 ### Décisions tranchées en octobre 2026
 
@@ -45,9 +55,14 @@
 | Frais du rail high-value | **Vendeur** quand la certification est imposée par le seuil (`defaultCertificationFeePayer('threshold')`) ; **partagés** sur accord mutuel (`'split'`, moitié arrondie au centime pour le propriétaire de l'objet) ; le demandeur peut proposer `seller`/`buyer`, l'autre partie accepte les termes. |
 | Commission d'un échange | Chaque partie paie **son** taux dégressif sur la **valeur déclarée de l'objet qu'elle cède** (symétrique d'une vente). La **soulte n'est pas commissionnée**. |
 | Soulte | Bornée : `|soulte| ≤ max(valeurs déclarées)` — un échange porte d'abord sur des biens (sinon : vente déguisée hors commission). |
-| Réservation | Une annonce est réservée dès le **paiement capturé** (`funds_held`) ou l'**échange accepté** — premier payé, premier servi ; une commande non payée ne bloque personne. |
+| Réservation | Une annonce est réservée dès le **paiement capturé** (`funds_held`) ou l'**échange accepté** — premier payé, premier servi ; une commande non payée ne bloque personne. **Une seule annonce ouverte par objet** (index unique) : un objet unique ne se paie pas deux fois, ni ne se paie et s'échange en même temps. |
+| Capture du paiement | Revérifie l'annonce : toujours **publiée**, au **même prix**, en euros, ouverte à la vente. Toute suspension (certification exigée par une nouvelle estimation), dépublication ou modification des termes **annule** les commandes non payées. |
+| Objet cédé | Un objet vendu ou cédé dans un échange conclu ne se **remet plus en vente** et ne s'**offre plus à l'échange** (il reste dans la collection du cédant, sans lui appartenir). |
+| Devise, prix | **Euro uniquement** (seuil, commissions et registre en EUR) ; prix ou valeur déclarée **1 € minimum**. |
+| Suivi d'expédition | Lisible par l'autre partie : écrit par le **seul expéditeur, à l'expédition**, jamais réécrit ; transporteur choisi dans une **liste fermée** (`market_carriers()` / `MARKET_CARRIERS`) ou absent ; numéro `[A-Z0-9-]`, 4 à 40 caractères — jamais un texte libre (canal de coordonnées). |
+| Fin d'abonnement Platine | Annonces publiées ou en attente de certification **retirées** (les transactions en cours se poursuivent), propositions en attente retirées ; plus de (re)publication, d'acceptation d'échange ni de demande de certification sur annonce (`VL402`) ; annonces d'un vendeur hors Platine absentes du catalogue et non achetables. L'offre n'est écrite que par le serveur (webhook RevenueCat). |
 | Attestation de livraison | **Acheteur ou transporteur** uniquement (`record_order_delivery`), jamais le vendeur — sinon il déclencherait lui-même l'auto-libération des fonds. |
-| Refus de l'expert | Annonce **non publiée** (retour en brouillon), commande annulée (remboursement **STRIPE**), échange annulé. |
+| Refus de l'expert | **Quel que soit le contexte** (seuil, volontaire, commande, échange) : transaction annulée (remboursement **STRIPE**), puis **toute annonce ouverte de l'objet** repasse en brouillon et ses propositions d'échange en attente sont retirées. Le refus est **mémorisé** sur l'objet : republier exige une nouvelle certification, même sous le seuil ; l'objet ne s'offre plus à l'échange. |
 | Publication | Le **serveur** décide : une annonce créée sans statut naît `active`, ou `pending_certification` si le seuil l'exige. Le client ne déclare jamais un badge ni un taux. |
 
 ## 2. Plateformes par catégorie
@@ -62,8 +77,16 @@ Le **catalogue** (`market_catalogue`) filtre par catégorie, mode (vente :
 texte (titre + description + souhaits, chaque mot requis, **insensible à la
 casse et aux accents** via `unaccent`), fourchette de prix, certifiées
 seulement, inclusion de mes annonces, tri (récent, prix ↑, prix ↓) et limite
-bornée (1..100, défaut 50). Seules les annonces `active` et non réservées y
-figurent.
+bornée (1..100, défaut 50). Seules les annonces `active`, non réservées,
+d'un vendeur Platine y figurent ; l'ordre « récent » suit une date de
+publication **posée par le serveur**.
+
+`market_listing(id)` (`getListing` côté client) renvoie **une** annonce, mêmes
+colonnes anonymisées que le catalogue, y compris **hors catalogue** (réservée,
+suspendue, vendue, échangée, retirée) pour ses **seules parties** : vendeur,
+acheteur d'une de ses commandes, parties d'un échange qui la vise. Pour les
+autres membres : annonce publiée d'un vendeur Platine, offre Platine requise.
+Aucune ligne (`null`) si l'annonce n'existe pas ou n'est pas visible.
 
 Cycle d'une annonce :
 
@@ -76,7 +99,10 @@ draft ⇄ active ⇄ pending_certification          (serveur : seuil de certific
 
 - Le vendeur ne peut ni passer une annonce en `sold`/`exchanged`, ni modifier
   statut, prix ou nature d'une annonce **engagée** (commande payée ou échange
-  accepté en cours), ni supprimer une annonce ayant un historique de transactions.
+  accepté en cours), ni supprimer une annonce ayant un historique de
+  transactions ou d'expertise (engagée ou décidée) — il la retire.
+- Une seule annonce ouverte (`draft`, `pending_certification`, `active`) par
+  objet ; un objet déjà cédé ne se réannonce pas.
 - Une **nouvelle estimation** au-delà du seuil fait repasser une annonce publiée
   non certifiée en `pending_certification` (le vendeur est notifié).
 - Un objet engagé dans une transaction en cours ne peut pas être supprimé ;
@@ -96,14 +122,18 @@ pending_payment ─► funds_held ─► shipped ─► released      (heureux)
 
 | Transition | Acteur |
 |---|---|
-| `pending_payment → funds_held` | acheteur (**STRIPE** capture) — refusée si l'annonce a été réservée entre-temps |
-| `pending_payment / funds_held → cancelled` | acheteur ou vendeur (avant expédition) |
-| `funds_held → shipped` | vendeur, **suivi requis**, **bloquée tant qu'une certification est ouverte** |
+| `pending_payment → funds_held` | acheteur (**STRIPE** capture) — refusée si l'annonce a été réservée entre-temps, ou n'est plus celle qui a été commandée (statut, prix, devise, nature) |
+| `pending_payment / funds_held → cancelled` | acheteur ou vendeur (avant expédition) ; système quand l'annonce change avant paiement |
+| `funds_held → shipped` | vendeur, **suivi requis** (format contrôlé, transporteur de la liste ou aucun), **sans date de livraison** (posée par l'acheteur ou le transporteur), **bloquée tant qu'une certification est ouverte** |
 | `funds_held / shipped → disputed` | acheteur |
 | `shipped → released` | acheteur, ou système (auto-libération `release_due_orders`, **STRIPE** payout) |
 | `disputed → released / refunded` | système (`resolve_dispute`, service_role) |
 
 Prix, commission et parties sont **figés** (privilèges de colonnes + trigger).
+Le suivi n'est écrit qu'à l'expédition, par le vendeur. Un litige ne s'ouvre
+que par `open_order_dispute` (aucune écriture directe dans `disputes` : un
+litige forgé « déjà arbitré », ou fantôme bloquant l'auto-libération, est
+impossible).
 
 ### 3.2 Échange (`exchange_proposals`)
 
@@ -117,7 +147,7 @@ proposed ─► accepted ─► awaiting_certification ─► shipping ─► co
 
 | Transition | Acteur |
 |---|---|
-| `proposed → accepted / declined` | destinataire (vendeur de l'annonce) |
+| `proposed → accepted / declined` | destinataire (vendeur de l'annonce) ; accepter exige l'offre Platine |
 | `proposed → withdrawn` | auteur de la proposition |
 | `proposed → expired` | système (`expire_stale_exchanges`, 7 jours) |
 | `accepted → awaiting_certification / shipping` | système, immédiatement : certification exigée ou non |
@@ -181,7 +211,11 @@ L'expert partenaire agit via des fonctions **service_role** :
 `assign_certification_expert(id, frais)` puis
 `decide_certification(id, certifié, rapport, avis, frais)` — comme
 `resolve_dispute`. Une certification obtenue **suit l'objet** : une nouvelle
-annonce du même objet par le même propriétaire naît certifiée.
+annonce du même objet par le même propriétaire naît certifiée — **seulement**
+si c'est la dernière décision d'expert sur l'objet et que son **titre public et
+sa catégorie sont inchangés** (renommer un objet certifié ne lui transmet pas le
+badge). Un **refus** dépublie l'objet quel que soit le contexte et reste
+mémorisé : toute republication passe par une nouvelle certification.
 
 ## 6. Commissionnement transparent
 
@@ -191,8 +225,13 @@ annonce du même objet par le même propriétaire naît certifiée.
 - **Registre** `platform_ledger` (lecture : le membre concerné uniquement),
   alimenté par triggers, idempotent (`member_id, kind, source_key`) :
   `commission`, `certification_fee`, `payout` (net de vente, soulte reçue).
-- `my_commission_summary()` : taux actuel, ventes conclues, totaux du registre
-  (`fetchCommissionSummary()` côté client).
+- `my_commission_summary()` : taux actuel, ventes **retenues pour le palier**
+  (commandes libérées ≥ 20 €, 3 au plus par acheteur), totaux du registre
+  (`fetchCommissionSummary()` côté client — base du palier à afficher).
+- Montants affichés et registre concordent **au centime** : `roundCents`
+  arrondit le demi-centime au supérieur, comme `round(numeric, 2)` en SQL
+  (vecteurs partagés : 20,70 € × 5 % = 1,04 € ; frais de 2,01 € partagés en
+  1,01 € / 1,00 €).
 
 ## 7. Surface API
 
@@ -201,14 +240,18 @@ méthodes câblées sur les RPC ci-dessous.
 
 | Lecture | Action (client) | Système (service_role) |
 |---|---|---|
-| `market_catalogue`, `member_reputation(alias)` *(Platine)* | `market_buy`, `advance_market_order`, `open_order_dispute` | `assign_certification_expert`, `decide_certification` |
+| `market_catalogue`, `market_listing(id)`, `member_reputation(alias)` *(Platine)* | `market_buy`, `advance_market_order`, `open_order_dispute` | `assign_certification_expert`, `decide_certification` |
 | `my_market_orders`, `my_exchanges`, `my_certifications` | `propose_exchange`, `respond_exchange`, `withdraw_exchange`, `cancel_exchange`, `ship_exchange`, `confirm_exchange_receipt`, `dispute_exchange` | `record_order_delivery`, `record_exchange_delivery` (transporteur) |
 | `thread_messages`, `my_market_alias`, `my_commission_summary` | `request_certification`, `respond_certification`, `cancel_certification`, `send_market_message` | `resolve_dispute`, `resolve_exchange_dispute`, `release_due_orders`, `expire_stale_exchanges`, `complete_due_exchanges` |
 
-Codes d'erreur SQL → `VelumError` : `P0001` (règle métier) → `INVALID_INPUT`
-avec le motif serveur en français ; `VL402` → `PLAN_REQUIRED` ;
-`VL401`/`42501` → `UNAUTHORIZED` ; panne réseau / service →
-`SOURCE_UNAVAILABLE`. Un refus n'est jamais présenté comme une panne.
+Codes d'erreur SQL → `VelumError` : `P0001` (règle métier), `22003` (montant
+hors `numeric(14,2)`), `22001` (texte trop long) → `INVALID_INPUT` avec le
+motif serveur en français ; `VL402` → `PLAN_REQUIRED` ; `VL401`/`42501` →
+`UNAUTHORIZED` ; panne réseau / service → `SOURCE_UNAVAILABLE`. Un refus n'est
+jamais présenté comme une panne. Le client refuse aussi localement (sans appel)
+un montant > `MARKET_MAX_AMOUNT`, une devise ≠ EUR, un prix < 1 €, un
+transporteur inconnu ou un numéro de suivi hors format (`normalizeCarrier`,
+`normalizeTrackingNumber`).
 
 Planification (`20261023100400_market_cron.sql`, gardée par pg_cron) : toutes
 les heures, `expire_stale_exchanges`, `complete_due_exchanges`,
