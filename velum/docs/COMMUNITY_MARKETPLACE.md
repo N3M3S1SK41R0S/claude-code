@@ -229,10 +229,16 @@ sa catégorie sont inchangés** (renommer un objet certifié ne lui transmet pas
 badge). La même règle est **recalculée** à toute (re)publication ou
 réouverture par le vendeur (retirée → brouillon ou publiée, brouillon →
 publiée) : une annonce ne garde jamais un badge que la dernière décision ou le
-contenu de l'objet démentent. Deux décisions ex aequo (même horodatage) : le
-refus l'emporte. Un **refus** annule toute transaction non expédiée sur
-l'objet, le dépublie quel que soit le motif ou le contexte et reste mémorisé :
-toute republication passe par une nouvelle certification.
+contenu de l'objet démentent. Cette (re)publication **recopie d'abord** le
+contenu public de l'objet (titre expurgé, catégorie) dans l'annonce, avant le
+calcul : l'annonce montre l'objet tel qu'il sera expertisé, et la demande
+« seuil » enregistre son titre **actuel** — un objet renommé avant sa
+certification garde donc son badge aux republications suivantes ; renommé
+après, il exige **une** nouvelle expertise, une seule (le titre d'une demande
+n'est jamais réécrit à la décision de l'expert). Deux décisions ex aequo (même
+horodatage) : le refus l'emporte. Un **refus** annule toute transaction non
+expédiée sur l'objet, le dépublie quel que soit le motif ou le contexte et
+reste mémorisé : toute republication passe par une nouvelle certification.
 
 ## 6. Commissionnement transparent
 

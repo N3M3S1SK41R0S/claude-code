@@ -11,6 +11,8 @@
 --   X4  objet cédé (vente ou échange conclu) : plus de remise en vente ;
 --   X5  certification liée au CONTENU certifié (titre, catégorie),
 --       recalculée à la republication ;
+--   X5b (re)publication : titre et catégorie de l'objet recopiés dans
+--       l'annonce avant le calcul (la demande enregistre le titre actuel) ;
 --   X6  suivi et transporteur : vendeur seul, à l'expédition, format contrôlé ;
 --       expédition SANS date de livraison (posée par l'acheteur / le transporteur) ;
 --   X7  litiges : écriture via la RPC uniquement ;
@@ -681,6 +683,132 @@ begin
       v_status, v_ref;
   end if;
   raise notice 'OK X5 — certification liée au contenu certifié (titre, catégorie), recalculée à la republication';
+end
+$$;
+
+-- ── X5b. (Re)publication : contenu public de l'objet RECOPIÉ dans l'annonce ──
+-- La demande de certification enregistre le titre ACTUEL de l'objet. Objet
+-- renommé entre la création du brouillon et la certification : retraits et
+-- republications gardent le badge, sans nouvelle demande. Objet renommé
+-- APRÈS la certification : exactement UNE nouvelle expertise, puis les
+-- republications suivantes restent publiées et certifiées. Deux transactions
+-- (horodatages de décision distincts).
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000025', '81000000-0000-4000-8000-000000000001', 'art', 'Vase de Gallé');
+
+do $$
+declare
+  v_cert uuid;
+  v_status text;
+  v_ref text;
+  v_title text;
+  v_count integer;
+begin
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price, status) values
+    ('a5b00000-0000-4000-8000-000000000025', '91000000-0000-4000-8000-000000000025',
+     '81000000-0000-4000-8000-000000000001', 800, 'draft');
+  -- Objet renommé après la création du brouillon, avant sa publication.
+  update public.items set title = 'Vase de Gallé aux nénuphars'
+  where id = '91000000-0000-4000-8000-000000000025';
+  update public.listings set status = 'active' where id = 'a5b00000-0000-4000-8000-000000000025'
+  returning status, title into v_status, v_title;
+  if v_status <> 'pending_certification' or v_title is distinct from 'Vase de Gallé aux nénuphars' then
+    raise exception 'X5b : publication ⇒ attente de certification et titre actuel de l''objet attendus (% / %)',
+      v_status, v_title;
+  end if;
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select id, item_title into v_cert, v_title from public.certification_requests
+  where listing_id = 'a5b00000-0000-4000-8000-000000000025' and status = 'requested';
+  if v_title is distinct from 'Vase de Gallé aux nénuphars' then
+    raise exception 'X5b : la demande enregistre le titre actuel de l''objet attendu, vu %', v_title;
+  end if;
+  perform public.decide_certification(v_cert, true, 'expertises/alice/galle-r1.pdf', 'Authentique');
+  if public._market_item_certification_ref('91000000-0000-4000-8000-000000000025',
+       '81000000-0000-4000-8000-000000000001') is distinct from 'expertises/alice/galle-r1.pdf' then
+    raise exception 'X5b : certification suivie par l''objet attendue juste après la décision';
+  end if;
+
+  -- Retirée → publiée, puis brouillon → publiée : badge conservé, aucune demande.
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  update public.listings set status = 'withdrawn' where id = 'a5b00000-0000-4000-8000-000000000025';
+  update public.listings set status = 'active' where id = 'a5b00000-0000-4000-8000-000000000025'
+  returning status, expert_appraisal_ref into v_status, v_ref;
+  if v_status <> 'active' or v_ref is distinct from 'expertises/alice/galle-r1.pdf' then
+    raise exception 'X5b : retirée → publiée ⇒ publiée et certifiée attendue (% / %)', v_status, v_ref;
+  end if;
+  update public.listings set status = 'draft' where id = 'a5b00000-0000-4000-8000-000000000025';
+  update public.listings set status = 'active' where id = 'a5b00000-0000-4000-8000-000000000025'
+  returning status, expert_appraisal_ref into v_status, v_ref;
+  if v_status <> 'active' or v_ref is distinct from 'expertises/alice/galle-r1.pdf' then
+    raise exception 'X5b : brouillon → publiée ⇒ publiée et certifiée attendue (% / %)', v_status, v_ref;
+  end if;
+  reset role;
+  select count(*) into v_count from public.certification_requests
+  where listing_id = 'a5b00000-0000-4000-8000-000000000025';
+  if v_count <> 1 then
+    raise exception 'X5b : aucune nouvelle expertise attendue (% demande(s))', v_count;
+  end if;
+end
+$$;
+
+do $$
+declare
+  v_cert uuid;
+  v_status text;
+  v_ref text;
+  v_title text;
+  v_count integer;
+begin
+  -- Objet renommé APRÈS la certification : une nouvelle expertise, une seule.
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  update public.items set title = 'Vase de Gallé aux nénuphars, vers 1900'
+  where id = '91000000-0000-4000-8000-000000000025';
+  update public.listings set status = 'withdrawn' where id = 'a5b00000-0000-4000-8000-000000000025';
+  update public.listings set status = 'active' where id = 'a5b00000-0000-4000-8000-000000000025'
+  returning status, expert_appraisal_ref, title into v_status, v_ref, v_title;
+  if v_status <> 'pending_certification' or v_ref is not null
+     or v_title is distinct from 'Vase de Gallé aux nénuphars, vers 1900' then
+    raise exception 'X5b : objet renommé après certification ⇒ attente, sans badge, titre actuel attendus (% / % / %)',
+      v_status, v_ref, v_title;
+  end if;
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select id, item_title into v_cert, v_title from public.certification_requests
+  where listing_id = 'a5b00000-0000-4000-8000-000000000025' and status = 'requested';
+  if v_title is distinct from 'Vase de Gallé aux nénuphars, vers 1900' then
+    raise exception 'X5b : nouvelle demande au titre actuel de l''objet attendue, vu %', v_title;
+  end if;
+  perform public.decide_certification(v_cert, true, 'expertises/alice/galle-r2.pdf', 'Authentique');
+
+  -- Republications suivantes : publiées et certifiées, sans autre demande.
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  update public.listings set status = 'withdrawn' where id = 'a5b00000-0000-4000-8000-000000000025';
+  update public.listings set status = 'active' where id = 'a5b00000-0000-4000-8000-000000000025'
+  returning status, expert_appraisal_ref into v_status, v_ref;
+  if v_status <> 'active' or v_ref is distinct from 'expertises/alice/galle-r2.pdf' then
+    raise exception 'X5b : retirée → publiée après la nouvelle certification ⇒ publiée et certifiée attendue (% / %)',
+      v_status, v_ref;
+  end if;
+  update public.listings set status = 'draft' where id = 'a5b00000-0000-4000-8000-000000000025';
+  update public.listings set status = 'active' where id = 'a5b00000-0000-4000-8000-000000000025'
+  returning status, expert_appraisal_ref into v_status, v_ref;
+  if v_status <> 'active' or v_ref is distinct from 'expertises/alice/galle-r2.pdf' then
+    raise exception 'X5b : brouillon → publiée après la nouvelle certification ⇒ publiée et certifiée attendue (% / %)',
+      v_status, v_ref;
+  end if;
+  reset role;
+  select count(*) into v_count from public.certification_requests
+  where listing_id = 'a5b00000-0000-4000-8000-000000000025';
+  if v_count <> 2 then
+    raise exception 'X5b : exactement une nouvelle expertise attendue (% demande(s) au total)', v_count;
+  end if;
+  raise notice 'OK X5b — (re)publication : titre de l''objet recopié, badge conservé, une seule nouvelle expertise après renommage';
 end
 $$;
 

@@ -910,6 +910,8 @@ declare
   v_trusted boolean := public.market_trusted_actor();
   v_required boolean;
   v_report_ref text;
+  v_title text;
+  v_domain public.velum_domain;
   -- Création, ou retour d'un statut clos (retirée) vers un statut ouvert.
   v_opening boolean := new.status in ('draft', 'active', 'pending_certification')
     and (tg_op = 'INSERT' or old.status not in ('draft', 'active', 'pending_certification'));
@@ -941,7 +943,9 @@ begin
           using errcode = 'P0001';
       end if;
       -- Colonnes calculées par le serveur : toute valeur client est ignorée
-      -- (le badge « authentifié VELUM » ne se déclare pas, il vient d'un expert).
+      -- (le badge « authentifié VELUM » ne se déclare pas, il vient d'un
+      -- expert ; titre et catégorie sont recopiés de l'objet à la
+      -- (re)publication, plus bas).
       new.commission_rate := old.commission_rate;
       new.title := old.title;
       new.domain := old.domain;
@@ -1011,6 +1015,22 @@ begin
     if public._market_item_has_open_listing(new.item_id, new.id) then
       raise exception 'Cet objet a déjà une annonce ouverte : retirez-la d''abord'
         using errcode = 'P0001';
+    end if;
+  end if;
+
+  -- (Re)publication ou réouverture par le client : le contenu public de
+  -- l'objet (titre expurgé, catégorie) est d'abord RECOPIÉ dans l'annonce,
+  -- comme à la création (set_listing_display). L'annonce montre l'objet tel
+  -- qu'il sera expertisé, et la demande « seuil » (listing_after_change)
+  -- enregistre ce titre — celui que _market_item_certification_ref compare
+  -- au titre actuel de l'objet. Lecture sous RLS (le vendeur possède l'objet) :
+  -- objet illisible ⇒ affichage inchangé (jamais de titre effacé).
+  if tg_op = 'UPDATE' and not v_trusted and v_publishing and new.item_id is not null then
+    select public.redact_contact_info(i.title), i.domain into v_title, v_domain
+    from public.items i where i.id = new.item_id;
+    if found then
+      new.title := v_title;
+      new.domain := v_domain;
     end if;
   end if;
 
