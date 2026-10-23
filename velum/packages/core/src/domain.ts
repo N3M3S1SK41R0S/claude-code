@@ -245,12 +245,18 @@ export const QUICK_SCAN_OUTPUT_RULES = `Scan éclair — réponse COMPACTE et ra
 - "classification" : 2 à 4 niveaux, du plus général au plus précis.
 - "confidence" entre 0 et 1, HONNÊTE : en cas de doute, baisse-la.`;
 
+/** « 1,200 » / « 1.200 » : 1,2 en français, 1 200 en anglais — ambigu, donc refusé. */
+const THOUSANDS_SEPARATED = /^[1-9]\d{0,2}(?:[.,]\d{3})+$/;
+/** Montant décimal simple (« 12 », « 12.5 », « 12,50 ») : ni signe, ni exposant, ni hexadécimal. */
+const PLAIN_DECIMAL = /^\d+(?:[.,]\d+)?$/;
+
 function toFiniteAmount(value: unknown): number | null {
   if (typeof value === 'number') return Number.isFinite(value) ? value : null;
   if (typeof value === 'string') {
-    const normalized = value.trim().replace(/\s/g, '').replace(',', '.').replace(/€$/, '');
-    if (normalized === '') return null;
-    const parsed = Number(normalized);
+    // Les espaces (y compris insécables) sont des séparateurs de milliers sûrs : « 1 200 € ».
+    const normalized = value.trim().replace(/\s/g, '').replace(/€$/, '');
+    if (THOUSANDS_SEPARATED.test(normalized) || !PLAIN_DECIMAL.test(normalized)) return null;
+    const parsed = Number(normalized.replace(',', '.'));
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
@@ -262,10 +268,12 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
 
 /**
  * Coercition DÉFENSIVE d'une fourchette proposée par le modèle. Renvoie
- * `undefined` (jamais une valeur inventée) si : montants non numériques ou
- * négatifs, haut nul, devise autre que l'euro, valeur au-delà du plafond du
- * domaine, ou fourchette si large qu'elle n'informe plus. Bornes inversées →
- * remises dans l'ordre. Arrondi au centime.
+ * `undefined` (jamais une valeur inventée) si : montants non numériques,
+ * ambigus (« 1,200 ») ou négatifs, haut nul (après arrondi au centime), devise
+ * autre que l'euro, valeur au-delà du plafond du domaine, ou fourchette si
+ * large qu'elle n'informe plus (rapport haut / bas, la borne basse comptant
+ * pour au moins 1 € : « 0 – 900 000 € » est écartée, « 0 – 2 € » gardée).
+ * Bornes inversées → remises dans l'ordre. Arrondi au centime.
  */
 export function coerceQuickEstimate(
   raw: unknown,
@@ -288,13 +296,15 @@ export function coerceQuickEstimate(
   const a = toFiniteAmount(lowRaw);
   const b = toFiniteAmount(highRaw);
   if (a === null || b === null || a < 0 || b < 0) return undefined;
-  const low = Math.min(a, b);
-  const high = Math.max(a, b);
+  const cents = (n: number) => Math.round(n * 100) / 100;
+  // Contrôles sur les valeurs ARRONDIES : ce sont elles qui seront affichées.
+  const low = cents(Math.min(a, b));
+  const high = cents(Math.max(a, b));
   const maxEur = options.maxEur ?? QUICK_ESTIMATE_DEFAULT_MAX_EUR;
   if (high <= 0 || high > maxEur) return undefined;
-  if (low > 0 && high / low > QUICK_ESTIMATE_MAX_SPREAD) return undefined;
-  const cents = (n: number) => Math.round(n * 100) / 100;
-  return { low: cents(low), high: cents(high), currency: 'EUR' };
+  const floor = low > 0 ? low : 1;
+  if (high / floor > QUICK_ESTIMATE_MAX_SPREAD) return undefined;
+  return { low, high, currency: 'EUR' };
 }
 
 /**
