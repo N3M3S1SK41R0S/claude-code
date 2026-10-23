@@ -608,10 +608,11 @@ export interface DemoMarketplaceOptions {
   now?: () => string;
   /**
    * Estimation VELUM de RÉFÉRENCE d'un objet (EUR) — comme
-   * _market_reference_value, la plus haute des 18 derniers mois (nom
-   * historique) : le seuil d'expertise porte sur max(prix, estimation). Le
-   * scan éclair (`attributes.quickEstimate`) n'est PAS une valorisation et
-   * n'est pas lu (le serveur ne le lit pas non plus).
+   * _market_reference_value, la plus haute des 18 derniers mois, à défaut la
+   * dernière estimation passée (nom historique ; lib/marketForms
+   * `referenceEstimate`) : le seuil d'expertise porte sur max(prix,
+   * estimation). Le scan éclair (`attributes.quickEstimate`) n'est PAS une
+   * valorisation et n'est pas lu (le serveur ne le lit pas non plus).
    */
   latestValuation?: (itemId: string) => number | null;
 }

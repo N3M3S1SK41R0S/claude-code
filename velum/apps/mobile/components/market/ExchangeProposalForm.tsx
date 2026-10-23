@@ -63,8 +63,9 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
 
   const itemId = item?.id ?? '';
   // Historique des estimations : la plus RÉCENTE pré-remplit la valeur ; la
-  // plus HAUTE des 18 derniers mois (dates futures ignorées) décide du seuil
-  // d'expertise de mon objet, comme le serveur (_market_reference_value).
+  // plus HAUTE des 18 derniers mois (à défaut, la dernière passée ; dates
+  // futures ignorées) décide du seuil d'expertise de mon objet, comme le
+  // serveur (_market_reference_value).
   const history = useQuery({
     queryKey: ['valuations', itemId, 'history'],
     queryFn: () => client.valuations.history(itemId),

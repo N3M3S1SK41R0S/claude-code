@@ -72,8 +72,8 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
   const locale = i18n.language;
 
   // Historique des estimations : la plus RÉCENTE pré-remplit le prix ; la plus
-  // HAUTE des 18 derniers mois (dates futures ignorées) décide du seuil
-  // d'expertise, comme le serveur (_market_reference_value).
+  // HAUTE des 18 derniers mois (à défaut, la dernière passée ; dates futures
+  // ignorées) décide du seuil d'expertise, comme le serveur (_market_reference_value).
   const history = useQuery({
     queryKey: ['valuations', item.id, 'history'],
     queryFn: () => client.valuations.history(item.id),
