@@ -15,7 +15,8 @@
 --       expédition SANS date de livraison (posée par l'acheteur / le transporteur) ;
 --   X7  litiges : écriture via la RPC uniquement ;
 --   X8  devise : euro uniquement ;
---   X9  seuil : max des estimations VELUM récentes, dates futures ignorées ;
+--   X9  seuil : max des estimations VELUM récentes (à défaut, la dernière
+--       estimation passée), dates futures ignorées ;
 --   X10 prix plancher et paliers de commission (commandes libérées réelles) ;
 --   X11 date de publication posée par le serveur ;
 --   X12 annonce certifiée : suppression interdite (historique d'expertise) ;
@@ -817,12 +818,19 @@ $$;
 
 -- ── X9. Seuil : max des estimations VELUM récentes, dates futures ignorées ───
 -- Écritures « service » (valuate / price-cron) : une estimation basse
--- postérieure (candidat trompeur) ne masque pas l'estimation haute récente.
+-- postérieure (candidat trompeur) ne masque pas l'estimation haute récente ;
+-- sans estimation dans la fenêtre de 18 mois, la DERNIÈRE estimation passée
+-- compte (quel que soit son âge) ; une estimation récente dans la fenêtre
+-- l'emporte sur une ancienne.
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000017', '81000000-0000-4000-8000-000000000001', 'art', 'Plaque Lalique aux moineaux');
 insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, sources, valued_at) values
   ('91000000-0000-4000-8000-000000000011', 5000, 4500, 5500, 4000, 6000, 70, '[]', now() - interval '2 days'),
   ('91000000-0000-4000-8000-000000000011', 100, 90, 110, 80, 120, 40, '[]', now() - interval '1 hour'),
   ('91000000-0000-4000-8000-000000000012', 5000, 4500, 5500, 4000, 6000, 70, '[]', now() + interval '1 year'),
-  ('91000000-0000-4000-8000-000000000013', 5000, 4500, 5500, 4000, 6000, 70, '[]', now() - interval '2 years');
+  ('91000000-0000-4000-8000-000000000013', 5000, 4500, 5500, 4000, 6000, 70, '[]', now() - interval '2 years'),
+  ('91000000-0000-4000-8000-000000000017', 5000, 4500, 5500, 4000, 6000, 70, '[]', now() - interval '2 years'),
+  ('91000000-0000-4000-8000-000000000017', 100, 90, 110, 80, 120, 40, '[]', now() - interval '1 month');
 
 do $$
 declare
@@ -850,11 +858,21 @@ begin
   if v_status <> 'active' then
     raise exception 'X9 : estimation datée dans le futur ignorée attendue, vu %', v_status;
   end if;
+  -- Seule estimation : 5 000 € il y a 2 ans (hors fenêtre) ⇒ elle compte
+  -- (price-cron n'écrit rien sans observation : pas de sous-déclaration).
   insert into public.listings (item_id, seller_id, ask_price)
   values ('91000000-0000-4000-8000-000000000013', '81000000-0000-4000-8000-000000000001', 400)
   returning status into v_status;
+  if v_status <> 'pending_certification' then
+    raise exception 'X9 : seule estimation (2 ans, 5 000 €) ⇒ pending_certification attendu, vu %', v_status;
+  end if;
+  -- Ancienne estimation haute, puis récente basse DANS la fenêtre ⇒ la
+  -- récente seule compte : l'objet a perdu de sa valeur.
+  insert into public.listings (item_id, seller_id, ask_price)
+  values ('91000000-0000-4000-8000-000000000017', '81000000-0000-4000-8000-000000000001', 400)
+  returning status into v_status;
   if v_status <> 'active' then
-    raise exception 'X9 : estimation périmée (2 ans) ignorée attendue, vu %', v_status;
+    raise exception 'X9 : estimation récente basse dans la fenêtre ⇒ active attendu, vu %', v_status;
   end if;
   -- Supprimer un objet efface toujours ses estimations (cascade référentielle).
   delete from public.items where id = '91000000-0000-4000-8000-000000000013';
@@ -862,7 +880,7 @@ begin
   if exists (select 1 from public.valuations where item_id = '91000000-0000-4000-8000-000000000013') then
     raise exception 'X9 : estimations d''un objet supprimé conservées';
   end if;
-  raise notice 'OK X9 — seuil : max des estimations VELUM récentes, écrites par le serveur seul';
+  raise notice 'OK X9 — seuil : max des estimations VELUM récentes (à défaut, la dernière), écrites par le serveur seul';
 end
 $$;
 

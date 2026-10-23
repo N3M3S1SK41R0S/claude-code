@@ -3,8 +3,9 @@
 -- ----------------------------------------------------------------------------
 -- Règles métier (source : packages/config/src/marketplace.ts) :
 --  - CERTIFICATION obligatoire quand la valeur de référence
---    max(prix demandé ou valeur déclarée, plus haute estimation VELUM récente)
---    DÉPASSE listing_appraisal_threshold_eur() (500 €) : on ne contourne pas le seuil
+--    max(prix demandé ou valeur déclarée, plus haute estimation VELUM récente
+--    — à défaut, dernière estimation passée) DÉPASSE
+--    listing_appraisal_threshold_eur() (500 €) : on ne contourne pas le seuil
 --    en sous-déclarant. L'annonce naît (ou repasse) en 'pending_certification'
 --    et une demande 'threshold' (frais : vendeur) est ouverte d'office ; elle
 --    n'est JAMAIS 'active' sans certification obtenue. Sous le seuil :
@@ -276,12 +277,15 @@ create trigger disputes_set_defaults
 create or replace function public.market_valuation_window()
 returns interval language sql immutable as $$ select interval '18 months' $$;
 
--- Valeur de référence d'un objet : max(valeur déclarée, PLUS HAUTE estimation
--- VELUM récente). Les estimations sont écrites par le serveur seul (valuate,
--- price-cron — migration 20261023131000), mais valuate estime un candidat
--- fourni par le client : une estimation basse postérieure (candidat
--- trompeur) ne masque donc pas une estimation haute récente. Une date
--- future (invalide) ou trop ancienne est ignorée.
+-- Valeur de référence d'un objet : max(valeur déclarée, M), M = PLUS HAUTE
+-- estimation VELUM récente (fenêtre ci-dessus). Les estimations sont écrites
+-- par le serveur seul (valuate, price-cron — migration 20261023131000), mais
+-- valuate estime un candidat fourni par le client : une estimation basse
+-- postérieure (candidat trompeur) ne masque donc pas une estimation haute
+-- récente. À DÉFAUT d'estimation dans la fenêtre, M = la dernière estimation
+-- passée, quel que soit son âge (price-cron n'écrit rien sans observation :
+-- une estimation ancienne n'est pas une raison de lever le seuil). Une date
+-- future (invalide) est ignorée ; sans estimation, M = 0.
 create or replace function public._market_reference_value(p_item uuid, p_value numeric)
 returns numeric
 language sql
@@ -291,12 +295,21 @@ set search_path = public
 as $$
   select greatest(
     coalesce(p_value, 0),
-    coalesce((
-      select max(v.central) from public.valuations v
-      where v.item_id = p_item
-        and v.valued_at <= now()
-        and v.valued_at > now() - public.market_valuation_window()
-    ), 0)
+    coalesce(
+      (
+        select max(v.central) from public.valuations v
+        where v.item_id = p_item
+          and v.valued_at <= now()
+          and v.valued_at > now() - public.market_valuation_window()
+      ),
+      (
+        select v.central from public.valuations v
+        where v.item_id = p_item
+          and v.valued_at <= now()
+        order by v.valued_at desc, v.central desc
+        limit 1
+      ),
+      0)
   )
 $$;
 
