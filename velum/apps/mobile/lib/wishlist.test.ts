@@ -582,4 +582,38 @@ describe('formulaire', () => {
     );
     expect(moved.ok && moved.input.attributes).toEqual({ country: 'France' });
   });
+
+  it('buildWishlistInput en modification : l’idée du sommelier garde son plat et ses styles', () => {
+    // Idée enregistrée par le sommelier de cave (attributs hors identité du domaine).
+    const idea: WishlistEntry = {
+      ...TEMPIER,
+      kind: 'idea',
+      title: 'Rhône nord, Bandol',
+      notes: null,
+      attributes: { pairingDish: 'agneau', styles: ['Rhône nord', 'Bandol'] },
+    };
+    const edited = buildWishlistInput({ ...formFromEntry(idea), notes: 'pour agneau rôti' }, idea);
+    expect(edited.ok && edited.input.attributes).toEqual({ pairingDish: 'agneau', styles: ['Rhône nord', 'Bandol'] });
+  });
+
+  it('buildWishlistInput en modification : retire la fiche, l’avis du scan et l’état d’un exemplaire', () => {
+    // Envie enregistrée avant le filtrage par inclusion : ces clés décrivaient l'objet possédé.
+    const legacy: WishlistEntry = {
+      ...TEMPIER,
+      attributes: {
+        ...TEMPIER.attributes,
+        pairingDish: 'agneau',
+        quantity: 3,
+        consumedAt: '2026-10-01T00:00:00Z',
+        price_paid: '45',
+        location: 'Cave A3',
+        analysis: { a: 1 },
+        analysisStatus: 'pending',
+        quickEstimate: { low: 1, high: 2 },
+        corrections: [],
+      },
+    };
+    const edited = buildWishlistInput(formFromEntry(legacy), legacy);
+    expect(edited.ok && edited.input.attributes).toEqual({ ...TEMPIER.attributes, pairingDish: 'agneau' });
+  });
 });
