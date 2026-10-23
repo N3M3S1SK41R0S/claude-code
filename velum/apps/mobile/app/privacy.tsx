@@ -2,13 +2,16 @@
  * Politique de confidentialité — accessible IN-APP (exigence stores) et
  * servie par la PWA à /privacy (URL publique à déclarer dans les fiches).
  * Version de référence : docs/PRIVACY.md (les deux doivent rester alignées).
+ * Retour : l'en-tête « ‹ Retour » ; sans historique (URL publique ouverte
+ * directement), repli sur l'aiguillage d'entrée « / » (connexion ou accueil).
  */
-import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Linking, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { VButton, VText, velumSpacing } from '@velum/ui';
 
 import { Screen } from '../components/Screen';
+
+const PRIVACY_EMAIL = 'privacy@velum.app';
 
 const SECTIONS: { title: string; body: string }[] = [
   {
@@ -60,20 +63,25 @@ const SECTIONS: { title: string; body: string }[] = [
 
 export default function Privacy() {
   const { t } = useTranslation();
-  const router = useRouter();
   return (
-    <Screen>
-      <VText variant="title">{t('profile.privacy')}</VText>
+    <Screen title={t('profile.privacy')} backFallback="/">
       {SECTIONS.map((section) => (
         <View key={section.title} style={styles.section}>
-          <VText variant="heading" tone="gold">
+          <VText variant="heading" tone="gold" accessibilityRole="header">
             {section.title}
           </VText>
           <VText variant="body">{section.body}</VText>
         </View>
       ))}
+      {/* Action utile en fin de page (exercer ses droits) — c'est aussi
+          l'élément focalisable qui rend la zone défilante accessible au
+          clavier (axe : scrollable-region-focusable). */}
       <View style={styles.section}>
-        <VButton label={t('common.close')} variant="ghost" onPress={() => router.back()} />
+        <VButton
+          label={t('profile.privacyContact', { email: PRIVACY_EMAIL })}
+          variant="secondary"
+          onPress={() => void Linking.openURL(`mailto:${PRIVACY_EMAIL}`).catch(() => undefined)}
+        />
       </View>
     </Screen>
   );

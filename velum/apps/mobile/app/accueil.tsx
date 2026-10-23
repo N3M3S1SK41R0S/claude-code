@@ -1,17 +1,19 @@
 /**
  * Accueil VELUM : la page « maison » vers laquelle ramène le sceau présent sur
- * tous les écrans. Porte le sceau (serti dans son écrin), la vidéo de
- * lancement (cadre galerie, en boucle, muette, son réactivable) et les accès
- * rapides aux grandes sections, présentés en tuiles de catalogue.
+ * tous les écrans. Les actions principales sont EN HAUT, sans défilement :
+ * « Rechercher partout », puis les accès rapides organisés autour des espaces
+ * (capturer — scan éclair / mode classeur, ma collection, mes envies,
+ * échanges & ventes, vins à l'apogée, marché & alertes). Le sceau (serti dans
+ * son écrin) et la vidéo de lancement (cadre galerie, en boucle, muette, son
+ * réactivable) gardent leur place de marque, plus bas.
  */
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import {
-  VButton,
-  VCard,
   VOrnament,
   VText,
   velumColors,
@@ -22,51 +24,62 @@ import {
 } from '@velum/ui';
 
 import { Screen } from '../components/Screen';
-import { errorMessage } from '../lib/errors';
+import { QuickAccessGrid, type QuickAccessTile } from '../components/home/QuickAccessGrid';
+import { SearchLauncher } from '../components/home/SearchLauncher';
+import { homeQuickAccess, type HomeQuickAccessId } from '../lib/collectionViewQuickAccess';
+import { getActiveDomains } from '../lib/features';
+import { globalSearchHref } from '../lib/globalSearch';
 import { usePlan } from '../lib/plan';
 
 const introVideo = require('../assets/brand/velum-intro.mp4') as number;
 const seal = require('../assets/brand/velum-seal.png');
 
-/** Tuile d'accès rapide — VCard pressable, typographie de catalogue. */
-function QuickTile({
-  label,
-  hint,
-  gilded,
-  onPress,
-}: {
-  label: string;
-  hint: string;
-  gilded?: boolean;
-  onPress?: () => void;
-}) {
-  return (
-    <VCard
-      onPress={onPress}
-      tone={gilded ? 'gilded' : 'default'}
-      accessibilityLabel={label}
-      accessibilityHint={hint}
-      style={styles.tile}
-    >
-      <VText variant="heading" tone={gilded ? 'gold' : 'default'}>
-        {label}
-      </VText>
-      <VText variant="caption" tone="dim">
-        {hint}
-      </VText>
-    </VCard>
-  );
-}
+/** Clés i18n des tuiles : libellé + légende visible (servant aussi d'aide). */
+const TILE_KEYS: Record<HomeQuickAccessId, { label: string; caption: string }> = {
+  capture: { label: 'accueil.quick.capture', caption: 'accueil.quick.captureHint' },
+  batch: { label: 'accueil.quick.batch', caption: 'accueil.quick.batchHint' },
+  collection: { label: 'accueil.collection', caption: 'accueil.collectionHint' },
+  wishlist: { label: 'accueil.quick.wishlist', caption: 'accueil.quick.wishlistHint' },
+  community: { label: 'accueil.quick.community', caption: 'accueil.quick.communityHint' },
+  cellarPeak: { label: 'accueil.quick.cellarPeak', caption: 'accueil.quick.cellarPeakHint' },
+  market: { label: 'accueil.market', caption: 'accueil.marketHint' },
+};
 
 export default function Accueil() {
   const { t } = useTranslation();
   const router = useRouter();
   const planState = usePlan();
+  const domains = useMemo(() => getActiveDomains(), []);
 
   const player = useVideoPlayer(introVideo, (p) => {
     p.muted = true;
     p.loop = true;
     p.play();
+  });
+
+  // Échanges & ventes (Platine) : la légende reflète l'accès sans jamais
+  // présenter une panne du profil comme un paywall ; l'écran communauté gère
+  // lui-même l'accès (chargement / panne + Réessayer / offre).
+  const communityCaption =
+    planState.status === 'loading'
+      ? t('common.loading')
+      : planState.status === 'error'
+        ? t('accueil.quick.communityUnknown')
+        : planState.entitlements.community
+          ? t('accueil.quick.communityHint')
+          : t('accueil.quick.communityLocked');
+
+  const tiles: QuickAccessTile[] = homeQuickAccess(domains).map((entry) => {
+    const keys = TILE_KEYS[entry.id];
+    const caption = entry.id === 'community' ? communityCaption : t(keys.caption);
+    return {
+      key: entry.id,
+      label: t(keys.label),
+      caption,
+      icon: entry.icon,
+      gilded: entry.gilded,
+      onPress: () => router.push(entry.href),
+    };
   });
 
   return (
@@ -79,13 +92,26 @@ export default function Accueil() {
             <Image source={seal} style={styles.seal} contentFit="contain" accessibilityLabel={t('brand.name')} />
           </View>
         </View>
-        <VText variant="display" tone="gold" center>
-          {t('brand.name')}
-        </VText>
-        <VText variant="body" tone="dim" center>
-          {t('brand.tagline')}
-        </VText>
+        <View style={styles.brandText}>
+          <VText variant="display" tone="gold" accessibilityRole="header">
+            {t('brand.name')}
+          </VText>
+          <VText variant="caption" tone="dim">
+            {t('brand.tagline')}
+          </VText>
+        </View>
       </View>
+
+      <SearchLauncher
+        hint={t('accueil.searchHint')}
+        placeholder={t('accueil.searchPlaceholder')}
+        onPress={() => router.push(globalSearchHref())}
+      />
+
+      <VText variant="heading" tone="gold" accessibilityRole="header" style={styles.sectionTitle}>
+        {t('accueil.quickAccess')}
+      </VText>
+      <QuickAccessGrid tiles={tiles} />
 
       <VOrnament style={styles.ornament} />
 
@@ -101,76 +127,34 @@ export default function Accueil() {
           />
         </View>
       </View>
-
-      <VText variant="heading" tone="gold" style={styles.sectionTitle}>
-        {t('accueil.quickAccess')}
-      </VText>
-      <View style={styles.tiles}>
-        <QuickTile
-          label={t('accueil.collection')}
-          hint={t('accueil.collectionHint')}
-          onPress={() => router.push('/(tabs)/collection')}
-        />
-        <QuickTile
-          label={t('accueil.capture')}
-          hint={t('accueil.captureHint')}
-          onPress={() => router.push('/(tabs)/capture')}
-        />
-        <QuickTile
-          label={t('accueil.market')}
-          hint={t('accueil.marketHint')}
-          onPress={() => router.push('/(tabs)/market')}
-        />
-        {planState.status === 'error' ? (
-          <VCard style={styles.tile} accessibilityLabel={t('accueil.community')}>
-            <VText variant="heading">{t('accueil.community')}</VText>
-            <VText variant="caption" tone="dim">
-              {errorMessage(planState.error, t)}
-            </VText>
-            <VButton label={t('common.retry')} variant="ghost" onPress={planState.retry} />
-          </VCard>
-        ) : planState.status === 'loading' ? (
-          <QuickTile
-            label={t('accueil.community')}
-            hint={t('common.loading')}
-          />
-        ) : (
-          <QuickTile
-            label={t('accueil.community')}
-            hint={
-              planState.entitlements.community
-                ? t('accueil.communityHint')
-                : t('market.communityCta')
-            }
-            gilded={planState.entitlements.community}
-            onPress={() =>
-              router.push(planState.entitlements.community ? '/community' : '/paywall')
-            }
-          />
-        )}
-      </View>
     </Screen>
   );
 }
 
-const SEAL_SIZE = 96;
+const SEAL_SIZE = 64;
 
 const styles = StyleSheet.create({
-  header: { alignItems: 'center', gap: velumSpacing.sm, marginTop: velumSpacing.md },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: velumSpacing.md,
+    marginTop: velumSpacing.sm,
+    marginBottom: velumSpacing.lg,
+  },
+  brandText: { flex: 1, gap: 2 },
   sealMount: {
-    width: SEAL_SIZE + 36,
-    height: SEAL_SIZE + 36,
-    borderRadius: (SEAL_SIZE + 36) / 2,
+    width: SEAL_SIZE + 24,
+    height: SEAL_SIZE + 24,
+    borderRadius: (SEAL_SIZE + 24) / 2,
     borderWidth: 1,
     borderColor: velumHairline.gilded,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: velumSpacing.xs,
   },
   sealWax: {
-    width: SEAL_SIZE + 18,
-    height: SEAL_SIZE + 18,
-    borderRadius: (SEAL_SIZE + 18) / 2,
+    width: SEAL_SIZE + 12,
+    height: SEAL_SIZE + 12,
+    borderRadius: (SEAL_SIZE + 12) / 2,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: velumHairline.gildedFaint,
     // Cire du sceau : bordeaux translucide (moment de marque, propre à l'accueil).
@@ -179,9 +163,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   seal: { width: SEAL_SIZE, height: SEAL_SIZE },
-  ornament: { marginTop: velumSpacing.lg },
+  sectionTitle: { marginTop: velumSpacing.lg, marginBottom: velumSpacing.sm },
+  ornament: { marginTop: velumSpacing.xl },
   videoFrame: {
-    marginTop: velumSpacing.sm,
+    marginTop: velumSpacing.md,
     borderRadius: velumRadius.frame,
     borderWidth: 1,
     borderColor: velumHairline.gilded,
@@ -198,16 +183,4 @@ const styles = StyleSheet.create({
     aspectRatio: 16 / 9,
   },
   video: { flex: 1 },
-  sectionTitle: { marginTop: velumSpacing.xl, marginBottom: velumSpacing.sm },
-  tiles: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: velumSpacing.md,
-  },
-  tile: {
-    flexBasis: '47%',
-    flexGrow: 1,
-    gap: velumSpacing.xs,
-    minHeight: 96,
-  },
 });

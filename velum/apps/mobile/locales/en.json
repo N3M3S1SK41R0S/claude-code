@@ -33,7 +33,23 @@
     "collectionHint": "Cellar, cabinet, gallery, album, watch box",
     "captureHint": "Photo, text or file import",
     "marketHint": "Valuations, alerts, listings",
-    "communityHint": "Collector-to-collector transactions"
+    "communityHint": "Collector-to-collector transactions",
+    "searchHint": "Opens search across the collection, wishlist and trade & sell",
+    "searchPlaceholder": "Search everywhere: object, wish, listing…",
+    "quick": {
+      "capture": "Capture",
+      "captureHint": "Quick scan, photo or text",
+      "batch": "Binder mode",
+      "batchHint": "Stamps, coins: a whole sheet",
+      "wishlist": "My wishlist",
+      "wishlistHint": "Wines I loved, coins to find…",
+      "community": "Trade & sell",
+      "communityHint": "Sell, trade, get certified",
+      "communityLocked": "Platinum plan — discover",
+      "communityUnknown": "Access to check — open",
+      "cellarPeak": "Wines at their peak",
+      "cellarPeakHint": "Drink now, with their location"
+    }
   },
   "heritage": {
     "title": "History & rarity",
@@ -67,7 +83,11 @@
     "capture": "Capture",
     "collection": "Collection",
     "market": "Market",
-    "profile": "Profile"
+    "profile": "Profile",
+    "captureA11y": "Capture — quick scan, photo, binder mode",
+    "collectionA11y": "Collection — my objects, collection book, search",
+    "marketA11y": "Market — trades, sales and alerts",
+    "profileA11y": "Profile — account, preferences and data"
   },
   "domains": {
     "wine": {
@@ -392,12 +412,52 @@
     "title": "My collection",
     "totalValue": "Portfolio value",
     "gainLoss": "Unrealised gain/loss",
-    "searchPlaceholder": "Search an object…",
+    "searchPlaceholder": "Name, vintage, location, note…",
     "emptyTitle": "Your collection is empty",
     "emptyMessage": "Capture your first object to unveil its value.",
     "emptyCta": "Capture an object",
     "itemsCount": "{{count}} object(s)",
-    "offlineNotice": "Offline: cached data, {{count}} pending change(s)."
+    "offlineNotice": "Offline: cached data, {{count}} pending change(s).",
+    "searchLabel": "Search my collection",
+    "searchGlobal": "Search everywhere",
+    "searchGlobalHint": "Opens search across the collection, wishlist and trade & sell",
+    "searchEverywhere": "Search everywhere",
+    "sortLabel": "Sort the collection",
+    "sort": {
+      "recent": "Recent",
+      "value_desc": "Value ↓",
+      "name_asc": "Name A→Z"
+    },
+    "sortA11y": {
+      "recent": "Recent, most recently added first",
+      "value_desc": "Value ↓, highest first",
+      "name_asc": "Name A→Z, alphabetical order"
+    },
+    "quickAccess": "Quick access",
+    "quick": {
+      "carnetHint": "Cellar, coin cabinet, gallery, album and watch case",
+      "wishlist": "My wishlist",
+      "wishlistHint": "What I want to acquire, by category",
+      "cellarPeak": "Wines at their peak",
+      "cellarPeakHint": "Bottles to drink now and where they are",
+      "sommelier": "Which wine for my dish?",
+      "sommelierHint": "A dish, and the wines from my cellar that match",
+      "community": "Trade & sell",
+      "communityHint": "Trading and selling platforms by category",
+      "batch": "Binder mode",
+      "batchHint": "Scan a whole sheet or binder at once",
+      "eventSommelier": "Event sommelier",
+      "eventSommelierHint": "Pairings for a whole menu, from my cellar",
+      "blindTasting": "Blind tasting",
+      "blindTastingHint": "A game with friends using my cellar’s bottles"
+    },
+    "drinkNowSeeAll": "See all wines at their peak",
+    "drinkNowSeeAllCount": "See the {{count}} wines at their peak",
+    "drinkNowSeeAllHint": "Opens the list of wines to drink, with their location",
+    "noItemsInDomain": "No object in the “{{domain}}” category.",
+    "noResultHint": "Check the spelling, try another word, or also search your wishlist and trades.",
+    "captureInDomain": "Capture: {{domain}}",
+    "clearFilters": "Clear search and filters"
   },
   "market": {
     "title": "Market",
@@ -431,7 +491,27 @@
     "deleteAccountConfirmTitle": "Final confirmation",
     "deleteAccountConfirmMessage": "This action is irreversible. Confirm permanent deletion?",
     "deleteAccountDone": "Account deleted. Goodbye.",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "sections": {
+      "account": "My account & plan",
+      "spaces": "My spaces",
+      "preferences": "Preferences",
+      "privacy": "Privacy & data"
+    },
+    "currentPlan": "Current plan: {{plan}}",
+    "languageFr": "Display the app in French",
+    "languageEn": "Display the app in English",
+    "spaces": {
+      "carnet": "My collection book",
+      "carnetHint": "Virtual library of the collection",
+      "wishlist": "My wishlist",
+      "wishlistHint": "Wishes and ideas, by category",
+      "community": "Trade & sell",
+      "communityHint": "My listings, purchases and trades",
+      "certifications": "Expert certifications",
+      "certificationsHint": "Above €500 or by agreement of both parties"
+    },
+    "privacyContact": "Email {{email}} to exercise my rights"
   },
   "paywall": {
     "title": "VELUM plans",
@@ -464,7 +544,8 @@
       "name": "Platinum",
       "price": "€49.99 / month",
       "features": "Everything: book valued CONTINUOUSLY against live market transactions · insurance/estate report · collectors community (anonymous matchmaking, transactions through the platform only — tapered commission from 5% down to 2% based on your activity, expert appraisal required above €500, at the seller's charge)"
-    }
+    },
+    "loadError": "Plans cannot be displayed right now."
   },
   "export": {
     "sheetTitle": "VELUM object sheet",
@@ -553,7 +634,10 @@
     "slotPlace": "Slot",
     "emptyDomainTitle": "Nothing in this book yet",
     "emptyDomainMessage": "Scan your first objects to fill this book.",
-    "emptyDomainCta": "Capture an object"
+    "emptyDomainCta": "Capture an object",
+    "searchLabel": "Search my collection books",
+    "searchPlaceholder": "Name, vintage, location…",
+    "searchElsewhere": "{{count}} result(s) in other books — show all"
   },
   "blind": {
     "title": "Blind tasting",
@@ -758,7 +842,8 @@
       "falling": "Established fall",
       "flat": "Flat",
       "unknown": "Insufficient history"
-    }
+    },
+    "shortTitle": "Collection arbiter"
   },
   "nav": {
     "backHint": "Return to the previous screen"
@@ -769,6 +854,41 @@
     "categoryFilter": "Filter by category",
     "noResult": "No result for “{{query}}”.",
     "resultsCount": "{{count}} result(s)"
+  },
+  "globalSearch": {
+    "title": "Search everywhere",
+    "inputLabel": "Search VELUM",
+    "placeholder": "Object, wine, wish, listing…",
+    "intro": "Find an object from your collection, a wish or a trade & sell listing directly: name, vintage, location, note…",
+    "searching": "Searching…",
+    "noResultHint": "Check the spelling or try another word.",
+    "sectionEmpty": "No result in this section.",
+    "sections": {
+      "collection": "My collection",
+      "wishlist": "My wishlist",
+      "market": "Trade & sell"
+    },
+    "seeAllCollection": "See the {{count}} results in my collection",
+    "seeAllWishlist": "Open my wishlist ({{count}} results)",
+    "seeAllMarket": "Open trade & sell",
+    "seeAllMarketCount": "See the {{count}} listings",
+    "marketTooShort": "Type at least 2 characters to search listings.",
+    "marketLocked": "Trade & sell is part of the Platinum plan.",
+    "marketLockedCta": "Discover the Platinum plan",
+    "marketNotYet": "Searching trade & sell is coming soon. Your collection and wishlist results remain available.",
+    "marketFailed": "Trade & sell is temporarily unavailable.",
+    "wishKind": {
+      "wish": "Wish",
+      "idea": "Idea"
+    },
+    "acquired": "Acquired",
+    "targetPrice": "Target price {{price}}",
+    "listingKind": {
+      "sale": "Sale",
+      "exchange": "Trade",
+      "sale_or_exchange": "Sale or trade"
+    },
+    "certified": "Certified"
   },
   "identity": {
     "errors": {
