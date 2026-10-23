@@ -157,15 +157,18 @@ do $$
 declare
   v_rate numeric;
   v_required boolean;
+  v_status text;
+  v_ref text;
+  v_open integer;
 begin
   perform set_config('velum.uid', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', true);
   set local role authenticated;
 
-  -- Brouillon à 600 € : accepté, commission 5 %, expertise marquée requise.
-  insert into public.listings (id, item_id, seller_id, ask_price)
+  -- Brouillon à 600 € : accepté, commission 5 %, certification marquée requise.
+  insert into public.listings (id, item_id, seller_id, ask_price, status)
   values ('dddddddd-dddd-4ddd-8ddd-dddddddddd01',
           'cccccccc-cccc-4ccc-8ccc-cccccccccc01',
-          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 600);
+          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 600, 'draft');
 
   select commission_rate, expert_appraisal_required into v_rate, v_required
   from public.listings where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddd01';
@@ -176,27 +179,65 @@ begin
     raise exception 'listings : expertise requise attendue pour 600 €';
   end if;
 
-  -- Activation sans rapport d'expertise : refusée par le trigger.
-  begin
-    update public.listings set status = 'active'
-    where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddd01';
-    raise exception 'listings : activation à 600 € sans expertise aurait dû échouer';
-  exception
-    when raise_exception or others then
-      if sqlerrm not like '%Expertise obligatoire%' then raise; end if;
-  end;
-
-  -- Avec le rapport d'expertise (à la charge du vendeur) : activation OK.
-  update public.listings
-  set expert_appraisal_ref = 'expertises/aaaa/rapport-600.pdf', status = 'active'
+  -- Publication sans certification : l'annonce est RETENUE, jamais 'active'.
+  update public.listings set status = 'active'
   where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddd01';
+  select status into v_status
+  from public.listings where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddd01';
+  if v_status <> 'pending_certification' then
+    raise exception 'listings : 600 € sans certification devait rester pending_certification, vu %', v_status;
+  end if;
 
-  -- Petite annonce (≤ 500 €) : activable sans expertise.
-  insert into public.listings (item_id, seller_id, ask_price, status)
+  -- Le vendeur ne s'auto-certifie pas : la référence qu'il fournit est ignorée.
+  update public.listings
+  set expert_appraisal_ref = 'expertises/aaaa/faux.pdf', status = 'active'
+  where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddd01';
+  select status, expert_appraisal_ref into v_status, v_ref
+  from public.listings where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddd01';
+  if v_status <> 'pending_certification' or v_ref is not null then
+    raise exception 'listings : auto-certification acceptée (statut %, réf %)', v_status, v_ref;
+  end if;
+
+  -- Une demande de certification « seuil » (frais vendeur) est ouverte d'office.
+  select count(*) into v_open from public.certification_requests
+  where listing_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddd01'
+    and reason = 'threshold' and status = 'requested' and fee_payer = 'seller';
+  if v_open <> 1 then
+    raise exception 'listings : 1 demande de certification seuil attendue, vu %', v_open;
+  end if;
+
+  -- Petite annonce (≤ 500 €) : publiée sans certification.
+  insert into public.listings (item_id, seller_id, ask_price)
   values ('cccccccc-cccc-4ccc-8ccc-cccccccccc01',
-          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100, 'active');
+          'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 100)
+  returning status into v_status;
+  if v_status <> 'active' then
+    raise exception 'listings : 100 € devait être publiée directement, vu %', v_status;
+  end if;
 
-  raise notice 'OK 6b — Platine : commission 5 %%, expertise imposée > 500 € puis levée';
+  raise notice 'OK 6b — Platine : commission 5 %%, certification imposée > 500 € (annonce retenue)';
+end
+$$;
+
+-- Décision de l'expert partenaire (fonction système) : certifiée ⇒ badge et
+-- publication de l'annonce retenue.
+select public.decide_certification(
+  (select id from public.certification_requests
+   where listing_id = 'dddddddd-dddd-4ddd-8ddd-dddddddddd01' and status = 'requested'),
+  true, 'expertises/aaaa/rapport-600.pdf', 'Authentique', 45);
+
+do $$
+declare
+  v_status text;
+  v_ref text;
+begin
+  select status, expert_appraisal_ref into v_status, v_ref
+  from public.listings where id = 'dddddddd-dddd-4ddd-8ddd-dddddddddd01';
+  if v_status <> 'active' or v_ref <> 'expertises/aaaa/rapport-600.pdf' then
+    raise exception 'listings : certification obtenue ⇒ active + rapport attendus (statut %, réf %)',
+      v_status, v_ref;
+  end if;
+  raise notice 'OK 6c — certification d''expert obtenue : annonce publiée avec badge';
 end
 $$;
 
@@ -357,11 +398,22 @@ begin
   insert into public.orders (id, listing_id, buyer_id)
   values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee01',
           'dddddddd-dddd-4ddd-8ddd-dddddddddd01', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
-  select escrow_state, commission_rate, seller_id into v_state, v_rate, v_seller
+  select escrow_state, commission_rate into v_state, v_rate
   from public.orders where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee01';
   if v_state <> 'pending_payment' then raise exception 'ordre : état initial %', v_state; end if;
   if v_rate <> 0.05 then raise exception 'ordre : commission figée attendue 5 %%, vue %', v_rate; end if;
+  -- Anonymat pair-à-pair : l'acheteur ne lit pas l'identifiant du vendeur.
+  begin
+    select seller_id into v_seller from public.orders
+    where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee01';
+    raise exception 'ordre : l''acheteur a lu seller_id';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+  -- Vendeur posé par le serveur depuis l'annonce (lecture privilégiée).
+  reset role;
+  select seller_id into v_seller from public.orders where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee01';
   if v_seller <> 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' then raise exception 'ordre : mauvais vendeur'; end if;
+  set local role authenticated;
 
   -- Transition ILLÉGALE (l'acheteur saute la capture) : refusée.
   begin
@@ -411,11 +463,23 @@ begin
 
   update public.orders set escrow_state = 'shipped', carrier = 'Chronopost', tracking_number = 'XY01'
   where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee01';
-  update public.orders set escrow_state = 'shipped', tracking_number = 'XY03',
-         delivered_at = now() - interval '10 days'
+  update public.orders set escrow_state = 'shipped', tracking_number = 'XY03'
   where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee03';
+
+  -- Le vendeur n'atteste pas lui-même la livraison (il déclencherait
+  -- l'auto-libération des fonds) : seuls l'acheteur ou le transporteur.
+  begin
+    update public.orders set delivered_at = now() - interval '10 days'
+    where id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeee03';
+    raise exception 'séquestre : livraison attestée par le vendeur aurait dû échouer';
+  exception when raise_exception then
+    if sqlerrm not like '%atteste la livraison%' then raise; end if;
+  end;
 end
 $$;
+
+-- Transporteur (fonction système) : colis 03 livré il y a 10 jours.
+select public.record_order_delivery('eeeeeeee-eeee-4eee-8eee-eeeeeeeeee03', now() - interval '10 days');
 
 -- Acheteur (Bob) : confirme la réception de la commande 01 → libération.
 do $$
