@@ -18,7 +18,7 @@ export default function CaptureHome() {
   const domains = getActiveDomains();
 
   return (
-    <Screen>
+    <Screen back={false}>
       <VText variant="title" style={styles.title}>
         {t('capture.title')}
       </VText>

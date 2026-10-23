@@ -9,6 +9,7 @@ import type {
   DisputeRecord,
   DisputeStatus,
   EscrowState,
+  ListingKind,
   ListingRecord,
   ListingStatus,
   MarketOrder,
@@ -348,12 +349,21 @@ export interface ListingRow {
   expert_appraisal_required: boolean;
   expert_appraisal_ref: string | null;
   created_at: string;
+  /** Colonnes « plateformes par catégorie » — absentes des schémas antérieurs. */
+  kind?: ListingKind | null;
+  description?: string | null;
+  exchange_wishes?: string | null;
 }
 
 export interface NewListing {
   itemId: string;
+  /** Prix demandé (vente) ou valeur déclarée (échange). */
   askPrice: number;
   currency?: string;
+  /** Défaut : 'sale'. */
+  kind?: ListingKind;
+  description?: string;
+  exchangeWishes?: string;
 }
 
 export function rowToListing(row: ListingRow): ListingRecord {
@@ -366,6 +376,12 @@ export function rowToListing(row: ListingRow): ListingRecord {
     status: row.status,
     title: row.title ?? null,
     domain: row.domain ?? null,
+    kind: row.kind ?? 'sale',
+    description: row.description ?? null,
+    exchangeWishes: row.exchange_wishes ?? null,
+    commissionRate: toNumber(row.commission_rate),
+    certificationRequired: row.expert_appraisal_required === true,
+    certified: row.expert_appraisal_ref !== null && row.expert_appraisal_ref !== undefined,
     createdAt: row.created_at,
   };
 }
@@ -376,6 +392,9 @@ export function newListingToRow(input: NewListing, sellerId: string): Record<str
     seller_id: sellerId,
     ask_price: input.askPrice,
     currency: input.currency ?? 'EUR',
+    kind: input.kind ?? 'sale',
+    ...(input.description !== undefined ? { description: input.description } : {}),
+    ...(input.exchangeWishes !== undefined ? { exchange_wishes: input.exchangeWishes } : {}),
   };
 }
 
@@ -393,9 +412,20 @@ export interface OrderRow {
   delivered_at: string | null;
   released_at: string | null;
   created_at: string;
+  /** Colonnes de la vue anonymisée des commandes (absentes de la table brute). */
+  counterparty_alias?: string | null;
+  listing_title?: string | null;
+  certification_required?: boolean | null;
 }
 
-export function rowToOrder(row: OrderRow): MarketOrder {
+/** Pseudonyme affiché quand le serveur n'en fournit pas (schéma antérieur). */
+export const FALLBACK_MEMBER_ALIAS = 'Membre VELUM';
+
+/**
+ * `viewerId` = uid de l'utilisateur courant : détermine son rôle. Sans lui,
+ * le rôle est déduit « acheteur » par défaut (compatibilité des appelants).
+ */
+export function rowToOrder(row: OrderRow, viewerId?: string): MarketOrder {
   return {
     id: row.id,
     listingId: row.listing_id,
@@ -410,6 +440,10 @@ export function rowToOrder(row: OrderRow): MarketOrder {
     deliveredAt: row.delivered_at,
     releasedAt: row.released_at,
     createdAt: row.created_at,
+    role: viewerId !== undefined && viewerId === row.seller_id ? 'seller' : 'buyer',
+    counterpartyAlias: row.counterparty_alias ?? FALLBACK_MEMBER_ALIAS,
+    listingTitle: row.listing_title ?? null,
+    certificationRequired: row.certification_required === true,
   };
 }
 

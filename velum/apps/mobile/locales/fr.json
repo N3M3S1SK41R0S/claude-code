@@ -203,7 +203,25 @@
       "watchBrand": "Marque",
       "watchModel": "Modèle",
       "watchReference": "Référence constructeur (ex. 124060)",
-      "watchYear": "Année"
+      "watchYear": "Année",
+      "wineCuvee": "Cuvée",
+      "wineColor": "Couleur (rouge, blanc, rosé…)",
+      "wineRegion": "Région",
+      "wineCountry": "Pays",
+      "wineFormat": "Format (75 cl, magnum…)",
+      "coinMintMark": "Atelier / différent",
+      "coinMetal": "Métal",
+      "coinIssuer": "Autorité émettrice",
+      "artSupport": "Support",
+      "artPeriod": "Période estimée",
+      "artSchool": "École / mouvement",
+      "stampTitle": "Sujet / série",
+      "stampFaceValue": "Valeur faciale",
+      "stampColor": "Couleur",
+      "stampPerforation": "Dentelure",
+      "watchCaseMaterial": "Matériau du boîtier",
+      "watchDialColor": "Couleur du cadran",
+      "watchDiameter": "Diamètre du boîtier (mm)"
     }
   },
   "item": {
@@ -740,6 +758,22 @@
       "falling": "Baisse établie",
       "flat": "Stable",
       "unknown": "Historique insuffisant"
+    }
+  },
+  "nav": {
+    "backHint": "Revenir à l’écran précédent"
+  },
+  "search": {
+    "clear": "Effacer la recherche",
+    "allCategories": "Toutes",
+    "categoryFilter": "Filtrer par catégorie",
+    "noResult": "Aucun résultat pour « {{query}} ».",
+    "resultsCount": "{{count}} résultat(s)"
+  },
+  "identity": {
+    "errors": {
+      "notANumber": "Nombre attendu",
+      "outOfRange": "Valeur hors limites"
     }
   }
 }

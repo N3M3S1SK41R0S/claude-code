@@ -23,45 +23,19 @@ import type { Candidate, VelumDomain } from '@velum/core';
 import { Screen } from '../../components/Screen';
 import { useSession } from '../../lib/auth';
 import { insertCapturedItem } from '../../lib/capturePersistence';
+import { identityFieldsFor, type IdentityField } from '../../lib/identityFields';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage, velumErrorCode } from '../../lib/errors';
 import { useCaptureStore } from '../../stores/captureStore';
 import { showToast } from '../../stores/toastStore';
 
-interface AssistedField {
-  key: string;
-  labelKey: string;
-  numeric?: boolean;
-}
-
-/** Champs de saisie assistée par domaine. */
-const ASSISTED_FIELDS: Record<VelumDomain, AssistedField[]> = {
-  wine: [
-    { key: 'producer', labelKey: 'candidates.fields.wineProducer' },
-    { key: 'vintage', labelKey: 'candidates.fields.wineVintage', numeric: true },
-    { key: 'appellation', labelKey: 'candidates.fields.wineAppellation' },
-  ],
-  coin: [
-    { key: 'country', labelKey: 'candidates.fields.coinCountry' },
-    { key: 'type', labelKey: 'candidates.fields.coinType' },
-    { key: 'year', labelKey: 'candidates.fields.coinYear', numeric: true },
-  ],
-  art: [
-    { key: 'artist', labelKey: 'candidates.fields.artArtist' },
-    { key: 'title', labelKey: 'candidates.fields.artTitle' },
-    { key: 'technique', labelKey: 'candidates.fields.artTechnique' },
-  ],
-  stamp: [
-    { key: 'country', labelKey: 'candidates.fields.stampCountry' },
-    { key: 'catalogNumber', labelKey: 'candidates.fields.stampCatalog' },
-    { key: 'year', labelKey: 'candidates.fields.stampYear', numeric: true },
-  ],
-  watch: [
-    { key: 'brand', labelKey: 'candidates.fields.watchBrand' },
-    { key: 'model', labelKey: 'candidates.fields.watchModel' },
-    { key: 'reference', labelKey: 'candidates.fields.watchReference' },
-    { key: 'year', labelKey: 'candidates.fields.watchYear', numeric: true },
-  ],
+/** Champs de saisie assistée : champs PRINCIPAUX d'identification du domaine. */
+const ASSISTED_FIELDS: Record<VelumDomain, IdentityField[]> = {
+  wine: identityFieldsFor('wine', true),
+  coin: identityFieldsFor('coin', true),
+  art: identityFieldsFor('art', true),
+  stamp: identityFieldsFor('stamp', true),
+  watch: identityFieldsFor('watch', true),
 };
 
 export default function Candidates() {

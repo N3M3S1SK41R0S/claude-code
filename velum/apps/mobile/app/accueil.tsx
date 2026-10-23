@@ -71,7 +71,7 @@ export default function Accueil() {
 
   return (
     // brand={false} : le sceau est déjà le héros de l'accueil.
-    <Screen brand={false}>
+    <Screen brand={false} back={false}>
       <View style={styles.header}>
         {/* Écrin du sceau : double anneau doré sur fond de cire. */}
         <View style={styles.sealMount}>

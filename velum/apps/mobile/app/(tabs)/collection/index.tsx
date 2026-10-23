@@ -104,7 +104,7 @@ export default function Collection() {
 
   if (query.isLoading) {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} back={false}>
         <View style={styles.center}>
           <VSpinner />
         </View>
@@ -117,7 +117,7 @@ export default function Collection() {
   // si son rafraîchissement réseau échoue (contrat hors-ligne).
   if (query.isError && query.data === undefined) {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} back={false}>
         <View style={styles.center}>
           <VEmptyState
             title={t('collection.title')}
@@ -131,7 +131,7 @@ export default function Collection() {
 
   if (items.length === 0) {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} back={false}>
         <View style={styles.center}>
           <VEmptyState
             title={t('collection.emptyTitle')}
@@ -146,7 +146,7 @@ export default function Collection() {
   const valuationsUnavailable = failedValuationItemIds.length > 0;
 
   return (
-    <Screen>
+    <Screen back={false}>
       <VText variant="title">{t('collection.title')}</VText>
 
       <VCard style={styles.summary}>

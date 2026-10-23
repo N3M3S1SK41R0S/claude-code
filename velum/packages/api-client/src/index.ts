@@ -24,17 +24,24 @@ export {
   type ItemMediaRow,
   type NewItemMedia,
 } from './item-media';
+export { createMarketplaceRepo, type MarketplaceRepo } from './marketplace';
+export {
+  createWishlistRepo,
+  newWishlistEntryToRow,
+  rowToWishlistEntry,
+  wishlistPatchToRow,
+  type WishlistRepo,
+  type WishlistRow,
+} from './wishlist';
 export {
   createAlertsRepo,
   createItemsRepo,
-  createMarketplaceRepo,
   createProfileApi,
   createProvenanceRepo,
   createTastingNotesRepo,
   createValuationsRepo,
   type AlertsRepo,
   type ItemsRepo,
-  type MarketplaceRepo,
   type ProfileApi,
   type ProvenanceRepo,
   type TastingNotesRepo,
@@ -49,6 +56,7 @@ export {
 export { createMemoryStorage, type StorageAdapter } from './storage';
 export {
   alertToRow,
+  FALLBACK_MEMBER_ALIAS,
   itemPatchToRow,
   itemPayloadToRow,
   itemToRow,

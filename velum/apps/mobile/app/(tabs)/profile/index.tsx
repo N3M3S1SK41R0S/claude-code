@@ -138,7 +138,7 @@ export default function Profile() {
     profileQuery.data?.displayName ?? session?.user?.email ?? t('common.unknown');
 
   return (
-    <Screen>
+    <Screen back={false}>
       <VText variant="title">{t('profile.title')}</VText>
       <VText variant="body" tone="dim">
         {displayName}

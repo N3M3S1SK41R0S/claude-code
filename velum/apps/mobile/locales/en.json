@@ -203,7 +203,25 @@
       "watchBrand": "Brand",
       "watchModel": "Model",
       "watchReference": "Manufacturer reference (e.g. 124060)",
-      "watchYear": "Year"
+      "watchYear": "Year",
+      "wineCuvee": "Cuvée",
+      "wineColor": "Colour (red, white, rosé…)",
+      "wineRegion": "Region",
+      "wineCountry": "Country",
+      "wineFormat": "Bottle size (75 cl, magnum…)",
+      "coinMintMark": "Mint / mint mark",
+      "coinMetal": "Metal",
+      "coinIssuer": "Issuing authority",
+      "artSupport": "Support",
+      "artPeriod": "Estimated period",
+      "artSchool": "School / movement",
+      "stampTitle": "Subject / series",
+      "stampFaceValue": "Face value",
+      "stampColor": "Colour",
+      "stampPerforation": "Perforation",
+      "watchCaseMaterial": "Case material",
+      "watchDialColor": "Dial colour",
+      "watchDiameter": "Case diameter (mm)"
     }
   },
   "item": {
@@ -740,6 +758,22 @@
       "falling": "Established fall",
       "flat": "Flat",
       "unknown": "Insufficient history"
+    }
+  },
+  "nav": {
+    "backHint": "Return to the previous screen"
+  },
+  "search": {
+    "clear": "Clear search",
+    "allCategories": "All",
+    "categoryFilter": "Filter by category",
+    "noResult": "No result for “{{query}}”.",
+    "resultsCount": "{{count}} result(s)"
+  },
+  "identity": {
+    "errors": {
+      "notANumber": "Number expected",
+      "outOfRange": "Value out of range"
     }
   }
 }

@@ -56,7 +56,7 @@ export default function Market() {
   const alerts = (alertsQuery.data ?? []).filter((alert) => alert.active);
 
   return (
-    <Screen>
+    <Screen back={false}>
       <VText variant="title">{t('market.title')}</VText>
 
       <View style={styles.section}>

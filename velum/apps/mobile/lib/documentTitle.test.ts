@@ -15,7 +15,10 @@ describe('documentTitleFor', () => {
     expect(documentTitleFor('/carnet')).toBe('Mon carnet — VELUM');
     expect(documentTitleFor('/collection')).toBe('Ma collection — VELUM');
     expect(documentTitleFor('/privacy')).toBe('Confidentialité — VELUM');
-    expect(documentTitleFor('/community')).toBe('Communauté — VELUM');
+    expect(documentTitleFor('/community')).toBe('Échanges & ventes — VELUM');
+    expect(documentTitleFor('/community/listing/l1')).toBe('Échanges & ventes — VELUM');
+    expect(documentTitleFor('/wishlist')).toBe('Mes envies — VELUM');
+    expect(documentTitleFor('/cellar-peak')).toBe('Vins à leur apogée — VELUM');
     expect(documentTitleFor('/blind-tasting')).toBe('Dégustation à l’aveugle — VELUM');
     expect(documentTitleFor('/event-sommelier')).toBe('Sommelier d’événement — VELUM');
   });

@@ -1,5 +1,6 @@
 /** Miroirs TypeScript du schéma Postgres (§8.1) — camelCase côté app. */
 import type { MediaRole, VelumDomain } from './domain.ts';
+import type { ListingKind } from './market.ts';
 import type { PriceObservation } from './pricing.ts';
 
 /** Palier d'abonnement effectif (source de vérité : profiles.plan, synchronisé RevenueCat). */
@@ -98,7 +99,18 @@ export interface AlertRecord {
   active: boolean;
 }
 
-export type ListingStatus = 'draft' | 'active' | 'sold' | 'withdrawn';
+/**
+ * Cycle d'une annonce : `pending_certification` tant qu'une certification
+ * d'expert exigée n'est pas obtenue (jamais visible au catalogue) ; `exchanged`
+ * quand l'objet est parti dans un échange conclu.
+ */
+export type ListingStatus =
+  | 'draft'
+  | 'pending_certification'
+  | 'active'
+  | 'sold'
+  | 'exchanged'
+  | 'withdrawn';
 
 export interface ListingRecord {
   id: string;
@@ -111,6 +123,18 @@ export interface ListingRecord {
   title: string | null;
   /** Domaine dénormalisé (copié de l'item). */
   domain: VelumDomain | null;
+  /** Vente, échange ou les deux. */
+  kind: ListingKind;
+  /** Description publique (expurgée des coordonnées côté serveur). */
+  description: string | null;
+  /** Souhaits d'échange (texte libre expurgé), si l'échange est possible. */
+  exchangeWishes: string | null;
+  /** Taux de commission figé à la création (contrat affiché au vendeur). */
+  commissionRate: number;
+  /** true si une certification d'expert conditionne la publication. */
+  certificationRequired: boolean;
+  /** Badge « authentifié VELUM » : certification obtenue. */
+  certified: boolean;
   createdAt: string;
 }
 
@@ -144,6 +168,14 @@ export interface MarketOrder {
   deliveredAt: string | null;
   releasedAt: string | null;
   createdAt: string;
+  /** Rôle de l'utilisateur courant dans la transaction. */
+  role: 'buyer' | 'seller';
+  /** Pseudonyme de l'autre partie (anonymat pair-à-pair). */
+  counterpartyAlias: string;
+  /** Titre de l'annonce (dénormalisé). */
+  listingTitle: string | null;
+  /** true si une certification d'expert conditionne l'expédition. */
+  certificationRequired: boolean;
 }
 
 export type DisputeStatus = 'open' | 'resolved_release' | 'resolved_refund';
