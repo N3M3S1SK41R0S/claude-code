@@ -37,6 +37,14 @@ export interface CaptureState {
   setDomain(domain: VelumDomain): void;
   setMode(mode: CaptureMode): void;
   addMedia(media: DraftMedia): void;
+  /**
+   * Remplace TOUS les clichés (scan éclair : une photo = un objet). Évite
+   * qu'un rôle secondaire d'une capture précédente, invisible en scan éclair,
+   * parte à la reconnaissance et soit rattaché à un autre objet.
+   */
+  replaceMedia(media: DraftMedia[]): void;
+  /** Ne garde que les clichés de ces rôles (passage en scan éclair). */
+  retainRoles(roles: readonly MediaRole[]): void;
   /** N'attache le chemin que si le cliché attendu est toujours le cliché courant. */
   setMediaStoragePath(role: MediaRole, expectedBase64: string, storagePath: string): void;
   removeMedia(role: MediaRole): void;
@@ -77,6 +85,13 @@ export const useCaptureStore = create<CaptureState>()((set) => ({
   setMode: (mode) => set({ mode }),
   addMedia: (media) =>
     set((s) => ({ media: [...s.media.filter((m) => m.role !== media.role), media] })),
+  replaceMedia: (media) => set({ media: [...media] }),
+  retainRoles: (roles) =>
+    set((s) =>
+      s.media.every((m) => roles.includes(m.role))
+        ? {}
+        : { media: s.media.filter((m) => roles.includes(m.role)) },
+    ),
   setMediaStoragePath: (role, expectedBase64, storagePath) =>
     set((s) => ({
       media: s.media.map((entry) =>

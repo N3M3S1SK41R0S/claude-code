@@ -4,13 +4,14 @@
  * détaillée). Gère la permission caméra et ses refus sans bloquer : la
  * galerie reste toujours disponible.
  */
-import { useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { VButton, VText, velumColors, velumSpacing } from '@velum/ui';
 
+import { pictureSizeWithin } from '../../lib/batchCapture';
 import { errorMessage } from '../../lib/errors';
 import { showToast } from '../../stores/toastStore';
 import { WebCamera } from '../WebCamera';
@@ -29,8 +30,17 @@ export interface ShutterCameraProps {
   onCapture: (shot: CapturedShot) => void;
   /** Qualité JPEG 0..1. */
   quality: number;
-  /** Grand côté maximal (web uniquement : le natif garde la résolution du capteur). */
+  /**
+   * Grand côté maximal. Web : toujours appliqué. Natif : seulement avec
+   * `limitNativeResolution` (sinon résolution du capteur).
+   */
   maxEdge: number;
+  /**
+   * Plafonne aussi la résolution NATIVE à `maxEdge` (taille de capteur la plus
+   * proche). Pour la planche : photo dense à qualité élevée, qui dépasserait
+   * sinon la limite de poids par image du fournisseur.
+   */
+  limitNativeResolution?: boolean;
   shutterLabel: string;
   galleryLabel: string;
   /** Galerie à sélection multiple (mode série). */
@@ -54,13 +64,39 @@ export function ShutterCamera({
   guide,
   belowViewfinder,
   disabled = false,
+  limitNativeResolution = false,
 }: ShutterCameraProps) {
   const { t } = useTranslation();
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
+  // Prise en cours : un double appui pendant takePictureAsync (200 à 800 ms)
+  // ne lance pas une seconde capture — donc pas une seconde identification.
+  const capturing = useRef(false);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [pictureSize, setPictureSize] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!cameraReady || !limitNativeResolution) {
+      setPictureSize(undefined);
+      return;
+    }
+    let cancelled = false;
+    cameraRef.current
+      ?.getAvailablePictureSizesAsync()
+      .then((sizes) => {
+        if (!cancelled) setPictureSize(pictureSizeWithin(sizes, maxEdge));
+      })
+      .catch(() => {
+        // Tailles indisponibles : résolution par défaut (le serveur borne le poids).
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [cameraReady, limitNativeResolution, maxEdge]);
 
   const takePhoto = async () => {
-    if (disabled) return;
+    if (disabled || capturing.current) return;
+    capturing.current = true;
     try {
       const photo = await cameraRef.current?.takePictureAsync({ base64: true, quality });
       if (!photo?.base64) return;
@@ -68,6 +104,8 @@ export function ShutterCamera({
       onCapture({ dataUrl, uri: photo.uri || dataUrl });
     } catch (error) {
       showToast(errorMessage(error, t), 'danger');
+    } finally {
+      capturing.current = false;
     }
   };
 
@@ -140,7 +178,13 @@ export function ShutterCamera({
   return (
     <View style={styles.block} pointerEvents={disabled ? 'none' : 'auto'}>
       <View style={styles.frame}>
-        <CameraView ref={cameraRef} style={{ height }} facing="back" />
+        <CameraView
+          ref={cameraRef}
+          style={{ height }}
+          facing="back"
+          onCameraReady={() => setCameraReady(true)}
+          {...(pictureSize !== undefined ? { pictureSize } : {})}
+        />
         {guide ? (
           <View pointerEvents="none" style={styles.guide}>
             {guide}

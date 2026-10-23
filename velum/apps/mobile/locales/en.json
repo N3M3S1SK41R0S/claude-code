@@ -211,7 +211,8 @@
       "art": "The whole work, straight on and without glare; then the signature and the back.",
       "stamp": "Stamp flat on a plain dark background, no tongs or sleeve; the front, then the back if the gum matters.",
       "watch": "Dial straight on, no glare on the crystal; then the case back."
-    }
+    },
+    "textTooLong": "Description too long: {{max}} characters at most."
   },
   "candidates": {
     "title": "Identified candidates",

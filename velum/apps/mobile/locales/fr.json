@@ -211,7 +211,8 @@
       "art": "Œuvre entière, de face et sans reflet ; puis la signature et le verso.",
       "stamp": "Timbre à plat sur un fond sombre uni, sans pince ni pochette ; le recto, puis le verso si la gomme compte.",
       "watch": "Cadran de face, sans reflet sur le verre ; puis le fond de boîte."
-    }
+    },
+    "textTooLong": "Description trop longue : {{max}} caractères au plus."
   },
   "candidates": {
     "title": "Candidats identifiés",
