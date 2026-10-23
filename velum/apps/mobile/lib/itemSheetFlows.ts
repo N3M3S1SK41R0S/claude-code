@@ -11,7 +11,7 @@
  * sur React Query.
  */
 import type { QueryClient } from '@tanstack/react-query';
-import type { VelumClient } from '@velum/api-client';
+import { isDefinitiveRefusal, type VelumClient } from '@velum/api-client';
 import { VelumError, isVelumError, type ValuationResult, type VelumItem } from '@velum/core';
 
 import { itemToCandidate } from './analysisState';
@@ -39,25 +39,30 @@ export interface PersistOutcome {
   queued: boolean;
 }
 
-/**
- * SQLSTATE d'un refus DÉFINITIF du serveur (miroir de `isDefinitiveRefusal`
- * de la file) : règle métier, donnée invalide, contrainte, droit insuffisant,
- * ligne absente (objet supprimé entre-temps).
- */
-const DEFINITIVE_SQLSTATE = /^(P0001|42501|PGRST116|2[23][0-9A-Z]{3})$/;
+/** SQLSTATE / code PGRST conservé par le dépôt (`details.sqlstate`), ou null. */
+function sqlstateOf(error: unknown): string | null {
+  if (!isVelumError(error)) return null;
+  const sqlstate = error.details?.['sqlstate'];
+  return typeof sqlstate === 'string' && sqlstate.length > 0 ? sqlstate : null;
+}
+
+/** Ligne visée absente (`update … .single()` sans ligne) : objet supprimé entre-temps. */
+const ROW_NOT_FOUND = 'PGRST116';
 
 /**
  * true si l'échec est une PANNE DE TRANSPORT (hors-ligne, serveur injoignable
  * ou momentanément indisponible) : seule raison légitime de mettre une
  * écriture en file. Un refus du serveur (règle métier P0001, contrainte,
  * donnée invalide, objet introuvable, session, offre requise) serait refusé à
- * l'identique au rejeu : il remonte à l'appelant, jamais mis en file.
+ * l'identique au rejeu : il remonte à l'appelant, jamais mis en file. Un
+ * SQLSTATE de refus laissé en SOURCE_UNAVAILABLE (client injecté) suit la
+ * règle de la file (`isDefinitiveRefusal`).
  */
 export function isOfflineFailure(error: unknown): boolean {
   if (!isVelumError(error)) return true; // exception brute du transport (fetch)
   if (error.code !== 'SOURCE_UNAVAILABLE') return false;
-  const sqlstate = error.details?.['sqlstate'];
-  return typeof sqlstate !== 'string' || !DEFINITIVE_SQLSTATE.test(sqlstate);
+  const sqlstate = sqlstateOf(error);
+  return sqlstate === null || !(sqlstate === ROW_NOT_FOUND || isDefinitiveRefusal({ code: sqlstate }));
 }
 
 /** Nature d'un échec d'écriture sur un objet. */
@@ -70,18 +75,24 @@ export type WriteFailure =
   | 'missing';
 
 /**
- * Qualifie l'échec d'une écriture AVANT toute mise en file. Les dépôts
- * PostgREST ne distinguent pas toujours un refus du serveur d'une coupure
- * (tout devient SOURCE_UNAVAILABLE) : on relit alors l'objet. Si la relecture
- * aboutit, le serveur était joignable et a donc refusé l'écriture (ou l'objet
- * a disparu) ; seule une relecture elle-même impossible confirme la panne.
+ * Qualifie l'échec d'une écriture AVANT toute mise en file. Le dépôt
+ * PostgREST des objets qualifie ses erreurs (`toItemsError`) : un refus y est
+ * INVALID_INPUT / UNAUTHORIZED, une ligne absente porte PGRST116, et un
+ * SOURCE_UNAVAILABLE qui porte un SQLSTATE est une erreur serveur
+ * transitoire — aucune relecture nécessaire. Repli pour un client injecté qui
+ * ne qualifie pas ses refus (échec sans SQLSTATE) : on relit l'objet ; si la
+ * relecture aboutit, le serveur était joignable et a donc refusé l'écriture
+ * (ou l'objet a disparu) ; seule une relecture impossible confirme la panne.
  */
 export async function classifyWriteFailure(
   items: Pick<VelumClient['items'], 'get'>,
   itemId: string,
   error: unknown,
 ): Promise<WriteFailure> {
+  const sqlstate = sqlstateOf(error);
+  if (sqlstate === ROW_NOT_FOUND) return 'missing';
   if (!isOfflineFailure(error)) return 'refused';
+  if (sqlstate !== null) return 'offline';
   try {
     return (await items.get(itemId)) === null ? 'missing' : 'refused';
   } catch {

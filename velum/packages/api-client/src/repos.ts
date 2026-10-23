@@ -12,6 +12,7 @@ import {
   type TastingNote,
   type ValuationRecord,
   type VelumDomain,
+  type VelumErrorCode,
   type VelumItem,
 } from '@velum/core';
 import {
@@ -39,10 +40,39 @@ import {
   type TastingNoteRow,
   type ValuationRow,
 } from './mappers';
+import { isDefinitiveRefusal } from './queue';
 
 /** Convertit une erreur PostgREST en VelumError lisible. */
 function dbError(context: string, error: { message: string }): VelumError {
   return new VelumError('SOURCE_UNAVAILABLE', `${context} : ${error.message}`);
+}
+
+/** Erreur PostgREST minimale (message + SQLSTATE / code PGRST…). */
+interface PostgrestErrorLike {
+  message: string;
+  code?: string | null;
+}
+
+/**
+ * Erreur PostgREST sur un objet → VelumError au code STABLE, SQLSTATE
+ * conservé dans `details.sqlstate` (même convention que `toMarketplaceError`) :
+ *  - refus définitif — règle métier (P0001, ex. objet engagé dans une vente
+ *    ou un échange), donnée invalide (classe 22), contrainte (classe 23) — ou
+ *    ligne absente (PGRST116) → INVALID_INPUT ;
+ *  - droit insuffisant (42501) → UNAUTHORIZED ;
+ *  - le reste (panne de transport, délai, surcharge, jeton expiré) →
+ *    SOURCE_UNAVAILABLE : seule erreur réessayable, donc seule à pouvoir
+ *    partir dans la file hors-ligne (mêmes classes que `isDefinitiveRefusal`).
+ */
+export function toItemsError(context: string, error: PostgrestErrorLike): VelumError {
+  const sqlstate = typeof error.code === 'string' && error.code.length > 0 ? error.code : null;
+  const code: VelumErrorCode =
+    sqlstate === '42501'
+      ? 'UNAUTHORIZED'
+      : sqlstate === 'PGRST116' || isDefinitiveRefusal({ code: sqlstate })
+        ? 'INVALID_INPUT'
+        : 'SOURCE_UNAVAILABLE';
+  return new VelumError(code, `${context} : ${error.message}`, sqlstate === null ? undefined : { sqlstate });
 }
 
 // ── items ────────────────────────────────────────────────────────────────────
@@ -69,7 +99,7 @@ export function createItemsRepo(supabase: SupabaseClient): ItemsRepo {
 
     async get(id) {
       const { data, error } = await supabase.from('items').select('*').eq('id', id).maybeSingle();
-      if (error) throw dbError("Lecture de l'objet impossible", error);
+      if (error) throw toItemsError("Lecture de l'objet impossible", error);
       return data === null ? null : rowToItem(data as ItemRow);
     },
 
@@ -80,7 +110,7 @@ export function createItemsRepo(supabase: SupabaseClient): ItemsRepo {
         .select('*')
         .single();
       if (error || data === null) {
-        throw dbError("Création de l'objet impossible", error ?? { message: 'réponse vide' });
+        throw toItemsError("Création de l'objet impossible", error ?? { message: 'réponse vide' });
       }
       return rowToItem(data as ItemRow);
     },
@@ -94,14 +124,18 @@ export function createItemsRepo(supabase: SupabaseClient): ItemsRepo {
         .select('*')
         .single();
       if (error || data === null) {
-        throw dbError("Mise à jour de l'objet impossible", error ?? { message: 'objet introuvable' });
+        // Aucune ligne relue : objet supprimé (ou invisible) — comme PGRST116.
+        throw toItemsError(
+          "Mise à jour de l'objet impossible",
+          error ?? { message: 'objet introuvable', code: 'PGRST116' },
+        );
       }
       return rowToItem(data as ItemRow);
     },
 
     async remove(id) {
       const { error } = await supabase.from('items').delete().eq('id', id);
-      if (error) throw dbError("Suppression de l'objet impossible", error);
+      if (error) throw toItemsError("Suppression de l'objet impossible", error);
     },
   };
 }

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { isVelumError } from '@velum/core';
+import { isVelumError, type VelumError } from '@velum/core';
 import {
   createAlertsRepo,
   createItemsRepo,
@@ -7,6 +7,7 @@ import {
   createProvenanceRepo,
   createTastingNotesRepo,
   createValuationsRepo,
+  toItemsError,
 } from './repos';
 import { asSupabase, FakeSupabase } from './testing/fake-supabase';
 
@@ -99,6 +100,78 @@ describe('items repo', () => {
     await expect(repo.list()).rejects.toSatisfy(
       (e: unknown) => isVelumError(e) && e.code === 'SOURCE_UNAVAILABLE',
     );
+  });
+
+  describe('code stable propagé (get, insert, update, remove)', () => {
+    /** Toute requête sur `items` répond par cette erreur PostgREST. */
+    function failWith(error: { message: string; code?: string }): void {
+      const from = FakeSupabase.prototype.from.bind(fake);
+      fake.from = (table: string) => {
+        const builder = from(table);
+        builder.then = ((onFulfilled, onRejected) =>
+          Promise.resolve({ data: null, error }).then(onFulfilled, onRejected)) as typeof builder.then;
+        return builder;
+      };
+    }
+
+    async function rejection(run: () => Promise<unknown>): Promise<VelumError> {
+      const error: unknown = await run().then(
+        () => null,
+        (e: unknown) => e,
+      );
+      if (!isVelumError(error)) throw new Error('VelumError attendue');
+      return error;
+    }
+
+    const operations: [string, (repo: ReturnType<typeof createItemsRepo>) => Promise<unknown>][] = [
+      ['get', (repo) => repo.get('a')],
+      ['insert', (repo) => repo.insert({ ownerId: 'usr-1', domain: 'wine', title: 'x', attributes: {} })],
+      ['update', (repo) => repo.update('a', { title: 'x', updatedAt: '2026-07-01T00:00:00Z' })],
+      ['remove', (repo) => repo.remove('a')],
+    ];
+
+    it.each(operations)('%s : règle métier P0001 → INVALID_INPUT, motif et SQLSTATE conservés', async (_op, run) => {
+      failWith({ message: 'Objet engagé dans une vente ou un échange en cours', code: 'P0001' });
+      const error = await rejection(() => run(createItemsRepo(asSupabase(fake))));
+      expect(error.code).toBe('INVALID_INPUT');
+      expect(error.details).toEqual({ sqlstate: 'P0001' });
+      expect(error.message).toMatch(/ : Objet engagé dans une vente ou un échange en cours$/);
+    });
+
+    it.each(operations)('%s : donnée invalide, contrainte, ligne absente, droit insuffisant, panne', async (_op, run) => {
+      const cases: [string | undefined, string][] = [
+        ['22007', 'INVALID_INPUT'],
+        ['22P02', 'INVALID_INPUT'],
+        ['23514', 'INVALID_INPUT'],
+        ['23505', 'INVALID_INPUT'],
+        ['PGRST116', 'INVALID_INPUT'],
+        ['42501', 'UNAUTHORIZED'],
+        ['57014', 'SOURCE_UNAVAILABLE'],
+        ['PGRST301', 'SOURCE_UNAVAILABLE'],
+        [undefined, 'SOURCE_UNAVAILABLE'],
+      ];
+      for (const [sqlstate, expected] of cases) {
+        failWith({ message: 'refus simulé', ...(sqlstate === undefined ? {} : { code: sqlstate }) });
+        const error = await rejection(() => run(createItemsRepo(asSupabase(fake))));
+        expect([sqlstate, error.code]).toEqual([sqlstate, expected]);
+        expect(error.details).toEqual(sqlstate === undefined ? undefined : { sqlstate });
+      }
+    });
+
+    it('update d’un objet supprimé entre-temps (aucune ligne) → INVALID_INPUT PGRST116', async () => {
+      const error = await rejection(() =>
+        createItemsRepo(asSupabase(fake)).update('inconnu', { title: 'x', updatedAt: '2026-07-01T00:00:00Z' }),
+      );
+      expect(error.code).toBe('INVALID_INPUT');
+      expect(error.details).toEqual({ sqlstate: 'PGRST116' });
+    });
+
+    it('toItemsError : code vide (échec de fetch) = panne sans SQLSTATE', () => {
+      const error = toItemsError('Contexte', { message: 'TypeError: Failed to fetch', code: '' });
+      expect(error.code).toBe('SOURCE_UNAVAILABLE');
+      expect(error.details).toBeUndefined();
+      expect(error.message).toBe('Contexte : TypeError: Failed to fetch');
+    });
   });
 });
 

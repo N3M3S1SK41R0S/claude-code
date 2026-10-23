@@ -53,6 +53,7 @@ export {
   createProvenanceRepo,
   createTastingNotesRepo,
   createValuationsRepo,
+  toItemsError,
   type AlertsRepo,
   type ItemsRepo,
   type ProfileApi,
@@ -61,9 +62,12 @@ export {
   type ValuationsRepo,
 } from './repos';
 export {
+  isDefinitiveRefusal,
   MutationQueue,
   MUTATION_QUEUE_STORAGE_KEY,
+  sameJsonValue,
   type QueuedMutation,
+  type QueuedRejection,
   type ReplayReport,
 } from './queue';
 export { createMemoryStorage, type StorageAdapter } from './storage';

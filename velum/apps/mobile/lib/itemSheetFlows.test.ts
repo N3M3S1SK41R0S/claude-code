@@ -141,8 +141,9 @@ describe('persistItemPatch', () => {
 
   it.each([
     ['règle métier (P0001)', new VelumError('INVALID_INPUT', 'Refus : Objet engagé', { sqlstate: 'P0001' })],
-    ['donnée invalide (22007)', new VelumError('SOURCE_UNAVAILABLE', 'date invalide', { sqlstate: '22007' })],
-    ['objet supprimé (PGRST116)', new VelumError('INVALID_INPUT', 'objet introuvable', { sqlstate: 'PGRST116' })],
+    ['donnée invalide (22007)', new VelumError('INVALID_INPUT', 'date invalide', { sqlstate: '22007' })],
+    ['donnée invalide laissée en panne par un client injecté', new VelumError('SOURCE_UNAVAILABLE', 'date invalide', { sqlstate: '22007' })],
+    ['droit insuffisant (42501)', new VelumError('UNAUTHORIZED', 'RLS', { sqlstate: '42501' })],
     ['session expirée', new VelumError('UNAUTHORIZED', 'Session requise')],
     ['offre requise', new VelumError('PLAN_REQUIRED', 'Platine')],
   ])('refus du serveur — %s : remonte à l’appelant, jamais mis en file', async (_label, refusal) => {
@@ -151,9 +152,37 @@ describe('persistItemPatch', () => {
     expect(queued).toEqual([]);
   });
 
-  it('refus non qualifié (SOURCE_UNAVAILABLE) alors que le serveur répond : pas une panne, rien en file', async () => {
-    // Le dépôt PostgREST convertit encore un refus SQL en SOURCE_UNAVAILABLE :
-    // l'objet se relit, le serveur était donc joignable et a refusé.
+  it('objet supprimé (PGRST116 qualifié par le dépôt) : « introuvable » sans relecture, rien en file', async () => {
+    const get = vi.fn(async () => item({}));
+    const { deps, queued } = fakeDeps({
+      update: () =>
+        Promise.reject(new VelumError('INVALID_INPUT', 'Mise à jour impossible : 0 rows', { sqlstate: 'PGRST116' })),
+      get,
+    });
+    await expect(persistItemPatch(deps, item({}), { title: 'x' })).rejects.toMatchObject({
+      code: 'INVALID_INPUT',
+      message: 'Objet introuvable : il a été supprimé entre-temps',
+    });
+    expect(get).not.toHaveBeenCalled();
+    expect(queued).toEqual([]);
+  });
+
+  it('erreur serveur transitoire qualifiée (délai, 57014) : mise en file sans relecture', async () => {
+    const get = vi.fn(async () => item({}));
+    const { deps, queued } = fakeDeps({
+      update: () =>
+        Promise.reject(new VelumError('SOURCE_UNAVAILABLE', 'Mise à jour impossible : timeout', { sqlstate: '57014' })),
+      get,
+    });
+    const out = await persistItemPatch(deps, item({}), { title: 'x' });
+    expect(out.queued).toBe(true);
+    expect(queued).toHaveLength(1);
+    expect(get).not.toHaveBeenCalled();
+  });
+
+  it('client injecté — refus non qualifié (SOURCE_UNAVAILABLE) alors que le serveur répond : rien en file', async () => {
+    // Repli : un client qui convertit encore un refus SQL en SOURCE_UNAVAILABLE
+    // sans SQLSTATE. L'objet se relit, le serveur était donc joignable et a refusé.
     const refusal = new VelumError('SOURCE_UNAVAILABLE', 'Mise à jour impossible : date/time field value out of range');
     const { deps, queued } = fakeDeps({
       update: () => Promise.reject(refusal),
@@ -163,7 +192,7 @@ describe('persistItemPatch', () => {
     expect(queued).toEqual([]);
   });
 
-  it('objet supprimé entre-temps (relu absent) : erreur « introuvable », rien en file', async () => {
+  it('client injecté — objet supprimé entre-temps (relu absent) : erreur « introuvable », rien en file', async () => {
     const { deps, queued } = fakeDeps({
       update: () => Promise.reject(new VelumError('SOURCE_UNAVAILABLE', 'Mise à jour impossible : objet introuvable')),
       get: async () => null,
@@ -280,11 +309,28 @@ describe('classifyWriteFailure', () => {
   const unreachable = { get: () => Promise.reject(new TypeError('Network request failed')) };
   const reachable = (found: VelumItem | null) => ({ get: async () => found });
 
-  it('panne confirmée (relecture impossible) → file', async () => {
-    expect(await classifyWriteFailure(unreachable, 'i1', new VelumError('SOURCE_UNAVAILABLE', 'x'))).toBe('offline');
+  it('erreurs qualifiées par le dépôt (toItemsError) : aucune relecture', async () => {
+    const get = vi.fn(async () => item({}));
+    const cases: [VelumError, string][] = [
+      [new VelumError('INVALID_INPUT', 'Objet engagé', { sqlstate: 'P0001' }), 'refused'],
+      [new VelumError('INVALID_INPUT', 'contrainte', { sqlstate: '23514' }), 'refused'],
+      [new VelumError('UNAUTHORIZED', 'RLS', { sqlstate: '42501' }), 'refused'],
+      [new VelumError('INVALID_INPUT', 'aucune ligne', { sqlstate: 'PGRST116' }), 'missing'],
+      [new VelumError('SOURCE_UNAVAILABLE', 'timeout', { sqlstate: '57014' }), 'offline'],
+      [new VelumError('SOURCE_UNAVAILABLE', 'JWT expired', { sqlstate: 'PGRST301' }), 'offline'],
+    ];
+    for (const [error, expected] of cases) {
+      expect(await classifyWriteFailure({ get }, 'i1', error)).toBe(expected);
+    }
+    expect(get).not.toHaveBeenCalled();
   });
 
-  it('serveur joignable → refus ; objet absent → introuvable', async () => {
+  it('repli (échec sans SQLSTATE) — panne confirmée (relecture impossible) → file', async () => {
+    expect(await classifyWriteFailure(unreachable, 'i1', new VelumError('SOURCE_UNAVAILABLE', 'x'))).toBe('offline');
+    expect(await classifyWriteFailure(unreachable, 'i1', new TypeError('Network request failed'))).toBe('offline');
+  });
+
+  it('repli (échec sans SQLSTATE) — serveur joignable → refus ; objet absent → introuvable', async () => {
     expect(await classifyWriteFailure(reachable(item({})), 'i1', new VelumError('SOURCE_UNAVAILABLE', 'x'))).toBe(
       'refused',
     );
@@ -308,6 +354,9 @@ describe('isOfflineFailure', () => {
     // Erreur serveur transitoire (délai dépassé) : réessayable, donc mise en file.
     expect(isOfflineFailure(new VelumError('SOURCE_UNAVAILABLE', 'timeout', { sqlstate: '57014' }))).toBe(true);
     expect(isOfflineFailure(new VelumError('SOURCE_UNAVAILABLE', 'x', { sqlstate: '23514' }))).toBe(false);
+    expect(isOfflineFailure(new VelumError('SOURCE_UNAVAILABLE', 'x', { sqlstate: 'P0001' }))).toBe(false);
+    expect(isOfflineFailure(new VelumError('SOURCE_UNAVAILABLE', 'x', { sqlstate: 'PGRST116' }))).toBe(false);
+    expect(isOfflineFailure(new VelumError('SOURCE_UNAVAILABLE', 'x', { sqlstate: 'PGRST301' }))).toBe(true);
     expect(isOfflineFailure(new VelumError('INVALID_INPUT', 'x'))).toBe(false);
     expect(isOfflineFailure(new VelumError('UNAUTHORIZED', 'x'))).toBe(false);
     expect(isOfflineFailure(new VelumError('PLAN_REQUIRED', 'x'))).toBe(false);
