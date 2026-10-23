@@ -23,6 +23,8 @@
 --   X13 fin d'abonnement Platine : annonces retirées, actions refusées ;
 --   X14 market_listing() : annonce par identifiant, anonymisée, hors catalogue ;
 --       annonce réservée invisible d'un tiers ;
+--   X15 arrondi au centime sur les écritures réelles du registre (vecteurs
+--       partagés avec packages/config) ;
 --   X16 expédition du vendeur avec date de livraison : P0001 ; sans date, elle passe.
 -- ─────────────────────────────────────────────────────────────────────────────
 
@@ -1169,13 +1171,81 @@ begin
 end
 $$;
 
--- Arrondi monétaire : vecteurs partagés avec packages/config (roundCents).
+-- ── X15. Arrondi au centime : écritures RÉELLES du registre ─────────────────
+-- Vecteurs PARTAGÉS avec packages/config : marketplace.test.ts relit les deux
+-- tableaux v_sale et v_fee ci-dessous et les passe à saleBreakdown et
+-- splitCertificationFee. Une vente libérée et une expertise à frais partagés
+-- doivent produire au registre, au centime près, les montants affichés par
+-- l'application (demi-centime arrondi au supérieur des deux côtés).
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('87000000-0000-4000-8000-000000000001', 'gaelle@harden.test', '{"display_name":"Gaëlle"}');
+update public.profiles set plan = 'platine' where id = '87000000-0000-4000-8000-000000000001';
+insert into public.items (id, owner_id, domain, title) values
+  ('97000000-0000-4000-8000-000000000001', '87000000-0000-4000-8000-000000000001', 'coin', 'Obole de Melle'),
+  ('97000000-0000-4000-8000-000000000002', '87000000-0000-4000-8000-000000000001', 'coin', 'Denier tournois');
+
 do $$
+declare
+  -- Vente : prix, taux (vendeuse sans vente conclue), commission, versement net.
+  v_sale constant numeric[] := array[20.70, 0.05, 1.04, 19.66];
+  -- Expertise à frais partagés : frais, part du propriétaire, part de l'autre partie.
+  v_fee constant numeric[] := array[2.01, 1.01, 1.00];
+  v_order uuid;
+  v_cert uuid;
+  v_rate numeric;
+  v_amount numeric;
 begin
-  if round(20.70 * 0.0500, 2) <> 1.04 or round(2.01 / 2, 2) <> 1.01 or round(2.01 - round(2.01 / 2, 2), 2) <> 1.00 then
-    raise exception 'arrondi : demi-centime arrondi au supérieur attendu';
+  set local role authenticated;
+  perform set_config('velum.uid', '87000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a1500000-0000-4000-8000-000000000001', '97000000-0000-4000-8000-000000000001',
+     '87000000-0000-4000-8000-000000000001', v_sale[1]),
+    ('a1500000-0000-4000-8000-000000000002', '97000000-0000-4000-8000-000000000002',
+     '87000000-0000-4000-8000-000000000001', 50);
+  select commission_rate into v_rate from public.listings where id = 'a1500000-0000-4000-8000-000000000001';
+  if v_rate <> v_sale[2] then
+    raise exception 'X15 : taux figé % attendu, vu %', v_sale[2], v_rate;
   end if;
-  raise notice 'OK X15 — arrondi au centime (demi supérieur), vecteurs partagés avec roundCents';
+
+  -- Vente libérée : commission et versement net au registre.
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select id into v_order from public.market_buy('a1500000-0000-4000-8000-000000000001');
+  perform public.advance_market_order(v_order, 'funds_held');
+  perform set_config('velum.uid', '87000000-0000-4000-8000-000000000001', true);
+  perform public.advance_market_order(v_order, 'shipped', 'La Poste', '1A00000000015');
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  perform public.advance_market_order(v_order, 'released');
+  reset role;
+  select amount into v_amount from public.platform_ledger where order_id = v_order and kind = 'commission';
+  if v_amount is distinct from v_sale[3] then
+    raise exception 'X15 : commission % attendue au registre, vu %', v_sale[3], v_amount;
+  end if;
+  select amount into v_amount from public.platform_ledger where order_id = v_order and kind = 'payout';
+  if v_amount is distinct from v_sale[4] then
+    raise exception 'X15 : versement net % attendu au registre, vu %', v_sale[4], v_amount;
+  end if;
+
+  -- Expertise demandée par l'acheteur, frais partagés (défaut), décidée à 2,01 €.
+  set local role authenticated;
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select id into v_order from public.market_buy('a1500000-0000-4000-8000-000000000002');
+  select c.id into v_cert from public.request_certification('mutual_agreement', p_order => v_order) c;
+  perform set_config('velum.uid', '87000000-0000-4000-8000-000000000001', true);
+  perform public.respond_certification(v_cert, true);
+  reset role;
+  perform set_config('velum.uid', '', true);
+  perform public.decide_certification(v_cert, true, 'expertises/gaelle/denier.pdf', null, v_fee[1]);
+  select amount into v_amount from public.platform_ledger
+  where certification_id = v_cert and member_id = '87000000-0000-4000-8000-000000000001';
+  if v_amount is distinct from v_fee[2] then
+    raise exception 'X15 : part du propriétaire % attendue au registre, vu %', v_fee[2], v_amount;
+  end if;
+  select amount into v_amount from public.platform_ledger
+  where certification_id = v_cert and member_id = '82000000-0000-4000-8000-000000000002';
+  if v_amount is distinct from v_fee[3] then
+    raise exception 'X15 : part de l''autre partie % attendue au registre, vu %', v_fee[3], v_amount;
+  end if;
+  raise notice 'OK X15 — arrondi au centime (demi supérieur) sur les écritures réelles du registre, vecteurs partagés';
 end
 $$;
 
