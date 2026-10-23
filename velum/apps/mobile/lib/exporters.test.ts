@@ -140,6 +140,26 @@ describe('buildItemSheetHtml', () => {
     const html = buildItemSheetHtml(makeItem(), null, null, t);
     expect(html).toContain('export.noValuation');
   });
+
+  it('date l’estimation imprimée', () => {
+    const html = buildItemSheetHtml(makeItem(), analysis, makeValuation({ valuedAt: '2026-07-01T12:00:00Z' }), t);
+    expect(html).toContain(escapeHtml('item.valuation.valuedOn:{"date":"2026-07-01"}'));
+  });
+
+  it('signale une estimation et une fiche périmées par une correction (jamais de fausse certitude)', () => {
+    const fresh = buildItemSheetHtml(makeItem(), analysis, makeValuation(), t);
+    expect(fresh).not.toContain('item.valuation.outdated');
+    expect(fresh).not.toContain('item.fullSheet.outdatedBody');
+
+    const stale = buildItemSheetHtml(makeItem(), analysis, makeValuation(), t, {
+      valuationStale: true,
+      analysisOutdated: true,
+    });
+    expect(stale).toContain('item.valuation.outdated');
+    expect(stale).toContain('item.fullSheet.outdatedBody');
+    // L'avertissement précède les montants de l'estimation périmée.
+    expect(stale.indexOf('item.valuation.outdated')).toBeLessThan(stale.indexOf('export.central'));
+  });
 });
 
 describe('buildCellarShareHtml', () => {

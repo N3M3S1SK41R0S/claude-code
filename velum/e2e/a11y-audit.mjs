@@ -23,7 +23,7 @@ const SCREENS = [
   { name: 'cellar-sommelier', path: '/cellar-sommelier', auth: true, expect: 'Trouver le vin dans ma cave', title: 'Sommelier de cave — VELUM' },
   { name: 'blind-tasting', path: '/blind-tasting', auth: true, expect: 'Vin n°1', title: 'Dégustation à l’aveugle — VELUM' },
   { name: 'event-sommelier', path: '/event-sommelier', auth: true, expect: 'Composer les accords', title: 'Sommelier d’événement — VELUM' },
-  { name: 'community', path: '/community', auth: true, expect: 'Catalogue', title: 'Communauté — VELUM' },
+  { name: 'community', path: '/community', auth: true, expect: 'Catalogue', title: 'Échanges & ventes — VELUM' },
   { name: 'market', path: '/market', auth: true, expect: 'À boire', title: 'Marché — VELUM' },
   { name: 'item', path: '/item/demo-wine', auth: true, expect: 'Valorisation', title: 'Fiche — VELUM' },
   { name: 'arbiter', path: '/arbiter/demo-wine', auth: true, expect: 'Pourquoi ce signal', title: 'Arbitre patrimonial — VELUM' },
@@ -31,6 +31,13 @@ const SCREENS = [
   { name: 'item-stamp', path: '/item/demo-stamp', auth: true, expect: 'Valorisation', title: 'Fiche — VELUM' },
   { name: 'item-art', path: '/item/demo-art', auth: true, expect: 'Valorisation', title: 'Fiche — VELUM' },
   { name: 'item-watch', path: '/item/demo-watch', auth: true, expect: 'Valorisation', title: 'Fiche — VELUM' },
+  // Espaces ajoutés en octobre 2026 (avant le profil, qui doit rester le DERNIER
+  // écran : l'étape finale y bascule la langue).
+  { name: 'wishlist', path: '/wishlist', auth: true, expect: 'Domaine Tempier Bandol La Tourtine 2019', title: 'Mes envies — VELUM' },
+  { name: 'cellar-peak', path: '/cellar-peak', auth: true, expect: 'Mes vins à leur apogée', title: 'Vins à leur apogée — VELUM' },
+  { name: 'search', path: '/search?q=tempier', auth: true, expect: 'Ma collection', title: 'Rechercher partout — VELUM' },
+  { name: 'community-listing', path: '/community/listing/lst-1', auth: true, expect: 'Napoléon III 20 Francs Or 1868', title: 'Échanges & ventes — VELUM' },
+  { name: 'community-activity', path: '/community?tab=activity', auth: true, expect: 'Mon activité', title: 'Échanges & ventes — VELUM' },
   { name: 'profile', path: '/profile', auth: true, expect: 'Compte Démo VELUM', title: 'Profil — VELUM' },
 ];
 

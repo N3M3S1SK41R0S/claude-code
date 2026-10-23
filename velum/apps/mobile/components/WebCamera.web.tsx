@@ -24,6 +24,12 @@ export interface WebCameraProps {
     denied: string;
     useNativeCamera: string;
   };
+  /** Grand côté maximal (px) — plus petit pour un scan éclair, plus grand pour une planche. */
+  maxEdge?: number;
+  /** Qualité JPEG 0..1. */
+  quality?: number;
+  /** Hauteur du viseur (px). */
+  height?: number;
 }
 
 /** Borne le grand côté : au-delà, l'image ne gagne rien en lisibilité et alourdit la requête. */
@@ -32,7 +38,45 @@ const JPEG_QUALITY = 0.7;
 
 type Status = 'starting' | 'live' | 'unavailable';
 
-export function WebCamera({ onCapture, guide, labels }: WebCameraProps) {
+/**
+ * Réduit une photo de l'appareil natif (repli `<input capture>`, souvent
+ * 12 Mpx) au grand côté voulu : le téléversement et la reconnaissance
+ * n'attendent plus plusieurs mégaoctets. En cas d'échec, la photo d'origine.
+ */
+function downscaleDataUrl(dataUrl: string, maxEdge: number, quality: number): Promise<string> {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const longest = Math.max(image.naturalWidth, image.naturalHeight);
+      if (!longest) {
+        resolve(dataUrl);
+        return;
+      }
+      const scale = Math.min(1, maxEdge / longest);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(image.naturalWidth * scale);
+      canvas.height = Math.round(image.naturalHeight * scale);
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(dataUrl);
+        return;
+      }
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    image.onerror = () => resolve(dataUrl);
+    image.src = dataUrl;
+  });
+}
+
+export function WebCamera({
+  onCapture,
+  guide,
+  labels,
+  maxEdge = MAX_EDGE,
+  quality = JPEG_QUALITY,
+  height = 320,
+}: WebCameraProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [status, setStatus] = useState<Status>('starting');
@@ -85,7 +129,7 @@ export function WebCamera({ onCapture, guide, labels }: WebCameraProps) {
     const video = videoRef.current;
     if (!video || !video.videoWidth) return;
 
-    const scale = Math.min(1, MAX_EDGE / Math.max(video.videoWidth, video.videoHeight));
+    const scale = Math.min(1, maxEdge / Math.max(video.videoWidth, video.videoHeight));
     const canvas = document.createElement('canvas');
     canvas.width = Math.round(video.videoWidth * scale);
     canvas.height = Math.round(video.videoHeight * scale);
@@ -93,8 +137,8 @@ export function WebCamera({ onCapture, guide, labels }: WebCameraProps) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    onCapture(canvas.toDataURL('image/jpeg', JPEG_QUALITY));
-  }, [onCapture]);
+    onCapture(canvas.toDataURL('image/jpeg', quality));
+  }, [onCapture, maxEdge, quality]);
 
   /** Repli : l'appareil photo natif d'iOS, via un input fichier. */
   const onFallbackFile = useCallback(
@@ -104,11 +148,12 @@ export function WebCamera({ onCapture, guide, labels }: WebCameraProps) {
       if (!file) return;
       const reader = new FileReader();
       reader.onload = () => {
-        if (typeof reader.result === 'string') onCapture(reader.result);
+        if (typeof reader.result !== 'string') return;
+        void downscaleDataUrl(reader.result, maxEdge, quality).then(onCapture);
       };
       reader.readAsDataURL(file);
     },
-    [onCapture],
+    [onCapture, maxEdge, quality],
   );
 
   const nativeCameraInput = (
@@ -136,7 +181,7 @@ export function WebCamera({ onCapture, guide, labels }: WebCameraProps) {
   return (
     <div style={styles.wrap}>
       <div style={styles.frame}>
-        <video ref={videoRef} playsInline muted autoPlay style={styles.video} />
+        <video ref={videoRef} playsInline muted autoPlay style={{ ...styles.video, height }} />
         {guide ? <div style={styles.guide}>{guide}</div> : null}
         {status === 'starting' ? <p style={styles.notice}>{labels.starting}</p> : null}
       </div>

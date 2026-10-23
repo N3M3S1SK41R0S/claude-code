@@ -84,7 +84,7 @@ export default function SignUp() {
   };
 
   return (
-    <Screen brand={false}>
+    <Screen brand={false} backFallback="/(auth)/sign-in">
       <VText variant="title" tone="gold" center style={styles.title}>
         {t('brand.name')}
       </VText>

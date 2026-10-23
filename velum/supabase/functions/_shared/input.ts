@@ -26,8 +26,17 @@ function isCaptureKind(value: unknown): value is CaptureInput['kind'] {
   return value === 'photo' || value === 'text' || value === 'file';
 }
 
+// Les montres (5e module) étaient absentes de ces deux listes : un candidat
+// 'watch' était refusé par analyze-watch / valuate, et un cliché de cadran
+// ('dial') par recognize. Les listes suivent désormais le contrat core.
 function isVelumDomain(value: unknown): value is VelumDomain {
-  return value === 'wine' || value === 'coin' || value === 'art' || value === 'stamp';
+  return (
+    value === 'wine' ||
+    value === 'coin' ||
+    value === 'art' ||
+    value === 'stamp' ||
+    value === 'watch'
+  );
 }
 
 function isMediaRole(value: unknown): value is MediaRole {
@@ -41,8 +50,74 @@ function isMediaRole(value: unknown): value is MediaRole {
     value === 'back' ||
     value === 'signature' ||
     value === 'frame' ||
+    value === 'dial' ||
+    value === 'caseback' ||
+    value === 'movement' ||
+    value === 'clasp' ||
     value === 'detail'
   );
+}
+
+// ── Bornes d'une capture (vérifiées AVANT garde-fou et quota) ────────────────
+//
+// Une requête `recognize` coûte UN scan, quel que soit son contenu : sans
+// borne, 40 photos ou un texte de plusieurs centaines de Ko coûteraient 40 fois
+// un scan au fournisseur et épuiseraient le plafond de dépense global.
+
+/** Photos par capture : le maximum de rôles d'un domaine (montre : cadran, fond, fermoir…). */
+export const MAX_CAPTURE_MEDIA = 4;
+
+/** Longueur maximale d'une description en texte libre. */
+export const MAX_CAPTURE_TEXT_LENGTH = 2000;
+
+/**
+ * Poids maximal d'une image (octets décodés). Le fournisseur par défaut
+ * (Anthropic) refuse toute image de plus de 5 Mo en base64, soit ~3,75 Mo
+ * décodés : au-delà, la requête échouerait APRÈS consommation du scan.
+ */
+export const MAX_IMAGE_BYTES = 3_750_000;
+
+/** Poids décodé d'une image en base64 (data URL ou base64 nu, remplissage exclu). */
+export function base64DecodedBytes(value: string): number {
+  const comma = value.startsWith('data:') ? value.indexOf(',') : -1;
+  const payload = (comma === -1 ? value : value.slice(comma + 1)).replace(/\s/g, '');
+  const padding = payload.endsWith('==') ? 2 : payload.endsWith('=') ? 1 : 0;
+  return Math.max(0, Math.floor((payload.length * 3) / 4) - padding);
+}
+
+/** Message d'une image trop lourde (Mo arrondis au dixième, à la française). */
+export function imageTooLargeMessage(bytes: number): string {
+  const mb = (n: number) => (Math.round(n / 100_000) / 10).toLocaleString('fr-FR');
+  return `Photo trop lourde (${mb(bytes)} Mo, ${mb(MAX_IMAGE_BYTES)} Mo au plus) : reprenez-la ou réduisez-la`;
+}
+
+/** Mode de reconnaissance : un objet (défaut) ou une planche multi-objets. */
+export type RecognitionMode = 'single' | 'sheet';
+
+/** Valide le champ optionnel `mode` de `recognize` (absent → 'single'). */
+export function validateRecognitionMode(value: unknown): ValidationResult<RecognitionMode> {
+  if (value === undefined || value === null) return valid('single');
+  if (value === 'single' || value === 'sheet') return valid(value);
+  return invalid("Champ 'mode' invalide : 'single' ou 'sheet' attendu");
+}
+
+/**
+ * Le mode planche analyse UNE photo de page de classeur / de plateau : ni
+ * texte, ni fichier, ni série de clichés (le quota est compté par photo).
+ */
+export function validateSheetInput(input: CaptureInput): ValidationResult<CaptureInput> {
+  if (input.kind !== 'photo') {
+    return invalid("Le mode planche exige une photo (input.kind 'photo')");
+  }
+  const media = input.media ?? [];
+  if (media.length !== 1) {
+    return invalid('Le mode planche attend exactement une photo de la planche');
+  }
+  const only = media[0];
+  if (!only || (only.storagePath.trim() === '' && !only.base64)) {
+    return invalid('Le mode planche attend une photo téléversée ou jointe');
+  }
+  return valid(input);
 }
 
 /** Refuse les corps JSON primitifs avant tout accès à leurs propriétés. */
@@ -71,6 +146,11 @@ export function validateCaptureInput(value: unknown): ValidationResult<CaptureIn
     if (!Array.isArray(media)) {
       return invalid("Champ 'input.media' invalide : tableau attendu");
     }
+    if (media.length > MAX_CAPTURE_MEDIA) {
+      return invalid(
+        `Champ 'input.media' invalide : au plus ${MAX_CAPTURE_MEDIA} photos par capture (une requête = un scan)`,
+      );
+    }
     validatedMedia = [];
     for (let index = 0; index < media.length; index++) {
       const item = media[index];
@@ -89,6 +169,12 @@ export function validateCaptureInput(value: unknown): ValidationResult<CaptureIn
       if (base64 !== undefined && typeof base64 !== 'string') {
         return invalid(`Champ 'input.media[${index}].base64' invalide : chaîne attendue`);
       }
+      if (base64 !== undefined) {
+        const bytes = base64DecodedBytes(base64);
+        if (bytes > MAX_IMAGE_BYTES) {
+          return invalid(`Champ 'input.media[${index}].base64' invalide : ${imageTooLargeMessage(bytes)}`);
+        }
+      }
       validatedMedia.push({
         ...item,
         role,
@@ -101,6 +187,11 @@ export function validateCaptureInput(value: unknown): ValidationResult<CaptureIn
   const text = value['text'];
   if (text !== undefined && typeof text !== 'string') {
     return invalid("Champ 'input.text' invalide : chaîne attendue");
+  }
+  if (typeof text === 'string' && text.length > MAX_CAPTURE_TEXT_LENGTH) {
+    return invalid(
+      `Champ 'input.text' invalide : ${MAX_CAPTURE_TEXT_LENGTH} caractères au plus (${text.length} reçus)`,
+    );
   }
 
   const fileRows = value['fileRows'];

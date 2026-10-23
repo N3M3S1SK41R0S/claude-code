@@ -3,7 +3,13 @@
  * Module à part entière (décision produit juillet 2026). Moteur d'analyse : `phila_v1`.
  */
 import {
+  MAX_SHEET_DETECTIONS,
+  QUICK_SCAN_OUTPUT_RULES,
+  RECOGNITION_MAX_TOKENS,
+  SHEET_RECOGNITION_MAX_TOKENS,
   VelumError,
+  quickScanFields,
+  sheetDetectionFrom,
   type AnalysisResult,
   type AnalyzeDeps,
   type Candidate,
@@ -13,6 +19,8 @@ import {
   type PriceQuery,
   type RecognitionResult,
   type RecognizeDeps,
+  type SheetDetection,
+  type SheetRecognitionResult,
   type SourceRef,
   type StampAnalysisPayload,
   type StampAttributes,
@@ -21,7 +29,7 @@ import {
   type ValuationResult,
 } from '@velum/core';
 import { normalizeCatalogNumber } from './catalog.ts';
-import { clamp01, isRecord, parseLooseJson } from './json.ts';
+import { clamp01, isRecord, parseArrayWithSalvage, parseLooseJson } from './json.ts';
 import { PHILA_SYSTEM_PROMPT } from './phila.ts';
 
 export const PHILA_ENGINE = 'phila_v1';
@@ -77,13 +85,34 @@ const CATALOG_VALUES: readonly NonNullable<StampAttributes['catalog']>[] = [
 /** Sous ce seuil de confiance, on bascule sur la saisie assistée (§3.3). */
 const ASSISTED_ENTRY_THRESHOLD = 0.35;
 
-/** Prompt système de l'étape de RECONNAISSANCE (étage 1, §10.1). */
-export const STAMP_RECOGNITION_SYSTEM_PROMPT = `Tu es l'assistant d'identification philatélique VELUM. Tu identifies des timbres-poste à partir de photos (recto, verso-gomme, détails) ou d'une description libre, éventuellement floue ou partielle. Tu proposes au plus 3 candidats plausibles avec une confiance honnête entre 0 et 1 — jamais de fausse certitude : en cas de doute, baisse la confiance. Pour la France, privilégie la numérotation Yvert & Tellier. Réponds UNIQUEMENT en JSON strict, sans texte hors du JSON et sans fences markdown.`;
+/** Plafond d'une fourchette indicative (EUR) : au-delà, valeur aberrante écartée. */
+const STAMP_MAX_ESTIMATE_EUR = 10_000_000;
+
+/** Prompt système de l'étape de RECONNAISSANCE (étage 1, §10.1) — scan éclair. */
+export const STAMP_RECOGNITION_SYSTEM_PROMPT = `Tu es l'assistant d'identification philatélique VELUM (scan éclair). Tu identifies des timbres-poste à partir de photos (recto, verso-gomme, détails) ou d'une description libre, éventuellement floue ou partielle, et tu proposes au plus 3 candidats plausibles, avec une fourchette de valeur indicative et un classement.
+Méthode :
+- Pays et période : lis la légende (« RÉPUBLIQUE FRANÇAISE », « POSTES », « HELVETIA »…), la valeur faciale et sa devise, le style et le procédé d'impression pour situer l'émission.
+- Numéro de catalogue : Yvert & Tellier en priorité pour la France et ses colonies, au format « YT 123 » ; sinon « Mi 123 » (Michel), « SG 123 » (Stanley Gibbons) ou « Scott 123 ». Ne donne un numéro que s'il est plausible — jamais au hasard.
+- Statut : neuf sans charnière (**), neuf avec charnière (*), oblitéré (o) ou sur lettre. L'oblitération se voit au recto ; la gomme et la charnière ne se jugent qu'au verso : sans verso, n'affirme pas « neuf sans charnière ».
+- Variétés : nuance de couleur, dentelure (ex. « 14 × 13½ »), filigrane, type (I/II), papier ou impression distinguent des numéros voisins de valeur très différente. Note l'indice visible dans les attributs ; si la distinction n'est pas lisible sur la photo, baisse la confiance.
+- Confiance honnête entre 0 et 1 — jamais de fausse certitude : une nuance indiscernable ou un timbre mal cadré méritent une confiance modérée.
+Réponds UNIQUEMENT en JSON strict, sans texte hors du JSON et sans fences markdown.`;
+
+/** Attributs de reconnaissance d'un timbre (forme compacte commune objet / planche). */
+const STAMP_ATTRIBUTES_SPEC = `{"country"?:string,"catalogNumber"?:string,"catalog"?:"yvert_tellier"|"michel"|"stanley_gibbons"|"scott"|"autre","title"?:string,"year"?:number,"faceValue"?:string,"color"?:string,"perforation"?:string,"watermark"?:string,"printingMethod"?:string,"status"?:"neuf_sans_charniere"|"neuf_avec_charniere"|"oblitere"|"sur_lettre"}`;
 
 /** Schéma JSON exigé pour la reconnaissance — rappelé dans chaque prompt. */
 const RECOGNITION_JSON_SPEC = `Réponds UNIQUEMENT avec un JSON strict de la forme :
-{"candidates":[{"label":string,"confidence":number entre 0 et 1,"attributes":{"country"?:string,"catalogNumber"?:string,"catalog"?:"yvert_tellier"|"michel"|"stanley_gibbons"|"scott"|"autre","title"?:string,"year"?:number,"faceValue"?:string,"color"?:string,"perforation"?:string,"watermark"?:string,"printingMethod"?:string,"status"?:"neuf_sans_charniere"|"neuf_avec_charniere"|"oblitere"|"sur_lettre"}}]}
-Au plus 3 candidats, triés par confiance décroissante. Aucun texte hors du JSON, pas de fences markdown.`;
+{"candidates":[{"label":string,"confidence":number entre 0 et 1,"attributes":${STAMP_ATTRIBUTES_SPEC},"estimate"?:{"low":number,"high":number},"classification"?:string[]}]}
+Au plus 3 candidats, triés par confiance décroissante. Classement : pays › série ou type › période (ex. ["France","Cérès","1849–1850"]).
+${QUICK_SCAN_OUTPUT_RULES}`;
+
+/** Prompt de la reconnaissance d'une PLANCHE (page de classeur, mode classeur). */
+const SHEET_PROMPT = `Cette photo montre une page de classeur ou une planche de timbres-poste. Repère CHAQUE timbre visible, dans l'ordre de lecture (de gauche à droite, puis de haut en bas), et identifie-le.
+Réponds UNIQUEMENT avec un JSON strict de la forme :
+{"detections":[{"position":"rangée 1, case 1","candidates":[{"label":string,"confidence":number entre 0 et 1,"attributes":${STAMP_ATTRIBUTES_SPEC},"estimate"?:{"low":number,"high":number},"classification"?:string[]}]}],"more":boolean}
+Règles : au plus ${MAX_SHEET_DETECTIONS} timbres ; un seul candidat par timbre (le plus probable) ; "more":true s'il reste des timbres au-delà ; un timbre illisible garde sa position avec "candidates":[] ; attributs limités à pays, numéro de catalogue, année, valeur faciale, couleur et statut.
+${QUICK_SCAN_OUTPUT_RULES}`;
 
 const ROLE_LABELS_FR: Record<string, string> = {
   front: 'recto',
@@ -115,7 +144,7 @@ function photoPrompt(input: CaptureInput): string {
   const hint = input.text !== undefined && input.text.trim() !== ''
     ? `\nIndication de l'utilisateur (peut être imprécise) : « ${input.text.trim()} »`
     : '';
-  return `Identifie le timbre-poste photographié (${roles || 'photos fournies'}).${hint}
+  return `Identifie le timbre-poste photographié (${roles || 'photos fournies'}). Si plusieurs timbres sont visibles, identifie celui du centre.${hint}
 ${RECOGNITION_JSON_SPEC}`;
 }
 
@@ -144,23 +173,101 @@ function fileRowLabel(row: Record<string, unknown>): string {
   return 'Timbre importé (à préciser)';
 }
 
+/**
+ * Attributs de reconnaissance nettoyés : clés vides retirées, référence de
+ * catalogue normalisée (« yt 130 » → « YT 130 » + catalogue), statut
+ * philatélique ramené à sa forme canonique, année numérique.
+ */
+function normalizeRecognitionAttributes(raw: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (value === null || value === undefined) continue;
+    if (typeof value === 'string' && value.trim() === '') continue;
+    out[key] = typeof value === 'string' ? value.trim() : value;
+  }
+  const catalogNumber = out['catalogNumber'];
+  if (typeof catalogNumber === 'string') {
+    const normalized = normalizeCatalogNumber(catalogNumber);
+    if (normalized !== null) {
+      out['catalogNumber'] = normalized.catalogNumber;
+      out['catalog'] = normalized.catalog;
+    }
+  }
+  const catalog = out['catalog'];
+  if (catalog !== undefined && !(CATALOG_VALUES as readonly unknown[]).includes(catalog)) {
+    delete out['catalog'];
+  }
+  const status = out['status'];
+  if (typeof status === 'string') {
+    const normalized = normalizeStampStatus(status);
+    if (normalized === null || normalized === 'inconnu') delete out['status'];
+    else out['status'] = normalized;
+  }
+  const year = out['year'];
+  if (typeof year === 'string' && /^\d{4}$/.test(year)) out['year'] = Number(year);
+  return out;
+}
+
+/** Un candidat de reconnaissance (objet seul ou détection de planche). */
+function toCandidate(entry: unknown): Candidate | null {
+  if (!isRecord(entry)) return null;
+  const label = typeof entry['label'] === 'string' ? entry['label'].trim() : '';
+  if (label === '') return null;
+  const rawConfidence = entry['confidence'];
+  const confidence = clamp01(typeof rawConfidence === 'number' ? rawConfidence : 0);
+  const attributes = normalizeRecognitionAttributes(
+    isRecord(entry['attributes']) ? entry['attributes'] : {},
+  );
+  return {
+    id: nextCandidateId(),
+    domain: 'stamp',
+    label,
+    confidence,
+    attributes,
+    ...quickScanFields(entry, confidence, { maxEur: STAMP_MAX_ESTIMATE_EUR }),
+  };
+}
+
+/** Candidats valides, triés par confiance décroissante, top 3 au plus. */
+function toCandidates(entries: unknown[]): Candidate[] {
+  const out: Candidate[] = [];
+  for (const entry of entries) {
+    const candidate = toCandidate(entry);
+    if (candidate !== null) out.push(candidate);
+  }
+  out.sort((a, b) => b.confidence - a.confidence);
+  return out.slice(0, 3);
+}
+
 /** Parse la réponse de reconnaissance ; null si totalement illisible. */
 function parseCandidates(raw: string): Candidate[] | null {
   const parsed = parseLooseJson(raw);
   if (!isRecord(parsed) || !Array.isArray(parsed['candidates'])) return null;
-  const out: Candidate[] = [];
-  for (const entry of parsed['candidates']) {
+  return toCandidates(parsed['candidates']);
+}
+
+/**
+ * Parse la réponse d'une planche. Une réponse coupée par le budget de sortie
+ * garde ses détections COMPLÈTES et lève `truncated` ; au-delà de 24 objets,
+ * la liste est tronquée et signalée de même.
+ */
+function parseSheet(raw: string): SheetRecognitionResult {
+  const { items, root, complete, found } = parseArrayWithSalvage(raw, 'detections');
+  const detections: SheetDetection[] = [];
+  for (const entry of items) {
+    if (detections.length === MAX_SHEET_DETECTIONS) break;
     if (!isRecord(entry)) continue;
-    const label = typeof entry['label'] === 'string' ? entry['label'].trim() : '';
-    if (label === '') continue;
-    const rawConfidence = entry['confidence'];
-    const confidence = clamp01(typeof rawConfidence === 'number' ? rawConfidence : 0);
-    const attributes = isRecord(entry['attributes']) ? entry['attributes'] : {};
-    out.push({ id: nextCandidateId(), domain: 'stamp', label, confidence, attributes });
+    const candidates = Array.isArray(entry['candidates']) ? toCandidates(entry['candidates']) : [];
+    const position = typeof entry['position'] === 'string' ? entry['position'] : undefined;
+    detections.push(sheetDetectionFrom(detections.length, candidates, position));
   }
-  // Tri par confiance décroissante, top 3 au plus.
-  out.sort((a, b) => b.confidence - a.confidence);
-  return out.slice(0, 3);
+  // Coupée, même dès le premier objet (liste vide) : « réponse incomplète »,
+  // jamais « aucun objet ». Une réponse sans la clé (prose) n'est pas coupée.
+  const truncated =
+    (found && !complete) ||
+    items.length > MAX_SHEET_DETECTIONS ||
+    root?.['more'] === true;
+  return { detections, stage: 'llm_vision', truncated };
 }
 
 function recognitionFrom(candidates: Candidate[]): RecognitionResult {
@@ -360,19 +467,42 @@ export class StampDomainPlugin implements DomainPlugin<StampAnalysisPayload> {
         system: STAMP_RECOGNITION_SYSTEM_PROMPT,
         prompt: photoPrompt(input),
         images: input.media?.filter((m) => m.base64).map((m) => toVisionImage(m)),
-        maxTokens: 1024,
+        maxTokens: RECOGNITION_MAX_TOKENS,
       });
     } else {
       raw = await deps.vision.complete({
         system: STAMP_RECOGNITION_SYSTEM_PROMPT,
         prompt: textPrompt(input.text ?? ''),
-        maxTokens: 1024,
+        maxTokens: RECOGNITION_MAX_TOKENS,
       });
     }
 
     const candidates = parseCandidates(raw);
     if (candidates === null) return { ...UNREADABLE_RECOGNITION };
     return recognitionFrom(candidates);
+  }
+
+  /**
+   * Mode classeur : UNE photo de page de classeur → jusqu'à 24 timbres
+   * identifiés en un seul appel. Une photo est requise (ni texte ni fichier) ;
+   * une panne de vision remonte telle quelle (429/503).
+   */
+  async recognizeSheet(input: CaptureInput, deps: RecognizeDeps): Promise<SheetRecognitionResult> {
+    const images = (input.media ?? []).filter((m) => m.base64).map((m) => toVisionImage(m));
+    if (input.kind !== 'photo' || images.length === 0) {
+      throw new VelumError('INVALID_INPUT', 'Le mode planche exige une photo de la page de classeur.');
+    }
+    const hint =
+      input.text !== undefined && input.text.trim() !== ''
+        ? `\nIndication de l'utilisateur (peut être imprécise) : « ${input.text.trim()} »`
+        : '';
+    const raw = await deps.vision.complete({
+      system: STAMP_RECOGNITION_SYSTEM_PROMPT,
+      prompt: `${SHEET_PROMPT}${hint}`,
+      images,
+      maxTokens: SHEET_RECOGNITION_MAX_TOKENS,
+    });
+    return parseSheet(raw);
   }
 
   async analyze(candidate: Candidate, deps: AnalyzeDeps): Promise<AnalysisResult<StampAnalysisPayload>> {

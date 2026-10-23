@@ -91,7 +91,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       // Philatélie : module à part entière (révision produit juillet 2026).
       enableStamps: true,
       artDomain: 'tableaux',
-      enableMarketplace: false,
+      // Plateformes d'échange et de vente : ACTIVES (décision produit juillet
+      // 2026, cf. DEFAULT_FEATURES) ; l'accès reste réservé à l'offre Platine.
+      enableMarketplace: true,
     },
     eas: {
       projectId: '00000000-0000-0000-0000-000000000000',

@@ -1,8 +1,21 @@
 import { describe, expect, it, vi } from 'vitest';
-import { isVelumError, type VelumItem } from '@velum/core';
+import { isVelumError, type Candidate, type VelumItem } from '@velum/core';
 import type { NewItemMedia } from '@velum/api-client';
 
-import { insertCapturedItem } from './capturePersistence';
+import { useCaptureStore } from '../stores/captureStore';
+import { createUploadTracker } from './batchCapture';
+import {
+  correctCandidate,
+  createSerialQueue,
+  discardCaptureSession,
+  fullCaptureAttributes,
+  insertCapturedItem,
+  newItemFromCandidate,
+  quickCaptureAttributes,
+  runInBackground,
+} from './capturePersistence';
+import { analysisStatusOf, hasFullAnalysis } from './analysisState';
+import { DESIGNATION_FIELD, isDesignationCorrection } from './identityFields';
 
 const item: VelumItem = {
   id: 'item-1',
@@ -105,5 +118,270 @@ describe('insertCapturedItem', () => {
         cause.code === 'SOURCE_UNAVAILABLE' &&
         cause.details?.['itemId'] === 'item-1',
     );
+  });
+});
+
+const stampCandidate: Candidate = {
+  id: 'stamp-1',
+  domain: 'stamp',
+  label: 'Cérès 20c noir',
+  confidence: 0.82,
+  attributes: {
+    country: 'France',
+    catalogNumber: 'YT 3',
+    year: 1849,
+    faceValue: 20,
+    // Clés réservées qu'un modèle ou un fichier ne doit pas pouvoir forger :
+    analysis: { faux: true },
+    analysisStatus: 'complete',
+  },
+  quickEstimate: { low: 40, high: 90, currency: 'EUR' },
+  classification: ['France', 'Cérès', '1849–1850'],
+};
+
+describe('attributs selon le mode d’enregistrement', () => {
+  it('scan éclair : identité + fourchette + classement, fiche complète « à charger »', () => {
+    const attributes = quickCaptureAttributes(stampCandidate);
+    expect(attributes).toEqual({
+      country: 'France',
+      catalogNumber: 'YT 3',
+      year: 1849,
+      faceValue: 20,
+      quickEstimate: { low: 40, high: 90, currency: 'EUR' },
+      classification: ['France', 'Cérès', '1849–1850'],
+      analysisStatus: 'pending',
+    });
+    expect(hasFullAnalysis({ attributes })).toBe(false);
+    expect(analysisStatusOf({ attributes })).toBe('pending');
+    // Copies défensives : l'objet ne partage pas les tableaux du candidat.
+    expect(attributes['classification']).not.toBe(stampCandidate.classification);
+  });
+
+  it('scan éclair sans fourchette ni classement : aucune clé vide', () => {
+    const attributes = quickCaptureAttributes({ ...stampCandidate, quickEstimate: undefined, classification: [] });
+    expect('quickEstimate' in attributes).toBe(false);
+    expect('classification' in attributes).toBe(false);
+  });
+
+  it('fiche complète : payload, moteur, avertissements et horodatage', () => {
+    const attributes = fullCaptureAttributes(
+      stampCandidate,
+      { engine: 'phila_v1', payload: { rarity: { level: 'rare' } }, disclaimers: ['Estimation indicative.'] },
+      new Date('2026-10-23T08:00:00Z'),
+    );
+    expect(attributes).toMatchObject({
+      analysis: { rarity: { level: 'rare' } },
+      analysisEngine: 'phila_v1',
+      disclaimers: ['Estimation indicative.'],
+      analyzedAt: '2026-10-23T08:00:00.000Z',
+      quickEstimate: { low: 40, high: 90, currency: 'EUR' },
+    });
+    expect('analysisStatus' in attributes).toBe(false);
+    expect(analysisStatusOf({ attributes })).toBe('complete');
+  });
+
+  it('newItemFromCandidate reprend libellé et confiance', () => {
+    expect(newItemFromCandidate('user-1', 'stamp', stampCandidate, { a: 1 })).toEqual({
+      ownerId: 'user-1',
+      domain: 'stamp',
+      title: 'Cérès 20c noir',
+      confidence: 0.82,
+      attributes: { a: 1 },
+    });
+  });
+});
+
+describe('correctCandidate — correction avant enregistrement', () => {
+  const now = new Date('2026-10-23T09:00:00Z');
+
+  it('trace les corrections, garde les champs non affichés et retire fourchette et classement périmés', () => {
+    const { candidate, changed } = correctCandidate({
+      candidate: stampCandidate,
+      domain: 'stamp',
+      // Formulaire partiel : seuls les champs principaux sont envoyés.
+      values: { country: 'France', catalogNumber: 'YT 4', year: '1849' },
+      label: 'Cérès 40c orange',
+      now,
+    });
+    expect(changed).toBe(true);
+    expect(candidate.label).toBe('Cérès 40c orange');
+    expect(candidate.attributes['catalogNumber']).toBe('YT 4');
+    // Champ non affiché conservé tel quel (nombre lu, pas de fausse correction).
+    expect(candidate.attributes['faceValue']).toBe(20);
+    expect(candidate.attributes['corrections']).toEqual([
+      { field: 'catalogNumber', from: 'YT 3', to: 'YT 4', at: '2026-10-23T09:00:00.000Z' },
+      // Désignation tracée sous la clé réservée, comme sur la fiche objet.
+      { field: DESIGNATION_FIELD, from: 'Cérès 20c noir', to: 'Cérès 40c orange', at: '2026-10-23T09:00:00.000Z' },
+    ]);
+    // Avis du modèle sur l'objet MAL lu : ni sa fourchette ni son classement ne suivent.
+    expect(candidate.quickEstimate).toBeUndefined();
+    expect(candidate.classification).toBeUndefined();
+    expect('classification' in candidate).toBe(false);
+    expect(candidate.confidence).toBe(0.82);
+  });
+
+  it('libellé seul corrigé : fourchette et classement restent valables', () => {
+    const { candidate } = correctCandidate({
+      candidate: stampCandidate,
+      domain: 'stamp',
+      values: {},
+      label: 'Cérès 20 c. noir sur blanc',
+      now,
+    });
+    expect(candidate.quickEstimate).toEqual(stampCandidate.quickEstimate);
+    expect(candidate.classification).toEqual(stampCandidate.classification);
+    expect(candidate.attributes['corrections']).toEqual([
+      { field: DESIGNATION_FIELD, from: 'Cérès 20c noir', to: 'Cérès 20 c. noir sur blanc', at: '2026-10-23T09:00:00.000Z' },
+    ]);
+  });
+
+  it('sujet d’un timbre (champ d’identité `title`) corrigé : changement d’identité, pas un renommage', () => {
+    const { candidate, changed } = correctCandidate({
+      candidate: { ...stampCandidate, attributes: { ...stampCandidate.attributes, title: 'Cérès' } },
+      domain: 'stamp',
+      values: { title: 'Napoléon III' },
+      label: '',
+      now,
+    });
+    expect(changed).toBe(true);
+    expect(candidate.label).toBe('Cérès 20c noir');
+    expect(candidate.attributes['title']).toBe('Napoléon III');
+    expect(candidate.attributes['corrections']).toEqual([
+      { field: 'title', from: 'Cérès', to: 'Napoléon III', at: '2026-10-23T09:00:00.000Z' },
+    ]);
+    // Relu par la fiche objet comme le champ du domaine, jamais comme la désignation.
+    expect(isDesignationCorrection('stamp', 'title')).toBe(false);
+    expect(candidate.quickEstimate).toBeUndefined();
+    expect(candidate.classification).toBeUndefined();
+  });
+
+  it('titre d’une œuvre ET désignation corrigés : deux entrées distinctes, identité changée', () => {
+    const artCandidate: Candidate = {
+      id: 'art-1',
+      domain: 'art',
+      label: 'Paysage',
+      confidence: 0.6,
+      attributes: { artist: 'Anonyme', title: 'Paysage' },
+      quickEstimate: { low: 200, high: 400, currency: 'EUR' },
+      classification: ['Peinture', 'XIXe'],
+    };
+    const { candidate } = correctCandidate({
+      candidate: artCandidate,
+      domain: 'art',
+      values: { title: 'Bord de Seine' },
+      label: 'Bord de Seine, huile sur toile',
+      now,
+    });
+    expect(candidate.attributes['corrections']).toEqual([
+      { field: 'title', from: 'Paysage', to: 'Bord de Seine', at: '2026-10-23T09:00:00.000Z' },
+      { field: DESIGNATION_FIELD, from: 'Paysage', to: 'Bord de Seine, huile sur toile', at: '2026-10-23T09:00:00.000Z' },
+    ]);
+    expect(candidate.label).toBe('Bord de Seine, huile sur toile');
+    expect('quickEstimate' in candidate).toBe(false);
+    expect('classification' in candidate).toBe(false);
+  });
+
+  it('aucune modification → candidat inchangé', () => {
+    const result = correctCandidate({ candidate: stampCandidate, domain: 'stamp', values: { year: '1849' }, label: '', now });
+    expect(result.changed).toBe(false);
+    expect(result.candidate).toBe(stampCandidate);
+  });
+
+  it('vider un champ le retire et le trace', () => {
+    const { candidate } = correctCandidate({
+      candidate: stampCandidate,
+      domain: 'stamp',
+      values: { year: '' },
+      label: '',
+      now,
+    });
+    expect('year' in candidate.attributes).toBe(false);
+    expect(candidate.attributes['corrections']).toEqual([
+      { field: 'year', from: 1849, to: null, at: '2026-10-23T09:00:00.000Z' },
+    ]);
+  });
+});
+
+describe('discardCaptureSession — fin de session', () => {
+  it('oublie le brouillon et les téléversements ; un envoi encore en vol ne repeuple rien', async () => {
+    let finish: (path: string | null) => void = () => undefined;
+    const uploads = createUploadTracker(
+      () =>
+        new Promise<string | null>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const store = useCaptureStore.getState();
+    store.setDomain('stamp');
+    store.addMedia({ role: 'front', base64: 'data:photo-A', uri: 'file://A.jpg' });
+    store.setText('Cérès 20c noir');
+    store.setRecognition({ candidates: [stampCandidate], stage: 'llm_vision', needsAssistedEntry: false }, 1200);
+    const inFlight = uploads.start('data:photo-A');
+
+    discardCaptureSession({ draft: useCaptureStore.getState(), uploads });
+
+    const after = useCaptureStore.getState();
+    expect(after.domain).toBeNull();
+    expect(after.media).toEqual([]);
+    expect(after.text).toBe('');
+    expect(after.recognition).toBeNull();
+    expect(uploads.peek('data:photo-A')).toBeUndefined();
+    // Le téléversement de l'ancienne session aboutit après coup : il est ignoré.
+    finish('ancien-uid/photo-A.jpg');
+    await inFlight;
+    expect(uploads.peek('data:photo-A')).toBeUndefined();
+    expect(uploads.wait('data:photo-A')).toBeUndefined();
+  });
+});
+
+describe('tâches d’arrière-plan', () => {
+  it('runInBackground ne rejette jamais et signale l’échec', async () => {
+    const onError = vi.fn();
+    await expect(runInBackground(async () => 'ok', onError)).resolves.toBe('ok');
+    const failure = new Error('valorisation indisponible');
+    await expect(
+      runInBackground(async () => {
+        throw failure;
+      }, onError),
+    ).resolves.toBe('failed');
+    expect(onError).toHaveBeenCalledWith(failure);
+    // Même un rapporteur défaillant n'interrompt rien.
+    await expect(
+      runInBackground(
+        async () => {
+          throw failure;
+        },
+        () => {
+          throw new Error('toast cassé');
+        },
+      ),
+    ).resolves.toBe('failed');
+  });
+
+  it('createSerialQueue exécute une tâche à la fois, dans l’ordre, malgré les échecs', async () => {
+    const order: string[] = [];
+    let active = 0;
+    let maxActive = 0;
+    const onError = vi.fn();
+    const queue = createSerialQueue(onError);
+    const task = (name: string, fail = false) => async () => {
+      active += 1;
+      maxActive = Math.max(maxActive, active);
+      await Promise.resolve();
+      order.push(name);
+      active -= 1;
+      if (fail) throw new Error(name);
+    };
+    const results = await Promise.all([
+      queue.push(task('a')),
+      queue.push(task('b', true)),
+      queue.push(task('c')),
+    ]);
+    expect(results).toEqual(['ok', 'failed', 'ok']);
+    expect(order).toEqual(['a', 'b', 'c']);
+    expect(maxActive).toBe(1);
+    expect(onError).toHaveBeenCalledTimes(1);
+    await Promise.resolve();
+    expect(queue.pending()).toBe(0);
   });
 });

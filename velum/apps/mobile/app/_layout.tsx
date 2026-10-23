@@ -21,6 +21,8 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import { ToastHost } from '../components/Toast';
 import { AuthProvider, useSession } from '../lib/auth';
 import { getVelumClient } from '../lib/client';
+import { resetDrinkRemindersAfterSignOut } from '../lib/drinkRemindersNative';
+import { useNotificationLinks } from '../lib/notificationLinksHook';
 import { clearPersistedCache, persistOptions, queryClient } from '../lib/queryClient';
 import { useSettingsStore } from '../stores/settingsStore';
 
@@ -38,7 +40,11 @@ function WebDocumentTitle() {
   return null;
 }
 
-/** Purge le cache persisté à la déconnexion (vie privée, appareil partagé). */
+/**
+ * Purge à la perte de session — déconnexion, suppression du compte ou
+ * expiration (vie privée, appareil partagé) : cache persisté, et rappels
+ * « à boire » programmés (vins et emplacements de l'ancien compte).
+ */
 function CacheGuard() {
   const { session } = useSession();
   const wasSignedIn = useRef(false);
@@ -47,6 +53,7 @@ function CacheGuard() {
     else if (wasSignedIn.current) {
       wasSignedIn.current = false;
       void clearPersistedCache();
+      void resetDrinkRemindersAfterSignOut().catch(() => undefined);
     }
   }, [session]);
   return null;
@@ -80,6 +87,7 @@ function SeniorBridge({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
+  useNotificationLinks();
   return (
     <SafeAreaProvider>
       <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
@@ -102,6 +110,7 @@ export default function RootLayout() {
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="capture/[domain]" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="capture/candidates" />
+                <Stack.Screen name="capture/batch" />
                 <Stack.Screen name="item/[id]" />
                 <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
               </Stack>

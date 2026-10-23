@@ -55,7 +55,8 @@ Le script :
 2. rejoue les migrations sur PostgreSQL avec le stub Supabase ;
 3. prouve le remplacement atomique du backtest de calibration ;
 4. prouve les rôles Storage `dial`, `caseback`, `movement`, `clasp` ;
-5. exécute le seed puis les contrôles d’alertes, RLS, quotas, marketplace et purge.
+5. exécute le seed puis les contrôles d’alertes, RLS, quotas, marketplace et purge ;
+6. prouve les rattrapages des données 0006 sur une seconde base (`<base>_upgrade`) : migrations jusqu’à `20260717161000`, données héritées (`supabase/tests/upgrade/legacy_0006_data.sql`), migrations suivantes, puis `legacy_0006_checks.sql`.
 
 `0002_cron.sql` reste la seule migration de plateforme exclue localement car elle dépend de `pg_cron` et `pg_net`.
 

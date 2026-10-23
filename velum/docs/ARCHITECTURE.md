@@ -94,7 +94,7 @@ Ajouter une source de prix = écrire un adaptateur `PriceSource` ; **le cœur du
 |---|---|---|
 | `enableStamps` | `true` | Philatélie — module à part entière (décision produit juillet 2026), désactivable par flag. |
 | `artDomain` | `'tableaux'` | Bascule paramétrable du module art (`'tableaux'` \| `'art_de_la_table'`). |
-| `enableMarketplace` | `false` | Marketplace = phase 2 (KYC/AML/DSP2 requis). |
+| `enableMarketplace` | `true` | Plateformes d'échange et de vente par catégorie (décision produit juillet 2026) — accès réservé à l'offre Platine ; paiement réel (Stripe Connect) et KYC à brancher. |
 
 Les flags sont exposés côté app via `extra.features` dans `app.config.ts` et lus par `@velum/config`. `activeDomains(features)` dérive la liste des domaines visibles. La grille d'abonnement (`PLAN_LIMITS`) vit au même endroit : **free** = 5 scans/semaine par module ; **premium** = scans illimités sans carnet virtuel ; **gold** = + carnet/bibliothèque virtuelle (emplacements de cave, table de pièces…) ; **platine** = + valorisation continue du carnet et communauté de transactions anonymisées (commission **dégressive** selon l'activité du vendeur via `commissionRateFor` / `COMMISSION_TIERS` — de `MARKETPLACE_COMMISSION_MAX` = 5 % à `MARKETPLACE_COMMISSION_MIN` = 2 %, répliquée côté SQL par `commission_rate_for` dans la migration `0004_commission_degressive.sql` ; expertise obligatoire au-delà de `EXPERT_APPRAISAL_THRESHOLD_EUR` = 500 €). Le quota est appliqué côté serveur par `consume_scan(p_domain)` (voir [DATABASE.md](./DATABASE.md)).
 
@@ -113,9 +113,9 @@ dans les deux sens.
 - **Sens 2 — apogée → « à boire »** : `price-cron` évalue les alertes
   `drink_window` avec `isInDrinkWindow` (module 2 ZAPPA) et joint les accords
   mets-vins de l'analyse au corps de la notification (« Ce vin est à son
-  apogée — servez-le avec un pigeon rôti »). Côté app, le même calcul est
-  fait localement (`drinkNowSuggestions`) pour afficher le bandeau « à boire »
-  de l'onglet Collection, fenêtres les plus urgentes d'abord.
+  apogée — servez-le avec un pigeon rôti »). Côté app, le bandeau « à boire »
+  de l'onglet Collection est calculé localement sur les statuts d'apogée
+  (`cellarAtPeak`, voir §8.3), fenêtres les plus urgentes d'abord.
 
 ## 6. Sécurité & vie privée (rappels structurants)
 
@@ -170,3 +170,87 @@ ouvertures réelles).
   réutilise `valuations` (0001) ; le passeport à hash chaîné de `@velum/carnet`
   est un **sceau d'intégrité dérivé** de `provenance_entries` (0005), pas une
   table parallèle.
+
+## 8. Évolutions d'octobre 2026
+
+### 8.1 Scan éclair, fiche complète à la demande, mode classeur
+
+- **Scan éclair (mode par défaut)** : un seul appel de reconnaissance, compact
+  (`RECOGNITION_MAX_TOKENS` = 768), renvoie pour chaque candidat
+  l'identification, un **classement** (`Candidate.classification`, ex.
+  `['France', 'Cérès', '1849–1850']`) et une **fourchette indicative**
+  (`Candidate.quickEstimate`), toujours libellée « indicative », jamais
+  présentée comme une cote §7 et absente sous la confiance 0,35.
+  « Enregistrer » crée l'objet immédiatement (`attributes.analysisStatus =
+  'pending'`) ; la valorisation §7 part en arrière-plan.
+- **Fiche complète à la demande** : la fiche objet propose « Charger la fiche
+  complète » (appel `analyze`, lent) ; conventions dans
+  `apps/mobile/lib/analysisState.ts` (`analysis`, `analysisEngine`,
+  `analyzedAt`, `quickEstimate`, `classification`, `corrections`). Une
+  correction d'identité postérieure à `analyzedAt` rend la fiche **périmée**
+  et propose de la régénérer.
+- **Mode classeur** (`/capture/batch`) : « Série » (une photo par objet, file
+  traitée en arrière-plan, concurrence 2, « Tout enregistrer » au-delà de la
+  confiance 0,6) et « Planche » (UNE photo de page de classeur ou de plateau →
+  jusqu'à 24 objets). Contrat additif : `DomainPlugin.recognizeSheet?()` →
+  `SheetRecognitionResult` (implémenté pour timbres et pièces), Edge
+  `recognize` avec `mode: 'sheet'`, budget `SHEET_RECOGNITION_MAX_TOKENS` =
+  4 096 avec **un candidat par objet** (~95 tokens par objet : une page
+  pleine de 24 objets ≈ 2 300 tokens, large marge contre la troncature ;
+  une réponse coupée garde les objets complets et lève `truncated`). **Une
+  photo de planche = un scan** du quota freemium.
+- **Bornes de reconnaissance** (`supabase/functions/_shared/input.ts`),
+  vérifiées à la validation, AVANT le garde-fou de dépense et le quota — une
+  requête refusée ne coûte aucun scan : 4 photos au plus par capture
+  (`MAX_CAPTURE_MEDIA`), description libre de 2 000 caractères au plus
+  (`MAX_CAPTURE_TEXT_LENGTH`), 3,75 Mo décodés par image (`MAX_IMAGE_BYTES`,
+  plafond du fournisseur). Le chemin Storage d'une photo est vérifié
+  (préfixe de l'uid appelant) avant tout garde-fou ; une photo introuvable ou
+  trop lourde une fois rapatriée de Storage est refusée avant le quota.
+
+### 8.2 Correction en texte de l'identification
+
+`apps/mobile/lib/identityFields.ts` est la source unique des champs
+d'identité par domaine (clés identiques à `items.attributes`). La correction
+est possible avant l'enregistrement (écran Candidats, mode classeur) et après
+(fiche objet). Chaque changement est **tracé** dans `attributes.corrections`
+(valeur lue → valeur corrigée, horodatée, 30 dernières conservées) ; la
+relance de l'estimation est proposée immédiatement.
+
+### 8.3 Cave : apogée, rappels, plat → vins
+
+- `@velum/domain-wine` `peak.ts` : statut d'urgence `past` (fenêtre dépassée),
+  `closing` (dernière année), `peak`, `soon`, tri par urgence, emplacement
+  lisible. Écran **« Mes vins à leur apogée »** (`/cellar-peak`), à la demande,
+  avec la position physique de chaque bouteille.
+- **Bandeau « à boire » de la Collection** : même règle et même ordre que
+  « Mes vins à leur apogée » et le rappel hebdomadaire —
+  `drinkNowBannerEntries` (`lib/drinkNow.ts`) s'appuie sur `cellarAtPeak`
+  sans `soon` : seuls les statuts `past`, `closing` et `peak` y figurent
+  (jamais « l'an prochain »), les plus urgents d'abord.
+- `localPairing.ts` : appariement **déterministe** plat → vins de la cave
+  (familles de vins, accords ZAPPA, bonus apogée), instantané, hors-ligne et
+  gratuit ; le sommelier IA (`cellar-pairing`, Gold+) affine ensuite.
+- **Alerte ponctuelle** : notification locale unique (`lib/drinkReminders.ts`)
+  avec le vin le plus urgent, sa position et un plat ; rappel hebdomadaire
+  facultatif ; le lien profond est validé par liste blanche
+  (`lib/notificationLinks.ts`). Côté serveur, `price-cron` enrichit l'alerte
+  `drink_window` (position + plats) sans perdre son idempotence.
+
+### 8.4 Plateformes d'échange et de vente, liste d'envies
+
+Voir [COMMUNITY_MARKETPLACE.md](./COMMUNITY_MARKETPLACE.md) (catalogue
+anonymisé par catégorie, échanges, commission, certification, messagerie
+expurgée) et [WISHLIST.md](./WISHLIST.md). Les règles pures (commission,
+seuil de certification, masquage des coordonnées) vivent dans
+`@velum/config` (`marketplace.ts`) et sont répliquées en SQL avec des
+vecteurs de test partagés.
+
+### 8.5 Navigation et recherche
+
+- En-tête unifié de `Screen` : « ‹ Retour » sur tous les écrans, avec repli
+  sûr (`useGoBack`, `lib/backNavigation.ts`) quand l'historique est vide
+  (lien direct, notification). Routes partagées : `lib/routes.ts`.
+- Recherche insensible aux accents et multi-mots (`lib/search.ts`) dans la
+  collection, le carnet, les envies et le catalogue, plus une **recherche
+  globale** (`/search`).

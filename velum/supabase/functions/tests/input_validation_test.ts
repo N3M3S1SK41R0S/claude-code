@@ -1,7 +1,13 @@
 import {
+  MAX_CAPTURE_MEDIA,
+  MAX_CAPTURE_TEXT_LENGTH,
+  MAX_IMAGE_BYTES,
+  base64DecodedBytes,
   validateCandidate,
   validateCaptureInput,
   validateJsonObject,
+  validateRecognitionMode,
+  validateSheetInput,
   type ValidationResult,
 } from '../_shared/input.ts';
 
@@ -93,4 +99,87 @@ Deno.test('validateCandidate refuse domaine, confiance et attributs invalides', 
   expectError(validateCandidate({ ...base, confidence: 1.2 }, 'wine'), 'confidence');
   expectError(validateCandidate({ ...base, attributes: null }, 'wine'), 'attributes');
   expectError(validateCandidate({ ...base, label: '   ' }, 'wine'), 'label');
+});
+
+// ── Montres et mode planche ──────────────────────────────────────────────────
+
+Deno.test('validateCandidate accepte le domaine montres (analyze-watch, valuate)', () => {
+  expectOk(
+    validateCandidate(
+      { id: 'w-1', domain: 'watch', label: 'Omega Speedmaster', confidence: 0.7, attributes: {} },
+      'watch',
+    ),
+  );
+});
+
+Deno.test('validateCaptureInput accepte les rôles de clichés horlogers', () => {
+  for (const role of ['dial', 'caseback', 'movement', 'clasp']) {
+    expectOk(validateCaptureInput({ kind: 'photo', media: [{ role, storagePath: 'u/x.jpg' }] }));
+  }
+});
+
+Deno.test('validateRecognitionMode : défaut single, refuse les valeurs inconnues', () => {
+  if (expectOk(validateRecognitionMode(undefined)) !== 'single') throw new Error('single attendu');
+  if (expectOk(validateRecognitionMode('sheet')) !== 'sheet') throw new Error('sheet attendu');
+  expectError(validateRecognitionMode('album'), "'mode'");
+  expectError(validateRecognitionMode(1), "'mode'");
+});
+
+Deno.test('validateSheetInput : exactement une photo exploitable', () => {
+  expectOk(validateSheetInput({ kind: 'photo', media: [{ role: 'detail', storagePath: 'u/p.jpg' }] }));
+  expectOk(
+    validateSheetInput({ kind: 'photo', media: [{ role: 'detail', storagePath: '', base64: 'AA==' }] }),
+  );
+  expectError(validateSheetInput({ kind: 'text', text: 'classeur' }), 'photo');
+  expectError(validateSheetInput({ kind: 'photo', media: [] }), 'exactement une photo');
+  expectError(
+    validateSheetInput({
+      kind: 'photo',
+      media: [
+        { role: 'front', storagePath: 'u/a.jpg' },
+        { role: 'back', storagePath: 'u/b.jpg' },
+      ],
+    }),
+    'exactement une photo',
+  );
+  expectError(
+    validateSheetInput({ kind: 'photo', media: [{ role: 'detail', storagePath: ' ' }] }),
+    'téléversée',
+  );
+});
+
+Deno.test('validateCaptureInput borne le nombre de photos, le texte et le poids des images (avant tout quota)', () => {
+  const photo = (i: number) => ({ role: 'detail', storagePath: `u/p${i}.jpg` });
+  expectOk(
+    validateCaptureInput({ kind: 'photo', media: Array.from({ length: MAX_CAPTURE_MEDIA }, (_, i) => photo(i)) }),
+  );
+  // N photos = 1 scan mais N images facturées au modèle : refusé au-delà du maximum de rôles.
+  expectError(
+    validateCaptureInput({ kind: 'photo', media: Array.from({ length: 40 }, (_, i) => photo(i)) }),
+    `au plus ${MAX_CAPTURE_MEDIA} photos`,
+  );
+  expectOk(validateCaptureInput({ kind: 'text', text: 'x'.repeat(MAX_CAPTURE_TEXT_LENGTH) }));
+  expectError(
+    validateCaptureInput({ kind: 'text', text: 'x'.repeat(MAX_CAPTURE_TEXT_LENGTH + 1) }),
+    `${MAX_CAPTURE_TEXT_LENGTH} caractères`,
+  );
+  // Image jointe : poids décodé borné (limite du fournisseur par image).
+  const header = 'data:image/jpeg;base64,';
+  const fits = 'A'.repeat(Math.floor(MAX_IMAGE_BYTES / 3) * 4);
+  expectOk(
+    validateCaptureInput({ kind: 'photo', media: [{ role: 'detail', storagePath: '', base64: header + fits }] }),
+  );
+  expectError(
+    validateCaptureInput({
+      kind: 'photo',
+      media: [{ role: 'detail', storagePath: '', base64: `${header}${fits}AAAA` }],
+    }),
+    'trop lourde',
+  );
+});
+
+Deno.test('base64DecodedBytes : poids réel d’une image jointe (en-tête et remplissage exclus)', () => {
+  if (base64DecodedBytes('data:image/jpeg;base64,AAAA') !== 3) throw new Error('3 octets attendus');
+  if (base64DecodedBytes('AA==') !== 1) throw new Error('1 octet attendu');
+  if (base64DecodedBytes('') !== 0) throw new Error('0 octet attendu');
 });

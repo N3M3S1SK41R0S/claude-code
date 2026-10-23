@@ -15,9 +15,13 @@ describe('documentTitleFor', () => {
     expect(documentTitleFor('/carnet')).toBe('Mon carnet — VELUM');
     expect(documentTitleFor('/collection')).toBe('Ma collection — VELUM');
     expect(documentTitleFor('/privacy')).toBe('Confidentialité — VELUM');
-    expect(documentTitleFor('/community')).toBe('Communauté — VELUM');
+    expect(documentTitleFor('/community')).toBe('Échanges & ventes — VELUM');
+    expect(documentTitleFor('/community/listing/l1')).toBe('Échanges & ventes — VELUM');
+    expect(documentTitleFor('/wishlist')).toBe('Mes envies — VELUM');
+    expect(documentTitleFor('/cellar-peak')).toBe('Vins à leur apogée — VELUM');
     expect(documentTitleFor('/blind-tasting')).toBe('Dégustation à l’aveugle — VELUM');
     expect(documentTitleFor('/event-sommelier')).toBe('Sommelier d’événement — VELUM');
+    expect(documentTitleFor('/search')).toBe('Rechercher partout — VELUM');
   });
 
   it('gère les routes dynamiques par préfixe en français', () => {
@@ -31,6 +35,7 @@ describe('documentTitleFor', () => {
     expect(documentTitleFor('/blind-tasting', 'en-GB')).toBe('Blind tasting — VELUM');
     expect(documentTitleFor('/item/demo-watch', 'en')).toBe('Object sheet — VELUM');
     expect(documentTitleFor('/arbiter/demo-watch', 'en')).toBe('Collection arbiter — VELUM');
+    expect(documentTitleFor('/search', 'en')).toBe('Search everywhere — VELUM');
   });
 
   it('reste non vide et localisé pour une route inconnue', () => {

@@ -1,186 +1,205 @@
 /**
- * Écran Candidats : top-3 avec badge de confiance, actions Confirmer /
- * Affiner (saisie assistée par domaine) / Signaler une erreur.
- * Confirmer → analyze + création atomique item/médias + valuate → fiche objet.
+ * Écran Candidats (scan éclair) : top-3 avec confiance, classement et
+ * fourchette indicative.
+ *  - « Enregistrer » crée l'objet IMMÉDIATEMENT (sans fiche complète, marquée
+ *    « à charger »), rattache les photos, lance la valorisation en arrière-plan
+ *    et ouvre la fiche ;
+ *  - « Enregistrer avec la fiche complète » = analyse experte AVANT
+ *    l'enregistrement (plus lent) — action principale en saisie complète ;
+ *  - « Corriger » : correction en texte des infos lues sur la photo, tracée ;
+ *  - « Ajouter à mes envies » : garde l'idée sans l'ajouter à la collection
+ *    (même règle et même cache que `AddToWishlistButton`, via
+ *    `useAddToWishlist` : un doublon affiche « Déjà dans vos envies »).
+ *    Seuls les attributs d'identité du domaine capturé sont copiés
+ *    (`entryFromCandidate` → `identityAttributes(attributes, domain)`).
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import {
-  ConfidenceBadge,
-  VButton,
-  VCard,
-  VEmptyState,
-  VSpinner,
-  VText,
-  VTextInput,
-  velumSpacing,
-} from '@velum/ui';
-import type { Candidate, VelumDomain } from '@velum/core';
+import { VButton, VEmptyState, VSpinner, VText, velumSpacing } from '@velum/ui';
+import { VelumError, type Candidate, type VelumItem } from '@velum/core';
 
+import { CandidateCard } from '../../components/capture/CandidateCard';
+import {
+  IdentityCorrectionForm,
+  type CorrectionAction,
+  type CorrectionDraft,
+} from '../../components/capture/IdentityCorrectionForm';
 import { Screen } from '../../components/Screen';
+import { useAddToWishlist } from '../../components/wishlist/useAddToWishlist';
+import { itemToCandidate } from '../../lib/analysisState';
 import { useSession } from '../../lib/auth';
-import { insertCapturedItem } from '../../lib/capturePersistence';
+import { countUnattached, secondsForDisplay, settledStoragePaths } from '../../lib/batchCapture';
+import {
+  correctCandidate,
+  fullCaptureAttributes,
+  insertCapturedItem,
+  newItemFromCandidate,
+  quickCaptureAttributes,
+  runInBackground,
+} from '../../lib/capturePersistence';
 import { getVelumClient } from '../../lib/client';
+import { isDemoMode } from '../../lib/env';
 import { errorMessage, velumErrorCode } from '../../lib/errors';
+import { routes } from '../../lib/routes';
+import { captureUploads } from '../../lib/uploadMedia';
+import { draftToNewEntry, entryFromCandidate } from '../../lib/wishlist';
 import { useCaptureStore } from '../../stores/captureStore';
 import { showToast } from '../../stores/toastStore';
 
-interface AssistedField {
-  key: string;
-  labelKey: string;
-  numeric?: boolean;
+type BusyKind = 'quick' | 'full' | 'wish';
+
+/** Éditeur ouvert : correction d'un candidat, ou saisie assistée (base null). */
+interface EditorState {
+  base: Candidate | null;
 }
 
-/** Champs de saisie assistée par domaine. */
-const ASSISTED_FIELDS: Record<VelumDomain, AssistedField[]> = {
-  wine: [
-    { key: 'producer', labelKey: 'candidates.fields.wineProducer' },
-    { key: 'vintage', labelKey: 'candidates.fields.wineVintage', numeric: true },
-    { key: 'appellation', labelKey: 'candidates.fields.wineAppellation' },
-  ],
-  coin: [
-    { key: 'country', labelKey: 'candidates.fields.coinCountry' },
-    { key: 'type', labelKey: 'candidates.fields.coinType' },
-    { key: 'year', labelKey: 'candidates.fields.coinYear', numeric: true },
-  ],
-  art: [
-    { key: 'artist', labelKey: 'candidates.fields.artArtist' },
-    { key: 'title', labelKey: 'candidates.fields.artTitle' },
-    { key: 'technique', labelKey: 'candidates.fields.artTechnique' },
-  ],
-  stamp: [
-    { key: 'country', labelKey: 'candidates.fields.stampCountry' },
-    { key: 'catalogNumber', labelKey: 'candidates.fields.stampCatalog' },
-    { key: 'year', labelKey: 'candidates.fields.stampYear', numeric: true },
-  ],
-  watch: [
-    { key: 'brand', labelKey: 'candidates.fields.watchBrand' },
-    { key: 'model', labelKey: 'candidates.fields.watchModel' },
-    { key: 'reference', labelKey: 'candidates.fields.watchReference' },
-    { key: 'year', labelKey: 'candidates.fields.watchYear', numeric: true },
-  ],
-};
-
 export default function Candidates() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { session } = useSession();
 
   const domain = useCaptureStore((s) => s.domain) ?? 'wine';
+  const mode = useCaptureStore((s) => s.mode);
   const media = useCaptureStore((s) => s.media);
   const recognition = useCaptureStore((s) => s.recognition);
+  const recognizedInMs = useCaptureStore((s) => s.recognizedInMs);
   const reset = useCaptureStore((s) => s.reset);
 
-  const [assistedOpen, setAssistedOpen] = useState(recognition?.needsAssistedEntry ?? false);
-  const [assistedBase, setAssistedBase] = useState<Candidate | null>(null);
-  const [assistedValues, setAssistedValues] = useState<Record<string, string>>({});
+  const candidates = recognition?.candidates.slice(0, 3) ?? [];
+  // Identification incertaine : la saisie assistée s'ouvre, pré-remplie avec la meilleure lecture.
+  const [editor, setEditor] = useState<EditorState | null>(() =>
+    recognition?.needsAssistedEntry ? { base: recognition.candidates[0] ?? null } : null,
+  );
+  const [busy, setBusy] = useState<{ id: string; kind: BusyKind } | null>(null);
   const [step, setStep] = useState<string | null>(null);
+  /** Envie ajoutée, ou déjà présente (doublon : rien n'est créé). */
+  const [wished, setWished] = useState<'added' | 'duplicate' | null>(null);
 
-  const confirmMutation = useMutation({
+  const handleError = (error: unknown) => {
+    setBusy(null);
+    setStep(null);
+    if (velumErrorCode(error) === 'BUDGET_EXCEEDED') {
+      showToast(errorMessage(error, t), 'danger');
+      router.push(routes.paywall());
+      return;
+    }
+    showToast(errorMessage(error, t), 'danger');
+  };
+
+  const persist = async (candidate: Candidate, attributes: Record<string, unknown>): Promise<VelumItem> => {
+    const client = getVelumClient();
+    const ownerId = session?.user?.id;
+    if (!ownerId) throw new VelumError('UNAUTHORIZED', 'Session requise');
+    // Photos : chemins déjà téléversés (le téléversement a démarré à la prise de
+    // vue) ; un téléversement en échec est relancé une fois.
+    const paths = await settledStoragePaths(media, captureUploads);
+    const item = await insertCapturedItem(newItemFromCandidate(ownerId, domain, candidate, attributes), paths, {
+      items: client.items,
+      itemMedia: client.itemMedia,
+    });
+    // Jamais en silence : l'objet est enregistré, mais sans la photo non téléversée
+    // (le mode démo ne conserve aucune photo, par construction).
+    const unattached = countUnattached(paths);
+    if (unattached > 0 && !isDemoMode()) {
+      showToast(t('candidates.photoNotAttached', { count: unattached }), 'info');
+    }
+    return item;
+  };
+
+  const openItem = (item: VelumItem) => {
+    void queryClient.invalidateQueries({ queryKey: ['items'] });
+    captureUploads.clear();
+    reset();
+    router.replace(routes.item(item.id));
+  };
+
+  // ── Scan éclair : enregistrement immédiat, valorisation en arrière-plan ──
+  const quickSave = useMutation({
+    mutationFn: (candidate: Candidate) => persist(candidate, quickCaptureAttributes(candidate)),
+    onSuccess: (item) => {
+      const client = getVelumClient();
+      void runInBackground(
+        () => client.edge.valuate(domain, itemToCandidate(item), item.id),
+        () => showToast(t('candidates.valuationPending'), 'info'),
+      ).then((outcome) => {
+        if (outcome !== 'ok') return;
+        void queryClient.invalidateQueries({ queryKey: ['valuations', item.id] });
+        void queryClient.invalidateQueries({ queryKey: ['items'] });
+      });
+      openItem(item);
+    },
+    onError: handleError,
+  });
+
+  // ── Fiche complète AVANT l'enregistrement (comportement historique) ──
+  const fullSave = useMutation({
     mutationFn: async (candidate: Candidate) => {
       const client = getVelumClient();
-      const ownerId = session?.user?.id;
-      if (!ownerId) throw new Error('Session requise');
-
+      // Session vérifiée AVANT l'analyse : pas d'appel IA payant pour rien.
+      if (!session?.user?.id) throw new VelumError('UNAUTHORIZED', 'Session requise');
       setStep(t('candidates.processing'));
       const analysis = await client.edge.analyze(domain, candidate);
-
       setStep(t('candidates.saving'));
-      const item = await insertCapturedItem(
-        {
-          ownerId,
-          domain,
-          title: candidate.label,
-          confidence: candidate.confidence,
-          attributes: {
-            ...candidate.attributes,
-            analysis: analysis.payload,
-            analysisEngine: analysis.engine,
-            disclaimers: analysis.disclaimers,
-          },
-        },
-        media,
-        { items: client.items, itemMedia: client.itemMedia },
-      );
-
-      // Valorisation persistée côté serveur (itemId fourni). NO_OBSERVATIONS
-      // n'est pas bloquant : la fiche reste consultable sans estimation.
+      const item = await persist(candidate, fullCaptureAttributes(candidate, analysis, new Date()));
+      // NO_OBSERVATIONS n'est pas bloquant : la fiche reste consultable sans estimation.
       try {
-        await client.edge.valuate(domain, candidate, item.id);
+        await client.edge.valuate(domain, itemToCandidate(item), item.id);
       } catch (error) {
         if (velumErrorCode(error) === 'BUDGET_EXCEEDED') throw error;
         showToast(errorMessage(error, t), 'info');
       }
       return item;
     },
-    onSuccess: (item) => {
-      void queryClient.invalidateQueries({ queryKey: ['items'] });
-      reset();
-      router.replace(`/item/${item.id}`);
-    },
-    onError: (error) => {
-      setStep(null);
-      if (velumErrorCode(error) === 'BUDGET_EXCEEDED') {
-        showToast(errorMessage(error, t), 'danger');
-        router.push('/paywall');
-        return;
-      }
-      showToast(errorMessage(error, t), 'danger');
-    },
+    onSuccess: openItem,
+    onError: handleError,
   });
 
-  const openAssisted = (base: Candidate | null) => {
-    setAssistedBase(base);
-    const initial: Record<string, string> = {};
-    const fields = ASSISTED_FIELDS[domain];
-    for (const field of fields) {
-      const existing = base?.attributes[field.key];
-      initial[field.key] = existing === undefined || existing === null ? '' : String(existing);
-    }
-    initial['label'] = base?.label ?? '';
-    setAssistedValues(initial);
-    setAssistedOpen(true);
+  // Même règle que `AddToWishlistButton` (useAddToWishlist) : une envie EN
+  // COURS de même catégorie et de même titre normalisé est un doublon — rien
+  // n'est créé ; cache ['wishlist'] mis à jour puis relu.
+  const wish = useAddToWishlist({
+    onSuccess: ({ duplicate }) => {
+      setBusy(null);
+      setWished(duplicate ? 'duplicate' : 'added');
+      showToast(
+        duplicate ? t('candidates.wishDuplicate') : t('candidates.wishAdded'),
+        duplicate ? 'info' : 'success',
+      );
+    },
+    onError: handleError,
+  });
+
+  const run = (candidate: Candidate, kind: BusyKind) => {
+    if (busy !== null) return;
+    setBusy({ id: candidate.id, kind });
+    if (kind === 'quick') quickSave.mutate(candidate);
+    else if (kind === 'full') fullSave.mutate(candidate);
+    // Catégorie de la capture (pas celle lue par le modèle) : attributs
+    // d'identité de CE domaine seulement.
+    else wish.mutate(draftToNewEntry(entryFromCandidate({ ...candidate, domain })));
   };
 
-  const submitAssisted = () => {
-    const attributes: Record<string, unknown> = { ...(assistedBase?.attributes ?? {}) };
-    for (const field of ASSISTED_FIELDS[domain]) {
-      const raw = (assistedValues[field.key] ?? '').trim();
-      if (raw.length === 0) continue;
-      attributes[field.key] = field.numeric ? Number(raw) : raw;
-    }
-    const label =
-      (assistedValues['label'] ?? '').trim() ||
-      ASSISTED_FIELDS[domain]
-        .map((f) => (assistedValues[f.key] ?? '').trim())
-        .filter((v) => v.length > 0)
-        .join(' ');
-    if (label.length === 0) {
-      showToast(t('errors.INVALID_INPUT'), 'info');
-      return;
-    }
-    const candidate: Candidate = {
-      id: assistedBase?.id ?? `assisted-${Date.now()}`,
+  /** Candidat issu du formulaire (lecture corrigée et tracée, ou saisie assistée). */
+  const fromDraft = (draft: CorrectionDraft): Candidate => {
+    const base: Candidate = editor?.base ?? {
+      id: `assisted-${Date.now()}`,
       domain,
-      label,
-      confidence: assistedBase?.confidence ?? 0.3,
-      attributes,
+      label: '',
+      confidence: 0.3,
+      attributes: {},
     };
-    confirmMutation.mutate(candidate);
+    return correctCandidate({ candidate: base, domain, values: draft.values, label: draft.label, now: new Date() })
+      .candidate;
   };
 
-  const report = () => {
-    showToast(t('candidates.reported'), 'success');
-  };
-
-  if (confirmMutation.isPending) {
+  if (fullSave.isPending) {
     return (
-      <Screen scroll={false}>
-        <View style={styles.pending}>
+      <Screen scroll={false} title={t('candidates.title')}>
+        <View style={styles.pending} accessibilityLiveRegion="polite">
           <VSpinner />
           <VText variant="body" tone="dim" center>
             {step ?? t('candidates.processing')}
@@ -190,11 +209,35 @@ export default function Candidates() {
     );
   }
 
-  const candidates = recognition?.candidates.slice(0, 3) ?? [];
+  const primaryKind: BusyKind = mode === 'full' ? 'full' : 'quick';
+  const secondaryKind: BusyKind = mode === 'full' ? 'quick' : 'full';
+  const editorActions: CorrectionAction[] = [
+    {
+      label: primaryKind === 'quick' ? t('candidates.save') : t('candidates.saveFull'),
+      onSubmit: (draft) => run(fromDraft(draft), primaryKind),
+    },
+    {
+      label: t('candidates.addWish'),
+      variant: 'secondary',
+      accessibilityHint: t('candidates.addWishHint'),
+      onSubmit: (draft) => run(fromDraft(draft), 'wish'),
+    },
+    {
+      label: secondaryKind === 'quick' ? t('candidates.save') : t('candidates.saveFull'),
+      variant: 'ghost',
+      onSubmit: (draft) => run(fromDraft(draft), secondaryKind),
+    },
+  ];
 
   return (
-    <Screen>
-      <VText variant="title">{t('candidates.title')}</VText>
+    <Screen title={t('candidates.title')}>
+      {recognizedInMs !== null ? (
+        <VText variant="caption" tone="dim">
+          {t('candidates.recognizedIn', {
+            seconds: secondsForDisplay(recognizedInMs).toLocaleString(i18n.language),
+          })}
+        </VText>
+      ) : null}
 
       {recognition?.needsAssistedEntry ? (
         <VText variant="body" tone="gold" style={styles.notice}>
@@ -202,55 +245,72 @@ export default function Candidates() {
         </VText>
       ) : null}
 
-      {!assistedOpen && candidates.length === 0 ? (
+      {wished !== null ? (
+        <View style={styles.wished}>
+          <VText variant="caption" tone="gold">
+            {wished === 'duplicate' ? t('candidates.wishDuplicate') : t('candidates.wishAdded')}
+          </VText>
+          <VButton
+            label={t('candidates.seeWishlist')}
+            variant="ghost"
+            onPress={() => router.push(routes.wishlist(domain))}
+          />
+        </View>
+      ) : null}
+
+      {editor !== null ? (
+        <View style={styles.editor}>
+          <IdentityCorrectionForm
+            key={editor.base?.id ?? 'assisted'}
+            domain={domain}
+            base={editor.base}
+            title={editor.base ? t('candidates.correctionTitle') : t('candidates.assistedTitle')}
+            hint={editor.base ? t('candidates.correctionHint') : undefined}
+            actions={editorActions}
+            busy={busy !== null}
+            onCancel={candidates.length > 0 ? () => setEditor(null) : undefined}
+          />
+        </View>
+      ) : null}
+
+      {editor === null && candidates.length === 0 ? (
         <VEmptyState
           title={t('candidates.empty')}
           message={t('candidates.emptyMessage')}
-          action={{ label: t('candidates.assistedTitle'), onPress: () => openAssisted(null) }}
+          action={{ label: t('candidates.assistedTitle'), onPress: () => setEditor({ base: null }) }}
         />
       ) : null}
 
-      {!assistedOpen
-        ? candidates.map((candidate) => (
-            <VCard key={candidate.id} style={styles.card}>
-              <View style={styles.cardHeader}>
-                <View style={styles.cardTitle}>
-                  <VText variant="heading">{candidate.label}</VText>
-                </View>
-                <ConfidenceBadge value={candidate.confidence} />
-              </View>
-              <View style={styles.cardActions}>
-                <VButton label={t('candidates.confirm')} onPress={() => confirmMutation.mutate(candidate)} />
-                <VButton label={t('candidates.refine')} variant="secondary" onPress={() => openAssisted(candidate)} />
-                <VButton label={t('candidates.report')} variant="ghost" onPress={report} />
-              </View>
-            </VCard>
+      {editor === null
+        ? candidates.map((candidate, index) => (
+            <CandidateCard
+              key={candidate.id}
+              candidate={candidate}
+              mode={mode}
+              highlighted={index === 0}
+              busy={busy?.id === candidate.id ? busy.kind : null}
+              disabled={busy !== null}
+              onSave={() => run(candidate, 'quick')}
+              onSaveFull={() => run(candidate, 'full')}
+              onCorrect={() => setEditor({ base: candidate })}
+              onWish={() => run(candidate, 'wish')}
+            />
           ))
         : null}
 
-      {assistedOpen ? (
-        <View style={styles.assisted}>
-          <VText variant="heading" tone="gold">
-            {t('candidates.assistedTitle')}
-          </VText>
-          <VTextInput
-            label={t('candidates.fields.label')}
-            value={assistedValues['label'] ?? ''}
-            onChangeText={(v) => setAssistedValues((prev) => ({ ...prev, label: v }))}
+      {editor === null && candidates.length > 0 ? (
+        <View style={styles.footer}>
+          <VButton
+            label={t('candidates.assistedTitle')}
+            variant="ghost"
+            onPress={() => setEditor({ base: null })}
+            disabled={busy !== null}
           />
-          {ASSISTED_FIELDS[domain].map((field) => (
-            <VTextInput
-              key={field.key}
-              label={t(field.labelKey)}
-              value={assistedValues[field.key] ?? ''}
-              onChangeText={(v) => setAssistedValues((prev) => ({ ...prev, [field.key]: v }))}
-              keyboardType={field.numeric ? 'numeric' : undefined}
-            />
-          ))}
-          <VButton label={t('candidates.assistedSubmit')} onPress={submitAssisted} />
-          {candidates.length > 0 ? (
-            <VButton label={t('common.back')} variant="ghost" onPress={() => setAssistedOpen(false)} />
-          ) : null}
+          <VButton
+            label={t('candidates.report')}
+            variant="ghost"
+            onPress={() => showToast(t('candidates.reported'), 'success')}
+          />
         </View>
       ) : null}
     </Screen>
@@ -259,15 +319,8 @@ export default function Candidates() {
 
 const styles = StyleSheet.create({
   notice: { marginTop: velumSpacing.sm },
-  card: { marginTop: velumSpacing.md },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: velumSpacing.sm,
-  },
-  cardTitle: { flex: 1 },
-  cardActions: { gap: velumSpacing.sm, marginTop: velumSpacing.md },
-  assisted: { gap: velumSpacing.md, marginTop: velumSpacing.lg },
+  wished: { marginTop: velumSpacing.sm, gap: velumSpacing.xs },
+  editor: { marginTop: velumSpacing.md },
+  footer: { marginTop: velumSpacing.lg, gap: velumSpacing.sm },
   pending: { flex: 1, justifyContent: 'center', gap: velumSpacing.md },
 });

@@ -386,6 +386,28 @@ export class CascadingVision implements VisionModel {
   }
 }
 
+// ── Budget de sortie imposé par l'appelant ──────────────────────────────────
+
+/**
+ * Plafonne le budget de sortie demandé par un plugin. La fonction `recognize`
+ * impose ainsi la sortie COMPACTE du scan éclair (et le budget d'une planche)
+ * quel que soit le plugin : un plugin qui demanderait plus ne peut ni ralentir
+ * la réponse, ni gonfler la facture. Sans demande, le plafond s'applique.
+ */
+export function withMaxTokensCap(model: VisionModel, cap: number): VisionModel {
+  const limit = Math.max(1, Math.floor(cap));
+  return {
+    complete(req) {
+      const requested = req.maxTokens;
+      const maxTokens =
+        typeof requested === 'number' && Number.isFinite(requested) && requested > 0
+          ? Math.min(Math.floor(requested), limit)
+          : limit;
+      return model.complete({ ...req, maxTokens });
+    },
+  };
+}
+
 // ── Fabrique ────────────────────────────────────────────────────────────────
 
 const ALIASES: Record<string, VisionProvider> = {

@@ -74,7 +74,7 @@ export default function Onboarding() {
   }
 
   return (
-    <Screen brand={false}>
+    <Screen brand={false} back={false}>
       <VText variant="display" tone="gold" center>
         {t('brand.name')}
       </VText>

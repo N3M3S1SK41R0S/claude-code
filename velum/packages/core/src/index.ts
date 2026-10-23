@@ -11,3 +11,5 @@ export * from './analysis/art.ts';
 export * from './analysis/stamp.ts';
 export * from './analysis/watch.ts';
 export * from './cellar.ts';
+export * from './market.ts';
+export * from './wishlist.ts';

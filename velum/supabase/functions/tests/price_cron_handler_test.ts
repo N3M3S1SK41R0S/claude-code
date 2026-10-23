@@ -23,6 +23,8 @@ interface StubOptions {
   analyses?: unknown[];
   alertEvaluationResult?: string | null;
   alertEvaluationStatus?: number;
+  /** Jetons push renvoyés pour la lecture `expo_push_token`. */
+  pushTokens?: unknown[];
 }
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -55,7 +57,7 @@ function stubFetch(options: StubOptions = {}): RecordedCall[] {
       return jsonResponse(options.items ?? []);
     }
     if (url.includes('/rest/v1/profiles')) {
-      if (url.includes('expo_push_token')) return jsonResponse([]);
+      if (url.includes('expo_push_token')) return jsonResponse(options.pushTokens ?? []);
       if (options.profilesStatus && options.profilesStatus >= 400) {
         return jsonResponse({ message: 'profiles unavailable' }, options.profilesStatus);
       }
@@ -282,6 +284,55 @@ Deno.test('price-cron rend une panne de lecture des droits visible en 503', asyn
     const response = await handler(cronRequest());
     assertEquals(response.status, 503);
     assertEquals((await response.json()).error.code, 'SOURCE_UNAVAILABLE');
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+Deno.test('price-cron : l’alerte « à boire » cite la position, deux plats et ouvre /cellar-peak', async () => {
+  const ownerId = '14141414-1414-4414-8414-141414141414';
+  const alertId = '15151515-1515-4515-8515-151515151515';
+  const year = new Date().getUTCFullYear();
+  const calls = stubFetch({
+    items: [
+      {
+        ...item(ownerId, {
+          analysis: {
+            // Fenêtre large : la condition reste vraie même si l'année bascule.
+            tasting: { drinkWindow: { from: year - 5, to: year + 30 } },
+            comparisons: { foodPairings: ['gigot d’agneau', 'daube provençale', 'tapenade'] },
+          },
+        }),
+        storage_location: 'Rangée 2 · Colonne 4 · Place 1',
+      },
+    ],
+    profiles: [{ id: ownerId, plan: 'gold' }],
+    alerts: [{ id: alertId, type: 'drink_window', config: {} }],
+    analyses: [],
+    alertEvaluationResult: '16161616-1616-4616-8616-161616161616',
+    pushTokens: [{ id: ownerId, expo_push_token: 'ExponentPushToken[test]' }],
+  });
+
+  try {
+    const response = await handler(cronRequest());
+    assertEquals(response.status, 200);
+    assertEquals((await response.json()).notified, 1);
+
+    const itemsCall = calls.find((call) => call.url.includes('/rest/v1/items'));
+    assertEquals(itemsCall?.url.includes('storage_location'), true);
+
+    const rpc = calls.find((call) => call.url.includes('/rest/v1/rpc/record_alert_evaluation'));
+    const rpcBody = JSON.parse(rpc?.body ?? '{}') as Record<string, unknown>;
+    assertEquals(String(rpcBody['p_body']).includes('Emplacement : Rangée 2 · Col. 4 · Pl. 1.'), true);
+    assertEquals(String(rpcBody['p_body']).includes('gigot d’agneau ou daube provençale'), true);
+    assertEquals(String(rpcBody['p_body']).includes('tapenade'), false);
+    // Le lien profond ne part que dans le push, jamais en base.
+    assertEquals('data' in rpcBody, false);
+
+    const push = calls.find((call) => call.url.includes('exp.host'));
+    const messages = JSON.parse(push?.body ?? '[]') as { data?: { url?: string }; to?: string }[];
+    assertEquals(messages[0]?.to, 'ExponentPushToken[test]');
+    assertEquals(messages[0]?.data?.url, '/cellar-peak');
   } finally {
     globalThis.fetch = realFetch;
   }

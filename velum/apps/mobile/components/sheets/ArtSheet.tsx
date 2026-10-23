@@ -24,15 +24,15 @@ export function ArtSheet({ payload }: { payload: Partial<ArtAnalysisPayload> | n
           {identification.title ? <KV label={t('candidates.fields.artTitle')} value={identification.title} /> : null}
           {identification.technique ? <KV label={t('candidates.fields.artTechnique')} value={identification.technique} /> : null}
           {identification.dimensionsCm ? (
-            <KV label="Dimensions" value={`${identification.dimensionsCm.height} × ${identification.dimensionsCm.width} cm`} />
+            <KV label={t('item.labels.dimensions')} value={`${identification.dimensionsCm.height} × ${identification.dimensionsCm.width} cm`} />
           ) : null}
-          {identification.estimatedPeriod ? <KV label="Période" value={identification.estimatedPeriod} /> : null}
-          {identification.school ? <KV label="École" value={identification.school} /> : null}
+          {identification.estimatedPeriod ? <KV label={t('item.labels.period')} value={identification.estimatedPeriod} /> : null}
+          {identification.school ? <KV label={t('item.labels.school')} value={identification.school} /> : null}
         </SheetSection>
       ) : null}
 
       {payload.expertiseRecommended ? (
-        <SheetSection title={t('item.sections.uncertainties')}>
+        <SheetSection title={t('item.sections.uncertainties')} defaultOpen>
           <VText variant="body" tone="danger">
             {t('item.art.expertiseRecommended')}
           </VText>
@@ -60,7 +60,7 @@ export function ArtSheet({ payload }: { payload: Partial<ArtAnalysisPayload> | n
       ) : null}
 
       {uncertainties && uncertainties.length > 0 ? (
-        <SheetSection title={t('item.sections.uncertainties')}>
+        <SheetSection title={t('item.sections.uncertainties')} defaultOpen>
           <Bullets items={uncertainties} />
         </SheetSection>
       ) : null}

@@ -68,7 +68,8 @@ const gotCandidates = await page
   .then(() => true)
   .catch(() => false);
 check('reconnaissance → écran candidats', gotCandidates);
-await page.getByText(/Confirmer/i).first().click().catch(() => {});
+// Scan éclair : le bouton principal d'un candidat enregistre immédiatement.
+await page.getByText(/^Enregistrer$/).first().click().catch(() => {});
 
 // 6. Fiche : estimation calculée par le vrai moteur (bloc « Valorisation »).
 const gotSheet = await page

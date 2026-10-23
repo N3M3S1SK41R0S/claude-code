@@ -143,12 +143,30 @@ Nouvelles tables (migration `0007`, sous RLS) : `calibration_outcomes`,
 redondante. Le passeport à hash chaîné de `@velum/carnet` est un **sceau
 d'intégrité dérivé** de `provenance_entries`, pas une table parallèle.
 
+## Nouveautés — octobre 2026
+
+| Besoin | Ce qui est livré |
+|---|---|
+| Plateformes d'échange et de vente **par catégorie** | Une plateforme par module (vins, pièces, tableaux, timbres, montres) : vente, échange (avec soulte) ou les deux, catalogue filtrable et recherche, « Mon activité » (annonces, achats/ventes, échanges, certifications) |
+| Commission & anonymat | Commission dégressive 5 % → 2 % (vente : sur le prix ; échange : sur la valeur de l'objet cédé), registre transparent consultable dans « Mon activité » (« Mes commissions » : taux actuel, palier suivant, commissions, frais d'expertise et versements) ; pseudonymes stables, aucun identifiant exposé, coordonnées masquées automatiquement dans tous les textes libres et la messagerie |
+| Certification par un expert | Obligatoire au-delà de 500 € (valeur de référence = max(prix, estimation VELUM)), sur accord des deux parties en deçà ; annonce publiée seulement après certification |
+| Liste d'envies / d'idées | Par catégorie (« les vins que j'ai aimés »), depuis la fiche, le journal de dégustation, un scan ou la communauté ; « disponible dans la communauté ? » |
+| Corriger ce que la photo a mal lu | Champs d'identité éditables avant et après l'enregistrement, corrections tracées, relance de l'estimation |
+| Recherche | Collection, carnet, envies, catalogue, et recherche globale |
+| Rappels « à boire » | Alerte ponctuelle avec accord mets-vins, liste à la demande des vins à l'apogée **avec leur position**, plat → proposition de vins instantanée |
+| Scanners | Scan éclair (reconnaît, classe, fourchette indicative) puis fiche complète à la demande ; mode classeur (série ou planche entière de timbres/pièces) |
+| Ergonomie | « ‹ Retour » unifié sur tous les écrans, accès rapides, sections repliables |
+
+Détails : [docs/ARCHITECTURE.md §8](./docs/ARCHITECTURE.md#8-évolutions-doctobre-2026), [docs/COMMUNITY_MARKETPLACE.md](./docs/COMMUNITY_MARKETPLACE.md), [docs/WISHLIST.md](./docs/WISHLIST.md).
+
 ## Documentation
 
 | Document | Contenu |
 |---|---|
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Schéma macro, parcours cœur, pipeline de reconnaissance à étages, moteur de valorisation, feature flags |
 | [docs/DATABASE.md](./docs/DATABASE.md) | Schéma Postgres, RLS, triggers, quota freemium (`consume_scan`), Storage, scalabilité |
+| [docs/COMMUNITY_MARKETPLACE.md](./docs/COMMUNITY_MARKETPLACE.md) | Plateformes d'échange et de vente : états, anonymat, commission, certification |
+| [docs/WISHLIST.md](./docs/WISHLIST.md) | Liste d'envies et d'idées par catégorie |
 | [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | Checklist complète soumission App Store / Play Store 2026, EAS, RevenueCat, Supabase |
 | [docs/PRIVACY.md](./docs/PRIVACY.md) | Politique de confidentialité RGPD (à publier sur URL publique) |
 | [docs/DEMO_ACCOUNT.md](./docs/DEMO_ACCOUNT.md) | Compte démo reviewers + notes de revue stores |

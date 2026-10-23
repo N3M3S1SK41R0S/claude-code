@@ -10,6 +10,9 @@
  * Le déclenchement d'une alerte passe par `record_alert_evaluation` : PostgreSQL
  * verrouille l'alerte, insère la notification et met à jour son état dans une
  * transaction unique. Une condition qui reste vraie ne spamme donc plus chaque jour.
+ *
+ * L'alerte « à boire » cite la position de la bouteille dans la cave et deux
+ * plats de la fiche ZAPPA ; le push ouvre l'écran « Mes vins à leur apogée ».
  */
 import {
   isVelumError,
@@ -21,6 +24,7 @@ import {
 } from '@velum/core';
 import { valuate as runValuation } from '@velum/valuation';
 import { isInDrinkWindow } from '@velum/domain-wine';
+import { DRINK_WINDOW_ROUTE, drinkWindowNotification } from './drinkWindow.ts';
 import { createAdminClient } from '../_shared/auth.ts';
 import { buildSources, plugins } from '../_shared/domains.ts';
 import { getFxRates } from '../_shared/fx.ts';
@@ -44,6 +48,7 @@ interface ItemRow {
   attributes: Record<string, unknown>;
   confidence: number | null;
   condition: string | null;
+  storage_location?: string | null;
 }
 
 interface AlertRow {
@@ -56,6 +61,8 @@ interface NotificationInsert {
   owner_id: string;
   title: string;
   body: string;
+  /** Données du push uniquement (lien profond) — jamais persistées. */
+  data?: Record<string, string>;
 }
 
 interface AlertEvaluationOutcome {
@@ -139,7 +146,7 @@ export async function handler(req: Request): Promise<Response> {
   for (let offset = 0; ; offset += BATCH_SIZE) {
     const { data: rawItems, error: itemsError } = await admin
       .from('items')
-      .select('id, owner_id, domain, title, attributes, confidence, condition')
+      .select('id, owner_id, domain, title, attributes, confidence, condition, storage_location')
       .order('id', { ascending: true })
       .range(offset, offset + BATCH_SIZE - 1);
 
@@ -343,19 +350,17 @@ export async function handler(req: Request): Promise<Response> {
           winePayload !== undefined
         ) {
           conditionMet = isInDrinkWindow(winePayload, currentYear);
-          const pairings = (winePayload.comparisons?.foodPairings ?? [])
-            .filter((dish): dish is string => typeof dish === 'string')
-            .slice(0, 2);
-          const label = item.title ?? 'Une de vos bouteilles';
-          const closing = winePayload.tasting?.drinkWindow?.to;
+          const content = drinkWindowNotification({
+            label: item.title,
+            storageLocation: item.storage_location,
+            payload: winePayload,
+            currentYear,
+          });
           notification = {
             owner_id: item.owner_id,
-            title: 'À boire — apogée atteinte',
-            body:
-              `${label} est dans sa fenêtre de consommation optimale` +
-              (typeof closing === 'number' ? ` (jusqu'en ${closing})` : '') +
-              '.' +
-              (pairings.length > 0 ? ` Accord suggéré : ${pairings.join(' ou ')}.` : ''),
+            title: content.title,
+            body: content.body,
+            data: { url: DRINK_WINDOW_ROUTE },
           };
         }
 
@@ -427,6 +432,7 @@ async function sendExpoPush(
         title: notification.title,
         body: notification.body,
         sound: 'default',
+        ...(notification.data ? { data: notification.data } : {}),
       }));
 
     for (let index = 0; index < messages.length; index += 100) {

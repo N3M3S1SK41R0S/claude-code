@@ -7,7 +7,7 @@
  *   deno test --import-map=import_map.json --allow-env supabase/functions/tests/vision_test.ts
  */
 import { assert, assertEquals, assertRejects, assertThrows } from 'jsr:@std/assert@1';
-import { createVisionModel } from '../_shared/llm.ts';
+import { createVisionModel, withMaxTokensCap } from '../_shared/llm.ts';
 
 const realFetch = globalThis.fetch;
 
@@ -266,4 +266,22 @@ Deno.test('fournisseur inconnu : échec de configuration propre', () => {
   } finally {
     restore();
   }
+});
+
+// ── Budget de sortie imposé par la fonction appelante ────────────────────────
+
+Deno.test('withMaxTokensCap : plafonne la demande du plugin, applique le plafond par défaut', async () => {
+  const seen: (number | undefined)[] = [];
+  const inner = {
+    complete(req: { maxTokens?: number }): Promise<string> {
+      seen.push(req.maxTokens);
+      return Promise.resolve('ok');
+    },
+  };
+  const capped = withMaxTokensCap(inner, 768);
+  await capped.complete({ system: 's', prompt: 'p', maxTokens: 4096 });
+  await capped.complete({ system: 's', prompt: 'p', maxTokens: 300.7 });
+  await capped.complete({ system: 's', prompt: 'p' });
+  await capped.complete({ system: 's', prompt: 'p', maxTokens: Number.NaN });
+  assertEquals(seen, [768, 300, 768, 768]);
 });

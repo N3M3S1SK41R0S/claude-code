@@ -8,6 +8,9 @@
  *
  * Mode démo : le client n'expose pas l'Edge `arbitrate` → repli sur le moteur
  * pur avec les données réelles du carnet démo (aucune trajectoire inventée).
+ *
+ * Navigation : en-tête « ‹ Retour » titré sur tous les états ; sans
+ * historique (lien direct), le retour ramène à la fiche de l'objet.
  */
 import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -30,6 +33,7 @@ import { getVelumClient } from '../../lib/client';
 import { arbiterView, demoArbiterSignal } from '../../lib/arbiterView';
 import { usePlan } from '../../lib/plan';
 import { errorMessage } from '../../lib/errors';
+import { routes } from '../../lib/routes';
 
 /** Payload d'analyse stocké dans attributes.analysis (même règle que la fiche). */
 function analysisPayload(item: VelumItem): Record<string, unknown> | null {
@@ -46,6 +50,11 @@ export default function ArbiterScreen() {
   const planState = usePlan();
   const canUseArbiter =
     planState.status === 'ready' && planState.entitlements.virtualBook;
+  // En-tête commun à tous les états ; repli « Retour » sur la fiche de l'objet.
+  const screenProps = {
+    title: t('arbiter.shortTitle'),
+    backFallback: itemId.length > 0 ? routes.item(itemId) : routes.collection(),
+  };
 
   const itemQuery = useQuery({
     queryKey: ['items', itemId],
@@ -76,7 +85,7 @@ export default function ArbiterScreen() {
 
   if (planState.status === 'error') {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} {...screenProps}>
         <View style={styles.center}>
           <VEmptyState
             title={t('arbiter.title')}
@@ -97,12 +106,12 @@ export default function ArbiterScreen() {
 
   if (planBlocked) {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} {...screenProps}>
         <View style={styles.center}>
           <VEmptyState
             title={t('arbiter.title')}
             message={t('arbiter.planRequired')}
-            action={{ label: t('cellar.seeOffers'), onPress: () => router.push('/paywall') }}
+            action={{ label: t('cellar.seeOffers'), onPress: () => router.push(routes.paywall()) }}
           />
         </View>
       </Screen>
@@ -111,7 +120,7 @@ export default function ArbiterScreen() {
 
   if (planState.status === 'loading' || signalQuery.isLoading || itemQuery.isLoading) {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} {...screenProps}>
         <View style={styles.center}>
           <VSpinner />
         </View>
@@ -121,7 +130,7 @@ export default function ArbiterScreen() {
 
   if (signalQuery.isError) {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} {...screenProps}>
         <View style={styles.center}>
           <VEmptyState
             title={t('arbiter.title')}
@@ -139,8 +148,10 @@ export default function ArbiterScreen() {
   const item = itemQuery.data ?? null;
 
   return (
-    <Screen>
-      <VText variant="title">{t('arbiter.title')}</VText>
+    <Screen {...screenProps}>
+      <VText variant="title" accessibilityRole="header">
+        {t('arbiter.title')}
+      </VText>
       {item?.title ? (
         <VText variant="body" tone="dim">
           {item.title}

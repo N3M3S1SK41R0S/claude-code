@@ -17,6 +17,7 @@
 import type { CaptureInput, CaptureMedia } from '@velum/core';
 import { VelumError } from '@velum/core';
 import type { AuthContext } from './auth.ts';
+import { MAX_IMAGE_BYTES, imageTooLargeMessage } from './input.ts';
 
 const BUCKET = 'item-media';
 
@@ -40,11 +41,28 @@ function mediaTypeFor(path: string): string {
 }
 
 /**
+ * true si une photo à télécharger (sans base64 joint) n'est pas sous le
+ * préfixe de l'appelant. Vérifié par `recognize` AVANT garde-fou et quota :
+ * une requête refusée ne coûte pas de scan.
+ */
+export function hasForeignMediaPath(userId: string, input: CaptureInput): boolean {
+  if (input.kind !== 'photo') return false;
+  return (input.media ?? []).some((item) => {
+    if (item.base64) return false;
+    const path = item.storagePath?.trim();
+    return path !== undefined && path !== '' && !path.startsWith(`${userId}/`);
+  });
+}
+
+/**
  * Remplace chaque `storagePath` par son contenu base64.
  *
  * La RLS du bucket interdit déjà de lire le préfixe d'autrui ; on vérifie quand
  * même que le chemin commence par l'uid de l'appelant — défense en profondeur,
  * une policy mal éditée un jour ne doit pas suffire à ouvrir la porte.
+ *
+ * Une photo plus lourde que ce que le fournisseur accepte (`MAX_IMAGE_BYTES`)
+ * est refusée en INVALID_INPUT : appelée AVANT le quota, elle ne coûte pas de scan.
  */
 export async function hydrateMedia(auth: AuthContext, input: CaptureInput): Promise<CaptureInput> {
   if (input.kind !== 'photo' || !input.media?.length) return input;
@@ -67,6 +85,9 @@ export async function hydrateMedia(auth: AuthContext, input: CaptureInput): Prom
       }
 
       const bytes = new Uint8Array(await data.arrayBuffer());
+      if (bytes.length > MAX_IMAGE_BYTES) {
+        throw new VelumError('INVALID_INPUT', imageTooLargeMessage(bytes.length), { path });
+      }
       return { ...item, base64: `data:${mediaTypeFor(path)};base64,${toBase64(bytes)}` };
     }),
   );

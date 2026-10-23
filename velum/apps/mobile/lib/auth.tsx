@@ -2,6 +2,10 @@
  * Fournisseur d'authentification : session Supabase (persistée dans le
  * StorageAdapter offline), connexion e-mail, Sign in with Apple (iOS) et
  * Google (expo-auth-session → id_token). Erreurs converties en toasts.
+ * À la fin d'une session (déconnexion, suppression du compte, session
+ * révoquée), le brouillon de capture et ses téléversements en cours sont
+ * oubliés ; les rappels « à boire » et le cache persistant sont purgés par
+ * `CacheGuard` (app/_layout.tsx).
  */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
@@ -12,11 +16,19 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as Crypto from 'expo-crypto';
 import * as WebBrowser from 'expo-web-browser';
 
+import { useCaptureStore } from '../stores/captureStore';
+import { discardCaptureSession } from './capturePersistence';
 import { getVelumClient } from './client';
 import { identifyPurchases, resetPurchasesIdentity } from './purchases';
+import { captureUploads } from './uploadMedia';
 
 // Ferme proprement la fenêtre d'authentification web au retour dans l'app.
 WebBrowser.maybeCompleteAuthSession();
+
+/** Brouillon de capture et téléversements en cours : propres à la session close. */
+function forgetCaptureSession(): void {
+  discardCaptureSession({ draft: useCaptureStore.getState(), uploads: captureUploads });
+}
 
 export interface AuthContextValue {
   session: AuthSession | null;
@@ -51,8 +63,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (mounted) setLoading(false);
       });
 
-    const unsubscribe = client.auth.onAuthStateChange((_event, s) => {
+    const unsubscribe = client.auth.onAuthStateChange((event, s) => {
       if (mounted) setSession(s);
+      // Déconnexion venue d'ailleurs (suppression du compte, jeton révoqué,
+      // autre onglet) : même oubli du brouillon de capture qu'avec signOut.
+      if (event === 'SIGNED_OUT') forgetCaptureSession();
       // Identité RevenueCat = uid Supabase → le webhook serveur peut
       // synchroniser profiles.plan (grille free/premium/gold/platine).
       if (s?.user?.id) void identifyPurchases(s.user.id);
@@ -68,6 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     await getVelumClient().auth.signOut();
     setSession(null);
+    forgetCaptureSession();
   }, []);
 
   const value = useMemo<AuthContextValue>(

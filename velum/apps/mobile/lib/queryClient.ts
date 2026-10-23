@@ -42,7 +42,7 @@ export const queryPersister = createAsyncStoragePersister({
 });
 
 /** Familles de requêtes dont le cache est persisté (données propres au user). */
-const PERSISTED_PREFIXES = ['items', 'valuations', 'alerts', 'profile', 'notifications'];
+const PERSISTED_PREFIXES = ['items', 'valuations', 'alerts', 'profile', 'notifications', 'wishlist'];
 
 export const persistOptions = {
   persister: queryPersister,

@@ -1,13 +1,14 @@
 /**
  * Sections de fiche partagées aux 4 modules :
  *  - HeritageSection : histoire, rareté et nombre d'exemplaires (tirage /
- *    production / édition), renseignés par le moteur d'analyse.
+ *    production / édition), renseignés par le moteur d'analyse (repliable).
  *  - RecentSalesSection : dernières ventes comparables, tirées des observations
  *    RÉELLES retenues par la valorisation (§7) — chaque ligne est attribuée à sa
- *    source (iDealwine, Numista, Delcampe, Heritage, eBay vendu…) et datée.
+ *    source (iDealwine, Numista, Delcampe, Heritage, eBay vendu…) et datée ;
+ *    repliée par défaut (le nombre de ventes reste visible dans l'en-tête).
  */
 import { useTranslation } from 'react-i18next';
-import { VText, velumSpacing } from '@velum/ui';
+import { VBadge, VText, velumSpacing } from '@velum/ui';
 import { StyleSheet } from 'react-native';
 import { VListRow } from '@velum/ui';
 import type { HeritageProfile, PriceObservation } from '@velum/core';
@@ -21,7 +22,7 @@ export function HeritageSection({ heritage }: { heritage?: HeritageProfile | nul
   if (!hasHeritage(heritage)) return null;
   const h = heritage as HeritageProfile;
   return (
-    <SheetSection title={t('heritage.title')}>
+    <SheetSection title={t('heritage.title')} collapsible defaultOpen>
       {h.history ? (
         <VText variant="body" tone="dim">
           {h.history}
@@ -41,7 +42,12 @@ export function RecentSalesSection({ observations }: { observations: PriceObserv
   // Plus récentes d'abord (ageDays croissant).
   const sales = [...observations].sort((a, b) => a.ageDays - b.ageDays);
   return (
-    <SheetSection title={t('item.recentSalesTitle')}>
+    <SheetSection
+      title={t('item.recentSalesTitle')}
+      collapsible
+      defaultOpen={false}
+      headerRight={<VBadge label={String(sales.length)} tone="neutral" />}
+    >
       <VText variant="caption" tone="dim" style={styles.intro}>
         {t('item.recentSalesIntro')}
       </VText>

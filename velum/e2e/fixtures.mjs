@@ -388,6 +388,22 @@ export const LISTINGS = [
 ];
 export const ORDERS = [];
 
+// Catalogue ANONYMISÉ (RPC market_catalogue, migration 20261023100300) : ni
+// seller_id ni item_id, uniquement le pseudonyme du vendeur.
+export const CATALOGUE = [
+  { id: 'lst-1', kind: 'sale_or_exchange', domain: 'coin', title: 'Napoléon III 20 Francs Or 1868', description: 'Belle patine, TTB+.', ask_price: 320, currency: 'EUR', exchange_wishes: 'Pièces or Second Empire', seller_alias: 'Collectionneur 7F3A', certified: false, certification_required: false, is_mine: false, created_at: '2026-07-08T00:00:00Z' },
+  { id: 'lst-2', kind: 'sale', domain: 'stamp', title: 'Bloc CITEX 1949 neuf — authentifié', description: null, ask_price: 780, currency: 'EUR', exchange_wishes: null, seller_alias: 'Collectionneuse B21C', certified: true, certification_required: true, is_mine: false, created_at: '2026-07-03T00:00:00Z' },
+];
+
+/** Réputation par pseudonyme (RPC member_reputation, jsonb). */
+export const REPUTATION = { completedSales: 12, refunded: 0, disputes: 0, disputeRate: 0, memberSince: '2024-01-01T00:00:00Z' };
+
+/** Liste d'envies (table wishlist_entries, RLS propriétaire). */
+export const WISHLIST = [
+  { id: 'wish-1', owner_id: '11111111-1111-4111-8111-111111111111', domain: 'wine', kind: 'wish', title: 'Domaine Tempier Bandol La Tourtine 2019', notes: 'Goûté chez des amis — superbe sur un gigot.', attributes: { producer: 'Domaine Tempier', appellation: 'Bandol', vintage: 2019 }, source: 'tasting', source_item_id: null, target_price: 60, priority: 'high', acquired: false, acquired_at: null, created_at: '2026-07-10T00:00:00Z', updated_at: '2026-07-10T00:00:00Z' },
+  { id: 'wish-2', owner_id: '11111111-1111-4111-8111-111111111111', domain: 'coin', kind: 'idea', title: '10 Francs Coq or — compléter la série', notes: null, attributes: {}, source: 'manual', source_item_id: null, target_price: null, priority: 'medium', acquired: false, acquired_at: null, created_at: '2026-07-09T00:00:00Z', updated_at: '2026-07-09T00:00:00Z' },
+];
+
 /** Signal d'arbitre (Edge `arbiter`) — verdict de démonstration réaliste. */
 export const ARBITER = {
   verdict: 'drink',

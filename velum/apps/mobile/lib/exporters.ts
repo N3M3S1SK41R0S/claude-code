@@ -7,6 +7,7 @@ import type { AnalysisResult, ValuationRecord, VelumItem } from '@velum/core';
 import type { BlindTastingSession } from '@velum/domain-wine';
 import { resolveReliabilityForResult } from '@velum/valuation';
 import { itemNumber, itemString } from './itemAttributes';
+import { NON_IDENTITY_ATTRIBUTE_KEYS } from './analysisState';
 
 /** Fonction de traduction minimale (compatible TFunction i18next). */
 export type Translator = (key: string, options?: Record<string, unknown>) => string;
@@ -64,7 +65,12 @@ function baseStyles(): string {
 
 function renderAttributeRows(attributes: Record<string, unknown>): string {
   return Object.entries(attributes)
-    .filter(([key, value]) => key !== 'analysis' && value !== null && typeof value !== 'object')
+    // Seule l'identité est imprimée : fiche, statut, classement et fourchette du
+    // scan éclair, historique des corrections restent hors du tableau.
+    .filter(
+      ([key, value]) =>
+        !NON_IDENTITY_ATTRIBUTE_KEYS.has(key) && value !== null && typeof value !== 'object',
+    )
     .map(
       ([key, value]) =>
         `<tr><th>${escapeHtml(key)}</th><td>${escapeHtml(String(value))}</td></tr>`,
@@ -72,9 +78,19 @@ function renderAttributeRows(attributes: Record<string, unknown>): string {
     .join('\n');
 }
 
-function renderValuationBlock(valuation: ValuationRecord, t: Translator): string {
+/** Jour (AAAA-MM-JJ) d'un horodatage dans le fuseau de l'appareil ; tel quel si illisible. */
+function localDay(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function renderValuationBlock(valuation: ValuationRecord, t: Translator, stale: boolean): string {
   return `
   <h2>${escapeHtml(t('export.valuation'))}</h2>
+  <p class="meta">${escapeHtml(t('item.valuation.valuedOn', { date: localDay(valuation.valuedAt) }))}</p>
+  ${stale ? `<p class="disclaimer">${escapeHtml(t('item.valuation.outdated'))}</p>` : ''}
   <table>
     <tr><th>${escapeHtml(t('export.central'))}</th><td>${escapeHtml(formatEUR(valuation.central))}</td></tr>
     <tr><th>${escapeHtml(t('export.ci80'))}</th><td>${escapeHtml(`${formatEUR(valuation.ci80Low)} – ${formatEUR(valuation.ci80High)}`)}</td></tr>
@@ -94,17 +110,33 @@ function renderValuationBlock(valuation: ValuationRecord, t: Translator): string
 
 // ── Fiche objet (→ PDF) ──────────────────────────────────────────────────────
 
+/** Péremption calculée à l'écran, reportée telle quelle dans le PDF. */
+export interface ItemSheetExportFlags {
+  /** Estimation antérieure à la dernière correction d'identité (à relancer). */
+  valuationStale: boolean;
+  /** Fiche complète générée avant la dernière correction (à régénérer). */
+  analysisOutdated: boolean;
+}
+
+/**
+ * Fiche objet imprimable. L'estimation est datée ; une estimation ou une
+ * fiche périmée par une correction d'identité est signalée comme à l'écran
+ * (jamais de fausse certitude dans un document qui peut partir chez un
+ * assureur).
+ */
 export function buildItemSheetHtml(
   item: VelumItem,
   analysis: AnalysisResult | null,
   valuation: ValuationRecord | null,
   t: Translator,
+  flags: ItemSheetExportFlags = { valuationStale: false, analysisOutdated: false },
 ): string {
   const title = item.title ?? t('common.unknown');
   const analysisBlock = analysis
     ? `
   <h2>${escapeHtml(t('export.analysis'))}</h2>
   <p class="meta">${escapeHtml(analysis.engine)}</p>
+  ${flags.analysisOutdated ? `<p class="disclaimer">${escapeHtml(t('item.fullSheet.outdatedBody'))}</p>` : ''}
   ${
     analysis.disclaimers.length > 0
       ? `<ul>${analysis.disclaimers.map((d) => `<li>${escapeHtml(d)}</li>`).join('')}</ul>`
@@ -127,7 +159,7 @@ ${baseStyles()}
 ${renderAttributeRows(item.attributes)}
 </table>
 ${analysisBlock}
-${valuation ? renderValuationBlock(valuation, t) : `<p>${escapeHtml(t('export.noValuation'))}</p>`}
+${valuation ? renderValuationBlock(valuation, t, flags.valuationStale) : `<p>${escapeHtml(t('export.noValuation'))}</p>`}
 <div class="disclaimer">${escapeHtml(t('export.disclaimer'))}</div>
 `;
 }

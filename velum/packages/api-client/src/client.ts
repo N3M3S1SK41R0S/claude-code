@@ -26,6 +26,7 @@ import {
   type ValuationsRepo,
 } from './repos';
 import { createMemoryStorage, type StorageAdapter } from './storage';
+import { createWishlistRepo, type WishlistRepo } from './wishlist';
 
 export interface VelumClientOptions {
   supabaseUrl: string;
@@ -60,8 +61,10 @@ export interface VelumClient {
   tastingNotes: TastingNotesRepo;
   /** Chaîne de possession / provenance (par objet). */
   provenance: ProvenanceRepo;
-  /** Communauté marchande à séquestre (Platine). */
+  /** Plateformes d'échange et de vente par catégorie (Platine). */
   marketplace: MarketplaceRepo;
+  /** Liste d'envies et d'idées par catégorie. */
+  wishlist: WishlistRepo;
   /** File de mutations hors-ligne (rejeu FIFO, last-write-wins). */
   queue: MutationQueue;
 }
@@ -91,6 +94,7 @@ export function createVelumClient(opts: VelumClientOptions): VelumClient {
     tastingNotes: createTastingNotesRepo(supabase),
     provenance: createProvenanceRepo(supabase),
     marketplace: createMarketplaceRepo(supabase),
+    wishlist: createWishlistRepo(supabase),
     queue: new MutationQueue(supabase, storage),
   };
 }

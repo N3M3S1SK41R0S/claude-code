@@ -6,12 +6,23 @@
 import type {
   AlertRecord,
   AlertType,
+  CatalogueListing,
+  CatalogueQuery,
+  CertificationFeePayer,
+  CertificationReason,
+  CertificationRequest,
+  CertificationStatus,
   DisputeRecord,
   DisputeStatus,
   EscrowState,
+  ExchangeProposal,
+  ExchangeState,
+  ListingKind,
   ListingRecord,
   ListingStatus,
+  MarketMessage,
   MarketOrder,
+  MarketThreadKind,
   Profile,
   PriceObservation,
   ProvenanceEntry,
@@ -337,7 +348,8 @@ export function newProvenanceToRow(input: NewProvenanceEntry): Record<string, un
 
 export interface ListingRow {
   id: string;
-  item_id: string;
+  /** null si l'objet a été supprimé depuis (annonce détachée, historique conservé). */
+  item_id: string | null;
   seller_id: string;
   ask_price: number | string;
   currency: string;
@@ -348,24 +360,40 @@ export interface ListingRow {
   expert_appraisal_required: boolean;
   expert_appraisal_ref: string | null;
   created_at: string;
+  /** Colonnes « plateformes par catégorie » — absentes des schémas antérieurs. */
+  kind?: ListingKind | null;
+  description?: string | null;
+  exchange_wishes?: string | null;
 }
 
 export interface NewListing {
   itemId: string;
+  /** Prix demandé (vente) ou valeur déclarée (échange). */
   askPrice: number;
   currency?: string;
+  /** Défaut : 'sale'. */
+  kind?: ListingKind;
+  description?: string;
+  exchangeWishes?: string;
 }
 
+/** `itemId` vaut '' pour une annonce détachée de son objet (objet supprimé). */
 export function rowToListing(row: ListingRow): ListingRecord {
   return {
     id: row.id,
-    itemId: row.item_id,
+    itemId: row.item_id ?? '',
     sellerId: row.seller_id,
     askPrice: toNumber(row.ask_price),
     currency: row.currency,
     status: row.status,
     title: row.title ?? null,
     domain: row.domain ?? null,
+    kind: row.kind ?? 'sale',
+    description: row.description ?? null,
+    exchangeWishes: row.exchange_wishes ?? null,
+    commissionRate: toNumber(row.commission_rate),
+    certificationRequired: row.expert_appraisal_required === true,
+    certified: row.expert_appraisal_ref !== null && row.expert_appraisal_ref !== undefined,
     createdAt: row.created_at,
   };
 }
@@ -376,14 +404,21 @@ export function newListingToRow(input: NewListing, sellerId: string): Record<str
     seller_id: sellerId,
     ask_price: input.askPrice,
     currency: input.currency ?? 'EUR',
+    kind: input.kind ?? 'sale',
+    ...(input.description !== undefined ? { description: input.description } : {}),
+    ...(input.exchangeWishes !== undefined ? { exchange_wishes: input.exchangeWishes } : {}),
   };
 }
 
 export interface OrderRow {
   id: string;
   listing_id: string;
-  buyer_id: string;
-  seller_id: string;
+  /**
+   * Identifiants des parties. La vue anonymisée `my_market_orders()` ne
+   * renseigne QUE celui de l'utilisateur courant (null pour l'autre partie).
+   */
+  buyer_id: string | null;
+  seller_id: string | null;
   amount: number | string;
   currency: string;
   commission_rate: number | string;
@@ -393,14 +428,36 @@ export interface OrderRow {
   delivered_at: string | null;
   released_at: string | null;
   created_at: string;
+  /** Colonnes de la vue anonymisée des commandes (absentes de la table brute). */
+  role?: 'buyer' | 'seller' | null;
+  counterparty_alias?: string | null;
+  listing_title?: string | null;
+  listing_domain?: VelumDomain | null;
+  certification_required?: boolean | null;
+  /** L'annonce porte déjà une certification d'expert (vue anonymisée). */
+  listing_certified?: boolean | null;
 }
 
-export function rowToOrder(row: OrderRow): MarketOrder {
+/** Pseudonyme affiché quand le serveur n'en fournit pas (schéma antérieur). */
+export const FALLBACK_MEMBER_ALIAS = 'Membre VELUM';
+
+/**
+ * Rôle : celui calculé par le serveur (vue anonymisée) ; à défaut, déduit de
+ * `viewerId` (uid courant), « acheteur » sans lui (compatibilité).
+ * L'identifiant de l'autre partie, masqué par le serveur, vaut ''.
+ */
+export function rowToOrder(row: OrderRow, viewerId?: string): MarketOrder {
+  const role: MarketOrder['role'] =
+    row.role === 'buyer' || row.role === 'seller'
+      ? row.role
+      : viewerId !== undefined && viewerId === row.seller_id
+        ? 'seller'
+        : 'buyer';
   return {
     id: row.id,
     listingId: row.listing_id,
-    buyerId: row.buyer_id,
-    sellerId: row.seller_id,
+    buyerId: row.buyer_id ?? '',
+    sellerId: row.seller_id ?? '',
     amount: toNumber(row.amount),
     currency: row.currency,
     commissionRate: toNumber(row.commission_rate),
@@ -410,6 +467,13 @@ export function rowToOrder(row: OrderRow): MarketOrder {
     deliveredAt: row.delivered_at,
     releasedAt: row.released_at,
     createdAt: row.created_at,
+    role,
+    counterpartyAlias: row.counterparty_alias ?? FALLBACK_MEMBER_ALIAS,
+    listingTitle: row.listing_title ?? null,
+    certificationRequired: row.certification_required === true,
+    // Absent (et non « faux ») quand le serveur ne le fournit pas : on ne
+    // présume jamais qu'une annonce n'est pas certifiée.
+    ...(typeof row.listing_certified === 'boolean' ? { listingCertified: row.listing_certified } : {}),
   };
 }
 
@@ -447,5 +511,273 @@ export function jsonToReputation(json: Record<string, unknown> | null): SellerRe
     disputes: num(j['disputes']),
     disputeRate: num(j['disputeRate']),
     memberSince: typeof j['memberSince'] === 'string' ? (j['memberSince'] as string) : null,
+  };
+}
+
+// ── plateformes par catégorie : vues ANONYMISÉES des RPC ──────────────────────
+// Lignes renvoyées par les fonctions SQL (migration 20261023100300_market_rpcs) :
+// jamais d'identifiant de membre ni d'objet d'autrui, uniquement des pseudonymes.
+
+/** Ligne de `market_catalogue()`. */
+export interface CatalogueRow {
+  id: string;
+  kind: ListingKind | null;
+  domain: VelumDomain | null;
+  title: string | null;
+  description: string | null;
+  ask_price: number | string;
+  currency: string | null;
+  exchange_wishes: string | null;
+  seller_alias: string | null;
+  certified: boolean | null;
+  /** Certification exigée (seuil) — sert l'API dépréciée browseActive(). */
+  certification_required?: boolean | null;
+  is_mine: boolean | null;
+  created_at: string;
+}
+
+export function rowToCatalogueListing(row: CatalogueRow): CatalogueListing {
+  return {
+    id: row.id,
+    kind: row.kind ?? 'sale',
+    domain: row.domain ?? null,
+    title: row.title ?? null,
+    description: row.description ?? null,
+    askPrice: toNumber(row.ask_price),
+    currency: row.currency ?? 'EUR',
+    exchangeWishes: row.exchange_wishes ?? null,
+    sellerAlias: row.seller_alias ?? FALLBACK_MEMBER_ALIAS,
+    certified: row.certified === true,
+    isMine: row.is_mine === true,
+    createdAt: row.created_at,
+  };
+}
+
+/**
+ * Projection d'une ligne du catalogue vers l'ancien `ListingRecord`
+ * (API dépréciée `browseActive`). Les identifiants du vendeur et de l'objet ne
+ * sont plus exposés (''), le taux de commission d'autrui non plus (0).
+ */
+export function catalogueRowToListing(row: CatalogueRow): ListingRecord {
+  return {
+    id: row.id,
+    itemId: '',
+    sellerId: '',
+    askPrice: toNumber(row.ask_price),
+    currency: row.currency ?? 'EUR',
+    status: 'active',
+    title: row.title ?? null,
+    domain: row.domain ?? null,
+    kind: row.kind ?? 'sale',
+    description: row.description ?? null,
+    exchangeWishes: row.exchange_wishes ?? null,
+    commissionRate: 0,
+    certificationRequired: row.certification_required === true,
+    certified: row.certified === true,
+    createdAt: row.created_at,
+  };
+}
+
+/** Nombre fini, ou null (filtres optionnels). */
+function finiteOrNull(value: number | undefined): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+/** Arguments nommés de la RPC `market_catalogue` (null = filtre absent). */
+export function catalogueQueryToArgs(query: CatalogueQuery = {}): Record<string, unknown> {
+  const text = query.text?.trim() ?? '';
+  const limit = finiteOrNull(query.limit);
+  return {
+    p_domain: query.domain ?? null,
+    p_mode: query.mode ?? null,
+    p_text: text === '' ? null : text,
+    p_min_price: finiteOrNull(query.minPrice),
+    p_max_price: finiteOrNull(query.maxPrice),
+    p_certified_only: query.certifiedOnly === true,
+    p_include_mine: query.includeMine === true,
+    p_sort: query.sort ?? 'recent',
+    // Borné côté serveur (1..100, défaut 50).
+    p_limit: limit === null ? null : Math.trunc(limit),
+  };
+}
+
+/** Ligne de `my_exchanges()` (et des RPC d'action sur les échanges). */
+export interface ExchangeRow {
+  id: string;
+  listing_id: string;
+  role: 'proposer' | 'recipient';
+  counterparty_alias: string | null;
+  listing_title: string | null;
+  listing_domain: VelumDomain | null;
+  listing_value: number | string;
+  offered_title: string | null;
+  offered_domain: VelumDomain | null;
+  offered_value: number | string;
+  cash_adjustment: number | string | null;
+  currency: string | null;
+  message: string | null;
+  state: ExchangeState;
+  my_commission: number | string | null;
+  certification_required: boolean | null;
+  /** L'objet de l'annonce visée est déjà certifié (annonce ou objet). */
+  listing_certified?: boolean | null;
+  /** MON objet offert : renseigné pour l'auteur seulement (null sinon). */
+  offered_item_id?: string | null;
+  /** L'objet offert est déjà certifié. */
+  offered_item_certified?: boolean | null;
+  proposer_tracking: string | null;
+  recipient_tracking: string | null;
+  proposer_received: boolean | null;
+  recipient_received: boolean | null;
+  /** Échéance d'une proposition sans réponse (ExchangeProposal.expiresAt). */
+  expires_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  /**
+   * Une expertise en cours bloque l'expédition (has_open_certification),
+   * y compris sur l'annonce de l'autre partie (ExchangeProposal.shipmentBlocked).
+   */
+  shipment_blocked?: boolean | null;
+}
+
+export function rowToExchangeProposal(row: ExchangeRow): ExchangeProposal {
+  return {
+    id: row.id,
+    listingId: row.listing_id,
+    role: row.role === 'recipient' ? 'recipient' : 'proposer',
+    counterpartyAlias: row.counterparty_alias ?? FALLBACK_MEMBER_ALIAS,
+    listingTitle: row.listing_title ?? null,
+    listingDomain: row.listing_domain ?? null,
+    listingValue: toNumber(row.listing_value),
+    offeredTitle: row.offered_title ?? null,
+    offeredDomain: row.offered_domain ?? null,
+    offeredValue: toNumber(row.offered_value),
+    cashAdjustment: row.cash_adjustment === null ? 0 : toNumber(row.cash_adjustment),
+    currency: row.currency ?? 'EUR',
+    message: row.message ?? null,
+    state: row.state,
+    myCommission: toNullableNumber(row.my_commission),
+    certificationRequired: row.certification_required === true,
+    ...(typeof row.listing_certified === 'boolean' ? { listingCertified: row.listing_certified } : {}),
+    // Colonnes additives : omises quand le dépôt ne les fournit pas (serveur
+    // antérieur) ; offered_item_id null (destinataire) est conservé.
+    ...(row.offered_item_id === undefined
+      ? {}
+      : { offeredItemId: typeof row.offered_item_id === 'string' && row.offered_item_id !== '' ? row.offered_item_id : null }),
+    ...(typeof row.offered_item_certified === 'boolean'
+      ? { offeredItemCertified: row.offered_item_certified }
+      : {}),
+    // Calculé par le serveur ; absent (serveur antérieur) : omis, jamais
+    // « non bloquée » présumé.
+    ...(typeof row.shipment_blocked === 'boolean' ? { shipmentBlocked: row.shipment_blocked } : {}),
+    proposerTracking: row.proposer_tracking ?? null,
+    recipientTracking: row.recipient_tracking ?? null,
+    proposerReceived: row.proposer_received === true,
+    recipientReceived: row.recipient_received === true,
+    expiresAt: typeof row.expires_at === 'string' && row.expires_at !== '' ? row.expires_at : null,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+/** Ligne de `my_certifications()` (et des RPC d'action sur les certifications). */
+export interface CertificationRow {
+  id: string;
+  listing_id: string | null;
+  order_id: string | null;
+  exchange_id: string | null;
+  item_title: string | null;
+  domain: VelumDomain | null;
+  reason: CertificationReason;
+  status: CertificationStatus;
+  fee_payer: CertificationFeePayer;
+  fee_amount: number | string | null;
+  requested_by_me: boolean | null;
+  counterparty_agreed: boolean | null;
+  report_ref: string | null;
+  expert_note: string | null;
+  created_at: string;
+  decided_at: string | null;
+}
+
+export function rowToCertificationRequest(row: CertificationRow): CertificationRequest {
+  return {
+    id: row.id,
+    listingId: row.listing_id ?? null,
+    orderId: row.order_id ?? null,
+    exchangeId: row.exchange_id ?? null,
+    itemTitle: row.item_title ?? null,
+    domain: row.domain ?? null,
+    reason: row.reason,
+    status: row.status,
+    feePayer: row.fee_payer,
+    feeAmount: toNullableNumber(row.fee_amount),
+    requestedByMe: row.requested_by_me === true,
+    counterpartyAgreed: row.counterparty_agreed === true,
+    reportRef: row.report_ref ?? null,
+    expertNote: row.expert_note ?? null,
+    createdAt: row.created_at,
+    decidedAt: row.decided_at ?? null,
+  };
+}
+
+/** Ligne de `thread_messages()` / `send_market_message()`. */
+export interface MarketMessageRow {
+  id: string;
+  thread_kind: MarketThreadKind;
+  thread_id: string;
+  mine: boolean | null;
+  author_alias: string | null;
+  body: string;
+  redacted: boolean | null;
+  created_at: string;
+}
+
+export function rowToMarketMessage(row: MarketMessageRow): MarketMessage {
+  return {
+    id: row.id,
+    threadKind: row.thread_kind,
+    threadId: row.thread_id,
+    mine: row.mine === true,
+    authorAlias: row.author_alias ?? FALLBACK_MEMBER_ALIAS,
+    body: row.body,
+    redacted: row.redacted === true,
+    createdAt: row.created_at,
+  };
+}
+
+/** Synthèse du commissionnement de l'utilisateur courant (`my_commission_summary()`). */
+export interface CommissionSummary {
+  currency: string;
+  /** Taux dégressif actuel (appliqué aux prochaines annonces / acceptations). */
+  currentRate: number;
+  /** Ventes conclues (palier du taux). */
+  completedSales: number;
+  /** Totaux du registre de la plateforme (EUR). */
+  commissions: number;
+  certificationFees: number;
+  payouts: number;
+  /** Nombre d'écritures au registre. */
+  entries: number;
+}
+
+/** Parse le jsonb de `my_commission_summary()` (défensif : jsonb = unknown). */
+export function jsonToCommissionSummary(json: unknown): CommissionSummary {
+  const j: Record<string, unknown> =
+    json !== null && typeof json === 'object' && !Array.isArray(json)
+      ? (json as Record<string, unknown>)
+      : {};
+  const num = (v: unknown): number => {
+    const n = typeof v === 'number' ? v : Number(v ?? 0);
+    return Number.isFinite(n) ? n : 0;
+  };
+  return {
+    currency: typeof j['currency'] === 'string' ? (j['currency'] as string) : 'EUR',
+    currentRate: num(j['currentRate']),
+    completedSales: num(j['completedSales']),
+    commissions: num(j['commissions']),
+    certificationFees: num(j['certificationFees']),
+    payouts: num(j['payouts']),
+    entries: num(j['entries']),
   };
 }
