@@ -454,35 +454,34 @@ function decisionTime(iso: string | null): number {
   return Number.isFinite(at) ? at : Number.NEGATIVE_INFINITY;
 }
 
+/** Échange lu pour rattacher une décision d'expert à MON objet. */
+type DecisionExchange = Pick<ExchangeProposal, 'id' | 'listingId' | 'role' | 'offeredItemId'>;
+
+/** Titre public d'un objet tel que le serveur le mémorise (redact_contact_info). */
+function publicTitleOf(item: Pick<VelumItem, 'title'>): string | null {
+  return item.title === null ? null : redactContactInfo(item.title).text;
+}
+
 /**
- * true si MON objet est déjà certifié par un expert — la certification le
- * suit, miroir de _market_item_certification_ref : parmi les décisions
- * d'expert (certifié / refusé) sur MON objet, la PLUS RÉCENTE (decidedAt,
- * puis createdAt) doit être une certification, ET l'objet doit être resté
- * celui qui a été certifié — même titre public (expurgé des coordonnées) et
- * même catégorie. Décisions retenues : celles de mes annonces de l'objet
- * (annonce ou commande) et des échanges qui portaient sur MON objet (seuil
- * que j'ai demandé, ou accord mutuel demandé par l'autre partie).
- * Prudent : false dès que ce n'est pas établi — un objet déjà cédé (annonce
- * vendue ou échangée) ne compte pas ; à décisions ex aequo, le refus
- * l'emporte ; et une décision sur un objet que J'AI OFFERT dans un échange
- * (l'échange n'en expose pas l'identifiant) compte quand son titre public et
- * sa catégorie sont ceux de l'objet : elle peut l'invalider, jamais l'établir.
+ * Décisions d'expert (certifié / refusé) sur MON objet, de la plus récente à
+ * la plus ancienne — même ordre que _market_item_certification_ref et
+ * _market_item_rejected (decidedAt, puis createdAt, refus d'abord à égalité).
+ * Établies (`sure`) : décisions de mes annonces de l'objet (annonce ou
+ * commande), des échanges reçus sur elles, et des échanges où j'ai OFFERT
+ * l'objet, identifié par `offeredItemId` (renseigné pour l'auteur seulement).
+ * Dépôt qui ne fournit pas `offeredItemId` : une décision sur un objet que
+ * j'ai offert n'est que POSSIBLE — un refus d'un objet de la même catégorie,
+ * quel que soit son titre (le refus ne dépend jamais du titre), ou une
+ * certification sous le titre public de l'objet.
  */
-export function itemCertifiedByExpert(
+function myItemDecisions(
   item: Pick<VelumItem, 'id' | 'title' | 'domain'>,
   listings: readonly Pick<ListingRecord, 'id' | 'itemId' | 'status'>[],
   certifications: readonly CertificationDecision[],
-  exchanges: readonly Pick<ExchangeProposal, 'id' | 'listingId' | 'role'>[] = [],
-): boolean {
-  const ofItem = listings.filter((l) => l.itemId !== '' && l.itemId === item.id);
-  if (ofItem.some((l) => l.status === 'sold' || l.status === 'exchanged')) return false;
-  const ids = new Set(ofItem.map((l) => l.id));
-  // Titre public tel que le serveur le mémorise (redact_contact_info).
-  const publicTitle = item.title === null ? null : redactContactInfo(item.title).text;
-  const sameItem = (c: CertificationDecision) => c.itemTitle === publicTitle && c.domain === item.domain;
-
-  // Décisions sur MON objet : établies (sure) ou seulement possibles.
+  exchanges: readonly DecisionExchange[],
+): { c: CertificationDecision; sure: boolean }[] {
+  const ids = new Set(listings.filter((l) => l.itemId !== '' && l.itemId === item.id).map((l) => l.id));
+  const publicTitle = publicTitleOf(item);
   const decisions: { c: CertificationDecision; sure: boolean }[] = [];
   for (const c of certifications) {
     if (c.status !== 'certified' && c.status !== 'rejected') continue;
@@ -496,18 +495,51 @@ export function itemCertifiedByExpert(
       (c.reason === 'threshold' && c.requestedByMe) || (c.reason === 'mutual_agreement' && !c.requestedByMe);
     const ex = exchanges.find((e) => e.id === c.exchangeId);
     if (!onMyItem || ex === undefined) continue;
-    if (ex.role === 'recipient' && ids.has(ex.listingId)) decisions.push({ c, sure: true });
-    else if (ex.role === 'proposer' && sameItem(c)) decisions.push({ c, sure: false });
+    if (ex.role === 'recipient') {
+      if (ids.has(ex.listingId)) decisions.push({ c, sure: true });
+    } else if (ex.offeredItemId !== undefined) {
+      // Mon objet offert, identifié (null : objet supprimé depuis, ce n'est pas celui-ci).
+      if (ex.offeredItemId !== null && ex.offeredItemId === item.id) decisions.push({ c, sure: true });
+    } else if (c.domain === item.domain && (c.status === 'rejected' || c.itemTitle === publicTitle)) {
+      decisions.push({ c, sure: false });
+    }
   }
-  // ORDER BY decided_at DESC NULLS LAST, created_at DESC — refus d'abord à égalité.
-  decisions.sort(
+  return decisions.sort(
     (a, b) =>
       decisionTime(b.c.decidedAt) - decisionTime(a.c.decidedAt) ||
       decisionTime(b.c.createdAt) - decisionTime(a.c.createdAt) ||
       (a.c.status === 'rejected' ? -1 : 0) - (b.c.status === 'rejected' ? -1 : 0),
   );
-  const last = decisions[0];
-  return last !== undefined && last.sure && last.c.status === 'certified' && sameItem(last.c);
+}
+
+/**
+ * true si MON objet est déjà certifié par un expert — la certification le
+ * suit, miroir de _market_item_certification_ref : parmi les décisions
+ * d'expert sur MON objet (myItemDecisions), la PLUS RÉCENTE doit être une
+ * certification établie, ET l'objet doit être resté celui qui a été
+ * certifié — même titre public (expurgé des coordonnées) et même catégorie.
+ * Prudent : false dès que ce n'est pas établi — un objet déjà cédé (annonce
+ * vendue ou échangée) ne compte pas ; à décisions ex aequo, le refus
+ * l'emporte ; une décision seulement possible (objet offert non identifié)
+ * peut l'invalider, jamais l'établir.
+ */
+export function itemCertifiedByExpert(
+  item: Pick<VelumItem, 'id' | 'title' | 'domain'>,
+  listings: readonly Pick<ListingRecord, 'id' | 'itemId' | 'status'>[],
+  certifications: readonly CertificationDecision[],
+  exchanges: readonly DecisionExchange[] = [],
+): boolean {
+  const ofItem = listings.filter((l) => l.itemId !== '' && l.itemId === item.id);
+  if (ofItem.some((l) => l.status === 'sold' || l.status === 'exchanged')) return false;
+  const last = myItemDecisions(item, listings, certifications, exchanges)[0];
+  const publicTitle = publicTitleOf(item);
+  return (
+    last !== undefined &&
+    last.sure &&
+    last.c.status === 'certified' &&
+    last.c.itemTitle === publicTitle &&
+    last.c.domain === item.domain
+  );
 }
 
 // ── Annonces ─────────────────────────────────────────────────────────────────

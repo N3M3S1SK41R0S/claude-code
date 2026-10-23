@@ -538,24 +538,53 @@ describe('objet déjà certifié (la certification suit l’objet, miroir de _ma
     expect(itemCertifiedByExpert(ITEM, both, [certified, tie])).toBe(false);
   });
 
-  it('refus de MON objet offert dans un échange (même titre public) : la certification antérieure ne vaut plus', () => {
+  // Expertise d'un commun accord demandée par l'autre partie : elle porte sur MON objet offert.
+  const rejectedOffer = cert({
+    listingId: null,
+    exchangeId: 'e-9',
+    reason: 'mutual_agreement',
+    requestedByMe: false,
+    status: 'rejected',
+    createdAt: '2026-10-05T09:00:00Z',
+    decidedAt: '2026-10-06T09:00:00Z',
+  });
+
+  it('MON objet offert, identifié par offeredItemId : sa certification ÉTABLIT, son refus annule', () => {
+    const offered = (offeredItemId: string | null) => [
+      { id: 'e-9', listingId: 'l-autrui', role: 'proposer' as const, offeredItemId },
+    ];
+    // Certifié comme objet offert (échange tombé ensuite) : la certification le suit.
+    const certifiedOffer = { ...rejectedOffer, status: 'certified' as const };
+    expect(itemCertifiedByExpert(ITEM, [], [certifiedOffer], offered('it-1'))).toBe(true);
+    // Refusé comme objet offert : la certification antérieure ne vaut plus.
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [cert({}), rejectedOffer], offered('it-1'))).toBe(false);
+    // Autre objet offert (identifiant différent ou inconnu côté serveur) : sans effet, même titre.
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [cert({}), rejectedOffer], offered('it-2'))).toBe(true);
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [cert({}), rejectedOffer], offered(null))).toBe(true);
+    expect(itemCertifiedByExpert(ITEM, [], [certifiedOffer], offered('it-2'))).toBe(false);
+  });
+
+  it('refus jamais filtré par le titre : renommé A→B, refusé sous B, revenu à A ⇒ pas certifié', () => {
+    // « Omega Speedmaster » certifié, renommé, offert et refusé sous un autre titre, puis titre d'origine rétabli.
+    const renamedRejection = { ...rejectedOffer, itemTitle: 'Omega Speedmaster Moonwatch' };
+    const identified = [{ id: 'e-9', listingId: 'l-autrui', role: 'proposer' as const, offeredItemId: 'it-1' }];
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [cert({}), renamedRejection], identified)).toBe(false);
+    // Dépôt sans offeredItemId : prudence, tout refus d'un objet que j'ai offert, de même catégorie, compte.
+    const unidentified = [{ id: 'e-9', listingId: 'l-autrui', role: 'proposer' as const }];
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [cert({}), renamedRejection], unidentified)).toBe(false);
+    // … mais pas celui d'un objet d'une autre catégorie.
+    const otherDomain = { ...renamedRejection, domain: 'coin' as const };
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [cert({}), otherDomain], unidentified)).toBe(true);
+  });
+
+  it('dépôt sans offeredItemId : une décision sur un objet offert peut invalider, jamais établir', () => {
     const exchanges = [{ id: 'e-9', listingId: 'l-autrui', role: 'proposer' as const }];
-    // Expertise d'un commun accord demandée par l'autre partie : elle porte sur MON objet offert.
-    const rejectedOffer = cert({
-      listingId: null,
-      exchangeId: 'e-9',
-      reason: 'mutual_agreement',
-      requestedByMe: false,
-      status: 'rejected',
-      createdAt: '2026-10-05T09:00:00Z',
-      decidedAt: '2026-10-06T09:00:00Z',
-    });
     expect(itemCertifiedByExpert(ITEM, [listing({})], [cert({}), rejectedOffer], exchanges)).toBe(false);
-    // Objet offert d'un autre titre : autre objet, sans effet.
-    const otherItem = { ...rejectedOffer, itemTitle: 'Autre montre' };
-    expect(itemCertifiedByExpert(ITEM, [listing({})], [cert({}), otherItem], exchanges)).toBe(true);
-    // Une certification de l'objet offert n'établit rien (l'objet n'y est pas identifiable).
+    // Une certification de l'objet offert n'établit rien (l'objet n'y est pas identifiable)…
     expect(itemCertifiedByExpert(ITEM, [listing({})], [{ ...rejectedOffer, status: 'certified' }], exchanges)).toBe(false);
+    // … et seulement sous le titre public de l'objet : un autre titre est un autre objet.
+    const otherCertified = { ...rejectedOffer, status: 'certified' as const, itemTitle: 'Autre montre' };
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [cert({}), otherCertified], exchanges)).toBe(true);
   });
 
   it('prudent : autre objet, demande non aboutie, objet déjà cédé, aucune décision → non', () => {
