@@ -2,17 +2,32 @@ import { describe, expect, it } from 'vitest';
 import type { VelumItem } from '@velum/core';
 import {
   alertToRow,
+  catalogueQueryToArgs,
+  catalogueRowToListing,
   itemPatchToRow,
   itemPayloadToRow,
   itemToRow,
+  jsonToCommissionSummary,
   newItemToRow,
   profilePatchToRow,
   rowToAlert,
+  rowToCatalogueListing,
+  rowToCertificationRequest,
+  rowToExchangeProposal,
   rowToItem,
+  rowToListing,
+  rowToMarketMessage,
+  rowToOrder,
   rowToProfile,
   rowToValuation,
   type AlertRow,
+  type CatalogueRow,
+  type CertificationRow,
+  type ExchangeRow,
   type ItemRow,
+  type ListingRow,
+  type MarketMessageRow,
+  type OrderRow,
   type ProfileRow,
   type ValuationRow,
 } from './mappers';
@@ -219,6 +234,236 @@ describe('mappers profile', () => {
     expect(profilePatchToRow({ expoPushToken: null, locale: 'en' })).toEqual({
       expo_push_token: null,
       locale: 'en',
+    });
+  });
+});
+
+describe('mappers marketplace (vues anonymisées)', () => {
+  const legacyOrder: OrderRow = {
+    id: 'o1',
+    listing_id: 'l1',
+    buyer_id: 'usr-1',
+    seller_id: 'usr-2',
+    amount: '120.50',
+    currency: 'EUR',
+    commission_rate: '0.0400',
+    escrow_state: 'funds_held',
+    carrier: null,
+    tracking_number: null,
+    delivered_at: null,
+    released_at: null,
+    created_at: '2026-10-01T00:00:00Z',
+  };
+
+  it('rowToOrder : rôle déduit du lecteur sur une ligne brute (compatibilité)', () => {
+    expect(rowToOrder(legacyOrder, 'usr-2')).toMatchObject({
+      role: 'seller',
+      amount: 120.5,
+      commissionRate: 0.04,
+      counterpartyAlias: 'Membre VELUM',
+    });
+    expect(rowToOrder(legacyOrder)).toMatchObject({ role: 'buyer', buyerId: 'usr-1', sellerId: 'usr-2' });
+  });
+
+  it('rowToOrder : le rôle serveur prime, l’identifiant masqué devient ""', () => {
+    const view: OrderRow = {
+      ...legacyOrder,
+      buyer_id: null,
+      seller_id: 'usr-2',
+      role: 'seller',
+      counterparty_alias: 'Collectionneur 7F3A',
+      certification_required: true,
+    };
+    expect(rowToOrder(view, 'autre')).toMatchObject({
+      role: 'seller',
+      buyerId: '',
+      sellerId: 'usr-2',
+      counterpartyAlias: 'Collectionneur 7F3A',
+      certificationRequired: true,
+    });
+  });
+
+  it('rowToListing : nature, textes publics, certification', () => {
+    const row: ListingRow = {
+      id: 'l1',
+      item_id: 'i1',
+      seller_id: 'usr-1',
+      ask_price: '780.00',
+      currency: 'EUR',
+      status: 'pending_certification',
+      title: 'Bloc CITEX',
+      domain: 'stamp',
+      commission_rate: '0.0500',
+      expert_appraisal_required: true,
+      expert_appraisal_ref: null,
+      created_at: '2026-10-01T00:00:00Z',
+      kind: 'sale_or_exchange',
+      description: 'Neuf',
+      exchange_wishes: null,
+    };
+    expect(rowToListing(row)).toMatchObject({
+      askPrice: 780,
+      kind: 'sale_or_exchange',
+      certificationRequired: true,
+      certified: false,
+      description: 'Neuf',
+    });
+    expect(rowToListing({ ...row, expert_appraisal_ref: 'expertises/x.pdf', kind: undefined })).toMatchObject({
+      certified: true,
+      kind: 'sale',
+    });
+  });
+
+  it('catalogue : ligne anonymisée et projection dépréciée', () => {
+    const row: CatalogueRow = {
+      id: 'l1',
+      kind: 'exchange',
+      domain: 'coin',
+      title: 'Écu',
+      description: null,
+      ask_price: '250',
+      currency: null,
+      exchange_wishes: 'Louis d’or',
+      seller_alias: 'Collectionneur 7F3A',
+      certified: null,
+      is_mine: null,
+      created_at: '2026-10-01T00:00:00Z',
+    };
+    expect(rowToCatalogueListing(row)).toEqual({
+      id: 'l1',
+      kind: 'exchange',
+      domain: 'coin',
+      title: 'Écu',
+      description: null,
+      askPrice: 250,
+      currency: 'EUR',
+      exchangeWishes: 'Louis d’or',
+      sellerAlias: 'Collectionneur 7F3A',
+      certified: false,
+      isMine: false,
+      createdAt: '2026-10-01T00:00:00Z',
+    });
+    expect(catalogueRowToListing(row)).toMatchObject({
+      itemId: '',
+      sellerId: '',
+      status: 'active',
+      commissionRate: 0,
+      certificationRequired: false,
+    });
+  });
+
+  it('catalogueQueryToArgs : filtres absents ⇒ null, nombres non finis ignorés', () => {
+    expect(catalogueQueryToArgs()).toEqual({
+      p_domain: null,
+      p_mode: null,
+      p_text: null,
+      p_min_price: null,
+      p_max_price: null,
+      p_certified_only: false,
+      p_include_mine: false,
+      p_sort: 'recent',
+      p_limit: null,
+    });
+    expect(
+      catalogueQueryToArgs({ minPrice: Number.NaN, maxPrice: 10, includeMine: true, limit: 20 }),
+    ).toMatchObject({ p_min_price: null, p_max_price: 10, p_include_mine: true, p_limit: 20 });
+  });
+
+  it('échange, certification, message : coercitions sûres', () => {
+    const exchange: ExchangeRow = {
+      id: 'x1',
+      listing_id: 'l1',
+      role: 'recipient',
+      counterparty_alias: null,
+      listing_title: null,
+      listing_domain: null,
+      listing_value: '320',
+      offered_title: 'Pièce',
+      offered_domain: 'coin',
+      offered_value: 300,
+      cash_adjustment: null,
+      currency: null,
+      message: null,
+      state: 'accepted',
+      my_commission: '16.00',
+      certification_required: null,
+      proposer_tracking: null,
+      recipient_tracking: null,
+      proposer_received: null,
+      recipient_received: null,
+      created_at: '2026-10-01T00:00:00Z',
+      updated_at: '2026-10-02T00:00:00Z',
+    };
+    expect(rowToExchangeProposal(exchange)).toMatchObject({
+      role: 'recipient',
+      counterpartyAlias: 'Membre VELUM',
+      listingValue: 320,
+      cashAdjustment: 0,
+      currency: 'EUR',
+      myCommission: 16,
+      certificationRequired: false,
+      proposerReceived: false,
+    });
+    const certification: CertificationRow = {
+      id: 'c1',
+      listing_id: null,
+      order_id: null,
+      exchange_id: 'x1',
+      item_title: 'Montre',
+      domain: 'watch',
+      reason: 'threshold',
+      status: 'in_review',
+      fee_payer: 'seller',
+      fee_amount: '60',
+      requested_by_me: null,
+      counterparty_agreed: true,
+      report_ref: null,
+      expert_note: null,
+      created_at: '2026-10-01T00:00:00Z',
+      decided_at: null,
+    };
+    expect(rowToCertificationRequest(certification)).toMatchObject({
+      exchangeId: 'x1',
+      feeAmount: 60,
+      requestedByMe: false,
+      counterpartyAgreed: true,
+    });
+    const message: MarketMessageRow = {
+      id: 'm1',
+      thread_kind: 'exchange',
+      thread_id: 'x1',
+      mine: null,
+      author_alias: null,
+      body: 'Bonjour',
+      redacted: null,
+      created_at: '2026-10-01T00:00:00Z',
+    };
+    expect(rowToMarketMessage(message)).toEqual({
+      id: 'm1',
+      threadKind: 'exchange',
+      threadId: 'x1',
+      mine: false,
+      authorAlias: 'Membre VELUM',
+      body: 'Bonjour',
+      redacted: false,
+      createdAt: '2026-10-01T00:00:00Z',
+    });
+  });
+
+  it('jsonToCommissionSummary : jsonb inattendu ⇒ zéros, jamais NaN', () => {
+    expect(jsonToCommissionSummary(null)).toEqual({
+      currency: 'EUR',
+      currentRate: 0,
+      completedSales: 0,
+      commissions: 0,
+      certificationFees: 0,
+      payouts: 0,
+      entries: 0,
+    });
+    expect(jsonToCommissionSummary(['x'])).toMatchObject({ commissions: 0 });
+    expect(jsonToCommissionSummary({ commissions: '12.5', payouts: 'abc', currency: 'EUR' })).toMatchObject({
+      commissions: 12.5,
+      payouts: 0,
     });
   });
 });

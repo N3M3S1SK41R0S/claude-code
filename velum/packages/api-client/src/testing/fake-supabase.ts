@@ -3,21 +3,37 @@
  * Couvre le sous-ensemble utilisé par @velum/api-client :
  *   from().select().eq().order().limit().single()/.maybeSingle(),
  *   insert/update/upsert/delete (+ .select().single() chaîné),
- *   functions.invoke, auth.getSession/signOut.
+ *   rpc() (+ .single()/.maybeSingle()), functions.invoke,
+ *   auth.getSession/signOut.
  */
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 type Row = Record<string, unknown>;
 
+/** Erreur au format PostgREST : message + code (SQLSTATE ou PGRST…). */
+export interface FakeError {
+  message: string;
+  code?: string;
+}
+
 export interface FakeResult {
   data: unknown;
-  error: { message: string } | null;
+  error: FakeError | null;
 }
 
 interface FakeInvokeResponse {
   data?: unknown;
   error?: unknown;
 }
+
+/** Réponse simulée d'une fonction SQL appelée par rpc(). */
+export interface FakeRpcResponse {
+  data?: unknown;
+  error?: FakeError | null;
+}
+
+/** Réponse fixe, ou calculée à partir des arguments nommés de l'appel. */
+export type FakeRpcHandler = FakeRpcResponse | ((args: Record<string, unknown>) => FakeRpcResponse);
 
 export class FakeSupabase {
   /** Données en mémoire, par table, en snake_case comme PostgREST. */
@@ -28,6 +44,10 @@ export class FakeSupabase {
   invocations: { fn: string; body: unknown }[] = [];
   /** Réponses simulées par nom de fonction Edge. */
   invokeResponses: Record<string, FakeInvokeResponse> = {};
+  /** Journal des appels de fonctions SQL (rpc), arguments compris. */
+  rpcCalls: { fn: string; args: Record<string, unknown> }[] = [];
+  /** Réponses simulées par nom de fonction SQL ; absente → erreur PGRST202. */
+  rpcResponses: Record<string, FakeRpcHandler> = {};
   /** Session simulée pour auth.getSession(). */
   session: { user: { id: string } } | null = null;
 
@@ -38,6 +58,10 @@ export class FakeSupabase {
 
   from(table: string): FakeQueryBuilder {
     return new FakeQueryBuilder(this, table);
+  }
+
+  rpc(fn: string, args: Record<string, unknown> = {}): FakeRpcBuilder {
+    return new FakeRpcBuilder(this, fn, args);
   }
 
   functions = {
@@ -218,17 +242,71 @@ class FakeQueryBuilder implements PromiseLike<FakeResult> {
   }
 
   private finish(out: Row[]): FakeResult {
-    if (this.shape === 'single') {
-      const first = out[0];
-      if (first === undefined) {
-        return { data: null, error: { message: 'aucune ligne ne correspond (simulé)' } };
-      }
-      return { data: first, error: null };
+    return shapeResult(out, this.shape);
+  }
+}
+
+/** Mise en forme PostgREST : tableau, une ligne exigée (PGRST116 sinon) ou optionnelle. */
+function shapeResult(out: unknown[], shape: ResultShape): FakeResult {
+  if (shape === 'single') {
+    const first = out[0];
+    if (first === undefined) {
+      return {
+        data: null,
+        error: { message: 'aucune ligne ne correspond (simulé)', code: 'PGRST116' },
+      };
     }
-    if (this.shape === 'maybeSingle') {
-      return { data: out[0] ?? null, error: null };
+    return { data: first, error: null };
+  }
+  if (shape === 'maybeSingle') {
+    return { data: out[0] ?? null, error: null };
+  }
+  return { data: out, error: null };
+}
+
+class FakeRpcBuilder implements PromiseLike<FakeResult> {
+  private shape: ResultShape | null = null;
+
+  constructor(
+    private readonly fake: FakeSupabase,
+    private readonly fn: string,
+    private readonly args: Record<string, unknown>,
+  ) {}
+
+  single(): this {
+    this.shape = 'single';
+    return this;
+  }
+
+  maybeSingle(): this {
+    this.shape = 'maybeSingle';
+    return this;
+  }
+
+  then<TResult1 = FakeResult, TResult2 = never>(
+    onfulfilled?: ((value: FakeResult) => TResult1 | PromiseLike<TResult1>) | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): Promise<TResult1 | TResult2> {
+    return this.execute().then(onfulfilled, onrejected);
+  }
+
+  private async execute(): Promise<FakeResult> {
+    if (this.fake.offline) {
+      return { data: null, error: { message: 'réseau indisponible (simulé)' } };
     }
-    return { data: out, error: null };
+    this.fake.rpcCalls.push({ fn: this.fn, args: this.args });
+    const handler = this.fake.rpcResponses[this.fn];
+    if (handler === undefined) {
+      return {
+        data: null,
+        error: { message: `fonction SQL inconnue (simulé) : ${this.fn}`, code: 'PGRST202' },
+      };
+    }
+    const response = typeof handler === 'function' ? handler(this.args) : handler;
+    if (response.error) return { data: null, error: response.error };
+    const data = response.data ?? null;
+    if (this.shape === null) return { data, error: null };
+    return shapeResult(Array.isArray(data) ? data : data === null ? [] : [data], this.shape);
   }
 }
 
