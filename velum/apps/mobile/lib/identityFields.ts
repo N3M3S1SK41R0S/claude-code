@@ -325,8 +325,8 @@ function scalar(value: unknown): string | number | null {
  * Applique les valeurs saisies aux attributs : champ vidé → clé supprimée,
  * nombres parsés, tout changement tracé dans `attributes.corrections`.
  * La désignation est corrigée si elle diffère (`newTitle` vide → inchangée),
- * tracée sous `designationField` : DESIGNATION_FIELD pour la fiche objet ;
- * `title` par défaut (comportement historique, encore attendu par la capture).
+ * tracée sous `designationField` : DESIGNATION_FIELD pour la fiche objet et
+ * la capture ; `title` par défaut (compatibilité des historiques existants).
  * Pré-condition : `validateIdentityValues` sans erreur.
  */
 export function applyIdentityCorrections(input: {
