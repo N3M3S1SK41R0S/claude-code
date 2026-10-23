@@ -10,6 +10,9 @@
 --   X2d expertise de l'annonce ouverte : expédition bloquée ; refus après
 --       expédition : annonce réservée intacte, partie prévenue, brouillon
 --       quand la transaction se termine sans vente ;
+--   X2e fin d'une transaction SANS vente : l'annonce libérée est réévaluée
+--       (seuil R1 sur une estimation arrivée pendant la réservation,
+--       référence d'expertise non confirmée par un expert effacée) ;
 --   X3  une seule annonce ouverte par objet ;
 --   X4  objet cédé (vente ou échange conclu) : plus de remise en vente ;
 --   X5  certification liée au CONTENU certifié (titre, catégorie),
@@ -694,6 +697,102 @@ begin
     raise exception 'X2d : échange annulé ⇒ annonce de l''objet refusé en brouillon attendue (% / %)', v_status, v_ref;
   end if;
   raise notice 'OK X2d — expertise de l''annonce ouverte : expédition bloquée ; refus après expédition : annonce intacte, partie prévenue, brouillon à la fin sans vente';
+end
+$$;
+
+-- ── X2e. Annonce libérée sans vente : réévaluée comme une annonce neuve ─────
+-- recheck_listing_certification épargne une annonce RÉSERVÉE (paiement
+-- capturé) : une estimation au-delà du seuil arrivée pendant la réservation
+-- doit s'appliquer quand la transaction se termine sans vente. De même, une
+-- référence d'expertise qu'aucune décision d'expert ne confirme (référence
+-- saisie sous 0006, simulée ici) tombe à la libération.
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000030', '81000000-0000-4000-8000-000000000001', 'coin', 'Écu aux lauriers de Louis XV'),
+  ('91000000-0000-4000-8000-000000000031', '81000000-0000-4000-8000-000000000001', 'coin', 'Liard de France');
+
+do $$
+declare
+  v_order uuid;
+  v_order2 uuid;
+  v_status text;
+  v_ref text;
+  v_count int;
+begin
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a2e00000-0000-4000-8000-000000000030', '91000000-0000-4000-8000-000000000030',
+     '81000000-0000-4000-8000-000000000001', 400),
+    ('a2e00000-0000-4000-8000-000000000031', '91000000-0000-4000-8000-000000000031',
+     '81000000-0000-4000-8000-000000000001', 200);
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select id into v_order from public.market_buy('a2e00000-0000-4000-8000-000000000030');
+  perform public.advance_market_order(v_order, 'funds_held');
+  select id into v_order2 from public.market_buy('a2e00000-0000-4000-8000-000000000031');
+  perform public.advance_market_order(v_order2, 'funds_held');
+
+  -- Pendant la réservation : estimation VELUM au-delà du seuil (service),
+  -- référence d'expertise sans décision d'expert (état 0006 simulé).
+  reset role;
+  perform set_config('velum.uid', '', true);
+  insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, sources)
+  values ('91000000-0000-4000-8000-000000000030', 5000, 4500, 5500, 4000, 6000, 70, '[]');
+  perform set_config('session_replication_role', 'replica', true);
+  update public.listings set expert_appraisal_ref = 'moi/rapport-maison.pdf'
+  where id = 'a2e00000-0000-4000-8000-000000000031';
+  perform set_config('session_replication_role', 'origin', true);
+  select status into v_status from public.listings where id = 'a2e00000-0000-4000-8000-000000000030';
+  if v_status <> 'active' then
+    raise exception 'X2e : annonce réservée épargnée par la réévaluation attendue, vu %', v_status;
+  end if;
+  -- Le vendeur retouche la description de l'annonce réservée : statut figé,
+  -- aucune expertise ouverte en pleine transaction.
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  update public.listings set description = 'Belle patine, tranche lisible'
+  where id = 'a2e00000-0000-4000-8000-000000000030'
+  returning status into v_status;
+  if v_status <> 'active' then
+    raise exception 'X2e : édition d''une annonce réservée ⇒ statut figé attendu, vu %', v_status;
+  end if;
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select count(*) into v_count from public.certification_requests
+  where listing_id = 'a2e00000-0000-4000-8000-000000000030';
+  if v_count <> 0 then
+    raise exception 'X2e : aucune expertise ouverte pendant la réservation attendue (% demande(s))', v_count;
+  end if;
+
+  -- L'acheteur annule (remboursement avant envoi) : les annonces sont libérées.
+  set local role authenticated;
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  perform public.advance_market_order(v_order, 'cancelled');
+  perform public.advance_market_order(v_order2, 'cancelled');
+  reset role;
+  perform set_config('velum.uid', '', true);
+
+  select status into v_status from public.listings where id = 'a2e00000-0000-4000-8000-000000000030';
+  if v_status <> 'pending_certification' then
+    raise exception 'X2e : annonce libérée au-delà du seuil ⇒ pending_certification attendu, vu %', v_status;
+  end if;
+  select count(*) into v_count from public.certification_requests
+  where listing_id = 'a2e00000-0000-4000-8000-000000000030' and reason = 'threshold' and status = 'requested';
+  if v_count <> 1 then
+    raise exception 'X2e : une demande « seuil » ouverte attendue (% demande(s))', v_count;
+  end if;
+  select count(*) into v_count from public.notifications
+  where owner_id = '81000000-0000-4000-8000-000000000001'
+    and title = 'Certification d’expert requise' and body like '%Écu aux lauriers%';
+  if v_count <> 1 then
+    raise exception 'X2e : vendeur prévenu de l''expertise requise attendu (% notification(s))', v_count;
+  end if;
+
+  select status, expert_appraisal_ref into v_status, v_ref
+  from public.listings where id = 'a2e00000-0000-4000-8000-000000000031';
+  if v_status <> 'active' or v_ref is not null then
+    raise exception 'X2e : référence non confirmée effacée, annonce sous le seuil active attendue (% / %)', v_status, v_ref;
+  end if;
+  raise notice 'OK X2e — annonce libérée sans vente : seuil réévalué, référence non confirmée effacée';
 end
 $$;
 

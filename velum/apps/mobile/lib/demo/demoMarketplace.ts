@@ -1296,7 +1296,7 @@ export function createDemoMarketplaceRepo(
         invalid('Seul l’acheteur (ou le transporteur) atteste la livraison');
       }
       if (escrowState === 'shipped' && shipmentBlocked({ orderId: o.id })) {
-        invalid('Expédition bloquée : une certification d’expert est en cours sur cette commande');
+        invalid('Expédition bloquée : une certification d’expert est en cours sur cette commande ou sur son annonce');
       }
       const l = listings.find((x) => x.id === o.listingId);
       // Paiement capturé : premier payé, premier servi (enforce_escrow_transition).

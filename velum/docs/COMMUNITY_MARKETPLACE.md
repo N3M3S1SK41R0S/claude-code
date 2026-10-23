@@ -111,7 +111,11 @@ draft ⇄ active ⇄ pending_certification          (serveur : seuil de certific
 - Une seule annonce ouverte (`draft`, `pending_certification`, `active`) par
   objet ; un objet déjà cédé ne se réannonce pas.
 - Une **nouvelle estimation** au-delà du seuil fait repasser une annonce publiée
-  non certifiée en `pending_certification` (le vendeur est notifié).
+  non certifiée en `pending_certification` (le vendeur est notifié). Une
+  annonce **réservée** est épargnée (statut figé, même quand le vendeur en
+  retouche la description) ; si la transaction se termine **sans vente**,
+  elle est réévaluée comme une annonce neuve : seuil recalculé, référence
+  d'expertise qu'aucune décision d'expert ne confirme effacée.
 - Un objet engagé dans une transaction en cours ne peut pas être supprimé ;
   hors transaction, sa suppression **détache** ses annonces (retirées si
   ouvertes), propositions et certifications : l'historique de l'autre partie

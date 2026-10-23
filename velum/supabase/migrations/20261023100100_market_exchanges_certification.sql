@@ -11,8 +11,8 @@
 --    n'est JAMAIS 'active' sans certification obtenue. Sous le seuil :
 --    certification sur accord des deux parties d'une commande ou d'un échange
 --    (frais partagés), ou démarche volontaire du propriétaire.
---  - Tant qu'une certification est ouverte sur une commande ou un échange,
---    l'expédition est bloquée. Refus de l'expert (quel que soit le motif ou
+--  - Tant qu'une certification est ouverte sur une commande, un échange ou
+--    l'annonce qu'ils visent, l'expédition est bloquée. Refus de l'expert (quel que soit le motif ou
 --    le contexte) ⇒ toute transaction non expédiée sur l'objet annulée, toute
 --    annonce ouverte de l'objet dépubliée et dépouillée d'une certification
 --    antérieure, refus mémorisé (republication = nouvelle certification).
@@ -525,7 +525,12 @@ security definer
 set search_path = public
 as $$
 begin
-  if auth.uid() is not null and auth.uid() is distinct from p_seller then
+  -- Un membre n'évalue que SES objets ; une action système (drapeau posé par
+  -- market_system_begin : fin de transaction déclenchée par l'autre partie,
+  -- par exemple) évalue l'annonce du vendeur. Pas market_trusted_actor() :
+  -- dans cette fonction SECURITY DEFINER, current_user est le propriétaire.
+  if auth.uid() is not null and auth.uid() is distinct from p_seller
+     and not public.is_escrow_system_action() then
     raise exception 'Évaluation de certification réservée au vendeur' using errcode = '42501';
   end if;
   -- Au-delà du seuil, ou objet refusé par un expert (refus mémorisé).
@@ -1135,7 +1140,13 @@ begin
       -- ni de titre ni de catégorie depuis.
       new.expert_appraisal_ref := v_report_ref;
     end if;
-    if new.status in ('active', 'pending_certification') then
+    -- Annonce RÉSERVÉE éditée par le client (description…) : statut figé
+    -- comme son prix ; une estimation ou un refus survenu entre-temps
+    -- s'applique quand la transaction se termine sans vente
+    -- (_market_recheck_freed_listings).
+    if new.status in ('active', 'pending_certification')
+       and not (tg_op = 'UPDATE' and not v_trusted and new.status = old.status
+                and public.listing_is_engaged(old.id)) then
       new.status := case
         when v_required and new.expert_appraisal_ref is null then 'pending_certification'
         else 'active'
@@ -1283,6 +1294,52 @@ create trigger valuations_recheck_listing_certification
   after insert on public.valuations
   for each row execute function public.recheck_listing_certification();
 
+-- Fin SANS vente d'une transaction : les annonces publiées de l'objet qui ne
+-- sont plus réservées sont réévaluées comme des annonces neuves.
+-- recheck_listing_certification les épargnait pendant la réservation : une
+-- estimation au-delà du seuil arrivée entre-temps s'applique maintenant, et
+-- une référence d'expertise que la dernière décision d'expert ne confirme
+-- pas (référence saisie sous 0006, objet modifié depuis) tombe.
+create or replace function public._market_recheck_freed_listings(p_item uuid, p_owner uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  r record;
+begin
+  if p_item is null then
+    return;
+  end if;
+  for r in
+    -- Ré-évaluation par le trigger des annonces (statut demandé : 'active').
+    update public.listings l
+       set status = 'active',
+           expert_appraisal_ref = case
+             when public._market_item_certification_ref(l.item_id, l.seller_id) is null then null
+             else l.expert_appraisal_ref end
+     where l.item_id = p_item
+       and l.seller_id = p_owner
+       and l.status = 'active'
+       and not public.listing_is_engaged(l.id)
+    returning l.seller_id, l.title, l.status
+  loop
+    if r.status = 'pending_certification' then
+      perform public.market_notify(
+        r.seller_id,
+        'Certification d’expert requise',
+        format(
+          'La valeur de référence de « %s » dépasse %s € : l’annonce est suspendue jusqu’à sa certification par un expert (frais à la charge du vendeur).',
+          coalesce(r.title, 'votre objet'),
+          public.listing_appraisal_threshold_eur()));
+    end if;
+  end loop;
+end;
+$$;
+
+revoke all on function public._market_recheck_freed_listings(uuid, uuid) from public, anon, authenticated;
+
 -- ── 6. Commandes : réservation, termes figés, expédition sous certification ──
 create unique index orders_one_pending_per_buyer_idx
   on public.orders (listing_id, buyer_id) where escrow_state = 'pending_payment';
@@ -1418,7 +1475,7 @@ begin
       using errcode = 'P0001';
   end if;
   if v_to = 'shipped' and public.has_open_certification(old.id, null) then
-    raise exception 'Expédition bloquée : une certification d''expert est en cours sur cette commande'
+    raise exception 'Expédition bloquée : une certification d''expert est en cours sur cette commande ou sur son annonce'
       using errcode = 'P0001';
   end if;
   if v_from = 'pending_payment' and v_to = 'funds_held' then
@@ -1552,6 +1609,8 @@ begin
        and (l.status in ('active', 'pending_certification') or l.expert_appraisal_ref is not null)
        and public._market_item_rejected(t.item_id, t.seller_id)
        and not public.listing_is_engaged(l.id);
+    perform public._market_recheck_freed_listings(l.item_id, l.seller_id)
+      from public.listings l where l.id = new.listing_id;
   end if;
   perform public.market_system_end(v_prev);
   return null;
@@ -2019,6 +2078,10 @@ begin
          and (l.status in ('active', 'pending_certification') or l.expert_appraisal_ref is not null)
          and public._market_item_rejected(t.item_id, t.seller_id)
          and not public.listing_is_engaged(l.id);
+      -- Les deux objets redeviennent libres : annonces publiées réévaluées.
+      perform public._market_recheck_freed_listings(l.item_id, l.seller_id)
+        from public.listings l where l.id = new.listing_id;
+      perform public._market_recheck_freed_listings(new.offered_item_id, new.proposer_id);
     end if;
     if new.state = 'declined' then
       perform public.market_notify(new.proposer_id, 'Proposition d’échange déclinée', v_label);

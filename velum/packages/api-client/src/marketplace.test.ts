@@ -310,7 +310,7 @@ describe('marketplace repo — commandes', () => {
 
   it('advanceOrder : une transition refusée par le serveur n’est pas une panne', async () => {
     fake.rpcResponses['advance_market_order'] = {
-      error: { message: 'Expédition bloquée : une certification d’expert est en cours sur cette commande', code: 'P0001' },
+      error: { message: 'Expédition bloquée : une certification d’expert est en cours sur cette commande ou sur son annonce', code: 'P0001' },
     };
     await expectCode(repo.advanceOrder('o1', 'shipped', { trackingNumber: 'XY01' }), 'INVALID_INPUT');
   });
