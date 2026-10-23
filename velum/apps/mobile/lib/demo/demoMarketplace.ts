@@ -342,7 +342,8 @@ function seedListings(): ListingRecord[] {
       status: 'sold',
       createdAt: '2026-07-21T09:00:00Z',
     }),
-    // Vendue, paiement sous séquestre : à moi d'expédier (commande demo-order-4).
+    // Réservée (paiement sous séquestre, commande demo-order-4) : à moi
+    // d'expédier, une fois tranchée l'expertise demandée par l'acheteur.
     listing({
       id: 'demo-mine-5',
       sellerId: DEMO_OWNER,
@@ -1042,8 +1043,9 @@ export function createDemoMarketplaceRepo(
         // Commande libérée ⇒ annonce vendue (0006 : alimente commission et réputation).
         if (l) l.status = 'sold';
       }
-      // SIMULATION démo : le vendeur expédie dès que les fonds sont sous séquestre.
-      if (escrowState === 'funds_held' && role === 'buyer') {
+      // SIMULATION démo : le vendeur expédie dès que les fonds sont sous
+      // séquestre — sauf expertise ouverte, qui bloque l'expédition.
+      if (escrowState === 'funds_held' && role === 'buyer' && !hasOpenCertification({ orderId: o.id })) {
         o.escrowState = 'shipped';
         o.carrier = 'Colissimo';
         o.trackingNumber = `DEMO${o.id.replace(/\D/g, '').padStart(9, '0')}FR`;
@@ -1195,16 +1197,21 @@ export function createDemoMarketplaceRepo(
       // exchange_after_change : les autres propositions sur l'annonce sont
       // déclinées, celles qui offrent le même objet retirées, les commandes
       // non payées de l'annonce annulées.
+      // L'annonce de l'objet offert (par l'auteur, le cas échéant) est réservée elle aussi.
+      const reserved = new Set([
+        e.listingId,
+        ...listings.filter((x) => x.itemId === e.offeredItemId && x.sellerId === e.proposerId).map((x) => x.id),
+      ]);
       for (const other of exchanges) {
         if (other.id === e.id || other.state !== 'proposed') continue;
-        if (other.listingId === e.listingId) other.state = 'declined';
+        if (reserved.has(other.listingId)) other.state = 'declined';
         else if (e.offeredItemId !== null && other.offeredItemId === e.offeredItemId) other.state = 'withdrawn';
         else if (other.offeredItemId === l.itemId && other.proposerId === e.recipientId) other.state = 'withdrawn';
         else continue;
         touch(other);
       }
       for (const o of orders) {
-        if (o.listingId === e.listingId && o.escrowState === 'pending_payment') o.escrowState = 'cancelled';
+        if (reserved.has(o.listingId) && o.escrowState === 'pending_payment') o.escrowState = 'cancelled';
       }
       // Expertise de seuil décidée MAINTENANT, objet par objet, à la charge de
       // son propriétaire (_open_exchange_threshold_certifications).

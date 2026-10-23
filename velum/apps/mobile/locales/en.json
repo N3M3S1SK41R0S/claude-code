@@ -1582,7 +1582,7 @@
       "balanceAbove": "Your offer exceeds the listing's value",
       "balanceBelow": "Your offer is below the listing's value",
       "certificationRequiredMine": "Above €500 (the higher of your declared value and the VELUM estimate), your item is appraised by a partner before shipping, fee at your charge (indicative: {{fee}}).",
-      "certificationRequiredTheirs": "The listed item is above €500: it is appraised by a partner before shipping, fee at its owner’s charge.",
+      "certificationRequiredTheirs": "The listed item is above €500: it is appraised by a partner before shipping, fee at its owner's charge.",
       "certificationLater": "Below €500: once the proposal is accepted and before anything is shipped, each party can request an appraisal of the item they receive from the trade details (carried out if the other party agrees, fee split equally).",
       "submit": "Send the proposal",
       "sent": "Proposal sent."

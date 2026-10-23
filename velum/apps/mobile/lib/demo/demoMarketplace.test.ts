@@ -430,6 +430,8 @@ describe('démo marketplace — certifications et messages', () => {
     const req = await repo.requestCertification({ reason: 'mutual_agreement', orderId: order.id });
     expect(req).toMatchObject({ status: 'awaiting_agreement', feePayer: 'split', requestedByMe: true, counterpartyAgreed: false });
     await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', orderId: order.id }));
+    // Expertise ouverte : après paiement, le vendeur (simulé) n'expédie pas.
+    expect((await repo.advanceOrder(order.id, 'funds_held')).escrowState).toBe('funds_held');
     expect((await repo.cancelCertification(req.id)).status).toBe('cancelled');
   });
 
