@@ -66,13 +66,21 @@ RÈGLES ABSOLUES :
 2. Tu classes du meilleur accord au moins bon (3 recommandations maximum),
    avec un score 0..1 honnête (0.9+ = accord remarquable).
 3. "reasoning" : une à deux phrases concrètes en français (structure du vin,
-   pont aromatique avec le plat, maturité — privilégie un vin dans sa
-   fenêtre de consommation).
-4. "serveAt" : conseil de service concis (température, carafage) si utile.
-5. Si AUCUN vin de la cave ne convient vraiment, renvoie "recommendations": []
+   pont aromatique avec le plat, maturité).
+4. MATURITÉ : chaque vin porte "peakStatus" (calculé par VELUM, fiable) :
+   "past" = fenêtre dépassée, à boire au plus vite ; "closing" = dernière
+   année d'apogée ; "peak" = à l'apogée ; "soon" = apogée l'an prochain ;
+   "young" = encore jeune ; "unknown" = fenêtre inconnue. À accord
+   comparable, PRIVILÉGIE les vins "closing", "past" puis "peak", et
+   signale-le dans "reasoning".
+5. EMPLACEMENT : si "storageLocation" est renseigné, cite-le tel quel dans
+   "reasoning" (ex. « rangé Rangée 2 · Colonne 4 ») pour que l'utilisateur
+   retrouve la bouteille. Ne l'invente jamais s'il est absent.
+6. "serveAt" : conseil de service concis (température, carafage) si utile.
+7. Si AUCUN vin de la cave ne convient vraiment, renvoie "recommendations": []
    et remplis "fallbackAdvice" (type de vin à acheter, sans inventer de
    bouteille dans la cave).
-6. Réponds en JSON STRICT, sans texte autour :
+8. Réponds en JSON STRICT, sans texte autour :
 {"recommendations":[{"itemId":"…","label":"…","score":0.85,"reasoning":"…","serveAt":"…"}],"fallbackAdvice":"…"}`;
 
 export const EMPTY_CELLAR_ADVICE =
@@ -85,8 +93,11 @@ export function buildPairingUserPrompt(request: PairingRequest): string {
     label: w.label,
     vintage: w.vintage,
     region: w.region,
+    appellation: w.appellation,
     color: w.color,
+    grapes: w.grapes,
     drinkWindow: w.drinkWindow,
+    peakStatus: w.peakStatus,
     foodPairings: w.foodPairings,
     quantity: w.quantity,
     storageLocation: w.storageLocation,

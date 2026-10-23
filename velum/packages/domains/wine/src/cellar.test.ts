@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { WineAnalysisPayload } from '@velum/core';
 import {
+  buildPairingUserPrompt,
   CELLAR_SOMMELIER_PROMPT,
   drinkNowSuggestions,
   EMPTY_CELLAR_ADVICE,
@@ -138,6 +139,27 @@ describe('sommelier de cave — sens 1 : plat → vin de MA cave', () => {
     expect(seen!.prompt).toContain('magret de canard');
     expect(seen!.prompt).toContain('a1');
     expect(result.recommendations[0]?.itemId).toBe('a1');
+  });
+
+  it('transmet l’apogée et l’emplacement, et demande de les privilégier / citer', () => {
+    const prompt = buildPairingUserPrompt({
+      dish: 'gigot',
+      cellar: [
+        {
+          itemId: 'a1',
+          label: 'Bandol Domaine Tempier 2018',
+          appellation: 'Bandol',
+          grapes: ['mourvèdre'],
+          storageLocation: 'Rangée 2 · Colonne 4',
+          peakStatus: 'closing',
+        },
+      ],
+    });
+    expect(prompt).toContain('"peakStatus":"closing"');
+    expect(prompt).toContain('"storageLocation":"Rangée 2 · Colonne 4"');
+    expect(prompt).toContain('"appellation":"Bandol"');
+    expect(CELLAR_SOMMELIER_PROMPT).toContain('PRIVILÉGIE les vins "closing"');
+    expect(CELLAR_SOMMELIER_PROMPT).toContain('cite-le tel quel');
   });
 
   it('cave vide → fallback sans appel LLM', async () => {
