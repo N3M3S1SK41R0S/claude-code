@@ -377,7 +377,8 @@ export default function GlobalSearch() {
                     <VButton
                       label={t('globalSearch.seeAllWishlist', { count })}
                       variant="ghost"
-                      onPress={() => router.push(routes.wishlist())}
+                      // Toutes catégories, recherche reprise : les N résultats annoncés.
+                      onPress={() => router.push(routes.wishlist(null, trimmed))}
                     />
                   ) : null}
                 </>

@@ -14,4 +14,13 @@ describe('routes', () => {
     expect(routes.sell('it 1')).toBe('/community/sell?itemId=it%201');
     expect(routes.cellarSommelier('')).toBe('/cellar-sommelier');
   });
+
+  it('envies : recherche initiale facultative (rétro-compatible), envie précise par identifiant', () => {
+    expect(routes.wishlist()).toBe('/wishlist');
+    expect(routes.wishlist(null, 'napoléon or')).toBe('/wishlist?q=napol%C3%A9on%20or');
+    expect(routes.wishlist('wine', '  Tempier ')).toBe('/wishlist?domain=wine&q=Tempier');
+    expect(routes.wishlist('coin', '   ')).toBe('/wishlist?domain=coin');
+    expect(routes.wishlist(undefined, '')).toBe('/wishlist');
+    expect(routes.wishlistEntry('w 1')).toBe('/wishlist/w%201');
+  });
 });

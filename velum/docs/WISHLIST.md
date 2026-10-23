@@ -84,7 +84,7 @@ service-role —, `ON DELETE SET NULL`, cascade RGPD).
 
 ## 4. Parcours
 
-### « Mes envies » (`/wishlist?domain=…`, `routes.wishlist(domain)`)
+### « Mes envies » (`/wishlist?domain=…&q=…`, `routes.wishlist(domain, q)`)
 
 1. **Ajouter une envie** en haut de l'écran.
 2. **Catégorie** : une liste par catégorie + « Toutes » (vue groupée par
@@ -94,7 +94,11 @@ service-role —, `ON DELETE SET NULL`, cascade RGPD).
 4. **Recherche** insensible à la casse et aux accents (titre, notes, attributs
    d'identification) ; si rien n'est trouvé dans le segment affiché, des
    raccourcis indiquent les correspondances des autres segments ou des autres
-   catégories.
+   catégories. Le paramètre facultatif `q` la pré-remplit : la recherche
+   globale (`/search`) ouvre « Ouvrir mes envies (N résultats) » via
+   `routes.wishlist(null, requête)`, sur le premier segment qui contient un
+   résultat (`segmentForQuery`) ; un résultat précis s'ouvre directement
+   (`routes.wishlistEntry(id)`).
 5. **Segments** Envies / Idées / Obtenues (avec compteurs) et **tri** :
    priorité, récentes, prix cible (sans prix en dernier).
 6. Lignes : titre, extrait des notes, prix cible, badge de priorité, origine.

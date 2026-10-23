@@ -29,6 +29,7 @@ import {
   removeEntry,
   searchHints,
   segmentCounts,
+  segmentForQuery,
   segmentOf,
   sortWishlist,
   statsByDomain,
@@ -201,6 +202,22 @@ describe('segments, tri et filtres', () => {
     const groups = groupByDomain(ALL, ['coin', 'wine', 'art']);
     expect(groups.map((g) => g.domain)).toEqual(['coin', 'wine', 'stamp']);
     expect(groups[1]?.entries.map((e) => e.id)).toEqual(['w1', 'w2', 'w3', 'w4']);
+  });
+});
+
+describe('recherche reçue en lien (recherche globale → « Ouvrir mes envies »)', () => {
+  it('ouvre le premier segment qui contient une correspondance', () => {
+    expect(segmentForQuery(ALL, null, 'bandol')).toBe('wish');
+    expect(segmentForQuery(ALL, null, 'jura')).toBe('idea');
+    expect(segmentForQuery(ALL, null, 'talbot')).toBe('acquired');
+    // Dans la catégorie demandée seulement.
+    expect(segmentForQuery(ALL, 'stamp', 'semeuses')).toBe('idea');
+    expect(segmentForQuery(ALL, 'coin', 'semeuses')).toBe('wish');
+  });
+
+  it('recherche vide ou sans résultat : segment par défaut', () => {
+    expect(segmentForQuery(ALL, null, '   ')).toBe('wish');
+    expect(segmentForQuery(ALL, null, 'introuvable', 'idea')).toBe('idea');
   });
 });
 
