@@ -293,8 +293,9 @@ export function createDemoClient(): VelumClient {
     },
 
     // Seuil d'expertise sur l'estimation de RÉFÉRENCE de l'objet — la plus
-    // haute des 18 derniers mois, comme _market_reference_value (et l'aperçu
-    // de mise en vente) : la démo ne publie jamais ce que le serveur retiendrait.
+    // haute des 18 derniers mois, à défaut la dernière estimation passée, comme
+    // _market_reference_value (et l'aperçu de mise en vente) : la démo ne
+    // publie jamais ce que le serveur retiendrait.
     marketplace: createDemoMarketplaceRepo(findItem, {
       latestValuation: (id) => referenceEstimate(valuations.get(id) ?? [], new Date()),
     }),
