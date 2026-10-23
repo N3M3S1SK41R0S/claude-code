@@ -652,6 +652,8 @@
     "emptyCta": "Capture an object",
     "itemsCount": "{{count}} object(s)",
     "offlineNotice": "Offline: cached data, {{count}} pending change(s).",
+    "rejectedNotice": "{{count}} change(s) rejected by the server.",
+    "rejectedNoticeReason": "{{count}} change(s) rejected by the server — {{reason}}",
     "offlineUnloaded": "Offline: your collection has not been loaded on this device yet. It will appear as soon as you are back online.",
     "searchLabel": "Search my collection",
     "searchGlobal": "Search everywhere",

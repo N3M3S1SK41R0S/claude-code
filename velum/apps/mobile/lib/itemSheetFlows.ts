@@ -11,7 +11,7 @@
  * sur React Query.
  */
 import type { QueryClient } from '@tanstack/react-query';
-import { isDefinitiveRefusal, type VelumClient } from '@velum/api-client';
+import { isDefinitiveRefusal, type ReplayReport, type VelumClient } from '@velum/api-client';
 import { VelumError, isVelumError, type ValuationResult, type VelumItem } from '@velum/core';
 
 import { itemToCandidate } from './analysisState';
@@ -98,6 +98,32 @@ export async function classifyWriteFailure(
   } catch {
     return 'offline';
   }
+}
+
+/** Refus définitifs à signaler après un rejeu de la file hors-ligne. */
+export interface RejectedMutationsNotice {
+  count: number;
+  /** Motif rédigé par une règle serveur (P0001) du premier refus, s'il en porte un. */
+  reason: string | null;
+}
+
+/**
+ * Modifications hors-ligne refusées par le serveur au rejeu et retirées de la
+ * file : jamais en silence. Nombre de refus (`rejected`, ou à défaut le
+ * détail `rejections` ; absent d'une ancienne file = 0) et motif du PREMIER
+ * refus quand c'est une règle métier (P0001, ex. « Objet engagé dans une
+ * vente ») — les autres codes (contrainte, droit) ne sont jamais détaillés.
+ * Null si rien n'a été refusé.
+ */
+export function rejectedMutationsNotice(
+  report: Pick<ReplayReport, 'rejected' | 'rejections'>,
+): RejectedMutationsNotice | null {
+  const rejections = report.rejections ?? [];
+  const count = Math.max(report.rejected ?? 0, rejections.length);
+  if (count === 0) return null;
+  const first = rejections[0];
+  const reason = first !== undefined && first.code === 'P0001' ? first.message.trim() : '';
+  return { count, reason: reason.length > 0 ? reason : null };
 }
 
 /** Valeurs AVANT modification des seuls champs du patch (fusion par champ au rejeu). */

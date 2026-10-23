@@ -23,6 +23,7 @@ import {
   persistItemPatch,
   queryScreenState,
   refreshAfterValuation,
+  rejectedMutationsNotice,
   revalueItem,
   saveIdentityCorrection,
   type ItemSheetFlowDeps,
@@ -360,6 +361,49 @@ describe('isOfflineFailure', () => {
     expect(isOfflineFailure(new VelumError('INVALID_INPUT', 'x'))).toBe(false);
     expect(isOfflineFailure(new VelumError('UNAUTHORIZED', 'x'))).toBe(false);
     expect(isOfflineFailure(new VelumError('PLAN_REQUIRED', 'x'))).toBe(false);
+  });
+});
+
+describe('rejectedMutationsNotice — rejeu de la file hors-ligne', () => {
+  const rejection = (code: string, message: string) => ({
+    mutationId: `m-${code}`,
+    type: 'update' as const,
+    rowId: 'i1',
+    code,
+    message,
+  });
+
+  it('aucun refus (ou ancienne file sans compteur) : rien à signaler', () => {
+    expect(rejectedMutationsNotice({})).toBeNull();
+    expect(rejectedMutationsNotice({ rejected: 0, rejections: [] })).toBeNull();
+  });
+
+  it('nombre de refus et motif P0001 du premier refus', () => {
+    expect(
+      rejectedMutationsNotice({
+        rejected: 2,
+        rejections: [
+          rejection('P0001', ' Objet engagé dans une vente ou un échange en cours '),
+          rejection('23514', 'violates check constraint'),
+        ],
+      }),
+    ).toEqual({ count: 2, reason: 'Objet engagé dans une vente ou un échange en cours' });
+  });
+
+  it('premier refus technique (contrainte, droit) ou motif vide : jamais détaillé', () => {
+    expect(
+      rejectedMutationsNotice({
+        rejected: 2,
+        rejections: [rejection('23514', 'violates check constraint'), rejection('P0001', 'Objet engagé')],
+      }),
+    ).toEqual({ count: 2, reason: null });
+    expect(rejectedMutationsNotice({ rejected: 1, rejections: [rejection('P0001', '  ')] })).toEqual({
+      count: 1,
+      reason: null,
+    });
+    // Compteur seul, ou détail seul : le plus grand des deux.
+    expect(rejectedMutationsNotice({ rejected: 3 })).toEqual({ count: 3, reason: null });
+    expect(rejectedMutationsNotice({ rejections: [rejection('42501', 'RLS')] })).toEqual({ count: 1, reason: null });
   });
 });
 
