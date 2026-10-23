@@ -20,6 +20,7 @@ import type {
 } from '@velum/api-client';
 
 import {
+  DESIGNATION_FIELD,
   MAX_CORRECTIONS_KEPT,
   applyIdentityCorrections,
   identityValuesFrom,
@@ -161,11 +162,13 @@ export function fullCaptureAttributes(
 /**
  * Correction AVANT enregistrement des infos lues sur la photo : champs
  * d'identification du domaine + libellé. Chaque changement est tracé dans
- * `attributes.corrections` (valeur lue → valeur saisie). Si l'identité change,
- * la fourchette indicative et le classement — établis pour l'objet MAL lu —
- * sont retirés : la valorisation lancée après l'enregistrement portera sur
- * l'identité corrigée.
- * Pré-condition : `validateIdentityValues` sans erreur.
+ * `attributes.corrections` (valeur lue → valeur saisie) ; le libellé l'est
+ * sous la clé réservée DESIGNATION_FIELD, comme sur la fiche objet — le titre
+ * d'une œuvre ou le sujet d'un timbre (champ d'identité `title`) n'est donc
+ * jamais pris pour un simple renommage. Si l'identité change, la fourchette
+ * indicative et le classement — établis pour l'objet MAL lu — sont retirés :
+ * la valorisation lancée après l'enregistrement portera sur l'identité
+ * corrigée. Pré-condition : `validateIdentityValues` sans erreur.
  */
 export function correctCandidate(input: {
   candidate: Candidate;
@@ -184,12 +187,13 @@ export function correctCandidate(input: {
     values,
     newTitle: input.label,
     now: input.now,
+    designationField: DESIGNATION_FIELD,
   });
   // Une valeur seulement re-typée (5 lu en nombre, « 5 » ressaisi) n'est pas
   // une correction : on garde la valeur lue et on ne la trace pas.
   const original = input.candidate.attributes;
   const real = result.corrections.filter(
-    (c) => c.field === 'title' || String(c.from ?? '') !== String(c.to ?? ''),
+    (c) => c.field === DESIGNATION_FIELD || String(c.from ?? '') !== String(c.to ?? ''),
   );
   if (real.length === 0) return { candidate: input.candidate, changed: false };
   const attributes: Record<string, unknown> = { ...result.attributes };
@@ -199,9 +203,11 @@ export function correctCandidate(input: {
   const history = Array.isArray(original['corrections']) ? (original['corrections'] as unknown[]) : [];
   attributes['corrections'] = [...history, ...real].slice(-MAX_CORRECTIONS_KEPT);
 
-  // Identité corrigée : la fourchette ET le classement sont l'avis du modèle
-  // sur l'objet MAL lu — ni l'un ni l'autre ne suit l'objet corrigé.
-  const identityChanged = real.some((c) => c.field !== 'title');
+  // Identité corrigée (tout champ du domaine, `title` d'une œuvre ou d'un
+  // timbre compris) : la fourchette ET le classement sont l'avis du modèle sur
+  // l'objet MAL lu — ni l'un ni l'autre ne suit l'objet corrigé. Seul un
+  // renommage (désignation) les laisse valables.
+  const identityChanged = real.some((c) => c.field !== DESIGNATION_FIELD);
   const { quickEstimate, classification, ...rest } = input.candidate;
   const corrected: Candidate = {
     ...rest,
