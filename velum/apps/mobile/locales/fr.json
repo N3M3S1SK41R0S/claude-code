@@ -484,7 +484,7 @@
       "confirmQuestion": "Supprimer définitivement « {{name}} » ?",
       "confirm": "Oui, supprimer définitivement",
       "queued": "Hors-ligne : suppression enregistrée, elle sera synchronisée.",
-      "refused": "Suppression refusée par le serveur : l’objet n’a pas été supprimé. Un objet engagé dans une vente ou un échange en cours ne peut pas l’être.",
+      "refused": "Suppression impossible pour le moment : l’objet n’a pas été supprimé.",
       "refusedReason": "Suppression refusée — {{reason}}"
     },
     "labels": {

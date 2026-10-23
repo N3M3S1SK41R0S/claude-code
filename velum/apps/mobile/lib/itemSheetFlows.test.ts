@@ -140,6 +140,19 @@ describe('persistItemPatch', () => {
     expect(queued[0]?.base).toEqual({ title: 'Avant', acquiredPrice: 10 });
   });
 
+  it('panne de passerelle passagère (504 HTML, relecture qui aboutit) : mise en file, jamais un refus', async () => {
+    const { deps, queued } = fakeDeps({
+      update: () =>
+        Promise.reject(
+          new VelumError('SOURCE_UNAVAILABLE', "Mise à jour de l'objet impossible : <html>504 Gateway Time-out</html>"),
+        ),
+      get: async () => item({}),
+    });
+    const out = await persistItemPatch(deps, item({}), { title: 'Après' });
+    expect(out.queued).toBe(true);
+    expect(queued).toHaveLength(1);
+  });
+
   it.each([
     ['règle métier (P0001)', new VelumError('INVALID_INPUT', 'Refus : Objet engagé', { sqlstate: 'P0001' })],
     ['donnée invalide (22007)', new VelumError('INVALID_INPUT', 'date invalide', { sqlstate: '22007' })],
@@ -181,10 +194,10 @@ describe('persistItemPatch', () => {
     expect(get).not.toHaveBeenCalled();
   });
 
-  it('client injecté — refus non qualifié (SOURCE_UNAVAILABLE) alors que le serveur répond : rien en file', async () => {
-    // Repli : un client qui convertit encore un refus SQL en SOURCE_UNAVAILABLE
-    // sans SQLSTATE. L'objet se relit, le serveur était donc joignable et a refusé.
-    const refusal = new VelumError('SOURCE_UNAVAILABLE', 'Mise à jour impossible : date/time field value out of range');
+  it('client injecté — refus non qualifié (exception brute) alors que le serveur répond : rien en file', async () => {
+    // Repli : un client qui lève une exception brute, sans VelumError ni
+    // SQLSTATE. L'objet se relit, le serveur était donc joignable et a refusé.
+    const refusal = new Error('date/time field value out of range');
     const { deps, queued } = fakeDeps({
       update: () => Promise.reject(refusal),
       get: async () => item({}),
@@ -195,7 +208,7 @@ describe('persistItemPatch', () => {
 
   it('client injecté — objet supprimé entre-temps (relu absent) : erreur « introuvable », rien en file', async () => {
     const { deps, queued } = fakeDeps({
-      update: () => Promise.reject(new VelumError('SOURCE_UNAVAILABLE', 'Mise à jour impossible : objet introuvable')),
+      update: () => Promise.reject(new Error('objet introuvable')),
       get: async () => null,
     });
     await expect(persistItemPatch(deps, item({}), { title: 'x' })).rejects.toMatchObject({
@@ -326,18 +339,27 @@ describe('classifyWriteFailure', () => {
     expect(get).not.toHaveBeenCalled();
   });
 
-  it('repli (échec sans SQLSTATE) — panne confirmée (relecture impossible) → file', async () => {
-    expect(await classifyWriteFailure(unreachable, 'i1', new VelumError('SOURCE_UNAVAILABLE', 'x'))).toBe('offline');
+  it('SOURCE_UNAVAILABLE sans SQLSTATE (panne de passerelle 502/504, fetch en échec) → file, sans relecture', async () => {
+    // postgrest-js : corps non JSON (page HTML de la passerelle) → { message } sans code.
+    const gateway = new VelumError(
+      'SOURCE_UNAVAILABLE',
+      "Mise à jour de l'objet impossible : <html>504 Gateway Time-out</html>",
+    );
+    const fetchFailed = new VelumError('SOURCE_UNAVAILABLE', "Suppression de l'objet impossible : TypeError: Failed to fetch");
+    const get = vi.fn(async () => item({}));
+    // La panne était passagère : la relecture aboutirait, ce n'est pas un refus pour autant.
+    expect(await classifyWriteFailure({ get }, 'i1', gateway)).toBe('offline');
+    expect(await classifyWriteFailure({ get }, 'i1', fetchFailed)).toBe('offline');
+    expect(get).not.toHaveBeenCalled();
+  });
+
+  it('repli (exception brute d’un client injecté) — panne confirmée (relecture impossible) → file', async () => {
     expect(await classifyWriteFailure(unreachable, 'i1', new TypeError('Network request failed'))).toBe('offline');
   });
 
-  it('repli (échec sans SQLSTATE) — serveur joignable → refus ; objet absent → introuvable', async () => {
-    expect(await classifyWriteFailure(reachable(item({})), 'i1', new VelumError('SOURCE_UNAVAILABLE', 'x'))).toBe(
-      'refused',
-    );
-    expect(await classifyWriteFailure(reachable(null), 'i1', new VelumError('SOURCE_UNAVAILABLE', 'x'))).toBe(
-      'missing',
-    );
+  it('repli (exception brute d’un client injecté) — serveur joignable → refus ; objet absent → introuvable', async () => {
+    expect(await classifyWriteFailure(reachable(item({})), 'i1', new Error('refus non qualifié'))).toBe('refused');
+    expect(await classifyWriteFailure(reachable(null), 'i1', new Error('refus non qualifié'))).toBe('missing');
   });
 
   it('refus qualifié par le serveur : aucune relecture nécessaire', async () => {
