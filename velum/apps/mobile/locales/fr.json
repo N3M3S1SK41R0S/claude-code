@@ -33,7 +33,23 @@
     "collectionHint": "Cave, cabinet, galerie, album, écrin",
     "captureHint": "Photo, texte ou import de fichier",
     "marketHint": "Valorisations, alertes, annonces",
-    "communityHint": "Transactions entre collectionneurs"
+    "communityHint": "Transactions entre collectionneurs",
+    "searchHint": "Ouvre la recherche dans la collection, les envies et les échanges & ventes",
+    "searchPlaceholder": "Rechercher partout : objet, envie, annonce…",
+    "quick": {
+      "capture": "Capturer",
+      "captureHint": "Scan éclair, photo ou texte",
+      "batch": "Mode classeur",
+      "batchHint": "Timbres, pièces : une planche entière",
+      "wishlist": "Mes envies",
+      "wishlistHint": "Vins aimés, pièces à trouver…",
+      "community": "Échanges & ventes",
+      "communityHint": "Vendre, échanger, faire certifier",
+      "communityLocked": "Offre Platine — découvrir",
+      "communityUnknown": "Accès à vérifier — ouvrir",
+      "cellarPeak": "Vins à l’apogée",
+      "cellarPeakHint": "À boire maintenant, avec leur place"
+    }
   },
   "heritage": {
     "title": "Histoire & rareté",
@@ -67,7 +83,11 @@
     "capture": "Capturer",
     "collection": "Collection",
     "market": "Marché",
-    "profile": "Profil"
+    "profile": "Profil",
+    "captureA11y": "Capturer — scan éclair, photo, mode classeur",
+    "collectionA11y": "Collection — mes objets, carnet, recherche",
+    "marketA11y": "Marché — échanges, ventes et alertes",
+    "profileA11y": "Profil — compte, préférences et données"
   },
   "domains": {
     "wine": {
@@ -612,12 +632,52 @@
     "title": "Ma collection",
     "totalValue": "Valeur du portefeuille",
     "gainLoss": "Plus/moins-value latente",
-    "searchPlaceholder": "Rechercher un objet…",
+    "searchPlaceholder": "Nom, millésime, emplacement, note…",
     "emptyTitle": "Votre collection est vide",
     "emptyMessage": "Capturez votre premier objet pour lever le voile sur sa valeur.",
     "emptyCta": "Capturer un objet",
     "itemsCount": "{{count}} objet(s)",
-    "offlineNotice": "Hors-ligne : données du cache, {{count}} modification(s) en attente."
+    "offlineNotice": "Hors-ligne : données du cache, {{count}} modification(s) en attente.",
+    "searchLabel": "Rechercher dans ma collection",
+    "searchGlobal": "Rechercher partout",
+    "searchGlobalHint": "Ouvre la recherche dans la collection, les envies et les échanges & ventes",
+    "searchEverywhere": "Rechercher partout",
+    "sortLabel": "Trier la collection",
+    "sort": {
+      "recent": "Récents",
+      "value_desc": "Valeur ↓",
+      "name_asc": "Nom A→Z"
+    },
+    "sortA11y": {
+      "recent": "Récents, ajout le plus récent d’abord",
+      "value_desc": "Valeur ↓, la plus élevée d’abord",
+      "name_asc": "Nom A→Z, ordre alphabétique"
+    },
+    "quickAccess": "Accès rapide",
+    "quick": {
+      "carnetHint": "Cave, médaillier, galerie, album et écrin",
+      "wishlist": "Mes envies",
+      "wishlistHint": "Ce que je veux acquérir, par catégorie",
+      "cellarPeak": "Vins à l’apogée",
+      "cellarPeakHint": "Les bouteilles à boire maintenant et leur emplacement",
+      "sommelier": "Quel vin pour mon plat ?",
+      "sommelierHint": "Un plat, et les vins de ma cave qui s’accordent",
+      "community": "Échanger & vendre",
+      "communityHint": "Plateformes d’échange et de vente par catégorie",
+      "batch": "Mode classeur",
+      "batchHint": "Scanner une planche ou un classeur entier d’un coup",
+      "eventSommelier": "Sommelier d’événement",
+      "eventSommelierHint": "Des accords pour tout un menu, depuis ma cave",
+      "blindTasting": "Dégustation à l’aveugle",
+      "blindTastingHint": "Un jeu entre amis avec les bouteilles de ma cave"
+    },
+    "drinkNowSeeAll": "Voir tous les vins à l’apogée",
+    "drinkNowSeeAllCount": "Voir les {{count}} vins à l’apogée",
+    "drinkNowSeeAllHint": "Ouvre la liste des vins à boire, avec leur emplacement",
+    "noItemsInDomain": "Aucun objet dans la catégorie « {{domain}} ».",
+    "noResultHint": "Vérifiez l’orthographe, essayez un autre mot, ou cherchez aussi dans vos envies et les échanges.",
+    "captureInDomain": "Capturer : {{domain}}",
+    "clearFilters": "Effacer la recherche et les filtres"
   },
   "market": {
     "title": "Marché",
@@ -659,7 +719,27 @@
     "deleteAccountConfirmTitle": "Dernière confirmation",
     "deleteAccountConfirmMessage": "Cette action est irréversible. Confirmer la suppression définitive ?",
     "deleteAccountDone": "Compte supprimé. Au revoir.",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "sections": {
+      "account": "Mon compte & offre",
+      "spaces": "Mes espaces",
+      "preferences": "Préférences",
+      "privacy": "Confidentialité & données"
+    },
+    "currentPlan": "Formule actuelle : {{plan}}",
+    "languageFr": "Afficher l’application en français",
+    "languageEn": "Afficher l’application en anglais",
+    "spaces": {
+      "carnet": "Mon carnet",
+      "carnetHint": "Bibliothèque virtuelle de la collection",
+      "wishlist": "Mes envies",
+      "wishlistHint": "Envies et idées, par catégorie",
+      "community": "Échanges & ventes",
+      "communityHint": "Mes annonces, achats et échanges",
+      "certifications": "Certifications d’expert",
+      "certificationsHint": "Au-delà de 500 € ou sur accord des deux parties"
+    },
+    "privacyContact": "Écrire à {{email}} pour exercer mes droits"
   },
   "paywall": {
     "title": "Formules VELUM",
@@ -692,7 +772,8 @@
       "name": "Platine",
       "price": "49,99 € / mois",
       "features": "Intégralité des fonctions : carnet valorisé EN CONTINU selon les transactions du marché · rapport assurance/succession · communauté de collectionneurs (mise en relation anonyme, transactions via la plateforme — commission dégressive de 5 % à 2 % selon votre activité, expertise obligatoire au-delà de 500 €, à la charge du vendeur)"
-    }
+    },
+    "loadError": "Impossible d’afficher les formules pour le moment."
   },
   "export": {
     "sheetTitle": "Fiche d'objet VELUM",
@@ -781,7 +862,10 @@
     "slotPlace": "Place",
     "emptyDomainTitle": "Rien dans ce carnet pour l'instant",
     "emptyDomainMessage": "Scannez vos premiers objets pour remplir ce carnet.",
-    "emptyDomainCta": "Capturer un objet"
+    "emptyDomainCta": "Capturer un objet",
+    "searchLabel": "Rechercher dans mes carnets",
+    "searchPlaceholder": "Nom, millésime, emplacement…",
+    "searchElsewhere": "{{count}} résultat(s) dans les autres carnets — tout afficher"
   },
   "blind": {
     "title": "Dégustation à l'aveugle",
@@ -1738,7 +1822,8 @@
       "falling": "Baisse établie",
       "flat": "Stable",
       "unknown": "Historique insuffisant"
-    }
+    },
+    "shortTitle": "Arbitre patrimonial"
   },
   "nav": {
     "backHint": "Revenir à l’écran précédent"
@@ -1749,6 +1834,41 @@
     "categoryFilter": "Filtrer par catégorie",
     "noResult": "Aucun résultat pour « {{query}} ».",
     "resultsCount": "{{count}} résultat(s)"
+  },
+  "globalSearch": {
+    "title": "Rechercher partout",
+    "inputLabel": "Rechercher dans VELUM",
+    "placeholder": "Objet, vin, envie, annonce…",
+    "intro": "Retrouvez directement un objet de votre collection, une envie ou une annonce d’échange et de vente : nom, millésime, emplacement, note…",
+    "searching": "Recherche en cours…",
+    "noResultHint": "Vérifiez l’orthographe ou essayez un autre mot.",
+    "sectionEmpty": "Aucun résultat dans cette section.",
+    "sections": {
+      "collection": "Ma collection",
+      "wishlist": "Mes envies",
+      "market": "Échanges & ventes"
+    },
+    "seeAllCollection": "Voir les {{count}} résultats dans ma collection",
+    "seeAllWishlist": "Ouvrir mes envies ({{count}} résultats)",
+    "seeAllMarket": "Ouvrir les échanges & ventes",
+    "seeAllMarketCount": "Voir les {{count}} annonces",
+    "marketTooShort": "Saisissez au moins 2 caractères pour chercher dans les annonces.",
+    "marketLocked": "Les échanges & ventes sont réservés à l’offre Platine.",
+    "marketLockedCta": "Découvrir l’offre Platine",
+    "marketNotYet": "La recherche dans les échanges & ventes arrive bientôt. Vos résultats de collection et d’envies restent disponibles.",
+    "marketFailed": "Échanges & ventes momentanément indisponibles.",
+    "wishKind": {
+      "wish": "Envie",
+      "idea": "Idée"
+    },
+    "acquired": "Obtenue",
+    "targetPrice": "Prix cible {{price}}",
+    "listingKind": {
+      "sale": "Vente",
+      "exchange": "Échange",
+      "sale_or_exchange": "Vente ou échange"
+    },
+    "certified": "Certifié"
   },
   "identity": {
     "errors": {

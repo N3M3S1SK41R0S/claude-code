@@ -5,6 +5,12 @@
  * (planches 3 colonnes). Gating par entitlement `virtualBook` (Gold+),
  * édition d'emplacement en modal, bandeau de totaux (bookTotals) et badge
  * « Valorisation continue » pour Platine (rafraîchie par le cron serveur).
+ *
+ * Recherche : champ en tête ; pendant une recherche, le sélecteur de module
+ * cède la place aux filtres de catégorie (« Toutes » = tous les carnets). Dans
+ * un carnet, la mise en scène est conservée (cave par emplacement, plateaux…)
+ * avec les seules correspondances ; « Toutes » liste les résultats par carnet.
+ * Logique pure : carnetSearch (lib/collectionView.ts).
  */
 import { useMemo, useState } from 'react';
 import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
@@ -29,6 +35,8 @@ import {
 import type { VelumDomain, VelumItem } from '@velum/core';
 
 import { Screen } from '../components/Screen';
+import { DomainFilterChips } from '../components/search/DomainFilterChips';
+import { SearchField } from '../components/search/SearchField';
 import {
   artAttributionQualifier,
   artEstimatedPeriod,
@@ -49,12 +57,14 @@ import {
 } from '../lib/carnetData';
 import { getVelumClient } from '../lib/client';
 import { cellarStats } from '../lib/cellarStats';
+import { carnetMatchesElsewhere, carnetSearch } from '../lib/collectionView';
 import { seriesGapsForItems } from '../lib/seriesGaps';
 import { buildCellarShareHtml } from '../lib/exporters';
 import { errorMessage } from '../lib/errors';
 import { getActiveDomains } from '../lib/features';
 import { formatDate, formatEUR } from '../lib/i18n';
 import { usePlan } from '../lib/plan';
+import { routes } from '../lib/routes';
 import { showToast } from '../stores/toastStore';
 
 export default function Carnet() {
@@ -67,8 +77,11 @@ export default function Carnet() {
     planState.status === 'ready' && planState.entitlements.virtualBook;
   const plan = planState.status === 'ready' ? planState.plan : null;
 
-  const domains = getActiveDomains();
+  const domains = useMemo(() => getActiveDomains(), []);
   const [domain, setDomain] = useState<VelumDomain>(domains[0] ?? 'wine');
+  // Recherche : texte + portée « tous les carnets » (sinon le carnet courant).
+  const [searchText, setSearchText] = useState('');
+  const [searchAll, setSearchAll] = useState(false);
 
   // Modal « Déplacer » : item en cours + emplacement saisi. Deux modes :
   // « Position » (rangée / colonne / place → formatCellarSlot) ou texte libre.
@@ -110,18 +123,30 @@ export default function Carnet() {
   );
 
   const domainItems = useMemo(() => items.filter((i) => i.domain === domain), [items, domain]);
+  const search = useMemo(
+    () => carnetSearch(items, searchText, searchAll ? null : domain, domains),
+    [items, searchText, searchAll, domain, domains],
+  );
+  const searching = search.active;
+  const elsewhere = carnetMatchesElsewhere(search);
+  // Mise en scène du carnet courant : tout le carnet, ou ses seules
+  // correspondances pendant une recherche (rien en portée « tous »).
+  const shownItems = useMemo(
+    () => (searching ? (searchAll ? [] : search.items) : domainItems),
+    [searching, searchAll, search.items, domainItems],
+  );
   const domainValuationFailures = useMemo(
     () => countFailedValuations(domainItems, failedValuationItemIds),
     [domainItems, failedValuationItemIds],
   );
   const totals = useMemo(() => bookTotals(domainItems, latestByItem), [domainItems, latestByItem]);
   const wineGroups = useMemo(
-    () => (domain === 'wine' ? groupByLocation(domainItems) : []),
-    [domain, domainItems],
+    () => (domain === 'wine' ? groupByLocation(shownItems) : []),
+    [domain, shownItems],
   );
   const watchGroups = useMemo(
-    () => (domain === 'watch' ? groupByLocation(domainItems) : []),
-    [domain, domainItems],
+    () => (domain === 'watch' ? groupByLocation(shownItems) : []),
+    [domain, shownItems],
   );
   const stats = useMemo(
     () => (domain === 'wine' ? cellarStats(domainItems, latestByItem, new Date().getFullYear()) : null),
@@ -157,7 +182,7 @@ export default function Carnet() {
 
   if (planState.status === 'loading' || (canUseVirtualBook && query.isLoading)) {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} title={t('carnet.title')}>
         <View style={styles.center}>
           <VSpinner />
         </View>
@@ -167,7 +192,7 @@ export default function Carnet() {
 
   if (planState.status === 'error') {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} title={t('carnet.title')}>
         <View style={styles.center}>
           <VEmptyState
             title={t('carnet.title')}
@@ -182,12 +207,12 @@ export default function Carnet() {
   // GATING : le carnet virtuel appartient à l'offre Gold (et Platine).
   if (!planState.entitlements.virtualBook) {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} title={t('carnet.title')}>
         <View style={styles.center}>
           <VEmptyState
             title={t('carnet.upsellTitle')}
             message={t('carnet.upsellMessage')}
-            action={{ label: t('carnet.upsellCta'), onPress: () => router.push('/paywall') }}
+            action={{ label: t('carnet.upsellCta'), onPress: () => router.push(routes.paywall()) }}
           />
         </View>
       </Screen>
@@ -196,7 +221,7 @@ export default function Carnet() {
 
   if (query.isError) {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} title={t('carnet.title')}>
         <View style={styles.center}>
           <VEmptyState
             title={t('carnet.title')}
@@ -258,7 +283,29 @@ export default function Carnet() {
     </Pressable>
   );
 
-  const openItem = (item: VelumItem) => router.push(`/item/${item.id}`);
+  const openItem = (item: VelumItem) => router.push(routes.item(item.id));
+  /** Valeur affichée : cote, panne explicite, ou « non valorisé ». */
+  const valueLabel = (item: VelumItem): string => {
+    const latest = latestByItem[item.id] ?? null;
+    return failedValuationIds.has(item.id)
+      ? t('errors.SOURCE_UNAVAILABLE')
+      : latest
+        ? formatEUR(latest.central)
+        : t('item.noValuation');
+  };
+  const changeSearch = (text: string) => {
+    setSearchText(text);
+    // Recherche effacée : la prochaine repart du carnet courant.
+    if (text.trim() === '') setSearchAll(false);
+  };
+  const changeScope = (scope: VelumDomain | null) => {
+    if (scope === null) {
+      setSearchAll(true);
+    } else {
+      setDomain(scope);
+      setSearchAll(false);
+    }
+  };
   const displayedTotal =
     domainValuationFailures > 0 ? '—' : formatEUR(totals.totalEUR);
   const totalAccessibilityLabel =
@@ -266,178 +313,243 @@ export default function Carnet() {
     (domainValuationFailures > 0 ? `. ${t('errors.SOURCE_UNAVAILABLE')}` : '');
 
   return (
-    <Screen>
-      <VText variant="title">{t('carnet.title')}</VText>
+    <Screen title={t('carnet.title')}>
+      <SearchField
+        value={searchText}
+        onChangeText={changeSearch}
+        label={t('carnet.searchLabel')}
+        placeholder={t('carnet.searchPlaceholder')}
+      />
 
-      {/* Sélecteur de module (chips des 5 domaines actifs) */}
-      <View style={styles.chips} accessibilityLabel={t('carnet.moduleSelector')}>
-        {domains.map((d) => {
-          const selected = d === domain;
-          return (
-            <Pressable
-              key={d}
-              onPress={() => setDomain(d)}
-              // Filtre de module : bouton sélectionnable. Le rôle « tab »
-              // exigerait un parent « tablist » (absent en RN-web) → WCAG.
-              accessibilityRole="button"
-              accessibilityState={{ selected }}
-              accessibilityLabel={`${t(domainBookLabelKey(d))} — ${t(`domains.${d}.name`)}`}
-              style={({ pressed }) => [
-                styles.chip,
-                selected && styles.chipSelected,
-                pressed && styles.pressed,
-              ]}
-            >
-              <VText variant="body" tone={selected ? 'gold' : 'dim'}>
-                {t(domainBookLabelKey(d))}
-              </VText>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      {/* Bandeau de tête : totaux du carnet affiché */}
-      <VCard style={styles.banner}>
-        <View style={styles.bannerHeader}>
-          <VText variant="heading" tone="gold">
-            {t(domainBookLabelKey(domain))}
-          </VText>
-          {plan === 'platine' ? <VBadge label={t('carnet.liveValuation')} tone="gold" /> : null}
-        </View>
-        <VText
-          variant="title"
-          tone="gold"
-          tabularNums
-          accessibilityLabel={totalAccessibilityLabel}
-        >
-          {displayedTotal}
-        </VText>
-        <VText variant="caption" tone="dim">
-          {`${t('carnet.itemsCount', { count: totals.count })} · ${t('carnet.valuedCount', {
-            valued: totals.valuedCount,
-            count: totals.count,
-          })}`}
-        </VText>
-        {domainValuationFailures > 0 ? (
-          <View style={styles.partialWarning}>
-            <VText variant="caption" tone="gold">
-              {t('errors.SOURCE_UNAVAILABLE')}
-            </VText>
-            <VButton
-              label={t('common.retry')}
-              variant="secondary"
-              onPress={() => void query.refetch()}
-            />
-          </View>
-        ) : null}
-        {totals.lastValuedAt ? (
-          <VText variant="caption" tone="dim">
-            {t('carnet.lastValuedAt', { date: formatDate(totals.lastValuedAt) })}
-          </VText>
-        ) : null}
-        {plan === 'gold' ? (
-          <Pressable
-            onPress={() => router.push('/paywall')}
-            accessibilityRole="button"
-            accessibilityLabel={t('carnet.upgradePlatine')}
-            style={({ pressed }) => [styles.upgradeLink, pressed && styles.pressed]}
-          >
-            <VText variant="caption" tone="gold">
-              {t('carnet.upgradePlatine')}
-            </VText>
-          </Pressable>
-        ) : null}
-      </VCard>
-
-      {domainItems.length === 0 ? (
-        <VEmptyState
-          title={t('carnet.emptyDomainTitle')}
-          message={t('carnet.emptyDomainMessage')}
-          action={{
-            label: t('carnet.emptyDomainCta'),
-            onPress: () => router.push('/(tabs)/capture'),
-          }}
-        />
-      ) : null}
-
-      {/* STATISTIQUES DE CAVE (vin) — répartition + à boire bientôt + partage */}
-      {domain === 'wine' && stats && domainItems.length > 0 ? (
-        <VCard style={styles.statsCard}>
-          <VText variant="heading" tone="gold">
-            {t('cellarStats.title')}
-          </VText>
-          {stats.drinkSoon.length > 0 ? (
-            <VText variant="body">
-              {t('cellarStats.drinkSoon', { count: stats.drinkSoon.length })}
-            </VText>
-          ) : null}
-          {stats.byRegion.length > 0 ? (
-            <View style={styles.statBlock}>
-              <VText variant="caption" tone="dim">
-                {t('cellarStats.byRegion')}
-              </VText>
-              {stats.byRegion.slice(0, 5).map((b) => (
-                <View key={b.key} style={styles.statRow}>
-                  <VText variant="body">{b.key}</VText>
-                  <VText variant="caption" tone="dim">
-                    {`${b.count} · ${formatEUR(b.valueEUR)}`}
-                  </VText>
-                </View>
-              ))}
-            </View>
-          ) : null}
-          {stats.byColor.length > 0 ? (
-            <View style={styles.statBlock}>
-              <VText variant="caption" tone="dim">
-                {t('cellarStats.byColor')}
-              </VText>
-              {stats.byColor.map((b) => (
-                <View key={b.key} style={styles.statRow}>
-                  <VText variant="body">{b.key}</VText>
-                  <VText variant="caption" tone="dim">
-                    {t('cellarStats.bottles', { count: b.count })}
-                  </VText>
-                </View>
-              ))}
-            </View>
-          ) : null}
-          <VButton
-            label={t('cellarShare.button')}
-            variant="secondary"
-            onPress={shareCellar}
-            loading={sharing}
-            disabled={sharing || domainValuationFailures > 0}
-            accessibilityHint={
-              domainValuationFailures > 0
-                ? t('errors.SOURCE_UNAVAILABLE')
-                : t('cellarShare.hint')
-            }
+      {searching ? (
+        <View style={styles.searchBar}>
+          {/* Portée de la recherche : « Toutes » = tous les carnets. */}
+          <DomainFilterChips
+            value={searchAll ? null : domain}
+            onChange={changeScope}
+            domains={domains}
           />
-        </VCard>
+          <VText variant="caption" tone="dim" accessibilityLiveRegion="polite">
+            {t('search.resultsCount', { count: search.items.length })}
+          </VText>
+          {search.items.length === 0 ? (
+            <VText variant="body" tone="dim">
+              {t('search.noResult', { query: searchText.trim() })}
+            </VText>
+          ) : null}
+          {elsewhere > 0 ? (
+            <VButton
+              label={t('carnet.searchElsewhere', { count: elsewhere })}
+              variant={search.items.length === 0 ? 'primary' : 'ghost'}
+              onPress={() => setSearchAll(true)}
+            />
+          ) : null}
+        </View>
+      ) : (
+        /* Sélecteur de module (chips des 5 domaines actifs) */
+        <View style={styles.chips} accessibilityLabel={t('carnet.moduleSelector')}>
+          {domains.map((d) => {
+            const selected = d === domain;
+            return (
+              <Pressable
+                key={d}
+                onPress={() => setDomain(d)}
+                // Filtre de module : bouton sélectionnable. Le rôle « tab »
+                // exigerait un parent « tablist » (absent en RN-web) → WCAG.
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                accessibilityLabel={`${t(domainBookLabelKey(d))} — ${t(`domains.${d}.name`)}`}
+                style={({ pressed }) => [
+                  styles.chip,
+                  selected && styles.chipSelected,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <VText variant="body" tone={selected ? 'gold' : 'dim'}>
+                  {t(domainBookLabelKey(d))}
+                </VText>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+
+      {!searching ? (
+        <>
+          {/* Bandeau de tête : totaux du carnet affiché */}
+          <VCard style={styles.banner}>
+            <View style={styles.bannerHeader}>
+              <VText variant="heading" tone="gold">
+                {t(domainBookLabelKey(domain))}
+              </VText>
+              {plan === 'platine' ? <VBadge label={t('carnet.liveValuation')} tone="gold" /> : null}
+            </View>
+            <VText
+              variant="title"
+              tone="gold"
+              tabularNums
+              accessibilityLabel={totalAccessibilityLabel}
+            >
+              {displayedTotal}
+            </VText>
+            <VText variant="caption" tone="dim">
+              {`${t('carnet.itemsCount', { count: totals.count })} · ${t('carnet.valuedCount', {
+                valued: totals.valuedCount,
+                count: totals.count,
+              })}`}
+            </VText>
+            {domainValuationFailures > 0 ? (
+              <View style={styles.partialWarning}>
+                <VText variant="caption" tone="gold">
+                  {t('errors.SOURCE_UNAVAILABLE')}
+                </VText>
+                <VButton
+                  label={t('common.retry')}
+                  variant="secondary"
+                  onPress={() => void query.refetch()}
+                />
+              </View>
+            ) : null}
+            {totals.lastValuedAt ? (
+              <VText variant="caption" tone="dim">
+                {t('carnet.lastValuedAt', { date: formatDate(totals.lastValuedAt) })}
+              </VText>
+            ) : null}
+            {plan === 'gold' ? (
+              <Pressable
+                onPress={() => router.push(routes.paywall())}
+                accessibilityRole="button"
+                accessibilityLabel={t('carnet.upgradePlatine')}
+                style={({ pressed }) => [styles.upgradeLink, pressed && styles.pressed]}
+              >
+                <VText variant="caption" tone="gold">
+                  {t('carnet.upgradePlatine')}
+                </VText>
+              </Pressable>
+            ) : null}
+          </VCard>
+
+          {domainItems.length === 0 ? (
+            <VEmptyState
+              title={t('carnet.emptyDomainTitle')}
+              message={t('carnet.emptyDomainMessage')}
+              action={{
+                label: t('carnet.emptyDomainCta'),
+                onPress: () => router.push(routes.capture(domain)),
+              }}
+            />
+          ) : null}
+
+          {/* STATISTIQUES DE CAVE (vin) — répartition + à boire bientôt + partage */}
+          {domain === 'wine' && stats && domainItems.length > 0 ? (
+            <VCard style={styles.statsCard}>
+              <VText variant="heading" tone="gold">
+                {t('cellarStats.title')}
+              </VText>
+              {stats.drinkSoon.length > 0 ? (
+                <VText variant="body">
+                  {t('cellarStats.drinkSoon', { count: stats.drinkSoon.length })}
+                </VText>
+              ) : null}
+              {stats.byRegion.length > 0 ? (
+                <View style={styles.statBlock}>
+                  <VText variant="caption" tone="dim">
+                    {t('cellarStats.byRegion')}
+                  </VText>
+                  {stats.byRegion.slice(0, 5).map((b) => (
+                    <View key={b.key} style={styles.statRow}>
+                      <VText variant="body">{b.key}</VText>
+                      <VText variant="caption" tone="dim">
+                        {`${b.count} · ${formatEUR(b.valueEUR)}`}
+                      </VText>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+              {stats.byColor.length > 0 ? (
+                <View style={styles.statBlock}>
+                  <VText variant="caption" tone="dim">
+                    {t('cellarStats.byColor')}
+                  </VText>
+                  {stats.byColor.map((b) => (
+                    <View key={b.key} style={styles.statRow}>
+                      <VText variant="body">{b.key}</VText>
+                      <VText variant="caption" tone="dim">
+                        {t('cellarStats.bottles', { count: b.count })}
+                      </VText>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+              <VButton
+                label={t('cellarShare.button')}
+                variant="secondary"
+                onPress={shareCellar}
+                loading={sharing}
+                disabled={sharing || domainValuationFailures > 0}
+                accessibilityHint={
+                  domainValuationFailures > 0
+                    ? t('errors.SOURCE_UNAVAILABLE')
+                    : t('cellarShare.hint')
+                }
+              />
+            </VCard>
+          ) : null}
+
+          {/* TROUS DE SÉRIE (pièces / timbres) — années manquantes par série */}
+          {(domain === 'coin' || domain === 'stamp') && gaps.length > 0 ? (
+            <VCard style={styles.statsCard}>
+              <VText variant="heading" tone="gold">
+                {t('seriesGaps.title')}
+              </VText>
+              <VText variant="caption" tone="dim">
+                {t('seriesGaps.subtitle')}
+              </VText>
+              {gaps.map((gap) => (
+                <View key={gap.series} style={styles.statBlock}>
+                  <VText variant="body">{gap.series}</VText>
+                  <VText variant="caption" tone="dim">
+                    {t('seriesGaps.missing', {
+                      count: gap.missing.length,
+                      years: gap.missing.slice(0, 12).join(', '),
+                    })}
+                  </VText>
+                </View>
+              ))}
+            </VCard>
+          ) : null}
+        </>
       ) : null}
 
-      {/* TROUS DE SÉRIE (pièces / timbres) — années manquantes par série */}
-      {(domain === 'coin' || domain === 'stamp') && gaps.length > 0 ? (
-        <VCard style={styles.statsCard}>
-          <VText variant="heading" tone="gold">
-            {t('seriesGaps.title')}
-          </VText>
-          <VText variant="caption" tone="dim">
-            {t('seriesGaps.subtitle')}
-          </VText>
-          {gaps.map((gap) => (
-            <View key={gap.series} style={styles.statBlock}>
-              <VText variant="body">{gap.series}</VText>
-              <VText variant="caption" tone="dim">
-                {t('seriesGaps.missing', {
-                  count: gap.missing.length,
-                  years: gap.missing.slice(0, 12).join(', '),
-                })}
+      {/* RECHERCHE « TOUS LES CARNETS » — résultats groupés par carnet. */}
+      {searching && searchAll
+        ? search.groups.map((group) => (
+            <View key={`search:${group.domain}`} style={styles.group}>
+              <VText variant="heading" tone="gold" accessibilityRole="header">
+                {t(domainBookLabelKey(group.domain))}
               </VText>
+              {group.items.map((item) => {
+                const parts = [item.storageLocation ?? t('carnet.noLocation'), valueLabel(item)];
+                return (
+                  <View key={item.id} style={styles.caveRow}>
+                    <Pressable
+                      style={({ pressed }) => [styles.caveInfo, pressed && styles.pressed]}
+                      onPress={() => openItem(item)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${item.title ?? t('common.unknown')}, ${parts.join(' · ')}`}
+                    >
+                      <VText variant="body">{item.title ?? t('common.unknown')}</VText>
+                      <VText variant="caption" tone="dim">
+                        {parts.join(' · ')}
+                      </VText>
+                    </Pressable>
+                    {moveAction(item)}
+                  </View>
+                );
+              })}
             </View>
-          ))}
-        </VCard>
-      ) : null}
+          ))
+        : null}
 
       {/* CAVE — groupes par emplacement, en-tête avec compte et valeur */}
       {domain === 'wine'
@@ -462,17 +574,10 @@ export default function Carnet() {
                   </VText>
                 </View>
                 {group.items.map((item) => {
-                  const latest = latestByItem[item.id] ?? null;
                   const vintage = attributeNumber(item, 'vintage');
                   const parts: string[] = [];
                   if (vintage !== null) parts.push(t('carnet.vintage', { year: vintage }));
-                  parts.push(
-                    failedValuationIds.has(item.id)
-                      ? t('errors.SOURCE_UNAVAILABLE')
-                      : latest
-                        ? formatEUR(latest.central)
-                        : t('item.noValuation'),
-                  );
+                  parts.push(valueLabel(item));
                   // Deux boutons FRÈRES (info + déplacer) plutôt qu'un bouton
                   // « Déplacer » imbriqué dans une ligne cliquable (WCAG :
                   // nested-interactive).
@@ -499,9 +604,9 @@ export default function Carnet() {
         : null}
 
       {/* MÉDAILLIER — plateaux : grille 3 colonnes de pièces */}
-      {domain === 'coin' ? (
+      {domain === 'coin' && shownItems.length > 0 ? (
         <View style={styles.grid}>
-          {domainItems.map((item) => {
+          {shownItems.map((item) => {
             const year = attributeNumber(item, 'year');
             const grade = coinGradeLabel(item);
             return (
@@ -523,9 +628,9 @@ export default function Carnet() {
       ) : null}
 
       {/* GALERIE — cimaises : grille 2 colonnes de tableaux */}
-      {domain === 'art' ? (
+      {domain === 'art' && shownItems.length > 0 ? (
         <View style={styles.grid}>
-          {domainItems.map((item) => {
+          {shownItems.map((item) => {
             const period = artEstimatedPeriod(item);
             const qualifier = artAttributionQualifier(item);
             return (
@@ -551,9 +656,9 @@ export default function Carnet() {
       ) : null}
 
       {/* ALBUM — planches : grille 3 colonnes de timbres */}
-      {domain === 'stamp' ? (
+      {domain === 'stamp' && shownItems.length > 0 ? (
         <View style={styles.grid}>
-          {domainItems.map((item) => {
+          {shownItems.map((item) => {
             const year = attributeNumber(item, 'year');
             const status = stampConditionStatus(item);
             return (
@@ -602,19 +707,12 @@ export default function Carnet() {
                   </VText>
                 </View>
                 {group.items.map((item) => {
-                  const latest = latestByItem[item.id] ?? null;
                   const reference = attributeString(item, 'reference');
                   const year = attributeNumber(item, 'year');
                   const parts: string[] = [];
                   if (reference) parts.push(reference);
                   if (year !== null) parts.push(String(year));
-                  parts.push(
-                    failedValuationIds.has(item.id)
-                      ? t('errors.SOURCE_UNAVAILABLE')
-                      : latest
-                        ? formatEUR(latest.central)
-                        : t('item.noValuation'),
-                  );
+                  parts.push(valueLabel(item));
                   return (
                     <View key={item.id} style={styles.caveRow}>
                       <Pressable
@@ -636,10 +734,6 @@ export default function Carnet() {
             );
           })
         : null}
-
-      <View style={styles.footer}>
-        <VButton label={t('common.back')} variant="ghost" onPress={() => router.back()} />
-      </View>
 
       {/* Modal « Déplacer » : édition de l'emplacement physique */}
       <Modal
@@ -798,7 +892,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'flex-start',
   },
-  footer: { marginTop: velumSpacing.xl },
+  searchBar: { gap: velumSpacing.sm, marginVertical: velumSpacing.md },
   backdrop: {
     flex: 1,
     justifyContent: 'center',

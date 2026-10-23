@@ -1,20 +1,26 @@
 /**
- * Paywall : paliers Gratuit / Premium / Pro, achat RevenueCat (mode dégradé
- * en Expo Go/web), bouton « Restaurer les achats » obligatoire, mentions.
+ * Paywall : paliers Gratuit / Premium / Gold / Platine, achat RevenueCat (mode
+ * dégradé en Expo Go/web), bouton « Restaurer les achats » obligatoire,
+ * mentions. Fermeture : l'en-tête « ‹ Retour » (pas de bouton en bas de page) ;
+ * après un achat, retour sûr même sans historique (lien direct).
  */
 import { StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { VBadge, VButton, VCard, VSpinner, VText, velumSpacing } from '@velum/ui';
 
 import { Screen } from '../components/Screen';
+import { useGoBack } from '../lib/navigation';
 import { getOfferings, purchase, restore, type PaywallTier } from '../lib/purchases';
 import { showToast } from '../stores/toastStore';
 
+/** Sans historique (lien direct, visiteur non connecté) : aiguillage d'entrée. */
+const PAYWALL_BACK_FALLBACK = '/';
+
 export default function Paywall() {
   const { t } = useTranslation();
-  const router = useRouter();
+  const queryClient = useQueryClient();
+  const goBack = useGoBack(PAYWALL_BACK_FALLBACK);
 
   const offeringsQuery = useQuery({
     queryKey: ['offerings'],
@@ -33,7 +39,9 @@ export default function Paywall() {
     try {
       await purchase(tier.nativePackage);
       showToast(t('paywall.purchaseDone'), 'success');
-      router.back();
+      // Le plan (profiles.plan) est resynchronisé côté serveur : relecture.
+      void queryClient.invalidateQueries({ queryKey: ['profile'] });
+      goBack();
     } catch {
       showToast(t('paywall.purchaseError'), 'danger');
     }
@@ -49,8 +57,10 @@ export default function Paywall() {
   };
 
   return (
-    <Screen>
-      <VText variant="display">{t('paywall.title')}</VText>
+    <Screen backFallback={PAYWALL_BACK_FALLBACK}>
+      <VText variant="display" accessibilityRole="header">
+        {t('paywall.title')}
+      </VText>
       <VText variant="body" tone="dim">
         {t('paywall.subtitle')}
       </VText>
@@ -59,6 +69,19 @@ export default function Paywall() {
         <View style={styles.center}>
           <VSpinner />
         </View>
+      ) : offeringsQuery.isError ? (
+        <VCard style={styles.card}>
+          <View style={styles.cardContent}>
+            <VText variant="body" tone="dim">
+              {t('paywall.loadError')}
+            </VText>
+            <VButton
+              label={t('common.retry')}
+              variant="secondary"
+              onPress={() => void offeringsQuery.refetch()}
+            />
+          </View>
+        </VCard>
       ) : (
         <>
           {!purchasesAvailable ? (
@@ -102,7 +125,6 @@ export default function Paywall() {
           <VText variant="caption" tone="dim" style={styles.legal}>
             {t('paywall.legal')}
           </VText>
-          <VButton label={t('common.close')} variant="ghost" onPress={() => router.back()} />
         </>
       )}
     </Screen>

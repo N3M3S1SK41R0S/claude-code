@@ -6,6 +6,8 @@
  * évolution, finale, garde, devinettes), et cache les réponses jusqu'au
  * dévoilement. Export d'une feuille imprimable (cartes + page réponses).
  * 100 % local : aucun appel réseau, aucun coût — pas de gating serveur.
+ * Une panne de lecture de la cave est distinguée d'une cave trop petite
+ * (message + Réessayer), jamais présentée comme « pas assez de bouteilles ».
  */
 import { useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
@@ -35,7 +37,9 @@ import {
 
 import { Screen } from '../components/Screen';
 import { getVelumClient } from '../lib/client';
+import { errorMessage } from '../lib/errors';
 import { buildBlindTastingHtml } from '../lib/exporters';
+import { routes } from '../lib/routes';
 import { showToast } from '../stores/toastStore';
 
 /** Nombre de bouteilles proposé par défaut (raisonnable pour une soirée). */
@@ -117,7 +121,7 @@ export default function BlindTasting() {
 
   if (itemsQuery.isLoading) {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} title={t('blind.title')}>
         <View style={styles.center}>
           <VSpinner />
         </View>
@@ -125,14 +129,29 @@ export default function BlindTasting() {
     );
   }
 
+  // Panne sans donnée en cache : jamais confondue avec une cave trop petite.
+  if (itemsQuery.isError && itemsQuery.data === undefined) {
+    return (
+      <Screen scroll={false} title={t('blind.title')}>
+        <View style={styles.center}>
+          <VEmptyState
+            title={t('blind.title')}
+            message={errorMessage(itemsQuery.error, t)}
+            action={{ label: t('common.retry'), onPress: () => void itemsQuery.refetch() }}
+          />
+        </View>
+      </Screen>
+    );
+  }
+
   if (!session) {
     return (
-      <Screen scroll={false}>
+      <Screen scroll={false} title={t('blind.title')}>
         <View style={styles.center}>
           <VEmptyState
             title={t('blind.title')}
             message={t('blind.needsMore', { min: MIN_BOTTLES })}
-            action={{ label: t('blind.goToCapture'), onPress: () => router.push('/(tabs)/capture') }}
+            action={{ label: t('blind.goToCapture'), onPress: () => router.push(routes.capture('wine')) }}
           />
         </View>
       </Screen>
@@ -140,8 +159,7 @@ export default function BlindTasting() {
   }
 
   return (
-    <Screen>
-      <VText variant="title">{t('blind.title')}</VText>
+    <Screen title={t('blind.title')}>
       <VText variant="body" tone="dim">
         {t('blind.intro')}
       </VText>
