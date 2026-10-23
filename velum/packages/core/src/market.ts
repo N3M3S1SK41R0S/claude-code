@@ -119,6 +119,18 @@ export interface ExchangeProposal {
    * Optionnel (ajout additif) : absent quand le dépôt ne le fournit pas.
    */
   listingCertified?: boolean;
+  /**
+   * Identifiant de MON objet offert : renseigné pour l'AUTEUR de la
+   * proposition seulement (jamais l'objet d'autrui, anonymat oblige).
+   * Optionnel (ajout additif) : absent quand le dépôt ne le fournit pas.
+   */
+  offeredItemId?: string | null;
+  /**
+   * true si l'objet OFFERT est déjà certifié (dernière décision d'expert =
+   * certification, contenu inchangé) : le destinataire ne peut plus en
+   * demander l'expertise. Optionnel (ajout additif).
+   */
+  offeredItemCertified?: boolean;
   /** Suivi d'expédition de chaque partie. */
   proposerTracking: string | null;
   recipientTracking: string | null;
