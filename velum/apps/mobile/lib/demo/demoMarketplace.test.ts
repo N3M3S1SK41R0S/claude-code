@@ -142,8 +142,8 @@ describe('démo marketplace — mise en vente (règles @velum/config)', () => {
     expect(cert).toMatchObject({ reason: 'threshold', status: 'requested', feePayer: 'seller', requestedByMe: true });
   });
 
-  it('le seuil tient compte de la dernière valorisation VELUM (pas de sous-déclaration)', async () => {
-    // Comme _market_reference_value : max(prix, dernière valorisation) ; le
+  it('le seuil tient compte de l’estimation VELUM de référence (pas de sous-déclaration)', async () => {
+    // Comme _market_reference_value : max(prix, estimation de référence) ; le
     // scan éclair ({low, high}) n'est pas une valorisation et n'est pas lu.
     const repo = setup(
       [item('it-under'), item('it-quick', { attributes: { quickEstimate: { low: 300, high: 900, currency: 'EUR' } } })],
@@ -185,6 +185,111 @@ describe('démo marketplace — mise en vente (règles @velum/config)', () => {
     const repo = setup();
     // demo-mine-5 : commande demo-order-4 sous séquestre.
     await expectInvalid(repo.withdrawListing('demo-mine-5'));
+  });
+});
+
+describe('démo marketplace — alignement sur les règles serveur', () => {
+  it('euro uniquement, prix plancher 1 €, montant maximal numeric(14, 2)', async () => {
+    const repo = setup();
+    await expect(repo.createListing({ itemId: 'it-coin', askPrice: 120, currency: 'USD' })).rejects.toMatchObject({
+      code: 'INVALID_INPUT',
+      message: expect.stringContaining('euro'),
+    });
+    await expect(repo.createListing({ itemId: 'it-coin', askPrice: 0.5 })).rejects.toMatchObject({
+      code: 'INVALID_INPUT',
+      message: expect.stringContaining('minimum : 1 €'),
+    });
+    await expectInvalid(repo.createListing({ itemId: 'it-coin', askPrice: 1_000_000_000_000 }));
+    const rec = await repo.createListing({ itemId: 'it-coin', askPrice: 1, currency: 'EUR' });
+    expect(rec).toMatchObject({ askPrice: 1, currency: 'EUR', status: 'active' });
+  });
+
+  it('une seule annonce ouverte par objet, brouillon compris', async () => {
+    const repo = setup();
+    const rec = await repo.createListing({ itemId: 'it-watch', askPrice: 900 });
+    expect(rec.status).toBe('pending_certification');
+    const cert = (await repo.myCertifications()).find((c) => c.listingId === rec.id);
+    await repo.cancelCertification(cert?.id ?? '');
+    expect((await repo.myListings()).find((l) => l.id === rec.id)?.status).toBe('draft');
+    await expect(repo.createListing({ itemId: 'it-watch', askPrice: 100 })).rejects.toMatchObject({
+      message: expect.stringContaining('annonce ouverte'),
+    });
+    await repo.withdrawListing(rec.id);
+    expect((await repo.createListing({ itemId: 'it-watch', askPrice: 100 })).status).toBe('active');
+  });
+
+  it('objet cédé (vendu ou échangé) : jamais réannoncé ni proposé à l’échange', async () => {
+    // demo-mine-3 : vendue (fonds libérés) ; demo-mine-1 : échangée au terme du parcours.
+    const repo = setup([item('demo-mine-3-item'), item('demo-mine-1-item'), item('it-coin')]);
+    await expect(repo.createListing({ itemId: 'demo-mine-3-item', askPrice: 60 })).rejects.toMatchObject({
+      code: 'INVALID_INPUT',
+      message: expect.stringContaining('déjà cédé'),
+    });
+    await repo.respondExchange('demo-exchange-1', true);
+    await repo.shipExchange('demo-exchange-1', 'LL000FR');
+    await repo.confirmExchangeReceipt('demo-exchange-1');
+    await expectInvalid(repo.createListing({ itemId: 'demo-mine-1-item', askPrice: 45 }));
+    await expect(
+      repo.proposeExchange({ listingId: 'demo-listing-1', offeredItemId: 'demo-mine-3-item', offeredValue: 60 }),
+    ).rejects.toMatchObject({ message: expect.stringContaining('déjà cédé') });
+  });
+
+  it('transporteurs de market_carriers() et suivi au format serveur (vente et échange)', async () => {
+    const repo = setup();
+    const sale = (await repo.myOrders()).find((o) => o.role === 'seller' && o.escrowState === 'funds_held');
+    const id = sale?.id ?? '';
+    const asked = (await repo.myCertifications()).find((c) => c.orderId === id && c.status === 'awaiting_agreement');
+    await repo.respondCertification(asked?.id ?? '', false);
+    await expect(
+      repo.advanceOrder(id, 'shipped', { trackingNumber: 'LL123456789FR', carrier: 'Royal Mail' }),
+    ).rejects.toMatchObject({ code: 'INVALID_INPUT', message: expect.stringContaining('Transporteur non reconnu') });
+    await expectInvalid(repo.advanceOrder(id, 'shipped', { trackingNumber: 'écrivez-moi@exemple.fr' }));
+    const shipped = await repo.advanceOrder(id, 'shipped', { trackingNumber: ' ll 123 456 789 fr ', carrier: 'colis prive' });
+    expect(shipped).toMatchObject({ trackingNumber: 'LL123456789FR', carrier: 'Colis Privé' });
+
+    await repo.respondExchange('demo-exchange-1', true);
+    await expectInvalid(repo.shipExchange('demo-exchange-1', 'LL000FR', 'Coursier de Bob'));
+    await expectInvalid(repo.shipExchange('demo-exchange-1', 'bob@yahoo.fr'));
+    const ex = await repo.shipExchange('demo-exchange-1', ' 6a 1234 5678 901 ', 'chronopost');
+    expect(ex.recipientTracking).toBe('6A12345678901');
+  });
+
+  it('refus d’expert mémorisé : annonce dépubliée, propositions retirées, expertise exigée à toute republication', async () => {
+    const repo = setup();
+    const rec = await repo.createListing({ itemId: 'it-watch', askPrice: 900, kind: 'sale_or_exchange' });
+    const cert = (await repo.myCertifications()).find((c) => c.listingId === rec.id);
+    // Mon objet proposé ailleurs, en attente de réponse.
+    const offer = await repo.proposeExchange({ listingId: 'demo-listing-1', offeredItemId: 'it-watch', offeredValue: 900 });
+    const decided = await repo.decideCertification(cert?.id ?? '', {
+      certified: false,
+      feeAmount: 40,
+      expertNote: 'Cadran refait',
+    });
+    expect(decided).toMatchObject({ status: 'rejected', feeAmount: 40, expertNote: 'Cadran refait' });
+    expect((await repo.myListings()).find((l) => l.id === rec.id)?.status).toBe('draft');
+    expect((await repo.myExchanges()).find((e) => e.id === offer.id)?.state).toBe('withdrawn');
+    // Frais d'expertise (seuil, à la charge du vendeur) inscrits au registre.
+    expect(await repo.commissionSummary?.()).toMatchObject({ certificationFees: 40, entries: 5 });
+    // Refus mémorisé : même sous le seuil, l'objet ne se republie qu'après une nouvelle expertise…
+    await repo.withdrawListing(rec.id);
+    const again = await repo.createListing({ itemId: 'it-watch', askPrice: 100 });
+    expect(again).toMatchObject({ status: 'pending_certification', certificationRequired: true, certified: false });
+    // … et ne s'offre plus à l'échange.
+    await expect(
+      repo.proposeExchange({ listingId: 'demo-listing-7', offeredItemId: 'it-watch', offeredValue: 100 }),
+    ).rejects.toMatchObject({ message: expect.stringContaining('refusé par un expert') });
+  });
+
+  it('certification obtenue : l’annonce est publiée avec le badge, et la certification suit l’objet', async () => {
+    const repo = setup();
+    const rec = await repo.createListing({ itemId: 'it-watch', askPrice: 900 });
+    const cert = (await repo.myCertifications()).find((c) => c.listingId === rec.id);
+    await repo.decideCertification(cert?.id ?? '', { certified: true, feeAmount: 30 });
+    expect((await repo.myListings()).find((l) => l.id === rec.id)).toMatchObject({ status: 'active', certified: true });
+    await repo.withdrawListing(rec.id);
+    const again = await repo.createListing({ itemId: 'it-watch', askPrice: 1200 });
+    expect(again).toMatchObject({ status: 'active', certified: true });
+    await expectInvalid(repo.decideCertification(cert?.id ?? '', { certified: false })); // déjà décidée
   });
 });
 

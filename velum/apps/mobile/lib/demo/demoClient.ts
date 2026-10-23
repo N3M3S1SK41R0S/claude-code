@@ -36,6 +36,7 @@ import {
   seedItems,
 } from './demoData';
 import { demoCellarPairing } from '../cellarPeakDemo';
+import { referenceEstimate } from '../marketForms';
 import { createDemoMarketplaceRepo } from './demoMarketplace';
 import { createDemoWishlistRepo } from './demoWishlist';
 // Mode classeur (planche multi-objets) — bloc edge ci-dessous.
@@ -291,9 +292,15 @@ export function createDemoClient(): VelumClient {
       },
     },
 
-    marketplace: createDemoMarketplaceRepo(findItem),
+    // Seuil d'expertise sur l'estimation de RÉFÉRENCE de l'objet — la plus
+    // haute des 18 derniers mois, comme _market_reference_value (et l'aperçu
+    // de mise en vente) : la démo ne publie jamais ce que le serveur retiendrait.
+    marketplace: createDemoMarketplaceRepo(findItem, {
+      latestValuation: (id) => referenceEstimate(valuations.get(id) ?? [], new Date()),
+    }),
 
-    wishlist: createDemoWishlistRepo(),
+    // Envie liée à un objet supprimé depuis : lien détaché (ON DELETE SET NULL).
+    wishlist: createDemoWishlistRepo({ itemExists: (id) => findItem(id) !== null }),
 
     // File de mutations inutile en démo (tout est synchrone/local).
     queue: {
@@ -302,7 +309,7 @@ export function createDemoClient(): VelumClient {
         return 0;
       },
       async replay(): Promise<ReplayReport> {
-        return { applied: 0, skipped: 0, failed: 0 };
+        return { applied: 0, skipped: 0, failed: 0, rejected: 0, rejections: [] };
       },
       async clear() {},
     } as VelumClient['queue'],
