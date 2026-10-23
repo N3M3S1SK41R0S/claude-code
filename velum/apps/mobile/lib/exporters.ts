@@ -7,6 +7,7 @@ import type { AnalysisResult, ValuationRecord, VelumItem } from '@velum/core';
 import type { BlindTastingSession } from '@velum/domain-wine';
 import { resolveReliabilityForResult } from '@velum/valuation';
 import { itemNumber, itemString } from './itemAttributes';
+import { NON_IDENTITY_ATTRIBUTE_KEYS } from './analysisState';
 
 /** Fonction de traduction minimale (compatible TFunction i18next). */
 export type Translator = (key: string, options?: Record<string, unknown>) => string;
@@ -64,7 +65,12 @@ function baseStyles(): string {
 
 function renderAttributeRows(attributes: Record<string, unknown>): string {
   return Object.entries(attributes)
-    .filter(([key, value]) => key !== 'analysis' && value !== null && typeof value !== 'object')
+    // Seule l'identité est imprimée : fiche, statut, classement et fourchette du
+    // scan éclair, historique des corrections restent hors du tableau.
+    .filter(
+      ([key, value]) =>
+        !NON_IDENTITY_ATTRIBUTE_KEYS.has(key) && value !== null && typeof value !== 'object',
+    )
     .map(
       ([key, value]) =>
         `<tr><th>${escapeHtml(key)}</th><td>${escapeHtml(String(value))}</td></tr>`,

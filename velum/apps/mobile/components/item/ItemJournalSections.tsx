@@ -28,6 +28,8 @@ import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
 import { formatDate } from '../../lib/i18n';
 import { showToast } from '../../stores/toastStore';
+import { AddToWishlistButton } from '../wishlist/AddToWishlistButton';
+import { entryFromItem } from '../../lib/wishlist';
 
 /** Bouton « Supprimer » discret (cible ≥ 44 pt, 56 en mode senior) pour une entrée de journal. */
 function DeleteButton({ label, onPress }: { label: string; onPress: () => void }) {
@@ -160,6 +162,11 @@ export function TastingNotesSection({ item }: { item: VelumItem }) {
               <DeleteButton label={t('common.delete')} onPress={() => removeMutation.mutate(note.id)} />
             </View>
             {note.note ? <VText variant="body">{note.note}</VText> : null}
+            {/* « Je l'ai aimé, j'en voudrais d'autres » → liste d'envies (dégustation). */}
+            <AddToWishlistButton
+              {...entryFromItem(item, { source: 'tasting', notes: note.note })}
+              variant="ghost"
+            />
           </View>
         ))
       )}

@@ -89,8 +89,8 @@ export function collectionQuickAccess(
   }
   if (input.hasWine) {
     entries.push(
-      { id: 'eventSommelier', href: '/event-sommelier', icon: 'people' },
-      { id: 'blindTasting', href: '/blind-tasting', icon: 'eye-off' },
+      { id: 'eventSommelier', href: routes.eventSommelier(), icon: 'people' },
+      { id: 'blindTasting', href: routes.blindTasting(), icon: 'eye-off' },
     );
   }
   return entries;

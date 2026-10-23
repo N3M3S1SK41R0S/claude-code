@@ -29,6 +29,7 @@ import {
   validateIdentityValues,
 } from './identityFields';
 import { normalizeText, searchEntries, type SearchDocument } from './search';
+import { routes } from './routes';
 
 // ── Bornes (miroir de la migration 20261023110000_wishlist.sql) ──────────────
 
@@ -50,9 +51,8 @@ export const WISHLIST_QUERY_KEY = ['wishlist'] as const;
  * (uuid côté serveur, `demo-…`/`wish-…` en démo).
  */
 export const wishlistRoutes = {
-  entry: (id: string) => `/wishlist/${encodeURIComponent(id)}`,
-  create: (domain?: VelumDomain | null) =>
-    domain ? `/wishlist/new?domain=${encodeURIComponent(domain)}` : '/wishlist/new',
+  entry: (id: string) => routes.wishlistEntry(id),
+  create: (domain?: VelumDomain | null) => routes.wishlistNew(domain),
 } as const;
 
 /** Paramètre de route `domain` → domaine actif, ou null (« Toutes »). */

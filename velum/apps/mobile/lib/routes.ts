@@ -34,9 +34,23 @@ export const routes = {
   /** Plateformes d'échange et de vente, filtrées par catégorie / mode / texte. */
   community: (domain?: VelumDomain | null, mode?: 'sale' | 'exchange', text?: string) =>
     withQuery('/community', { domain: domain ?? undefined, mode, text }),
+  /** Hub ouvert sur « Mon activité » (annonces, transactions, échanges, certifications). */
+  communityActivity: () => '/community?tab=activity',
   listing: (id: string) => `/community/listing/${encodeURIComponent(id)}`,
   /** Mise en vente / à l'échange d'un objet de ma collection. */
   sell: (itemId: string) => withQuery('/community/sell', { itemId }),
+  /** Mise en vente SANS objet présélectionné : choix parmi mes objets. */
+  sellPicker: (domain?: VelumDomain | null) =>
+    withQuery('/community/sell', { domain: domain ?? undefined }),
   exchange: (id: string) => `/community/exchange/${encodeURIComponent(id)}`,
+  wishlistEntry: (id: string) => `/wishlist/${encodeURIComponent(id)}`,
+  wishlistNew: (domain?: VelumDomain | null) =>
+    withQuery('/wishlist/new', { domain: domain ?? undefined }),
+  /** Recherche globale (collection, envies, échanges & ventes). */
+  search: (query?: string) => withQuery('/search', { q: query?.trim() || undefined }),
+  arbiter: (itemId: string) => `/arbiter/${encodeURIComponent(itemId)}`,
+  eventSommelier: () => '/event-sommelier',
+  blindTasting: () => '/blind-tasting',
+  privacy: () => '/privacy',
   paywall: () => '/paywall',
 } as const;

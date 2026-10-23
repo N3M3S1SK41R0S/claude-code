@@ -29,6 +29,7 @@ import {
 } from '@velum/ui';
 
 import { Screen } from '../../../components/Screen';
+import { DrinkReminderSettings } from '../../../components/cellar/DrinkReminderSettings';
 import { useSession } from '../../../lib/auth';
 import { loadCarnetData } from '../../../lib/carnetData';
 import { getVelumClient } from '../../../lib/client';
@@ -254,9 +255,8 @@ export default function Profile() {
           </View>
         </View>
 
-        {/* Rappels de cave : l'intégrateur insère ici le réglage du chantier
-            cave (components/cellar/DrinkReminderSettings.tsx), utilisable seul :
-            <DrinkReminderSettings /> */}
+        {/* Rappels de cave : alerte ponctuelle « à boire » avec accord mets-vins. */}
+        <DrinkReminderSettings />
       </ProfileSection>
 
       {/* 4. CONFIDENTIALITÉ & DONNÉES */}
@@ -287,7 +287,7 @@ export default function Profile() {
           title={t('profile.privacy')}
           // In-app (exigence stores) : la même page est servie par la PWA à
           // l'URL publique https://velum.app/privacy une fois hébergée.
-          onPress={() => router.push('/privacy')}
+          onPress={() => router.push(routes.privacy())}
         />
         <VListRow title={t('profile.terms')} onPress={() => void Linking.openURL(TERMS_URL)} />
         <View style={styles.inset}>

@@ -12,6 +12,7 @@ import type {
 } from '@velum/core';
 
 import { parseFrenchAmount } from './marketForms';
+import { routes } from './routes';
 
 /** Les catégories (une plateforme par catégorie), dans l'ordre d'affichage. */
 const DOMAIN_SET: Record<VelumDomain, true> = {
@@ -130,14 +131,14 @@ export function stringParam(value: RouteParam): string | null {
   return v !== undefined && v.trim().length > 0 ? v : null;
 }
 
-/** Hub ouvert sur « Mon activité » (écran de ce chantier). */
+/** Hub ouvert sur « Mon activité » — délègue au registre lib/routes.ts. */
 export function communityActivityHref(): string {
-  return '/community?tab=activity';
+  return routes.communityActivity();
 }
 
-/** Mise en vente SANS objet présélectionné : choix parmi mes objets. */
+/** Mise en vente SANS objet présélectionné — délègue au registre lib/routes.ts. */
 export function sellPickerHref(domain?: VelumDomain | null): string {
-  return domain ? `/community/sell?domain=${encodeURIComponent(domain)}` : '/community/sell';
+  return routes.sellPicker(domain);
 }
 
 // ── React Query ──────────────────────────────────────────────────────────────

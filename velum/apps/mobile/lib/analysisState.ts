@@ -9,7 +9,9 @@
  *  - `analysisEngine`  : moteur ayant produit la fiche ;
  *  - `analysisStatus`  : 'pending' (à charger) | 'failed' (échec, réessayable) ;
  *  - `analyzedAt`      : horodatage ISO de la génération de la fiche ;
- *  - `corrections`     : historique des corrections d'identification.
+ *  - `corrections`     : historique des corrections d'identification ;
+ *  - `quickEstimate` / `classification` : fourchette indicative et classement
+ *    du scan éclair (avis du modèle, jamais transmis comme identité).
  */
 import type { Candidate, VelumItem } from '@velum/core';
 
@@ -24,6 +26,7 @@ export const NON_IDENTITY_ATTRIBUTE_KEYS: ReadonlySet<string> = new Set([
   'disclaimers',
   'corrections',
   'quickEstimate',
+  'classification',
 ]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {

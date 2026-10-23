@@ -28,8 +28,10 @@ import { ProvenanceSection, TastingNotesSection } from '../../components/item/It
 import { PriceAlertForm } from '../../components/item/PriceAlertForm';
 import { QuickAction, QuickActionsBar } from '../../components/item/QuickActionsBar';
 import { SellButton } from '../../components/item/SellButton';
+import { AddToWishlistButton } from '../../components/wishlist/AddToWishlistButton';
 import { ValuationSection } from '../../components/item/ValuationSection';
 import { itemQueryKey, useItemSheetActions } from '../../components/item/useItemSheetActions';
+import { entryFromItem } from '../../lib/wishlist';
 import { getVelumClient } from '../../lib/client';
 import { buildItemSheetHtml } from '../../lib/exporters';
 import { analysisPayloadOf, analysisResultFromItem, fullSheetState } from '../../lib/itemSheet';
@@ -150,7 +152,7 @@ function ItemSheetBody({ item }: { item: VelumItem }) {
           icon="scale-outline"
           label={t('item.quick.arbiter')}
           accessibilityHint={t('arbiter.title')}
-          onPress={() => router.push(`/arbiter/${encodeURIComponent(item.id)}` as Href)}
+          onPress={() => router.push(routes.arbiter(item.id) as Href)}
         />
       </QuickActionsBar>
 
@@ -165,8 +167,8 @@ function ItemSheetBody({ item }: { item: VelumItem }) {
         {/* Emplacement « Mettre en vente / échanger » : SellButton (chantier
             plateformes) ouvre routes.sell(itemId) ou les offres. */}
         <SellButton itemId={item.id} />
-        {/* Emplacement « Ajouter à mes envies » — branché par l'intégrateur :
-            <AddToWishlistButton {...entryFromItem(item)} /> */}
+        {/* « En racheter » : l'objet rejoint la liste d'envies de sa catégorie. */}
+        <AddToWishlistButton {...entryFromItem(item)} />
       </View>
 
       <ValuationSection item={item} latestQuery={latestQuery} historyQuery={historyQuery} actions={actions} />

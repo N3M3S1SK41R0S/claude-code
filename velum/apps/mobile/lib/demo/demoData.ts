@@ -456,6 +456,9 @@ export function seedItems(): VelumItem[] {
     makeItem('coin', '5 Francs Semeuse argent 1960', { storageLocation: 'Médaillier — plateau 2', attributes: { grade: 'SUP', year: 1960, analysis: coinAnalysis('5 Francs Semeuse') } }),
     makeItem('art', 'École provençale — Paysage aux oliviers', { storageLocation: 'Salon', confidence: 0.62, attributes: { analysis: artAnalysis('Paysage aux oliviers') } }),
     makeItem('stamp', 'Semeuse lignée 15c vert — YT 130', { storageLocation: 'Album 1 — page 12', attributes: { catalogNumber: 'YT 130', analysis: stampAnalysis('YT 130') } }),
+    // Enregistré par le scan éclair : identité + fourchette indicative, fiche
+    // complète à charger à la demande depuis la fiche objet.
+    makeItem('stamp', 'Cérès 20 c noir 1849 — YT 3', { confidence: 0.55, storageLocation: 'Album 1 — page 3', attributes: { country: 'France', catalogNumber: 'YT 3', year: 1849, analysisStatus: 'pending', classification: ['France', 'Cérès', '1849–1850'], quickEstimate: { low: 300, high: 900, currency: 'EUR' } } }),
     makeItem('watch', 'Omega Speedmaster Professional 3570.50', { storageLocation: 'Écrin — emplacement 1', attributes: { brand: 'Omega', reference: '3570.50', analysis: watchAnalysis('Speedmaster Professional') } }),
   ];
 }

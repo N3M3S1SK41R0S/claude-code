@@ -50,6 +50,9 @@ export function DomainFilterChips({ value, onChange, domains, hideAll = false }:
             accessibilityRole="radio"
             accessibilityLabel={label}
             accessibilityState={{ selected, checked: selected }}
+            // react-native-web ne dérive pas aria-checked d'accessibilityState :
+            // sans lui, role="radio" viole aria-required-attr (axe, critique).
+            aria-checked={selected}
             style={[
               styles.chip,
               { minHeight: senior ? 56 : 44 },
