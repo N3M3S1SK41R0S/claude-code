@@ -149,7 +149,7 @@ export function resetDrinkRemindersAfterSignOut(): Promise<void> {
   return withReminderLock(() =>
     resetDrinkReminders({
       readPrefs: () => useSettingsStore.getState().drinkReminder,
-      writePrefs: () => useSettingsStore.getState().resetDrinkReminder(),
+      writePrefs: (prefs) => useSettingsStore.getState().setDrinkReminder(prefs),
       cancelAll: (knownIds) => cancelDrinkReminders('all', { knownIds }),
     }),
   );
