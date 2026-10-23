@@ -1351,7 +1351,9 @@
     "estimateHint": "Estimation VELUM : {{amount}}",
     "noEstimate": "Pas encore d’estimation VELUM pour cet objet : saisissez votre valeur.",
     "estimateUnavailable": "Estimation VELUM momentanément indisponible : saisissez votre valeur.",
-    "rateUnknown": "Vos ventes conclues n’ont pas pu être lues : le taux de départ (le plus élevé) est affiché.",
+    "rateUnknown": "Votre taux de commission n’a pas pu être lu : l’aperçu applique le taux maximal ({{rate}}) ; votre taux réel ne peut être qu’égal ou plus bas.",
+    "rateLoading": "Lecture de votre taux de commission… En attendant, l’aperçu applique le taux maximal ({{rate}}).",
+    "rateOffline": "Hors-ligne : votre taux de commission sera lu au retour du réseau ; l’aperçu applique le taux maximal ({{rate}}).",
     "kind": {
       "sale": "Vente",
       "exchange": "Échange",
@@ -1677,7 +1679,7 @@
       "exchangeCommission": "Commission si échangé",
       "exchangeCommissionDetail": "{{rate}} de la valeur déclarée, à la conclusion de l’échange",
       "ifExchanged": "Si l’objet part en échange (sur la valeur déclarée)",
-      "nextTier": "Plus que {{count}} vente(s) conclue(s) pour passer à {{rate}}.",
+      "nextTier": "Plus que {{count}} vente(s) retenue(s) (conclue(s), d’au moins 20 €) pour passer à {{rate}}.",
       "bestTier": "Vous bénéficiez du taux le plus bas.",
       "certificationRequired": "Expertise obligatoire au-delà de {{threshold}} — annonce publiée après certification par un expert partenaire, frais à votre charge (indicatif : {{fee}}).",
       "alreadyCertified": "Objet déjà authentifié par un expert : l’annonce sera publiée avec le badge, sans nouvelle expertise.",
@@ -1692,6 +1694,19 @@
       "anonymity": "Vous apparaîtrez sous un pseudonyme ; e-mails, téléphones, liens et adresses sont masqués automatiquement.",
       "publishAfterCertification": "Publier après expertise",
       "pendingCertification": "Annonce enregistrée : elle sera publiée après certification par un expert partenaire."
+    },
+    "commissions": {
+      "title": "Mes commissions",
+      "hint": "Registre transparent de la plateforme : ce que vous avez payé et perçu.",
+      "currentRate": "Taux actuel",
+      "currentRateDetail": "Appliqué à vos prochaines annonces et acceptations d’échange",
+      "rateUnreadable": "indisponible",
+      "salesRule": "{{count}} vente(s) retenue(s) : ventes conclues (fonds libérés) d’au moins {{min}}, {{perBuyer}} au plus par acheteur.",
+      "nextTier": "Plus que {{count}} vente(s) retenue(s) pour passer à {{rate}}.",
+      "commissions": "Commissions prélevées",
+      "certificationFees": "Frais d’expertise",
+      "payouts": "Versements reçus",
+      "empty": "Aucune écriture au registre pour l’instant : commissions et frais n’y sont inscrits qu’à la conclusion d’une transaction ou à la décision d’un expert."
     }
   },
   "aiConsent": {

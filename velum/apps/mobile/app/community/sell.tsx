@@ -21,7 +21,7 @@ import { CommunityGate } from '../../components/market/CommunityGate';
 import { ItemPicker } from '../../components/market/ItemPicker';
 import { AmountRows, AsyncBlock, CheckRow, Notice, Segmented, type AmountRow } from '../../components/market/controls';
 import {
-  useCompletedSales,
+  useCommissionBasis,
   useInvalidateCommunity,
   useMarketErrorToast,
   useMyCertifications,
@@ -38,6 +38,7 @@ import {
   redactionPreview,
   sellPreview,
 } from '../../lib/marketForms';
+import { commissionBasisNoticeKey, isBestTier } from '../../lib/marketCommission';
 import { communityActivityHref, isVelumDomain, stringParam } from '../../lib/marketQuery';
 import { isForSale, isOpenToExchange, itemCertifiedByExpert } from '../../lib/marketState';
 import { routes } from '../../lib/routes';
@@ -49,7 +50,8 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
   const client = getVelumClient();
   const invalidate = useInvalidateCommunity();
   const onError = useMarketErrorToast();
-  const sales = useCompletedSales();
+  // Taux ACTUEL du serveur (figé à la publication), taux maximal en repli.
+  const commission = useCommissionBasis();
   const locale = i18n.language;
 
   const latest = useQuery({
@@ -83,7 +85,7 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
   const preview = sellPreview({
     kind,
     priceInput: price,
-    completedSales: sales.completedSales,
+    commission: commission.basis,
     estimatedValue: estimate,
     voluntaryCertification: voluntary,
     alreadyCertified,
@@ -127,6 +129,8 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
   });
 
   const locked = publish.isPending;
+  // Taux non confirmé par le serveur : mention explicite (aperçu au taux maximal).
+  const rateNoticeKey = commissionBasisNoticeKey(commission.status);
   // Motif précis (illisible, sous 1 €, au-delà du maximum serveur) : jamais un simple « invalide ».
   const priceProblem =
     price.trim().length > 0 && preview.valueProblem !== null
@@ -231,17 +235,21 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
             {t('community.sellForm.breakdown')}
           </VText>
           <AmountRows rows={rows} />
-          <VText variant="caption" tone="dim">
-            {preview.nextTier !== null
-              ? t('community.sellForm.nextTier', {
-                  count: preview.nextTier.salesNeeded,
-                  rate: formatRate(preview.nextTier.rate, locale),
-                })
-              : t('community.sellForm.bestTier')}
-          </VText>
-          {!sales.known ? (
+          {preview.nextTier !== null ? (
             <VText variant="caption" tone="dim">
-              {t('community.rateUnknown')}
+              {t('community.sellForm.nextTier', {
+                count: preview.nextTier.salesNeeded,
+                rate: formatRate(preview.nextTier.rate, locale),
+              })}
+            </VText>
+          ) : isBestTier(commission.basis) ? (
+            <VText variant="caption" tone="dim">
+              {t('community.sellForm.bestTier')}
+            </VText>
+          ) : null}
+          {rateNoticeKey !== null ? (
+            <VText variant="caption" tone="dim" accessibilityLiveRegion="polite">
+              {t(rateNoticeKey, { rate: formatRate(commission.basis.rate, locale) })}
             </VText>
           ) : null}
         </VCard>

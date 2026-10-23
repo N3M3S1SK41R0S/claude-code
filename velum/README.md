@@ -148,7 +148,7 @@ d'intégrité dérivé** de `provenance_entries`, pas une table parallèle.
 | Besoin | Ce qui est livré |
 |---|---|
 | Plateformes d'échange et de vente **par catégorie** | Une plateforme par module (vins, pièces, tableaux, timbres, montres) : vente, échange (avec soulte) ou les deux, catalogue filtrable et recherche, « Mon activité » (annonces, achats/ventes, échanges, certifications) |
-| Commission & anonymat | Commission dégressive 5 % → 2 % (vente : sur le prix ; échange : sur la valeur de l'objet cédé), registre transparent ; pseudonymes stables, aucun identifiant exposé, coordonnées masquées automatiquement dans tous les textes libres et la messagerie |
+| Commission & anonymat | Commission dégressive 5 % → 2 % (vente : sur le prix ; échange : sur la valeur de l'objet cédé), registre transparent consultable dans « Mon activité » (« Mes commissions » : taux actuel, palier suivant, commissions, frais d'expertise et versements) ; pseudonymes stables, aucun identifiant exposé, coordonnées masquées automatiquement dans tous les textes libres et la messagerie |
 | Certification par un expert | Obligatoire au-delà de 500 € (valeur de référence = max(prix, estimation VELUM)), sur accord des deux parties en deçà ; annonce publiée seulement après certification |
 | Liste d'envies / d'idées | Par catégorie (« les vins que j'ai aimés »), depuis la fiche, le journal de dégustation, un scan ou la communauté ; « disponible dans la communauté ? » |
 | Corriger ce que la photo a mal lu | Champs d'identité éditables avant et après l'enregistrement, corrections tracées, relance de l'estimation |

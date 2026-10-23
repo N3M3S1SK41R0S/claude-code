@@ -24,11 +24,12 @@ import {
   redactionPreview,
   type CashDirection,
 } from '../../lib/marketForms';
+import { commissionBasisNoticeKey } from '../../lib/marketCommission';
 import { itemCertifiedByExpert } from '../../lib/marketState';
 import { showToast } from '../../stores/toastStore';
 import { AmountRows, Notice, Segmented, type AmountRow } from './controls';
 import {
-  useCompletedSales,
+  useCommissionBasis,
   useInvalidateCommunity,
   useMarketErrorToast,
   useMyCertifications,
@@ -49,7 +50,8 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
   const client = getVelumClient();
   const invalidate = useInvalidateCommunity();
   const onError = useMarketErrorToast();
-  const sales = useCompletedSales();
+  // Taux ACTUEL du serveur (figé à l'acceptation), taux maximal en repli.
+  const commission = useCommissionBasis();
 
   const [item, setItem] = useState<VelumItem | null>(null);
   const [value, setValue] = useState('');
@@ -88,12 +90,14 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
     offeredCertified,
     cashDirection: direction,
     cashInput: cash,
-    completedSales: sales.completedSales,
+    commission: commission.basis,
     // Accord mutuel : demandé plus tard, sur l'échange accepté (pas ici).
     mutualCertification: false,
   });
   const messagePreview = redactionPreview(message);
   const locale = i18n.language;
+  // Taux non confirmé par le serveur : mention explicite (aperçu au taux maximal).
+  const rateNoticeKey = commissionBasisNoticeKey(commission.status);
 
   const propose = useMutation({
     mutationFn: async () => {
@@ -253,9 +257,9 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
           )}
 
           {rows.length > 0 ? <AmountRows rows={rows} /> : null}
-          {!sales.known ? (
-            <VText variant="caption" tone="dim">
-              {t('community.rateUnknown')}
+          {rateNoticeKey !== null ? (
+            <VText variant="caption" tone="dim" accessibilityLiveRegion="polite">
+              {t(rateNoticeKey, { rate: formatRate(commission.basis.rate, locale) })}
             </VText>
           ) : null}
 

@@ -5,8 +5,10 @@ import {
   MARKET_MIN_ASK_PRICE,
   normalizeTrackingNumber as apiNormalizeTrackingNumber,
 } from '@velum/api-client';
-import { REDACTION_TOKEN } from '@velum/config';
+import { REDACTION_TOKEN, commissionRateFor } from '@velum/config';
 import type { VelumItem } from '@velum/core';
+
+import { FALLBACK_COMMISSION_BASIS, commissionBasis, type CommissionBasis } from './marketCommission';
 
 import {
   MARKET_CARRIERS,
@@ -28,6 +30,10 @@ import {
   signedCashAdjustment,
   sortItemsForExchange,
 } from './marketForms';
+
+/** Base de commission telle que lue du serveur pour `completedSales` ventes retenues. */
+const server = (completedSales: number): CommissionBasis =>
+  commissionBasis({ currentRate: commissionRateFor(completedSales), completedSales });
 
 /** Normalise les espaces insécables d'Intl pour comparer. */
 const plain = (s: string) => s.replace(/[  ]/g, ' ');
@@ -130,7 +136,7 @@ describe('sellPreview', () => {
     const p = sellPreview({
       kind: 'sale',
       priceInput: '320',
-      completedSales: 3,
+      commission: server(3),
       estimatedValue: 300,
       voluntaryCertification: false,
     });
@@ -145,7 +151,7 @@ describe('sellPreview', () => {
     const p = sellPreview({
       kind: 'sale_or_exchange',
       priceInput: '450',
-      completedSales: 12,
+      commission: server(12),
       estimatedValue: 900, // on ne contourne pas le seuil en sous-déclarant
       voluntaryCertification: false,
     });
@@ -160,7 +166,7 @@ describe('sellPreview', () => {
     const p = sellPreview({
       kind: 'exchange',
       priceInput: '200',
-      completedSales: 0,
+      commission: server(0),
       estimatedValue: null,
       voluntaryCertification: true,
     });
@@ -170,11 +176,38 @@ describe('sellPreview', () => {
     expect(p.exchange).toEqual({ commissionRate: 0.05, commission: 10 });
   });
 
+  it('taux serveur indisponible : repli sur le taux MAXIMAL, sans palier inventé', () => {
+    const p = sellPreview({
+      kind: 'sale',
+      priceInput: '320',
+      commission: FALLBACK_COMMISSION_BASIS,
+      estimatedValue: null,
+      voluntaryCertification: false,
+    });
+    expect(p.commissionRate).toBe(0.05);
+    expect(p.sale).toEqual({ price: 320, commissionRate: 0.05, commission: 16, certificationFee: 0, sellerNet: 304 });
+    expect(p.nextTier).toBeNull();
+  });
+
+  it('taux du serveur appliqué tel quel (règle de palier serveur : ventes retenues seulement)', () => {
+    // 12 commandes libérées côté client, mais le serveur n’en retient que 4 (≥ 20 €, 3 par acheteur) : 5 %.
+    const p = sellPreview({
+      kind: 'sale_or_exchange',
+      priceInput: '200',
+      commission: commissionBasis({ currentRate: 0.05, completedSales: 4 }),
+      estimatedValue: null,
+      voluntaryCertification: false,
+    });
+    expect(p.sale?.commission).toBe(10);
+    expect(p.exchange).toEqual({ commissionRate: 0.05, commission: 10 });
+    expect(p.nextTier).toEqual({ rate: 0.04, minSales: 10, salesNeeded: 6 });
+  });
+
   it('prix invalide : aucun calcul trompeur', () => {
     const p = sellPreview({
       kind: 'sale',
       priceInput: 'abc',
-      completedSales: 0,
+      commission: server(0),
       estimatedValue: null,
       voluntaryCertification: true,
     });
@@ -187,7 +220,7 @@ describe('sellPreview', () => {
     const p = sellPreview({
       kind: 'sale',
       priceInput: '900',
-      completedSales: 0,
+      commission: server(0),
       estimatedValue: 950,
       voluntaryCertification: true,
       alreadyCertified: true,
@@ -214,7 +247,7 @@ describe('proposition d’échange', () => {
       offeredValueInput: '250',
       cashDirection: 'add',
       cashInput: '50',
-      completedSales: 0,
+      commission: server(0),
       mutualCertification: true,
     });
     expect(p.myCommission).toEqual({ commissionRate: 0.05, commission: 12.5 });
@@ -230,7 +263,7 @@ describe('proposition d’échange', () => {
       offeredValueInput: '800',
       cashDirection: 'ask',
       cashInput: '',
-      completedSales: 0,
+      commission: server(0),
       mutualCertification: false,
     });
     expect(p.requirement).toEqual({ required: true, reason: 'threshold', referenceValue: 800 });
@@ -248,7 +281,7 @@ describe('proposition d’échange', () => {
       offeredEstimate: 800,
       cashDirection: 'add',
       cashInput: '',
-      completedSales: 0,
+      commission: server(0),
     });
     expect(p.requirement).toEqual({ required: true, reason: 'threshold', referenceValue: 800 });
     expect(p.thresholdItems).toEqual({ mine: true, theirs: false });
@@ -263,7 +296,7 @@ describe('proposition d’échange', () => {
       offeredEstimate: null,
       cashDirection: 'add',
       cashInput: '',
-      completedSales: 0,
+      commission: server(0),
     });
     expect(certified.requirement.required).toBe(false);
     expect(certified.certificationFee).toBe(0);
@@ -275,7 +308,7 @@ describe('proposition d’échange', () => {
       offeredEstimate: null,
       cashDirection: 'add',
       cashInput: '',
-      completedSales: 0,
+      commission: server(0),
     });
     expect(notCertified.requirement.reason).toBe('threshold');
     expect(notCertified.thresholdItems).toEqual({ mine: false, theirs: true });
@@ -291,10 +324,29 @@ describe('proposition d’échange', () => {
       offeredCertified: true,
       cashDirection: 'add',
       cashInput: '',
-      completedSales: 0,
+      commission: server(0),
     });
     expect(p.requirement.required).toBe(false);
     expect(p.thresholdItems).toEqual({ mine: false, theirs: false });
+  });
+
+  it('ma commission d’échange au taux serveur, ou au taux maximal en repli', () => {
+    const atServer = exchangePreview({
+      listingValue: 300,
+      offeredValueInput: '300',
+      cashDirection: 'add',
+      cashInput: '',
+      commission: commissionBasis({ currentRate: 0.03, completedSales: 30 }),
+    });
+    expect(atServer.myCommission).toEqual({ commissionRate: 0.03, commission: 9 });
+    const fallback = exchangePreview({
+      listingValue: 300,
+      offeredValueInput: '300',
+      cashDirection: 'add',
+      cashInput: '',
+      commission: FALLBACK_COMMISSION_BASIS,
+    });
+    expect(fallback.myCommission).toEqual({ commissionRate: 0.05, commission: 15 });
   });
 
   it('valeur invalide : pas de commission ni d’équilibre', () => {
@@ -303,7 +355,7 @@ describe('proposition d’échange', () => {
       offeredValueInput: '',
       cashDirection: 'add',
       cashInput: '',
-      completedSales: 0,
+      commission: server(0),
       mutualCertification: false,
     });
     expect(p.myCommission).toBeNull();

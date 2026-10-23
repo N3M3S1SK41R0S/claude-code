@@ -1351,7 +1351,9 @@
     "estimateHint": "VELUM estimate: {{amount}}",
     "noEstimate": "No VELUM estimate for this item yet: enter your value.",
     "estimateUnavailable": "VELUM estimate temporarily unavailable: enter your value.",
-    "rateUnknown": "Your completed sales could not be read: the starting (highest) rate is shown.",
+    "rateUnknown": "Your commission rate could not be read: the preview applies the maximum rate ({{rate}}); your actual rate can only be the same or lower.",
+    "rateLoading": "Reading your commission rate… Meanwhile, the preview applies the maximum rate ({{rate}}).",
+    "rateOffline": "Offline: your commission rate will be read once you are back online; the preview applies the maximum rate ({{rate}}).",
     "kind": {
       "sale": "Sale",
       "exchange": "Trade",
@@ -1677,7 +1679,7 @@
       "exchangeCommission": "Commission if traded",
       "exchangeCommissionDetail": "{{rate}} of the declared value, when the trade completes",
       "ifExchanged": "If the item is traded (on the declared value)",
-      "nextTier": "{{count}} more completed sale(s) to move to {{rate}}.",
+      "nextTier": "{{count}} more qualifying sale(s) (completed, of at least €20) to move to {{rate}}.",
       "bestTier": "You already enjoy the lowest rate.",
       "certificationRequired": "Expert appraisal required above {{threshold}} — listing published after certification by a partner expert, fee at your charge (indicative: {{fee}}).",
       "alreadyCertified": "Item already authenticated by an expert: the listing will be published with the badge, with no new appraisal.",
@@ -1692,6 +1694,19 @@
       "anonymity": "You will appear under a pseudonym; emails, phone numbers, links and addresses are hidden automatically.",
       "publishAfterCertification": "Publish after appraisal",
       "pendingCertification": "Listing saved: it will be published after certification by a partner expert."
+    },
+    "commissions": {
+      "title": "My commissions",
+      "hint": "Transparent platform ledger: what you have paid and received.",
+      "currentRate": "Current rate",
+      "currentRateDetail": "Applied to your next listings and trade acceptances",
+      "rateUnreadable": "unavailable",
+      "salesRule": "{{count}} qualifying sale(s): completed sales (funds released) of at least {{min}}, {{perBuyer}} at most per buyer.",
+      "nextTier": "{{count}} more qualifying sale(s) to move to {{rate}}.",
+      "commissions": "Commissions charged",
+      "certificationFees": "Appraisal fees",
+      "payouts": "Payouts received",
+      "empty": "No ledger entries yet: commissions and fees are only recorded when a transaction completes or an expert decides."
     }
   },
   "aiConsent": {

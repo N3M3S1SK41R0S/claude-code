@@ -20,13 +20,14 @@
  * chaque parcours puisse être mené à son terme en démo — commentés sur place.
  * Chaque lecture renvoie des COPIES : React Query détecte ainsi les changements.
  */
-import type { MarketplaceRepo, NewListing } from '@velum/api-client';
+import type { CommissionSummary, MarketplaceRepo, NewListing } from '@velum/api-client';
 import {
   certificationRequirement,
   commissionRateFor,
   defaultCertificationFeePayer,
   exchangeCommission,
   redactContactInfo,
+  roundCents,
 } from '@velum/config';
 import {
   VelumError,
@@ -60,6 +61,7 @@ import {
   isOpenToExchange,
   type ExchangeAction,
 } from '../marketState';
+import { qualifyingSalesCount } from '../marketCommission';
 import { scoreDocument, tokenize } from '../search';
 import { DEMO_OWNER } from './demoData';
 
@@ -736,11 +738,64 @@ export function createDemoMarketplaceRepo(
 
   // ── Accès internes ──
 
-  const mySales = () =>
-    orders.filter((o) => o.sellerId === DEMO_OWNER && o.escrowState === 'released').length;
+  /** Mes ventes conclues (fonds libérés), toutes. */
+  const myReleasedSales = () => orders.filter((o) => o.sellerId === DEMO_OWNER && o.escrowState === 'released');
+
+  /**
+   * Ventes RETENUES pour mon palier (commission_qualifying_sales) : commandes
+   * libérées d'au moins 20 €, 3 au plus par acheteur — base du taux dégressif.
+   */
+  const mySales = () => qualifyingSalesCount(myReleasedSales());
 
   const salesOf = (memberId: string) =>
     memberId === DEMO_OWNER ? mySales() : (DEMO_REPUTATION[memberId]?.completedSales ?? 0);
+
+  /** Propriétaire de l'objet expertisé (certification_requests.owner_id). */
+  const certificationOwner = (c: DemoCertification): string | null => {
+    if (c.exchangeId !== null) {
+      const e = exchanges.find((x) => x.id === c.exchangeId);
+      if (!e) return null;
+      return c.side === 'offered' ? e.proposerId : e.recipientId;
+    }
+    if (c.orderId !== null) return orders.find((x) => x.id === c.orderId)?.sellerId ?? null;
+    return listings.find((x) => x.id === c.listingId)?.sellerId ?? null;
+  };
+
+  /**
+   * Mon registre (platform_ledger), reconstitué des transactions comme le
+   * font les triggers serveur : commission + versement net à la libération
+   * d'une vente ; commission figée (et soulte reçue) à la conclusion d'un
+   * échange ; part des frais d'expertise à la décision de l'expert.
+   */
+  const myLedger = (): { kind: 'commission' | 'certification_fee' | 'payout'; amount: number }[] => {
+    const entries: { kind: 'commission' | 'certification_fee' | 'payout'; amount: number }[] = [];
+    for (const o of myReleasedSales()) {
+      const commission = roundCents(Math.max(0, o.amount) * o.commissionRate);
+      entries.push({ kind: 'commission', amount: commission });
+      entries.push({ kind: 'payout', amount: roundCents(Math.max(0, o.amount - commission)) });
+    }
+    for (const e of exchanges) {
+      if (e.state !== 'completed') continue;
+      const iAmProposer = e.proposerId === DEMO_OWNER;
+      if (!iAmProposer && e.recipientId !== DEMO_OWNER) continue;
+      entries.push({ kind: 'commission', amount: (iAmProposer ? e.proposerCommission : e.recipientCommission) ?? 0 });
+      const cashToMe = iAmProposer ? -e.cashAdjustment : e.cashAdjustment;
+      if (cashToMe > 0) entries.push({ kind: 'payout', amount: cashToMe });
+    }
+    for (const c of certifications) {
+      const fee = c.feeAmount ?? 0;
+      if ((c.status !== 'certified' && c.status !== 'rejected') || fee <= 0) continue;
+      const owner = certificationOwner(c);
+      if (owner === null) continue;
+      // ledger_on_certification_decision : part du propriétaire / de l'autre partie.
+      const other = c.requesterId === owner ? c.counterpartyId : c.requesterId;
+      const ownerShare =
+        other === null || c.feePayer === 'seller' ? fee : c.feePayer === 'buyer' ? 0 : roundCents(fee / 2);
+      const share = owner === DEMO_OWNER ? ownerShare : other === DEMO_OWNER ? roundCents(fee - ownerShare) : 0;
+      if (share > 0) entries.push({ kind: 'certification_fee', amount: share });
+    }
+    return entries;
+  };
 
   const findListing = (id: string): ListingRecord =>
     listings.find((l) => l.id === id) ?? invalid('Annonce introuvable');
@@ -1125,7 +1180,13 @@ export function createDemoMarketplaceRepo(
       await tick();
       const member = memberOfAlias(alias);
       if (member === DEMO_OWNER) {
-        return { completedSales: mySales(), refunded: 0, disputes: 0, disputeRate: 0, memberSince: '2025-02-01T00:00:00Z' };
+        return {
+          completedSales: myReleasedSales().length,
+          refunded: 0,
+          disputes: 0,
+          disputeRate: 0,
+          memberSince: '2025-02-01T00:00:00Z',
+        };
       }
       const rep = member !== null ? DEMO_REPUTATION[member] : undefined;
       return rep
@@ -1515,6 +1576,25 @@ export function createDemoMarketplaceRepo(
         if (l && l.status === 'pending_certification' && !l.certified) l.status = 'draft';
       }
       return certificationView(c);
+    },
+
+    // ── Commissionnement ──
+
+    async commissionSummary(): Promise<CommissionSummary> {
+      await tick();
+      // Miroir de my_commission_summary : même définition des ventes retenues que le palier.
+      const ledger = myLedger();
+      const total = (kind: 'commission' | 'certification_fee' | 'payout') =>
+        roundCents(ledger.filter((entry) => entry.kind === kind).reduce((sum, entry) => sum + entry.amount, 0));
+      return {
+        currency: 'EUR',
+        currentRate: commissionRateFor(mySales()),
+        completedSales: mySales(),
+        commissions: total('commission'),
+        certificationFees: total('certification_fee'),
+        payouts: total('payout'),
+        entries: ledger.length,
+      };
     },
 
     // ── Messagerie anonymisée ──

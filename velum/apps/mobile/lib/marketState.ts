@@ -160,7 +160,11 @@ export function canTransitionOrder(role: MarketRole, from: EscrowState, to: Escr
 /** Actions « principales » (qui font avancer la transaction), par opposition à litige/annulation. */
 export const PRIMARY_ORDER_ACTIONS: ReadonlySet<OrderAction> = new Set(['pay', 'ship', 'confirm_receipt']);
 
-/** Nombre de ventes CONCLUES de l'utilisateur (base du taux dégressif). */
+/**
+ * Nombre de ventes CONCLUES de l'utilisateur (fonds libérés), à titre
+ * informatif : le palier de commission compte les ventes RETENUES (≥ 20 €,
+ * 3 par acheteur) et se lit du serveur (lib/marketCommission).
+ */
 export function completedSalesCount(
   orders: readonly Pick<MarketOrder, 'role' | 'escrowState'>[],
 ): number {

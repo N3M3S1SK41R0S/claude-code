@@ -3,17 +3,15 @@
  * vente / à l'échange, proposition d'échange) : saisie de montants à la
  * française, aperçus en direct (commission, certification, net vendeur),
  * aperçu du masquage des coordonnées. Les RÈGLES viennent de @velum/config
- * (source de vérité, répliquée côté SQL) : rien n'est recalculé ici.
+ * (source de vérité, répliquée côté SQL) et les bornes / transporteurs de
+ * @velum/api-client ; le TAUX de commission vient du serveur
+ * (lib/marketCommission, repli sur le taux maximal) : rien n'est recalculé ici.
  */
 import {
-  COMMISSION_TIERS,
   certificationRequirement,
-  commissionRateFor,
   estimateCertificationFee,
-  exchangeCommission,
   redactContactInfo,
   roundCents,
-  saleBreakdown,
   splitCertificationFee,
   type CertificationRequirement,
   type ExchangeCommission,
@@ -28,6 +26,14 @@ import {
 } from '@velum/api-client';
 import type { ListingKind, ValuationRecord, VelumDomain, VelumItem } from '@velum/core';
 
+import {
+  exchangeCommissionAt,
+  nextCommissionTier,
+  nextTierOf,
+  saleBreakdownAt,
+  type CommissionBasis,
+  type NextCommissionTier,
+} from './marketCommission';
 import { isForSale, isOpenToExchange } from './marketState';
 
 // ── Montants ─────────────────────────────────────────────────────────────────
@@ -163,24 +169,8 @@ export function orderCommission(order: { amount: number; commissionRate: number 
   return roundCents(Math.max(0, order.amount) * order.commissionRate);
 }
 
-export interface NextCommissionTier {
-  /** Taux du palier suivant. */
-  rate: number;
-  /** Ventes conclues requises pour l'atteindre. */
-  minSales: number;
-  /** Ventes conclues restant à réaliser. */
-  salesNeeded: number;
-}
-
-/** Palier de commission suivant (null si le taux minimal est déjà atteint). */
-export function nextCommissionTier(completedSales: number): NextCommissionTier | null {
-  const sales = Math.max(0, Math.floor(completedSales));
-  const current = commissionRateFor(sales);
-  const next = [...COMMISSION_TIERS]
-    .sort((a, b) => a.minSales - b.minSales)
-    .find((tier) => tier.minSales > sales && tier.rate < current);
-  return next ? { rate: next.rate, minSales: next.minSales, salesNeeded: next.minSales - sales } : null;
-}
+/** Palier suivant : voir lib/marketCommission (base serveur des aperçus). */
+export { nextCommissionTier, type NextCommissionTier };
 
 // ── Mise en vente / à l'échange ──────────────────────────────────────────────
 
@@ -192,7 +182,9 @@ export interface SellPreview {
   value: number | null;
   /** Motif du refus de la saisie (null si valide). */
   valueProblem: AmountProblem | null;
+  /** Taux appliqué : celui du serveur, ou le taux maximal en repli (`commission.source`). */
   commissionRate: number;
+  /** Palier suivant (null si inconnu — taux en repli — ou minimum atteint). */
   nextTier: NextCommissionTier | null;
   /** Décomposition de la vente (null pour un échange seul ou un prix invalide). */
   sale: SaleBreakdown | null;
@@ -207,7 +199,11 @@ export interface SellPreview {
 export function sellPreview(input: {
   kind: ListingKind;
   priceInput: string;
-  completedSales: number;
+  /**
+   * Base de commission (lib/marketCommission) : taux ACTUEL du serveur
+   * (figé à la publication), ou le taux maximal si indisponible.
+   */
+  commission: CommissionBasis;
   estimatedValue: number | null;
   voluntaryCertification: boolean;
   /** Objet déjà certifié par un expert (lib/marketState `itemCertifiedByExpert`). */
@@ -237,15 +233,15 @@ export function sellPreview(input: {
   return {
     value,
     valueProblem: check.ok ? null : check.problem,
-    commissionRate: commissionRateFor(input.completedSales),
-    nextTier: nextCommissionTier(input.completedSales),
+    commissionRate: input.commission.rate,
+    nextTier: nextTierOf(input.commission),
     sale:
       value !== null && isForSale(input.kind)
-        ? saleBreakdown(value, input.completedSales, certificationFee)
+        ? saleBreakdownAt(value, input.commission, certificationFee)
         : null,
     exchange:
       value !== null && isOpenToExchange(input.kind)
-        ? exchangeCommission(value, input.completedSales)
+        ? exchangeCommissionAt(value, input.commission)
         : null,
     requirement,
     certification,
@@ -309,7 +305,8 @@ export function exchangePreview(input: {
   offeredCertified?: boolean;
   cashDirection: CashDirection;
   cashInput: string;
-  completedSales: number;
+  /** Base de commission (lib/marketCommission) : taux serveur, ou le maximum en repli. */
+  commission: CommissionBasis;
   mutualCertification?: boolean;
 }): ExchangePreview {
   const offeredCheck = checkMarketAmount(input.offeredValueInput);
@@ -348,7 +345,7 @@ export function exchangePreview(input: {
     offeredValue,
     offeredValueProblem: offeredCheck.ok ? null : offeredCheck.problem,
     cashAdjustment,
-    myCommission: offeredValue !== null ? exchangeCommission(offeredValue, input.completedSales) : null,
+    myCommission: offeredValue !== null ? exchangeCommissionAt(offeredValue, input.commission) : null,
     requirement,
     thresholdItems: { mine, theirs },
     certificationFee,

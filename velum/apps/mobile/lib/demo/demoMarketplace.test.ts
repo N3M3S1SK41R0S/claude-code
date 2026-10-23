@@ -263,6 +263,32 @@ describe('démo marketplace — achat sous séquestre', () => {
   });
 });
 
+describe('démo marketplace — commissionnement (miroir de my_commission_summary)', () => {
+  it('taux actuel, ventes retenues et registre des ventes libérées', async () => {
+    const repo = setup();
+    // 2 ventes libérées (120 € et 60 € à deux acheteurs distincts, taux figé 5 %).
+    await expect(repo.commissionSummary?.()).resolves.toEqual({
+      currency: 'EUR',
+      currentRate: 0.05,
+      completedSales: 2,
+      commissions: 9,
+      certificationFees: 0,
+      payouts: 171,
+      entries: 4,
+    });
+  });
+
+  it('échange conclu : ma commission figée et la soulte reçue entrent au registre', async () => {
+    const repo = setup();
+    await repo.respondExchange('demo-exchange-1', true);
+    await repo.shipExchange('demo-exchange-1', 'LL000FR');
+    await repo.confirmExchangeReceipt('demo-exchange-1');
+    const summary = await repo.commissionSummary?.();
+    // + 2,25 € de commission (45 € à 5 %), + 15 € de soulte versée par l’autre partie.
+    expect(summary).toMatchObject({ commissions: 11.25, payouts: 186, entries: 6, completedSales: 2 });
+  });
+});
+
 describe('démo marketplace — échanges', () => {
   it('contient une proposition reçue et une émise', async () => {
     const repo = setup();

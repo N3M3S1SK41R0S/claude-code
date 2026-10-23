@@ -10,7 +10,6 @@ import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { exchangeCommission } from '@velum/config';
 import type { ExchangeProposal } from '@velum/core';
 import { VBadge, VButton, VCard, VEmptyState, VSpinner, VText, VTextInput, velumSpacing } from '@velum/ui';
 
@@ -22,7 +21,7 @@ import { MessageThread } from '../../../components/market/MessageThread';
 import { ShipPanel, type Shipment } from '../../../components/market/ShipPanel';
 import { AmountRows, AsyncBlock, Notice, type AmountRow } from '../../../components/market/controls';
 import {
-  useCompletedSales,
+  useCommissionBasis,
   useInvalidateCommunity,
   useMarketErrorToast,
   useMyCertifications,
@@ -30,6 +29,7 @@ import {
 } from '../../../components/market/hooks';
 import { getVelumClient } from '../../../lib/client';
 import { formatDate } from '../../../lib/i18n';
+import { commissionBasisNoticeKey, exchangeCommissionAt } from '../../../lib/marketCommission';
 import { formatPrice, formatRate } from '../../../lib/marketForms';
 import { communityActivityHref, stringParam } from '../../../lib/marketQuery';
 import {
@@ -65,7 +65,8 @@ function ExchangeActions({
   const client = getVelumClient();
   const invalidate = useInvalidateCommunity();
   const onError = useMarketErrorToast();
-  const sales = useCompletedSales();
+  // Taux ACTUEL du serveur (figé à l'acceptation), taux maximal en repli.
+  const commission = useCommissionBasis();
   const [panel, setPanel] = useState<Panel>(null);
   const [reason, setReason] = useState('');
   const now = new Date().toISOString();
@@ -147,7 +148,8 @@ function ExchangeActions({
       <VButton label={t('community.keep')} variant="ghost" onPress={() => setPanel(null)} />
     </View>
   );
-  const preview = exchangeCommission(myCededValue(exchange), sales.completedSales);
+  const preview = exchangeCommissionAt(myCededValue(exchange), commission.basis);
+  const rateNoticeKey = commissionBasisNoticeKey(commission.status);
 
   return (
     <View style={styles.actions}>
@@ -163,6 +165,11 @@ function ExchangeActions({
               rate: formatRate(preview.commissionRate, i18n.language),
             })}
           </VText>
+          {rateNoticeKey !== null ? (
+            <VText variant="caption" tone="dim" accessibilityLiveRegion="polite">
+              {t(rateNoticeKey, { rate: formatRate(commission.basis.rate, i18n.language) })}
+            </VText>
+          ) : null}
           <VButton
             label={t('community.exchange.action.accept')}
             onPress={() => run.mutate('accept')}
