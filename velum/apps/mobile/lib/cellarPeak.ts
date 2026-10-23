@@ -166,6 +166,15 @@ export function availableColorGroups(entries: readonly CellarPeakEntry[]): Color
   return COLOR_GROUP_ORDER.filter((group) => present.has(group));
 }
 
+/**
+ * Filtre couleur réellement appliqué : les puces ne s'affichent qu'à partir
+ * de deux couleurs — un filtre qu'aucune puce visible ne peut lever (dernier
+ * vin de la couleur supprimé ou déplacé) est ignoré, jamais « aucun vin ».
+ */
+export function effectiveColorFilter(color: ColorGroup | null, groups: readonly ColorGroup[]): ColorGroup | null {
+  return color !== null && groups.length >= 2 && groups.includes(color) ? color : null;
+}
+
 export interface PeakFilters {
   query: string;
   color: ColorGroup | null;

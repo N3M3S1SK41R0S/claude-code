@@ -8,6 +8,7 @@ import {
   colorGroupOf,
   describePosition,
   displayWineLabel,
+  effectiveColorFilter,
   filterPeakEntries,
   formatPosition,
   localSuggestionReason,
@@ -116,6 +117,17 @@ describe('statuts, couleurs et filtres', () => {
     expect(filterPeakEntries(entries, { ...all, query: 'chevre' }).map((e) => e.itemId)).toEqual(['w']);
     expect(filterPeakEntries(entries, { ...all, query: 'rangée 2' }).map((e) => e.itemId)).toEqual(['r']);
     expect(peakSummary(entries)).toEqual({ past: 0, closing: 1, peak: 2, soon: 1 });
+  });
+
+  it('filtre couleur effectif : jamais un filtre invisible ni une couleur disparue (dernier blanc supprimé)', () => {
+    expect(effectiveColorFilter('white', ['red', 'white'])).toBe('white');
+    // Le dernier blanc a été supprimé : puces masquées, filtre levé.
+    expect(effectiveColorFilter('white', ['red'])).toBeNull();
+    // Couleur disparue mais puces toujours visibles : filtre levé aussi.
+    expect(effectiveColorFilter('white', ['red', 'other'])).toBeNull();
+    // Une seule couleur : puces masquées, aucun filtre caché.
+    expect(effectiveColorFilter('red', ['red'])).toBeNull();
+    expect(effectiveColorFilter(null, ['red', 'white'])).toBeNull();
   });
 
   it('millésime affiché seulement s’il manque au libellé', () => {

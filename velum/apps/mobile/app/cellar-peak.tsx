@@ -32,6 +32,7 @@ import { SearchField } from '../components/search/SearchField';
 import {
   availableColorGroups,
   displayWineLabel,
+  effectiveColorFilter,
   filterPeakEntries,
   peakStatusTone,
   peakSummary,
@@ -73,14 +74,11 @@ export default function CellarPeak() {
   const report = useMemo(() => cellarPeakForItems(wines, year), [wines, year, updatedAt]);
   const summary = useMemo(() => peakSummary(report.entries), [report.entries]);
   const colorGroups = useMemo(() => availableColorGroups(report.entries), [report.entries]);
+  // Couleur disparue de la cave (vin supprimé, déplacé) : filtre levé, les puces restent cohérentes.
+  const activeColor = effectiveColorFilter(color === 'all' ? null : color, colorGroups);
   const visible = useMemo(
-    () =>
-      filterPeakEntries(report.entries, {
-        query,
-        color: color === 'all' ? null : color,
-        includeSoon,
-      }),
-    [report.entries, query, color, includeSoon],
+    () => filterPeakEntries(report.entries, { query, color: activeColor, includeSoon }),
+    [report.entries, query, activeColor, includeSoon],
   );
   const titleById = useMemo(() => new Map(wines.map((w) => [w.id, w.title ?? t('common.unknown')])), [wines, t]);
   const drinkableCount = summary.past + summary.closing + summary.peak;
@@ -171,7 +169,7 @@ export default function CellarPeak() {
       {colorOptions.length > 2 ? (
         <ChoiceChips<ColorChoice>
           label={t('cellarPeak.colorFilter')}
-          value={color}
+          value={activeColor ?? 'all'}
           onChange={setColor}
           options={colorOptions}
         />
