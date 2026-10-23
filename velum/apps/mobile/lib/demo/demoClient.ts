@@ -35,6 +35,7 @@ import {
   seedAlerts,
   seedItems,
 } from './demoData';
+import { demoCellarPairing } from '../cellarPeakDemo';
 import { createDemoMarketplaceRepo } from './demoMarketplace';
 import { createDemoWishlistRepo } from './demoWishlist';
 
@@ -143,18 +144,8 @@ export function createDemoClient(): VelumClient {
         if (cave.length === 0) {
           return { recommendations: [], fallbackAdvice: 'Votre cave démo est vide.' };
         }
-        const top = cave[0] as VelumItem;
-        return {
-          recommendations: [
-            {
-              itemId: top.id,
-              label: top.title ?? 'Vin',
-              score: 0.9,
-              reasoning: `Accord démo avec « ${dish} » : la structure tannique et la garrigue soutiennent le plat.`,
-              serveAt: '17 °C, carafé 1 h',
-            },
-          ],
-        };
+        // Démo : appariement local déterministe (apogée + emplacement cités).
+        return demoCellarPairing(dish, cave, new Date().getFullYear());
       },
     },
 
