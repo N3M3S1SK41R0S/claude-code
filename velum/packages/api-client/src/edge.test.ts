@@ -64,6 +64,24 @@ describe('edge api', () => {
     ]);
   });
 
+  it('recognizeSheet refuse une réponse hors contrat (fonction `recognize` pas encore redéployée)', async () => {
+    // Ancienne fonction : ignore `mode` et renvoie un RecognitionResult.
+    fake.invokeResponses['recognize'] = {
+      data: { candidates: [candidate], stage: 'llm_vision', needsAssistedEntry: false },
+    };
+    const api = createEdgeApi(asSupabase(fake));
+    const input: CaptureInput = { kind: 'photo', media: [{ role: 'detail', storagePath: 'u/p.jpg' }] };
+    await expect(api.recognizeSheet('stamp', input)).rejects.toSatisfy(
+      (error: unknown) => isVelumError(error) && error.code === 'SOURCE_UNAVAILABLE',
+    );
+    for (const data of [null, 'ok', { detections: [], truncated: 'non' }, { detections: {}, truncated: false }]) {
+      fake.invokeResponses['recognize'] = { data };
+      await expect(api.recognizeSheet('stamp', input)).rejects.toSatisfy(
+        (error: unknown) => isVelumError(error) && error.code === 'SOURCE_UNAVAILABLE',
+      );
+    }
+  });
+
   it('recognizeSheet convertit le refus serveur (domaine sans planche) en VelumError', async () => {
     fake.invokeResponses['recognize'] = {
       error: httpError('INVALID_INPUT', 'Le mode planche n’est pas disponible pour le module « wine »'),
