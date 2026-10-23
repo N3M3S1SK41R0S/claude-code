@@ -19,6 +19,26 @@ describe('errorMessage', () => {
     expect(errorMessage(refusal, t)).toBe('[errors.INVALID_INPUT] — Annonce déjà réservée par un autre membre');
   });
 
+  it('garde le motif ENTIER quand le message serveur contient lui-même « : » (contexte coupé au premier)', () => {
+    // Message de toItemsError : « <contexte du dépôt> : <message de la règle serveur> ».
+    const deletion = new VelumError(
+      'INVALID_INPUT',
+      "Suppression de l'objet impossible : Objet engagé dans une vente ou un échange en cours : suppression impossible",
+      { sqlstate: 'P0001' },
+    );
+    expect(businessRefusalReason(deletion)).toBe(
+      'Objet engagé dans une vente ou un échange en cours : suppression impossible',
+    );
+    const listing = new VelumError(
+      'INVALID_INPUT',
+      'Mise en vente impossible : Objet déjà cédé (vente ou échange conclu) : il ne peut plus être mis en vente',
+      { sqlstate: 'P0001' },
+    );
+    expect(businessRefusalReason(listing)).toBe(
+      'Objet déjà cédé (vente ou échange conclu) : il ne peut plus être mis en vente',
+    );
+  });
+
   it('ne détaille jamais une erreur de contrainte ou technique', () => {
     const constraint = new VelumError('INVALID_INPUT', 'Achat impossible : violates check constraint "x"', {
       sqlstate: '23514',

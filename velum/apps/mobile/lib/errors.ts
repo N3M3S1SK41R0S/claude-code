@@ -33,7 +33,9 @@ export function businessRefusalReason(error: unknown): string | null {
   const details = error.details as { sqlstate?: unknown } | undefined;
   if (details?.sqlstate !== 'P0001') return null;
   // Le dépôt préfixe le contexte (« Achat impossible : … ») : on garde le motif.
-  const separator = error.message.lastIndexOf(' : ');
+  // Coupé au PREMIER séparateur : les contextes des dépôts n'en contiennent
+  // jamais, le motif serveur si (« Objet engagé … en cours : suppression impossible »).
+  const separator = error.message.indexOf(' : ');
   const reason = (separator === -1 ? error.message : error.message.slice(separator + 3)).trim();
   return reason.length > 0 ? reason : null;
 }
