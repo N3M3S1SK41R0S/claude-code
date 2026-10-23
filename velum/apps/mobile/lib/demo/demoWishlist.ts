@@ -3,10 +3,13 @@
  *
  * Mêmes règles que le dépôt réel : validation et normalisation par les
  * mappers de @velum/api-client (titre obligatoire et borné, notes, prix cible
- * ≥ 0), `acquiredAt` posé / effacé uniquement quand `acquired` change, ordre
- * « en cours d'abord, puis plus récentes », copies à chaque lecture (le cache
- * React Query ne partage jamais un objet muté en place). Horloge, identifiants
- * et latence injectables pour des tests déterministes.
+ * ≥ 0, attributs ≤ 16 Ko), `acquiredAt` posé / effacé uniquement quand
+ * `acquired` change, ordre « en cours d'abord, puis plus récentes », copies à
+ * chaque lecture (le cache React Query ne partage jamais un objet muté en
+ * place). Avec `itemExists` (objets du client démo), l'objet d'origine doit
+ * exister et son lien est remis à NULL quand il est supprimé, comme le
+ * trigger et le ON DELETE SET NULL du serveur. Horloge, identifiants et
+ * latence injectables pour des tests déterministes.
  */
 import {
   newWishlistEntryToRow,
@@ -28,6 +31,12 @@ export interface DemoWishlistOptions {
   latencyMs?: number;
   /** Jeu de départ (défaut : `seedWishlist()`). */
   seed?: WishlistEntry[];
+  /**
+   * Existence d'un objet de la collection démo (absent : lien non vérifié).
+   * Le client démo y branche ses objets : origine inconnue refusée, lien
+   * remis à NULL après suppression de l'objet.
+   */
+  itemExists?: (itemId: string) => boolean;
 }
 
 type SeedInput = Pick<WishlistEntry, 'id' | 'domain' | 'title' | 'createdAt'> &
@@ -202,6 +211,21 @@ export function createDemoWishlistRepo(options: DemoWishlistOptions = {}): Wishl
   const tick = (): Promise<void> =>
     latencyMs > 0 ? new Promise((resolve) => setTimeout(resolve, latencyMs)) : Promise.resolve();
 
+  /**
+   * ON DELETE SET NULL : une envie dont l'objet d'origine a disparu perd son
+   * lien (et son updated_at avance, comme sous le trigger serveur).
+   */
+  const detachDeletedSources = (): void => {
+    const exists = options.itemExists;
+    if (exists === undefined) return;
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      if (entry !== undefined && entry.sourceItemId !== null && !exists(entry.sourceItemId)) {
+        entries[i] = { ...entry, sourceItemId: null, updatedAt: now().toISOString() };
+      }
+    }
+  };
+
   const indexOf = (id: string): number => {
     const index = entries.findIndex((e) => e.id === id);
     if (index === -1) throw new VelumError('INVALID_INPUT', 'Envie introuvable (démo)');
@@ -211,6 +235,7 @@ export function createDemoWishlistRepo(options: DemoWishlistOptions = {}): Wishl
   return {
     async list(domain) {
       await tick();
+      detachDeletedSources();
       return entries
         .filter((e) => domain === undefined || e.domain === domain)
         .sort(compareForList)
@@ -221,6 +246,11 @@ export function createDemoWishlistRepo(options: DemoWishlistOptions = {}): Wishl
       await tick();
       // Même validation / normalisation que le dépôt réel (INVALID_INPUT sinon).
       const row = newWishlistEntryToRow(input, DEMO_OWNER);
+      // Comme le trigger serveur : l'objet d'origine doit exister dans la collection.
+      const sourceItemId = input.sourceItemId ?? null;
+      if (sourceItemId !== null && options.itemExists !== undefined && !options.itemExists(sourceItemId)) {
+        throw new VelumError('INVALID_INPUT', 'Objet d’origine introuvable dans votre collection (démo)');
+      }
       const at = now().toISOString();
       const entry = rowToWishlistEntry({
         ...(row as Omit<WishlistRow, 'id' | 'acquired' | 'acquired_at' | 'created_at' | 'updated_at'>),
@@ -236,6 +266,7 @@ export function createDemoWishlistRepo(options: DemoWishlistOptions = {}): Wishl
 
     async update(id, patch) {
       await tick();
+      detachDeletedSources();
       const index = indexOf(id);
       const current = entries[index] as WishlistEntry; // indexOf garantit l'existence
       const changes = wishlistPatchToRow(patch);

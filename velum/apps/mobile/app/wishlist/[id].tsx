@@ -24,6 +24,7 @@ import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
 import { getActiveDomains } from '../../lib/features';
 import { formatDate } from '../../lib/i18n';
+import { queryScreenState } from '../../lib/itemSheetFlows';
 import { useGoBack } from '../../lib/navigation';
 import { routes } from '../../lib/routes';
 import {
@@ -31,7 +32,8 @@ import {
   PRIORITY_TONE,
   WISHLIST_QUERY_KEY,
   communitySearchText,
-  findDuplicate,
+  duplicateForEdit,
+  duplicateForReopen,
   formFromEntry,
   formatTargetPrice,
   identityDetails,
@@ -57,6 +59,8 @@ export default function WishlistEntryScreen() {
   const [editing, setEditing] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [duplicate, setDuplicate] = useState<WishlistEntry | null>(null);
+  /** « Remettre dans mes envies » refusé : une envie en cours identique existe. */
+  const [reopenBlocked, setReopenBlocked] = useState(false);
 
   const listQuery = useQuery({
     queryKey: WISHLIST_QUERY_KEY,
@@ -113,12 +117,24 @@ export default function WishlistEntryScreen() {
     onError: (error) => showToast(errorMessage(error, t), 'danger'),
   });
 
+  const view = queryScreenState(listQuery);
   // Chargement, ou envie tout juste supprimée (retour en cours : pas de « introuvable »).
-  if (listQuery.isLoading || deleteMutation.isSuccess) {
+  if (view === 'loading' || deleteMutation.isSuccess) {
     return (
       <Screen scroll={false} title={t('wishlist.title')} backFallback={routes.wishlist()}>
         <View style={styles.center}>
           <VSpinner />
+        </View>
+      </Screen>
+    );
+  }
+
+  // En pause hors-ligne, jamais chargée sur cet appareil : pas « introuvable ».
+  if (view === 'offline') {
+    return (
+      <Screen scroll={false} title={t('wishlist.title')} backFallback={routes.wishlist()}>
+        <View style={styles.center}>
+          <VEmptyState title={t('wishlist.offline.title')} message={t('wishlist.offline.message')} />
         </View>
       </Screen>
     );
@@ -161,7 +177,8 @@ export default function WishlistEntryScreen() {
 
   if (editing) {
     const save = (input: WishlistInput) => {
-      const existing = findDuplicate(listQuery.data ?? [], input, entry.id);
+      // Une envie OBTENUE peut coexister avec une envie en cours de même titre.
+      const existing = duplicateForEdit(listQuery.data ?? [], entry, input);
       if (existing) {
         setDuplicate(existing);
         return;
@@ -206,6 +223,19 @@ export default function WishlistEntryScreen() {
 
   const details = identityDetails(entry);
 
+  /** Envie en cours identique (relue à chaque rendu : la liste a pu changer). */
+  const reopenDuplicate = reopenBlocked ? duplicateForReopen(listQuery.data ?? [], entry) : null;
+
+  /** « Remettre dans mes envies » : jamais une seconde envie en cours identique. */
+  const reopen = () => {
+    if (duplicateForReopen(listQuery.data ?? [], entry) !== null) {
+      setReopenBlocked(true);
+      return;
+    }
+    setReopenBlocked(false);
+    updateMutation.mutate({ patch: { acquired: false }, kind: 'reopen' });
+  };
+
   return (
     <Screen title={t('wishlist.title')} backFallback={routes.wishlist(entry.domain)}>
       <View style={styles.top}>
@@ -249,9 +279,24 @@ export default function WishlistEntryScreen() {
             <VButton
               label={t('wishlist.actions.reopen')}
               variant="ghost"
-              onPress={() => updateMutation.mutate({ patch: { acquired: false }, kind: 'reopen' })}
+              onPress={reopen}
               disabled={busy}
             />
+            {reopenDuplicate !== null ? (
+              <View style={styles.card} accessibilityLiveRegion="polite">
+                <VText variant="body" tone="gold">
+                  {t('wishlist.duplicate.title')}
+                </VText>
+                <VText variant="caption" tone="dim">
+                  {t('wishlist.duplicate.message', { title: reopenDuplicate.title })}
+                </VText>
+                <VButton
+                  label={t('wishlist.duplicate.view')}
+                  variant="secondary"
+                  onPress={() => router.push(wishlistRoutes.entry(reopenDuplicate.id))}
+                />
+              </View>
+            ) : null}
           </VCard>
         ) : (
           <VButton

@@ -213,6 +213,27 @@ export function createCorrectionGate(): CorrectionGate {
 
 // ── Cache de la fiche (React Query) ──────────────────────────────────────────
 
+/** État d'écran d'une requête (fiche objet, envies). */
+export type QueryScreenState = 'loading' | 'offline' | 'error' | 'ready';
+
+/**
+ * État à afficher pour une requête React Query. Une requête EN PAUSE
+ * hors-ligne sans données (`fetchStatus: 'paused'` : `isLoading` est alors
+ * faux et rien n'est en erreur) donne 'offline' — jamais « liste vide » ni
+ * « introuvable ». Avec des données (même périmées) : 'ready'. Une requête
+ * désactivée (identifiant absent) : 'ready' sans données, l'écran décide.
+ */
+export function queryScreenState(query: {
+  status: 'pending' | 'error' | 'success';
+  fetchStatus: 'fetching' | 'paused' | 'idle';
+  data: unknown;
+}): QueryScreenState {
+  if (query.data !== undefined) return 'ready';
+  if (query.fetchStatus === 'paused') return 'offline';
+  if (query.fetchStatus === 'fetching') return 'loading';
+  return query.status === 'error' ? 'error' : 'ready';
+}
+
 /** Clé React Query de la fiche d'un objet (partagée par l'écran et ses sections). */
 export function itemQueryKey(itemId: string): readonly unknown[] {
   return ['items', itemId];

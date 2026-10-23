@@ -8,6 +8,8 @@ import {
   classifyCommunityError,
   communitySearchText,
   draftToNewEntry,
+  duplicateForEdit,
+  duplicateForReopen,
   emptyWishlistForm,
   entryFromCandidate,
   entryFromItem,
@@ -18,6 +20,7 @@ import {
   formatTargetPrice,
   groupByDomain,
   identityDetails,
+  localIsoDate,
   newItemFromEntry,
   notesExcerpt,
   parseDomainParam,
@@ -237,6 +240,24 @@ describe('doublons', () => {
   });
 });
 
+describe('doublons à la modification et à la réouverture', () => {
+  // Tempier obtenue, puis remise en envie pour en racheter : les deux coexistent.
+  const obtained = { ...TEMPIER, id: 'w-obtenue', acquired: true, acquiredAt: '2026-09-01T00:00:00Z' };
+  const list = [TEMPIER, obtained, PRADEAUX];
+
+  it('modifier les notes d’une envie OBTENUE n’est jamais bloqué par l’envie en cours de même titre', () => {
+    const input = { domain: 'wine' as const, title: obtained.title };
+    expect(duplicateForEdit(list, obtained, input)).toBeNull();
+    // Une envie EN COURS renommée comme une autre envie en cours reste signalée.
+    expect(duplicateForEdit(list, PRADEAUX, input)?.id).toBe('w1');
+  });
+
+  it('« Remettre dans mes envies » détecte l’envie en cours identique au lieu d’en créer une seconde', () => {
+    expect(duplicateForReopen(list, obtained)?.id).toBe('w1');
+    expect(duplicateForReopen([obtained, PRADEAUX], obtained)).toBeNull();
+  });
+});
+
 describe('conversions', () => {
   it('entryFromItem ne copie que l’identité et garde le lien vers l’objet', () => {
     const draft = entryFromItem(item());
@@ -313,16 +334,25 @@ describe('conversions', () => {
 
     // Envie déjà enregistrée AVANT ce correctif (consumedAt, quantity) : nettoyée à la création.
     const legacy = { ...TEMPIER, attributes: { ...TEMPIER.attributes, consumedAt: '2026-10-01T00:00:00Z', quantity: 3 } };
-    const created = newItemFromEntry(legacy, 'owner-1');
+    const created = newItemFromEntry(legacy, 'owner-1', { timeZone: 'Europe/Paris' });
     expect(created.attributes).not.toHaveProperty('consumedAt');
     expect(created.attributes).not.toHaveProperty('quantity');
     expect(created.attributes?.['analysisStatus']).toBe('pending');
+  });
+
+  it('newItemFromEntry : date d’acquisition = jour LOCAL de l’obtention (pas le jour UTC)', () => {
+    // Obtenue le 23/10 à 00:30, heure de Paris (22:30 UTC la veille).
+    const obtained = { ...TEMPIER, acquired: true, acquiredAt: '2026-10-22T22:30:00Z' };
+    expect(newItemFromEntry(obtained, 'o', { timeZone: 'Europe/Paris' }).acquiredAt).toBe('2026-10-23');
+    expect(newItemFromEntry(obtained, 'o', { timeZone: 'America/New_York' }).acquiredAt).toBe('2026-10-22');
+    expect(localIsoDate('pas une date')).toBeNull();
   });
 
   it('newItemFromEntry : fiche complète à charger, confiance et prix payés inconnus', () => {
     const newItem = newItemFromEntry(
       { ...TEMPIER, acquired: true, acquiredAt: '2026-09-12T18:30:00Z', attributes: { ...TEMPIER.attributes, analysis: { x: 1 } } },
       'owner-1',
+      { timeZone: 'Europe/Paris' },
     );
     expect(newItem).toEqual({
       ownerId: 'owner-1',

@@ -3,8 +3,9 @@
  *
  * En haut : « Ajouter une envie », puis catégorie (une liste par catégorie +
  * Toutes, paramètre de route `domain`), statistiques, recherche, segments
- * Envies / Idées / Obtenues et tri. Chargement, panne (Réessayer) et liste
- * vide sont trois états distincts : une panne n'est jamais une liste vide.
+ * Envies / Idées / Obtenues et tri. Chargement, hors-ligne sans cache, panne
+ * (Réessayer) et liste vide sont des états distincts : ni une panne ni une
+ * requête en pause hors-ligne ne sont présentées comme une liste vide.
  * Toute la logique (filtres, tri, recherche, stats) est dans lib/wishlist.ts.
  */
 import { useEffect, useMemo, useState } from 'react';
@@ -23,6 +24,7 @@ import { WishlistRow } from '../../components/wishlist/WishlistRow';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
 import { getActiveDomains } from '../../lib/features';
+import { queryScreenState } from '../../lib/itemSheetFlows';
 import {
   WISHLIST_QUERY_KEY,
   WISHLIST_SEGMENTS,
@@ -80,11 +82,23 @@ export default function WishlistScreen() {
   const openEntry = (entry: WishlistEntry) => router.push(wishlistRoutes.entry(entry.id));
   const addEntry = () => router.push(wishlistRoutes.create(domain));
 
-  if (listQuery.isLoading) {
+  const view = queryScreenState(listQuery);
+  if (view === 'loading') {
     return (
       <Screen scroll={false} title={t('wishlist.title')}>
         <View style={styles.center}>
           <VSpinner />
+        </View>
+      </Screen>
+    );
+  }
+
+  // En pause hors-ligne, jamais chargée sur cet appareil : pas « liste vide ».
+  if (view === 'offline') {
+    return (
+      <Screen scroll={false} title={t('wishlist.title')}>
+        <View style={styles.center}>
+          <VEmptyState title={t('wishlist.offline.title')} message={t('wishlist.offline.message')} />
         </View>
       </Screen>
     );

@@ -1790,6 +1790,10 @@
       "added": "Ajouté — voir mes envies",
       "openHint": "Ouvre votre liste d’envies de cette catégorie",
       "titleMissing": "Impossible d’ajouter : titre manquant."
+    },
+    "offline": {
+      "title": "Hors-ligne",
+      "message": "Vos envies n’ont pas encore été chargées sur cet appareil : elles s’afficheront au retour du réseau."
     }
   },
   "calibration": {

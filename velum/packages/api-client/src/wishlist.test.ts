@@ -6,8 +6,10 @@ import {
   createWishlistRepo,
   newWishlistEntryToRow,
   rowToWishlistEntry,
+  wishlistAttributesBytes,
   wishlistDbError,
   wishlistPatchToRow,
+  WISHLIST_ATTRIBUTES_MAX_BYTES,
   WISHLIST_NOTES_MAX_LENGTH,
   WISHLIST_TITLE_MAX_LENGTH,
   type WishlistRow,
@@ -115,6 +117,33 @@ describe('mappers wishlist', () => {
       }
       expect(isVelumError(caught) && caught.code === 'INVALID_INPUT').toBe(true);
     }
+  });
+
+  it('attributs bornés comme la contrainte SQL (octet_length(attributes::text) ≤ 16 Ko)', () => {
+    // Même rendu que Postgres pour jsonb::text (vérifié sur PostgreSQL 16) :
+    // espaces après « : » et « , », caractères non ASCII sur plusieurs octets.
+    const sample = { b: [1, 2.5, { x: null }], a: 'é"\n', c: true, e: {}, f: [] };
+    expect(wishlistAttributesBytes(sample)).toBe(
+      new TextEncoder().encode('{"b": [1, 2.5, {"x": null}], "a": "é\\"\\n", "c": true, "e": {}, "f": []}').length,
+    );
+    // ~15,6 Ko en JSON compact, mais plus de 16 Ko une fois rendu par Postgres.
+    const many: Record<string, number> = {};
+    for (let i = 0; i < 1600; i++) many[`k${String(i).padStart(4, '0')}`] = 1;
+    expect(JSON.stringify(many).length).toBeLessThan(WISHLIST_ATTRIBUTES_MAX_BYTES);
+    expect(wishlistAttributesBytes(many)).toBeGreaterThan(WISHLIST_ATTRIBUTES_MAX_BYTES);
+    for (const attributes of [many, { note: 'x'.repeat(WISHLIST_ATTRIBUTES_MAX_BYTES) }]) {
+      let caught: unknown = null;
+      try {
+        newWishlistEntryToRow({ domain: 'wine', title: 'Valide', attributes }, 'usr-1');
+      } catch (error) {
+        caught = error;
+      }
+      expect(isVelumError(caught) && caught.code === 'INVALID_INPUT').toBe(true);
+      expect(() => wishlistPatchToRow({ attributes })).toThrow();
+    }
+    expect(newWishlistEntryToRow({ domain: 'wine', title: 'Valide', attributes: sample }, 'usr-1')['attributes']).toBe(
+      sample,
+    );
   });
 
   it('wishlistPatchToRow ne transmet que les champs fournis, jamais acquired_at', () => {

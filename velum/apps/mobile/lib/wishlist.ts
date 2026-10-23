@@ -280,6 +280,30 @@ export function findDuplicate(
   );
 }
 
+/**
+ * Doublon qui bloque l'enregistrement d'une MODIFICATION : seulement si
+ * l'envie modifiée est en cours. Une envie obtenue peut coexister avec une
+ * envie en cours de même titre (rachat) : modifier ses notes reste possible.
+ */
+export function duplicateForEdit(
+  entries: readonly WishlistEntry[],
+  edited: Pick<WishlistEntry, 'id' | 'acquired'>,
+  input: { domain: VelumDomain; title: string },
+): WishlistEntry | null {
+  return edited.acquired ? null : findDuplicate(entries, input, edited.id);
+}
+
+/**
+ * Doublon qui bloque « Remettre dans mes envies » : l'envie obtenue
+ * deviendrait une seconde envie en cours identique.
+ */
+export function duplicateForReopen(
+  entries: readonly WishlistEntry[],
+  entry: Pick<WishlistEntry, 'id' | 'domain' | 'title'>,
+): WishlistEntry | null {
+  return findDuplicate(entries, entry, entry.id);
+}
+
 // ── Conversions vers / depuis la collection ──────────────────────────────────
 
 /** Brouillon d'envie prêt pour `AddToWishlistButton` (props compatibles). */
@@ -365,21 +389,49 @@ export function draftToNewEntry(
 }
 
 /**
+ * Jour CIVIL (AAAA-MM-JJ) d'un horodatage dans le fuseau de l'appareil — le
+ * jour qu'affiche `formatDate` —, ou dans `timeZone` s'il est fourni (tests).
+ * Jamais le jour UTC tronqué (décalé d'un jour le soir et la nuit en France).
+ * Null si l'horodatage est illisible.
+ */
+export function localIsoDate(iso: string, timeZone?: string): string | null {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
+  const parts = new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    ...(timeZone !== undefined ? { timeZone } : {}),
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes): string | undefined =>
+    parts.find((p) => p.type === type)?.value;
+  const year = part('year');
+  const month = part('month');
+  const day = part('day');
+  if (year === undefined || month === undefined || day === undefined) return null;
+  return `${year.padStart(4, '0')}-${month}-${day}`;
+}
+
+/**
  * Envie obtenue → nouvel objet de la collection. La fiche complète n'est PAS
  * générée ici (lente) : `analysisStatus: 'pending'` la fait proposer à la
  * demande sur la fiche objet. Confiance inconnue (null) plutôt qu'inventée ;
  * prix d'acquisition inconnu (le prix cible n'est pas le prix payé). Seule
  * l'identité est reprise (une envie enregistrée avant le filtrage d'inclusion
- * est nettoyée ici).
+ * est nettoyée ici) ; date d'acquisition = jour LOCAL de l'obtention.
  */
-export function newItemFromEntry(entry: WishlistEntry, ownerId: string): NewItem {
+export function newItemFromEntry(
+  entry: WishlistEntry,
+  ownerId: string,
+  options: { timeZone?: string } = {},
+): NewItem {
   return {
     ownerId,
     domain: entry.domain,
     title: entry.title,
     attributes: { ...identityAttributes(entry.attributes, entry.domain), analysisStatus: 'pending' },
     confidence: null,
-    acquiredAt: entry.acquiredAt !== null ? entry.acquiredAt.slice(0, 10) : null,
+    acquiredAt: entry.acquiredAt !== null ? localIsoDate(entry.acquiredAt, options.timeZone) : null,
     acquiredPrice: null,
     notes: entry.notes,
   };

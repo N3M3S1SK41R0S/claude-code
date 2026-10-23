@@ -1790,6 +1790,10 @@
       "added": "Added — view my wishlist",
       "openHint": "Opens your wishlist for this category",
       "titleMissing": "Cannot add: title missing."
+    },
+    "offline": {
+      "title": "Offline",
+      "message": "Your wishlist has not been loaded on this device yet: it will appear when the connection is back."
     }
   },
   "calibration": {

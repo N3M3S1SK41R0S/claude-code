@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryObserver, onlineManager } from '@tanstack/react-query';
 import type { QueuedMutation } from '@velum/api-client';
 import { VelumError, type AnalysisResult, type VelumItem } from '@velum/core';
 
@@ -21,6 +21,7 @@ import {
   latestCachedItem,
   markItemDeleted,
   persistItemPatch,
+  queryScreenState,
   refreshAfterValuation,
   revalueItem,
   saveIdentityCorrection,
@@ -209,6 +210,38 @@ describe('cache de la fiche (React Query)', () => {
     // Le marqueur n'est pas une requête « items » (jamais persisté avec la collection).
     expect(deletedItemQueryKey('i1')[0]).not.toBe('items');
     queryClient.clear();
+  });
+});
+
+describe('queryScreenState', () => {
+  afterEach(() => {
+    onlineManager.setOnline(true);
+  });
+
+  it('requête en pause hors-ligne sans cache : état « hors-ligne », jamais vide ni introuvable', async () => {
+    onlineManager.setOnline(false);
+    const queryClient = new QueryClient();
+    const observer = new QueryObserver(queryClient, { queryKey: ['wishlist'], queryFn: async () => [] });
+    const unsubscribe = observer.subscribe(() => undefined);
+    await Promise.resolve();
+    const result = observer.getCurrentResult();
+    // Le piège : isLoading est faux, rien n'est en erreur, data est absente.
+    expect(result.fetchStatus).toBe('paused');
+    expect(result.isLoading).toBe(false);
+    expect(result.isError).toBe(false);
+    expect(queryScreenState(result)).toBe('offline');
+    unsubscribe();
+    queryClient.clear();
+  });
+
+  it('chargement, panne sans données, données (même périmées), requête désactivée', () => {
+    expect(queryScreenState({ status: 'pending', fetchStatus: 'fetching', data: undefined })).toBe('loading');
+    expect(queryScreenState({ status: 'error', fetchStatus: 'idle', data: undefined })).toBe('error');
+    expect(queryScreenState({ status: 'error', fetchStatus: 'paused', data: undefined })).toBe('offline');
+    expect(queryScreenState({ status: 'success', fetchStatus: 'paused', data: [] })).toBe('ready');
+    expect(queryScreenState({ status: 'error', fetchStatus: 'idle', data: null })).toBe('ready');
+    // Désactivée (identifiant absent) : rien à attendre, l'écran décide (introuvable).
+    expect(queryScreenState({ status: 'pending', fetchStatus: 'idle', data: undefined })).toBe('ready');
   });
 });
 
