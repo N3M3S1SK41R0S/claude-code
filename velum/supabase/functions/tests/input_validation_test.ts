@@ -1,4 +1,8 @@
 import {
+  MAX_CAPTURE_MEDIA,
+  MAX_CAPTURE_TEXT_LENGTH,
+  MAX_IMAGE_BYTES,
+  base64DecodedBytes,
   validateCandidate,
   validateCaptureInput,
   validateJsonObject,
@@ -142,4 +146,40 @@ Deno.test('validateSheetInput : exactement une photo exploitable', () => {
     validateSheetInput({ kind: 'photo', media: [{ role: 'detail', storagePath: ' ' }] }),
     'téléversée',
   );
+});
+
+Deno.test('validateCaptureInput borne le nombre de photos, le texte et le poids des images (avant tout quota)', () => {
+  const photo = (i: number) => ({ role: 'detail', storagePath: `u/p${i}.jpg` });
+  expectOk(
+    validateCaptureInput({ kind: 'photo', media: Array.from({ length: MAX_CAPTURE_MEDIA }, (_, i) => photo(i)) }),
+  );
+  // N photos = 1 scan mais N images facturées au modèle : refusé au-delà du maximum de rôles.
+  expectError(
+    validateCaptureInput({ kind: 'photo', media: Array.from({ length: 40 }, (_, i) => photo(i)) }),
+    `au plus ${MAX_CAPTURE_MEDIA} photos`,
+  );
+  expectOk(validateCaptureInput({ kind: 'text', text: 'x'.repeat(MAX_CAPTURE_TEXT_LENGTH) }));
+  expectError(
+    validateCaptureInput({ kind: 'text', text: 'x'.repeat(MAX_CAPTURE_TEXT_LENGTH + 1) }),
+    `${MAX_CAPTURE_TEXT_LENGTH} caractères`,
+  );
+  // Image jointe : poids décodé borné (limite du fournisseur par image).
+  const header = 'data:image/jpeg;base64,';
+  const fits = 'A'.repeat(Math.floor(MAX_IMAGE_BYTES / 3) * 4);
+  expectOk(
+    validateCaptureInput({ kind: 'photo', media: [{ role: 'detail', storagePath: '', base64: header + fits }] }),
+  );
+  expectError(
+    validateCaptureInput({
+      kind: 'photo',
+      media: [{ role: 'detail', storagePath: '', base64: `${header}${fits}AAAA` }],
+    }),
+    'trop lourde',
+  );
+});
+
+Deno.test('base64DecodedBytes : poids réel d’une image jointe (en-tête et remplissage exclus)', () => {
+  if (base64DecodedBytes('data:image/jpeg;base64,AAAA') !== 3) throw new Error('3 octets attendus');
+  if (base64DecodedBytes('AA==') !== 1) throw new Error('1 octet attendu');
+  if (base64DecodedBytes('') !== 0) throw new Error('0 octet attendu');
 });

@@ -7,6 +7,7 @@
  */
 import { assertEquals } from 'jsr:@std/assert@1';
 import { RECOGNITION_MAX_TOKENS, SHEET_RECOGNITION_MAX_TOKENS } from '@velum/core';
+import { MAX_IMAGE_BYTES } from '../_shared/input.ts';
 import { handler as recognize } from '../recognize/index.ts';
 
 Deno.env.set('SUPABASE_URL', 'https://demo.supabase.co');
@@ -27,11 +28,20 @@ function jsonResponse(body: unknown, status = 200): Response {
 interface Trace {
   quotaCalls: number;
   guardCalls: number;
+  downloads: number;
   visionBodies: Record<string, unknown>[];
 }
 
-function stub(opts: { vision?: string; quota?: boolean; guard?: string } = {}): Trace {
-  const trace: Trace = { quotaCalls: 0, guardCalls: 0, visionBodies: [] };
+function stub(
+  opts: {
+    vision?: string;
+    quota?: boolean;
+    guard?: string;
+    /** Taille du fichier renvoyé par Storage (octets) ; 0 → photo introuvable (404). */
+    storageBytes?: number;
+  } = {},
+): Trace {
+  const trace: Trace = { quotaCalls: 0, guardCalls: 0, downloads: 0, visionBodies: [] };
   globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     if (url.includes('/auth/v1/user')) return jsonResponse(USER);
@@ -45,6 +55,14 @@ function stub(opts: { vision?: string; quota?: boolean; guard?: string } = {}): 
     }
     if (url.includes('/rest/v1/vision_calls')) return jsonResponse([]);
     if (url.includes('/storage/v1/object/')) {
+      trace.downloads += 1;
+      if (opts.storageBytes === 0) return jsonResponse({ error: 'not_found', message: 'Object not found' }, 404);
+      if (opts.storageBytes !== undefined) {
+        return new Response(new Uint8Array(opts.storageBytes), {
+          status: 200,
+          headers: { 'Content-Type': 'image/jpeg' },
+        });
+      }
       return new Response(new Uint8Array([0xff, 0xd8, 0xff, 0xdb]), {
         status: 200,
         headers: { 'Content-Type': 'image/jpeg' },
@@ -235,6 +253,68 @@ Deno.test('recognize : photo de cadran de montre acceptée (rôle dial)', async 
     );
     assertEquals(res.status, 200);
     assertEquals((await res.json()).candidates[0].label, 'Omega Speedmaster');
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+Deno.test('recognize : 40 photos ou texte démesuré → 400 avant garde-fou, quota et modèle', async () => {
+  const trace = stub();
+  try {
+    const media = Array.from({ length: 40 }, (_, i) => ({ role: 'front', storagePath: `${USER.id}/p${i}.jpg` }));
+    for (const input of [{ kind: 'photo', media }, { kind: 'text', text: 'x'.repeat(200_000) }]) {
+      const res = await recognize(post({ domain: 'stamp', input }));
+      assertEquals(res.status, 400);
+      assertEquals((await res.json()).error.code, 'INVALID_INPUT');
+    }
+    assertEquals(trace.guardCalls, 0);
+    assertEquals(trace.quotaCalls, 0);
+    assertEquals(trace.downloads, 0);
+    assertEquals(trace.visionBodies.length, 0);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+Deno.test('recognize : photo d’un autre compte → 401 avant garde-fou et quota (aucun scan perdu)', async () => {
+  const trace = stub();
+  try {
+    for (const mode of ['sheet', undefined]) {
+      const res = await recognize(
+        post({
+          domain: 'stamp',
+          input: { kind: 'photo', media: [{ role: 'detail', storagePath: 'autre-uid/x.jpg' }] },
+          ...(mode ? { mode } : {}),
+        }),
+      );
+      assertEquals(res.status, 401);
+      assertEquals((await res.json()).error.code, 'UNAUTHORIZED');
+    }
+    assertEquals(trace.guardCalls, 0);
+    assertEquals(trace.quotaCalls, 0);
+    assertEquals(trace.downloads, 0);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+Deno.test('recognize : photo introuvable ou trop lourde dans Storage → 400 SANS consommer de scan', async () => {
+  try {
+    for (const storageBytes of [0, MAX_IMAGE_BYTES + 1]) {
+      const trace = stub({ storageBytes });
+      const res = await recognize(post({ domain: 'stamp', input: SHEET_PHOTO, mode: 'sheet' }));
+      assertEquals(res.status, 400);
+      assertEquals((await res.json()).error.code, 'INVALID_INPUT');
+      assertEquals(trace.downloads, 1);
+      assertEquals(trace.quotaCalls, 0);
+      assertEquals(trace.visionBodies.length, 0);
+    }
+    // Juste sous la limite : accepté, un scan consommé.
+    const trace = stub({ storageBytes: MAX_IMAGE_BYTES, vision: SHEET_ANSWER });
+    const ok = await recognize(post({ domain: 'stamp', input: SHEET_PHOTO, mode: 'sheet' }));
+    assertEquals(ok.status, 200);
+    await ok.body?.cancel();
+    assertEquals(trace.quotaCalls, 1);
   } finally {
     globalThis.fetch = realFetch;
   }

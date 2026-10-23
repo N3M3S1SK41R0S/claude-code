@@ -3,8 +3,11 @@
  *
  * POST { domain: VelumDomain, input: CaptureInput, mode?: 'single' | 'sheet' }
  *   → auth (Bearer)
- *   → validation complète (domaine, entrée, mode) AVANT tout quota
- *   → photo/texte : garde-fou IA + quota freemium + plugin.recognize()
+ *   → validation complète (domaine, entrée bornée, mode, appartenance des
+ *     photos) AVANT tout garde-fou et tout quota
+ *   → photo/texte : garde-fou IA → photos rapatriées de Storage (introuvable
+ *     ou trop lourde → 400, AVANT le quota : aucun scan perdu) → quota
+ *     freemium → plugin.recognize()
  *     (scan éclair : identification + classement + fourchette indicative)
  *   → mode 'sheet' : UNE photo de planche → plugin.recognizeSheet()
  *   → fichier : mapping déterministe du plugin, sans fournisseur ni quota de scan
@@ -32,7 +35,7 @@ import {
   validateSheetInput,
 } from '../_shared/input.ts';
 import { createVisionModel, withMaxTokensCap } from '../_shared/llm.ts';
-import { hydrateMedia } from '../_shared/media.ts';
+import { hasForeignMediaPath, hydrateMedia } from '../_shared/media.ts';
 import { error, errorFromException, json } from '../_shared/respond.ts';
 
 /**
@@ -106,6 +109,12 @@ export async function handler(req: Request): Promise<Response> {
     }
   }
 
+  // Photo d'un autre compte : refusée AVANT garde-fou et quota (hydrateMedia
+  // revérifie, en défense en profondeur).
+  if (hasForeignMediaPath(auth.user.id, input)) {
+    return error('UNAUTHORIZED', "Ce média n'appartient pas à l'appelant", 401);
+  }
+
   // Un import CSV/JSON est un mapping local des lignes en candidats assistés.
   // Il ne consomme ni plafond de dépense, ni quota de scan, ni clé fournisseur.
   if (mode === 'single' && input.kind === 'file') {
@@ -120,6 +129,17 @@ export async function handler(req: Request): Promise<Response> {
   // quota produit : il protège la facture, pas le modèle économique.
   const blocked = await guardAiCall(auth, req);
   if (blocked) return blocked;
+
+  // Les photos arrivent en `storagePath` (téléversées par le client) : on
+  // retélécharge l'octet brut ici. Un `base64` déjà fourni est conservé tel quel.
+  // AVANT le quota : une photo introuvable ou trop lourde pour le fournisseur
+  // est refusée sans coûter de scan à l'utilisateur.
+  let hydrated: typeof input;
+  try {
+    hydrated = await hydrateMedia(auth, input);
+  } catch (err) {
+    return errorFromException(err);
+  }
 
   // Quota freemium : 5 scans/semaine PAR module en plan 'free'
   // (premium/gold/platine : illimité — fonction security definer).
@@ -140,9 +160,6 @@ export async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    // Les photos arrivent en `storagePath` (téléversées par le client) : on
-    // retélécharge l'octet brut ici. Un `base64` déjà fourni est conservé tel quel.
-    const hydrated = await hydrateMedia(auth, input);
     const vision = createVisionModel({
       operation: mode === 'sheet' ? 'recognize-sheet' : 'recognize',
       domain,
