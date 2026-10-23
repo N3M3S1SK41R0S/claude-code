@@ -375,6 +375,32 @@ $$;
 revoke all on function public.has_open_certification(uuid, uuid) from public, anon;
 grant execute on function public.has_open_certification(uuid, uuid) to authenticated, service_role;
 
+-- Verrou de réservation : sérialise les réservations concurrentes d'une même
+-- annonce ou d'un même objet (deux captures de paiement, une capture et une
+-- acceptation d'échange…). Annonce d'abord, puis objets dans l'ordre des
+-- identifiants (pas d'interblocage entre réservations croisées).
+create or replace function public.market_lock_for_reservation(
+  p_listing uuid,
+  p_extra_item uuid default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_item uuid;
+begin
+  select l.item_id into v_item from public.listings l where l.id = p_listing for update;
+  perform 1 from public.items i
+  where i.id in (v_item, p_extra_item)
+  order by i.id
+  for update;
+end;
+$$;
+revoke all on function public.market_lock_for_reservation(uuid, uuid) from public, anon;
+grant execute on function public.market_lock_for_reservation(uuid, uuid) to authenticated, service_role;
+
 -- Annonce ou objet ayant un historique de transactions (suppression interdite).
 create or replace function public.listing_has_history(p_listing uuid)
 returns boolean
@@ -525,10 +551,15 @@ begin
     end if;
   end if;
 
-  -- Objet supprimé (action référentielle) : une annonce encore ouverte est retirée.
-  if tg_op = 'UPDATE' and new.item_id is null and old.item_id is not null
-     and new.status in ('draft', 'active', 'pending_certification') then
-    new.status := 'withdrawn';
+  -- Objet supprimé : l'action référentielle retire l'annonce encore ouverte ;
+  -- une annonce sans objet ne se (re)publie jamais.
+  if new.item_id is null and new.status in ('draft', 'active', 'pending_certification') then
+    if tg_op = 'UPDATE' and old.item_id is not null then
+      new.status := 'withdrawn';
+    else
+      raise exception 'Annonce sans objet (objet supprimé) : publication impossible'
+        using errcode = 'P0001';
+    end if;
   end if;
 
   if new.kind in ('exchange', 'sale_or_exchange') and coalesce(new.ask_price, 0) <= 0 then
@@ -770,9 +801,12 @@ begin
     raise exception 'Expédition bloquée : une certification d''expert est en cours sur cette commande'
       using errcode = 'P0001';
   end if;
-  if v_from = 'pending_payment' and v_to = 'funds_held'
-     and public.listing_is_engaged(old.listing_id, old.id) then
-    raise exception 'Annonce déjà réservée par un autre membre' using errcode = 'P0001';
+  if v_from = 'pending_payment' and v_to = 'funds_held' then
+    -- Verrou puis contrôle (instantané frais) : premier payé, premier servi.
+    perform public.market_lock_for_reservation(old.listing_id);
+    if public.listing_is_engaged(old.listing_id, old.id) then
+      raise exception 'Annonce déjà réservée par un autre membre' using errcode = 'P0001';
+    end if;
   end if;
   if v_to = 'released' and new.released_at is null then
     new.released_at := now();
@@ -1051,6 +1085,9 @@ begin
     if old.expires_at <= now() then
       raise exception 'Proposition expirée' using errcode = 'P0001';
     end if;
+    -- Verrou puis contrôle (instantané frais) : l'annonce et les deux objets
+    -- ne peuvent pas être réservés deux fois en parallèle.
+    perform public.market_lock_for_reservation(old.listing_id, old.offered_item_id);
     select c.available, c.certification_required into v_check
     from public.exchange_acceptance_check(old.id) c;
     if not v_check.available then
