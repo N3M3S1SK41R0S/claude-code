@@ -39,6 +39,7 @@ import {
   type ColorGroup,
 } from '../lib/cellarPeak';
 import { getVelumClient } from '../lib/client';
+import { isOfflineWithoutData } from '../lib/collectionView';
 import { cellarPeakForItems } from '../lib/drinkNow';
 import { errorMessage } from '../lib/errors';
 import { routes } from '../lib/routes';
@@ -88,6 +89,17 @@ export default function CellarPeak() {
       <Screen scroll={false} title={t('cellarPeak.title')} backFallback={routes.collection()}>
         <View style={styles.center}>
           <VSpinner />
+        </View>
+      </Screen>
+    );
+  }
+
+  // Hors-ligne sans cache : jamais « cave vide ».
+  if (isOfflineWithoutData(itemsQuery)) {
+    return (
+      <Screen scroll={false} title={t('cellarPeak.title')} backFallback={routes.collection()}>
+        <View style={styles.center}>
+          <VEmptyState title={t('cellarPeak.title')} message={t('cellarPeak.offlineUnloaded')} />
         </View>
       </Screen>
     );

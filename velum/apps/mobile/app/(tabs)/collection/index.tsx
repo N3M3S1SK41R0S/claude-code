@@ -41,6 +41,7 @@ import {
   DEFAULT_COLLECTION_SORT,
   buildCollectionView,
   drinkNowPreview,
+  isOfflineWithoutData,
   parseDomainParam,
   parseTextParam,
   showsResultCount,
@@ -191,6 +192,17 @@ export default function Collection() {
       <Screen scroll={false} back={false}>
         <View style={styles.center}>
           <VSpinner />
+        </View>
+      </Screen>
+    );
+  }
+
+  // Hors-ligne sans cache : jamais « collection vide » (la lecture reprendra au retour du réseau).
+  if (isOfflineWithoutData(query)) {
+    return (
+      <Screen scroll={false} back={false}>
+        <View style={styles.center}>
+          <VEmptyState title={t('collection.title')} message={t('collection.offlineUnloaded')} />
         </View>
       </Screen>
     );

@@ -30,6 +30,7 @@ import { QuickPairingList } from '../components/cellar/QuickPairingList';
 import { Screen } from '../components/Screen';
 import { displayWineLabel, positionLabel, wishlistIdeaTitle } from '../lib/cellarPeak';
 import { getVelumClient } from '../lib/client';
+import { isOfflineWithoutData } from '../lib/collectionView';
 import { localPairingForItems } from '../lib/drinkNow';
 import { errorMessage } from '../lib/errors';
 import { routes } from '../lib/routes';
@@ -187,6 +188,10 @@ export default function CellarSommelier() {
               {t('cellar.quick.loading')}
             </VText>
           </View>
+        ) : isOfflineWithoutData(itemsQuery) ? (
+          <VText variant="body" tone="dim">
+            {t('cellar.quick.offlineUnloaded')}
+          </VText>
         ) : itemsQuery.isError && itemsQuery.data === undefined ? (
           <View style={styles.inline}>
             <VText variant="body" tone="danger" style={styles.flex}>

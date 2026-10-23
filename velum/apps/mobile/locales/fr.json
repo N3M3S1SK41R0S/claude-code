@@ -638,6 +638,7 @@
     "emptyCta": "Capturer un objet",
     "itemsCount": "{{count}} objet(s)",
     "offlineNotice": "Hors-ligne : données du cache, {{count}} modification(s) en attente.",
+    "offlineUnloaded": "Hors-ligne : votre collection n’a pas encore été chargée sur cet appareil. Elle s’affichera dès le retour du réseau.",
     "searchLabel": "Rechercher dans ma collection",
     "searchGlobal": "Rechercher partout",
     "searchGlobalHint": "Ouvre la recherche dans la collection, les envies et les échanges & ventes",
@@ -969,6 +970,7 @@
       "typeMore": "Saisissez au moins 3 lettres pour une suggestion immédiate.",
       "loading": "Lecture de votre cave…",
       "loadError": "Impossible de lire votre cave pour la suggestion rapide.",
+      "offlineUnloaded": "Hors-ligne : votre cave n’a pas encore été chargée sur cet appareil — la suggestion rapide reviendra avec le réseau.",
       "emptyCellar": "Votre cave est vide : scannez vos bouteilles pour obtenir des suggestions.",
       "unrecognized": "Plat non reconnu par la suggestion rapide : précisez l’ingrédient (agneau, poisson, chèvre…) ou affinez avec le sommelier IA.",
       "nothingSuitable": "Rien de vraiment adapté dans votre cave pour ce plat.",
@@ -1083,6 +1085,7 @@
     "quickNone": "Rien d’adapté en cave pour ce plat.",
     "quickUnrecognized": "Plat non reconnu : le sommelier IA pourra affiner.",
     "quickLoadError": "Cave illisible pour la suggestion rapide.",
+    "quickOffline": "Hors-ligne : cave pas encore chargée sur cet appareil.",
     "aiHint": "Pour des accords affinés plat par plat, composez avec le sommelier IA (offre Gold ou Platine)."
   },
   "cellarPeak": {
@@ -1091,6 +1094,7 @@
     "intro": "Toute votre cave triée par urgence, avec l’emplacement de chaque bouteille. Calcul local, à jour à chaque ouverture.",
     "emptyCellarTitle": "Aucun vin dans votre cave",
     "emptyCellarMessage": "Scannez vos bouteilles : VELUM calculera leur apogée et vous dira lesquelles ouvrir.",
+    "offlineUnloaded": "Hors-ligne : votre cave n’a pas encore été chargée sur cet appareil. Elle s’affichera dès le retour du réseau.",
     "scanWine": "Scanner un vin",
     "noneAtPeak": "Aucun vin à boire en ce moment.",
     "noneMatching": "Aucun vin ne correspond à ces filtres.",
@@ -1207,6 +1211,7 @@
     "channelName": "Rappels « à boire »",
     "loading": "Lecture de votre cave…",
     "loadError": "Cave illisible : le rappel ne peut pas choisir de vin.",
+    "offlineUnloaded": "Hors-ligne : votre cave n’a pas encore été chargée — le rappel pourra être programmé au retour du réseau.",
     "weekday": {
       "1": "dimanche",
       "2": "lundi",

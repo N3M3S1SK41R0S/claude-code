@@ -25,6 +25,7 @@ import { QuickPairingList } from '../components/cellar/QuickPairingList';
 import { Screen } from '../components/Screen';
 import { displayWineLabel, positionLabel } from '../lib/cellarPeak';
 import { getVelumClient } from '../lib/client';
+import { isOfflineWithoutData } from '../lib/collectionView';
 import { localPairingForItems } from '../lib/drinkNow';
 import { routes } from '../lib/routes';
 import { showToast } from '../stores/toastStore';
@@ -131,6 +132,10 @@ export default function EventSommelier() {
                 </VText>
                 {itemsQuery.isLoading ? (
                   <VSpinner />
+                ) : isOfflineWithoutData(itemsQuery) ? (
+                  <VText variant="caption" tone="dim">
+                    {t('event.quickOffline')}
+                  </VText>
                 ) : cellarUnreadable ? (
                   <View style={styles.inline}>
                     <VText variant="caption" tone="danger" style={styles.flex}>

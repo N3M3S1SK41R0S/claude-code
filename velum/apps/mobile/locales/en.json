@@ -638,6 +638,7 @@
     "emptyCta": "Capture an object",
     "itemsCount": "{{count}} object(s)",
     "offlineNotice": "Offline: cached data, {{count}} pending change(s).",
+    "offlineUnloaded": "Offline: your collection has not been loaded on this device yet. It will appear as soon as you are back online.",
     "searchLabel": "Search my collection",
     "searchGlobal": "Search everywhere",
     "searchGlobalHint": "Opens search across the collection, wishlist and trade & sell",
@@ -969,6 +970,7 @@
       "typeMore": "Type at least 3 letters for an instant suggestion.",
       "loading": "Reading your cellar…",
       "loadError": "Your cellar could not be read for the quick suggestion.",
+      "offlineUnloaded": "Offline: your cellar has not been loaded on this device yet — quick suggestions will return once you are back online.",
       "emptyCellar": "Your cellar is empty: scan your bottles to get suggestions.",
       "unrecognized": "Dish not recognised by the quick suggestion: name the main ingredient (lamb, fish, goat’s cheese…) or refine with the AI sommelier.",
       "nothingSuitable": "Nothing in your cellar is a real match for this dish.",
@@ -1083,6 +1085,7 @@
     "quickNone": "Nothing suitable in your cellar for this dish.",
     "quickUnrecognized": "Dish not recognised: the AI sommelier can refine it.",
     "quickLoadError": "Cellar unreadable for the quick suggestion.",
+    "quickOffline": "Offline: cellar not loaded on this device yet.",
     "aiHint": "For refined course-by-course pairings, compose with the AI sommelier (Gold or Platinum plan)."
   },
   "cellarPeak": {
@@ -1091,6 +1094,7 @@
     "intro": "Your whole cellar sorted by urgency, with where each bottle is stored. Computed locally, up to date every time you open it.",
     "emptyCellarTitle": "No wine in your cellar",
     "emptyCellarMessage": "Scan your bottles: VELUM will work out their peak and tell you which ones to open.",
+    "offlineUnloaded": "Offline: your cellar has not been loaded on this device yet. It will appear as soon as you are back online.",
     "scanWine": "Scan a wine",
     "noneAtPeak": "No wine to drink right now.",
     "noneMatching": "No wine matches these filters.",
@@ -1207,6 +1211,7 @@
     "channelName": "“Drink now” reminders",
     "loading": "Reading your cellar…",
     "loadError": "Cellar unreadable: the reminder cannot pick a wine.",
+    "offlineUnloaded": "Offline: your cellar has not been loaded yet — you can schedule the reminder once you are back online.",
     "weekday": {
       "1": "Sunday",
       "2": "Monday",

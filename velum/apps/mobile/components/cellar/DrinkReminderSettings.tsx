@@ -17,6 +17,7 @@ import { VButton, VCard, VSpinner, VText, VTextInput, velumColors, velumSpacing 
 
 import { displayWineLabel } from '../../lib/cellarPeak';
 import { getVelumClient } from '../../lib/client';
+import { isOfflineWithoutData } from '../../lib/collectionView';
 import { cellarPeakForItems } from '../../lib/drinkNow';
 import {
   buildReminderContent,
@@ -231,6 +232,8 @@ export function DrinkReminderSettings({ report: hostReport }: DrinkReminderSetti
       : null;
 
   const loadingCellar = hostReport === undefined && itemsQuery.isLoading;
+  // Hors-ligne sans cache : jamais « aucun vin à boire ».
+  const cellarOffline = hostReport === undefined && isOfflineWithoutData(itemsQuery);
   const cellarError = hostReport === undefined && itemsQuery.isError && !itemsQuery.data;
 
   return (
@@ -288,6 +291,10 @@ export function DrinkReminderSettings({ report: hostReport }: DrinkReminderSetti
             {t('reminders.loading')}
           </VText>
         </View>
+      ) : cellarOffline ? (
+        <VText variant="caption" tone="dim">
+          {t('reminders.offlineUnloaded')}
+        </VText>
       ) : cellarError ? (
         <View style={styles.inline}>
           <VText variant="caption" tone="danger" style={styles.flex}>

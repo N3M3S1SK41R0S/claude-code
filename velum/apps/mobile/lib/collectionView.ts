@@ -26,6 +26,15 @@ export const DEFAULT_COLLECTION_SORT: CollectionSort = 'recent';
 /** Nombre de vins « à boire » affichés dans le bandeau compact. */
 export const DRINK_NOW_PREVIEW_LIMIT = 3;
 
+/**
+ * Lecture React Query en pause HORS-LIGNE sans aucune donnée (ni cache) :
+ * l'écran affiche l'état hors-ligne — jamais « vide » ni « introuvable ».
+ * (`isLoading` est faux dans ce cas : la requête n'est pas en cours.)
+ */
+export function isOfflineWithoutData(query: { fetchStatus: string; data?: unknown }): boolean {
+  return query.fetchStatus === 'paused' && query.data === undefined;
+}
+
 /** Paramètre de route → tri connu (repli sur le tri par défaut). */
 export function parseCollectionSort(raw: unknown): CollectionSort {
   return typeof raw === 'string' && (COLLECTION_SORTS as readonly string[]).includes(raw)
