@@ -23,7 +23,7 @@ const SCREENS = [
   { name: 'cellar-sommelier', path: '/cellar-sommelier', auth: true, expect: 'Trouver le vin dans ma cave', title: 'Sommelier de cave — VELUM' },
   { name: 'blind-tasting', path: '/blind-tasting', auth: true, expect: 'Vin n°1', title: 'Dégustation à l’aveugle — VELUM' },
   { name: 'event-sommelier', path: '/event-sommelier', auth: true, expect: 'Composer les accords', title: 'Sommelier d’événement — VELUM' },
-  { name: 'community', path: '/community', auth: true, expect: 'Catalogue', title: 'Communauté — VELUM' },
+  { name: 'community', path: '/community', auth: true, expect: 'Catalogue', title: 'Échanges & ventes — VELUM' },
   { name: 'market', path: '/market', auth: true, expect: 'À boire', title: 'Marché — VELUM' },
   { name: 'item', path: '/item/demo-wine', auth: true, expect: 'Valorisation', title: 'Fiche — VELUM' },
   { name: 'arbiter', path: '/arbiter/demo-wine', auth: true, expect: 'Pourquoi ce signal', title: 'Arbitre patrimonial — VELUM' },
