@@ -214,11 +214,15 @@ export const RECOGNITION_MAX_TOKENS = 768;
 export const MAX_SHEET_DETECTIONS = 24;
 
 /**
- * Budget de sortie d'une planche : 24 objets × ~110 tokens (2 candidats
- * compacts au plus par objet) ≈ 2 640 tokens, arrondi à 3 072. Au-delà, la
- * réponse est coupée : les objets complets sont conservés et `truncated` levé.
+ * Budget de sortie d'une planche. Mesure sur une réponse réaliste au format
+ * des prompts planche (position, attributs, fourchette, classement) : ~90 à
+ * 100 tokens PAR CANDIDAT compact. Les prompts planche ne demandent donc
+ * qu'UN candidat par objet : 24 × ~95 ≈ 2 300 tokens ; 4 096 garde une marge
+ * de ~75 % contre la troncature (deux candidats par objet, ~4 000 tokens,
+ * coupaient une page pleine vers le 18e objet). Au-delà, la réponse est
+ * coupée : les objets complets sont conservés et `truncated` levé.
  */
-export const SHEET_RECOGNITION_MAX_TOKENS = 3072;
+export const SHEET_RECOGNITION_MAX_TOKENS = 4096;
 
 /** Fourchette indicative montrée seulement au-dessus de cette confiance d'identification. */
 export const QUICK_ESTIMATE_MIN_CONFIDENCE = ASSISTED_ENTRY_THRESHOLD;

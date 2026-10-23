@@ -158,7 +158,9 @@ describe('sheetDetectionFrom', () => {
 describe('budgets de sortie', () => {
   it('reste compact pour un objet et borné pour une planche', () => {
     expect(RECOGNITION_MAX_TOKENS).toBeLessThan(1024);
-    expect(SHEET_RECOGNITION_MAX_TOKENS).toBeGreaterThanOrEqual(MAX_SHEET_DETECTIONS * 100);
+    // Planche : 24 objets × 1 candidat compact (~95 tokens) ≈ 2 300 tokens ; le
+    // budget garde une marge d'au moins 50 % contre la troncature.
+    expect(SHEET_RECOGNITION_MAX_TOKENS).toBeGreaterThanOrEqual(MAX_SHEET_DETECTIONS * 95 * 1.5);
     expect(QUICK_SCAN_OUTPUT_RULES).toContain('"estimate"');
     expect(QUICK_SCAN_OUTPUT_RULES).toContain('"classification"');
   });

@@ -63,25 +63,55 @@ export interface SalvagedArray {
   root: Record<string, unknown> | null;
   /** false → réponse tronquée (budget de tokens atteint) : liste partielle. */
   complete: boolean;
+  /**
+   * La clé a été trouvée dans la réponse. Une réponse SANS la clé (prose,
+   * refus) n'est pas « tronquée » : elle ne contient simplement rien.
+   */
+  found: boolean;
 }
 
 /**
  * Lit le tableau `key` d'une réponse modèle. Si le JSON est coupé (budget de
  * sortie atteint sur une grande planche), récupère les éléments `{...}` déjà
  * COMPLETS au lieu de tout perdre — et le signale (`complete: false`).
+ * Un texte parasite entre accolades AVANT le JSON (« Voici {le résultat} : … »)
+ * n'est pas pris pour une troncature : la racine est cherchée à l'accolade qui
+ * précède la clé.
  */
 export function parseArrayWithSalvage(raw: string, key: string): SalvagedArray {
   const parsed = parseLooseJson(raw);
-  if (isRecord(parsed)) {
+  if (isRecord(parsed) && key in parsed) {
     const value = parsed[key];
-    return { items: Array.isArray(value) ? value : [], root: parsed, complete: true };
+    return { items: Array.isArray(value) ? value : [], root: parsed, complete: true, found: true };
   }
 
   const text = stripMarkdownFences(raw);
   const keyAt = text.indexOf(`"${key}"`);
-  if (keyAt === -1) return { items: [], root: null, complete: false };
+  if (keyAt === -1) {
+    // Aucune trace de la clé : JSON racine sans elle, ou prose sans JSON.
+    return { items: [], root: isRecord(parsed) ? parsed : null, complete: isRecord(parsed), found: false };
+  }
+
+  // Préfixe parasite : la racine qui porte la clé commence à la dernière
+  // accolade ouvrante qui la précède. Si ce bloc est un JSON complet, il fait foi.
+  const rootAt = text.lastIndexOf('{', keyAt);
+  if (rootAt !== -1) {
+    const block = extractFirstJsonBlock(text.slice(rootAt));
+    if (block !== null) {
+      try {
+        const root: unknown = JSON.parse(block);
+        if (isRecord(root) && key in root) {
+          const value = root[key];
+          return { items: Array.isArray(value) ? value : [], root, complete: true, found: true };
+        }
+      } catch {
+        // bloc invalide : on passe à la récupération des éléments complets
+      }
+    }
+  }
+
   const arrayAt = text.indexOf('[', keyAt);
-  if (arrayAt === -1) return { items: [], root: null, complete: false };
+  if (arrayAt === -1) return { items: [], root: null, complete: false, found: true };
 
   const items: unknown[] = [];
   let depth = 0;
@@ -120,7 +150,7 @@ export function parseArrayWithSalvage(raw: string, key: string): SalvagedArray {
       break; // fin du tableau atteinte malgré un JSON racine invalide
     }
   }
-  return { items, root: null, complete: false };
+  return { items, root: null, complete: false, found: true };
 }
 
 /** Garde de type : objet simple (non null, non tableau). */

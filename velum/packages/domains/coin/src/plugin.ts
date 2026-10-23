@@ -84,7 +84,7 @@ ${QUICK_SCAN_OUTPUT_RULES}`;
 const SHEET_PROMPT = `Cette photo montre un plateau de médaillier, une page de classeur numismatique ou plusieurs pièces posées côte à côte. Repère CHAQUE pièce visible, dans l'ordre de lecture (de gauche à droite, puis de haut en bas), et identifie-la à partir de la face visible.
 Réponds UNIQUEMENT avec un JSON strict de la forme :
 {"detections":[{"position":"rangée 1, case 1","candidates":[{"label":string,"confidence":number entre 0 et 1,"attributes":${COIN_ATTRIBUTES_SPEC},"estimate"?:{"low":number,"high":number},"classification"?:string[]}]}],"more":boolean}
-Règles : au plus ${MAX_SHEET_DETECTIONS} pièces ; au plus 2 candidats par pièce ; "more":true s'il reste des pièces au-delà ; une pièce illisible garde sa position avec "candidates":[] ; attributs limités à pays, type, année, atelier et métal ; une seule face étant visible, reste prudent sur le millésime.
+Règles : au plus ${MAX_SHEET_DETECTIONS} pièces ; un seul candidat par pièce (le plus probable) ; "more":true s'il reste des pièces au-delà ; une pièce illisible garde sa position avec "candidates":[] ; attributs limités à pays, type, année, atelier et métal ; une seule face étant visible, reste prudent sur le millésime.
 ${QUICK_SCAN_OUTPUT_RULES}`;
 
 const ROLE_LABELS_FR: Record<string, string> = {
@@ -200,7 +200,7 @@ function parseCandidates(raw: string): Candidate[] | null {
  * la liste est tronquée et signalée de même.
  */
 function parseSheet(raw: string): SheetRecognitionResult {
-  const { items, root, complete } = parseArrayWithSalvage(raw, 'detections');
+  const { items, root, complete, found } = parseArrayWithSalvage(raw, 'detections');
   const detections: SheetDetection[] = [];
   for (const entry of items) {
     if (detections.length === MAX_SHEET_DETECTIONS) break;
@@ -209,8 +209,10 @@ function parseSheet(raw: string): SheetRecognitionResult {
     const position = typeof entry['position'] === 'string' ? entry['position'] : undefined;
     detections.push(sheetDetectionFrom(detections.length, candidates, position));
   }
+  // Coupée, même dès le premier objet (liste vide) : « réponse incomplète »,
+  // jamais « aucun objet ». Une réponse sans la clé (prose) n'est pas coupée.
   const truncated =
-    (!complete && items.length > 0) ||
+    (found && !complete) ||
     items.length > MAX_SHEET_DETECTIONS ||
     root?.['more'] === true;
   return { detections, stage: 'llm_vision', truncated };
