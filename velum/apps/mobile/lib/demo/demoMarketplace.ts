@@ -128,7 +128,6 @@ interface DemoOrder {
   releasedAt: string | null;
   createdAt: string;
   listingTitle: string | null;
-  certificationRequired: boolean;
 }
 
 interface DemoExchange {
@@ -386,7 +385,6 @@ function seedOrders(): DemoOrder[] {
     trackingNumber: null,
     deliveredAt: null,
     releasedAt: null,
-    certificationRequired: false,
   };
   return [
     {
@@ -715,12 +713,22 @@ export function createDemoMarketplaceRepo(
     createdAt: l.createdAt,
   });
 
+  /** Badge « authentifié VELUM » de l'annonce, lu à la consultation (listing_certified). */
+  const listingCertified = (listingId: string): boolean =>
+    listings.find((l) => l.id === listingId)?.certified ?? false;
+
   const orderView = (o: DemoOrder): MarketOrder => {
     const role = o.buyerId === DEMO_OWNER ? 'buyer' : 'seller';
     return {
       ...o,
       role,
       counterpartyAlias: aliasOf(role === 'buyer' ? o.sellerId : o.buyerId),
+      // Comme my_market_orders : expertise CONVENUE sur la commande elle-même
+      // (demandée, en cours ou certifiée) — jamais recopiée de l'annonce.
+      certificationRequired: certifications.some(
+        (c) => c.orderId === o.id && (c.status === 'requested' || c.status === 'in_review' || c.status === 'certified'),
+      ),
+      listingCertified: listingCertified(o.listingId),
     };
   };
 
@@ -743,6 +751,7 @@ export function createDemoMarketplaceRepo(
       state: e.state,
       myCommission: role === 'proposer' ? e.proposerCommission : e.recipientCommission,
       certificationRequired: e.certificationRequired,
+      listingCertified: listingCertified(e.listingId),
       proposerTracking: e.proposerTracking,
       recipientTracking: e.recipientTracking,
       proposerReceived: e.proposerReceived,
@@ -1153,7 +1162,6 @@ export function createDemoMarketplaceRepo(
         releasedAt: null,
         createdAt: now(),
         listingTitle: l.title,
-        certificationRequired: l.certificationRequired,
       };
       orders.unshift(rec);
       // Commande NON payée : elle ne réserve rien (la réservation se fait au
@@ -1658,8 +1666,7 @@ export function createDemoMarketplaceRepo(
         if (e.state === 'shipping') e.state = 'awaiting_certification';
         touch(e);
       }
-      const o = c.orderId ? orders.find((x) => x.id === c.orderId) : undefined;
-      if (o) o.certificationRequired = true;
+      // Commande : l'expertise désormais convenue la conditionne (vue orderView).
       return certificationView(c);
     },
 

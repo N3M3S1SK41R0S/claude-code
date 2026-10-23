@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { redactContactInfo } from '@velum/config';
 import {
   VelumError,
   type CertificationRequest,
@@ -417,6 +418,14 @@ describe('expertise d’un commun accord : demandée sur la transaction (miroir 
     expect(canRequestExchangeCertification(shipping, [cert({ requestedByMe: false })])).toBe(true);
   });
 
+  it('échange : l’auteur ne demande pas l’expertise d’une annonce DÉJÀ certifiée (le destinataire, si)', () => {
+    const certifiedListing = { state: 'shipping' as const, listingCertified: true };
+    expect(canRequestExchangeCertification(exchange({ ...certifiedListing, role: 'proposer' }), [])).toBe(false);
+    expect(canRequestExchangeCertification(exchange({ ...certifiedListing, role: 'recipient' }), [])).toBe(true);
+    // Information absente (dépôt qui ne la fournit pas) : le serveur tranche.
+    expect(canRequestExchangeCertification(exchange({ state: 'shipping', role: 'proposer' }), [])).toBe(true);
+  });
+
   it('commande : avant expédition, une seule demande ouverte, rien après certification', () => {
     const order = (escrowState: EscrowState) => ({ escrowState });
     expect(canRequestOrderCertification(order('pending_payment'), [])).toBe(true);
@@ -426,6 +435,12 @@ describe('expertise d’un commun accord : demandée sur la transaction (miroir 
     expect(canRequestOrderCertification(order('funds_held'), [{ status: 'awaiting_agreement' }])).toBe(false);
     expect(canRequestOrderCertification(order('funds_held'), [{ status: 'certified' }])).toBe(false);
     expect(canRequestOrderCertification(order('funds_held'), [{ status: 'cancelled' }])).toBe(true);
+  });
+
+  it('commande : jamais sur une annonce déjà certifiée avant la vente', () => {
+    expect(canRequestOrderCertification({ escrowState: 'funds_held', listingCertified: true }, [])).toBe(false);
+    expect(canRequestOrderCertification({ escrowState: 'pending_payment', listingCertified: true }, [])).toBe(false);
+    expect(canRequestOrderCertification({ escrowState: 'funds_held', listingCertified: false }, [])).toBe(true);
   });
 });
 
@@ -453,45 +468,101 @@ describe('objet non remettable en vente (miroir d’enforce_listing_rules)', () 
   });
 });
 
-describe('objet déjà certifié (la certification suit l’objet)', () => {
-  const listing = (patch: Partial<Pick<ListingRecord, 'id' | 'itemId' | 'status' | 'certified'>>) => ({
+describe('objet déjà certifié (la certification suit l’objet, miroir de _market_item_certification_ref)', () => {
+  const ITEM = { id: 'it-1', title: 'Omega Speedmaster', domain: 'watch' as const };
+  const listing = (patch: Partial<Pick<ListingRecord, 'id' | 'itemId' | 'status'>>) => ({
     id: 'l-1',
     itemId: 'it-1',
     status: 'withdrawn' as ListingStatus,
-    certified: false,
     ...patch,
   });
-  const cert = (patch: Partial<Pick<CertificationRequest, 'listingId' | 'orderId' | 'exchangeId' | 'reason' | 'status' | 'requestedByMe'>>) => ({
-    listingId: null,
+  type Cert = Parameters<typeof itemCertifiedByExpert>[2][number];
+  const cert = (patch: Partial<Cert>): Cert => ({
+    listingId: 'l-1',
     orderId: null,
     exchangeId: null,
-    reason: 'voluntary' as const,
-    status: 'certified' as const,
+    reason: 'voluntary',
+    status: 'certified',
     requestedByMe: true,
+    itemTitle: 'Omega Speedmaster',
+    domain: 'watch',
+    createdAt: '2026-10-01T09:00:00Z',
+    decidedAt: '2026-10-02T09:00:00Z',
     ...patch,
   });
 
-  it('badge d’une de mes annonces de l’objet, ou certification obtenue sur elle', () => {
-    expect(itemCertifiedByExpert('it-1', [listing({ certified: true })], [])).toBe(true);
-    expect(itemCertifiedByExpert('it-1', [listing({})], [cert({ listingId: 'l-1' })])).toBe(true);
+  it('certification obtenue sur une de mes annonces de l’objet (annonce ou commande)', () => {
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [cert({})])).toBe(true);
     // Expertise d'un commun accord sur une commande de mon annonce (j'en suis le propriétaire).
     expect(
-      itemCertifiedByExpert('it-1', [listing({})], [cert({ listingId: 'l-1', orderId: 'o-1', reason: 'mutual_agreement', requestedByMe: false })]),
+      itemCertifiedByExpert(ITEM, [listing({})], [cert({ orderId: 'o-1', reason: 'mutual_agreement', requestedByMe: false })]),
     ).toBe(true);
   });
 
   it('échange sur mon annonce : seule l’expertise de MON objet compte', () => {
     const exchanges = [{ id: 'e-1', listingId: 'l-1', role: 'recipient' as const }];
-    const onMine = cert({ exchangeId: 'e-1', reason: 'threshold', requestedByMe: true });
-    const onTheirs = cert({ exchangeId: 'e-1', reason: 'mutual_agreement', requestedByMe: true });
-    expect(itemCertifiedByExpert('it-1', [listing({})], [onMine], exchanges)).toBe(true);
-    expect(itemCertifiedByExpert('it-1', [listing({})], [onTheirs], exchanges)).toBe(false);
+    const onMine = cert({ listingId: null, exchangeId: 'e-1', reason: 'threshold', requestedByMe: true });
+    const onTheirs = cert({ listingId: null, exchangeId: 'e-1', reason: 'mutual_agreement', requestedByMe: true });
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [onMine], exchanges)).toBe(true);
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [onTheirs], exchanges)).toBe(false);
   });
 
-  it('prudent : autre objet, demande non aboutie, objet déjà cédé → non', () => {
-    expect(itemCertifiedByExpert('it-2', [listing({ certified: true })], [])).toBe(false);
-    expect(itemCertifiedByExpert('it-1', [listing({})], [cert({ listingId: 'l-1', status: 'in_review' })])).toBe(false);
-    expect(itemCertifiedByExpert('it-1', [listing({ certified: true, status: 'sold' })], [])).toBe(false);
+  it('objet renommé (ou changé de catégorie) après certification : plus certifié', () => {
+    expect(itemCertifiedByExpert({ ...ITEM, title: 'Omega Speedmaster Moonwatch' }, [listing({})], [cert({})])).toBe(false);
+    expect(itemCertifiedByExpert({ ...ITEM, domain: 'art' }, [listing({})], [cert({})])).toBe(false);
+    // Titre comparé EXPURGÉ, comme le titre public mémorisé par le serveur.
+    const withContact = { ...ITEM, title: 'Omega Speedmaster 06 12 34 56 78' };
+    const redacted = cert({ itemTitle: redactContactInfo(withContact.title).text });
+    expect(itemCertifiedByExpert(withContact, [listing({})], [redacted])).toBe(true);
+    // Titre absent des deux côtés : identiques (is not distinct from).
+    expect(itemCertifiedByExpert({ ...ITEM, title: null }, [listing({})], [cert({ itemTitle: null })])).toBe(true);
+  });
+
+  it('la DERNIÈRE décision fait foi : un refus postérieur annule la certification', () => {
+    const certified = cert({});
+    const rejected = cert({
+      listingId: 'l-2',
+      reason: 'threshold',
+      status: 'rejected',
+      createdAt: '2026-10-05T09:00:00Z',
+      decidedAt: '2026-10-06T09:00:00Z',
+    });
+    const both = [listing({}), listing({ id: 'l-2', status: 'draft' })];
+    expect(itemCertifiedByExpert(ITEM, both, [certified, rejected])).toBe(false);
+    expect(itemCertifiedByExpert(ITEM, both, [rejected, certified])).toBe(false);
+    // Nouvelle certification après le refus : de nouveau certifié.
+    const again = cert({ listingId: 'l-2', createdAt: '2026-10-07T09:00:00Z', decidedAt: '2026-10-08T09:00:00Z' });
+    expect(itemCertifiedByExpert(ITEM, both, [certified, rejected, again])).toBe(true);
+    // Décisions ex aequo : prudence, le refus l'emporte.
+    const tie = cert({ listingId: 'l-2', status: 'rejected' });
+    expect(itemCertifiedByExpert(ITEM, both, [certified, tie])).toBe(false);
+  });
+
+  it('refus de MON objet offert dans un échange (même titre public) : la certification antérieure ne vaut plus', () => {
+    const exchanges = [{ id: 'e-9', listingId: 'l-autrui', role: 'proposer' as const }];
+    // Expertise d'un commun accord demandée par l'autre partie : elle porte sur MON objet offert.
+    const rejectedOffer = cert({
+      listingId: null,
+      exchangeId: 'e-9',
+      reason: 'mutual_agreement',
+      requestedByMe: false,
+      status: 'rejected',
+      createdAt: '2026-10-05T09:00:00Z',
+      decidedAt: '2026-10-06T09:00:00Z',
+    });
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [cert({}), rejectedOffer], exchanges)).toBe(false);
+    // Objet offert d'un autre titre : autre objet, sans effet.
+    const otherItem = { ...rejectedOffer, itemTitle: 'Autre montre' };
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [cert({}), otherItem], exchanges)).toBe(true);
+    // Une certification de l'objet offert n'établit rien (l'objet n'y est pas identifiable).
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [{ ...rejectedOffer, status: 'certified' }], exchanges)).toBe(false);
+  });
+
+  it('prudent : autre objet, demande non aboutie, objet déjà cédé, aucune décision → non', () => {
+    expect(itemCertifiedByExpert({ ...ITEM, id: 'it-2' }, [listing({})], [cert({})])).toBe(false);
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [cert({ status: 'in_review', decidedAt: null })])).toBe(false);
+    expect(itemCertifiedByExpert(ITEM, [listing({ status: 'sold' })], [cert({})])).toBe(false);
+    expect(itemCertifiedByExpert(ITEM, [listing({})], [])).toBe(false);
   });
 });
 

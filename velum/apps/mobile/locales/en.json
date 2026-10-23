@@ -1518,6 +1518,7 @@
       "certificationAsked": "Appraisal request sent to the other party.",
       "shipBlocked": "Shipping on hold: an appraisal is under way on this trade (awaiting agreement or with the expert). You can ship once it is settled.",
       "noCertification": "No appraisal for this trade.",
+      "listingCertified": "The listed item is already authenticated by an expert: it is not appraised again.",
       "viewListing": "View the listing",
       "anonymity": "You appear under a pseudonym; shipping addresses are hidden by the platform. Never share your contact details.",
       "confirmReceiptHint": "Confirms you have received the other party's item",

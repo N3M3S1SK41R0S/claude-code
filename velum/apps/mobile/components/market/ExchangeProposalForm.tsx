@@ -79,13 +79,14 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
     if (!valueTouched && estimate !== null) setValue(amountToInput(estimate));
   }, [estimate, valueTouched]);
 
-  // Mon objet déjà certifié : la certification le suit (pas de nouvelle expertise).
+  // Mon objet déjà certifié (dernière décision d'expert, titre public et
+  // catégorie inchangés) : la certification le suit (pas de nouvelle expertise).
   const myListings = useMyListings();
   const myCertifications = useMyCertifications();
   const myExchanges = useMyExchanges();
   const offeredCertified =
     item !== null &&
-    itemCertifiedByExpert(item.id, myListings.data ?? [], myCertifications.data ?? [], myExchanges.data ?? []);
+    itemCertifiedByExpert(item, myListings.data ?? [], myCertifications.data ?? [], myExchanges.data ?? []);
 
   // Seuil évalué objet par objet, comme le serveur (_exchange_threshold_targets).
   const preview = exchangePreview({
