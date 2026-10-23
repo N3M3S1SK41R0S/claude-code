@@ -334,6 +334,41 @@ export function certificationActions(
   }
 }
 
+/** Demande ouverte (accord attendu, demandée, en cours d'expertise). */
+const OPEN_CERTIFICATION: ReadonlySet<CertificationStatus> = new Set(['awaiting_agreement', 'requested', 'in_review']);
+
+/**
+ * Expertise d'un commun accord sur un ÉCHANGE (miroir de request_certification) :
+ * échange accepté (en attente d'expertise ou en expédition) et AUCUN envoi ;
+ * elle porte sur l'objet que je REÇOIS — refusée s'il est déjà en expertise
+ * ou certifié dans cet échange : seuil demandé par son propriétaire (l'autre
+ * partie) ou accord mutuel que j'ai demandé.
+ */
+export function canRequestExchangeCertification(
+  ex: Pick<ExchangeProposal, 'role' | 'state' | 'proposerTracking' | 'recipientTracking'>,
+  related: readonly Pick<CertificationRequest, 'reason' | 'status' | 'requestedByMe'>[],
+): boolean {
+  const ongoing = ex.state === 'accepted' || ex.state === 'awaiting_certification' || ex.state === 'shipping';
+  if (!ongoing || ex.proposerTracking !== null || ex.recipientTracking !== null) return false;
+  const onReceivedItem = (c: Pick<CertificationRequest, 'reason' | 'requestedByMe'>) =>
+    (c.reason === 'threshold' && !c.requestedByMe) || (c.reason === 'mutual_agreement' && c.requestedByMe);
+  return !related.some((c) => onReceivedItem(c) && (OPEN_CERTIFICATION.has(c.status) || c.status === 'certified'));
+}
+
+/**
+ * Expertise d'un commun accord sur une COMMANDE (l'une ou l'autre partie) :
+ * avant expédition seulement, une seule demande ouverte, rien après
+ * certification. (Un objet déjà authentifié avant publication est refusé par
+ * le serveur, avec son motif.)
+ */
+export function canRequestOrderCertification(
+  order: Pick<MarketOrder, 'escrowState'>,
+  related: readonly Pick<CertificationRequest, 'status'>[],
+): boolean {
+  if (order.escrowState !== 'pending_payment' && order.escrowState !== 'funds_held') return false;
+  return !related.some((c) => OPEN_CERTIFICATION.has(c.status) || c.status === 'certified');
+}
+
 // ── Annonces ─────────────────────────────────────────────────────────────────
 
 /** Commande qui réserve l'annonce (paiement capturé) ou l'a conclue. */

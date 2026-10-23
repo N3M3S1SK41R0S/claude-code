@@ -212,6 +212,9 @@ describe('démo marketplace — achat sous séquestre', () => {
     const sale = (await repo.myOrders()).find((o) => o.role === 'seller' && o.escrowState === 'funds_held');
     expect(sale).toBeDefined();
     const id = sale?.id ?? '';
+    // L'acheteur a demandé une expertise : je la refuse, l'expédition est débloquée.
+    const asked = (await repo.myCertifications()).find((c) => c.orderId === id && c.status === 'awaiting_agreement');
+    await repo.respondCertification(asked?.id ?? '', false);
     // Miroir de guard_order_terms : seul l’acheteur (ou le transporteur) atteste la livraison.
     await expectInvalid(
       repo.advanceOrder(id, 'shipped', { trackingNumber: 'LL123456789FR', deliveredAt: NOW }),
@@ -241,8 +244,9 @@ describe('démo marketplace — échanges', () => {
   it('acceptation : commission figée sur l’objet que je cède, puis cycle complet', async () => {
     const repo = setup();
     const accepted = await repo.respondExchange('demo-exchange-1', true);
-    // Je cède ma Semeuse déclarée 45 € à 5 % (2 ventes conclues).
-    expect(accepted).toMatchObject({ state: 'accepted', myCommission: 2.25 });
+    // Je cède ma Semeuse déclarée 45 € à 5 % (2 ventes conclues). Comme le
+    // serveur, l'acceptation passe aussitôt en expédition (sans expertise).
+    expect(accepted).toMatchObject({ state: 'shipping', myCommission: 2.25 });
     const shipped = await repo.shipExchange('demo-exchange-1', 'LL000FR');
     expect(shipped.state).toBe('shipping');
     expect(shipped.recipientTracking).toBe('LL000FR');
@@ -300,6 +304,7 @@ describe('démo marketplace — échanges', () => {
     const repo = setup();
     await expectInvalid(repo.cancelExchange('demo-exchange-1'));
     await repo.respondExchange('demo-exchange-1', true);
+    await repo.requestCertification({ reason: 'mutual_agreement', exchangeId: 'demo-exchange-1' });
     const cancelled = await repo.cancelExchange('demo-exchange-1');
     expect(cancelled.state).toBe('cancelled');
     // L'expertise d'accord mutuel en attente sur cet échange est annulée avec lui.
@@ -309,27 +314,50 @@ describe('démo marketplace — échanges', () => {
 });
 
 describe('démo marketplace — certifications et messages', () => {
-  it('accord mutuel : j’accepte la demande reçue, l’expertise conditionne l’échange', async () => {
+  it('accord mutuel reçu sur ma vente : je l’accepte, l’expédition attend l’expert', async () => {
     const repo = setup();
     const pending = (await repo.myCertifications()).find((c) => c.status === 'awaiting_agreement');
-    expect(pending).toMatchObject({ requestedByMe: false, feePayer: 'split', exchangeId: 'demo-exchange-1' });
+    expect(pending).toMatchObject({ requestedByMe: false, feePayer: 'split', orderId: 'demo-order-4' });
     const agreed = await repo.respondCertification(pending?.id ?? '', true);
     expect(agreed).toMatchObject({ status: 'requested', counterpartyAgreed: true });
-    const accepted = await repo.respondExchange('demo-exchange-1', true);
-    expect(accepted.state).toBe('awaiting_certification');
-    await expectInvalid(repo.shipExchange('demo-exchange-1', 'X'));
+    const order = (await repo.myOrders()).find((o) => o.id === 'demo-order-4');
+    expect(order?.certificationRequired).toBe(true);
+    // Miroir de has_open_certification : expédition bloquée tant que l'expert n'a pas rendu sa décision.
+    await expectInvalid(repo.advanceOrder('demo-order-4', 'shipped', { trackingNumber: 'LL123456789FR' }));
   });
 
-  it('je demande une expertise d’accord mutuel sur une annonce (frais partagés)', async () => {
+  it('échange : expertise d’un commun accord seulement une fois accepté, avant tout envoi', async () => {
     const repo = setup();
-    const req = await repo.requestCertification({ reason: 'mutual_agreement', listingId: 'demo-listing-3' });
-    expect(req).toMatchObject({ status: 'awaiting_agreement', feePayer: 'split', requestedByMe: true, counterpartyAgreed: false });
+    // Simple proposition : refusé (le serveur répond « Trop tard… ou pas en cours »).
+    await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', exchangeId: 'demo-exchange-2' }));
+    await repo.respondExchange('demo-exchange-1', true);
+    const req = await repo.requestCertification({ reason: 'mutual_agreement', exchangeId: 'demo-exchange-1' });
+    // Elle porte sur l'objet que je REÇOIS (l'Hercule proposé).
+    expect(req).toMatchObject({
+      status: 'awaiting_agreement',
+      feePayer: 'split',
+      requestedByMe: true,
+      itemTitle: 'Hercule 10 Francs argent 1967',
+    });
+    await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', exchangeId: 'demo-exchange-1' }));
+    await expectInvalid(repo.requestCertification({ reason: 'voluntary', exchangeId: 'demo-exchange-1' }));
+    await expectInvalid(repo.respondCertification(req.id, true)); // c'est ma demande
+    expect((await repo.cancelCertification(req.id)).status).toBe('cancelled');
+  });
+
+  it('commande : je demande l’expertise avant expédition ; jamais sur l’annonce d’autrui', async () => {
+    const repo = setup();
+    // Annonce d'autrui : le contexte annonce est réservé au vendeur (« introuvable parmi les vôtres »).
     await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', listingId: 'demo-listing-3' }));
     await expectInvalid(repo.requestCertification({ reason: 'voluntary', listingId: 'demo-listing-3' }));
     await expectInvalid(repo.requestCertification({ reason: 'voluntary' }));
-    await expectInvalid(repo.respondCertification(req.id, true)); // c'est ma demande
-    const cancelled = await repo.cancelCertification(req.id);
-    expect(cancelled.status).toBe('cancelled');
+    // Commande déjà expédiée : trop tard.
+    await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', orderId: 'demo-order-1' }));
+    const order = await repo.buy('demo-listing-3');
+    const req = await repo.requestCertification({ reason: 'mutual_agreement', orderId: order.id });
+    expect(req).toMatchObject({ status: 'awaiting_agreement', feePayer: 'split', requestedByMe: true, counterpartyAgreed: false });
+    await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', orderId: order.id }));
+    expect((await repo.cancelCertification(req.id)).status).toBe('cancelled');
   });
 
   it('fil anonymisé : pseudonymes, coordonnées masquées, fils d’autrui inaccessibles', async () => {

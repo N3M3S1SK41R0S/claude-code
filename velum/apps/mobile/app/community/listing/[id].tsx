@@ -2,8 +2,9 @@
  * Détail d'une annonce (routes.listing) : infos, souhaits d'échange,
  * pseudonyme et réputation du vendeur, rappel d'anonymat et de séquestre.
  * Actions en tête : Acheter (vente, sous séquestre) ; Proposer un échange
- * (échange) ; demander une expertise d'un commun accord sous 500 €, ou
- * explication si elle est obligatoire.
+ * (échange). Expertise : obligatoire au-delà de 500 € ; en deçà, d'un commun
+ * accord, demandée sur la commande ou l'échange (jamais sur l'annonce
+ * d'autrui, contexte réservé au vendeur).
  *
  * L'annonce est retrouvée par id (lib/marketQuery `lookupListing`) : cache du
  * catalogue, puis lecture directe — une annonce réservée, vendue ou échangée
@@ -124,16 +125,6 @@ function ListingDetail({ id }: { id: string }) {
       showToast(t('community.bought'), 'success');
       invalidate();
       router.replace(communityActivityHref());
-    },
-    onError,
-  });
-
-  const askCertification = useMutation({
-    mutationFn: () =>
-      client.marketplace.requestCertification({ reason: 'mutual_agreement', listingId: id, feePayer: 'split' }),
-    onSuccess: () => {
-      showToast(t('community.listing.certificationAsked'), 'success');
-      invalidate();
     },
     onError,
   });
@@ -329,17 +320,11 @@ function ListingDetail({ id }: { id: string }) {
               <VBadge tone={CERTIFICATION_TONE[myRequest.status]} label={t(marketLabelKeys.certification(myRequest.status))} />
             </View>
           ) : (
-            <View style={styles.block}>
-              <VText variant="caption" tone="dim">
-                {t('community.listing.certificationOptional')}
-              </VText>
-              <VButton
-                label={t('community.listing.askCertification')}
-                variant="ghost"
-                onPress={() => askCertification.mutate()}
-                loading={askCertification.isPending}
-              />
-            </View>
+            // Le serveur n'accepte l'accord mutuel que sur une commande ou un
+            // échange (le contexte annonce est réservé au vendeur) : on l'explique.
+            <VText variant="caption" tone="dim">
+              {t('community.listing.certificationOptional')}
+            </VText>
           )
         ) : null}
 

@@ -1370,6 +1370,8 @@
     "order": {
       "with": "{{role}} · with {{alias}}",
       "certified": "Appraisal required",
+      "certificationOptional": "Before shipping, you can request an appraisal of the item by a partner expert: it happens if the other party agrees, fee split equally.",
+      "certificationAsked": "Appraisal request sent to the other party.",
       "illegal": "Action not possible in this state.",
       "commission": "{{rate}} commission fixed at purchase: {{amount}}, taken when funds are released.",
       "cancel": "Cancel the order",
@@ -1441,7 +1443,7 @@
       "certification": "Appraisal",
       "certificationBadge": "Appraisal required",
       "certificationRequired": "A certification by a partner expert is required before shipping: items only leave once the appraisal is done.",
-      "certificationOptional": "Below €500, an appraisal is possible if both parties agree (fee split).",
+      "certificationOptional": "Before anything is shipped, you can request an appraisal of the item you receive: it happens if the other party agrees, fee split equally.",
       "certificationAsked": "Appraisal request sent to the other party.",
       "noCertification": "No appraisal for this trade.",
       "viewListing": "View the listing",
@@ -1550,9 +1552,8 @@
       "publishedOn": "Published on {{date}}",
       "certifiedHint": "Item certified by a partner expert before publication.",
       "certificationRequired": "Above €500, the item is appraised by a partner before any transaction.",
-      "certificationOptional": "Below €500, you can request an appraisal: it happens if the seller agrees, fee split equally.",
+      "certificationOptional": "Below €500, an appraisal is still possible by mutual agreement, fee split equally: request it from your order (before shipping) or from the trade once accepted.",
       "askCertification": "Request an appraisal",
-      "certificationAsked": "Appraisal request sent to the seller.",
       "certificationPending": "Your appraisal request:",
       "anonymity": "You never exchange contact details: pseudonyms, redacted messages, masked shipping labels. Payment stays in escrow until receipt."
     },
@@ -1574,11 +1575,9 @@
       "balanceAbove": "Your offer exceeds the listing's value",
       "balanceBelow": "Your offer is below the listing's value",
       "certificationRequired": "Above €500, items are appraised by a partner before shipping (indicative fee: {{fee}}).",
-      "askCertification": "Request an appraisal",
-      "askCertificationHint": "Below €500: carried out if the other party agrees, fee split equally.",
+      "certificationLater": "Below €500: once the proposal is accepted and before anything is shipped, each party can request an appraisal of the item they receive from the trade details (carried out if the other party agrees, fee split equally).",
       "submit": "Send the proposal",
-      "sent": "Proposal sent.",
-      "certificationFailed": "The appraisal request could not be sent: request it again from the trade details."
+      "sent": "Proposal sent."
     },
     "picker": {
       "empty": "Your collection is empty: add an item first.",

@@ -2,8 +2,9 @@
  * Commande sous séquestre (achat OU vente) : état, montant, pseudonyme de
  * l'autre partie, commission figée (vendeur), suivi, et SEULES les actions
  * légales pour mon rôle (payer, expédier avec suivi, confirmer la réception,
- * litige, annuler — lib/marketState, miroir du trigger serveur). Fil de
- * messages anonymisé dépliable.
+ * litige, annuler — lib/marketState, miroir du trigger serveur) ; demande
+ * d'expertise d'un commun accord avant expédition. Fil de messages anonymisé
+ * dépliable.
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -18,6 +19,7 @@ import { formatPrice, formatRate } from '../../lib/marketForms';
 import {
   ESCROW_TONE,
   PRIMARY_ORDER_ACTIONS,
+  canRequestOrderCertification,
   marketLabelKeys,
   orderActionTarget,
   orderActions,
@@ -26,7 +28,7 @@ import {
 import { showToast } from '../../stores/toastStore';
 import { MessageThread } from './MessageThread';
 import { ShipPanel, type Shipment } from './ShipPanel';
-import { useInvalidateCommunity, useMarketErrorToast } from './hooks';
+import { useInvalidateCommunity, useMarketErrorToast, useMyCertifications } from './hooks';
 
 type Panel = 'ship' | 'dispute' | 'cancel' | null;
 
@@ -46,9 +48,28 @@ export function OrderCard({ order }: { order: MarketOrder }) {
   const [panel, setPanel] = useState<Panel>(null);
   const [reason, setReason] = useState('');
   const [showThread, setShowThread] = useState(false);
+  const certifications = useMyCertifications();
 
   const actions = orderActions(order);
   const isSeller = order.role === 'seller';
+  const related = (certifications.data ?? []).filter((c) => c.orderId === order.id);
+  // Expertise d'un commun accord : demandée SUR LA COMMANDE, avant expédition
+  // (seul contexte accepté par le serveur hors vendeur). Mes demandes lues
+  // d'abord, pour ne jamais proposer un doublon.
+  const canAskCertification =
+    certifications.data !== undefined &&
+    !order.certificationRequired &&
+    canRequestOrderCertification(order, related);
+
+  const askCertification = useMutation({
+    mutationFn: () =>
+      client.marketplace.requestCertification({ reason: 'mutual_agreement', orderId: order.id, feePayer: 'split' }),
+    onSuccess: () => {
+      showToast(t('community.order.certificationAsked'), 'success');
+      invalidate();
+    },
+    onError,
+  });
 
   const advance = useMutation({
     mutationFn: async ({ action, shipment }: AdvanceInput) => {
@@ -81,7 +102,7 @@ export function OrderCard({ order }: { order: MarketOrder }) {
     onError,
   });
 
-  const busy = advance.isPending || dispute.isPending;
+  const busy = advance.isPending || dispute.isPending || askCertification.isPending;
   const title = order.listingTitle ?? t('common.unknown');
   const roleLabel = isSeller ? t('community.asSeller') : t('community.asBuyer');
   const commission = order.amount * order.commissionRate;
@@ -152,6 +173,21 @@ export function OrderCard({ order }: { order: MarketOrder }) {
             />
           ),
         )}
+
+      {canAskCertification ? (
+        <>
+          <VText variant="caption" tone="dim">
+            {t('community.order.certificationOptional')}
+          </VText>
+          <VButton
+            label={t('community.listing.askCertification')}
+            variant="ghost"
+            onPress={() => askCertification.mutate()}
+            disabled={busy}
+            loading={askCertification.isPending}
+          />
+        </>
+      ) : null}
 
       {actions.includes('dispute') ? (
         panel === 'dispute' ? (

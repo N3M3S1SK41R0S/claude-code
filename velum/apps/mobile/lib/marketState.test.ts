@@ -6,6 +6,8 @@ import {
   ESCROW_TONE,
   EXCHANGE_TONE,
   LISTING_STATUS_TONE,
+  canRequestExchangeCertification,
+  canRequestOrderCertification,
   canTransitionOrder,
   canWithdrawListing,
   certificationActions,
@@ -257,6 +259,52 @@ describe('certifications et annonces', () => {
       }),
     ).toBe(3);
     expect(pendingActionCount({})).toBe(0);
+  });
+});
+
+describe('expertise d’un commun accord : demandée sur la transaction (miroir de request_certification)', () => {
+  type Cert = Parameters<typeof canRequestExchangeCertification>[1][number];
+  const cert = (patch: Partial<Cert>): Cert => ({
+    reason: 'mutual_agreement',
+    status: 'awaiting_agreement',
+    requestedByMe: true,
+    ...patch,
+  });
+
+  it('échange : seulement accepté et AVANT toute expédition (jamais sur une simple proposition)', () => {
+    expect(canRequestExchangeCertification(exchange({ state: 'proposed' }), [])).toBe(false);
+    expect(canRequestExchangeCertification(exchange({ state: 'shipping' }), [])).toBe(true);
+    expect(canRequestExchangeCertification(exchange({ state: 'awaiting_certification' }), [])).toBe(true);
+    expect(canRequestExchangeCertification(exchange({ state: 'shipping', recipientTracking: 'LL1FR' }), [])).toBe(false);
+    expect(canRequestExchangeCertification(exchange({ state: 'shipping', proposerTracking: 'LL1FR' }), [])).toBe(false);
+    expect(canRequestExchangeCertification(exchange({ state: 'completed' }), [])).toBe(false);
+  });
+
+  it('échange : porte sur l’objet que je REÇOIS — pas de doublon, l’expertise de mon objet n’empêche rien', () => {
+    const shipping = exchange({ state: 'awaiting_certification' });
+    // Expertise de seuil de MON objet (demandée par moi, propriétaire) : sans effet.
+    expect(canRequestExchangeCertification(shipping, [cert({ reason: 'threshold', status: 'requested' })])).toBe(true);
+    // Expertise de seuil de l'objet que je reçois (demandée par l'autre partie) : déjà prévue.
+    expect(
+      canRequestExchangeCertification(shipping, [cert({ reason: 'threshold', status: 'in_review', requestedByMe: false })]),
+    ).toBe(false);
+    // Ma demande en cours ou déjà certifiée : pas de seconde ; refusée/annulée : renouvelable.
+    expect(canRequestExchangeCertification(shipping, [cert({})])).toBe(false);
+    expect(canRequestExchangeCertification(shipping, [cert({ status: 'certified' })])).toBe(false);
+    expect(canRequestExchangeCertification(shipping, [cert({ status: 'cancelled' })])).toBe(true);
+    // Demande de l'autre partie (elle porte sur MON objet) : sans effet.
+    expect(canRequestExchangeCertification(shipping, [cert({ requestedByMe: false })])).toBe(true);
+  });
+
+  it('commande : avant expédition, une seule demande ouverte, rien après certification', () => {
+    const order = (escrowState: EscrowState) => ({ escrowState });
+    expect(canRequestOrderCertification(order('pending_payment'), [])).toBe(true);
+    expect(canRequestOrderCertification(order('funds_held'), [])).toBe(true);
+    expect(canRequestOrderCertification(order('shipped'), [])).toBe(false);
+    expect(canRequestOrderCertification(order('released'), [])).toBe(false);
+    expect(canRequestOrderCertification(order('funds_held'), [{ status: 'awaiting_agreement' }])).toBe(false);
+    expect(canRequestOrderCertification(order('funds_held'), [{ status: 'certified' }])).toBe(false);
+    expect(canRequestOrderCertification(order('funds_held'), [{ status: 'cancelled' }])).toBe(true);
   });
 });
 

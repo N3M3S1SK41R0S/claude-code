@@ -113,6 +113,8 @@ interface DemoExchange {
   listingId: string;
   proposerId: string;
   recipientId: string;
+  /** Objet proposé (collection de l'auteur — jamais exposé à l'autre partie). */
+  offeredItemId: string | null;
   listingTitle: string | null;
   listingDomain: VelumDomain | null;
   listingValue: number;
@@ -138,6 +140,8 @@ interface DemoCertification {
   listingId: string | null;
   orderId: string | null;
   exchangeId: string | null;
+  /** Échange : objet expertisé (celui de l'annonce ou celui proposé), sinon null. */
+  side: 'listing' | 'offered' | null;
   itemTitle: string | null;
   domain: VelumDomain | null;
   reason: CertificationReason;
@@ -438,6 +442,7 @@ function seedExchanges(): DemoExchange[] {
       listingId: 'demo-mine-1',
       proposerId: 'demo-seller-c',
       recipientId: DEMO_OWNER,
+      offeredItemId: 'demo-exchange-1-offered',
       listingTitle: '5 Francs Semeuse argent 1960',
       listingDomain: 'coin',
       listingValue: 45,
@@ -457,6 +462,7 @@ function seedExchanges(): DemoExchange[] {
       listingId: 'demo-listing-6',
       proposerId: DEMO_OWNER,
       recipientId: 'demo-seller-a',
+      offeredItemId: 'demo-exchange-2-offered',
       listingTitle: 'Cérès 20c noir 1849 — YT 3 oblitéré',
       listingDomain: 'stamp',
       listingValue: 95,
@@ -480,6 +486,7 @@ function seedCertifications(): DemoCertification[] {
       listingId: 'demo-mine-2',
       orderId: null,
       exchangeId: null,
+      side: null,
       itemTitle: 'Omega Speedmaster Professional 3570.50',
       domain: 'watch',
       reason: 'threshold',
@@ -494,24 +501,26 @@ function seedCertifications(): DemoCertification[] {
       createdAt: '2026-10-15T09:05:00Z',
       decidedAt: null,
     },
-    // ACCORD ATTENDU de ma part : l'auteur de la proposition reçue souhaite une expertise.
+    // ACCORD ATTENDU de ma part : l'acheteur de ma vente en cours souhaite une
+    // expertise avant l'expédition (sur la commande, comme l'exige le serveur).
     {
       id: 'demo-cert-2',
-      listingId: null,
-      orderId: null,
-      exchangeId: 'demo-exchange-1',
-      itemTitle: '5 Francs Semeuse argent 1960',
-      domain: 'coin',
+      listingId: 'demo-mine-5',
+      orderId: 'demo-order-4',
+      exchangeId: null,
+      side: null,
+      itemTitle: 'Château Lynch-Bages 2005',
+      domain: 'wine',
       reason: 'mutual_agreement',
       status: 'awaiting_agreement',
       feePayer: 'split',
       feeAmount: null,
-      requesterId: 'demo-seller-c',
+      requesterId: 'demo-seller-e',
       counterpartyId: DEMO_OWNER,
       counterpartyAgreed: false,
       reportRef: null,
       expertNote: null,
-      createdAt: '2026-10-18T09:10:00Z',
+      createdAt: '2026-10-20T09:10:00Z',
       decidedAt: null,
     },
   ];
@@ -586,6 +595,16 @@ const OPEN_CERTIFICATION: ReadonlySet<CertificationStatus> = new Set([
   'awaiting_agreement',
   'requested',
   'in_review',
+]);
+
+/** Commande qui RÉSERVE l'annonce (paiement capturé, jusqu'au litige). */
+const ENGAGING_ORDER: ReadonlySet<EscrowState> = new Set(['funds_held', 'shipped', 'disputed']);
+/** Échange qui RÉSERVE l'annonce et l'objet proposé. */
+const ENGAGING_EXCHANGE: ReadonlySet<ExchangeState> = new Set([
+  'accepted',
+  'awaiting_certification',
+  'shipping',
+  'disputed',
 ]);
 
 export function createDemoMarketplaceRepo(
@@ -741,6 +760,34 @@ export function createDemoMarketplaceRepo(
     e.updatedAt = now();
   };
 
+  /**
+   * Miroir de listing_is_engaged : paiement capturé (commande funds_held →
+   * litige) ou échange accepté en cours, sur l'annonce elle-même ou sur son
+   * objet proposé ailleurs par le vendeur. Une commande non payée ne réserve pas.
+   */
+  const isEngaged = (listingId: string, except: { order?: string; exchange?: string } = {}): boolean => {
+    const l = listings.find((x) => x.id === listingId);
+    return (
+      orders.some((o) => o.listingId === listingId && o.id !== except.order && ENGAGING_ORDER.has(o.escrowState)) ||
+      exchanges.some(
+        (e) =>
+          e.id !== except.exchange &&
+          ENGAGING_EXCHANGE.has(e.state) &&
+          (e.listingId === listingId ||
+            (l !== undefined && e.offeredItemId === l.itemId && e.proposerId === l.sellerId)),
+      )
+    );
+  };
+
+  /** Miroir de has_open_certification : l'expédition attend la décision de l'expert. */
+  const hasOpenCertification = (ctx: { orderId?: string; exchangeId?: string }): boolean =>
+    certifications.some(
+      (c) =>
+        OPEN_CERTIFICATION.has(c.status) &&
+        ((ctx.orderId !== undefined && c.orderId === ctx.orderId) ||
+          (ctx.exchangeId !== undefined && c.exchangeId === ctx.exchangeId)),
+    );
+
   const threadInvolvesMe = (kind: MarketThreadKind, id: string): boolean => {
     if (kind === 'order') {
       const o = orders.find((x) => x.id === id);
@@ -838,6 +885,7 @@ export function createDemoMarketplaceRepo(
           listingId: rec.id,
           orderId: null,
           exchangeId: null,
+          side: null,
           itemTitle: rec.title,
           domain: rec.domain,
           reason: 'threshold',
@@ -918,6 +966,9 @@ export function createDemoMarketplaceRepo(
       // l'auto-libération des fonds.
       if (patch?.deliveredAt !== undefined && role !== 'buyer') {
         invalid('Seul l’acheteur (ou le transporteur) atteste la livraison');
+      }
+      if (escrowState === 'shipped' && hasOpenCertification({ orderId: o.id })) {
+        invalid('Expédition bloquée : une certification d’expert est en cours sur cette commande');
       }
       o.escrowState = escrowState;
       if (patch?.carrier !== undefined) o.carrier = patch.carrier;
@@ -1022,6 +1073,7 @@ export function createDemoMarketplaceRepo(
         listingId: l.id,
         proposerId: DEMO_OWNER,
         recipientId: l.sellerId,
+        offeredItemId: offered.id,
         listingTitle: l.title,
         listingDomain: l.domain,
         listingValue: l.askPrice,
@@ -1076,6 +1128,7 @@ export function createDemoMarketplaceRepo(
             listingId: null,
             orderId: null,
             exchangeId: e.id,
+            side: 'listing',
             itemTitle: e.listingTitle,
             domain: e.listingDomain,
             reason: 'threshold',
@@ -1092,7 +1145,9 @@ export function createDemoMarketplaceRepo(
           });
         }
       } else {
-        e.state = 'accepted';
+        // Comme exchange_after_change : l'état « accepté » n'est jamais
+        // persisté, l'échange passe aussitôt en expédition.
+        e.state = 'shipping';
       }
       touch(e);
       return exchangeView(e);
@@ -1184,59 +1239,105 @@ export function createDemoMarketplaceRepo(
       );
       if (contexts.length !== 1) invalid('Une annonce, une commande ou un échange doit être précisé');
 
-      let counterpartyId: string | null = null;
-      let itemTitle: string | null = null;
-      let domain: VelumDomain | null = null;
-      if (input.listingId) {
-        const l = findListing(input.listingId);
-        itemTitle = l.title;
-        domain = l.domain;
-        if (l.sellerId !== DEMO_OWNER) {
-          if (input.reason !== 'mutual_agreement') invalid('Seul le vendeur peut demander cette expertise');
-          counterpartyId = l.sellerId;
-        }
-      } else if (input.exchangeId) {
-        const e = findMyExchange(input.exchangeId);
-        itemTitle = e.listingTitle;
-        domain = e.listingDomain;
-        counterpartyId = e.proposerId === DEMO_OWNER ? e.recipientId : e.proposerId;
-      } else if (input.orderId) {
-        const o = findMyOrder(input.orderId);
-        itemTitle = o.listingTitle;
-        counterpartyId = o.buyerId === DEMO_OWNER ? o.sellerId : o.buyerId;
-      }
-      if (input.reason === 'mutual_agreement' && counterpartyId === null) {
-        invalid('L’accord mutuel suppose une autre partie');
-      }
-      const duplicate = certifications.some(
-        (c) =>
-          OPEN_CERTIFICATION.has(c.status) &&
-          c.listingId === (input.listingId ?? null) &&
-          c.orderId === (input.orderId ?? null) &&
-          c.exchangeId === (input.exchangeId ?? null),
-      );
-      if (duplicate) invalid('Une demande d’expertise est déjà en cours');
-
+      // Miroir de request_certification (contexte par contexte).
       const mutual = input.reason === 'mutual_agreement';
-      const rec: DemoCertification = {
+      const base = {
         id: newId('cert'),
-        listingId: input.listingId ?? null,
-        orderId: input.orderId ?? null,
-        exchangeId: input.exchangeId ?? null,
-        itemTitle,
-        domain,
         reason: input.reason,
-        status: mutual ? 'awaiting_agreement' : 'requested',
-        feePayer: input.feePayer ?? defaultCertificationFeePayer(input.reason),
         feeAmount: null,
         requesterId: DEMO_OWNER,
-        counterpartyId: mutual ? counterpartyId : null,
-        counterpartyAgreed: !mutual,
         reportRef: null,
         expertNote: null,
         createdAt: now(),
         decidedAt: null,
       };
+      let rec: DemoCertification;
+      if (input.listingId) {
+        // Annonce : réservée à son vendeur (seuil ou démarche volontaire).
+        const l =
+          listings.find((x) => x.id === input.listingId && x.sellerId === DEMO_OWNER) ??
+          invalid('Annonce introuvable parmi les vôtres');
+        if (mutual) invalid('L’accord mutuel se demande sur une commande ou un échange');
+        if (l.status !== 'draft' && l.status !== 'active' && l.status !== 'pending_certification') {
+          invalid('Annonce close ou retirée');
+        }
+        if (l.certified) invalid('Objet déjà authentifié par un expert');
+        if (input.reason === 'threshold' && !l.certificationRequired) {
+          invalid('Annonce sous le seuil : demandez une certification volontaire');
+        }
+        if (isEngaged(l.id)) invalid('Annonce engagée dans une transaction : demandez l’expertise sur la transaction');
+        const open = certifications.some(
+          (c) => c.listingId === l.id && c.orderId === null && c.exchangeId === null && OPEN_CERTIFICATION.has(c.status),
+        );
+        if (open) invalid('Une demande de certification est déjà ouverte');
+        rec = {
+          ...base,
+          listingId: l.id,
+          orderId: null,
+          exchangeId: null,
+          side: null,
+          itemTitle: l.title,
+          domain: l.domain,
+          status: 'requested',
+          feePayer: 'seller',
+          counterpartyId: null,
+          counterpartyAgreed: true,
+        };
+      } else if (input.orderId) {
+        // Commande : d'un commun accord, avant expédition.
+        const o = findMyOrder(input.orderId);
+        if (!mutual) invalid('Sur une commande, la certification se décide d’un commun accord');
+        if (o.escrowState !== 'pending_payment' && o.escrowState !== 'funds_held') {
+          invalid('Trop tard : l’objet est déjà expédié ou la commande est close');
+        }
+        const l = listings.find((x) => x.id === o.listingId);
+        if (l?.certified) invalid('Objet déjà authentifié par un expert avant publication');
+        if (hasOpenCertification({ orderId: o.id })) invalid('Une demande de certification est déjà ouverte');
+        rec = {
+          ...base,
+          listingId: o.listingId,
+          orderId: o.id,
+          exchangeId: null,
+          side: null,
+          itemTitle: o.listingTitle,
+          domain: l?.domain ?? null,
+          status: 'awaiting_agreement',
+          feePayer: input.feePayer ?? 'split',
+          counterpartyId: o.buyerId === DEMO_OWNER ? o.sellerId : o.buyerId,
+          counterpartyAgreed: false,
+        };
+      } else {
+        // Échange : d'un commun accord, une fois accepté et avant tout envoi ;
+        // l'objet expertisé est celui que je REÇOIS.
+        const e = findMyExchange(input.exchangeId ?? '');
+        if (!mutual) invalid('Sur un échange, la certification se décide d’un commun accord');
+        const ongoing = e.state === 'accepted' || e.state === 'awaiting_certification' || e.state === 'shipping';
+        if (!ongoing || e.proposerTracking !== null || e.recipientTracking !== null) {
+          invalid('Trop tard : un objet est déjà expédié, ou l’échange n’est pas en cours');
+        }
+        const iAmProposer = e.proposerId === DEMO_OWNER;
+        const side = iAmProposer ? 'listing' : 'offered';
+        if (side === 'listing' && listings.find((x) => x.id === e.listingId)?.certified) {
+          invalid('Objet déjà authentifié par un expert');
+        }
+        const already = certifications.some(
+          (c) => c.exchangeId === e.id && c.side === side && (OPEN_CERTIFICATION.has(c.status) || c.status === 'certified'),
+        );
+        if (already) invalid('Certification déjà obtenue ou demandée pour cet objet');
+        rec = {
+          ...base,
+          listingId: null,
+          orderId: null,
+          exchangeId: e.id,
+          side,
+          itemTitle: side === 'listing' ? e.listingTitle : e.offeredTitle,
+          domain: side === 'listing' ? e.listingDomain : e.offeredDomain,
+          status: 'awaiting_agreement',
+          feePayer: input.feePayer ?? 'split',
+          counterpartyId: iAmProposer ? e.recipientId : e.proposerId,
+          counterpartyAgreed: false,
+        };
+      }
       certifications.unshift(rec);
       return certificationView(rec);
     },
@@ -1254,11 +1355,12 @@ export function createDemoMarketplaceRepo(
         return certificationView(c);
       }
       c.status = 'requested';
-      // Expertise désormais convenue : elle conditionne l'expédition de l'échange.
+      // Expertise désormais convenue : elle conditionne l'expédition de
+      // l'échange (certification_after_change : expédition → attente d'expertise).
       const e = c.exchangeId ? exchanges.find((x) => x.id === c.exchangeId) : undefined;
-      if (e) {
+      if (e && (e.state === 'accepted' || e.state === 'awaiting_certification' || e.state === 'shipping')) {
         e.certificationRequired = true;
-        if (e.state === 'accepted') e.state = 'awaiting_certification';
+        if (e.state === 'shipping') e.state = 'awaiting_certification';
         touch(e);
       }
       const o = c.orderId ? orders.find((x) => x.id === c.orderId) : undefined;
@@ -1274,6 +1376,16 @@ export function createDemoMarketplaceRepo(
       }
       c.status = 'cancelled';
       c.decidedAt = now();
+      // Plus aucune expertise demandée ou en cours : l'échange reprend son
+      // expédition (_exchange_resume_after_certification).
+      const e = c.exchangeId ? exchanges.find((x) => x.id === c.exchangeId) : undefined;
+      const stillOpen = certifications.some(
+        (x) => x.exchangeId === c.exchangeId && (x.status === 'requested' || x.status === 'in_review'),
+      );
+      if (e && e.state === 'awaiting_certification' && !stillOpen) {
+        e.state = 'shipping';
+        touch(e);
+      }
       // Sans l'expertise obligatoire, l'annonce ne peut pas être publiée : retrait.
       if (c.reason === 'threshold' && c.listingId) {
         const l = listings.find((x) => x.id === c.listingId);

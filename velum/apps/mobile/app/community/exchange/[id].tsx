@@ -34,6 +34,7 @@ import { formatPrice, formatRate } from '../../../lib/marketForms';
 import { communityActivityHref, stringParam } from '../../../lib/marketQuery';
 import {
   EXCHANGE_TONE,
+  canRequestExchangeCertification,
   exchangeActions,
   isClosed,
   marketLabelKeys,
@@ -264,11 +265,10 @@ function ExchangeDetail({ id }: { id: string }) {
   const theirValue = iAmProposer ? exchange.listingValue : exchange.offeredValue;
   const cash = myCashPayment(exchange);
   const related = (certifications.data ?? []).filter((c) => c.exchangeId === id);
-  const hasOpenCertification = related.some((c) => !isClosed.certification(c));
+  // Miroir de request_certification : échange accepté, avant tout envoi, sur
+  // l'objet que je reçois (mes demandes lues d'abord : jamais de doublon).
   const canAskCertification =
-    !exchange.certificationRequired &&
-    !hasOpenCertification &&
-    (exchange.state === 'proposed' || exchange.state === 'accepted');
+    certifications.data !== undefined && canRequestExchangeCertification(exchange, related);
 
   const rows: AmountRow[] = [
     { label: t('community.exchange.youGive', { title: mineTitle }), value: formatPrice(mineValue, locale, exchange.currency) },

@@ -1370,6 +1370,8 @@
     "order": {
       "with": "{{role}} · avec {{alias}}",
       "certified": "Expertise requise",
+      "certificationOptional": "Avant l’expédition, vous pouvez demander l’expertise de l’objet par un expert partenaire : elle a lieu si l’autre partie l’accepte, frais partagés par moitié.",
+      "certificationAsked": "Demande d’expertise envoyée à l’autre partie.",
       "illegal": "Action impossible dans cet état.",
       "commission": "Commission {{rate}} figée à l’achat : {{amount}}, prélevée à la libération des fonds.",
       "cancel": "Annuler la commande",
@@ -1441,7 +1443,7 @@
       "certification": "Expertise",
       "certificationBadge": "Expertise requise",
       "certificationRequired": "Une certification par un expert partenaire conditionne l’expédition : les objets ne partent qu’une fois l’expertise rendue.",
-      "certificationOptional": "Sous 500 €, une expertise est possible si les deux parties l’acceptent (frais partagés).",
+      "certificationOptional": "Avant tout envoi, vous pouvez demander l’expertise de l’objet que vous recevez : elle a lieu si l’autre partie l’accepte, frais partagés par moitié.",
       "certificationAsked": "Demande d’expertise envoyée à l’autre partie.",
       "noCertification": "Aucune expertise pour cet échange.",
       "viewListing": "Voir l’annonce",
@@ -1550,9 +1552,8 @@
       "publishedOn": "Publiée le {{date}}",
       "certifiedHint": "Objet certifié par un expert partenaire avant publication.",
       "certificationRequired": "Au-delà de 500 €, l’objet est expertisé par un partenaire avant toute transaction.",
-      "certificationOptional": "Sous 500 €, vous pouvez demander une expertise : elle a lieu si le vendeur l’accepte, frais partagés par moitié.",
+      "certificationOptional": "Sous 500 €, une expertise reste possible d’un commun accord, frais partagés par moitié : demandez-la depuis votre commande (avant l’expédition) ou depuis l’échange une fois accepté.",
       "askCertification": "Demander une expertise",
-      "certificationAsked": "Demande d’expertise envoyée au vendeur.",
       "certificationPending": "Votre demande d’expertise :",
       "anonymity": "Vous n’échangez jamais vos coordonnées : pseudonymes, messages expurgés, étiquettes d’expédition masquées. Le paiement reste sous séquestre jusqu’à la réception."
     },
@@ -1574,11 +1575,9 @@
       "balanceAbove": "Votre offre dépasse la valeur de l’annonce",
       "balanceBelow": "Votre offre est inférieure à la valeur de l’annonce",
       "certificationRequired": "Au-delà de 500 €, les objets sont expertisés par un partenaire avant l’expédition (frais indicatifs : {{fee}}).",
-      "askCertification": "Demander une expertise",
-      "askCertificationHint": "Sous 500 € : réalisée si l’autre partie accepte, frais partagés par moitié.",
+      "certificationLater": "Sous 500 € : une fois la proposition acceptée et avant tout envoi, chaque partie pourra demander l’expertise de l’objet qu’elle reçoit, depuis le détail de l’échange (réalisée si l’autre partie l’accepte, frais partagés par moitié).",
       "submit": "Envoyer la proposition",
-      "sent": "Proposition envoyée.",
-      "certificationFailed": "La demande d’expertise n’a pas pu être envoyée : renouvelez-la depuis le détail de l’échange."
+      "sent": "Proposition envoyée."
     },
     "picker": {
       "empty": "Votre collection est vide : ajoutez d’abord un objet.",
