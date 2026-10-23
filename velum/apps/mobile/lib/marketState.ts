@@ -403,16 +403,22 @@ const OPEN_CERTIFICATION: ReadonlySet<CertificationStatus> = new Set(['awaiting_
  * échange accepté (en attente d'expertise ou en expédition) et AUCUN envoi ;
  * elle porte sur l'objet que je REÇOIS — refusée s'il est déjà en expertise
  * ou certifié dans cet échange : seuil demandé par son propriétaire (l'autre
- * partie) ou accord mutuel que j'ai demandé — ou, pour l'auteur, si
- * l'ANNONCE visée porte déjà une certification d'expert.
+ * partie) ou accord mutuel que j'ai demandé — ou s'il est DÉJÀ certifié
+ * (_market_item_certification_ref) : l'objet de l'annonce pour l'auteur
+ * (`listingCertified`), l'objet offert pour le destinataire
+ * (`offeredItemCertified`). Information absente : le serveur tranche.
  */
 export function canRequestExchangeCertification(
-  ex: Pick<ExchangeProposal, 'role' | 'state' | 'proposerTracking' | 'recipientTracking' | 'listingCertified'>,
+  ex: Pick<
+    ExchangeProposal,
+    'role' | 'state' | 'proposerTracking' | 'recipientTracking' | 'listingCertified' | 'offeredItemCertified'
+  >,
   related: readonly Pick<CertificationRequest, 'reason' | 'status' | 'requestedByMe'>[],
 ): boolean {
   const ongoing = ex.state === 'accepted' || ex.state === 'awaiting_certification' || ex.state === 'shipping';
   if (!ongoing || ex.proposerTracking !== null || ex.recipientTracking !== null) return false;
-  if (ex.role === 'proposer' && ex.listingCertified === true) return false;
+  const receivedCertified = ex.role === 'proposer' ? ex.listingCertified : ex.offeredItemCertified;
+  if (receivedCertified === true) return false;
   const onReceivedItem = (c: Pick<CertificationRequest, 'reason' | 'requestedByMe'>) =>
     (c.reason === 'threshold' && !c.requestedByMe) || (c.reason === 'mutual_agreement' && c.requestedByMe);
   return !related.some((c) => onReceivedItem(c) && (OPEN_CERTIFICATION.has(c.status) || c.status === 'certified'));

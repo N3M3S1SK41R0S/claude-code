@@ -427,6 +427,21 @@ describe('expertise d’un commun accord : demandée sur la transaction (miroir 
     expect(canRequestExchangeCertification(exchange({ state: 'shipping', role: 'proposer' }), [])).toBe(true);
   });
 
+  it('échange : jamais sur l’objet que je reçois s’il est DÉJÀ certifié (_market_item_certification_ref)', () => {
+    // Destinataire : l'objet offert, certifié ailleurs (annonce de son propriétaire, échange tombé…).
+    const offeredCertified = { state: 'shipping' as const, offeredItemCertified: true };
+    expect(canRequestExchangeCertification(exchange({ ...offeredCertified, role: 'recipient' }), [])).toBe(false);
+    // L'auteur, lui, reçoit l'objet de l'annonce : la certification de son propre objet n'empêche rien.
+    expect(canRequestExchangeCertification(exchange({ ...offeredCertified, role: 'proposer' }), [])).toBe(true);
+    // Auteur : l'objet de l'annonce certifié sans badge (commande annulée après certification) — listingCertified.
+    expect(
+      canRequestExchangeCertification(exchange({ state: 'shipping', role: 'proposer', listingCertified: true }), []),
+    ).toBe(false);
+    expect(
+      canRequestExchangeCertification(exchange({ state: 'shipping', role: 'recipient', offeredItemCertified: false }), []),
+    ).toBe(true);
+  });
+
   it('commande : avant expédition, une seule demande ouverte, rien après certification', () => {
     const order = (escrowState: EscrowState) => ({ escrowState });
     expect(canRequestOrderCertification(order('pending_payment'), [])).toBe(true);
