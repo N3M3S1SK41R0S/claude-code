@@ -342,8 +342,12 @@
     "stay": "Rester",
     "valuationLater": "Certaines estimations de marché n’ont pas pu être calculées — réessayez depuis la fiche.",
     "errors": {
-      "noDetection": "Aucun objet détecté sur la planche — reprenez la photo, à plat et sans reflet."
-    }
+      "noDetection": "Aucun objet détecté sur la planche — reprenez la photo, à plat et sans reflet.",
+      "sheetIncomplete": "Réponse incomplète du service d’identification : réessayez, ou photographiez moins d’objets à la fois."
+    },
+    "indicativeTotalPartial": "Valeur indicative partielle : {{range}} ({{priced}} objet(s) estimé(s) sur {{total}})",
+    "photoNotAttached": "{{count}} objet(s) enregistré(s) sans leur photo : le téléversement a échoué (réseau ?).",
+    "editLost": "Correction non appliquée : la ligne a déjà été enregistrée ou ignorée."
   },
   "item": {
     "notFound": "Objet introuvable.",

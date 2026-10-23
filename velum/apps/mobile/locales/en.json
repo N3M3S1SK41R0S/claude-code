@@ -342,8 +342,12 @@
     "stay": "Stay",
     "valuationLater": "Some market estimates could not be computed — try again from the sheet.",
     "errors": {
-      "noDetection": "No object detected on the page — retake the photo, flat and without glare."
-    }
+      "noDetection": "No object detected on the page — retake the photo, flat and without glare.",
+      "sheetIncomplete": "Incomplete answer from the identification service: try again, or photograph fewer objects at once."
+    },
+    "indicativeTotalPartial": "Partial indicative value: {{range}} ({{priced}} of {{total}} object(s) estimated)",
+    "photoNotAttached": "{{count}} object(s) saved without their photo: the upload failed (network?).",
+    "editLost": "Correction not applied: the row was already saved or skipped."
   },
   "item": {
     "notFound": "Object not found.",
