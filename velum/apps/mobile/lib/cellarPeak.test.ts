@@ -16,6 +16,7 @@ import {
   positionFormFrom,
   positionFormToLocation,
   positionLabel,
+  quickSuggestionA11yLabel,
   vintageToShow,
   wishlistIdeaTitle,
   type Translate,
@@ -153,6 +154,23 @@ describe('raison localisée d’une suggestion rapide', () => {
       for (const s of ['past', 'closing', 'peak', 'soon', 'young']) expect(t(`cellar.peakReason.${s}`)).not.toMatch(/^!/);
       for (const s of ['past', 'closing', 'peak', 'soon']) expect(t(`cellarPeak.status.${s}`)).not.toMatch(/^!/);
     }
+  });
+
+  it('libellé accessible complet : vin, emplacement, pertinence, raison et quantité (rien n’est masqué)', () => {
+    const located = { ...suggestion, storageLocation: 'Rangée 2 · Colonne 4 · Place 1', quantity: 3 };
+    expect(quickSuggestionA11yLabel(located, tFr, { label: 'Bandol Tempier 2015', score: '91 %' })).toBe(
+      'Bandol Tempier 2015. Emplacement : Rangée 2 · Colonne 4 · Place 1. Pertinence : 91 %. ' +
+        'Rouge structuré, accord classique avec l’agneau · cité par sa fiche : « gigot d’agneau » · dernière année d’apogée. ' +
+        '3 bouteille(s)',
+    );
+    // Forme compacte (menu d'événement) : sans raison ni quantité, emplacement toujours lu.
+    expect(quickSuggestionA11yLabel(located, tEn, { label: 'Bandol', score: '91 %', compact: true })).toBe(
+      'Bandol. Location: Row 2 · Column 4 · Slot 1. Relevance: 91 %',
+    );
+    // Sans emplacement : aucune mention vide.
+    expect(quickSuggestionA11yLabel(suggestion, tFr, { label: 'Bandol', score: '90 %', compact: true })).toBe(
+      'Bandol. Pertinence : 90 %',
+    );
   });
 
   it('titre d’idée d’envie borné, avec repli', () => {

@@ -38,6 +38,9 @@ export function ChoiceChips<T extends string>({ options, value, onChange, label 
             accessibilityRole="radio"
             accessibilityLabel={option.label}
             accessibilityState={{ selected, checked: selected }}
+            // react-native-web n'émet pas `checked` depuis accessibilityState :
+            // aria-checked est OBLIGATOIRE pour role="radio" (axe : aria-required-attr).
+            aria-checked={selected}
             hitSlop={4}
             style={({ pressed }) => [
               styles.chip,

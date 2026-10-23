@@ -943,7 +943,7 @@
       "reasonUnknownStyle": "Style du vin non déterminé",
       "reasonZappa": "cité par sa fiche : « {{pairing}} »",
       "openItem": "Voir la fiche",
-      "openItemA11y": "Voir la fiche de {{label}}"
+      "scoreA11y": "Pertinence : {{score}}"
     },
     "refine": {
       "title": "Sommelier IA",

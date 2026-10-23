@@ -220,6 +220,28 @@ export function localSuggestionReason(suggestion: LocalPairingSuggestion, t: Tra
   return parts.join(' · ');
 }
 
+/**
+ * Libellé accessible d'une suggestion rapide (carte pressable) : le lecteur
+ * d'écran ne lit QUE ce libellé, il doit donc porter tout ce que la carte
+ * montre — vin, emplacement, pertinence, raison et quantité (forme complète).
+ * `score` : pertinence déjà formatée (formatConfidence).
+ */
+export function quickSuggestionA11yLabel(
+  suggestion: LocalPairingSuggestion,
+  t: Translate,
+  options: { label: string; score: string; compact?: boolean },
+): string {
+  const position = positionLabel(suggestion.storageLocation, t);
+  const parts = [
+    options.label,
+    position ? t('cellar.location', { location: position }) : null,
+    t('cellar.quick.scoreA11y', { score: options.score }),
+    options.compact ? null : localSuggestionReason(suggestion, t),
+    !options.compact && suggestion.quantity !== undefined ? t('cellar.quantity', { count: suggestion.quantity }) : null,
+  ];
+  return parts.filter((part): part is string => part !== null && part.length > 0).join('. ');
+}
+
 /** Titre d'une idée d'envie à partir des styles à acheter (borné). */
 export function wishlistIdeaTitle(purchaseIdeas: readonly string[], fallback: string): string {
   const title = purchaseIdeas.slice(0, 3).join(' · ');

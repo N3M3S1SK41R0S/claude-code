@@ -943,7 +943,7 @@
       "reasonUnknownStyle": "Wine style unknown",
       "reasonZappa": "its sheet suggests “{{pairing}}”",
       "openItem": "Open sheet",
-      "openItemA11y": "Open the sheet of {{label}}"
+      "scoreA11y": "Relevance: {{score}}"
     },
     "refine": {
       "title": "AI sommelier",
