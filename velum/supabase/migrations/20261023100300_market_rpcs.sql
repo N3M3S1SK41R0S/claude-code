@@ -43,8 +43,10 @@ create type public.market_order_view as (
   listing_domain public.velum_domain,
   -- Certification demandée (ou obtenue) sur la commande elle-même.
   certification_required boolean,
-  -- L'ANNONCE porte déjà une certification d'expert : aucune nouvelle
-  -- demande d'expertise n'est recevable sur la commande.
+  -- L'objet de l'annonce est déjà certifié : référence posée sur l'annonce,
+  -- ou certification qui SUIT l'objet du vendeur (dernière décision d'expert
+  -- = certification, contenu inchangé) — aucune nouvelle demande d'expertise
+  -- n'est recevable sur la commande.
   listing_certified boolean
 );
 
@@ -65,9 +67,16 @@ create type public.market_exchange_view as (
   state text,
   my_commission numeric,
   certification_required boolean,
-  -- L'ANNONCE visée porte déjà une certification d'expert : son objet n'est
+  -- L'objet de l'annonce visée est déjà certifié (référence posée sur
+  -- l'annonce, ou certification qui suit l'objet du destinataire) : il n'est
   -- plus expertisable à la demande de l'auteur de la proposition.
   listing_certified boolean,
+  -- MON objet offert : renseigné pour l'AUTEUR seulement (null pour le
+  -- destinataire — jamais l'objet d'autrui).
+  offered_item_id uuid,
+  -- L'objet offert est déjà certifié (certification qui suit l'objet de
+  -- l'auteur) : le destinataire ne peut plus en demander l'expertise.
+  offered_item_certified boolean,
   proposer_tracking text,
   recipient_tracking text,
   proposer_received boolean,
@@ -373,7 +382,9 @@ as $$
     exists (
       select 1 from public.certification_requests c
       where c.order_id = o.id and c.status in ('requested', 'in_review', 'certified')),
-    l.expert_appraisal_ref is not null
+    -- Même règle que request_certification (aide interne : SECURITY DEFINER).
+    (l.expert_appraisal_ref is not null
+      or public._market_item_certification_ref(l.item_id, o.seller_id) is not null)
   from public.orders o
   join public.listings l on l.id = o.listing_id
   where auth.uid() in (o.buyer_id, o.seller_id)
@@ -405,7 +416,11 @@ as $$
     e.state,
     case when e.proposer_id = auth.uid() then e.proposer_commission else e.recipient_commission end,
     e.certification_required,
-    l.expert_appraisal_ref is not null,
+    -- Mêmes règles que request_certification (aides internes : SECURITY DEFINER).
+    (l.expert_appraisal_ref is not null
+      or public._market_item_certification_ref(l.item_id, e.recipient_id) is not null),
+    case when e.proposer_id = auth.uid() then e.offered_item_id end,
+    public._market_item_certification_ref(e.offered_item_id, e.proposer_id) is not null,
     e.proposer_tracking,
     e.recipient_tracking,
     e.proposer_received,
@@ -805,7 +820,10 @@ begin
           using errcode = 'P0001';
       end if;
       select * into v_listing from public.listings where id = v_order.listing_id;
-      if v_listing.expert_appraisal_ref is not null then
+      -- Annonce certifiée, ou objet du vendeur déjà certifié (la
+      -- certification suit l'objet : commande antérieure annulée…).
+      if v_listing.expert_appraisal_ref is not null
+         or public._market_item_certification_ref(v_listing.item_id, v_order.seller_id) is not null then
         raise exception 'Objet déjà authentifié par un expert avant publication'
           using errcode = 'P0001';
       end if;

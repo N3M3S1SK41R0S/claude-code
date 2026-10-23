@@ -31,7 +31,9 @@
 --   X15 arrondi au centime sur les écritures réelles du registre (vecteurs
 --       partagés avec packages/config) ;
 --   X16 expédition du vendeur avec date de livraison : P0001 ; sans date, elle passe ;
---   X17 listing_certified : annonce déjà certifiée, exposée aux parties.
+--   X17 listing_certified : annonce déjà certifiée, exposée aux parties ;
+--   X17b objet certifié hors annonce (commande annulée) : listing_certified,
+--       offered_item_certified ; offered_item_id à l'auteur seul.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 \set ON_ERROR_STOP on
@@ -1708,6 +1710,119 @@ begin
     raise exception 'X17 : destinataire ⇒ listing_certified vrai attendu (%)', row_to_json(v_row);
   end if;
   raise notice 'OK X17 — listing_certified exposé aux parties d''une commande et d''un échange';
+end
+$$;
+
+-- ── X17b. Objet certifié HORS annonce (commande annulée) ────────────────────
+-- listing_certified reflète aussi la certification qui SUIT l'objet du
+-- vendeur (dernière décision = certification, contenu inchangé), même sans
+-- référence posée sur l'annonce : nouvelle commande et échange l'exposent, et
+-- l'expertise y est refusée. offered_item_id (MON objet offert) n'est exposé
+-- qu'à l'auteur ; offered_item_certified (objet offert déjà certifié) aux deux.
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000029', '81000000-0000-4000-8000-000000000001', 'coin', 'Écu blanc à la couronne'),
+  ('92000000-0000-4000-8000-000000000005', '82000000-0000-4000-8000-000000000002', 'coin', 'Teston de François Ier'),
+  ('93000000-0000-4000-8000-000000000006', '83000000-0000-4000-8000-000000000003', 'coin', 'Double tournois de Gaston');
+
+do $$
+declare
+  v_cert uuid;
+  v_order uuid;
+  v_ex uuid;
+  v_row record;
+begin
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price, kind) values
+    ('a17b0000-0000-4000-8000-000000000029', '91000000-0000-4000-8000-000000000029',
+     '81000000-0000-4000-8000-000000000001', 300, 'sale_or_exchange');
+  -- Accord mutuel certifié sur une commande, puis commande annulée.
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select id into v_order from public.market_buy('a17b0000-0000-4000-8000-000000000029');
+  select c.id into v_cert from public.request_certification('mutual_agreement', p_order => v_order) c;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  perform public.respond_certification(v_cert, true);
+  -- Objet de Bruno certifié sur sa propre annonce, ensuite retirée.
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a17b0000-0000-4000-8000-000000000005', '92000000-0000-4000-8000-000000000005',
+     '82000000-0000-4000-8000-000000000002', 80);
+  perform public.request_certification('voluntary', p_listing => 'a17b0000-0000-4000-8000-000000000005');
+  reset role;
+  perform set_config('velum.uid', '', true);
+  perform public.decide_certification(v_cert, true, 'expertises/alice/ecu-blanc.pdf', 'Authentique');
+  perform public.decide_certification(
+    (select id from public.certification_requests
+     where listing_id = 'a17b0000-0000-4000-8000-000000000005' and status = 'requested'),
+    true, 'expertises/bruno/teston.pdf', 'Authentique');
+  if (select expert_appraisal_ref from public.listings
+      where id = 'a17b0000-0000-4000-8000-000000000029') is not null then
+    raise exception 'X17b : la certification d''une commande ne pose aucune référence sur l''annonce';
+  end if;
+  set local role authenticated;
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  perform public.advance_market_order(v_order, 'cancelled');
+  update public.listings set status = 'withdrawn' where id = 'a17b0000-0000-4000-8000-000000000005';
+
+  -- Nouvelle commande : objet certifié, expertise refusée.
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  select * into v_row from public.market_buy('a17b0000-0000-4000-8000-000000000029');
+  v_order := v_row.id;
+  if v_row.listing_certified is distinct from true or v_row.certification_required then
+    raise exception 'X17b : objet certifié sur une commande annulée ⇒ listing_certified vrai attendu (%)',
+      row_to_json(v_row);
+  end if;
+  perform public._mkh_expect_error(
+    format('select * from public.request_certification(''mutual_agreement'', p_order => %L)', v_order),
+    '%déjà authentifié%');
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  if (select o.listing_certified from public.my_market_orders(v_order) o) is distinct from true then
+    raise exception 'X17b : vendeur ⇒ listing_certified vrai attendu';
+  end if;
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  perform public.advance_market_order(v_order, 'cancelled');
+
+  -- Proposition d'un objet NON certifié : offered_item_certified faux ;
+  -- offered_item_id = mon objet, pour l'auteur seulement.
+  select * into v_row from public.propose_exchange(
+    'a17b0000-0000-4000-8000-000000000029', '93000000-0000-4000-8000-000000000006', 250);
+  if v_row.listing_certified is distinct from true
+     or v_row.offered_item_id is distinct from '93000000-0000-4000-8000-000000000006'
+     or v_row.offered_item_certified is distinct from false then
+    raise exception 'X17b : auteur (objet non certifié) ⇒ listing_certified vrai, offered_item_id, offered_item_certified faux attendus (%)',
+      row_to_json(v_row);
+  end if;
+
+  -- Proposition d'un objet CERTIFIÉ (annonce retirée) : offered_item_certified vrai.
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select * into v_row from public.propose_exchange(
+    'a17b0000-0000-4000-8000-000000000029', '92000000-0000-4000-8000-000000000005', 80);
+  v_ex := v_row.id;
+  if v_row.listing_certified is distinct from true
+     or v_row.offered_item_id is distinct from '92000000-0000-4000-8000-000000000005'
+     or v_row.offered_item_certified is distinct from true then
+    raise exception 'X17b : auteur (objet certifié) ⇒ listing_certified, offered_item_id, offered_item_certified attendus (%)',
+      row_to_json(v_row);
+  end if;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select * into v_row from public.my_exchanges(v_ex);
+  if v_row.listing_certified is distinct from true or v_row.offered_item_id is not null
+     or v_row.offered_item_certified is distinct from true then
+    raise exception 'X17b : destinataire ⇒ listing_certified vrai, offered_item_id masqué, offered_item_certified vrai attendus (%)',
+      row_to_json(v_row);
+  end if;
+  select * into v_row from public.respond_exchange(v_ex, true);
+  if v_row.state <> 'shipping' or v_row.certification_required then
+    raise exception 'X17b : objets certifiés ⇒ phase d''expédition sans expertise attendue (%)', row_to_json(v_row);
+  end if;
+  perform public._mkh_expect_error(
+    format('select * from public.request_certification(''mutual_agreement'', p_exchange => %L)', v_ex),
+    '%déjà obtenue%');
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  perform public._mkh_expect_error(
+    format('select * from public.request_certification(''mutual_agreement'', p_exchange => %L)', v_ex),
+    '%déjà obtenue%');
+  raise notice 'OK X17b — objet certifié hors annonce : listing_certified, offered_item_certified exposés, expertise refusée ; offered_item_id à l''auteur seul';
 end
 $$;
 

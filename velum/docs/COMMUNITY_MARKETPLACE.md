@@ -189,10 +189,16 @@ offert par l'auteur. À la conclusion : annonce `exchanged`, annonce
   `my_certifications`, `thread_messages`) renvoient `role`,
   `counterparty_alias`, `mine`… et l'identifiant du seul utilisateur courant.
   `my_market_orders` et `my_exchanges` exposent aussi `listing_certified`
-  (`listingCertified`) : l'**annonce** porte déjà une certification d'expert —
+  (`listingCertified`) : l'objet de l'annonce est **déjà certifié** —
+  référence posée sur l'annonce, ou certification qui **suit l'objet** du
+  vendeur (§ 5 ; par exemple obtenue sur une commande ensuite annulée) —
   distinct de `certification_required` (demande portée par la transaction) ;
   aucune nouvelle expertise n'est alors recevable sur la commande, ni à la
-  demande de l'auteur d'une proposition d'échange.
+  demande de l'auteur d'une proposition d'échange. `my_exchanges` expose en
+  outre `offered_item_certified` (`offeredItemCertified` : l'objet **offert**
+  est déjà certifié, le destinataire ne peut plus en demander l'expertise) et
+  `offered_item_id` (`offeredItemId`) : **mon** objet offert, renseigné pour
+  l'**auteur** seulement (null pour le destinataire — jamais l'objet d'autrui).
 - **Masquage des coordonnées** (`redact_contact_info`, réplique exacte de
   `redactContactInfo`) : e-mails ENTIERS, partie locale comprise (accents,
   majuscules, maquillages « arobase », « (at) », « [at] », « point »,
