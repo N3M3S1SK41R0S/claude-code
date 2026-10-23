@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { REDACTION_TOKEN } from '@velum/config';
 import { VelumError, type VelumItem } from '@velum/core';
 
+import { canRequestOrderCertification, itemCertifiedByExpert } from '../marketState';
 import { createDemoMarketplaceRepo } from './demoMarketplace';
 
 const NOW = '2026-10-23T10:00:00.000Z';
@@ -101,6 +102,21 @@ describe('démo marketplace — catalogue', () => {
     expect(await repo.getListing?.('demo-listing-9')).toMatchObject({ id: 'demo-listing-9', isMine: false });
     expect(await repo.getListing?.('demo-mine-3')).toMatchObject({ isMine: true });
     expect(await repo.getListing?.('absente')).toBeNull();
+  });
+
+  it('annonce RÉSERVÉE par une transaction d’autrui : invisible d’un tiers, comme au catalogue', async () => {
+    const repo = setup();
+    expect(await repo.getListing?.('demo-listing-8')).toMatchObject({ id: 'demo-listing-8' });
+    // Son vendeur m'offre ce même Hercule en échange : une fois accepté, son
+    // annonce est réservée (listing_is_engaged) et je n'y suis pas partie.
+    await repo.respondExchange('demo-exchange-1', true);
+    expect((await repo.catalogue()).some((l) => l.id === 'demo-listing-8')).toBe(false);
+    expect(await repo.getListing?.('demo-listing-8')).toBeNull();
+    // Réservée par MA commande payée : je reste partie, elle reste consultable.
+    const order = await repo.buy('demo-listing-3');
+    await repo.requestCertification({ reason: 'mutual_agreement', orderId: order.id });
+    expect((await repo.advanceOrder(order.id, 'funds_held')).escrowState).toBe('funds_held');
+    expect(await repo.getListing?.('demo-listing-3')).toMatchObject({ id: 'demo-listing-3' });
   });
 
   it('expose une réputation par pseudonyme sans identifiant', async () => {
@@ -280,6 +296,45 @@ describe('démo marketplace — alignement sur les règles serveur', () => {
     ).rejects.toMatchObject({ message: expect.stringContaining('refusé par un expert') });
   });
 
+  it('refus d’une certification VOLONTAIRE pendant un échange accepté non expédié : échange annulé, annonce en brouillon', async () => {
+    const repo = setup();
+    const voluntary = await repo.requestCertification({ reason: 'voluntary', listingId: 'demo-mine-1' });
+    // Échange accepté pendant l'expertise : en expédition, aucun envoi encore.
+    expect((await repo.respondExchange('demo-exchange-1', true)).state).toBe('shipping');
+    await repo.decideCertification(voluntary.id, { certified: false });
+    expect((await repo.myExchanges()).find((e) => e.id === 'demo-exchange-1')?.state).toBe('cancelled');
+    expect((await repo.myListings()).find((l) => l.id === 'demo-mine-1')).toMatchObject({ status: 'draft', certified: false });
+  });
+
+  it('refus d’expert : une transaction DÉJÀ expédiée reste en place (litige), l’annonce qu’elle réserve aussi', async () => {
+    const repo = setup();
+    const voluntary = await repo.requestCertification({ reason: 'voluntary', listingId: 'demo-mine-1' });
+    await repo.respondExchange('demo-exchange-1', true);
+    await repo.shipExchange('demo-exchange-1', 'LL000FR');
+    await repo.decideCertification(voluntary.id, { certified: false });
+    expect((await repo.myExchanges()).find((e) => e.id === 'demo-exchange-1')?.state).toBe('shipping');
+    expect((await repo.myListings()).find((l) => l.id === 'demo-mine-1')?.status).toBe('active');
+  });
+
+  it('certification puis refus postérieur : le badge quitte toutes mes annonces non closes de l’objet', async () => {
+    const watch = item('it-watch', { domain: 'watch', title: 'Omega Speedmaster' });
+    const repo = setup([watch]);
+    const first = await repo.createListing({ itemId: 'it-watch', askPrice: 900 });
+    const firstCert = (await repo.myCertifications()).find((c) => c.listingId === first.id);
+    await repo.decideCertification(firstCert?.id ?? '', { certified: true });
+    await repo.withdrawListing(first.id);
+    expect((await repo.myListings()).find((l) => l.id === first.id)?.certified).toBe(true);
+    // Objet renommé : la certification ne le suit plus, nouvelle expertise de seuil… refusée.
+    watch.title = 'Omega Speedmaster Moonwatch';
+    const second = await repo.createListing({ itemId: 'it-watch', askPrice: 900 });
+    expect(second).toMatchObject({ status: 'pending_certification', certified: false });
+    const secondCert = (await repo.myCertifications()).find((c) => c.listingId === second.id);
+    await repo.decideCertification(secondCert?.id ?? '', { certified: false });
+    const mine = await repo.myListings();
+    expect(mine.find((l) => l.id === first.id)).toMatchObject({ status: 'withdrawn', certified: false });
+    expect(mine.find((l) => l.id === second.id)).toMatchObject({ status: 'draft', certified: false });
+  });
+
   it('certification obtenue : l’annonce est publiée avec le badge, et la certification suit l’objet', async () => {
     const repo = setup();
     const rec = await repo.createListing({ itemId: 'it-watch', askPrice: 900 });
@@ -290,6 +345,27 @@ describe('démo marketplace — alignement sur les règles serveur', () => {
     const again = await repo.createListing({ itemId: 'it-watch', askPrice: 1200 });
     expect(again).toMatchObject({ status: 'active', certified: true });
     await expectInvalid(repo.decideCertification(cert?.id ?? '', { certified: false })); // déjà décidée
+  });
+
+  it('aperçu aligné sur le dépôt : objet renommé après certification, ou refusé ensuite ⇒ pas « déjà certifié »', async () => {
+    const watch = item('it-watch', { domain: 'watch', title: 'Omega Speedmaster' });
+    const repo = setup([watch]);
+    const certifiedByExpert = async () =>
+      itemCertifiedByExpert(watch, await repo.myListings(), await repo.myCertifications(), await repo.myExchanges());
+    const rec = await repo.createListing({ itemId: 'it-watch', askPrice: 900 });
+    const cert = (await repo.myCertifications()).find((c) => c.listingId === rec.id);
+    await repo.decideCertification(cert?.id ?? '', { certified: true });
+    await repo.withdrawListing(rec.id);
+    expect(await certifiedByExpert()).toBe(true);
+    watch.title = 'Omega Speedmaster Moonwatch';
+    expect(await certifiedByExpert()).toBe(false);
+    const renamed = await repo.createListing({ itemId: 'it-watch', askPrice: 900 });
+    expect(renamed).toMatchObject({ status: 'pending_certification', certified: false });
+    // Titre d'origine rétabli, mais refus d'expert postérieur : toujours pas certifié.
+    const pending = (await repo.myCertifications()).find((c) => c.listingId === renamed.id);
+    await repo.decideCertification(pending?.id ?? '', { certified: false });
+    watch.title = 'Omega Speedmaster';
+    expect(await certifiedByExpert()).toBe(false);
   });
 });
 
@@ -314,6 +390,30 @@ describe('démo marketplace — achat sous séquestre', () => {
     expect((await repo.catalogue()).some((l) => l.id === 'demo-listing-3')).toBe(false);
     expect(await repo.getListing?.('demo-listing-3')).toMatchObject({ id: 'demo-listing-3' });
     await expectInvalid(repo.buy('demo-listing-3'));
+  });
+
+  it('annonce déjà certifiée : listingCertified, sans « expertise requise » sur la commande (comme my_market_orders)', async () => {
+    const repo = setup();
+    const certified = await repo.buy('demo-listing-2');
+    expect(certified).toMatchObject({ certificationRequired: false, listingCertified: true });
+    // Aucune expertise ne se demande alors sur la commande (miroir de request_certification).
+    expect(canRequestOrderCertification(certified, [])).toBe(false);
+    await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', orderId: certified.id }));
+    const plain = await repo.buy('demo-listing-3');
+    expect(plain).toMatchObject({ certificationRequired: false, listingCertified: false });
+    expect(canRequestOrderCertification(plain, [])).toBe(true);
+  });
+
+  it('expertise requise sur la commande : seulement convenue (demandée, en cours ou certifiée)', async () => {
+    const repo = setup();
+    const pending = (await repo.myCertifications()).find((c) => c.orderId === 'demo-order-4');
+    expect((await repo.myOrders()).find((o) => o.id === 'demo-order-4')?.certificationRequired).toBe(false);
+    await repo.respondCertification(pending?.id ?? '', true);
+    expect((await repo.myOrders()).find((o) => o.id === 'demo-order-4')?.certificationRequired).toBe(true);
+    // Refusée par l'expert : la commande tombe (fonds rendus), plus d'expertise en cours.
+    await repo.decideCertification(pending?.id ?? '', { certified: false });
+    expect((await repo.myOrders()).find((o) => o.id === 'demo-order-4')).toMatchObject({ escrowState: 'cancelled' });
+    expect((await repo.myListings()).find((l) => l.id === 'demo-mine-5')?.status).toBe('draft');
   });
 
   it('une seule commande non payée par acheteur et par annonce', async () => {
@@ -511,6 +611,16 @@ describe('démo marketplace — échanges', () => {
     await expectInvalid(repo.cancelCertification(certs[0]?.id ?? ''));
   });
 
+  it('listingCertified : l’annonce visée porte déjà une certification (comme my_exchanges)', async () => {
+    const repo = setup();
+    const byId = async (id: string) => (await repo.myExchanges()).find((e) => e.id === id);
+    expect(await byId('demo-exchange-1')).toMatchObject({ listingCertified: false });
+    expect(await byId('demo-exchange-2')).toMatchObject({ listingCertified: false });
+    const voluntary = await repo.requestCertification({ reason: 'voluntary', listingId: 'demo-mine-1' });
+    await repo.decideCertification(voluntary.id, { certified: true });
+    expect(await byId('demo-exchange-1')).toMatchObject({ listingCertified: true });
+  });
+
   it('proposition : titre de l’objet offert expurgé des coordonnées', async () => {
     const repo = setup([item('it-phone', { title: 'Montre – appelez 06 12 34 56 78' })]);
     const ex = await repo.proposeExchange({ listingId: 'demo-listing-4', offeredItemId: 'it-phone', offeredValue: 300 });
@@ -562,7 +672,7 @@ describe('démo marketplace — certifications et messages', () => {
       status: 'awaiting_agreement',
       feePayer: 'split',
       requestedByMe: true,
-      itemTitle: 'Hercule 10 Francs argent 1967',
+      itemTitle: 'Hercule 10 Francs argent 1965',
     });
     await expectInvalid(repo.requestCertification({ reason: 'mutual_agreement', exchangeId: 'demo-exchange-1' }));
     await expectInvalid(repo.requestCertification({ reason: 'voluntary', exchangeId: 'demo-exchange-1' }));

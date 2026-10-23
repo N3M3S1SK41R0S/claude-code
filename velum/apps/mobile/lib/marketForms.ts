@@ -144,34 +144,48 @@ function minusMonths(date: Date, months: number): Date {
   return target;
 }
 
-/** Estimations valides de la fenêtre : montant > 0, datées ni dans le futur ni trop anciennes. */
-function estimatesInWindow(history: readonly EstimatePoint[], now: string | Date): { central: number; at: number }[] {
+/** Estimations valides PASSÉES (montant > 0, date lisible et non future), avec la borne de la fenêtre. */
+function pastEstimates(
+  history: readonly EstimatePoint[],
+  now: string | Date,
+): { points: { central: number; at: number }[]; floor: number } {
   const nowDate = typeof now === 'string' ? new Date(now) : now;
   const nowMs = nowDate.getTime();
-  if (!Number.isFinite(nowMs)) return [];
+  if (!Number.isFinite(nowMs)) return { points: [], floor: nowMs };
   const floor = minusMonths(nowDate, MARKET_VALUATION_WINDOW_MONTHS).getTime();
   const points: { central: number; at: number }[] = [];
   for (const v of history) {
     const at = Date.parse(v.valuedAt);
     if (!Number.isFinite(v.central) || v.central <= 0 || !Number.isFinite(at)) continue;
-    // Date future (invalide) ou hors fenêtre : ignorée, comme _market_reference_value.
-    if (at > nowMs || at <= floor) continue;
+    // Date future (invalide) : ignorée, comme _market_reference_value.
+    if (at > nowMs) continue;
     points.push({ central: v.central, at });
   }
-  return points;
+  return { points, floor };
+}
+
+/** Estimations valides de la fenêtre : montant > 0, datées ni dans le futur ni trop anciennes. */
+function estimatesInWindow(history: readonly EstimatePoint[], now: string | Date): { central: number; at: number }[] {
+  const { points, floor } = pastEstimates(history, now);
+  return points.filter((p) => p.at > floor);
 }
 
 /**
- * Estimation de RÉFÉRENCE pour le seuil de certification : la PLUS HAUTE des
- * estimations VELUM des 18 derniers mois (dates futures ignorées) — même
- * règle que _market_reference_value côté serveur : une estimation basse
- * postérieure ne masque pas une estimation haute récente. null si aucune.
+ * Estimation de RÉFÉRENCE pour le seuil de certification — même règle que
+ * _market_reference_value côté serveur : la PLUS HAUTE des estimations VELUM
+ * des 18 derniers mois (une estimation basse postérieure ne masque pas une
+ * estimation haute récente) ; à défaut d'estimation dans la fenêtre, la
+ * DERNIÈRE estimation passée, quel que soit son âge (pas de sous-déclaration
+ * d'un objet jamais réestimé). Dates futures ignorées ; null si aucune.
  */
 export function referenceEstimate(history: readonly EstimatePoint[], now: string | Date): number | null {
-  const points = estimatesInWindow(history, now);
-  if (points.length === 0) return null;
+  const { points, floor } = pastEstimates(history, now);
+  const inWindow = points.filter((p) => p.at > floor);
   // Non arrondie : comparée telle quelle au seuil, comme côté serveur.
-  return Math.max(...points.map((p) => p.central));
+  if (inWindow.length > 0) return Math.max(...inWindow.map((p) => p.central));
+  let latest: { central: number; at: number } | null = null;
+  for (const p of points) if (latest === null || p.at > latest.at) latest = p;
+  return latest === null ? null : latest.central;
 }
 
 /**

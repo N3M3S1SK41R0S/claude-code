@@ -72,8 +72,8 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
   const locale = i18n.language;
 
   // Historique des estimations : la plus RÉCENTE pré-remplit le prix ; la plus
-  // HAUTE des 18 derniers mois (dates futures ignorées) décide du seuil
-  // d'expertise, comme le serveur (_market_reference_value).
+  // HAUTE des 18 derniers mois (à défaut, la dernière passée ; dates futures
+  // ignorées) décide du seuil d'expertise, comme le serveur (_market_reference_value).
   const history = useQuery({
     queryKey: ['valuations', item.id, 'history'],
     queryFn: () => client.valuations.history(item.id),
@@ -93,14 +93,15 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
     if (!priceTouched && estimate !== null) setPrice(amountToInput(estimate));
   }, [estimate, priceTouched]);
 
-  // Objet déjà certifié : la certification le suit, l'annonce naît authentifiée.
+  // Objet déjà certifié (dernière décision d'expert, titre public et catégorie
+  // inchangés) : la certification le suit, l'annonce naît authentifiée.
   const myListings = useMyListings();
   const myCertifications = useMyCertifications();
   const myExchanges = useMyExchanges();
   // Objet déjà annoncé ou déjà cédé (miroir d'enforce_listing_rules) : pas de publication.
   const block = myListings.data ? itemMarketBlock(item.id, myListings.data) : null;
   const alreadyCertified = itemCertifiedByExpert(
-    item.id,
+    item,
     myListings.data ?? [],
     myCertifications.data ?? [],
     myExchanges.data ?? [],
@@ -127,9 +128,11 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
         ...(description.trim().length > 0 ? { description: description.trim() } : {}),
         ...(isOpenToExchange(kind) && wishes.trim().length > 0 ? { exchangeWishes: wishes.trim() } : {}),
       });
-      // Certification volontaire (badge « Authentifié VELUM ») : sous le seuil seulement.
+      // Certification volontaire (badge « Authentifié VELUM ») : sous le seuil
+      // seulement, et inutile si le serveur a déjà rattaché la certification
+      // de l'objet (l'aperçu, prudent, ne l'affirme que si elle est établie).
       let certificationFailed = false;
-      if (preview.certification === 'voluntary' && listing.status !== 'pending_certification') {
+      if (preview.certification === 'voluntary' && listing.status !== 'pending_certification' && !listing.certified) {
         try {
           await client.marketplace.requestCertification({ reason: 'voluntary', listingId: listing.id, feePayer: 'seller' });
         } catch {

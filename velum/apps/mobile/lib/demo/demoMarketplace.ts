@@ -18,8 +18,10 @@
  *  - @velum/api-client : transporteurs (market_carriers()) et format de suivi,
  *    euro seulement, prix plancher 1 € ; objet cédé (vendu ou échangé) jamais
  *    réannonçable ni proposé ; une seule annonce ouverte par objet ; décision
- *    d'expert MÉMORISÉE sur l'objet (refus : annonces dépubliées, expertise
- *    exigée à toute republication ; certification : elle suit l'objet).
+ *    d'expert MÉMORISÉE sur l'objet (refus, quel que soit le contexte :
+ *    transactions non expédiées annulées, annonces dépubliées, badge retiré,
+ *    expertise exigée à toute republication ; certification : elle suit
+ *    l'objet resté identique) ; annonce réservée invisible d'un tiers.
  *
  * Les gestes de L'AUTRE partie (expédition, réception) sont SIMULÉS pour que
  * chaque parcours puisse être mené à son terme en démo — commentés sur place.
@@ -128,7 +130,6 @@ interface DemoOrder {
   releasedAt: string | null;
   createdAt: string;
   listingTitle: string | null;
-  certificationRequired: boolean;
 }
 
 interface DemoExchange {
@@ -386,7 +387,6 @@ function seedOrders(): DemoOrder[] {
     trackingNumber: null,
     deliveredAt: null,
     releasedAt: null,
-    certificationRequired: false,
   };
   return [
     {
@@ -473,18 +473,20 @@ function seedExchanges(now: string): DemoExchange[] {
     expiresAt: proposalExpiry(now),
   };
   return [
-    // REÇUE : on me propose un Hercule (+ soulte) contre ma Semeuse.
+    // REÇUE : on me propose un Hercule (+ soulte) contre ma Semeuse — celui
+    // que son propriétaire a aussi mis en vente (demo-listing-8) : accepter
+    // l'échange réserve aussi cette annonce (listing_is_engaged).
     {
       ...base,
       id: 'demo-exchange-1',
       listingId: 'demo-mine-1',
       proposerId: 'demo-seller-c',
       recipientId: DEMO_OWNER,
-      offeredItemId: 'demo-exchange-1-offered',
+      offeredItemId: 'demo-listing-8-item',
       listingTitle: '5 Francs Semeuse argent 1960',
       listingDomain: 'coin',
       listingValue: 45,
-      offeredTitle: 'Hercule 10 Francs argent 1967',
+      offeredTitle: 'Hercule 10 Francs argent 1965',
       offeredDomain: 'coin',
       offeredValue: 32,
       cashAdjustment: 15,
@@ -610,10 +612,11 @@ export interface DemoMarketplaceOptions {
   now?: () => string;
   /**
    * Estimation VELUM de RÉFÉRENCE d'un objet (EUR) — comme
-   * _market_reference_value, la plus haute des 18 derniers mois (nom
-   * historique) : le seuil d'expertise porte sur max(prix, estimation). Le
-   * scan éclair (`attributes.quickEstimate`) n'est PAS une valorisation et
-   * n'est pas lu (le serveur ne le lit pas non plus).
+   * _market_reference_value, la plus haute des 18 derniers mois, à défaut la
+   * dernière estimation passée (nom historique ; lib/marketForms
+   * `referenceEstimate`) : le seuil d'expertise porte sur max(prix,
+   * estimation). Le scan éclair (`attributes.quickEstimate`) n'est PAS une
+   * valorisation et n'est pas lu (le serveur ne le lit pas non plus).
    */
   latestValuation?: (itemId: string) => number | null;
 }
@@ -715,12 +718,22 @@ export function createDemoMarketplaceRepo(
     createdAt: l.createdAt,
   });
 
+  /** Badge « authentifié VELUM » de l'annonce, lu à la consultation (listing_certified). */
+  const listingCertified = (listingId: string): boolean =>
+    listings.find((l) => l.id === listingId)?.certified ?? false;
+
   const orderView = (o: DemoOrder): MarketOrder => {
     const role = o.buyerId === DEMO_OWNER ? 'buyer' : 'seller';
     return {
       ...o,
       role,
       counterpartyAlias: aliasOf(role === 'buyer' ? o.sellerId : o.buyerId),
+      // Comme my_market_orders : expertise CONVENUE sur la commande elle-même
+      // (demandée, en cours ou certifiée) — jamais recopiée de l'annonce.
+      certificationRequired: certifications.some(
+        (c) => c.orderId === o.id && (c.status === 'requested' || c.status === 'in_review' || c.status === 'certified'),
+      ),
+      listingCertified: listingCertified(o.listingId),
     };
   };
 
@@ -743,6 +756,7 @@ export function createDemoMarketplaceRepo(
       state: e.state,
       myCommission: role === 'proposer' ? e.proposerCommission : e.recipientCommission,
       certificationRequired: e.certificationRequired,
+      listingCertified: listingCertified(e.listingId),
       proposerTracking: e.proposerTracking,
       recipientTracking: e.recipientTracking,
       proposerReceived: e.proposerReceived,
@@ -1153,7 +1167,6 @@ export function createDemoMarketplaceRepo(
         releasedAt: null,
         createdAt: now(),
         listingTitle: l.title,
-        certificationRequired: l.certificationRequired,
       };
       orders.unshift(rec);
       // Commande NON payée : elle ne réserve rien (la réservation se fait au
@@ -1263,15 +1276,16 @@ export function createDemoMarketplaceRepo(
 
     async getListing(listingId: string): Promise<CatalogueListing | null> {
       await tick();
-      // Comme le serveur : une annonce active, la mienne, ou celle d'une de
-      // mes transactions (réservée, vendue, échangée) reste consultable.
+      // Comme market_listing : la mienne, ou celle d'une de mes transactions
+      // (réservée, vendue, échangée) reste consultable ; pour un tiers,
+      // seulement active et NON réservée, comme au catalogue.
       const listing = listings.find((l) => l.id === listingId);
       if (!listing) return null;
-      const visible =
-        listing.status === 'active' ||
+      const party =
         listing.sellerId === DEMO_OWNER ||
         orders.some((o) => o.listingId === listing.id && o.buyerId === DEMO_OWNER) ||
         exchanges.some((e) => e.listingId === listing.id && e.proposerId === DEMO_OWNER);
+      const visible = party || (listing.status === 'active' && !isEngaged(listing.id));
       return visible ? toCatalogue(listing) : null;
     },
 
@@ -1658,8 +1672,7 @@ export function createDemoMarketplaceRepo(
         if (e.state === 'shipping') e.state = 'awaiting_certification';
         touch(e);
       }
-      const o = c.orderId ? orders.find((x) => x.id === c.orderId) : undefined;
-      if (o) o.certificationRequired = true;
+      // Commande : l'expertise désormais convenue la conditionne (vue orderView).
       return certificationView(c);
     },
 
@@ -1735,32 +1748,55 @@ export function createDemoMarketplaceRepo(
         resumeExchange();
         return certificationView(c);
       }
-      // Refus (certification_after_change) : la transaction tombe, PUIS l'objet
-      // quitte le catalogue — annonce de la demande et toute annonce ouverte de
-      // l'objet repassent en brouillon — et ses propositions en attente tombent.
-      const o = c.orderId ? orders.find((x) => x.id === c.orderId) : undefined;
-      if (o && (o.escrowState === 'pending_payment' || o.escrowState === 'funds_held')) o.escrowState = 'cancelled';
-      const ex = c.exchangeId ? exchanges.find((x) => x.id === c.exchangeId) : undefined;
-      if (ex && (ex.state === 'accepted' || ex.state === 'awaiting_certification' || ex.state === 'shipping')) {
-        ex.state = 'cancelled';
-        touch(ex);
-      }
-      const unpublished = new Set<string>();
-      for (const l of listings) {
-        const concerned = l.id === c.listingId || (c.itemId !== null && l.itemId === c.itemId);
-        if (
-          concerned &&
-          l.sellerId === owner &&
-          (l.status === 'active' || l.status === 'pending_certification') &&
-          !isEngaged(l.id)
-        ) {
-          l.status = 'draft';
-          unpublished.add(l.id);
+      // Refus (certification_after_change), QUEL QUE SOIT le motif et le
+      // contexte (annonce, commande, échange) : toutes les transactions NON
+      // EXPÉDIÉES sur l'objet de son propriétaire tombent (parties prévenues
+      // côté serveur), PUIS ses annonces ouvertes de l'objet repassent en
+      // brouillon, le badge quitte ses annonces non closes et ses propositions
+      // en attente tombent. Une transaction déjà expédiée reste en place
+      // (litige) : l'annonce qu'elle réserve aussi.
+      const ofItem = (l: ListingRecord) =>
+        l.sellerId === owner && (l.id === c.listingId || (c.itemId !== null && l.itemId === c.itemId));
+      const itemListings = new Set(listings.filter(ofItem).map((l) => l.id));
+      for (const o of orders) {
+        const onItem = o.id === c.orderId || itemListings.has(o.listingId);
+        if (onItem && (o.escrowState === 'pending_payment' || o.escrowState === 'funds_held')) {
+          o.escrowState = 'cancelled';
+          // order_after_change : ses expertises encore ouvertes sont sans objet.
+          cancelOpenCertifications((x) => x.orderId === o.id);
         }
+      }
+      for (const e of exchanges) {
+        const ongoing = e.state === 'accepted' || e.state === 'awaiting_certification' || e.state === 'shipping';
+        const unshipped = e.proposerTracking === null && e.recipientTracking === null;
+        const onItem =
+          itemListings.has(e.listingId) || (c.itemId !== null && e.offeredItemId === c.itemId && e.proposerId === owner);
+        if (ongoing && (e.id === c.exchangeId || (unshipped && onItem))) {
+          e.state = 'cancelled';
+          // exchange_after_change : ses expertises encore ouvertes sont sans objet.
+          cancelOpenCertifications((x) => x.exchangeId === e.id);
+          touch(e);
+        }
+      }
+      // Transactions annulées : elles ne réservent plus l'annonce (isEngaged).
+      for (const l of listings) {
+        if (!ofItem(l)) continue;
+        if ((l.status === 'active' || l.status === 'pending_certification') && !isEngaged(l.id)) {
+          // listing_after_change : sortie sans certification, le seuil est sans objet.
+          if (l.status === 'pending_certification') {
+            cancelOpenCertifications(
+              (x) => x.listingId === l.id && x.orderId === null && x.exchangeId === null && x.reason === 'threshold',
+            );
+          }
+          l.status = 'draft';
+        }
+        // La certification ne suit plus l'objet : badge retiré de ses annonces non closes.
+        if (l.status !== 'sold' && l.status !== 'exchanged') l.certified = false;
       }
       for (const other of exchanges) {
         if (other.state !== 'proposed') continue;
-        if (unpublished.has(other.listingId)) other.state = 'declined';
+        const target = listings.find((x) => x.id === other.listingId);
+        if (target && ofItem(target) && target.status === 'draft') other.state = 'declined';
         else if (c.itemId !== null && other.offeredItemId === c.itemId && other.proposerId === owner) other.state = 'withdrawn';
         else continue;
         touch(other);

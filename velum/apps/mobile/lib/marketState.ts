@@ -8,6 +8,7 @@
  * serveur reste l'arbitre : l'UI ne fait que PROPOSER les actions légales ;
  * une transition refusée côté serveur remonte en erreur lisible.
  */
+import { redactContactInfo } from '@velum/config';
 import {
   isVelumError,
   type CertificationFeePayer,
@@ -21,6 +22,7 @@ import {
   type ListingRecord,
   type ListingStatus,
   type MarketOrder,
+  type VelumItem,
 } from '@velum/core';
 
 /** Tonalités de badge (structurellement identiques à `VBadgeTone` de @velum/ui). */
@@ -401,14 +403,16 @@ const OPEN_CERTIFICATION: ReadonlySet<CertificationStatus> = new Set(['awaiting_
  * échange accepté (en attente d'expertise ou en expédition) et AUCUN envoi ;
  * elle porte sur l'objet que je REÇOIS — refusée s'il est déjà en expertise
  * ou certifié dans cet échange : seuil demandé par son propriétaire (l'autre
- * partie) ou accord mutuel que j'ai demandé.
+ * partie) ou accord mutuel que j'ai demandé — ou, pour l'auteur, si
+ * l'ANNONCE visée porte déjà une certification d'expert.
  */
 export function canRequestExchangeCertification(
-  ex: Pick<ExchangeProposal, 'role' | 'state' | 'proposerTracking' | 'recipientTracking'>,
+  ex: Pick<ExchangeProposal, 'role' | 'state' | 'proposerTracking' | 'recipientTracking' | 'listingCertified'>,
   related: readonly Pick<CertificationRequest, 'reason' | 'status' | 'requestedByMe'>[],
 ): boolean {
   const ongoing = ex.state === 'accepted' || ex.state === 'awaiting_certification' || ex.state === 'shipping';
   if (!ongoing || ex.proposerTracking !== null || ex.recipientTracking !== null) return false;
+  if (ex.role === 'proposer' && ex.listingCertified === true) return false;
   const onReceivedItem = (c: Pick<CertificationRequest, 'reason' | 'requestedByMe'>) =>
     (c.reason === 'threshold' && !c.requestedByMe) || (c.reason === 'mutual_agreement' && c.requestedByMe);
   return !related.some((c) => onReceivedItem(c) && (OPEN_CERTIFICATION.has(c.status) || c.status === 'certified'));
@@ -417,47 +421,93 @@ export function canRequestExchangeCertification(
 /**
  * Expertise d'un commun accord sur une COMMANDE (l'une ou l'autre partie) :
  * avant expédition seulement, une seule demande ouverte, rien après
- * certification. (Un objet déjà authentifié avant publication est refusé par
- * le serveur, avec son motif.)
+ * certification — ni sur une annonce déjà authentifiée avant la vente
+ * (`listingCertified` ; absent : le serveur tranche, avec son motif).
  */
 export function canRequestOrderCertification(
-  order: Pick<MarketOrder, 'escrowState'>,
+  order: Pick<MarketOrder, 'escrowState' | 'listingCertified'>,
   related: readonly Pick<CertificationRequest, 'status'>[],
 ): boolean {
   if (order.escrowState !== 'pending_payment' && order.escrowState !== 'funds_held') return false;
+  if (order.listingCertified === true) return false;
   return !related.some((c) => OPEN_CERTIFICATION.has(c.status) || c.status === 'certified');
+}
+
+/** Décision d'expert lue par itemCertifiedByExpert. */
+type CertificationDecision = Pick<
+  CertificationRequest,
+  | 'listingId'
+  | 'orderId'
+  | 'exchangeId'
+  | 'reason'
+  | 'status'
+  | 'requestedByMe'
+  | 'itemTitle'
+  | 'domain'
+  | 'createdAt'
+  | 'decidedAt'
+>;
+
+/** Horodatage ISO → millisecondes ; absent ou illisible : -∞ (rangé en dernier, NULLS LAST). */
+function decisionTime(iso: string | null): number {
+  const at = iso === null ? Number.NaN : Date.parse(iso);
+  return Number.isFinite(at) ? at : Number.NEGATIVE_INFINITY;
 }
 
 /**
  * true si MON objet est déjà certifié par un expert — la certification le
- * suit (_market_item_certification_ref) : badge d'une de mes annonces de cet
- * objet, ou certification obtenue sur l'une d'elles (annonce, commande, ou
- * échange reçu quand l'expertise portait sur MON objet). Prudent : false dès
- * que ce n'est pas établi, et un objet déjà cédé (annonce vendue ou
- * échangée) ne compte pas.
+ * suit, miroir de _market_item_certification_ref : parmi les décisions
+ * d'expert (certifié / refusé) sur MON objet, la PLUS RÉCENTE (decidedAt,
+ * puis createdAt) doit être une certification, ET l'objet doit être resté
+ * celui qui a été certifié — même titre public (expurgé des coordonnées) et
+ * même catégorie. Décisions retenues : celles de mes annonces de l'objet
+ * (annonce ou commande) et des échanges qui portaient sur MON objet (seuil
+ * que j'ai demandé, ou accord mutuel demandé par l'autre partie).
+ * Prudent : false dès que ce n'est pas établi — un objet déjà cédé (annonce
+ * vendue ou échangée) ne compte pas ; à décisions ex aequo, le refus
+ * l'emporte ; et une décision sur un objet que J'AI OFFERT dans un échange
+ * (l'échange n'en expose pas l'identifiant) compte quand son titre public et
+ * sa catégorie sont ceux de l'objet : elle peut l'invalider, jamais l'établir.
  */
 export function itemCertifiedByExpert(
-  itemId: string,
-  listings: readonly Pick<ListingRecord, 'id' | 'itemId' | 'status' | 'certified'>[],
-  certifications: readonly Pick<
-    CertificationRequest,
-    'listingId' | 'orderId' | 'exchangeId' | 'reason' | 'status' | 'requestedByMe'
-  >[],
+  item: Pick<VelumItem, 'id' | 'title' | 'domain'>,
+  listings: readonly Pick<ListingRecord, 'id' | 'itemId' | 'status'>[],
+  certifications: readonly CertificationDecision[],
   exchanges: readonly Pick<ExchangeProposal, 'id' | 'listingId' | 'role'>[] = [],
 ): boolean {
-  const ofItem = listings.filter((l) => l.itemId === itemId && l.status !== 'sold' && l.status !== 'exchanged');
-  if (ofItem.some((l) => l.certified)) return true;
+  const ofItem = listings.filter((l) => l.itemId !== '' && l.itemId === item.id);
+  if (ofItem.some((l) => l.status === 'sold' || l.status === 'exchanged')) return false;
   const ids = new Set(ofItem.map((l) => l.id));
-  return certifications.some((c) => {
-    if (c.status !== 'certified') return false;
-    if (c.exchangeId === null) return c.listingId !== null && ids.has(c.listingId);
-    // Échange sur MON annonce : seuil de mon objet (demandé par moi, son
-    // propriétaire) ou accord mutuel demandé par l'autre partie (il le reçoit).
-    const ex = exchanges.find((e) => e.id === c.exchangeId);
+  // Titre public tel que le serveur le mémorise (redact_contact_info).
+  const publicTitle = item.title === null ? null : redactContactInfo(item.title).text;
+  const sameItem = (c: CertificationDecision) => c.itemTitle === publicTitle && c.domain === item.domain;
+
+  // Décisions sur MON objet : établies (sure) ou seulement possibles.
+  const decisions: { c: CertificationDecision; sure: boolean }[] = [];
+  for (const c of certifications) {
+    if (c.status !== 'certified' && c.status !== 'rejected') continue;
+    if (c.exchangeId === null) {
+      if (c.listingId !== null && ids.has(c.listingId)) decisions.push({ c, sure: true });
+      continue;
+    }
+    // Échange : seuil de mon objet (demandé par moi, son propriétaire) ou
+    // accord mutuel demandé par l'autre partie (il le reçoit).
     const onMyItem =
       (c.reason === 'threshold' && c.requestedByMe) || (c.reason === 'mutual_agreement' && !c.requestedByMe);
-    return ex !== undefined && ex.role === 'recipient' && ids.has(ex.listingId) && onMyItem;
-  });
+    const ex = exchanges.find((e) => e.id === c.exchangeId);
+    if (!onMyItem || ex === undefined) continue;
+    if (ex.role === 'recipient' && ids.has(ex.listingId)) decisions.push({ c, sure: true });
+    else if (ex.role === 'proposer' && sameItem(c)) decisions.push({ c, sure: false });
+  }
+  // ORDER BY decided_at DESC NULLS LAST, created_at DESC — refus d'abord à égalité.
+  decisions.sort(
+    (a, b) =>
+      decisionTime(b.c.decidedAt) - decisionTime(a.c.decidedAt) ||
+      decisionTime(b.c.createdAt) - decisionTime(a.c.createdAt) ||
+      (a.c.status === 'rejected' ? -1 : 0) - (b.c.status === 'rejected' ? -1 : 0),
+  );
+  const last = decisions[0];
+  return last !== undefined && last.sure && last.c.status === 'certified' && sameItem(last.c);
 }
 
 // ── Annonces ─────────────────────────────────────────────────────────────────

@@ -1518,6 +1518,7 @@
       "certificationAsked": "Demande d’expertise envoyée à l’autre partie.",
       "shipBlocked": "Expédition en attente : une expertise est en cours sur cet échange (accord attendu ou expert à l’œuvre). Vous pourrez expédier une fois l’expertise tranchée.",
       "noCertification": "Aucune expertise pour cet échange.",
+      "listingCertified": "L’objet de l’annonce est déjà authentifié par un expert : il ne repasse pas en expertise.",
       "viewListing": "Voir l’annonce",
       "anonymity": "Vous apparaissez sous un pseudonyme ; les adresses d’expédition sont masquées par la plateforme. Ne communiquez jamais vos coordonnées.",
       "confirmReceiptHint": "Confirme que vous avez reçu l’objet de l’autre partie",

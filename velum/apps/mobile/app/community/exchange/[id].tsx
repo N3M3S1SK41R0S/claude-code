@@ -302,7 +302,8 @@ function ExchangeDetail({ id }: { id: string }) {
   const related = (certifications.data ?? []).filter((c) => c.exchangeId === id);
   const hasOpenCertification = hasOpenCertificationOn(related, { exchangeId: id });
   // Miroir de request_certification : échange accepté, avant tout envoi, sur
-  // l'objet que je reçois (mes demandes lues d'abord : jamais de doublon).
+  // l'objet que je reçois (mes demandes lues d'abord : jamais de doublon) —
+  // jamais, pour l'auteur, sur une annonce déjà authentifiée.
   const canAskCertification =
     certifications.data !== undefined && canRequestExchangeCertification(exchange, related);
 
@@ -404,7 +405,15 @@ function ExchangeDetail({ id }: { id: string }) {
               />
             </>
           ) : null}
-          {!exchange.certificationRequired && related.length === 0 && !canAskCertification ? (
+          {exchange.listingCertified === true ? (
+            <VText variant="caption" tone="dim">
+              {t('community.exchange.listingCertified')}
+            </VText>
+          ) : null}
+          {!exchange.certificationRequired &&
+          exchange.listingCertified !== true &&
+          related.length === 0 &&
+          !canAskCertification ? (
             <VText variant="caption" tone="dim">
               {t('community.exchange.noCertification')}
             </VText>

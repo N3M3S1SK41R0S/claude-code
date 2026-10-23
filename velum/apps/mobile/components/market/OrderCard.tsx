@@ -59,8 +59,9 @@ export function OrderCard({ order }: { order: MarketOrder }) {
   const isSeller = order.role === 'seller';
   const shipBlocked = isSeller && order.escrowState === 'funds_held' && hasOpenCertification;
   // Expertise d'un commun accord : demandée SUR LA COMMANDE, avant expédition
-  // (seul contexte accepté par le serveur hors vendeur). Mes demandes lues
-  // d'abord, pour ne jamais proposer un doublon.
+  // (seul contexte accepté par le serveur hors vendeur), jamais sur une
+  // annonce déjà authentifiée (refus serveur, voir canRequestOrderCertification).
+  // Mes demandes lues d'abord, pour ne jamais proposer un doublon.
   const canAskCertification =
     certifications.data !== undefined &&
     !order.certificationRequired &&
@@ -130,7 +131,12 @@ export function OrderCard({ order }: { order: MarketOrder }) {
       </View>
       <View style={styles.badges}>
         <VBadge tone={ESCROW_TONE[order.escrowState]} label={t(marketLabelKeys.escrow(order.escrowState))} />
-        {order.certificationRequired ? <VBadge tone="gold" label={t('community.order.certified')} /> : null}
+        {/* Annonce déjà authentifiée avant la vente, sinon expertise convenue sur la commande. */}
+        {order.listingCertified === true ? (
+          <VBadge tone="success" label={t('community.authenticated')} />
+        ) : order.certificationRequired ? (
+          <VBadge tone="gold" label={t('community.order.certified')} />
+        ) : null}
       </View>
 
       <VText variant="caption" tone="dim">

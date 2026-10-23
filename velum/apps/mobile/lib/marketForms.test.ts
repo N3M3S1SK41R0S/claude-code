@@ -154,10 +154,24 @@ describe('estimation de référence (miroir de _market_reference_value)', () => 
     expect(referenceEstimate([], NOW)).toBeNull();
   });
 
+  it('aucune estimation dans la fenêtre : repli sur la DERNIÈRE estimation passée, quel que soit son âge', () => {
+    // Seule estimation, vieille de 19 mois : elle fixe encore le seuil (pas de sous-déclaration).
+    expect(referenceEstimate([v(5000, '2025-03-23T10:00:00Z')], NOW)).toBe(5000);
+    // Plusieurs anciennes : la plus RÉCENTE, pas la plus haute ; une date future reste ignorée.
+    const old = [v(5000, '2023-01-01T00:00:00Z'), v(800, '2024-06-01T00:00:00Z'), v(9000, '2027-01-01T00:00:00Z')];
+    expect(referenceEstimate(old, NOW)).toBe(800);
+    // Un point dans la fenêtre l'emporte : estimation ancienne haute, récente basse.
+    expect(referenceEstimate([v(5000, '2024-01-01T00:00:00Z'), v(300, '2026-09-01T00:00:00Z')], NOW)).toBe(300);
+    // Le pré-remplissage, lui, ne reprend pas une estimation hors fenêtre.
+    expect(latestEstimate([v(5000, '2025-03-23T10:00:00Z')], NOW)).toBeNull();
+  });
+
   it('fin de mois bornée comme en SQL (31 août − 18 mois = 28 février)', () => {
     const now = '2027-08-31T12:00:00Z';
-    expect(referenceEstimate([v(700, '2026-02-28T12:00:00Z')], now)).toBeNull();
-    expect(referenceEstimate([v(700, '2026-02-28T12:00:01Z')], now)).toBe(700);
+    // Le point du 28 février à 12:00 est HORS fenêtre : seul celui de mars compte.
+    const history = [v(700, '2026-02-28T12:00:00Z'), v(300, '2026-03-01T00:00:00Z')];
+    expect(referenceEstimate(history, now)).toBe(300);
+    expect(referenceEstimate([v(700, '2026-02-28T12:00:01Z'), v(300, '2026-03-01T00:00:00Z')], now)).toBe(700);
   });
 
   it('seuil de la mise en vente sur cette référence (sous-déclaration impossible)', () => {
