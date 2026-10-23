@@ -113,9 +113,9 @@ dans les deux sens.
 - **Sens 2 — apogée → « à boire »** : `price-cron` évalue les alertes
   `drink_window` avec `isInDrinkWindow` (module 2 ZAPPA) et joint les accords
   mets-vins de l'analyse au corps de la notification (« Ce vin est à son
-  apogée — servez-le avec un pigeon rôti »). Côté app, le même calcul est
-  fait localement (`drinkNowSuggestions`) pour afficher le bandeau « à boire »
-  de l'onglet Collection, fenêtres les plus urgentes d'abord.
+  apogée — servez-le avec un pigeon rôti »). Côté app, le bandeau « à boire »
+  de l'onglet Collection est calculé localement sur les statuts d'apogée
+  (`cellarAtPeak`, voir §8.3), fenêtres les plus urgentes d'abord.
 
 ## 6. Sécurité & vie privée (rappels structurants)
 
@@ -195,7 +195,18 @@ ouvertures réelles).
   jusqu'à 24 objets). Contrat additif : `DomainPlugin.recognizeSheet?()` →
   `SheetRecognitionResult` (implémenté pour timbres et pièces), Edge
   `recognize` avec `mode: 'sheet'`, budget `SHEET_RECOGNITION_MAX_TOKENS` =
-  3 072. **Une photo de planche = un scan** du quota freemium.
+  4 096 avec **un candidat par objet** (~95 tokens par objet : une page
+  pleine de 24 objets ≈ 2 300 tokens, large marge contre la troncature ;
+  une réponse coupée garde les objets complets et lève `truncated`). **Une
+  photo de planche = un scan** du quota freemium.
+- **Bornes de reconnaissance** (`supabase/functions/_shared/input.ts`),
+  vérifiées à la validation, AVANT le garde-fou de dépense et le quota — une
+  requête refusée ne coûte aucun scan : 4 photos au plus par capture
+  (`MAX_CAPTURE_MEDIA`), description libre de 2 000 caractères au plus
+  (`MAX_CAPTURE_TEXT_LENGTH`), 3,75 Mo décodés par image (`MAX_IMAGE_BYTES`,
+  plafond du fournisseur). Le chemin Storage d'une photo est vérifié
+  (préfixe de l'uid appelant) avant tout garde-fou ; une photo introuvable ou
+  trop lourde une fois rapatriée de Storage est refusée avant le quota.
 
 ### 8.2 Correction en texte de l'identification
 
@@ -212,6 +223,11 @@ relance de l'estimation est proposée immédiatement.
   `closing` (dernière année), `peak`, `soon`, tri par urgence, emplacement
   lisible. Écran **« Mes vins à leur apogée »** (`/cellar-peak`), à la demande,
   avec la position physique de chaque bouteille.
+- **Bandeau « à boire » de la Collection** : même règle et même ordre que
+  « Mes vins à leur apogée » et le rappel hebdomadaire —
+  `drinkNowBannerEntries` (`lib/drinkNow.ts`) s'appuie sur `cellarAtPeak`
+  sans `soon` : seuls les statuts `past`, `closing` et `peak` y figurent
+  (jamais « l'an prochain »), les plus urgents d'abord.
 - `localPairing.ts` : appariement **déterministe** plat → vins de la cave
   (familles de vins, accords ZAPPA, bonus apogée), instantané, hors-ligne et
   gratuit ; le sommelier IA (`cellar-pairing`, Gold+) affine ensuite.
