@@ -944,6 +944,14 @@ export function createDemoMarketplaceRepo(
       };
     },
 
+    async getListing(listingId: string): Promise<CatalogueListing | null> {
+      await tick();
+      // Démo : toute annonce connue reste consultable (vendue, réservée…),
+      // comme le fait le serveur pour les parties de la transaction.
+      const listing = listings.find((l) => l.id === listingId);
+      return listing ? toCatalogue(listing) : null;
+    },
+
     async reputationByAlias(alias: string): Promise<SellerReputation> {
       await tick();
       const member = memberOfAlias(alias);

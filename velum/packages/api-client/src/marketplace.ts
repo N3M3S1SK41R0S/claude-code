@@ -162,6 +162,13 @@ export interface MarketplaceRepo {
   reputation(sellerId: string): Promise<SellerReputation>;
   /** Réputation d'un membre à partir de son pseudonyme. */
   reputationByAlias(alias: string): Promise<SellerReputation>;
+  /**
+   * Une annonce par identifiant, anonymisée, même hors catalogue : réservée,
+   * vendue ou échangée, pour ses parties (vendeur, acheteur, partenaire
+   * d'échange). null si elle n'existe pas ou n'est pas visible. Optionnel
+   * pour les clients injectés historiques.
+   */
+  getListing?(listingId: string): Promise<CatalogueListing | null>;
 
   // ── Échanges ──
   /** Propose un de mes objets (+ soulte éventuelle) contre une annonce. */
