@@ -146,7 +146,9 @@ export function BatchRowCard({
         </View>
       ) : null}
 
-      {editing ? (
+      {/* Le formulaire ne vit que sur une ligne encore reconnue : une ligne
+          enregistrée ou ignorée entre-temps ne garde pas une correction sans effet. */}
+      {editing && recognized ? (
         <IdentityCorrectionForm
           domain={domain}
           base={candidate}

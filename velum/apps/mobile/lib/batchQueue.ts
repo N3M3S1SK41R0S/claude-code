@@ -209,8 +209,15 @@ export function batchReducer(state: BatchState, action: BatchAction): BatchState
     case 'sheetRecognized': {
       const sheet = state.rows.find((row) => row.id === action.id);
       if (!sheet || sheet.status !== 'running' || sheet.source !== 'sheet') return state;
+      // Réponse hors contrat (ex. fonction `recognize` pas encore redéployée qui
+      // ignore le mode planche) : échec réessayable de la ligne, jamais d'exception.
+      if (!Array.isArray(action.detections)) {
+        return updateRow(state, action.id, (row) => ({ ...row, status: 'failed', errorCode: 'SOURCE_UNAVAILABLE' }));
+      }
       if (action.detections.length === 0) {
-        return updateRow(state, action.id, (row) => ({ ...row, status: 'failed', errorCode: 'NO_DETECTION' }));
+        // Coupée avant le premier objet : « réponse incomplète », pas « aucun objet ».
+        const errorCode = action.truncated === true ? 'SHEET_INCOMPLETE' : 'NO_DETECTION';
+        return updateRow(state, action.id, (row) => ({ ...row, status: 'failed', errorCode }));
       }
       let seq = state.nextSeq;
       const detectionRows: BatchRow[] = action.detections.map((detection) => {
@@ -236,7 +243,7 @@ export function batchReducer(state: BatchState, action: BatchAction): BatchState
       return {
         rows,
         nextSeq: seq,
-        truncatedSheets: action.truncated ? [...state.truncatedSheets, action.id] : state.truncatedSheets,
+        truncatedSheets: action.truncated === true ? [...state.truncatedSheets, action.id] : state.truncatedSheets,
       };
     }
 
@@ -310,10 +317,16 @@ export function batchReducer(state: BatchState, action: BatchAction): BatchState
       // Une ligne en cours (reconnaissance ou enregistrement) ne disparaît pas sous l'utilisateur.
       const row = state.rows.find((r) => r.id === action.id);
       if (!row || row.status === 'running' || row.status === 'saving') return state;
+      const rows = state.rows.filter((r) => r.id !== action.id);
+      // `truncatedSheets` est indexé par la PLANCHE (groupId) : son bandeau
+      // disparaît quand plus aucune ligne de cette planche ne subsiste.
+      const groupLeft = rows.some((r) => r.groupId === row.groupId);
       return {
         ...state,
-        rows: state.rows.filter((r) => r.id !== action.id),
-        truncatedSheets: state.truncatedSheets.filter((id) => id !== action.id),
+        rows,
+        truncatedSheets: groupLeft
+          ? state.truncatedSheets
+          : state.truncatedSheets.filter((id) => id !== row.groupId),
       };
     }
   }
@@ -386,6 +399,20 @@ export function reliableRows(state: BatchState, threshold: number = RELIABLE_CON
   return state.rows.filter((row) => isReliable(row, threshold)).sort((a, b) => a.seq - b.seq);
 }
 
+/**
+ * Lignes de « Tout enregistrer » : les lignes fiables SAUF celle dont la
+ * correction est ouverte — l'enregistrer avec l'identité mal lue rendrait la
+ * validation qui suit sans effet.
+ */
+export function rowsForSaveAll(state: BatchState, editingId: string | null): BatchRow[] {
+  return reliableRows(state).filter((row) => row.id !== editingId);
+}
+
+/** Ligne reconnue (identifiée ou incertaine) : seule une telle ligne se corrige ou s'enregistre. */
+export function isRecognizedRow(row: BatchRow): boolean {
+  return RECOGNIZED.includes(row.status);
+}
+
 export interface BatchSummary {
   total: number;
   waiting: number;
@@ -397,6 +424,13 @@ export interface BatchSummary {
   reliable: number;
   /** Somme des fourchettes indicatives des lignes identifiées ou enregistrées. */
   indicativeTotal: QuickEstimate | null;
+  /** Lignes dont la fourchette entre dans `indicativeTotal`. */
+  pricedCount: number;
+  /**
+   * Lignes identifiées, en cours d'enregistrement ou enregistrées : si
+   * `pricedCount < pricedOf`, le total est PARTIEL (à dire à l'utilisateur).
+   */
+  pricedOf: number;
   /** La file travaille encore (reconnaissance ou enregistrement). */
   busy: boolean;
 }
@@ -413,6 +447,8 @@ export function batchSummary(state: BatchState): BatchSummary {
     skipped: 0,
     reliable: 0,
     indicativeTotal: null,
+    pricedCount: 0,
+    pricedOf: 0,
     busy: false,
   };
   let low = 0;
@@ -449,6 +485,7 @@ export function batchSummary(state: BatchState): BatchSummary {
     }
     if (isReliable(row)) summary.reliable += 1;
     if (row.status === 'identified' || row.status === 'saving' || row.status === 'saved') {
+      summary.pricedOf += 1;
       const estimate = effectiveCandidate(row)?.quickEstimate;
       if (estimate !== undefined) {
         low += estimate.low;
@@ -457,6 +494,7 @@ export function batchSummary(state: BatchState): BatchSummary {
       }
     }
   }
+  summary.pricedCount = priced;
   if (priced > 0) {
     summary.indicativeTotal = {
       low: Math.round(low * 100) / 100,

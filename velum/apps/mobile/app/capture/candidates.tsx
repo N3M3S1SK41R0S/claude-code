@@ -7,7 +7,8 @@
  *  - « Enregistrer avec la fiche complète » = analyse experte AVANT
  *    l'enregistrement (plus lent) — action principale en saisie complète ;
  *  - « Corriger » : correction en texte des infos lues sur la photo, tracée ;
- *  - « Ajouter à mes envies » : garde l'idée sans l'ajouter à la collection.
+ *  - « Ajouter à mes envies » : garde l'idée sans l'ajouter à la collection
+ *    (doublon détecté comme `AddToWishlistButton` : « Déjà dans vos envies »).
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -15,7 +16,7 @@ import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { VButton, VEmptyState, VSpinner, VText, velumSpacing } from '@velum/ui';
-import { VelumError, type Candidate, type VelumItem } from '@velum/core';
+import { VelumError, type Candidate, type VelumItem, type WishlistEntry } from '@velum/core';
 
 import { CandidateCard } from '../../components/capture/CandidateCard';
 import {
@@ -24,9 +25,9 @@ import {
   type CorrectionDraft,
 } from '../../components/capture/IdentityCorrectionForm';
 import { Screen } from '../../components/Screen';
-import { identityAttributes, itemToCandidate } from '../../lib/analysisState';
+import { itemToCandidate } from '../../lib/analysisState';
 import { useSession } from '../../lib/auth';
-import { secondsForDisplay, settledStoragePaths } from '../../lib/batchCapture';
+import { countUnattached, secondsForDisplay, settledStoragePaths } from '../../lib/batchCapture';
 import {
   correctCandidate,
   fullCaptureAttributes,
@@ -36,9 +37,17 @@ import {
   runInBackground,
 } from '../../lib/capturePersistence';
 import { getVelumClient } from '../../lib/client';
+import { isDemoMode } from '../../lib/env';
 import { errorMessage, velumErrorCode } from '../../lib/errors';
 import { routes } from '../../lib/routes';
 import { captureUploads } from '../../lib/uploadMedia';
+import {
+  WISHLIST_QUERY_KEY,
+  draftToNewEntry,
+  entryFromCandidate,
+  findDuplicate,
+  upsertEntry,
+} from '../../lib/wishlist';
 import { useCaptureStore } from '../../stores/captureStore';
 import { showToast } from '../../stores/toastStore';
 
@@ -69,7 +78,8 @@ export default function Candidates() {
   );
   const [busy, setBusy] = useState<{ id: string; kind: BusyKind } | null>(null);
   const [step, setStep] = useState<string | null>(null);
-  const [wished, setWished] = useState(false);
+  /** Envie ajoutée, ou déjà présente (doublon : rien n'est créé). */
+  const [wished, setWished] = useState<'added' | 'duplicate' | null>(null);
 
   const handleError = (error: unknown) => {
     setBusy(null);
@@ -86,12 +96,20 @@ export default function Candidates() {
     const client = getVelumClient();
     const ownerId = session?.user?.id;
     if (!ownerId) throw new VelumError('UNAUTHORIZED', 'Session requise');
-    // Photos : chemins déjà téléversés (le téléversement a démarré à la prise de vue).
+    // Photos : chemins déjà téléversés (le téléversement a démarré à la prise de
+    // vue) ; un téléversement en échec est relancé une fois.
     const paths = await settledStoragePaths(media, captureUploads);
-    return insertCapturedItem(newItemFromCandidate(ownerId, domain, candidate, attributes), paths, {
+    const item = await insertCapturedItem(newItemFromCandidate(ownerId, domain, candidate, attributes), paths, {
       items: client.items,
       itemMedia: client.itemMedia,
     });
+    // Jamais en silence : l'objet est enregistré, mais sans la photo non téléversée
+    // (le mode démo ne conserve aucune photo, par construction).
+    const unattached = countUnattached(paths);
+    if (unattached > 0 && !isDemoMode()) {
+      showToast(t('candidates.photoNotAttached', { count: unattached }), 'info');
+    }
+    return item;
   };
 
   const openItem = (item: VelumItem) => {
@@ -142,20 +160,38 @@ export default function Candidates() {
     onError: handleError,
   });
 
+  // Même règle que `AddToWishlistButton` : une envie EN COURS de même catégorie
+  // et de même titre normalisé est un doublon — rien n'est créé.
   const wish = useMutation({
-    mutationFn: (candidate: Candidate) =>
-      getVelumClient().wishlist.add({
-        domain,
-        title: candidate.label,
-        attributes: identityAttributes(candidate.attributes),
-        source: 'scan',
-        kind: 'wish',
-      }),
-    onSuccess: () => {
+    mutationFn: async (candidate: Candidate): Promise<{ entry: WishlistEntry; duplicate: boolean }> => {
+      const client = getVelumClient();
+      const draft = entryFromCandidate({ ...candidate, domain });
+      // Liste fraîche (même clé de cache que l'écran « Mes envies ») ; si la
+      // lecture échoue, on tente quand même l'ajout.
+      let current: WishlistEntry[] | null = null;
+      try {
+        current = await queryClient.fetchQuery({
+          queryKey: WISHLIST_QUERY_KEY,
+          queryFn: () => client.wishlist.list(),
+        });
+      } catch {
+        current = null;
+      }
+      const duplicate = current ? findDuplicate(current, { domain: draft.domain, title: draft.title }) : null;
+      if (duplicate) return { entry: duplicate, duplicate: true };
+      return { entry: await client.wishlist.add(draftToNewEntry(draft)), duplicate: false };
+    },
+    onSuccess: ({ entry, duplicate }) => {
       setBusy(null);
-      setWished(true);
-      void queryClient.invalidateQueries({ queryKey: ['wishlist'] });
-      showToast(t('candidates.wishAdded'), 'success');
+      setWished(duplicate ? 'duplicate' : 'added');
+      queryClient.setQueryData<WishlistEntry[]>(WISHLIST_QUERY_KEY, (prev) =>
+        prev === undefined ? prev : upsertEntry(prev, entry),
+      );
+      void queryClient.invalidateQueries({ queryKey: WISHLIST_QUERY_KEY });
+      showToast(
+        duplicate ? t('candidates.wishDuplicate') : t('candidates.wishAdded'),
+        duplicate ? 'info' : 'success',
+      );
     },
     onError: handleError,
   });
@@ -230,10 +266,10 @@ export default function Candidates() {
         </VText>
       ) : null}
 
-      {wished ? (
+      {wished !== null ? (
         <View style={styles.wished}>
           <VText variant="caption" tone="gold">
-            {t('candidates.wishAdded')}
+            {wished === 'duplicate' ? t('candidates.wishDuplicate') : t('candidates.wishAdded')}
           </VText>
           <VButton
             label={t('candidates.seeWishlist')}

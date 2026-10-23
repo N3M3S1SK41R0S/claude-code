@@ -211,7 +211,8 @@
       "art": "The whole work, straight on and without glare; then the signature and the back.",
       "stamp": "Stamp flat on a plain dark background, no tongs or sleeve; the front, then the back if the gum matters.",
       "watch": "Dial straight on, no glare on the crystal; then the case back."
-    }
+    },
+    "textTooLong": "Description too long: {{max}} characters at most."
   },
   "candidates": {
     "title": "Identified candidates",
@@ -281,7 +282,9 @@
     "moreFields": "More fields",
     "fewerFields": "Fewer fields",
     "labelRequired": "Enter at least a name.",
-    "valuationPending": "Market estimate unavailable for now — try again from the sheet."
+    "valuationPending": "Market estimate unavailable for now — try again from the sheet.",
+    "wishDuplicate": "Already in your wishlist.",
+    "photoNotAttached": "Object saved without {{count}} photo(s): the upload failed (network?)."
   },
   "batch": {
     "title": "Binder — {{domain}}",
@@ -339,8 +342,12 @@
     "stay": "Stay",
     "valuationLater": "Some market estimates could not be computed — try again from the sheet.",
     "errors": {
-      "noDetection": "No object detected on the page — retake the photo, flat and without glare."
-    }
+      "noDetection": "No object detected on the page — retake the photo, flat and without glare.",
+      "sheetIncomplete": "Incomplete answer from the identification service: try again, or photograph fewer objects at once."
+    },
+    "indicativeTotalPartial": "Partial indicative value: {{range}} ({{priced}} of {{total}} object(s) estimated)",
+    "photoNotAttached": "{{count}} object(s) saved without their photo: the upload failed (network?).",
+    "editLost": "Correction not applied: the row was already saved or skipped."
   },
   "item": {
     "notFound": "Object not found.",

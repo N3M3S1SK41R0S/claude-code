@@ -59,6 +59,33 @@ describe('coerceQuickEstimate', () => {
     // Borne basse nulle : « jusqu’à 2 € » reste informatif.
     expect(coerceQuickEstimate({ low: 0, high: 2 })).toEqual({ low: 0, high: 2, currency: 'EUR' });
   });
+
+  it('applique aussi la règle d’écart quand la borne basse est nulle (plancher à 1 €)', () => {
+    // « 0 – 900 000 € » n'informe pas : écartée comme toute fourchette trop large.
+    expect(coerceQuickEstimate({ low: 0, high: 900_000 })).toBeUndefined();
+    expect(coerceQuickEstimate({ low: 0, high: 2000 })).toBeUndefined();
+    expect(coerceQuickEstimate({ low: 0, high: 100 })).toEqual({ low: 0, high: 100, currency: 'EUR' });
+    // Borne basse positive : comportement inchangé (rapport haut / bas).
+    expect(coerceQuickEstimate({ low: 0.05, high: 8 })).toBeUndefined();
+    expect(coerceQuickEstimate({ low: 0.3, high: 12 })).toEqual({ low: 0.3, high: 12, currency: 'EUR' });
+  });
+
+  it('n’invente pas de montant à partir d’un texte ambigu', () => {
+    // Séparateurs de milliers : « 1,200 » vaut 1,2 en français et 1 200 en anglais → écarté.
+    expect(coerceQuickEstimate({ low: '1,200', high: '2,500' })).toBeUndefined();
+    expect(coerceQuickEstimate({ low: '1.200 €', high: '1.500 €' })).toBeUndefined();
+    expect(coerceQuickEstimate({ low: '1 200', high: '2 500' })).toEqual({ low: 1200, high: 2500, currency: 'EUR' });
+    // Hexadécimal, notation scientifique : jamais lus comme des montants.
+    expect(coerceQuickEstimate({ low: '0x10', high: '0x20' })).toBeUndefined();
+    expect(coerceQuickEstimate({ low: '1e3', high: 2000 })).toBeUndefined();
+    // Décimales ordinaires : toujours acceptées.
+    expect(coerceQuickEstimate({ low: '12.50', high: '30,5 €' })).toEqual({ low: 12.5, high: 30.5, currency: 'EUR' });
+  });
+
+  it('refait le contrôle « haut nul » APRÈS l’arrondi au centime', () => {
+    expect(coerceQuickEstimate({ low: 0.001, high: 0.004 })).toBeUndefined();
+    expect(coerceQuickEstimate({ low: 0.001, high: 0.5 })).toEqual({ low: 0, high: 0.5, currency: 'EUR' });
+  });
 });
 
 describe('coerceClassification', () => {
@@ -131,7 +158,9 @@ describe('sheetDetectionFrom', () => {
 describe('budgets de sortie', () => {
   it('reste compact pour un objet et borné pour une planche', () => {
     expect(RECOGNITION_MAX_TOKENS).toBeLessThan(1024);
-    expect(SHEET_RECOGNITION_MAX_TOKENS).toBeGreaterThanOrEqual(MAX_SHEET_DETECTIONS * 100);
+    // Planche : 24 objets × 1 candidat compact (~95 tokens) ≈ 2 300 tokens ; le
+    // budget garde une marge d'au moins 50 % contre la troncature.
+    expect(SHEET_RECOGNITION_MAX_TOKENS).toBeGreaterThanOrEqual(MAX_SHEET_DETECTIONS * 95 * 1.5);
     expect(QUICK_SCAN_OUTPUT_RULES).toContain('"estimate"');
     expect(QUICK_SCAN_OUTPUT_RULES).toContain('"classification"');
   });

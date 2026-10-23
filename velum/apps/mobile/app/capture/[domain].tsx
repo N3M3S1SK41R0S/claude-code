@@ -7,7 +7,7 @@
  * Le téléversement de chaque photo démarre dès la prise de vue ; la
  * reconnaissance ne l'attend pas (voir lib/batchCapture.ts).
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
@@ -47,6 +47,9 @@ const DOMAIN_ROLES: Record<VelumDomain, MediaRole[]> = {
 };
 
 const DOMAINS: VelumDomain[] = ['wine', 'coin', 'art', 'stamp', 'watch'];
+
+/** Longueur maximale du texte libre (miroir de MAX_CAPTURE_TEXT_LENGTH côté `recognize`). */
+const TEXT_MAX_LENGTH = 2000;
 
 /** Qualité JPEG de la saisie complète (plusieurs clichés détaillés). */
 const FULL_JPEG_QUALITY = 0.7;
@@ -107,11 +110,23 @@ export default function CaptureModal() {
   const setDomain = useCaptureStore((s) => s.setDomain);
   const setMode = useCaptureStore((s) => s.setMode);
   const addMedia = useCaptureStore((s) => s.addMedia);
+  const replaceMedia = useCaptureStore((s) => s.replaceMedia);
+  const retainRoles = useCaptureStore((s) => s.retainRoles);
   const setMediaStoragePath = useCaptureStore((s) => s.setMediaStoragePath);
   const setText = useCaptureStore((s) => s.setText);
   const setFileRows = useCaptureStore((s) => s.setFileRows);
   const setRecognition = useCaptureStore((s) => s.setRecognition);
 
+  // Entrée directe sans mode (carnet, collection, cave… : `routes.capture(domain)`)
+  // = nouvelle capture : on part d'un brouillon neuf, sans les clichés ni les
+  // téléversements d'une capture précédente (l'onglet Capturer le fait déjà).
+  const initialMode = useRef(params.mode);
+  useEffect(() => {
+    if (initialMode.current !== undefined) return;
+    captureUploads.clear();
+    setDomain(domain);
+    // Au montage seulement : un changement de mode ultérieur garde le brouillon.
+  }, []);
   // Lien direct (/capture/stamp?mode=full) : le brouillon suit l'URL.
   useEffect(() => {
     if (storeDomain !== domain) setDomain(domain);
@@ -119,16 +134,31 @@ export default function CaptureModal() {
   useEffect(() => {
     setMode(mode);
     const modeRoles = mode === 'full' ? DOMAIN_ROLES[domain] : [PRIMARY_ROLE[domain]];
+    // Scan éclair : un seul cliché par objet. Les rôles secondaires d'une saisie
+    // complète (invisibles ici) partiraient sinon à la reconnaissance avec la
+    // photo suivante — deux objets mélangés, photo étrangère rattachée.
+    if (mode === 'quick') retainRoles(modeRoles);
     setActiveRole((current) => (modeRoles.includes(current) ? current : (modeRoles[0] ?? 'detail')));
-  }, [mode, domain, setMode]);
+  }, [mode, domain, setMode, retainRoles]);
 
   const recognizeMutation = useMutation({
     mutationFn: (input: CaptureInput) => getVelumClient().edge.recognize(domain, input),
   });
   const pending = submitting || recognizeMutation.isPending;
+  // Garde SYNCHRONE : `pending` est lu dans la fermeture du rendu courant ; deux
+  // appuis rapprochés (déclencheur, Analyser) lanceraient deux reconnaissances
+  // — deux scans consommés et deux écrans Candidats.
+  const submittingRef = useRef(false);
+
+  /** Relance le téléversement d'une photo en échec (ou jamais suivie) — réseau revenu. */
+  const startUpload = (shot: DraftMedia) => {
+    void captureUploads.start(shot.base64).then((path) => {
+      if (path) setMediaStoragePath(shot.role, shot.base64, path);
+    });
+  };
 
   const identify = async (shots: DraftMedia[], currentTab: Tab) => {
-    if (pending) return;
+    if (pending || submittingRef.current) return;
     if ((currentTab === 'photo' || currentTab === 'text') && aiConsent !== true) {
       showToast(t('aiConsent.declinedBanner'), 'info');
       return;
@@ -141,10 +171,22 @@ export default function CaptureModal() {
       showToast(t('capture.noInput'), 'info');
       return;
     }
+    if (currentTab === 'text' && text.trim().length > TEXT_MAX_LENGTH) {
+      showToast(t('capture.textTooLong', { max: TEXT_MAX_LENGTH }), 'info');
+      return;
+    }
 
+    submittingRef.current = true;
     setSubmitting(true);
     const watch = startStopwatch(() => Date.now());
     try {
+      if (currentTab === 'photo') {
+        for (const shot of shots) {
+          if (shot.storagePath) continue;
+          const upload = captureUploads.peek(shot.base64);
+          if (upload === undefined || upload.state === 'failed') startUpload(shot);
+        }
+      }
       const input: CaptureInput =
         currentTab === 'photo'
           ? // Photo déjà téléversée → chemin ; téléversement en cours → base64, sans attendre.
@@ -159,22 +201,24 @@ export default function CaptureModal() {
       showToast(errorMessage(error, t), 'danger');
       if (velumErrorCode(error) === 'BUDGET_EXCEEDED') router.push(routes.paywall());
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
 
   /** Cliché accepté : téléversement immédiat ; en scan éclair, identification aussitôt. */
   const acceptShot = (shot: CapturedShot) => {
-    if (pending) return;
+    if (pending || submittingRef.current) return;
     const draft: DraftMedia = { role: activeRole, base64: shot.dataUrl, uri: shot.uri };
-    addMedia(draft);
-    void captureUploads.start(shot.dataUrl).then((path) => {
-      if (path) setMediaStoragePath(draft.role, draft.base64, path);
-    });
     if (mode === 'quick') {
-      void identify(useCaptureStore.getState().media, 'photo');
+      // Scan éclair : CETTE photo seule — jamais un cliché resté d'une capture précédente.
+      replaceMedia([draft]);
+      startUpload(draft);
+      void identify([draft], 'photo');
       return;
     }
+    addMedia(draft);
+    startUpload(draft);
     const current = useCaptureStore.getState().media;
     const remaining = roles.find((role) => role !== activeRole && !current.some((m) => m.role === role));
     if (remaining) setActiveRole(remaining);
@@ -306,6 +350,7 @@ export default function CaptureModal() {
             value={text}
             onChangeText={setText}
             placeholder={t('capture.textPlaceholder')}
+            error={text.trim().length > TEXT_MAX_LENGTH ? t('capture.textTooLong', { max: TEXT_MAX_LENGTH }) : undefined}
           />
         </View>
       ) : null}

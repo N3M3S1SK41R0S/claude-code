@@ -135,17 +135,34 @@ export interface CompleteEdgeApi extends EdgeApi {
   arbitrate(itemId: string, currentYear?: number): Promise<ArbiterSignal>;
 }
 
+/** Forme minimale d'un SheetRecognitionResult (le détail est revalidé par l'écran). */
+function isSheetRecognitionShape(data: unknown): data is SheetRecognitionResult {
+  if (data === null || typeof data !== 'object' || Array.isArray(data)) return false;
+  const { detections, truncated } = data as { detections?: unknown; truncated?: unknown };
+  return Array.isArray(detections) && typeof truncated === 'boolean';
+}
+
 export function createEdgeApi(supabase: SupabaseClient): CompleteEdgeApi {
   return {
     recognize(domain, input) {
       return invokeEdgeFunction<RecognitionResult>(supabase, 'recognize', { domain, input });
     },
-    recognizeSheet(domain, input) {
-      return invokeEdgeFunction<SheetRecognitionResult>(supabase, 'recognize', {
+    async recognizeSheet(domain, input) {
+      const data = await invokeEdgeFunction<unknown>(supabase, 'recognize', {
         domain,
         input,
         mode: 'sheet',
       });
+      // Une fonction `recognize` pas encore redéployée ignore `mode` et renvoie
+      // un RecognitionResult : on le refuse ici plutôt que de laisser l'écran
+      // du classeur lire `detections` sur undefined.
+      if (!isSheetRecognitionShape(data)) {
+        throw new VelumError(
+          'SOURCE_UNAVAILABLE',
+          'Réponse planche inattendue (fonction recognize à redéployer ?)',
+        );
+      }
+      return data;
     },
     analyze(domain, candidate) {
       return invokeEdgeFunction<AnalysisResult>(supabase, `analyze-${domain}`, { candidate });

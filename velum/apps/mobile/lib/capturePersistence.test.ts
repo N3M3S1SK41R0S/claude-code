@@ -190,7 +190,7 @@ describe('attributs selon le mode d’enregistrement', () => {
 describe('correctCandidate — correction avant enregistrement', () => {
   const now = new Date('2026-10-23T09:00:00Z');
 
-  it('trace les corrections, garde les champs non affichés et retire la fourchette périmée', () => {
+  it('trace les corrections, garde les champs non affichés et retire fourchette et classement périmés', () => {
     const { candidate, changed } = correctCandidate({
       candidate: stampCandidate,
       domain: 'stamp',
@@ -208,12 +208,14 @@ describe('correctCandidate — correction avant enregistrement', () => {
       { field: 'catalogNumber', from: 'YT 3', to: 'YT 4', at: '2026-10-23T09:00:00.000Z' },
       { field: 'title', from: 'Cérès 20c noir', to: 'Cérès 40c orange', at: '2026-10-23T09:00:00.000Z' },
     ]);
+    // Avis du modèle sur l'objet MAL lu : ni sa fourchette ni son classement ne suivent.
     expect(candidate.quickEstimate).toBeUndefined();
-    expect(candidate.classification).toEqual(['France', 'Cérès', '1849–1850']);
+    expect(candidate.classification).toBeUndefined();
+    expect('classification' in candidate).toBe(false);
     expect(candidate.confidence).toBe(0.82);
   });
 
-  it('libellé seul corrigé : la fourchette reste valable', () => {
+  it('libellé seul corrigé : fourchette et classement restent valables', () => {
     const { candidate } = correctCandidate({
       candidate: stampCandidate,
       domain: 'stamp',
@@ -222,6 +224,7 @@ describe('correctCandidate — correction avant enregistrement', () => {
       now,
     });
     expect(candidate.quickEstimate).toEqual(stampCandidate.quickEstimate);
+    expect(candidate.classification).toEqual(stampCandidate.classification);
   });
 
   it('aucune modification → candidat inchangé', () => {

@@ -14,6 +14,8 @@ import {
   nextToRun,
   photosInUse,
   reliableRows,
+  rowsForSaveAll,
+  isRecognizedRow,
   statusForCandidates,
   supportsSheet,
   unsavedCount,
@@ -198,6 +200,54 @@ describe('batchReducer — planche', () => {
     expect(row(batchReducer(state, { type: 'retry', id: 'p' }), 'p').status).toBe('pending');
   });
 
+  it('planche coupée avant le premier objet → « réponse incomplète », pas « aucun objet »', () => {
+    const state = run([
+      { type: 'enqueue', id: 'p', source: 'sheet', media: [{ role: 'detail' }] },
+      { type: 'start', id: 'p' },
+      { type: 'sheetRecognized', id: 'p', detections: [], truncated: true },
+    ]);
+    expect(row(state, 'p')).toMatchObject({ status: 'failed', errorCode: 'SHEET_INCOMPLETE' });
+    // Rien à « photographier séparément » : le bandeau de planche partielle ne s'affiche pas.
+    expect(state.truncatedSheets).toEqual([]);
+    expect(row(batchReducer(state, { type: 'retry', id: 'p' }), 'p').status).toBe('pending');
+  });
+
+  it('réponse sans liste de détections (fonction pas encore redéployée) → échec de la ligne, sans exception', () => {
+    const state = run([
+      { type: 'enqueue', id: 'p', source: 'sheet', media: [{ role: 'detail' }] },
+      { type: 'start', id: 'p' },
+    ]);
+    const malformed = {
+      type: 'sheetRecognized',
+      id: 'p',
+      detections: undefined,
+      truncated: undefined,
+    } as unknown as BatchAction;
+    const next = batchReducer(state, malformed);
+    expect(row(next, 'p')).toMatchObject({ status: 'failed', errorCode: 'SOURCE_UNAVAILABLE' });
+    expect(next.truncatedSheets).toEqual([]);
+  });
+
+  it('le bandeau « planche incomplète » disparaît quand plus aucun objet de la planche ne subsiste', () => {
+    const two: SheetDetection[] = [0, 1].map((index) => ({
+      index,
+      candidates: [],
+      needsAssistedEntry: true,
+    }));
+    let state = run([
+      { type: 'enqueue', id: 'p', source: 'sheet', media: [{ role: 'detail', base64: 'data:p' }] },
+      { type: 'start', id: 'p' },
+      { type: 'sheetRecognized', id: 'p', detections: two, truncated: true },
+    ]);
+    expect(state.truncatedSheets).toEqual(['p']);
+    state = run([{ type: 'skip', id: 'p-0' }, { type: 'remove', id: 'p-0' }], state);
+    // Un objet de la planche reste : le bandeau aussi.
+    expect(state.truncatedSheets).toEqual(['p']);
+    state = run([{ type: 'skip', id: 'p-1' }, { type: 'remove', id: 'p-1' }], state);
+    expect(state.rows).toEqual([]);
+    expect(state.truncatedSheets).toEqual([]);
+  });
+
   it('une ligne de planche ne reçoit pas de candidats « objet seul »', () => {
     const state = run([{ type: 'enqueue', id: 'p', source: 'sheet', media: [] }, { type: 'start', id: 'p' }]);
     expect(batchReducer(state, { type: 'recognized', id: 'p', candidates: [candidate('x', 0.9)] })).toBe(state);
@@ -322,6 +372,21 @@ describe('lignes fiables et synthèse', () => {
     expect(reliableRows(skipped).map((r) => r.id)).toEqual(['corrigé']);
   });
 
+  it('« Tout enregistrer » n’emporte jamais la ligne dont la correction est ouverte', () => {
+    // La ligne « sûr » (fiable) est en cours de correction : elle attend la validation.
+    expect(rowsForSaveAll(state, 'sûr').map((r) => r.id)).toEqual(['corrigé']);
+    expect(rowsForSaveAll(state, null).map((r) => r.id)).toEqual(['sûr', 'corrigé']);
+  });
+
+  it('une correction ne s’applique qu’à une ligne encore reconnue', () => {
+    expect(isRecognizedRow(row(state, 'sûr'))).toBe(true);
+    expect(isRecognizedRow(row(state, 'flou'))).toBe(true);
+    const saved = run([{ type: 'saving', id: 'sûr' }, { type: 'saved', id: 'sûr', itemId: 'i' }], state);
+    expect(isRecognizedRow(row(saved, 'sûr'))).toBe(false);
+    // Le réducteur l'ignore : l'écran doit le signaler, jamais fermer le formulaire en silence.
+    expect(batchReducer(saved, { type: 'edit', id: 'sûr', candidate: candidate('YT 7', 0.9) })).toBe(saved);
+  });
+
   it('compteurs, valeur indicative cumulée et activité', () => {
     const summary = batchSummary(state);
     expect(summary).toMatchObject({
@@ -334,6 +399,15 @@ describe('lignes fiables et synthèse', () => {
       busy: true,
     });
     expect(summary.indicativeTotal).toEqual({ low: 11.5, high: 23, currency: 'EUR' });
-    expect(batchSummary(EMPTY_BATCH)).toMatchObject({ total: 0, busy: false, indicativeTotal: null });
+    // Valeur PARTIELLE : 2 lignes chiffrées sur 3 identifiées (la ligne corrigée n'a pas de fourchette).
+    expect(summary.pricedCount).toBe(2);
+    expect(summary.pricedOf).toBe(3);
+    expect(batchSummary(EMPTY_BATCH)).toMatchObject({
+      total: 0,
+      busy: false,
+      indicativeTotal: null,
+      pricedCount: 0,
+      pricedOf: 0,
+    });
   });
 });

@@ -161,6 +161,27 @@ describe('stampPlugin.recognizeSheet — mode classeur', () => {
     expect(result).toEqual({ detections: [], stage: 'llm_vision', truncated: false });
   });
 
+  it('réponse coupée DANS le premier timbre → aucune détection mais troncature signalée', async () => {
+    const vision = new FakeVision(['{"detections":[{"position":"r1","candidates":[{"label":"Cér']);
+    const result = await stampPlugin.recognizeSheet(PHOTO, { vision });
+    expect(result).toEqual({ detections: [], stage: 'llm_vision', truncated: true });
+  });
+
+  it('texte parasite avec accolades avant un JSON complet → pas de fausse troncature', async () => {
+    const answer = JSON.stringify({ detections: [detection('a', 'Timbre A', 0.7)], more: false });
+    const vision = new FakeVision([`Voici {le résultat} : ${answer}`]);
+    const result = await stampPlugin.recognizeSheet(PHOTO, { vision });
+    expect(result.detections.map((d) => d.candidates[0]?.label)).toEqual(['Timbre A']);
+    expect(result.truncated).toBe(false);
+  });
+
+  it('demande UN seul candidat par timbre (sortie bornée pour 24 timbres)', async () => {
+    const vision = new FakeVision(['{"detections":[]}']);
+    await stampPlugin.recognizeSheet(PHOTO, { vision });
+    expect(vision.requests[0]?.prompt).toContain('un seul candidat par timbre');
+    expect(vision.requests[0]?.prompt).not.toContain('au plus 2 candidats');
+  });
+
   it('exige une photo (pas de texte) et laisse remonter une panne de vision', async () => {
     const vision = new FakeVision([]);
     await expect(stampPlugin.recognizeSheet({ kind: 'text', text: 'classeur' }, { vision })).rejects.toSatisfy(
@@ -174,7 +195,7 @@ describe('stampPlugin.recognizeSheet — mode classeur', () => {
 describe('parseArrayWithSalvage', () => {
   it('lit un JSON complet (fences tolérées)', () => {
     const out = parseArrayWithSalvage('```json\n{"detections":[{"a":1}],"more":true}\n```', 'detections');
-    expect(out).toEqual({ items: [{ a: 1 }], root: { detections: [{ a: 1 }], more: true }, complete: true });
+    expect(out).toEqual({ items: [{ a: 1 }], root: { detections: [{ a: 1 }], more: true }, complete: true, found: true });
   });
 
   it('récupère les éléments complets d’un JSON coupé, accolades dans les chaînes comprises', () => {
@@ -186,6 +207,17 @@ describe('parseArrayWithSalvage', () => {
 
   it('clé absente → aucun élément', () => {
     expect(parseArrayWithSalvage('{"autre":[', 'detections').items).toEqual([]);
+    expect(parseArrayWithSalvage('{"autre":[', 'detections').found).toBe(false);
     expect(parseArrayWithSalvage('{"detections":[{"a":1}],"x":', 'detections').items).toEqual([{ a: 1 }]);
+    expect(parseArrayWithSalvage('{"detections":[{"a":1}],"x":', 'detections').found).toBe(true);
+  });
+
+  it('ignore un préfixe parasite entre accolades devant le JSON racine', () => {
+    const out = parseArrayWithSalvage('Voici {le résultat} : {"detections":[{"a":1}],"more":true}', 'detections');
+    expect(out).toEqual({ items: [{ a: 1 }], root: { detections: [{ a: 1 }], more: true }, complete: true, found: true });
+    // Préfixe JSON valide mais sans la clé : la vraie racine est celle qui porte la clé.
+    const json = parseArrayWithSalvage('{"note":"x"} {"detections":[{"a":2}]}', 'detections');
+    expect(json.items).toEqual([{ a: 2 }]);
+    expect(json.complete).toBe(true);
   });
 });

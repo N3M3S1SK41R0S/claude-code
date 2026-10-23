@@ -119,6 +119,14 @@ describe('coinPlugin.recognizeSheet — plateau de pièces', () => {
     expect(cut.truncated).toBe(true);
   });
 
+  it('réponse coupée dans la première pièce → troncature signalée ; un seul candidat demandé', async () => {
+    const vision = new FakeVision(['{"detections":[{"position":"case 1","candidates":[{"label":"10 Fr']);
+    const result = await coinPlugin.recognizeSheet(PHOTO, { vision });
+    expect(result).toEqual({ detections: [], stage: 'llm_vision', truncated: true });
+    expect(vision.requests[0]?.prompt).toContain('un seul candidat par pièce');
+    expect(vision.requests[0]?.prompt).not.toContain('au plus 2 candidats');
+  });
+
   it('refuse une entrée sans photo', async () => {
     const vision = new FakeVision([]);
     await expect(coinPlugin.recognizeSheet({ kind: 'file', fileRows: [] }, { vision })).rejects.toSatisfy(
@@ -131,5 +139,12 @@ describe('parseArrayWithSalvage (copie numismatique)', () => {
   it('lit le JSON complet ou récupère les éléments entiers', () => {
     expect(parseArrayWithSalvage('{"detections":[{"a":1}]}', 'detections').complete).toBe(true);
     expect(parseArrayWithSalvage('{"detections":[{"a":1},{"b":', 'detections').items).toEqual([{ a: 1 }]);
+  });
+
+  it('ignore un préfixe parasite entre accolades devant le JSON racine', () => {
+    const out = parseArrayWithSalvage('Voici {le résultat} : {"detections":[{"a":1}]}', 'detections');
+    expect(out.items).toEqual([{ a: 1 }]);
+    expect(out.complete).toBe(true);
+    expect(out.found).toBe(true);
   });
 });
