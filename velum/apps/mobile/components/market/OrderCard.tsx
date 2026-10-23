@@ -15,7 +15,7 @@ import { VBadge, VButton, VCard, VText, VTextInput, velumSpacing } from '@velum/
 
 import { getVelumClient } from '../../lib/client';
 import { formatDate } from '../../lib/i18n';
-import { formatPrice, formatRate } from '../../lib/marketForms';
+import { formatPrice, formatRate, orderCommission } from '../../lib/marketForms';
 import {
   ESCROW_TONE,
   PRIMARY_ORDER_ACTIONS,
@@ -110,7 +110,8 @@ export function OrderCard({ order }: { order: MarketOrder }) {
   const busy = advance.isPending || dispute.isPending || askCertification.isPending;
   const title = order.listingTitle ?? t('common.unknown');
   const roleLabel = isSeller ? t('community.asSeller') : t('community.asBuyer');
-  const commission = order.amount * order.commissionRate;
+  // Au centime, comme l'écriture du registre à la libération (jamais 1,034999… €).
+  const commission = orderCommission(order);
 
   return (
     <VCard style={styles.card}>

@@ -154,6 +154,15 @@ export function formatRate(rate: number, locale: string): string {
 
 // ── Commission dégressive ────────────────────────────────────────────────────
 
+/**
+ * Commission d'une vente au taux FIGÉ de la commande : exactement l'écriture
+ * du registre (ledger_on_order_release : round(greatest(montant, 0) × taux, 2)),
+ * roundCents de @velum/config étant aligné sur round(numeric, 2).
+ */
+export function orderCommission(order: { amount: number; commissionRate: number }): number {
+  return roundCents(Math.max(0, order.amount) * order.commissionRate);
+}
+
 export interface NextCommissionTier {
   /** Taux du palier suivant. */
   rate: number;

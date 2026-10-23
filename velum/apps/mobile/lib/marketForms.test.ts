@@ -19,6 +19,7 @@ import {
   formatRate,
   nextCommissionTier,
   normalizeTrackingNumber,
+  orderCommission,
   parseFrenchAmount,
   parsePositiveAmount,
   redactionPreview,
@@ -101,6 +102,16 @@ describe('parseFrenchAmount', () => {
     expect(formatPrice(12, 'fr', 'XX')).toBe('12 XX');
     expect(plain(formatRate(0.05, 'fr'))).toBe('5 %');
     expect(formatRate(0.035, 'en')).toBe('3.5%');
+  });
+});
+
+describe('commission d’une commande', () => {
+  it('au centime, demi-centime au supérieur : identique au registre SQL (round(numeric, 2))', () => {
+    // Vecteur partagé avec marketplace_hardening_checks (X15) : 20,70 × 5 % = 1,035 → 1,04.
+    expect(orderCommission({ amount: 20.7, commissionRate: 0.05 })).toBe(1.04);
+    expect(orderCommission({ amount: 150, commissionRate: 0.05 })).toBe(7.5);
+    expect(orderCommission({ amount: 333.33, commissionRate: 0.03 })).toBe(10);
+    expect(orderCommission({ amount: -5, commissionRate: 0.05 })).toBe(0);
   });
 });
 
