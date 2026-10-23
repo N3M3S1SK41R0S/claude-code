@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { QueryClient } from '@tanstack/react-query';
 import type { QueuedMutation } from '@velum/api-client';
 import { VelumError, type AnalysisResult, type VelumItem } from '@velum/core';
 
@@ -11,8 +12,16 @@ import {
   quickEstimateOf,
 } from './itemSheet';
 import {
+  classifyWriteFailure,
+  createCorrectionGate,
+  deletedItemQueryKey,
   generateFullSheet,
+  isOfflineFailure,
+  itemQueryKey,
+  latestCachedItem,
+  markItemDeleted,
   persistItemPatch,
+  refreshAfterValuation,
   revalueItem,
   saveIdentityCorrection,
   type ItemSheetFlowDeps,
@@ -39,9 +48,11 @@ function item(attributes: Record<string, unknown>, overrides: Partial<VelumItem>
   };
 }
 
-/** Client minimal : update / analyze / valuate / enqueue scriptés. */
+/** Client minimal : update / get / analyze / valuate / enqueue scriptés. */
 function fakeDeps(options: {
   update?: (id: string, patch: Partial<VelumItem>) => Promise<VelumItem>;
+  /** Relecture de l'objet ; par défaut injoignable (hors-ligne). */
+  get?: (id: string) => Promise<VelumItem | null>;
   analyze?: () => Promise<AnalysisResult>;
 }) {
   const queued: QueuedMutation[] = [];
@@ -54,6 +65,10 @@ function fakeDeps(options: {
         updates.push({ id, patch });
         if (options.update) return options.update(id, patch);
         return { ...item({}), ...patch } as VelumItem;
+      },
+      get: async (id: string) => {
+        if (options.get) return options.get(id);
+        throw new VelumError('SOURCE_UNAVAILABLE', "Lecture de l'objet impossible : Failed to fetch");
       },
     },
     edge: {
@@ -104,8 +119,165 @@ describe('persistItemPatch', () => {
         type: 'update',
         payload: { id: 'i1', attributes: { year: 1849 }, updatedAt: '2026-10-23T08:00:01.000Z' },
         queuedAt: '2026-10-23T08:00:01.000Z',
+        // Version éditée des seuls champs modifiés : fusion par champ au rejeu.
+        base: { attributes: { year: 1850 } },
       },
     ]);
+  });
+
+  it('panne réseau (SOURCE_UNAVAILABLE sans code SQL) : mise en file', async () => {
+    const { deps, queued } = fakeDeps({
+      update: () => Promise.reject(new VelumError('SOURCE_UNAVAILABLE', 'Mise à jour impossible : Failed to fetch')),
+    });
+    const out = await persistItemPatch(deps, item({}, { title: 'Avant', acquiredPrice: 10 }), {
+      title: 'Après',
+      acquiredPrice: 12,
+    });
+    expect(out.queued).toBe(true);
+    expect(out.item.acquiredPrice).toBe(12);
+    expect(queued[0]?.base).toEqual({ title: 'Avant', acquiredPrice: 10 });
+  });
+
+  it.each([
+    ['règle métier (P0001)', new VelumError('INVALID_INPUT', 'Refus : Objet engagé', { sqlstate: 'P0001' })],
+    ['donnée invalide (22007)', new VelumError('SOURCE_UNAVAILABLE', 'date invalide', { sqlstate: '22007' })],
+    ['objet supprimé (PGRST116)', new VelumError('INVALID_INPUT', 'objet introuvable', { sqlstate: 'PGRST116' })],
+    ['session expirée', new VelumError('UNAUTHORIZED', 'Session requise')],
+    ['offre requise', new VelumError('PLAN_REQUIRED', 'Platine')],
+  ])('refus du serveur — %s : remonte à l’appelant, jamais mis en file', async (_label, refusal) => {
+    const { deps, queued } = fakeDeps({ update: () => Promise.reject(refusal) });
+    await expect(persistItemPatch(deps, item({}), { title: 'x' })).rejects.toBe(refusal);
+    expect(queued).toEqual([]);
+  });
+
+  it('refus non qualifié (SOURCE_UNAVAILABLE) alors que le serveur répond : pas une panne, rien en file', async () => {
+    // Le dépôt PostgREST convertit encore un refus SQL en SOURCE_UNAVAILABLE :
+    // l'objet se relit, le serveur était donc joignable et a refusé.
+    const refusal = new VelumError('SOURCE_UNAVAILABLE', 'Mise à jour impossible : date/time field value out of range');
+    const { deps, queued } = fakeDeps({
+      update: () => Promise.reject(refusal),
+      get: async () => item({}),
+    });
+    await expect(persistItemPatch(deps, item({}), { acquiredAt: '2019-15-03' })).rejects.toBe(refusal);
+    expect(queued).toEqual([]);
+  });
+
+  it('objet supprimé entre-temps (relu absent) : erreur « introuvable », rien en file', async () => {
+    const { deps, queued } = fakeDeps({
+      update: () => Promise.reject(new VelumError('SOURCE_UNAVAILABLE', 'Mise à jour impossible : objet introuvable')),
+      get: async () => null,
+    });
+    await expect(persistItemPatch(deps, item({}), { title: 'x' })).rejects.toMatchObject({
+      code: 'INVALID_INPUT',
+    });
+    expect(queued).toEqual([]);
+  });
+});
+
+describe('cache de la fiche (React Query)', () => {
+  function seeded(): QueryClient {
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(['items', 'collection'], { items: [] });
+    queryClient.setQueryData(['items', 'carnet'], { items: [] });
+    queryClient.setQueryData(['items', 'wine'], []);
+    queryClient.setQueryData(itemQueryKey('i1'), item({}));
+    queryClient.setQueryData(['valuations', 'i1', 'latest'], null);
+    queryClient.setQueryData(['wishlist'], []);
+    return queryClient;
+  }
+  const invalidated = (queryClient: QueryClient, key: readonly unknown[]) =>
+    queryClient.getQueryState(key)?.isInvalidated ?? false;
+
+  it('après une estimation : valorisations ET listes (collection, carnet…) relues, pas la fiche', () => {
+    const queryClient = seeded();
+    refreshAfterValuation(queryClient, 'i1');
+    expect(invalidated(queryClient, ['valuations', 'i1', 'latest'])).toBe(true);
+    expect(invalidated(queryClient, ['items', 'collection'])).toBe(true);
+    expect(invalidated(queryClient, ['items', 'carnet'])).toBe(true);
+    expect(invalidated(queryClient, ['items', 'wine'])).toBe(true);
+    expect(invalidated(queryClient, itemQueryKey('i1'))).toBe(false);
+    queryClient.clear();
+  });
+
+  it('objet supprimé : une action en vol ne le relit plus (ni ne le recrée) ; envies relues', () => {
+    const queryClient = seeded();
+    const fallback = item({}, { title: 'repli' });
+    expect(latestCachedItem(queryClient, fallback).title).toBe('Cérès 1850'); // version en cache
+    markItemDeleted(queryClient, 'i1');
+    expect(() => latestCachedItem(queryClient, fallback)).toThrow(VelumError);
+    expect(invalidated(queryClient, ['wishlist'])).toBe(true);
+    // Le marqueur n'est pas une requête « items » (jamais persisté avec la collection).
+    expect(deletedItemQueryKey('i1')[0]).not.toBe('items');
+    queryClient.clear();
+  });
+});
+
+describe('createCorrectionGate', () => {
+  it('une estimation demandée PENDANT une correction attend sa fin (identité corrigée)', async () => {
+    const gate = createCorrectionGate();
+    const order: string[] = [];
+    let finish: () => void = () => undefined;
+    const correction = gate.run(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = () => {
+            order.push('correction enregistrée');
+            resolve();
+          };
+        }),
+    );
+    const valuation = gate.settled().then(() => order.push('estimation lancée'));
+    await Promise.resolve();
+    expect(order).toEqual([]); // l'estimation n'est pas partie sur l'ancienne identité
+    finish();
+    await Promise.all([correction, valuation]);
+    expect(order).toEqual(['correction enregistrée', 'estimation lancée']);
+  });
+
+  it('une correction en échec ne bloque pas l’estimation ; sans correction, rien à attendre', async () => {
+    const gate = createCorrectionGate();
+    await expect(gate.settled()).resolves.toBeUndefined();
+    const failing = gate.run(() => Promise.reject(new Error('refus')));
+    await expect(failing).rejects.toThrow('refus');
+    await expect(gate.settled()).resolves.toBeUndefined();
+  });
+});
+
+describe('classifyWriteFailure', () => {
+  const unreachable = { get: () => Promise.reject(new TypeError('Network request failed')) };
+  const reachable = (found: VelumItem | null) => ({ get: async () => found });
+
+  it('panne confirmée (relecture impossible) → file', async () => {
+    expect(await classifyWriteFailure(unreachable, 'i1', new VelumError('SOURCE_UNAVAILABLE', 'x'))).toBe('offline');
+  });
+
+  it('serveur joignable → refus ; objet absent → introuvable', async () => {
+    expect(await classifyWriteFailure(reachable(item({})), 'i1', new VelumError('SOURCE_UNAVAILABLE', 'x'))).toBe(
+      'refused',
+    );
+    expect(await classifyWriteFailure(reachable(null), 'i1', new VelumError('SOURCE_UNAVAILABLE', 'x'))).toBe(
+      'missing',
+    );
+  });
+
+  it('refus qualifié par le serveur : aucune relecture nécessaire', async () => {
+    const get = vi.fn(async () => item({}));
+    const refusal = new VelumError('INVALID_INPUT', 'Objet engagé', { sqlstate: 'P0001' });
+    expect(await classifyWriteFailure({ get }, 'i1', refusal)).toBe('refused');
+    expect(get).not.toHaveBeenCalled();
+  });
+});
+
+describe('isOfflineFailure', () => {
+  it('seule une panne de transport justifie la file hors-ligne', () => {
+    expect(isOfflineFailure(new TypeError('Network request failed'))).toBe(true);
+    expect(isOfflineFailure(new VelumError('SOURCE_UNAVAILABLE', 'Failed to fetch'))).toBe(true);
+    // Erreur serveur transitoire (délai dépassé) : réessayable, donc mise en file.
+    expect(isOfflineFailure(new VelumError('SOURCE_UNAVAILABLE', 'timeout', { sqlstate: '57014' }))).toBe(true);
+    expect(isOfflineFailure(new VelumError('SOURCE_UNAVAILABLE', 'x', { sqlstate: '23514' }))).toBe(false);
+    expect(isOfflineFailure(new VelumError('INVALID_INPUT', 'x'))).toBe(false);
+    expect(isOfflineFailure(new VelumError('UNAUTHORIZED', 'x'))).toBe(false);
+    expect(isOfflineFailure(new VelumError('PLAN_REQUIRED', 'x'))).toBe(false);
   });
 });
 
@@ -268,5 +440,32 @@ describe('parcours complet en mode démo', () => {
     await settle(generateFullSheet(deps, () => current));
     expect(fullSheetState(await latest())).toBe('complete');
     expect(hasCorrections((await latest()).attributes)).toBe(true);
+  });
+
+  it('objet supprimé pendant la génération : erreur claire, rien en file ni « synchronisé plus tard »', async () => {
+    const client = createDemoClient();
+    const enqueued: QueuedMutation[] = [];
+    const deps: ItemSheetFlowDeps = {
+      client: {
+        ...client,
+        queue: { enqueue: async (m: QueuedMutation) => void enqueued.push(m) } as unknown as typeof client.queue,
+      },
+      now: () => new Date(),
+      mutationId: () => 'mut-demo',
+    };
+    const created = await client.items.insert({
+      ownerId: 'demo-user',
+      domain: 'stamp',
+      title: 'Cérès 20 c noir 1850',
+      attributes: { country: 'France', analysisStatus: 'pending' },
+    });
+    const snapshot = (await client.items.get(created.id)) as VelumItem;
+    const generation = generateFullSheet(deps, () => snapshot);
+    await client.items.remove(created.id); // supprimé pendant les quelques secondes de génération
+    const error = await settle(generation.catch((e: unknown) => e));
+    expect(error).toBeInstanceOf(VelumError);
+    expect((error as VelumError).code).toBe('INVALID_INPUT');
+    expect(enqueued).toEqual([]);
+    expect(await client.items.get(created.id)).toBeNull();
   });
 });

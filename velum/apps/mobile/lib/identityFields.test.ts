@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ACQUIRED_PRICE_MAX,
   IDENTITY_FIELDS,
   MAX_CORRECTIONS_KEPT,
   applyIdentityCorrections,
   identityFieldsFor,
   identityValuesFrom,
   labelFromValues,
+  parseAcquiredDate,
+  parseAcquiredPrice,
   parseNumericInput,
   validateIdentityValues,
 } from './identityFields';
@@ -107,6 +110,39 @@ describe('applyIdentityCorrections', () => {
     const kept = result.attributes['corrections'] as unknown[];
     expect(kept).toHaveLength(MAX_CORRECTIONS_KEPT);
     expect(kept.at(-1)).toMatchObject({ from: 'A', to: 'B' });
+  });
+});
+
+describe('parseAcquiredDate', () => {
+  it('accepte AAAA-MM-JJ et la saisie à la française, renvoie l’ISO', () => {
+    expect(parseAcquiredDate('2020-06-01')).toEqual({ ok: true, value: '2020-06-01' });
+    // 1er juin, jamais le 6 janvier (DateStyle MDY de Postgres).
+    expect(parseAcquiredDate('01/06/2020')).toEqual({ ok: true, value: '2020-06-01' });
+    expect(parseAcquiredDate(' 1/6/2020 ')).toEqual({ ok: true, value: '2020-06-01' });
+    expect(parseAcquiredDate('15.03.2019')).toEqual({ ok: true, value: '2019-03-15' });
+    expect(parseAcquiredDate('15-03-2019')).toEqual({ ok: true, value: '2019-03-15' });
+    expect(parseAcquiredDate('29/02/2024')).toEqual({ ok: true, value: '2024-02-29' });
+  });
+
+  it('vide → null ; illisible ou inexistante → erreur (jamais envoyée au serveur)', () => {
+    expect(parseAcquiredDate('   ')).toEqual({ ok: true, value: null });
+    for (const raw of ['juin 2020', '31/02/2020', '29/02/2023', '2020-13-01', '01/06/20', '2020/06', '0000-01-01']) {
+      expect(parseAcquiredDate(raw)).toEqual({ ok: false });
+    }
+  });
+});
+
+describe('parseAcquiredPrice', () => {
+  it('prix à la française, au centime ; vide → null', () => {
+    expect(parseAcquiredPrice('1 200,50')).toEqual({ ok: true, value: 1200.5 });
+    expect(parseAcquiredPrice('')).toEqual({ ok: true, value: null });
+  });
+
+  it('illisible, négatif ou au-delà de numeric(12, 2) → erreur de champ', () => {
+    expect(parseAcquiredPrice('abc')).toEqual({ ok: false, errorKey: 'identity.errors.notANumber' });
+    expect(parseAcquiredPrice('-5')).toEqual({ ok: false, errorKey: 'identity.errors.outOfRange' });
+    expect(parseAcquiredPrice('10000000000')).toEqual({ ok: false, errorKey: 'identity.errors.outOfRange' });
+    expect(parseAcquiredPrice(String(ACQUIRED_PRICE_MAX))).toEqual({ ok: true, value: ACQUIRED_PRICE_MAX });
   });
 });
 

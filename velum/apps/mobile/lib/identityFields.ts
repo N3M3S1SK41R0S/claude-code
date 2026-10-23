@@ -104,6 +104,58 @@ export function parseNumericInput(raw: string): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
+// ── Acquisition (validée AVANT tout envoi) ───────────────────────────────────
+
+/** Plafond de `items.acquired_price numeric(12, 2)`. */
+export const ACQUIRED_PRICE_MAX = 9_999_999_999.99;
+
+/** ISO AAAA-MM-JJ si la date existe (31/02 refusé), sinon null. */
+function isoDate(year: number, month: number, day: number): string | null {
+  if (year < 1 || month < 1 || month > 12 || day < 1) return null;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  // Date.UTC interprète 0–99 comme 1900–1999 : on repose l'année exacte.
+  date.setUTCFullYear(year);
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+    return null;
+  }
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+/**
+ * Date d'acquisition saisie → ISO AAAA-MM-JJ (colonne `date`). Accepte
+ * AAAA-MM-JJ et la saisie à la française JJ/MM/AAAA (ou JJ.MM.AAAA,
+ * JJ-MM-AAAA) ; vide → null ; illisible ou inexistante (31/02) → erreur.
+ * Jamais envoyée telle quelle : Postgres (DateStyle MDY) lirait « 01/06/2020 »
+ * comme le 6 janvier, et refuserait « 15/03/2019 ».
+ */
+export function parseAcquiredDate(raw: string): { ok: true; value: string | null } | { ok: false } {
+  const text = raw.trim();
+  if (text.length === 0) return { ok: true, value: null };
+  const iso = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(text);
+  const french = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/.exec(text);
+  const value = iso
+    ? isoDate(Number(iso[1]), Number(iso[2]), Number(iso[3]))
+    : french
+      ? isoDate(Number(french[3]), Number(french[2]), Number(french[1]))
+      : null;
+  return value === null ? { ok: false } : { ok: true, value };
+}
+
+/**
+ * Prix d'acquisition saisi (« 1 200,50 ») → montant ≥ 0 au centime ; vide →
+ * null. Illisible, négatif ou au-delà de `numeric(12, 2)` → clé i18n d'erreur.
+ */
+export function parseAcquiredPrice(
+  raw: string,
+): { ok: true; value: number | null } | { ok: false; errorKey: string } {
+  if (raw.trim().length === 0) return { ok: true, value: null };
+  const value = parseNumericInput(raw);
+  if (value === null) return { ok: false, errorKey: 'identity.errors.notANumber' };
+  const cents = Math.round(value * 100) / 100;
+  if (cents < 0 || cents > ACQUIRED_PRICE_MAX) return { ok: false, errorKey: 'identity.errors.outOfRange' };
+  return { ok: true, value: cents };
+}
+
 /** Erreurs de validation par clé de champ (clés i18n). Vide = valide. */
 export function validateIdentityValues(
   values: Record<string, string>,
