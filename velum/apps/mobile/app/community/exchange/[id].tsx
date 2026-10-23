@@ -26,6 +26,7 @@ import {
   useMarketErrorToast,
   useMyCertifications,
   useMyExchanges,
+  useMyListings,
 } from '../../../components/market/hooks';
 import { getVelumClient } from '../../../lib/client';
 import { formatDate } from '../../../lib/i18n';
@@ -44,6 +45,7 @@ import {
   myCededValue,
   myReceived,
   myTracking,
+  shipmentListingIds,
   theirReceived,
   theirTracking,
   type ExchangeAction,
@@ -247,6 +249,8 @@ function ExchangeDetail({ id }: { id: string }) {
   const onError = useMarketErrorToast();
   const exchanges = useMyExchanges();
   const certifications = useMyCertifications();
+  // Mes annonces : celles de l'objet que j'offre (expertise de l'annonce, R7).
+  const myListings = useMyListings();
   const locale = i18n.language;
 
   const askCertification = useMutation({
@@ -300,10 +304,16 @@ function ExchangeDetail({ id }: { id: string }) {
   const theirValue = iAmProposer ? exchange.listingValue : exchange.offeredValue;
   const cash = myCashPayment(exchange);
   const related = (certifications.data ?? []).filter((c) => c.exchangeId === id);
-  const hasOpenCertification = hasOpenCertificationOn(related, { exchangeId: id });
+  // Expertise ouverte sur l'échange, ou sur l'une de ses annonces elle-même
+  // (annonce visée, mes annonces de l'objet que j'offre — R7) : le serveur
+  // bloque l'expédition.
+  const hasOpenCertification = hasOpenCertificationOn(certifications.data ?? [], {
+    exchangeId: id,
+    listingIds: shipmentListingIds(exchange, myListings.data ?? []),
+  });
   // Miroir de request_certification : échange accepté, avant tout envoi, sur
   // l'objet que je reçois (mes demandes lues d'abord : jamais de doublon) —
-  // jamais, pour l'auteur, sur une annonce déjà authentifiée.
+  // jamais sur un objet déjà authentifié (celui de l'annonce ou celui offert).
   const canAskCertification =
     certifications.data !== undefined && canRequestExchangeCertification(exchange, related);
 
@@ -410,8 +420,14 @@ function ExchangeDetail({ id }: { id: string }) {
               {t('community.exchange.listingCertified')}
             </VText>
           ) : null}
+          {exchange.offeredItemCertified === true ? (
+            <VText variant="caption" tone="dim">
+              {t('community.exchange.offeredItemCertified')}
+            </VText>
+          ) : null}
           {!exchange.certificationRequired &&
           exchange.listingCertified !== true &&
+          exchange.offeredItemCertified !== true &&
           related.length === 0 &&
           !canAskCertification ? (
             <VText variant="caption" tone="dim">

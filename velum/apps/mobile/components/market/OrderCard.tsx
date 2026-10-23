@@ -24,6 +24,7 @@ import {
   marketLabelKeys,
   orderActionTarget,
   orderActions,
+  shipmentListingIds,
   type OrderAction,
 } from '../../lib/marketState';
 import { showToast } from '../../stores/toastStore';
@@ -52,9 +53,14 @@ export function OrderCard({ order }: { order: MarketOrder }) {
   const [showThread, setShowThread] = useState(false);
   const certifications = useMyCertifications();
 
-  const related = (certifications.data ?? []).filter((c) => c.orderId === order.id);
-  // Expertise ouverte (même un accord attendu) : le serveur bloque l'expédition.
-  const hasOpenCertification = hasOpenCertificationOn(related, { orderId: order.id });
+  const certs = certifications.data ?? [];
+  const related = certs.filter((c) => c.orderId === order.id);
+  // Expertise ouverte (même un accord attendu) sur la commande ou sur son
+  // annonce elle-même (R7) : le serveur bloque l'expédition.
+  const hasOpenCertification = hasOpenCertificationOn(certs, {
+    orderId: order.id,
+    listingIds: shipmentListingIds({ listingId: order.listingId }),
+  });
   const actions = orderActions(order, { hasOpenCertification });
   const isSeller = order.role === 'seller';
   const shipBlocked = isSeller && order.escrowState === 'funds_held' && hasOpenCertification;

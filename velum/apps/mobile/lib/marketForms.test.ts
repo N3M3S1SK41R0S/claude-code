@@ -305,6 +305,36 @@ describe('sellPreview', () => {
     expect(p.requirement.required).toBe(false);
     expect(p.certificationFee).toBe(0);
     expect(p.sale).toEqual({ price: 900, commissionRate: 0.05, commission: 45, certificationFee: 0, sellerNet: 855 });
+    expect(p.rejectedByExpert).toBe(false);
+  });
+
+  it('objet refusé par un expert : expertise exigée QUEL QUE SOIT le prix, frais à la charge du vendeur', () => {
+    // Certification volontaire refusée, objet remis en vente à 100 € : le serveur
+    // crée l'annonce en attente d'expertise (_market_item_rejected), pas publiée.
+    const p = sellPreview({
+      kind: 'sale',
+      priceInput: '100',
+      commission: server(0),
+      estimatedValue: null,
+      voluntaryCertification: true,
+      rejectedByExpert: true,
+    });
+    expect(p.rejectedByExpert).toBe(true);
+    expect(p.requirement).toEqual({ required: true, reason: 'threshold', referenceValue: 100 });
+    expect(p.certification).toBe('required');
+    expect(p.certificationFee).toBe(30); // minimum du barème
+    expect(p.sale).toEqual({ price: 100, commissionRate: 0.05, commission: 5, certificationFee: 30, sellerNet: 65 });
+    // Base des frais : le plus élevé du prix et de l'estimation, comme au seuil.
+    const estimated = sellPreview({
+      kind: 'exchange',
+      priceInput: '100',
+      commission: server(0),
+      estimatedValue: 2000,
+      voluntaryCertification: false,
+      rejectedByExpert: true,
+    });
+    expect(estimated.requirement.referenceValue).toBe(2000);
+    expect(estimated.certificationFee).toBe(40);
   });
 });
 
@@ -404,6 +434,22 @@ describe('proposition d’échange', () => {
     });
     expect(p.requirement.required).toBe(false);
     expect(p.thresholdItems).toEqual({ mine: false, theirs: false });
+  });
+
+  it('mon objet refusé par un expert : son expertise est exigée quel que soit le prix', () => {
+    const p = exchangePreview({
+      listingValue: 120,
+      listingCertified: false,
+      offeredValueInput: '100',
+      offeredEstimate: null,
+      offeredRejected: true,
+      cashDirection: 'add',
+      cashInput: '',
+      commission: server(0),
+    });
+    expect(p.requirement).toEqual({ required: true, reason: 'threshold', referenceValue: 100 });
+    expect(p.thresholdItems).toEqual({ mine: true, theirs: false });
+    expect(p.certificationFee).toBe(30); // à ma charge (frais indicatifs)
   });
 
   it('ma commission d’échange au taux serveur, ou au taux maximal en repli', () => {

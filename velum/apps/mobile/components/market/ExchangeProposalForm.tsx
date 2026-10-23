@@ -26,7 +26,7 @@ import {
   type CashDirection,
 } from '../../lib/marketForms';
 import { commissionBasisNoticeKey } from '../../lib/marketCommission';
-import { itemCertifiedByExpert, itemMarketBlock } from '../../lib/marketState';
+import { itemCertifiedByExpert, itemMarketBlock, itemRejectedByExpert } from '../../lib/marketState';
 import { showToast } from '../../stores/toastStore';
 import { AmountRows, Notice, Segmented, type AmountRow } from './controls';
 import {
@@ -82,12 +82,17 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
 
   // Mon objet déjà certifié (dernière décision d'expert, titre public et
   // catégorie inchangés) : la certification le suit (pas de nouvelle expertise).
+  // Refusé (dernière décision = refus, quel que soit le titre) : le serveur
+  // refuse de le proposer (set_exchange_defaults).
   const myListings = useMyListings();
   const myCertifications = useMyCertifications();
   const myExchanges = useMyExchanges();
+  const rejectedByExpert = (candidate: VelumItem) =>
+    itemRejectedByExpert(candidate, myListings.data ?? [], myCertifications.data ?? [], myExchanges.data ?? []);
   const offeredCertified =
     item !== null &&
     itemCertifiedByExpert(item, myListings.data ?? [], myCertifications.data ?? [], myExchanges.data ?? []);
+  const offeredRejected = item !== null && rejectedByExpert(item);
 
   // Seuil évalué objet par objet, comme le serveur (_exchange_threshold_targets).
   const preview = exchangePreview({
@@ -96,6 +101,7 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
     offeredValueInput: value,
     offeredEstimate: reference,
     offeredCertified,
+    offeredRejected,
     cashDirection: direction,
     cashInput: cash,
     commission: commission.basis,
@@ -138,8 +144,13 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
   const valueError = valueProblem !== null ? t(valueProblem.key, valueProblem.params) : undefined;
   const cashError = preview.cashAdjustment === null ? t('community.invalidAmount') : undefined;
   // Estimations en cours de lecture : le seuil d'expertise de mon objet n'est pas encore connu.
+  // Objet refusé par un expert : proposition refusée par le serveur, inutile de l'envoyer.
   const canSubmit =
-    item !== null && preview.offeredValue !== null && preview.cashAdjustment !== null && !history.isLoading;
+    item !== null &&
+    !offeredRejected &&
+    preview.offeredValue !== null &&
+    preview.cashAdjustment !== null &&
+    !history.isLoading;
 
   const rows: AmountRow[] = [];
   if (preview.myCommission !== null) {
@@ -189,11 +200,14 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
           }}
           preferredDomain={listing.domain}
           label={t('community.proposal.pickItem')}
-          // Objet déjà cédé (vente ou échange conclu) : le serveur refuse de le proposer.
+          // Objet déjà cédé (vente ou échange conclu) ou refusé par un expert :
+          // le serveur refuse de le proposer (set_exchange_defaults).
           blockReason={(candidate) =>
             itemMarketBlock(candidate.id, myListings.data ?? [])?.reason === 'ceded'
               ? t('community.picker.blockedCeded')
-              : null
+              : rejectedByExpert(candidate)
+                ? t('community.picker.blockedRejected')
+                : null
           }
         />
       ) : (
@@ -279,7 +293,11 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
             </VText>
           ) : null}
 
-          {preview.requirement.reason === 'threshold' ? (
+          {offeredRejected ? (
+            <Notice tone="warning" title={t('community.certification.requiredTitle')}>
+              {t('community.proposal.rejectedItem')}
+            </Notice>
+          ) : preview.requirement.reason === 'threshold' ? (
             <Notice tone="warning" title={t('community.certification.requiredTitle')}>
               <>
                 {preview.thresholdItems.mine ? (

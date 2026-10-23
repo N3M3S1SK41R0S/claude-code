@@ -18,7 +18,7 @@ import { Screen } from '../../components/Screen';
 import { CatalogueView } from '../../components/market/CatalogueView';
 import { CommunityGate } from '../../components/market/CommunityGate';
 import { Segmented } from '../../components/market/controls';
-import { useMyCertifications, useMyExchanges, useMyOrders } from '../../components/market/hooks';
+import { useMyCertifications, useMyExchanges, useMyListings, useMyOrders } from '../../components/market/hooks';
 import { MyActivity } from '../../components/market/MyActivity';
 import { parseCommunityParams, type CatalogueMode, type CommunityTab } from '../../lib/marketQuery';
 import { pendingActionCount } from '../../lib/marketState';
@@ -35,10 +35,12 @@ function CommunityHub() {
   const orders = useMyOrders();
   const exchanges = useMyExchanges();
   const certifications = useMyCertifications();
+  const listings = useMyListings();
   const toDo = pendingActionCount({
     orders: orders.data,
     exchanges: exchanges.data,
     certifications: certifications.data,
+    listings: listings.data,
     now: new Date().toISOString(),
   });
 

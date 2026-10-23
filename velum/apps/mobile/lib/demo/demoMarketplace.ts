@@ -20,8 +20,11 @@
  *    réannonçable ni proposé ; une seule annonce ouverte par objet ; décision
  *    d'expert MÉMORISÉE sur l'objet (refus, quel que soit le contexte :
  *    transactions non expédiées annulées, annonces dépubliées, badge retiré,
- *    expertise exigée à toute republication ; certification : elle suit
- *    l'objet resté identique) ; annonce réservée invisible d'un tiers.
+ *    expertise exigée à toute republication — une annonce réservée par une
+ *    transaction déjà expédiée reste en place jusqu'à sa fin ; certification :
+ *    elle suit l'objet resté identique, transactions comprises) ; expédition
+ *    bloquée tant qu'une expertise de la transaction ou de son annonce est
+ *    ouverte ; annonce réservée invisible d'un tiers.
  *
  * Les gestes de L'AUTRE partie (expédition, réception) sont SIMULÉS pour que
  * chaque parcours puisse être mené à son terme en démo — commentés sur place.
@@ -718,9 +721,16 @@ export function createDemoMarketplaceRepo(
     createdAt: l.createdAt,
   });
 
-  /** Badge « authentifié VELUM » de l'annonce, lu à la consultation (listing_certified). */
-  const listingCertified = (listingId: string): boolean =>
-    listings.find((l) => l.id === listingId)?.certified ?? false;
+  /**
+   * Objet de l'annonce certifié pour son propriétaire `owner` (vendeur ou
+   * destinataire), comme listing_certified de my_market_orders / my_exchanges
+   * (R8) : badge posé sur l'annonce, OU certification qui suit l'objet
+   * (_market_item_certification_ref) — obtenue sur une commande ou un échange.
+   */
+  const listingCertified = (listingId: string, owner: string): boolean => {
+    const l = listings.find((x) => x.id === listingId);
+    return l !== undefined && (l.certified || itemCertificationRef(l.itemId === '' ? null : l.itemId, owner) !== null);
+  };
 
   const orderView = (o: DemoOrder): MarketOrder => {
     const role = o.buyerId === DEMO_OWNER ? 'buyer' : 'seller';
@@ -733,7 +743,7 @@ export function createDemoMarketplaceRepo(
       certificationRequired: certifications.some(
         (c) => c.orderId === o.id && (c.status === 'requested' || c.status === 'in_review' || c.status === 'certified'),
       ),
-      listingCertified: listingCertified(o.listingId),
+      listingCertified: listingCertified(o.listingId, o.sellerId),
     };
   };
 
@@ -756,7 +766,10 @@ export function createDemoMarketplaceRepo(
       state: e.state,
       myCommission: role === 'proposer' ? e.proposerCommission : e.recipientCommission,
       certificationRequired: e.certificationRequired,
-      listingCertified: listingCertified(e.listingId),
+      listingCertified: listingCertified(e.listingId, e.recipientId),
+      // MON objet offert : à l'auteur seulement (jamais l'objet d'autrui, anonymat oblige).
+      offeredItemId: role === 'proposer' ? e.offeredItemId : null,
+      offeredItemCertified: itemCertificationRef(e.offeredItemId, e.proposerId) !== null,
       proposerTracking: e.proposerTracking,
       recipientTracking: e.recipientTracking,
       proposerReceived: e.proposerReceived,
@@ -825,12 +838,30 @@ export function createDemoMarketplaceRepo(
   /** Refus mémorisé : l'objet ne se republie (ni ne s'échange) plus sans nouvelle certification. */
   const itemRejected = (itemId: string | null, owner: string): boolean =>
     lastDecision(itemId, owner)?.status === 'rejected';
+  /**
+   * Contenu public ACTUEL d'un objet (titre expurgé, catégorie), comparé à
+   * celui de la décision d'expert : celui de ma collection ; à défaut (objet
+   * d'un autre membre, ou d'une annonce de départ, hors de ma collection
+   * démo), celui de sa dernière annonce, ou de sa dernière proposition.
+   */
+  const itemContent = (itemId: string, owner: string): { title: string | null; domain: VelumDomain | null } | null => {
+    const mine = owner === DEMO_OWNER ? findItem(itemId) : null;
+    if (mine) return { title: redactTitle(mine.title), domain: mine.domain };
+    const listed = listings
+      .filter((l) => l.itemId === itemId && l.sellerId === owner)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+    if (listed) return { title: listed.title, domain: listed.domain };
+    const offered = exchanges
+      .filter((e) => e.offeredItemId === itemId && e.proposerId === owner)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+    return offered ? { title: offered.offeredTitle, domain: offered.offeredDomain } : null;
+  };
   /** Certification qui SUIT l'objet resté identique (même titre public, même catégorie). */
-  const itemCertificationRef = (item: VelumItem, owner: string): string | null => {
-    const d = lastDecision(item.id, owner);
-    return d?.status === 'certified' && d.title === redactTitle(item.title) && d.domain === item.domain
-      ? d.reportRef
-      : null;
+  const itemCertificationRef = (itemId: string | null, owner: string): string | null => {
+    const d = lastDecision(itemId, owner);
+    if (itemId === null || d?.status !== 'certified') return null;
+    const content = itemContent(itemId, owner);
+    return content !== null && d.title === content.title && d.domain === content.domain ? d.reportRef : null;
   };
   /** Objet CÉDÉ par `owner` (_market_item_ceded) : annonce vendue / échangée, ou offert dans un échange conclu. */
   const itemCeded = (itemId: string, owner: string): boolean =>
@@ -903,7 +934,7 @@ export function createDemoMarketplaceRepo(
   const requireExchangeAction = (e: DemoExchange, action: ExchangeAction) => {
     // Miroir d'enforce_exchange_transition : une proposition échue ne s'accepte plus.
     if (action === 'accept' && isExchangeExpired(e, now())) invalid('Proposition expirée');
-    const context = { hasOpenCertification: hasOpenCertification({ exchangeId: e.id }), now: now() };
+    const context = { hasOpenCertification: shipmentBlocked({ exchangeId: e.id }), now: now() };
     if (!exchangeActions(exchangeView(e), context).includes(action)) {
       invalid(`Action « ${action} » impossible dans l’état ${e.state}`);
     }
@@ -949,6 +980,28 @@ export function createDemoMarketplaceRepo(
     );
   };
 
+  /**
+   * Fin SANS vente d'une transaction (order_after_change : commande annulée
+   * ou remboursée ; exchange_after_change : échange annulé) : l'annonce d'un
+   * objet refusé par un expert — laissée en place au refus parce qu'une
+   * transaction expédiée la réservait (R7) — et qui n'est plus réservée
+   * repasse en brouillon, sans badge.
+   */
+  const draftRejectedListings = (listingIds: readonly string[]) => {
+    for (const l of listings) {
+      if (!listingIds.includes(l.id) || (l.status !== 'active' && l.status !== 'pending_certification')) continue;
+      if (!itemRejected(l.itemId === '' ? null : l.itemId, l.sellerId) || isEngaged(l.id)) continue;
+      // listing_after_change : sortie sans certification, le seuil est sans objet.
+      if (l.status === 'pending_certification') {
+        cancelOpenCertifications(
+          (x) => x.listingId === l.id && x.orderId === null && x.exchangeId === null && x.reason === 'threshold',
+        );
+      }
+      l.status = 'draft';
+      l.certified = false;
+    }
+  };
+
   /** Objet de `owner` engagé : son annonce réservée, ou offert dans un échange accepté en cours. */
   const offeredItemEngaged = (itemId: string, owner: string, exceptExchange?: string): boolean =>
     listings.some((l) => l.itemId === itemId && l.sellerId === owner && isEngaged(l.id, { exchange: exceptExchange })) ||
@@ -972,12 +1025,22 @@ export function createDemoMarketplaceRepo(
     const over = (value: number, itemId: string | null, owner: string) =>
       certificationRequirement({ value, estimatedValue: valuationOf(itemId) }).reason === 'threshold' ||
       itemRejected(itemId, owner);
-    if (l && !l.certified && over(e.listingValue, l.itemId, l.sellerId)) sides.push('listing');
-    if (e.offeredItemId !== null && over(e.offeredValue, e.offeredItemId, e.proposerId)) sides.push('offered');
+    // Objet déjà certifié (badge de l'annonce, ou certification qui le suit) : pas de nouvelle expertise.
+    const listingItem = l === undefined || l.itemId === '' ? null : l.itemId;
+    if (l && !l.certified && itemCertificationRef(listingItem, l.sellerId) === null && over(e.listingValue, listingItem, l.sellerId)) {
+      sides.push('listing');
+    }
+    if (
+      e.offeredItemId !== null &&
+      itemCertificationRef(e.offeredItemId, e.proposerId) === null &&
+      over(e.offeredValue, e.offeredItemId, e.proposerId)
+    ) {
+      sides.push('offered');
+    }
     return sides;
   };
 
-  /** Miroir de has_open_certification : l'expédition attend la décision de l'expert. */
+  /** Expertise ouverte sur la commande ou l'échange lui-même (une seule à la fois par transaction). */
   const hasOpenCertification = (ctx: { orderId?: string; exchangeId?: string }): boolean =>
     certifications.some(
       (c) =>
@@ -985,6 +1048,43 @@ export function createDemoMarketplaceRepo(
         ((ctx.orderId !== undefined && c.orderId === ctx.orderId) ||
           (ctx.exchangeId !== undefined && c.exchangeId === ctx.exchangeId)),
     );
+
+  /**
+   * Annonces d'une transaction dont l'expertise PROPRE (ni commande ni
+   * échange) bloque aussi l'expédition (R7) : celle de la commande ; pour un
+   * échange, l'annonce visée et les annonces de l'objet offert par l'auteur.
+   */
+  const transactionListings = (ctx: { orderId?: string; exchangeId?: string }): string[] => {
+    const o = ctx.orderId !== undefined ? orders.find((x) => x.id === ctx.orderId) : undefined;
+    const e = ctx.exchangeId !== undefined ? exchanges.find((x) => x.id === ctx.exchangeId) : undefined;
+    return [
+      ...(o ? [o.listingId] : []),
+      ...(e
+        ? [
+            e.listingId,
+            ...listings.filter((l) => l.itemId === e.offeredItemId && l.sellerId === e.proposerId).map((l) => l.id),
+          ]
+        : []),
+    ];
+  };
+
+  /**
+   * Miroir de has_open_certification (R7) : l'expédition attend la décision de
+   * l'expert sur la transaction, ou sur l'une de ses annonces elle-même — un
+   * refus trouve ainsi toujours la transaction non expédiée (et l'annule).
+   */
+  const shipmentBlocked = (ctx: { orderId?: string; exchangeId?: string }): boolean => {
+    if (hasOpenCertification(ctx)) return true;
+    const ids = transactionListings(ctx);
+    return certifications.some(
+      (c) =>
+        OPEN_CERTIFICATION.has(c.status) &&
+        c.orderId === null &&
+        c.exchangeId === null &&
+        c.listingId !== null &&
+        ids.includes(c.listingId),
+    );
+  };
 
   const threadInvolvesMe = (kind: MarketThreadKind, id: string): boolean => {
     if (kind === 'order') {
@@ -1075,7 +1175,7 @@ export function createDemoMarketplaceRepo(
         estimatedValue: valuationOf(input.itemId),
       });
       const required = requirement.required || itemRejected(item.id, DEMO_OWNER);
-      const reportRef = itemCertificationRef(item, DEMO_OWNER);
+      const reportRef = itemCertificationRef(item.id, DEMO_OWNER);
       const pending = required && reportRef === null;
       const rec: ListingRecord = {
         id: newId('listing'),
@@ -1195,7 +1295,7 @@ export function createDemoMarketplaceRepo(
       if (patch?.deliveredAt !== undefined && role !== 'buyer') {
         invalid('Seul l’acheteur (ou le transporteur) atteste la livraison');
       }
-      if (escrowState === 'shipped' && hasOpenCertification({ orderId: o.id })) {
+      if (escrowState === 'shipped' && shipmentBlocked({ orderId: o.id })) {
         invalid('Expédition bloquée : une certification d’expert est en cours sur cette commande');
       }
       const l = listings.find((x) => x.id === o.listingId);
@@ -1227,9 +1327,11 @@ export function createDemoMarketplaceRepo(
         // Commande libérée ⇒ annonce vendue (0006 : alimente commission et réputation).
         if (l) l.status = 'sold';
       }
+      // Fin sans vente : annonce d'un objet refusé, plus réservée ⇒ brouillon sans badge (R7).
+      if (escrowState === 'cancelled' || escrowState === 'refunded') draftRejectedListings([o.listingId]);
       // SIMULATION démo : le vendeur expédie dès que les fonds sont sous
       // séquestre — sauf expertise ouverte, qui bloque l'expédition.
-      if (escrowState === 'funds_held' && role === 'buyer' && !hasOpenCertification({ orderId: o.id })) {
+      if (escrowState === 'funds_held' && role === 'buyer' && !shipmentBlocked({ orderId: o.id })) {
         o.escrowState = 'shipped';
         o.carrier = 'Colissimo';
         o.trackingNumber = `DEMO${o.id.replace(/\D/g, '').padStart(9, '0')}FR`;
@@ -1467,6 +1569,8 @@ export function createDemoMarketplaceRepo(
       requireExchangeAction(e, 'cancel');
       e.state = 'cancelled';
       cancelOpenCertifications((c) => c.exchangeId === e.id);
+      // Fin sans vente : annonces d'un objet refusé, plus réservées ⇒ brouillon sans badge (R7).
+      draftRejectedListings(transactionListings({ exchangeId: e.id }));
       touch(e);
       return exchangeView(e);
     },
@@ -1597,7 +1701,10 @@ export function createDemoMarketplaceRepo(
           invalid('Trop tard : l’objet est déjà expédié ou la commande est close');
         }
         const l = listings.find((x) => x.id === o.listingId);
-        if (l?.certified) invalid('Objet déjà authentifié par un expert avant publication');
+        // Badge de l'annonce, ou certification qui suit l'objet (R8, _market_item_certification_ref).
+        if (l !== undefined && listingCertified(l.id, o.sellerId)) {
+          invalid('Objet déjà authentifié par un expert avant publication');
+        }
         if (hasOpenCertification({ orderId: o.id })) invalid('Une demande de certification est déjà ouverte');
         rec = {
           ...base,
@@ -1627,11 +1734,18 @@ export function createDemoMarketplaceRepo(
         if (side === 'listing' && listings.find((x) => x.id === e.listingId)?.certified) {
           invalid('Objet déjà authentifié par un expert');
         }
-        const already = certifications.some(
-          (c) => c.exchangeId === e.id && c.side === side && (OPEN_CERTIFICATION.has(c.status) || c.status === 'certified'),
-        );
-        if (already) invalid('Certification déjà obtenue ou demandée pour cet objet');
         const listingItem = listings.find((x) => x.id === e.listingId)?.itemId ?? '';
+        // Objet déjà certifié (il suit son propriétaire, R8) ou déjà en expertise dans cet échange.
+        const certifiedItem =
+          side === 'listing'
+            ? itemCertificationRef(listingItem === '' ? null : listingItem, e.recipientId)
+            : itemCertificationRef(e.offeredItemId, e.proposerId);
+        const already =
+          certifiedItem !== null ||
+          certifications.some(
+            (c) => c.exchangeId === e.id && c.side === side && (OPEN_CERTIFICATION.has(c.status) || c.status === 'certified'),
+          );
+        if (already) invalid('Certification déjà obtenue ou demandée pour cet objet');
         rec = {
           ...base,
           itemId: side === 'listing' ? (listingItem === '' ? null : listingItem) : e.offeredItemId,
@@ -1754,7 +1868,10 @@ export function createDemoMarketplaceRepo(
       // côté serveur), PUIS ses annonces ouvertes de l'objet repassent en
       // brouillon, le badge quitte ses annonces non closes et ses propositions
       // en attente tombent. Une transaction déjà expédiée reste en place
-      // (litige) : l'annonce qu'elle réserve aussi.
+      // (litige ; ses parties sont prévenues côté serveur) et l'annonce qu'elle
+      // réserve n'est PAS modifiée — ni statut, ni badge, aucune expertise
+      // imposée (R7) : elle repasse en brouillon sans badge si cette
+      // transaction se termine sans vente (draftRejectedListings).
       const ofItem = (l: ListingRecord) =>
         l.sellerId === owner && (l.id === c.listingId || (c.itemId !== null && l.itemId === c.itemId));
       const itemListings = new Set(listings.filter(ofItem).map((l) => l.id));
@@ -1780,8 +1897,9 @@ export function createDemoMarketplaceRepo(
       }
       // Transactions annulées : elles ne réservent plus l'annonce (isEngaged).
       for (const l of listings) {
-        if (!ofItem(l)) continue;
-        if ((l.status === 'active' || l.status === 'pending_certification') && !isEngaged(l.id)) {
+        // Encore réservée par une transaction déjà expédiée : inchangée (R7).
+        if (!ofItem(l) || isEngaged(l.id)) continue;
+        if (l.status === 'active' || l.status === 'pending_certification') {
           // listing_after_change : sortie sans certification, le seuil est sans objet.
           if (l.status === 'pending_certification') {
             cancelOpenCertifications(
