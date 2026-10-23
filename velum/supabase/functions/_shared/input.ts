@@ -26,8 +26,17 @@ function isCaptureKind(value: unknown): value is CaptureInput['kind'] {
   return value === 'photo' || value === 'text' || value === 'file';
 }
 
+// Les montres (5e module) étaient absentes de ces deux listes : un candidat
+// 'watch' était refusé par analyze-watch / valuate, et un cliché de cadran
+// ('dial') par recognize. Les listes suivent désormais le contrat core.
 function isVelumDomain(value: unknown): value is VelumDomain {
-  return value === 'wine' || value === 'coin' || value === 'art' || value === 'stamp';
+  return (
+    value === 'wine' ||
+    value === 'coin' ||
+    value === 'art' ||
+    value === 'stamp' ||
+    value === 'watch'
+  );
 }
 
 function isMediaRole(value: unknown): value is MediaRole {
@@ -41,8 +50,41 @@ function isMediaRole(value: unknown): value is MediaRole {
     value === 'back' ||
     value === 'signature' ||
     value === 'frame' ||
+    value === 'dial' ||
+    value === 'caseback' ||
+    value === 'movement' ||
+    value === 'clasp' ||
     value === 'detail'
   );
+}
+
+/** Mode de reconnaissance : un objet (défaut) ou une planche multi-objets. */
+export type RecognitionMode = 'single' | 'sheet';
+
+/** Valide le champ optionnel `mode` de `recognize` (absent → 'single'). */
+export function validateRecognitionMode(value: unknown): ValidationResult<RecognitionMode> {
+  if (value === undefined || value === null) return valid('single');
+  if (value === 'single' || value === 'sheet') return valid(value);
+  return invalid("Champ 'mode' invalide : 'single' ou 'sheet' attendu");
+}
+
+/**
+ * Le mode planche analyse UNE photo de page de classeur / de plateau : ni
+ * texte, ni fichier, ni série de clichés (le quota est compté par photo).
+ */
+export function validateSheetInput(input: CaptureInput): ValidationResult<CaptureInput> {
+  if (input.kind !== 'photo') {
+    return invalid("Le mode planche exige une photo (input.kind 'photo')");
+  }
+  const media = input.media ?? [];
+  if (media.length !== 1) {
+    return invalid('Le mode planche attend exactement une photo de la planche');
+  }
+  const only = media[0];
+  if (!only || (only.storagePath.trim() === '' && !only.base64)) {
+    return invalid('Le mode planche attend une photo téléversée ou jointe');
+  }
+  return valid(input);
 }
 
 /** Refuse les corps JSON primitifs avant tout accès à leurs propriétés. */

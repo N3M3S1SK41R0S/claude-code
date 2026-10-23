@@ -37,6 +37,9 @@ import {
 } from './demoData';
 import { createDemoMarketplaceRepo } from './demoMarketplace';
 import { createDemoWishlistRepo } from './demoWishlist';
+// Mode classeur (planche multi-objets) — bloc edge ci-dessous.
+import type { SheetRecognitionResult } from '@velum/core';
+import { demoRecognizeSheet } from './demoData';
 
 const DEMO_SESSION = {
   access_token: 'demo',
@@ -112,6 +115,10 @@ export function createDemoClient(): VelumClient {
       async recognize(domain: VelumDomain, input): Promise<RecognitionResult> {
         await tick();
         return demoRecognize(domain, input);
+      },
+      async recognizeSheet(domain: VelumDomain, input): Promise<SheetRecognitionResult> {
+        await tick();
+        return demoRecognizeSheet(domain, input);
       },
       async analyze(domain: VelumDomain, candidate: Candidate): Promise<AnalysisResult> {
         await tick();

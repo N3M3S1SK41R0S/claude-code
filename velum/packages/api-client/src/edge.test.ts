@@ -43,6 +43,37 @@ describe('edge api', () => {
     ]);
   });
 
+  it('recognizeSheet invoque `recognize` en mode planche et rend les détections', async () => {
+    const input: CaptureInput = {
+      kind: 'photo',
+      media: [{ role: 'detail', storagePath: 'user-1/planche.jpg' }],
+    };
+    const sheet = {
+      detections: [
+        { index: 0, position: 'rangée 1, case 1', candidates: [candidate], needsAssistedEntry: false },
+      ],
+      stage: 'llm_vision',
+      truncated: false,
+    };
+    fake.invokeResponses['recognize'] = { data: sheet };
+
+    const api = createEdgeApi(asSupabase(fake));
+    expect(await api.recognizeSheet('coin', input)).toEqual(sheet);
+    expect(fake.invocations).toEqual([
+      { fn: 'recognize', body: { domain: 'coin', input, mode: 'sheet' } },
+    ]);
+  });
+
+  it('recognizeSheet convertit le refus serveur (domaine sans planche) en VelumError', async () => {
+    fake.invokeResponses['recognize'] = {
+      error: httpError('INVALID_INPUT', 'Le mode planche n’est pas disponible pour le module « wine »'),
+    };
+    const api = createEdgeApi(asSupabase(fake));
+    await expect(
+      api.recognizeSheet('wine', { kind: 'photo', media: [{ role: 'label', storagePath: 'u/a.jpg' }] }),
+    ).rejects.toSatisfy((e: unknown) => isVelumError(e) && e.code === 'INVALID_INPUT');
+  });
+
   it('analyze route vers analyze-<domaine>', async () => {
     const analysis = {
       engine: 'numis_v1',

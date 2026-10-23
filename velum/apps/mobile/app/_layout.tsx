@@ -102,6 +102,7 @@ export default function RootLayout() {
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="capture/[domain]" options={{ presentation: 'modal' }} />
                 <Stack.Screen name="capture/candidates" />
+                <Stack.Screen name="capture/batch" />
                 <Stack.Screen name="item/[id]" />
                 <Stack.Screen name="paywall" options={{ presentation: 'modal' }} />
               </Stack>

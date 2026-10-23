@@ -2,6 +2,8 @@ import {
   validateCandidate,
   validateCaptureInput,
   validateJsonObject,
+  validateRecognitionMode,
+  validateSheetInput,
   type ValidationResult,
 } from '../_shared/input.ts';
 
@@ -93,4 +95,51 @@ Deno.test('validateCandidate refuse domaine, confiance et attributs invalides', 
   expectError(validateCandidate({ ...base, confidence: 1.2 }, 'wine'), 'confidence');
   expectError(validateCandidate({ ...base, attributes: null }, 'wine'), 'attributes');
   expectError(validateCandidate({ ...base, label: '   ' }, 'wine'), 'label');
+});
+
+// ── Montres et mode planche ──────────────────────────────────────────────────
+
+Deno.test('validateCandidate accepte le domaine montres (analyze-watch, valuate)', () => {
+  expectOk(
+    validateCandidate(
+      { id: 'w-1', domain: 'watch', label: 'Omega Speedmaster', confidence: 0.7, attributes: {} },
+      'watch',
+    ),
+  );
+});
+
+Deno.test('validateCaptureInput accepte les rôles de clichés horlogers', () => {
+  for (const role of ['dial', 'caseback', 'movement', 'clasp']) {
+    expectOk(validateCaptureInput({ kind: 'photo', media: [{ role, storagePath: 'u/x.jpg' }] }));
+  }
+});
+
+Deno.test('validateRecognitionMode : défaut single, refuse les valeurs inconnues', () => {
+  if (expectOk(validateRecognitionMode(undefined)) !== 'single') throw new Error('single attendu');
+  if (expectOk(validateRecognitionMode('sheet')) !== 'sheet') throw new Error('sheet attendu');
+  expectError(validateRecognitionMode('album'), "'mode'");
+  expectError(validateRecognitionMode(1), "'mode'");
+});
+
+Deno.test('validateSheetInput : exactement une photo exploitable', () => {
+  expectOk(validateSheetInput({ kind: 'photo', media: [{ role: 'detail', storagePath: 'u/p.jpg' }] }));
+  expectOk(
+    validateSheetInput({ kind: 'photo', media: [{ role: 'detail', storagePath: '', base64: 'AA==' }] }),
+  );
+  expectError(validateSheetInput({ kind: 'text', text: 'classeur' }), 'photo');
+  expectError(validateSheetInput({ kind: 'photo', media: [] }), 'exactement une photo');
+  expectError(
+    validateSheetInput({
+      kind: 'photo',
+      media: [
+        { role: 'front', storagePath: 'u/a.jpg' },
+        { role: 'back', storagePath: 'u/b.jpg' },
+      ],
+    }),
+    'exactement une photo',
+  );
+  expectError(
+    validateSheetInput({ kind: 'photo', media: [{ role: 'detail', storagePath: ' ' }] }),
+    'téléversée',
+  );
 });

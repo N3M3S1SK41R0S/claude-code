@@ -3,7 +3,10 @@
  * 5e module (décision produit juillet 2026). Moteur d'analyse : `watch_v1`.
  */
 import {
+  QUICK_SCAN_OUTPUT_RULES,
+  RECOGNITION_MAX_TOKENS,
   VelumError,
+  quickScanFields,
   type AnalysisResult,
   type AnalyzeDeps,
   type Candidate,
@@ -66,13 +69,17 @@ const POLISHED_VALUES: readonly NonNullable<WatchCondition['polished']>[] = [
 /** Sous ce seuil de confiance, on bascule sur la saisie assistée (§3.3). */
 const ASSISTED_ENTRY_THRESHOLD = 0.35;
 
-/** Prompt système de l'étape de RECONNAISSANCE (étage 1, §10.1). */
-export const WATCH_RECOGNITION_SYSTEM_PROMPT = `Tu es l'assistant d'identification horlogère VELUM. Tu identifies des montres de collection (hommes et femmes) à partir de photos (cadran, fond de boîte, fermoir, mouvement) ou d'une description libre, éventuellement floue ou partielle. Tu proposes au plus 3 candidats plausibles avec une confiance honnête entre 0 et 1 — jamais de fausse certitude : les hommages et contrefaçons abondent, en cas de doute baisse la confiance. Précise la référence constructeur quand elle est déterminable. Réponds UNIQUEMENT en JSON strict, sans texte hors du JSON et sans fences markdown.`;
+/** Plafond d'une fourchette indicative (EUR) : au-delà, valeur aberrante écartée. */
+const WATCH_MAX_ESTIMATE_EUR = 50_000_000;
+
+/** Prompt système de l'étape de RECONNAISSANCE (étage 1, §10.1) — scan éclair. */
+export const WATCH_RECOGNITION_SYSTEM_PROMPT = `Tu es l'assistant d'identification horlogère VELUM (scan éclair). Tu identifies des montres de collection (hommes et femmes) à partir de photos (cadran, fond de boîte, fermoir, mouvement) ou d'une description libre, éventuellement floue ou partielle. Tu proposes au plus 3 candidats plausibles avec une confiance honnête entre 0 et 1 — jamais de fausse certitude : les hommages et contrefaçons abondent, en cas de doute baisse la confiance. Précise la référence constructeur quand elle est déterminable. Réponds UNIQUEMENT en JSON strict, sans texte hors du JSON et sans fences markdown.`;
 
 /** Schéma JSON exigé pour la reconnaissance — rappelé dans chaque prompt. */
 const RECOGNITION_JSON_SPEC = `Réponds UNIQUEMENT avec un JSON strict de la forme :
-{"candidates":[{"label":string,"confidence":number entre 0 et 1,"attributes":{"brand"?:string,"model"?:string,"reference"?:string,"year"?:number,"gender"?:"homme"|"femme"|"mixte","caseMaterial"?:string,"caseDiameterMm"?:number,"dialColor"?:string,"bracelet"?:string}}]}
-Au plus 3 candidats, triés par confiance décroissante. Aucun texte hors du JSON, pas de fences markdown.`;
+{"candidates":[{"label":string,"confidence":number entre 0 et 1,"attributes":{"brand"?:string,"model"?:string,"reference"?:string,"year"?:number,"gender"?:"homme"|"femme"|"mixte","caseMaterial"?:string,"caseDiameterMm"?:number,"dialColor"?:string,"bracelet"?:string},"estimate"?:{"low":number,"high":number},"classification"?:string[]}]}
+Au plus 3 candidats, triés par confiance décroissante. Classement : marque › collection › période (ex. ["Omega","Speedmaster","années 1990"]). La fourchette suppose une montre authentique dans l'état visible.
+${QUICK_SCAN_OUTPUT_RULES}`;
 
 const ROLE_LABELS_FR: Record<string, string> = {
   dial: 'cadran',
@@ -225,13 +232,15 @@ function parseCandidates(raw: string): Candidate[] | null {
     if (!isRecord(entry)) continue;
     const label = nonEmptyString(entry['label']);
     if (label === undefined) continue;
+    // Une valeur hors [0,1] est non fiable : elle devient 0, jamais 1.
+    const confidence = probability(entry['confidence'], 0);
     candidates.push({
       id: nextCandidateId(),
       domain: 'watch',
       label,
-      // Une valeur hors [0,1] est non fiable : elle devient 0, jamais 1.
-      confidence: probability(entry['confidence'], 0),
+      confidence,
       attributes: parseCandidateAttributes(entry['attributes']),
+      ...quickScanFields(entry, confidence, { maxEur: WATCH_MAX_ESTIMATE_EUR }),
     });
   }
   candidates.sort((left, right) => right.confidence - left.confidence);
@@ -444,13 +453,13 @@ export class WatchDomainPlugin implements DomainPlugin<WatchAnalysisPayload> {
         system: WATCH_RECOGNITION_SYSTEM_PROMPT,
         prompt: photoPrompt(input),
         images: input.media?.filter((media) => media.base64).map((media) => toVisionImage(media)),
-        maxTokens: 1024,
+        maxTokens: RECOGNITION_MAX_TOKENS,
       });
     } else {
       raw = await deps.vision.complete({
         system: WATCH_RECOGNITION_SYSTEM_PROMPT,
         prompt: textPrompt(input.text ?? ''),
-        maxTokens: 1024,
+        maxTokens: RECOGNITION_MAX_TOKENS,
       });
     }
 

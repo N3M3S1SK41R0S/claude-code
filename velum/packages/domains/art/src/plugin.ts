@@ -5,8 +5,11 @@
  * PRUDENCE ATTRIBUTION (§6.4.2) : jamais d'authentification ferme.
  */
 import {
+  QUICK_SCAN_OUTPUT_RULES,
+  RECOGNITION_MAX_TOKENS,
   VelumError,
   isVelumError,
+  quickScanFields,
   type AnalysisResult,
   type AnalyzeDeps,
   type ArtAnalysisPayload,
@@ -60,27 +63,35 @@ const DEFAULT_ANALYSIS_SOURCES: readonly SourceRef[] = [
   { name: 'Dictionnaire Bénézit', kind: 'official_quote', url: 'https://www.oxfordartonline.com/benezit' },
 ];
 
-/** System prompt de l'étage de reconnaissance (photos d'œuvre ou texte libre). */
-export const ART_RECOGNITION_SYSTEM_PROMPT = `Tu es l'étage d'identification du module Tableaux de VELUM.
+/** Plafond d'une fourchette indicative (EUR) : au-delà, valeur aberrante écartée. */
+const ART_MAX_ESTIMATE_EUR = 500_000_000;
+
+/** System prompt de l'étage de reconnaissance (photos d'œuvre ou texte libre) — scan éclair. */
+export const ART_RECOGNITION_SYSTEM_PROMPT = `Tu es l'étage d'identification du module Tableaux de VELUM (scan éclair).
 À partir de photos — œuvre complète (role 'front'), détail signature (role 'signature'),
 verso/étiquettes (role 'back'), cadre (role 'frame') — ou d'une description libre,
 éventuellement floue ou incomplète ("petit paysage impressionniste signé, coin déchiré"),
-tu proposes AU MAXIMUM 3 candidats d'identification plausibles, triés par confiance décroissante.
+tu proposes AU MAXIMUM 3 candidats d'identification plausibles, triés par confiance décroissante,
+avec une fourchette de valeur indicative et un classement.
 
 Tu réponds UNIQUEMENT avec un JSON strict de la forme :
 {"candidates":[{"label":"Artiste — Titre présumé","confidence":0.0,"attributes":{
   "artist":"...","attributionQualifier":"attribue_a|entourage_de|ecole_de|d_apres|signe|anonyme",
   "title":"...","technique":"huile sur toile","support":"toile",
   "dimensionsCm":{"height":65,"width":54},"estimatedPeriod":"fin XIXe",
-  "school":"École de Barbizon","signatureDetected":false}}]}
+  "school":"École de Barbizon","signatureDetected":false},
+  "estimate":{"low":300,"high":800},"classification":["Peinture","École de Barbizon","fin XIXe"]}]}
 
 Règles :
 - "confidence" est un nombre entre 0 et 1 qui reflète HONNÊTEMENT ton doute — jamais de
   fausse certitude. Une œuvre non documentée mérite une confiance basse.
 - PRUDENCE ATTRIBUTION : jamais d'authentification ferme — l'attribution est toujours
   qualifiée via "attributionQualifier" ; sans artiste plausible, utilise "anonyme".
+- "estimate" : fourchette pour une œuvre de CETTE attribution qualifiée (une « école de »
+  ne vaut pas un original) ; omets-la si l'attribution est trop incertaine.
+- "classification" : genre › école ou mouvement › période.
 - Omets tout attribut inconnu plutôt que de l'inventer.
-- Aucun texte hors du JSON, aucune fence markdown.`;
+${QUICK_SCAN_OUTPUT_RULES}`;
 
 /** Libellés français des rôles de cadrage (§6.1.2). */
 const ROLE_LABELS_FR: Record<string, string> = {
@@ -114,6 +125,17 @@ function assistedFallback(): RecognitionResult {
   return { candidates: [], stage: 'llm_vision', needsAssistedEntry: true };
 }
 
+/** Attributs lus, sans clés vides (null, chaîne vide). */
+function compactAttributes(raw: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (value === null || value === undefined) continue;
+    if (typeof value === 'string' && value.trim() === '') continue;
+    out[key] = value;
+  }
+  return out;
+}
+
 /** Mappe la réponse (déjà parsée) du LLM vers des candidats bornés/triés/tronqués. */
 function toCandidates(parsed: unknown): Candidate[] {
   if (!isRecord(parsed) || !Array.isArray(parsed['candidates'])) return [];
@@ -122,13 +144,14 @@ function toCandidates(parsed: unknown): Candidate[] {
     if (!isRecord(entry)) continue;
     const label = asNonEmptyString(entry['label']);
     if (!label) continue;
-    const rawConfidence = asFiniteNumber(entry['confidence']) ?? 0;
+    const confidence = clamp01(asFiniteNumber(entry['confidence']) ?? 0);
     candidates.push({
       id: newCandidateId(),
       domain: 'art',
       label,
-      confidence: clamp01(rawConfidence),
-      attributes: isRecord(entry['attributes']) ? entry['attributes'] : {},
+      confidence,
+      attributes: isRecord(entry['attributes']) ? compactAttributes(entry['attributes']) : {},
+      ...quickScanFields(entry, confidence, { maxEur: ART_MAX_ESTIMATE_EUR }),
     });
   }
   candidates.sort((a, b) => b.confidence - a.confidence);
@@ -335,7 +358,7 @@ export class ArtDomainPlugin implements DomainPlugin<ArtAnalysisPayload> {
       system: ART_RECOGNITION_SYSTEM_PROMPT,
       prompt,
       ...(images ? { images } : {}),
-      maxTokens: 1024,
+      maxTokens: RECOGNITION_MAX_TOKENS,
     });
 
     const candidates = toCandidates(parseModelJson(raw));

@@ -13,6 +13,7 @@
  * Le chemin est TOUJOURS préfixé par l'uid : la RLS du bucket n'autorise chaque
  * utilisateur que sur son propre préfixe.
  */
+import { createUploadTracker } from './batchCapture';
 import { getVelumClient } from './client';
 
 const BUCKET = 'item-media';
@@ -58,3 +59,10 @@ export async function uploadCaptureMedia(dataUrl: string): Promise<string | null
     return null; // réseau, permission, quota… : on repliera sur le base64
   }
 }
+
+/**
+ * Téléversements lancés DÈS la prise de vue (scan éclair et mode classeur) :
+ * la reconnaissance n'attend plus la fin du téléversement (voir batchCapture).
+ * Partagé entre l'écran de capture et l'écran Candidats.
+ */
+export const captureUploads = createUploadTracker(uploadCaptureMedia);

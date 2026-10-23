@@ -3,7 +3,13 @@
  * Moteur d'analyse : `numis_v1`.
  */
 import {
+  MAX_SHEET_DETECTIONS,
+  QUICK_SCAN_OUTPUT_RULES,
+  RECOGNITION_MAX_TOKENS,
+  SHEET_RECOGNITION_MAX_TOKENS,
   VelumError,
+  quickScanFields,
+  sheetDetectionFrom,
   type AnalysisResult,
   type AnalyzeDeps,
   type Candidate,
@@ -16,12 +22,14 @@ import {
   type PriceQuery,
   type RecognitionResult,
   type RecognizeDeps,
+  type SheetDetection,
+  type SheetRecognitionResult,
   type SourceRef,
   type ValuateDeps,
   type ValuationResult,
 } from '@velum/core';
 import { normalizeGrade } from './grade.ts';
-import { clamp01, isRecord, parseLooseJson } from './json.ts';
+import { clamp01, isRecord, parseArrayWithSalvage, parseLooseJson } from './json.ts';
 import { NUMIS_SYSTEM_PROMPT } from './numis.ts';
 
 export const NUMIS_ENGINE = 'numis_v1';
@@ -51,13 +59,33 @@ const RARITY_LEVELS: readonly string[] = ['courante', 'peu_courante', 'rare', 't
 /** Sous ce seuil de confiance, on bascule sur la saisie assistée (§3.3). */
 const ASSISTED_ENTRY_THRESHOLD = 0.35;
 
-/** Prompt système de l'étape de RECONNAISSANCE (étage 1, §10.1). */
-export const COIN_RECOGNITION_SYSTEM_PROMPT = `Tu es l'assistant d'identification numismatique VELUM. Tu identifies des pièces de monnaie à partir de photos (avers, revers, tranche) ou d'une description libre, éventuellement floue ou partielle. Tu proposes au plus 3 candidats plausibles avec une confiance honnête entre 0 et 1 — jamais de fausse certitude : en cas de doute, baisse la confiance. Réponds UNIQUEMENT en JSON strict, sans texte hors du JSON et sans fences markdown.`;
+/** Plafond d'une fourchette indicative (EUR) : au-delà, valeur aberrante écartée. */
+const COIN_MAX_ESTIMATE_EUR = 25_000_000;
+
+/** Prompt système de l'étape de RECONNAISSANCE (étage 1, §10.1) — scan éclair. */
+export const COIN_RECOGNITION_SYSTEM_PROMPT = `Tu es l'assistant d'identification numismatique VELUM (scan éclair). Tu identifies des pièces de monnaie à partir de photos (avers, revers, tranche) ou d'une description libre, éventuellement floue ou partielle, et tu proposes au plus 3 candidats plausibles, avec une fourchette de valeur indicative et un classement.
+Méthode :
+- Avers et revers : lis les légendes, le millésime, la valeur faciale, le portrait ou le type (ex. « Semeuse », « Hercule », « Marianne ») et la marque d'atelier (lettre ou différent) — c'est elle qui distingue souvent un millésime courant d'un millésime rare.
+- Métal : déduis-le de la couleur et du type (or, argent, bronze, cupronickel) ; ne l'affirme pas si la photo ne le permet pas.
+- Une seule face visible : identifie le type, mais baisse la confiance sur le millésime et l'atelier.
+- Confiance honnête entre 0 et 1 — jamais de fausse certitude : usure, reflets ou cadrage flou méritent une confiance modérée.
+Réponds UNIQUEMENT en JSON strict, sans texte hors du JSON et sans fences markdown.`;
+
+/** Attributs de reconnaissance d'une pièce (forme compacte commune objet / planche). */
+const COIN_ATTRIBUTES_SPEC = `{"country"?:string,"issuer"?:string,"type"?:string,"year"?:number,"mintMark"?:string,"metal"?:string,"weightGrams"?:number,"diameterMm"?:number,"mintage"?:number,"numistaId"?:string,"grade"?:string}`;
 
 /** Schéma JSON exigé pour la reconnaissance — rappelé dans chaque prompt. */
 const RECOGNITION_JSON_SPEC = `Réponds UNIQUEMENT avec un JSON strict de la forme :
-{"candidates":[{"label":string,"confidence":number entre 0 et 1,"attributes":{"country"?:string,"issuer"?:string,"type"?:string,"year"?:number,"mintMark"?:string,"metal"?:string,"weightGrams"?:number,"diameterMm"?:number,"mintage"?:number,"numistaId"?:string,"grade"?:string}}]}
-Au plus 3 candidats, triés par confiance décroissante. Aucun texte hors du JSON, pas de fences markdown.`;
+{"candidates":[{"label":string,"confidence":number entre 0 et 1,"attributes":${COIN_ATTRIBUTES_SPEC},"estimate"?:{"low":number,"high":number},"classification"?:string[]}]}
+Au plus 3 candidats, triés par confiance décroissante. Classement : pays › type › période (ex. ["France","Semeuse argent","1959–1969"]).
+${QUICK_SCAN_OUTPUT_RULES}`;
+
+/** Prompt de la reconnaissance d'une PLANCHE (plateau de médaillier, page de classeur). */
+const SHEET_PROMPT = `Cette photo montre un plateau de médaillier, une page de classeur numismatique ou plusieurs pièces posées côte à côte. Repère CHAQUE pièce visible, dans l'ordre de lecture (de gauche à droite, puis de haut en bas), et identifie-la à partir de la face visible.
+Réponds UNIQUEMENT avec un JSON strict de la forme :
+{"detections":[{"position":"rangée 1, case 1","candidates":[{"label":string,"confidence":number entre 0 et 1,"attributes":${COIN_ATTRIBUTES_SPEC},"estimate"?:{"low":number,"high":number},"classification"?:string[]}]}],"more":boolean}
+Règles : au plus ${MAX_SHEET_DETECTIONS} pièces ; au plus 2 candidats par pièce ; "more":true s'il reste des pièces au-delà ; une pièce illisible garde sa position avec "candidates":[] ; attributs limités à pays, type, année, atelier et métal ; une seule face étant visible, reste prudent sur le millésime.
+${QUICK_SCAN_OUTPUT_RULES}`;
 
 const ROLE_LABELS_FR: Record<string, string> = {
   obverse: 'avers',
@@ -90,7 +118,7 @@ function photoPrompt(input: CaptureInput): string {
   const hint = input.text !== undefined && input.text.trim() !== ''
     ? `\nIndication de l'utilisateur (peut être imprécise) : « ${input.text.trim()} »`
     : '';
-  return `Identifie la pièce de monnaie photographiée (${roles || 'photos fournies'}).${hint}
+  return `Identifie la pièce de monnaie photographiée (${roles || 'photos fournies'}). Si plusieurs pièces sont visibles, identifie celle du centre.${hint}
 ${RECOGNITION_JSON_SPEC}`;
 }
 
@@ -115,23 +143,77 @@ function fileRowLabel(row: Record<string, unknown>): string {
   return 'Pièce importée (à préciser)';
 }
 
+/** Attributs de reconnaissance nettoyés : clés vides retirées, année numérique. */
+function normalizeRecognitionAttributes(raw: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (value === null || value === undefined) continue;
+    if (typeof value === 'string' && value.trim() === '') continue;
+    out[key] = typeof value === 'string' ? value.trim() : value;
+  }
+  const year = out['year'];
+  if (typeof year === 'string' && /^-?\d{1,4}$/.test(year)) out['year'] = Number(year);
+  return out;
+}
+
+/** Un candidat de reconnaissance (objet seul ou détection de planche). */
+function toCandidate(entry: unknown): Candidate | null {
+  if (!isRecord(entry)) return null;
+  const label = typeof entry['label'] === 'string' ? entry['label'].trim() : '';
+  if (label === '') return null;
+  const rawConfidence = entry['confidence'];
+  const confidence = clamp01(typeof rawConfidence === 'number' ? rawConfidence : 0);
+  const attributes = normalizeRecognitionAttributes(
+    isRecord(entry['attributes']) ? entry['attributes'] : {},
+  );
+  return {
+    id: nextCandidateId(),
+    domain: 'coin',
+    label,
+    confidence,
+    attributes,
+    ...quickScanFields(entry, confidence, { maxEur: COIN_MAX_ESTIMATE_EUR }),
+  };
+}
+
+/** Candidats valides, triés par confiance décroissante, top 3 au plus. */
+function toCandidates(entries: unknown[]): Candidate[] {
+  const out: Candidate[] = [];
+  for (const entry of entries) {
+    const candidate = toCandidate(entry);
+    if (candidate !== null) out.push(candidate);
+  }
+  out.sort((a, b) => b.confidence - a.confidence);
+  return out.slice(0, 3);
+}
+
 /** Parse la réponse de reconnaissance ; null si totalement illisible. */
 function parseCandidates(raw: string): Candidate[] | null {
   const parsed = parseLooseJson(raw);
   if (!isRecord(parsed) || !Array.isArray(parsed['candidates'])) return null;
-  const out: Candidate[] = [];
-  for (const entry of parsed['candidates']) {
+  return toCandidates(parsed['candidates']);
+}
+
+/**
+ * Parse la réponse d'une planche. Une réponse coupée par le budget de sortie
+ * garde ses détections COMPLÈTES et lève `truncated` ; au-delà de 24 objets,
+ * la liste est tronquée et signalée de même.
+ */
+function parseSheet(raw: string): SheetRecognitionResult {
+  const { items, root, complete } = parseArrayWithSalvage(raw, 'detections');
+  const detections: SheetDetection[] = [];
+  for (const entry of items) {
+    if (detections.length === MAX_SHEET_DETECTIONS) break;
     if (!isRecord(entry)) continue;
-    const label = typeof entry['label'] === 'string' ? entry['label'].trim() : '';
-    if (label === '') continue;
-    const rawConfidence = entry['confidence'];
-    const confidence = clamp01(typeof rawConfidence === 'number' ? rawConfidence : 0);
-    const attributes = isRecord(entry['attributes']) ? entry['attributes'] : {};
-    out.push({ id: nextCandidateId(), domain: 'coin', label, confidence, attributes });
+    const candidates = Array.isArray(entry['candidates']) ? toCandidates(entry['candidates']) : [];
+    const position = typeof entry['position'] === 'string' ? entry['position'] : undefined;
+    detections.push(sheetDetectionFrom(detections.length, candidates, position));
   }
-  // Tri par confiance décroissante, top 3 au plus.
-  out.sort((a, b) => b.confidence - a.confidence);
-  return out.slice(0, 3);
+  const truncated =
+    (!complete && items.length > 0) ||
+    items.length > MAX_SHEET_DETECTIONS ||
+    root?.['more'] === true;
+  return { detections, stage: 'llm_vision', truncated };
 }
 
 function recognitionFrom(candidates: Candidate[]): RecognitionResult {
@@ -273,19 +355,42 @@ export class CoinDomainPlugin implements DomainPlugin<CoinAnalysisPayload> {
         system: COIN_RECOGNITION_SYSTEM_PROMPT,
         prompt: photoPrompt(input),
         images: input.media?.filter((m) => m.base64).map((m) => toVisionImage(m)),
-        maxTokens: 1024,
+        maxTokens: RECOGNITION_MAX_TOKENS,
       });
     } else {
       raw = await deps.vision.complete({
         system: COIN_RECOGNITION_SYSTEM_PROMPT,
         prompt: textPrompt(input.text ?? ''),
-        maxTokens: 1024,
+        maxTokens: RECOGNITION_MAX_TOKENS,
       });
     }
 
     const candidates = parseCandidates(raw);
     if (candidates === null) return { ...UNREADABLE_RECOGNITION };
     return recognitionFrom(candidates);
+  }
+
+  /**
+   * Mode classeur : UNE photo de plateau / page de classeur → jusqu'à 24 pièces
+   * identifiées en un seul appel. Une photo est requise (ni texte ni fichier) ;
+   * une panne de vision remonte telle quelle (429/503).
+   */
+  async recognizeSheet(input: CaptureInput, deps: RecognizeDeps): Promise<SheetRecognitionResult> {
+    const images = (input.media ?? []).filter((m) => m.base64).map((m) => toVisionImage(m));
+    if (input.kind !== 'photo' || images.length === 0) {
+      throw new VelumError('INVALID_INPUT', 'Le mode planche exige une photo du plateau de pièces.');
+    }
+    const hint =
+      input.text !== undefined && input.text.trim() !== ''
+        ? `\nIndication de l'utilisateur (peut être imprécise) : « ${input.text.trim()} »`
+        : '';
+    const raw = await deps.vision.complete({
+      system: COIN_RECOGNITION_SYSTEM_PROMPT,
+      prompt: `${SHEET_PROMPT}${hint}`,
+      images,
+      maxTokens: SHEET_RECOGNITION_MAX_TOKENS,
+    });
+    return parseSheet(raw);
   }
 
   async analyze(candidate: Candidate, deps: AnalyzeDeps): Promise<AnalysisResult<CoinAnalysisPayload>> {
