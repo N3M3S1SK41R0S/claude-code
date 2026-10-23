@@ -5,9 +5,11 @@ import {
   QUICK_JPEG_QUALITY,
   SHEET_JPEG_QUALITY,
   classificationText,
+  countUnattached,
   createUploadTracker,
   formatEstimateRange,
   mediaForRecognition,
+  pictureSizeWithin,
   secondsForDisplay,
   settledStoragePaths,
   startStopwatch,
@@ -48,6 +50,20 @@ describe('createUploadTracker', () => {
     await expect(tracker.start('data:null')).resolves.toBeNull();
     expect(tracker.peek('data:boom')).toEqual({ state: 'failed' });
     expect(tracker.peek('data:null')).toEqual({ state: 'failed' });
+  });
+
+  it('relance un téléversement en échec (réseau revenu), jamais un téléversement en cours ou réussi', async () => {
+    const outcomes: (string | null)[] = [null, 'user/a.jpg'];
+    const upload = vi.fn(async () => outcomes.shift() ?? null);
+    const tracker = createUploadTracker(upload);
+    await expect(tracker.start('data:a')).resolves.toBeNull();
+    expect(tracker.peek('data:a')).toEqual({ state: 'failed' });
+    // Second essai : nouvel appel réseau, et non la promesse déjà résolue à null.
+    await expect(tracker.start('data:a')).resolves.toBe('user/a.jpg');
+    expect(upload).toHaveBeenCalledTimes(2);
+    expect(tracker.peek('data:a')).toEqual({ state: 'done', path: 'user/a.jpg' });
+    await expect(tracker.start('data:a')).resolves.toBe('user/a.jpg');
+    expect(upload).toHaveBeenCalledTimes(2);
   });
 
   it('forget libère la photo (un cliché remplacé ne garde pas d’état)', async () => {
@@ -95,28 +111,60 @@ describe('mediaForRecognition — reconnaissance sans attendre le téléversemen
 });
 
 describe('settledStoragePaths — rattachement à l’enregistrement', () => {
-  it('attend les téléversements en cours ; un échec n’attache rien', async () => {
-    const { upload, resolve } = deferredUploads();
+  it('attend les téléversements en cours ; relance UNE fois un échec ou un téléversement jamais lancé', async () => {
+    // Résultats successifs par photo : le 1er à la prise de vue, le 2e à l'enregistrement.
+    const script: Record<string, (string | null)[]> = {
+      'data:slow': ['user/slow.jpg'],
+      'data:ko': [null, null],
+      'data:revenu': [null, 'user/revenu.jpg'],
+      'data:jamais': ['user/jamais.jpg'],
+    };
+    const upload = vi.fn(async (dataUrl: string) => script[dataUrl]?.shift() ?? null);
     const tracker = createUploadTracker(upload);
     void tracker.start('data:slow');
-    void tracker.start('data:ko');
-    const settled = settledStoragePaths(
+    await tracker.start('data:ko');
+    await tracker.start('data:revenu');
+    const paths = await settledStoragePaths(
       [
         { role: 'front', base64: 'data:x', storagePath: 'user/x.jpg' },
         { role: 'back', base64: 'data:slow' },
         { role: 'detail', base64: 'data:ko' },
-        { role: 'edge', base64: 'data:jamais' },
+        { role: 'edge', base64: 'data:revenu' },
+        { role: 'label', base64: 'data:jamais' },
       ],
       tracker,
     );
-    resolve('data:slow', 'user/slow.jpg');
-    resolve('data:ko', null);
-    await expect(settled).resolves.toEqual([
+    expect(paths).toEqual([
       { role: 'front', storagePath: 'user/x.jpg' },
       { role: 'back', storagePath: 'user/slow.jpg' },
       { role: 'detail' },
-      { role: 'edge' },
+      { role: 'edge', storagePath: 'user/revenu.jpg' },
+      { role: 'label', storagePath: 'user/jamais.jpg' },
     ]);
+    // Une seule relance par photo sans chemin, aucune pour une photo déjà téléversée.
+    expect(upload.mock.calls.map(([dataUrl]) => dataUrl).sort()).toEqual(
+      ['data:jamais', 'data:ko', 'data:ko', 'data:revenu', 'data:revenu', 'data:slow'].sort(),
+    );
+    // L'appelant sait combien de photos ne seront PAS rattachées (avertissement).
+    expect(countUnattached(paths)).toBe(1);
+  });
+
+  it('attend un téléversement encore en cours puis le relance s’il échoue', async () => {
+    const { upload, resolve } = deferredUploads();
+    const tracker = createUploadTracker(upload);
+    void tracker.start('data:lent');
+    const settled = settledStoragePaths([{ role: 'front', base64: 'data:lent' }], tracker);
+    resolve('data:lent', null);
+    await vi.waitFor(() => expect(upload).toHaveBeenCalledTimes(2));
+    resolve('data:lent', 'user/lent.jpg');
+    await expect(settled).resolves.toEqual([{ role: 'front', storagePath: 'user/lent.jpg' }]);
+  });
+
+  it('une entrée sans photo ne déclenche aucun téléversement', async () => {
+    const upload = vi.fn(async () => 'jamais');
+    const paths = await settledStoragePaths([{ role: 'front', base64: '' }], createUploadTracker(upload));
+    expect(paths).toEqual([{ role: 'front' }]);
+    expect(upload).not.toHaveBeenCalled();
   });
 });
 
@@ -141,11 +189,26 @@ describe('chronométrage et réglages', () => {
     expect(plain(formatEstimateRange({ low: 40, high: 90, currency: 'EUR' }, 'fr'))).toBe('40 € – 90 €');
     expect(plain(formatEstimateRange({ low: 0.3, high: 0.8, currency: 'EUR' }, 'fr'))).toBe('0,30 € – 0,80 €');
     expect(plain(formatEstimateRange({ low: 1200, high: 1500, currency: 'EUR' }, 'en'))).toBe('€1,200 – €1,500');
+    // Borne basse en centimes : jamais arrondie à « 0 € » parce que la borne haute dépasse 10 €.
+    expect(plain(formatEstimateRange({ low: 0.3, high: 12, currency: 'EUR' }, 'fr'))).toBe('0,30 € – 12,00 €'.replace(/[  ]/g, ' '));
+    expect(plain(formatEstimateRange({ low: 5, high: 50, currency: 'EUR' }, 'fr'))).toBe('5 € – 50 €');
   });
 
   it('classement en fil d’Ariane', () => {
     expect(classificationText(['France', ' ', 'Cérès', '1849–1850'])).toBe('France › Cérès › 1849–1850');
     expect(classificationText(undefined)).toBe('');
+  });
+
+  it('résolution native plafonnée : la plus grande taille du capteur sous le grand côté visé', () => {
+    // Android : liste « LxH » propre à l'appareil.
+    expect(pictureSizeWithin(['4000x3000', '2592x1944', '2048x1536', '1600x1200', '640x480'], 2600)).toBe(
+      '2592x1944',
+    );
+    // iOS : préréglages nommés ignorés, tailles vidéo retenues si elles tiennent.
+    expect(pictureSizeWithin(['3840x2160', '1920x1080', '1280x720', 'Photo', 'High'], 2600)).toBe('1920x1080');
+    // Rien d'exploitable sous la borne : résolution par défaut (aucune taille imposée).
+    expect(pictureSizeWithin(['Photo', 'High', '4032x3024'], 2600)).toBeUndefined();
+    expect(pictureSizeWithin([], 2600)).toBeUndefined();
   });
 
   it('qualité plus élevée pour une planche ; cliché principal par domaine', () => {

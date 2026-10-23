@@ -14,7 +14,9 @@
  *     `storagePath: ''` + `base64`, et `hydrateMedia` utilise ce base64 tel
  *     quel —, sans attendre : reconnaissance et téléversement avancent en
  *     parallèle, le chemin servira à rattacher la photo à l'objet ;
- *  3. un téléversement en échec retombe sur le base64 (comportement existant).
+ *  3. un téléversement en échec retombe sur le base64 (comportement existant)
+ *     et est RELANCÉ au prochain essai (reconnaissance ou enregistrement) : un
+ *     réseau revenu ne doit pas laisser l'objet enregistré sans sa photo.
  * Les photos sont aussi plus légères (qualité adaptée au mode, ci-dessous).
  */
 import type { CaptureMedia, MediaRole, QuickEstimate, VelumDomain } from '@velum/core';
@@ -27,6 +29,27 @@ export const SHEET_JPEG_QUALITY = 0.85;
 export const QUICK_MAX_EDGE = 1600;
 /** Grand côté maximal (web) d'une photo de planche. */
 export const SHEET_MAX_EDGE = 2600;
+
+/**
+ * Taille de photo native (`pictureSize` d'expo-camera) la plus grande dont le
+ * grand côté tient dans `maxEdge` — `undefined` si aucune (résolution par
+ * défaut du capteur). Une planche prise en pleine résolution à la qualité
+ * 0,85 dépasse la limite de poids par image du fournisseur ; il la réduit de
+ * toute façon vers ~1,15 Mpx : la pleine résolution n'apporte rien.
+ */
+export function pictureSizeWithin(sizes: readonly string[], maxEdge: number): string | undefined {
+  let best: { size: string; area: number } | undefined;
+  for (const size of sizes) {
+    const match = /^(\d+)x(\d+)$/.exec(size.trim());
+    if (!match) continue;
+    const width = Number(match[1]);
+    const height = Number(match[2]);
+    if (Math.max(width, height) > maxEdge) continue;
+    const area = width * height;
+    if (best === undefined || area > best.area) best = { size: size.trim(), area };
+  }
+  return best?.size;
+}
 
 /** Cliché principal d'un objet en mode série (un objet = une photo). */
 export const PRIMARY_ROLE: Record<VelumDomain, MediaRole> = {
@@ -44,10 +67,11 @@ export type UploadState =
 
 /**
  * Suivi des téléversements lancés à la prise de vue. Une même photo (clé =
- * data URL) n'est jamais téléversée deux fois ; une promesse ne rejette pas
- * (`null` = échec, repli base64).
+ * data URL) n'est jamais téléversée deux fois tant qu'un téléversement est en
+ * cours ou réussi ; une promesse ne rejette pas (`null` = échec, repli base64).
  */
 export interface UploadTracker {
+  /** Lance le téléversement, ou renvoie celui en cours / réussi ; un échec est relancé. */
   start(dataUrl: string): Promise<string | null>;
   peek(dataUrl: string): UploadState | undefined;
   /** Attend le téléversement s'il a été lancé ; `undefined` sinon. */
@@ -63,7 +87,8 @@ export function createUploadTracker(upload: (dataUrl: string) => Promise<string 
   return {
     start(dataUrl) {
       const existing = promises.get(dataUrl);
-      if (existing) return existing;
+      // Un échec n'est pas définitif (réseau coupé une seconde) : on relance.
+      if (existing && states.get(dataUrl)?.state !== 'failed') return existing;
       states.set(dataUrl, { state: 'pending' });
       const promise = upload(dataUrl)
         .catch(() => null)
@@ -118,21 +143,31 @@ export function mediaForRecognition(
 /**
  * Chemins à rattacher à l'objet au moment de l'enregistrement : on attend les
  * téléversements encore en cours (en général terminés pendant la
- * reconnaissance) ; un échec laisse simplement la photo non rattachée.
+ * reconnaissance). Une photo sans chemin — téléversement en échec, ou jamais
+ * lancé — est relancée UNE fois ; si elle reste sans chemin, l'objet est
+ * enregistré sans elle et l'appelant le signale (`countUnattached`).
  */
 export async function settledStoragePaths(
   shots: readonly ShotForRecognition[],
-  tracker: Pick<UploadTracker, 'peek' | 'wait'>,
+  tracker: Pick<UploadTracker, 'wait' | 'start'>,
 ): Promise<{ role: MediaRole; storagePath?: string }[]> {
   return Promise.all(
     shots.map(async (shot) => {
       const known = shot.storagePath?.trim();
       if (known) return { role: shot.role, storagePath: known };
+      if (shot.base64 === '') return { role: shot.role };
       const pending = tracker.wait(shot.base64);
-      const path = pending ? await pending : null;
+      let path = pending ? await pending : null;
+      // `start` relance un échec ; une photo jamais suivie est téléversée maintenant.
+      if (!path) path = await tracker.start(shot.base64);
       return path ? { role: shot.role, storagePath: path } : { role: shot.role };
     }),
   );
+}
+
+/** Photos qui ne seront PAS rattachées à l'objet (à signaler, jamais en silence). */
+export function countUnattached(paths: readonly { storagePath?: string }[]): number {
+  return paths.filter((entry) => !entry.storagePath?.trim()).length;
 }
 
 /** Chronomètre à horloge injectée (latence perçue : prise → candidats). */
@@ -158,7 +193,10 @@ export function secondsForDisplay(ms: number): number {
  * courantes), où les arrondir à l'euro effacerait l'information.
  */
 export function formatEstimateRange(estimate: QuickEstimate, locale: string): string {
-  const digits = estimate.high < 10 ? 2 : 0;
+  // Une borne basse en centimes (0,30 €) garde ses centimes même si la haute
+  // dépasse 10 € : « 0 € – 12 € » effacerait l'information.
+  const hasCents = (n: number) => n > 0 && n < 10 && !Number.isInteger(n);
+  const digits = estimate.high < 10 || hasCents(estimate.low) ? 2 : 0;
   const format = new Intl.NumberFormat(locale.startsWith('en') ? 'en-GB' : 'fr-FR', {
     style: 'currency',
     currency: 'EUR',
