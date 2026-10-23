@@ -113,9 +113,15 @@ draft ⇄ active ⇄ pending_certification          (serveur : seuil de certific
 - Une **nouvelle estimation** au-delà du seuil fait repasser une annonce publiée
   non certifiée en `pending_certification` (le vendeur est notifié). Une
   annonce **réservée** est épargnée (statut figé, même quand le vendeur en
-  retouche la description) ; si la transaction se termine **sans vente**,
-  elle est réévaluée comme une annonce neuve : seuil recalculé, référence
-  d'expertise qu'aucune décision d'expert ne confirme effacée.
+  retouche la description) ; si la transaction se termine **sans vente**
+  (commande **payée** annulée ou remboursée, échange annulé — une commande
+  jamais payée ne réservait rien et ne libère rien), elle est réévaluée comme
+  une annonce neuve : seuil recalculé, référence d'expertise qu'aucune
+  décision d'expert ne confirme effacée (ou après un refus). Une
+  certification VELUM n'est jamais effacée : la référence posée par l'expert
+  reste, et une certification de l'objet obtenue **pendant** la réservation
+  (accord mutuel) est reprise par l'annonce, qui reste publiée sans nouvelle
+  expertise « seuil ».
 - Un objet engagé dans une transaction en cours ne peut pas être supprimé ;
   hors transaction, sa suppression **détache** ses annonces (retirées si
   ouvertes), propositions et certifications : l'historique de l'autre partie
@@ -260,8 +266,10 @@ réouverture par le vendeur (retirée → brouillon ou publiée, brouillon →
 publiée) : une annonce ne garde jamais un badge que la dernière décision ou le
 contenu de l'objet démentent. Cette (re)publication **recopie d'abord** le
 contenu public de l'objet (titre expurgé, catégorie) dans l'annonce, avant le
-calcul : l'annonce montre l'objet tel qu'il sera expertisé, et la demande
-« seuil » enregistre son titre **actuel** — un objet renommé avant sa
+calcul : l'annonce montre l'objet tel qu'il sera expertisé. Toute demande
+d'expertise de l'annonce (volontaire, ou « seuil » ouverte d'office — y
+compris quand une estimation suspend l'annonce sans republication)
+enregistre le titre **actuel de l'objet** — un objet renommé avant sa
 certification garde donc son badge aux republications suivantes ; renommé
 après, il exige **une** nouvelle expertise, une seule (le titre d'une demande
 n'est jamais réécrit à la décision de l'expert). Deux décisions ex aequo (même

@@ -797,11 +797,21 @@ begin
         raise exception 'Annonce engagée dans une transaction : demandez l''expertise sur la transaction'
           using errcode = 'P0001';
       end if;
+      -- Contenu ACTUEL de l'objet (titre expurgé, catégorie), celui que
+      -- _market_item_certification_ref compare : la certification suit
+      -- l'objet même renommé depuis la publication (titre de l'annonce figé).
+      -- Objet illisible : titre de l'annonce.
+      select public.redact_contact_info(i.title), i.domain into v_title, v_domain
+      from public.items i where i.id = v_listing.item_id;
+      if not found then
+        v_title := v_listing.title;
+        v_domain := v_listing.domain;
+      end if;
       insert into public.certification_requests (
         listing_id, item_id, item_title, domain, owner_id, requested_by,
         reason, status, fee_payer)
       values (
-        v_listing.id, v_listing.item_id, v_listing.title, v_listing.domain, v_uid, v_uid,
+        v_listing.id, v_listing.item_id, v_title, v_domain, v_uid, v_uid,
         p_reason, 'requested', 'seller')
       returning id into v_id;
 
