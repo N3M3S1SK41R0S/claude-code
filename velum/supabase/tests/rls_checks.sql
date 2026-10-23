@@ -67,6 +67,66 @@ begin
 end
 $$;
 
+-- ── 2bis. Offre d'abonnement : écrite par le serveur seul ───────────────────
+-- (faille 0001 : un membre gratuit se passait lui-même en 'platine').
+do $$
+declare
+  v_plan text;
+  v_name text;
+begin
+  perform set_config('velum.uid', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', true);
+  set local role authenticated;
+
+  -- Préférences du profil : toujours modifiables (profilePatchToRow).
+  update public.profiles
+     set display_name = 'Bob B.', locale = 'en', a11y_mode = true, expo_push_token = 'ExponentPushToken[bob]'
+   where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  select display_name into v_name from public.profiles where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  if v_name <> 'Bob B.' then raise exception 'profil : préférences non enregistrées (%)', v_name; end if;
+
+  -- Auto-promotion refusée (privilège de colonne).
+  begin
+    update public.profiles set plan = 'platine' where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    raise exception 'profil : un membre a modifié lui-même son offre';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+  -- Ni création de profil, ni suppression directe.
+  begin
+    insert into public.profiles (id, plan) values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbc', 'platine');
+    raise exception 'profil : création directe d''un profil acceptée';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+  begin
+    delete from public.profiles where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+    raise exception 'profil : suppression directe du profil acceptée';
+  exception when insufficient_privilege then null; -- attendu
+  end;
+
+  reset role;
+  select plan into v_plan from public.profiles where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  if v_plan <> 'free' then raise exception 'profil : offre modifiée (%)', v_plan; end if;
+  -- Défense en profondeur : le trigger refuse aussi un changement d'offre
+  -- d'un client qui disposerait du privilège.
+  if not exists (select 1 from pg_trigger where tgname = 'profiles_guard_plan') then
+    raise exception 'profil : trigger de garde de l''offre absent';
+  end if;
+  raise notice 'OK 2bis — offre d''abonnement écrite par le serveur seul, préférences modifiables';
+end
+$$;
+
+-- Le service (revenuecat-webhook, service_role) écrit l'offre.
+do $$
+declare
+  v_plan text;
+begin
+  set local role service_role;
+  update public.profiles set plan = 'gold' where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  select plan into v_plan from public.profiles where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  if v_plan <> 'gold' then raise exception 'profil : offre non écrite par le service (%)', v_plan; end if;
+  update public.profiles set plan = 'free' where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+end
+$$;
+
 -- ── 3. Quota freemium : 5 scans / semaine / MODULE ──────────────────────────
 do $$
 declare
