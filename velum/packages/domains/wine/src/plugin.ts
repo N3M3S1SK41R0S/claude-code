@@ -4,8 +4,11 @@
  * recognize (photo/texte/fichier) → analyze (fiche 7 modules) → valuate (§7).
  */
 import {
+  QUICK_SCAN_OUTPUT_RULES,
+  RECOGNITION_MAX_TOKENS,
   VelumError,
   isVelumError,
+  quickScanFields,
   type AnalysisResult,
   type AnalyzeDeps,
   type Candidate,
@@ -39,11 +42,15 @@ export const WINE_DISCLAIMERS: readonly string[] = [
   'L’état réel de la bouteille (niveau, bouchon, étiquette, conditions de stockage) peut modifier sensiblement la valeur et le potentiel de garde.',
 ];
 
-/** System prompt de l'étage de reconnaissance (photo étiquette/capsule ou texte libre). */
-export const WINE_RECOGNITION_SYSTEM_PROMPT = `Tu es l'étage d'identification du module Vin de VELUM.
+/** Plafond d'une fourchette indicative par bouteille (EUR) : au-delà, valeur aberrante. */
+const WINE_MAX_ESTIMATE_EUR = 1_000_000;
+
+/** System prompt de l'étage de reconnaissance (photo étiquette/capsule ou texte libre) — scan éclair. */
+export const WINE_RECOGNITION_SYSTEM_PROMPT = `Tu es l'étage d'identification du module Vin de VELUM (scan éclair).
 À partir de photos (étiquette, capsule, bouteille) ou d'une description libre — éventuellement
 floue ou incomplète ("grand vin de Bordeaux bio 2019") — tu proposes AU MAXIMUM 3 candidats
-d'identification plausibles, triés par confiance décroissante.
+d'identification plausibles, triés par confiance décroissante, avec une fourchette de prix
+indicative et un classement.
 
 Tu réponds UNIQUEMENT avec un JSON strict de la forme :
 {"candidates":[{"label":"Producteur Cuvée Millésime","confidence":0.0,"attributes":{
@@ -51,13 +58,19 @@ Tu réponds UNIQUEMENT avec un JSON strict de la forme :
   "color":"rouge|blanc|rosé|orange|effervescent",
   "grapes":[{"name":"...","percent":50}],
   "farming":"conventionnel|bio|biodynamie|HVE|nature|inconnu",
-  "region":"...","country":"...","format":"750ml"}}]}
+  "region":"...","country":"...","format":"750ml"},
+  "estimate":{"low":20,"high":35},"classification":["Vin","Bordeaux","Pauillac"]}]}
 
 Règles :
 - "confidence" est un nombre entre 0 et 1 qui reflète HONNÊTEMENT ton doute — jamais de
   fausse certitude. Une entrée vague mérite une confiance basse.
+- Le millésime se lit sur l'étiquette ou la collerette : s'il n'est pas visible, omets-le et
+  baisse la confiance (il change souvent la valeur).
+- "grapes" et "farming" seulement s'ils sont lus sur l'étiquette.
+- "estimate" : prix indicatif d'UNE bouteille au format indiqué, en euros.
+- "classification" : Vin › région › appellation.
 - Omets tout attribut inconnu plutôt que de l'inventer.
-- Aucun texte hors du JSON, aucune fence markdown.`;
+${QUICK_SCAN_OUTPUT_RULES}`;
 
 /** Identifiant unique de candidat (UUID natif si disponible). */
 function newCandidateId(): string {
@@ -82,6 +95,22 @@ function assistedFallback(): RecognitionResult {
   return { candidates: [], stage: 'llm_vision', needsAssistedEntry: true };
 }
 
+/**
+ * Attributs lus, sans clés vides (null, chaîne vide) ; millésime en texte
+ * (« 2019 ») ramené à un nombre.
+ */
+function compactAttributes(raw: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (value === null || value === undefined) continue;
+    if (typeof value === 'string' && value.trim() === '') continue;
+    out[key] = value;
+  }
+  const vintage = out['vintage'];
+  if (typeof vintage === 'string' && /^\d{4}$/.test(vintage.trim())) out['vintage'] = Number(vintage.trim());
+  return out;
+}
+
 /** Mappe la réponse (déjà parsée) du LLM vers des candidats bornés/triés/tronqués. */
 function toCandidates(parsed: unknown): Candidate[] {
   if (!isRecord(parsed) || !Array.isArray(parsed['candidates'])) return [];
@@ -90,13 +119,14 @@ function toCandidates(parsed: unknown): Candidate[] {
     if (!isRecord(entry)) continue;
     const label = asNonEmptyString(entry['label']);
     if (!label) continue;
-    const rawConfidence = asFiniteNumber(entry['confidence']) ?? 0;
+    const confidence = clamp01(asFiniteNumber(entry['confidence']) ?? 0);
     candidates.push({
       id: newCandidateId(),
       domain: 'wine',
       label,
-      confidence: clamp01(rawConfidence),
-      attributes: isRecord(entry['attributes']) ? entry['attributes'] : {},
+      confidence,
+      attributes: isRecord(entry['attributes']) ? compactAttributes(entry['attributes']) : {},
+      ...quickScanFields(entry, confidence, { maxEur: WINE_MAX_ESTIMATE_EUR }),
     });
   }
   candidates.sort((a, b) => b.confidence - a.confidence);
@@ -266,7 +296,7 @@ export class WineDomainPlugin implements DomainPlugin<WineAnalysisPayload> {
       system: WINE_RECOGNITION_SYSTEM_PROMPT,
       prompt,
       ...(images ? { images } : {}),
-      maxTokens: 1024,
+      maxTokens: RECOGNITION_MAX_TOKENS,
     });
 
     const candidates = toCandidates(parseModelJson(raw));

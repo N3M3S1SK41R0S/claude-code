@@ -55,6 +55,74 @@ export function parseLooseJson(raw: string): unknown {
   }
 }
 
+/** Tableau lu dans une réponse, éventuellement récupéré d'une sortie coupée. */
+export interface SalvagedArray {
+  /** Éléments COMPLETS du tableau (un élément coupé en cours n'est jamais gardé). */
+  items: unknown[];
+  /** Objet racine quand la réponse entière est un JSON valide, sinon null. */
+  root: Record<string, unknown> | null;
+  /** false → réponse tronquée (budget de tokens atteint) : liste partielle. */
+  complete: boolean;
+}
+
+/**
+ * Lit le tableau `key` d'une réponse modèle. Si le JSON est coupé (budget de
+ * sortie atteint sur une grande planche), récupère les éléments `{...}` déjà
+ * COMPLETS au lieu de tout perdre — et le signale (`complete: false`).
+ */
+export function parseArrayWithSalvage(raw: string, key: string): SalvagedArray {
+  const parsed = parseLooseJson(raw);
+  if (isRecord(parsed)) {
+    const value = parsed[key];
+    return { items: Array.isArray(value) ? value : [], root: parsed, complete: true };
+  }
+
+  const text = stripMarkdownFences(raw);
+  const keyAt = text.indexOf(`"${key}"`);
+  if (keyAt === -1) return { items: [], root: null, complete: false };
+  const arrayAt = text.indexOf('[', keyAt);
+  if (arrayAt === -1) return { items: [], root: null, complete: false };
+
+  const items: unknown[] = [];
+  let depth = 0;
+  let start = -1;
+  let inString = false;
+  let escaped = false;
+  for (let i = arrayAt + 1; i < text.length; i++) {
+    const ch = text[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (ch === '\\') {
+      if (inString) escaped = true;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (ch === '{') {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (ch === '}') {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        try {
+          items.push(JSON.parse(text.slice(start, i + 1)) as unknown);
+        } catch {
+          // élément illisible : ignoré, on continue avec les suivants
+        }
+        start = -1;
+      }
+    } else if (ch === ']' && depth === 0) {
+      break; // fin du tableau atteinte malgré un JSON racine invalide
+    }
+  }
+  return { items, root: null, complete: false };
+}
+
 /** Garde de type : objet simple (non null, non tableau). */
 export function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
