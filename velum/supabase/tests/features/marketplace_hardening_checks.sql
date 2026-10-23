@@ -46,7 +46,10 @@
 --   X21 fin sans vente chez un membre sans Platine : annonces libérées
 --       retirées (comme à la fin d'abonnement), aucune expertise à ses frais ;
 --   X22 shipment_blocked (my_exchanges) exposé aux deux parties ; expertise
---       en double d'un objet dont l'annonce est en expertise refusée.
+--       en double d'un objet dont l'annonce est en expertise refusée ;
+--   X23 toute demande d'expertise d'un objet (commande, échange, « seuil »
+--       d'échange) enregistre son titre ACTUEL : objet renommé, certifié,
+--       transaction annulée ⇒ annonce publiée, aucune seconde expertise.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 \set ON_ERROR_STOP on
@@ -2538,6 +2541,182 @@ begin
   reset role;
   perform set_config('velum.uid', '', true);
   raise notice 'OK X22 — shipment_blocked exposé aux deux parties ; expertise en double d''un objet en cours d''expertise refusée';
+end
+$$;
+
+-- ── X23. Toute demande d'expertise d'un objet : son titre ACTUEL ────────────
+-- _market_item_certification_ref ne fait suivre une certification que si la
+-- demande porte le titre (expurgé) et la catégorie ACTUELS de l'objet. Le
+-- titre d'une annonce est figé à la publication, ceux d'un échange à la
+-- proposition : un objet renommé depuis doit pourtant garder la
+-- certification obtenue sur (a) une commande payée (accord mutuel), (b) un
+-- échange (accord mutuel, objet de l'annonce visée), (d) un échange accepté
+-- au-delà du seuil (demande « seuil » de l'objet offert) ; (c) l'accord
+-- mutuel sur l'objet offert enregistre aussi son titre actuel. Estimé
+-- au-delà du seuil, l'objet dont la transaction s'achève sans vente reste
+-- publié avec la référence : aucune seconde expertise à la charge du vendeur.
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000123', '81000000-0000-4000-8000-000000000001', 'coin', 'Louis d''or'),
+  ('91000000-0000-4000-8000-000000000124', '81000000-0000-4000-8000-000000000001', 'coin', 'Ducat'),
+  ('91000000-0000-4000-8000-000000000125', '81000000-0000-4000-8000-000000000001', 'coin', 'Teston'),
+  ('91000000-0000-4000-8000-000000000126', '81000000-0000-4000-8000-000000000001', 'coin', 'Gros'),
+  ('92000000-0000-4000-8000-000000000124', '82000000-0000-4000-8000-000000000002', 'coin', 'Florin d''or'),
+  ('93000000-0000-4000-8000-000000000125', '83000000-0000-4000-8000-000000000003', 'coin', 'Blanc à la couronne'),
+  ('93000000-0000-4000-8000-000000000126', '83000000-0000-4000-8000-000000000003', 'coin', 'Denier tournois');
+
+do $$
+declare
+  v_order uuid;
+  v_ex uuid;
+  v_cert uuid;
+  v_row record;
+  v_count integer;
+begin
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price, kind) values
+    ('a2300000-0000-4000-8000-000000000123', '91000000-0000-4000-8000-000000000123',
+     '81000000-0000-4000-8000-000000000001', 300, 'sale'),
+    ('a2300000-0000-4000-8000-000000000124', '91000000-0000-4000-8000-000000000124',
+     '81000000-0000-4000-8000-000000000001', 300, 'sale_or_exchange');
+  -- Objets renommés APRÈS publication : titres des annonces figés.
+  update public.items set title = 'Louis d''or 1786' where id = '91000000-0000-4000-8000-000000000123';
+  update public.items set title = 'Ducat de Venise' where id = '91000000-0000-4000-8000-000000000124';
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  insert into public.listings (id, item_id, seller_id, ask_price, kind) values
+    ('a2300000-0000-4000-8000-000000000325', '93000000-0000-4000-8000-000000000125',
+     '83000000-0000-4000-8000-000000000003', 300, 'exchange'),
+    ('a2300000-0000-4000-8000-000000000326', '93000000-0000-4000-8000-000000000126',
+     '83000000-0000-4000-8000-000000000003', 300, 'exchange');
+
+  -- (a) Commande payée, accord mutuel à la demande de l'acheteur.
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select id into v_order from public.market_buy('a2300000-0000-4000-8000-000000000123');
+  perform public.advance_market_order(v_order, 'funds_held');
+  select * into v_row from public.request_certification('mutual_agreement', p_order => v_order);
+  v_cert := v_row.id;
+  if v_row.item_title is distinct from 'Louis d''or 1786' then
+    raise exception 'X23a : titre actuel de l''objet attendu sur la demande de la commande, vu %', v_row.item_title;
+  end if;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  perform public.respond_certification(v_cert, true);
+  reset role;
+  perform set_config('velum.uid', '', true);
+  insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, sources)
+  values ('91000000-0000-4000-8000-000000000123', 2000, 1800, 2200, 1700, 2300, 70, '[]');
+  perform public.decide_certification(v_cert, true, 'expertises/alice/louis-1786.pdf', 'Authentique', 90);
+  if public._market_item_certification_ref('91000000-0000-4000-8000-000000000123',
+       '81000000-0000-4000-8000-000000000001') is distinct from 'expertises/alice/louis-1786.pdf' then
+    raise exception 'X23a : certification de la commande attendue sur l''objet renommé';
+  end if;
+  set local role authenticated;
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  perform public.advance_market_order(v_order, 'cancelled');
+
+  -- (b) Échange : l'auteur fait certifier l'objet de l'annonce qu'il reçoit.
+  select id into v_ex from public.propose_exchange(
+    'a2300000-0000-4000-8000-000000000124', '92000000-0000-4000-8000-000000000124', 300);
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  perform public.respond_exchange(v_ex, true);
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select * into v_row from public.request_certification('mutual_agreement', p_exchange => v_ex);
+  v_cert := v_row.id;
+  if v_row.item_title is distinct from 'Ducat de Venise' then
+    raise exception 'X23b : titre actuel de l''objet de l''annonce attendu sur la demande de l''échange, vu %', v_row.item_title;
+  end if;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  perform public.respond_certification(v_cert, true);
+  reset role;
+  perform set_config('velum.uid', '', true);
+  insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, sources)
+  values ('91000000-0000-4000-8000-000000000124', 2000, 1800, 2200, 1700, 2300, 70, '[]');
+  perform public.decide_certification(v_cert, true, 'expertises/alice/ducat-venise-2.pdf', 'Authentique', 90);
+  set local role authenticated;
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  perform public.cancel_exchange(v_ex);
+
+  -- Transactions annulées : annonces publiées avec la référence, jamais
+  -- suspendues ; aucune demande « seuil » (seconde expertise) ouverte.
+  reset role;
+  perform set_config('velum.uid', '', true);
+  for v_row in
+    select l.id, l.status, l.expert_appraisal_ref, i.expected
+    from public.listings l
+    join (values
+      ('a2300000-0000-4000-8000-000000000123'::uuid, 'expertises/alice/louis-1786.pdf'),
+      ('a2300000-0000-4000-8000-000000000124'::uuid, 'expertises/alice/ducat-venise-2.pdf')
+    ) as i(id, expected) on i.id = l.id
+  loop
+    if v_row.status <> 'active' or v_row.expert_appraisal_ref is distinct from v_row.expected then
+      raise exception 'X23 : objet certifié puis renommé ⇒ annonce publiée avec la référence attendue (%)',
+        row_to_json(v_row);
+    end if;
+  end loop;
+  select count(*) into v_count from public.certification_requests
+  where item_id in ('91000000-0000-4000-8000-000000000123', '91000000-0000-4000-8000-000000000124')
+    and (reason <> 'mutual_agreement' or status <> 'certified');
+  if v_count <> 0 then
+    raise exception 'X23 : aucune seconde expertise attendue (% demande(s) en trop)', v_count;
+  end if;
+
+  -- (c) Accord mutuel sur l'objet OFFERT, renommé après la proposition.
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select id into v_ex from public.propose_exchange(
+    'a2300000-0000-4000-8000-000000000326', '91000000-0000-4000-8000-000000000126', 200);
+  update public.items set title = 'Gros tournois de Saint Louis' where id = '91000000-0000-4000-8000-000000000126';
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  perform public.respond_exchange(v_ex, true);
+  select * into v_row from public.request_certification('mutual_agreement', p_exchange => v_ex);
+  if v_row.item_title is distinct from 'Gros tournois de Saint Louis' then
+    raise exception 'X23c : titre actuel de l''objet offert attendu sur la demande de l''échange, vu %', v_row.item_title;
+  end if;
+
+  -- (d) Objet offert renommé après la proposition, estimé au-delà du seuil :
+  -- la demande « seuil » ouverte à l'acceptation porte son titre actuel.
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select id into v_ex from public.propose_exchange(
+    'a2300000-0000-4000-8000-000000000325', '91000000-0000-4000-8000-000000000125', 300);
+  update public.items set title = 'Teston de Louis XII' where id = '91000000-0000-4000-8000-000000000125';
+  reset role;
+  perform set_config('velum.uid', '', true);
+  insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, sources)
+  values ('91000000-0000-4000-8000-000000000125', 2000, 1800, 2200, 1700, 2300, 70, '[]');
+  set local role authenticated;
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  if (select e.state from public.respond_exchange(v_ex, true) e) <> 'awaiting_certification' then
+    raise exception 'X23d : échange en attente de certification attendu';
+  end if;
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select id, item_title into v_row from public.certification_requests
+  where exchange_id = v_ex and reason = 'threshold' and status = 'requested';
+  if v_row.item_title is distinct from 'Teston de Louis XII' then
+    raise exception 'X23d : titre actuel de l''objet offert attendu sur la demande « seuil » de l''échange, vu %', v_row.item_title;
+  end if;
+  perform public.decide_certification(v_row.id, true, 'expertises/alice/teston.pdf', 'Authentique', 70);
+  set local role authenticated;
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  perform public.cancel_exchange(v_ex);
+  -- La certification suit l'objet : sa nouvelle annonce naît publiée.
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a2300000-0000-4000-8000-000000000125', '91000000-0000-4000-8000-000000000125',
+     '81000000-0000-4000-8000-000000000001', 300);
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select status, expert_appraisal_ref into v_row from public.listings
+  where id = 'a2300000-0000-4000-8000-000000000125';
+  if v_row.status <> 'active' or v_row.expert_appraisal_ref is distinct from 'expertises/alice/teston.pdf' then
+    raise exception 'X23d : annonce de l''objet certifié sur l''échange publiée avec la référence attendue (%)',
+      row_to_json(v_row);
+  end if;
+  select count(*) into v_count from public.certification_requests
+  where item_id = '91000000-0000-4000-8000-000000000125' and status <> 'certified';
+  if v_count <> 0 then
+    raise exception 'X23d : aucune seconde expertise attendue (% demande(s) en trop)', v_count;
+  end if;
+  raise notice 'OK X23 — demandes d''expertise (commande, échange, « seuil » d''échange) au titre actuel de l''objet : certification conservée, aucune seconde expertise';
 end
 $$;
 

@@ -744,6 +744,10 @@ $$;
 --  - commande / échange (une partie) : 'mutual_agreement' — accord de l'autre
 --    partie attendu ; sur un échange, l'objet certifié est celui que le
 --    demandeur REÇOIT. Frais : vendeur (annonce), partagés par défaut (accord).
+-- Quel que soit le contexte, la demande enregistre le contenu ACTUEL de
+-- l'objet (titre expurgé, catégorie), celui que
+-- _market_item_certification_ref compare : la certification suit l'objet
+-- renommé depuis la publication de l'annonce ou la proposition d'échange.
 create or replace function public.request_certification(
   p_reason text,
   p_listing uuid default null,
@@ -764,6 +768,8 @@ declare
   v_item uuid;
   v_title text;
   v_domain public.velum_domain;
+  v_cur_title text;
+  v_cur_domain public.velum_domain;
   v_owner uuid;
   v_id uuid;
 begin
@@ -855,11 +861,19 @@ begin
         raise exception 'Une expertise de cet objet est déjà en cours : attendez la décision de l''expert'
           using errcode = 'P0001';
       end if;
+      -- Contenu ACTUEL de l'objet (comme sur une annonce) : le titre de
+      -- l'annonce est figé à la publication. Objet illisible : titre de l'annonce.
+      select public.redact_contact_info(i.title), i.domain into v_title, v_domain
+      from public.items i where i.id = v_listing.item_id;
+      if not found then
+        v_title := v_listing.title;
+        v_domain := v_listing.domain;
+      end if;
       insert into public.certification_requests (
         listing_id, order_id, item_id, item_title, domain, owner_id, requested_by,
         counterparty_id, reason, status, fee_payer)
       values (
-        v_order.listing_id, v_order.id, v_listing.item_id, v_listing.title, v_listing.domain,
+        v_order.listing_id, v_order.id, v_listing.item_id, v_title, v_domain,
         v_order.seller_id, v_uid,
         case when v_uid = v_order.seller_id then v_order.buyer_id else v_order.seller_id end,
         'mutual_agreement', 'awaiting_agreement', coalesce(p_fee_payer, 'split'))
@@ -912,6 +926,14 @@ begin
              and c.status in ('awaiting_agreement', 'requested', 'in_review')) then
         raise exception 'Une expertise de cet objet est déjà en cours : attendez la décision de l''expert'
           using errcode = 'P0001';
+      end if;
+      -- Contenu ACTUEL de l'objet : les titres de l'échange sont figés à la
+      -- proposition. Objet illisible (supprimé) : titre figé de l'échange.
+      select public.redact_contact_info(i.title), i.domain into v_cur_title, v_cur_domain
+      from public.items i where i.id = v_item;
+      if found then
+        v_title := v_cur_title;
+        v_domain := v_cur_domain;
       end if;
       insert into public.certification_requests (
         exchange_id, item_id, item_title, domain, owner_id, requested_by,
