@@ -68,12 +68,45 @@ export function priceRangeIssue(filters: Pick<CatalogueFilters, 'minPrice' | 'ma
   return null;
 }
 
+/** Annonces affichées par page du catalogue (défaut serveur de market_catalogue). */
+export const CATALOGUE_PAGE_SIZE = 50;
+/** Plafond serveur du catalogue (market_catalogue borne p_limit à 100). */
+export const CATALOGUE_MAX_LIMIT = 100;
+
+/**
+ * Limite demandée pour `pages` pages : une annonce de plus que l'affichage,
+ * pour savoir s'il en reste — dans la limite du plafond serveur.
+ */
+export function catalogueRequestLimit(pages: number): number {
+  return Math.min(CATALOGUE_PAGE_SIZE * Math.max(1, Math.floor(pages)) + 1, CATALOGUE_MAX_LIMIT);
+}
+
+export interface CataloguePage<T> {
+  visible: T[];
+  /** D'autres annonces suivent : « Voir plus ». */
+  hasMore: boolean;
+  /** Plafond serveur atteint : d'autres peuvent exister, seule une recherche plus fine les montre. */
+  capped: boolean;
+}
+
+/** Découpe la réponse du serveur : jamais une liste tronquée présentée comme complète. */
+export function cataloguePage<T>(listings: readonly T[], pages: number): CataloguePage<T> {
+  const shown = Math.min(CATALOGUE_PAGE_SIZE * Math.max(1, Math.floor(pages)), CATALOGUE_MAX_LIMIT);
+  const probed = catalogueRequestLimit(pages) > shown;
+  return {
+    visible: listings.slice(0, shown),
+    hasMore: probed && listings.length > shown,
+    capped: !probed && listings.length >= shown,
+  };
+}
+
 /**
  * Filtres UI → requête catalogue. Montants invalides ignorés (signalés à part
  * par `priceRangeIssue`) ; fourchette inversée remise dans l'ordre ; texte
- * nettoyé ; seuls les critères actifs sont transmis.
+ * nettoyé ; seuls les critères actifs sont transmis, avec la limite de la
+ * page demandée (voir `cataloguePage`).
  */
-export function buildCatalogueQuery(filters: CatalogueFilters): CatalogueQuery {
+export function buildCatalogueQuery(filters: CatalogueFilters, pages = 1): CatalogueQuery {
   const query: CatalogueQuery = { sort: filters.sort };
   if (filters.domain !== null) query.domain = filters.domain;
   if (filters.mode !== 'all') query.mode = filters.mode;
@@ -85,6 +118,7 @@ export function buildCatalogueQuery(filters: CatalogueFilters): CatalogueQuery {
   if (min !== null && min > 0) query.minPrice = min;
   if (max !== null) query.maxPrice = max;
   if (filters.certifiedOnly) query.certifiedOnly = true;
+  query.limit = catalogueRequestLimit(pages);
   return query;
 }
 
@@ -184,9 +218,6 @@ export function findCatalogueListing(pages: readonly unknown[], id: string): Cat
   }
   return null;
 }
-
-/** Plafond serveur du catalogue (market_catalogue borne p_limit à 100). */
-export const CATALOGUE_MAX_LIMIT = 100;
 
 export interface ListingLookup {
   listing: CatalogueListing;

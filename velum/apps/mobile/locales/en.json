@@ -1276,6 +1276,9 @@
       "reset": "Reset filters"
     },
     "resultsCount": "{{count}} listing(s)",
+    "resultsCountPartial": "First {{count}} listings shown",
+    "showMore": "Show more listings",
+    "resultsCapped": "At least {{count}} listings match: refine the search or the filters to see the others.",
     "updating": "Updating results…",
     "noResultFor": "No result for “{{query}}”.",
     "tabsLabel": "Trade & sell sections",

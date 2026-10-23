@@ -6,6 +6,7 @@ import {
   MARKET_DOMAINS,
   activeFilterCount,
   buildCatalogueQuery,
+  cataloguePage,
   catalogueViewOfMine,
   communityActivityHref,
   communityKeys,
@@ -20,8 +21,10 @@ import {
 } from './marketQuery';
 
 describe('buildCatalogueQuery', () => {
-  it('filtres par défaut : seul le tri est transmis', () => {
-    expect(buildCatalogueQuery(DEFAULT_CATALOGUE_FILTERS)).toEqual({ sort: 'recent' });
+  it('filtres par défaut : le tri et la limite (une page + 1, pour savoir s’il en reste)', () => {
+    expect(buildCatalogueQuery(DEFAULT_CATALOGUE_FILTERS)).toEqual({ sort: 'recent', limit: 51 });
+    // Page 2 : plafond serveur (market_catalogue borne la limite à 100).
+    expect(buildCatalogueQuery(DEFAULT_CATALOGUE_FILTERS, 2)).toEqual({ sort: 'recent', limit: 100 });
   });
 
   it('transmet catégorie, mode, texte nettoyé, prix FR et certifiés', () => {
@@ -43,17 +46,29 @@ describe('buildCatalogueQuery', () => {
       maxPrice: 1250.5,
       certifiedOnly: true,
       sort: 'price_asc',
+      limit: 51,
     });
   });
 
   it('ignore les montants invalides et remet une fourchette inversée dans l’ordre', () => {
     expect(
       buildCatalogueQuery({ ...DEFAULT_CATALOGUE_FILTERS, minPrice: 'abc', maxPrice: '300' }),
-    ).toEqual({ sort: 'recent', maxPrice: 300 });
+    ).toEqual({ sort: 'recent', maxPrice: 300, limit: 51 });
     expect(
       buildCatalogueQuery({ ...DEFAULT_CATALOGUE_FILTERS, minPrice: '900', maxPrice: '200' }),
-    ).toEqual({ sort: 'recent', minPrice: 200, maxPrice: 900 });
-    expect(buildCatalogueQuery({ ...DEFAULT_CATALOGUE_FILTERS, minPrice: '0' })).toEqual({ sort: 'recent' });
+    ).toEqual({ sort: 'recent', minPrice: 200, maxPrice: 900, limit: 51 });
+    expect(buildCatalogueQuery({ ...DEFAULT_CATALOGUE_FILTERS, minPrice: '0' })).toEqual({ sort: 'recent', limit: 51 });
+  });
+
+  it('page du catalogue : jamais présentée comme complète quand elle est tronquée', () => {
+    const many = (n: number) => Array.from({ length: n }, (_, i) => i);
+    // 51 reçues pour 50 affichées : il en reste, « Voir plus ».
+    expect(cataloguePage(many(51), 1)).toEqual({ visible: many(50), hasMore: true, capped: false });
+    expect(cataloguePage(many(50), 1)).toEqual({ visible: many(50), hasMore: false, capped: false });
+    expect(cataloguePage(many(12), 1)).toEqual({ visible: many(12), hasMore: false, capped: false });
+    // Page 2 au plafond serveur : d'autres peuvent exister, seule une recherche plus fine les montre.
+    expect(cataloguePage(many(100), 2)).toEqual({ visible: many(100), hasMore: false, capped: true });
+    expect(cataloguePage(many(70), 2)).toEqual({ visible: many(70), hasMore: false, capped: false });
   });
 
   it('signale les saisies de prix problématiques', () => {

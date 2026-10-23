@@ -1276,6 +1276,9 @@
       "reset": "Réinitialiser les filtres"
     },
     "resultsCount": "{{count}} annonce(s)",
+    "resultsCountPartial": "{{count}} premières annonces affichées",
+    "showMore": "Voir plus d’annonces",
+    "resultsCapped": "Au moins {{count}} annonces correspondent : affinez la recherche ou les filtres pour voir les autres.",
     "updating": "Mise à jour des résultats…",
     "noResultFor": "Aucun résultat pour « {{query}} ».",
     "tabsLabel": "Sections des échanges & ventes",

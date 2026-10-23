@@ -14,9 +14,11 @@ import { VButton, VCard, VText, VTextInput, velumColors, velumSpacing } from '@v
 
 import { getVelumClient } from '../../lib/client';
 import {
+  CATALOGUE_MAX_LIMIT,
   DEFAULT_CATALOGUE_FILTERS,
   activeFilterCount,
   buildCatalogueQuery,
+  cataloguePage,
   communityKeys,
   priceRangeIssue,
   sellPickerHref,
@@ -65,9 +67,13 @@ export function CatalogueView({ initialDomain, initialMode, initialText, onParam
     // des filtres déclenche la synchronisation (pas l'identité du rappel).
   }, [filters.domain, filters.mode, debouncedText]);
 
+  // Pages chargées, rattachées aux critères : de nouveaux critères repartent de la page 1.
+  const criteriaKey = JSON.stringify(buildCatalogueQuery({ ...filters, text: debouncedText }));
+  const [paging, setPaging] = useState({ key: criteriaKey, pages: 1 });
+  const pages = paging.key === criteriaKey ? paging.pages : 1;
   const query = useMemo(
-    () => buildCatalogueQuery({ ...filters, text: debouncedText }),
-    [filters, debouncedText],
+    () => buildCatalogueQuery({ ...filters, text: debouncedText }, pages),
+    [filters, debouncedText, pages],
   );
   const catalogue = useQuery({
     queryKey: communityKeys.catalogue(query),
@@ -199,43 +205,62 @@ export function CatalogueView({ initialDomain, initialMode, initialText, onParam
       ) : null}
 
       <AsyncBlock source={catalogue}>
-        {(listings) => (
-          <View style={styles.results}>
-            {/* Anciens résultats gardés pendant la mise à jour : jamais présentés comme à jour. */}
-            {catalogue.isPlaceholderData ? (
-              <View style={styles.updating} accessibilityLiveRegion="polite">
-                <ActivityIndicator color={velumColors.gold.DEFAULT} />
+        {(received) => {
+          // Une page tronquée n'est jamais présentée comme la liste complète.
+          const page = cataloguePage(received, pages);
+          const listings = page.visible;
+          return (
+            <View style={styles.results}>
+              {/* Anciens résultats gardés pendant la mise à jour : jamais présentés comme à jour. */}
+              {catalogue.isPlaceholderData ? (
+                <View style={styles.updating} accessibilityLiveRegion="polite">
+                  <ActivityIndicator color={velumColors.gold.DEFAULT} />
+                  <VText variant="caption" tone="dim">
+                    {t('community.updating')}
+                  </VText>
+                </View>
+              ) : (
+                <VText variant="caption" tone="dim" accessibilityLiveRegion="polite">
+                  {page.hasMore || page.capped
+                    ? t('community.resultsCountPartial', { count: listings.length })
+                    : t('community.resultsCount', { count: listings.length })}
+                </VText>
+              )}
+              {listings.length === 0 ? (
+                catalogue.isPlaceholderData ? null : (
+                  <VText variant="body" tone="dim">
+                    {debouncedText.trim().length > 0
+                      ? t('community.noResultFor', { query: debouncedText.trim() })
+                      : t('community.catalogueEmpty')}
+                  </VText>
+                )
+              ) : (
+                <View style={[styles.results, catalogue.isPlaceholderData ? styles.stale : null]}>
+                  {listings.map((l) => (
+                    <ListingCard
+                      key={l.id}
+                      listing={l}
+                      showDomain={filters.domain === null}
+                      onPress={() => router.push(routes.listing(l.id))}
+                    />
+                  ))}
+                </View>
+              )}
+              {page.hasMore && !catalogue.isPlaceholderData ? (
+                <VButton
+                  label={t('community.showMore')}
+                  variant="secondary"
+                  onPress={() => setPaging({ key: criteriaKey, pages: pages + 1 })}
+                />
+              ) : null}
+              {page.capped && !catalogue.isPlaceholderData ? (
                 <VText variant="caption" tone="dim">
-                  {t('community.updating')}
+                  {t('community.resultsCapped', { count: CATALOGUE_MAX_LIMIT })}
                 </VText>
-              </View>
-            ) : (
-              <VText variant="caption" tone="dim" accessibilityLiveRegion="polite">
-                {t('community.resultsCount', { count: listings.length })}
-              </VText>
-            )}
-            {listings.length === 0 ? (
-              catalogue.isPlaceholderData ? null : (
-                <VText variant="body" tone="dim">
-                  {debouncedText.trim().length > 0
-                    ? t('community.noResultFor', { query: debouncedText.trim() })
-                    : t('community.catalogueEmpty')}
-                </VText>
-              )
-            ) : (
-              <View style={[styles.results, catalogue.isPlaceholderData ? styles.stale : null]}>
-                {listings.map((l) => (
-                  <ListingCard
-                    key={l.id}
-                    listing={l}
-                    showDomain={filters.domain === null}
-                    onPress={() => router.push(routes.listing(l.id))}
-                  />
-                ))}
-              </View>
-            )}
-          </View>
-        )}
+              ) : null}
+            </View>
+          );
+        }}
       </AsyncBlock>
     </View>
   );
