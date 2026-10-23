@@ -131,6 +131,12 @@ export interface ExchangeProposal {
    * demander l'expertise. Optionnel (ajout additif).
    */
   offeredItemCertified?: boolean;
+  /**
+   * true si une expertise en cours bloque l'expédition (calculée par le
+   * serveur, y compris quand elle porte sur l'annonce de l'autre partie et
+   * reste donc invisible ici). Optionnel (ajout additif).
+   */
+  shipmentBlocked?: boolean;
   /** Suivi d'expédition de chaque partie. */
   proposerTracking: string | null;
   recipientTracking: string | null;
