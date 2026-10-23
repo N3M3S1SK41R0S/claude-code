@@ -282,7 +282,9 @@
     "moreFields": "Plus de champs",
     "fewerFields": "Moins de champs",
     "labelRequired": "Indiquez au moins une désignation.",
-    "valuationPending": "Estimation de marché indisponible pour l’instant — réessayez depuis la fiche."
+    "valuationPending": "Estimation de marché indisponible pour l’instant — réessayez depuis la fiche.",
+    "wishDuplicate": "Déjà dans vos envies.",
+    "photoNotAttached": "Objet enregistré sans {{count}} photo(s) : le téléversement a échoué (réseau ?)."
   },
   "batch": {
     "title": "Classeur — {{domain}}",

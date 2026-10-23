@@ -282,7 +282,9 @@
     "moreFields": "More fields",
     "fewerFields": "Fewer fields",
     "labelRequired": "Enter at least a name.",
-    "valuationPending": "Market estimate unavailable for now — try again from the sheet."
+    "valuationPending": "Market estimate unavailable for now — try again from the sheet.",
+    "wishDuplicate": "Already in your wishlist.",
+    "photoNotAttached": "Object saved without {{count}} photo(s): the upload failed (network?)."
   },
   "batch": {
     "title": "Binder — {{domain}}",
