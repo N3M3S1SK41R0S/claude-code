@@ -17,6 +17,7 @@ import {
   priceRangeIssue,
   sellPickerHref,
   stringParam,
+  wishlistDraftFromListing,
   type ListingLookupDeps,
 } from './marketQuery';
 
@@ -170,6 +171,34 @@ describe('cache des annonces', () => {
     expect(view.sellerAlias).toBe('Vous');
     expect(view).not.toHaveProperty('sellerId');
     expect(view).not.toHaveProperty('itemId');
+  });
+});
+
+describe('envie depuis une annonce de la communauté', () => {
+  const listing: CatalogueListing = {
+    id: 'l-1',
+    kind: 'sale',
+    domain: 'wine',
+    title: '  Château Talbot 2010  ',
+    description: null,
+    askPrice: 180,
+    currency: 'EUR',
+    exchangeWishes: null,
+    sellerAlias: 'Cave 92B1',
+    certified: false,
+    isMine: false,
+    createdAt: '2026-09-20T09:00:00Z',
+  };
+
+  it('annonce d’autrui : catégorie et titre, source « market »', () => {
+    expect(wishlistDraftFromListing(listing)).toEqual({ domain: 'wine', title: 'Château Talbot 2010', source: 'market' });
+  });
+
+  it('rien pour mes annonces, sans catégorie ou sans titre', () => {
+    expect(wishlistDraftFromListing({ ...listing, isMine: true })).toBeNull();
+    expect(wishlistDraftFromListing({ ...listing, domain: null })).toBeNull();
+    expect(wishlistDraftFromListing({ ...listing, title: '   ' })).toBeNull();
+    expect(wishlistDraftFromListing({ ...listing, title: null })).toBeNull();
   });
 });
 

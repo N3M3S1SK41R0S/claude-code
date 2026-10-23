@@ -2,7 +2,8 @@
  * Détail d'une annonce (routes.listing) : infos, souhaits d'échange,
  * pseudonyme et réputation du vendeur, rappel d'anonymat et de séquestre.
  * Actions en tête : Acheter (vente, sous séquestre) ; Proposer un échange
- * (échange). Expertise : obligatoire au-delà de 500 € ; en deçà, d'un commun
+ * (échange) ; Ajouter à mes envies (annonce d'autrui, source « market »).
+ * Expertise : obligatoire au-delà de 500 € ; en deçà, d'un commun
  * accord, demandée sur la commande ou l'échange (jamais sur l'annonce
  * d'autrui, contexte réservé au vendeur).
  *
@@ -25,6 +26,7 @@ import { CommunityGate } from '../../../components/market/CommunityGate';
 import { ExchangeProposalForm } from '../../../components/market/ExchangeProposalForm';
 import { ListingBadges } from '../../../components/market/ListingCard';
 import { AmountRows, AsyncBlock, Notice } from '../../../components/market/controls';
+import { AddToWishlistButton } from '../../../components/wishlist/AddToWishlistButton';
 import {
   marketRetry,
   useInvalidateCommunity,
@@ -41,6 +43,7 @@ import {
   communityKeys,
   lookupListing,
   stringParam,
+  wishlistDraftFromListing,
   type ListingLookup,
 } from '../../../lib/marketQuery';
 import {
@@ -176,6 +179,7 @@ function ListingDetail({ id }: { id: string }) {
   const forExchange = isOpenToExchange(listing.kind);
   const availability = listingAvailability(listing, orders.data ?? [], exchanges.data ?? []);
   const myTransaction = availability.mine;
+  const wishlistDraft = wishlistDraftFromListing(listing);
   const requirement = certificationRequirement({ value: listing.askPrice });
   const myRequest = (certifications.data ?? []).find((c) => c.listingId === id && !isClosed.certification(c));
   const price = formatPrice(listing.askPrice, i18n.language, listing.currency);
@@ -273,6 +277,8 @@ function ListingDetail({ id }: { id: string }) {
                 />
               )
             ) : null}
+            {/* Liste d'envies alimentée depuis la communauté (catégorie + titre seulement). */}
+            {wishlistDraft !== null ? <AddToWishlistButton {...wishlistDraft} variant="ghost" /> : null}
           </View>
         )}
 

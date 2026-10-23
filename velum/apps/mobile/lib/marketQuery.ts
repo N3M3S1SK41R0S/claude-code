@@ -279,6 +279,19 @@ export async function lookupListing(id: string, deps: ListingLookupDeps): Promis
   return null;
 }
 
+/**
+ * Envie (« Ajouter à mes envies ») tirée d'une annonce d'AUTRUI : catégorie et
+ * titre seulement (source 'market'), rien d'identifiant. null pour mes
+ * propres annonces ou sans catégorie / titre exploitables.
+ */
+export function wishlistDraftFromListing(
+  listing: Pick<CatalogueListing, 'domain' | 'title' | 'isMine'>,
+): { domain: VelumDomain; title: string; source: 'market' } | null {
+  const title = listing.title?.trim() ?? '';
+  if (listing.isMine || listing.domain === null || title.length === 0) return null;
+  return { domain: listing.domain, title, source: 'market' };
+}
+
 /** Ma propre annonce (dépôt `myListings`) vue comme une annonce du catalogue. */
 export function catalogueViewOfMine(listing: ListingRecord, myAlias: string): CatalogueListing {
   return {
