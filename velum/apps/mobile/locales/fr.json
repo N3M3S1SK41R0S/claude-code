@@ -741,6 +741,44 @@
     },
     "privacyContact": "Écrire à {{email}} pour exercer mes droits"
   },
+  "privacy": {
+    "controller": {
+      "title": "1. Responsable de traitement",
+      "body": "VELUM (éditeur : KAIROS — coordonnées complètes dans les mentions légales) est responsable du traitement des données collectées par l’application. Contact : privacy@velum.app."
+    },
+    "data": {
+      "title": "2. Données collectées",
+      "body": "Compte (e-mail, nom affiché, langue) ; photos et descriptions des objets que vous soumettez volontairement ; votre collection (fiches, valorisations, alertes, emplacements) ; votre liste d’envies et d’idées (titre, catégorie, prix cible, notes) ; données d’abonnement (via RevenueCat) ; données techniques minimales de fonctionnement. Échanges & ventes (offre Platine) : un pseudonyme de membre attribué au hasard (« Collectionneur XXXX »), vos annonces, commandes, propositions d’échange et demandes de certification, les messages échangés avec l’autre partie (coordonnées — e-mail, téléphone, adresse, liens — masquées automatiquement dès l’écriture) et le registre de vos commissions, frais et versements. Les rappels « à boire » sont des notifications LOCALES : le nom et l’emplacement du vin restent sur votre appareil, rien n’est envoyé à nos serveurs. Aucune donnée publicitaire, aucun pistage inter-applications."
+    },
+    "purposes": {
+      "title": "3. Finalités et bases légales",
+      "body": "Identification et estimation de vos objets par un service d’IA tiers : CONSENTEMENT explicite (RGPD 6.1.a), recueilli avant le premier envoi et révocable à tout moment dans Profil. Gestion du compte, de la collection, de la liste d’envies et de l’abonnement ; échanges & ventes (annonces, commandes, échanges, certification, messagerie, registre des commissions) : exécution du contrat (6.1.b). Rappels « à boire » et notifications : consentement via l’autorisation de notifications du système, révocable à tout moment. Respect des obligations comptables et fiscales : obligation légale (6.1.c). Sécurité et prévention des abus : intérêt légitime (6.1.f)."
+    },
+    "processors": {
+      "title": "4. Sous-traitants et destinataires",
+      "body": "Supabase (hébergement des données, Union européenne) ; Anthropic (analyse visuelle par IA — les photos sont transmises uniquement avec votre consentement, sans usage d’entraînement sans accord) ; RevenueCat (abonnements) ; Expo (notifications push). Des accords de traitement (DPA) encadrent chaque sous-traitant. Échanges & ventes : les autres membres ne voient que votre pseudonyme et ce que vous leur adressez (annonce, messages expurgés des coordonnées) — jamais votre nom, votre e-mail ni votre adresse ; les experts partenaires chargés d’une certification reçoivent les seules informations nécessaires à l’authentification de l’objet ; un prestataire de paiement interviendra lorsque les paiements en ligne seront activés. Votre liste d’envies et vos rappels « à boire » ne sont communiqués à personne."
+    },
+    "retention": {
+      "title": "5. Durées de conservation",
+      "body": "Les données de votre compte, de votre collection, de votre liste d’envies et de vos échanges & ventes sont conservées tant que le compte est actif ; un fil de messages est purgé avec sa transaction. Les photos soumises pour analyse ne sont pas conservées par le service d’IA au-delà du traitement. Les rappels « à boire » restent sur l’appareil jusqu’à leur annulation, au plus tard à la déconnexion ou à la suppression du compte. À la suppression du compte, toutes les données sont purgées sans délai (voir §6), hors données de facturation que la loi impose de conserver."
+    },
+    "rights": {
+      "title": "6. Vos droits",
+      "body": "Accès, rectification, effacement, portabilité (export CSV/PDF in-app), limitation, opposition et retrait du consentement à tout moment. La SUPPRESSION DE COMPTE est disponible directement dans l’application (Profil → Supprimer mon compte) : elle purge immédiatement le compte, la collection, la liste d’envies, le pseudonyme, les annonces, transactions, messages, certifications et le registre associés, les photos et les compteurs, et annule les rappels « à boire » programmés sur l’appareil. Réclamation possible auprès de la CNIL."
+    },
+    "security": {
+      "title": "7. Sécurité",
+      "body": "Chiffrement en transit (TLS) et au repos, cloisonnement strict des données par utilisateur (Row Level Security), clés d’API confinées au serveur, journalisation des accès. Aucune donnée sensible n’est stockée sur l’appareil en clair."
+    },
+    "minors": {
+      "title": "8. Mineurs",
+      "body": "VELUM n’est pas destiné aux moins de 16 ans et ne collecte pas sciemment de données les concernant."
+    },
+    "contact": {
+      "title": "9. Contact",
+      "body": "privacy@velum.app — délégué à la protection des données (DPO) : à compléter avant publication. Version du 23 octobre 2026."
+    }
+  },
   "paywall": {
     "title": "Formules VELUM",
     "subtitle": "Choisissez la formule adaptée à votre collection.",
