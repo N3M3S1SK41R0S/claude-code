@@ -22,7 +22,7 @@ import { WishlistForm } from '../../components/wishlist/WishlistForm';
 import { useSession } from '../../lib/auth';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
-import { getActiveDomains } from '../../lib/features';
+import { getActiveDomains, marketplaceEnabled } from '../../lib/features';
 import { formatDate } from '../../lib/i18n';
 import { queryScreenState } from '../../lib/itemSheetFlows';
 import { useGoBack } from '../../lib/navigation';
@@ -308,12 +308,15 @@ export default function WishlistEntryScreen() {
           />
         )}
 
-        <VButton
-          label={t('wishlist.actions.searchCommunity')}
-          variant="secondary"
-          onPress={() => router.push(routes.community(entry.domain, undefined, communitySearchText(entry)))}
-          accessibilityHint={t('wishlist.actions.searchCommunityHint')}
-        />
+        {marketplaceEnabled() ? (
+          // Plateformes coupées par le drapeau produit : pas de lien vers un écran « bientôt disponible ».
+          <VButton
+            label={t('wishlist.actions.searchCommunity')}
+            variant="secondary"
+            onPress={() => router.push(routes.community(entry.domain, undefined, communitySearchText(entry)))}
+            accessibilityHint={t('wishlist.actions.searchCommunityHint')}
+          />
+        ) : null}
         <CommunityAvailability key={`${entry.id}:${entry.domain}:${entry.title}`} entry={entry} />
 
         <View style={styles.row}>

@@ -3,16 +3,23 @@
  * l'écran de mise en vente / à l'échange (routes.sell) — nature, prix,
  * décomposition de la commission, expertise, anonymat. Non-Platine : renvoie
  * vers les offres. Panne du profil : message + Réessayer (jamais de faux paywall).
+ * Plateformes coupées par le drapeau produit (marketplaceEnabled) : rien.
  */
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { VButton, VText } from '@velum/ui';
 
 import { errorMessage } from '../../lib/errors';
+import { marketplaceEnabled } from '../../lib/features';
 import { usePlan } from '../../lib/plan';
 import { routes } from '../../lib/routes';
 
 export function SellButton({ itemId }: { itemId: string }) {
+  // Drapeau constant pour la session : aucun profil lu quand les plateformes sont coupées.
+  return marketplaceEnabled() ? <SellButtonForPlan itemId={itemId} /> : null;
+}
+
+function SellButtonForPlan({ itemId }: { itemId: string }) {
   const { t } = useTranslation();
   const router = useRouter();
   const planState = usePlan();
