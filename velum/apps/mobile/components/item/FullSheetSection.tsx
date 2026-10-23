@@ -95,6 +95,8 @@ export function FullSheetSection({ item, actions }: { item: VelumItem; actions: 
               <VButton
                 label={failed ? t('common.retry') : t('item.fullSheet.load')}
                 onPress={() => analyze.mutate()}
+                // Pendant l'enregistrement d'une correction : la fiche l'attendrait.
+                disabled={actions.correct.isPending}
                 accessibilityHint={t('item.fullSheet.loadHint')}
               />
             )}
@@ -143,6 +145,7 @@ export function FullSheetSection({ item, actions }: { item: VelumItem; actions: 
                 label={analyze.isError ? t('common.retry') : t('item.fullSheet.regenerate')}
                 variant="secondary"
                 onPress={() => analyze.mutate()}
+                disabled={actions.correct.isPending}
               />
             )}
           </View>

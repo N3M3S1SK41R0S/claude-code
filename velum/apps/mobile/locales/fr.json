@@ -629,7 +629,11 @@
       "inconnue": "Inconnue"
     },
     "whyThisRange": "Pourquoi cette fourchette ?",
-    "acquiredAtInvalid": "Date illisible ou inexistante — saisissez par exemple 01/06/2020 (jour/mois/année) ou 2020-06-01."
+    "acquiredAtInvalid": "Date illisible ou inexistante — saisissez par exemple 01/06/2020 (jour/mois/année) ou 2020-06-01.",
+    "offline": {
+      "title": "Hors-ligne",
+      "message": "Cette fiche n’a pas encore été chargée sur cet appareil : elle s’affichera au retour du réseau."
+    }
   },
   "collection": {
     "title": "Ma collection",

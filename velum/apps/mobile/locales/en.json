@@ -629,7 +629,11 @@
       "inconnue": "Unknown"
     },
     "whyThisRange": "Why this range?",
-    "acquiredAtInvalid": "Unreadable or non-existent date — enter e.g. 01/06/2020 (day/month/year) or 2020-06-01."
+    "acquiredAtInvalid": "Unreadable or non-existent date — enter e.g. 01/06/2020 (day/month/year) or 2020-06-01.",
+    "offline": {
+      "title": "Offline",
+      "message": "This item sheet has not been loaded on this device yet: it will appear when the connection is back."
+    }
   },
   "collection": {
     "title": "My collection",

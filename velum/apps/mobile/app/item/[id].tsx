@@ -34,7 +34,13 @@ import { itemQueryKey, useItemSheetActions } from '../../components/item/useItem
 import { entryFromItem } from '../../lib/wishlist';
 import { getVelumClient } from '../../lib/client';
 import { buildItemSheetHtml } from '../../lib/exporters';
-import { analysisPayloadOf, analysisResultFromItem, fullSheetState } from '../../lib/itemSheet';
+import {
+  analysisPayloadOf,
+  analysisResultFromItem,
+  fullSheetState,
+  isValuationStale,
+} from '../../lib/itemSheet';
+import { queryScreenState } from '../../lib/itemSheetFlows';
 import { routes } from '../../lib/routes';
 import { showToast } from '../../stores/toastStore';
 
@@ -73,11 +79,17 @@ function ItemSheetBody({ item }: { item: VelumItem }) {
   const exportPdf = async () => {
     setExporting(true);
     try {
+      // Même péremption qu'à l'écran : estimation à relancer, fiche à régénérer.
+      const revaluedAt = actions.valuate.isSuccess ? actions.valuate.submittedAt : null;
       const html = buildItemSheetHtml(
         item,
         analysisResultFromItem(item),
         valuation,
         (key, options) => t(key, options ?? {}) as string,
+        {
+          valuationStale: isValuationStale(item, valuation, revaluedAt),
+          analysisOutdated: fullSheetState(item) === 'outdated',
+        },
       );
       const { uri } = await Print.printToFileAsync({ html });
       if (await Sharing.isAvailableAsync()) {
@@ -132,6 +144,8 @@ function ItemSheetBody({ item }: { item: VelumItem }) {
           accessibilityHint={t('item.quick.estimateHint')}
           onPress={() => actions.valuate.mutate()}
           loading={actions.valuate.isPending}
+          // Pendant l'enregistrement d'une correction : l'estimation l'attendrait.
+          disabled={actions.correct.isPending}
           highlighted={!latestQuery.isLoading && !latestQuery.isError && valuation === null}
         />
         <QuickAction
@@ -216,9 +230,10 @@ export default function ItemSheet() {
     enabled: itemId.length > 0,
   });
   const item = itemQuery.data ?? null;
+  const view = queryScreenState(itemQuery);
 
   let content;
-  if (itemQuery.isLoading) {
+  if (view === 'loading') {
     content = (
       <View style={styles.center}>
         <VSpinner />
@@ -226,6 +241,18 @@ export default function ItemSheet() {
     );
   } else if (item !== null) {
     content = <ItemSheetBody item={item} />;
+  } else if (view === 'offline') {
+    // En pause hors-ligne, jamais chargée sur cet appareil : ni « introuvable » ni panne.
+    content = (
+      <View style={styles.center}>
+        <VText variant="heading" center>
+          {t('item.offline.title')}
+        </VText>
+        <VText variant="body" tone="dim" center>
+          {t('item.offline.message')}
+        </VText>
+      </View>
+    );
   } else if (itemQuery.isError) {
     // Panne : jamais présentée comme un objet introuvable.
     content = (
