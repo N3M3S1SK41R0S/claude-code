@@ -28,6 +28,7 @@ import { DomainFilterChips } from '../search/DomainFilterChips';
 import { SearchField } from '../search/SearchField';
 import { ListingCard } from './ListingCard';
 import { AsyncBlock, CheckRow, Segmented } from './controls';
+import { marketRetry } from './hooks';
 
 const SEARCH_DEBOUNCE_MS = 350;
 
@@ -72,6 +73,7 @@ export function CatalogueView({ initialDomain, initialMode, initialText, onParam
     queryKey: communityKeys.catalogue(query),
     queryFn: () => client.marketplace.catalogue(query),
     placeholderData: (previous) => previous,
+    retry: marketRetry,
   });
 
   const set = <K extends keyof CatalogueFilters>(key: K, value: CatalogueFilters[K]) =>

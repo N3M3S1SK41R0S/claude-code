@@ -23,6 +23,7 @@ import { ExchangeProposalForm } from '../../../components/market/ExchangeProposa
 import { ListingBadges } from '../../../components/market/ListingCard';
 import { AmountRows, AsyncBlock, Notice } from '../../../components/market/controls';
 import {
+  marketRetry,
   useInvalidateCommunity,
   useMarketErrorToast,
   useMyCertifications,
@@ -65,6 +66,7 @@ function useListing(id: string) {
   return useQuery<ListingLookup | null>({
     queryKey: communityKeys.listing(id),
     enabled: id.length > 0,
+    retry: marketRetry,
     queryFn: async () => {
       const cached = findCatalogueListing(cachedPages(), id);
       if (cached && !cached.isMine) return { listing: cached, myStatus: null };
@@ -93,6 +95,7 @@ function SellerReputation({ alias }: { alias: string }) {
   const reputation = useQuery({
     queryKey: communityKeys.reputation(alias),
     queryFn: () => client.marketplace.reputationByAlias(alias),
+    retry: marketRetry,
   });
   return (
     <AsyncBlock source={reputation}>
@@ -188,6 +191,11 @@ function ListingDetail({ id }: { id: string }) {
       <View style={styles.container}>
         <VText variant="title">{listing.title ?? t('common.unknown')}</VText>
         <ListingBadges kind={listing.kind} certified={listing.certified} domain={listing.domain} />
+        {myStatus !== null ? (
+          <View style={styles.badgeRow}>
+            <VBadge tone={LISTING_STATUS_TONE[myStatus]} label={t(marketLabelKeys.listingStatus(myStatus))} />
+          </View>
+        ) : null}
         <View>
           <VText variant="display" tone="gold" tabularNums>
             {price}
@@ -199,11 +207,18 @@ function ListingDetail({ id }: { id: string }) {
 
         {/* Actions principales en tête. */}
         {listing.isMine ? (
-          <Notice title={t('community.yourListing')}>
-            {myStatus !== null && myStatus !== 'active'
-              ? t('community.listing.mineStatus', { status: t(marketLabelKeys.listingStatus(myStatus)) })
-              : t('community.listing.mineHint')}
-          </Notice>
+          <View style={styles.actions}>
+            <Notice title={t('community.yourListing')}>
+              {myStatus !== null && myStatus !== 'active'
+                ? t('community.listing.mineStatus', { status: t(marketLabelKeys.listingStatus(myStatus)) })
+                : t('community.listing.mineHint')}
+            </Notice>
+            <VButton
+              label={t('community.activity.title')}
+              variant="secondary"
+              onPress={() => router.push(communityActivityHref())}
+            />
+          </View>
         ) : (
           <View style={styles.actions}>
             {forSale ? (
@@ -304,10 +319,6 @@ function ListingDetail({ id }: { id: string }) {
           )
         ) : null}
 
-        {myStatus !== null ? (
-          <VBadge tone={LISTING_STATUS_TONE[myStatus]} label={t(marketLabelKeys.listingStatus(myStatus))} />
-        ) : null}
-
         <Notice title={t('community.anonymityTitle')}>{t('community.listing.anonymity')}</Notice>
       </View>
     </Screen>
@@ -336,4 +347,5 @@ const styles = StyleSheet.create({
   actions: { gap: velumSpacing.sm },
   panel: { gap: velumSpacing.sm },
   block: { gap: velumSpacing.xs },
+  badgeRow: { flexDirection: 'row' },
 });

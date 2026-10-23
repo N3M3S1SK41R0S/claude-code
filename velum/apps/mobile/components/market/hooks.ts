@@ -10,8 +10,10 @@ import { useTranslation } from 'react-i18next';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
 import { communityKeys } from '../../lib/marketQuery';
-import { completedSalesCount, isNotYetAvailable } from '../../lib/marketState';
+import { completedSalesCount, isNotYetAvailable, marketRetry } from '../../lib/marketState';
 import { showToast } from '../../stores/toastStore';
+
+export { marketRetry };
 
 /** Invalide toutes les lectures de la communauté (après une action). */
 export function useInvalidateCommunity(): () => void {
@@ -37,17 +39,29 @@ export function useMarketErrorToast(): (error: unknown) => void {
 
 export function useMyOrders() {
   const client = getVelumClient();
-  return useQuery({ queryKey: communityKeys.orders, queryFn: () => client.marketplace.myOrders() });
+  return useQuery({
+    queryKey: communityKeys.orders,
+    queryFn: () => client.marketplace.myOrders(),
+    retry: marketRetry,
+  });
 }
 
 export function useMyListings() {
   const client = getVelumClient();
-  return useQuery({ queryKey: communityKeys.myListings, queryFn: () => client.marketplace.myListings() });
+  return useQuery({
+    queryKey: communityKeys.myListings,
+    queryFn: () => client.marketplace.myListings(),
+    retry: marketRetry,
+  });
 }
 
 export function useMyExchanges() {
   const client = getVelumClient();
-  return useQuery({ queryKey: communityKeys.exchanges, queryFn: () => client.marketplace.myExchanges() });
+  return useQuery({
+    queryKey: communityKeys.exchanges,
+    queryFn: () => client.marketplace.myExchanges(),
+    retry: marketRetry,
+  });
 }
 
 export function useMyCertifications() {
@@ -55,6 +69,7 @@ export function useMyCertifications() {
   return useQuery({
     queryKey: communityKeys.certifications,
     queryFn: () => client.marketplace.myCertifications(),
+    retry: marketRetry,
   });
 }
 

@@ -17,7 +17,7 @@ import { redactionPreview } from '../../lib/marketForms';
 import { communityKeys } from '../../lib/marketQuery';
 import { showToast } from '../../stores/toastStore';
 import { AsyncBlock, Notice } from './controls';
-import { useMarketErrorToast } from './hooks';
+import { marketRetry, useMarketErrorToast } from './hooks';
 
 const MAX_LENGTH = 2000;
 
@@ -38,6 +38,7 @@ export function MessageThread({ kind, threadId, readOnly = false }: MessageThrea
   const thread = useQuery({
     queryKey: communityKeys.messages(kind, threadId),
     queryFn: () => client.marketplace.messages(kind, threadId),
+    retry: marketRetry,
   });
 
   const send = useMutation({

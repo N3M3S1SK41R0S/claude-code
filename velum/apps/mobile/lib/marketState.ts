@@ -370,6 +370,15 @@ export function isNotYetAvailable(error: unknown): boolean {
   );
 }
 
+/**
+ * Politique de relance des lectures React Query : inutile d'insister (et de
+ * faire patienter) sur une fonction serveur pas encore câblée ; 2 relances
+ * sinon (défaut de l'app).
+ */
+export function marketRetry(failureCount: number, error: unknown): boolean {
+  return !isNotYetAvailable(error) && failureCount < 2;
+}
+
 // ── Historique (éléments clos) ───────────────────────────────────────────────
 
 const CLOSED_ESCROW: ReadonlySet<EscrowState> = new Set(['released', 'refunded', 'cancelled']);

@@ -19,6 +19,7 @@ import {
   isNotYetAvailable,
   isOpenToExchange,
   marketLabelKeys,
+  marketRetry,
   myCashPayment,
   myCededValue,
   myTracking,
@@ -293,5 +294,14 @@ describe('isNotYetAvailable', () => {
     ).toBe(true);
     expect(isNotYetAvailable(new VelumError('SOURCE_UNAVAILABLE', 'Lecture impossible : timeout'))).toBe(false);
     expect(isNotYetAvailable(new Error('pas encore disponible'))).toBe(false);
+  });
+
+  it('ne relance pas une fonction pas encore câblée, relance 2 fois une panne', () => {
+    const notYet = new VelumError('SOURCE_UNAVAILABLE', 'Messagerie : fonction pas encore disponible');
+    const outage = new VelumError('SOURCE_UNAVAILABLE', 'timeout');
+    expect(marketRetry(0, notYet)).toBe(false);
+    expect(marketRetry(0, outage)).toBe(true);
+    expect(marketRetry(1, outage)).toBe(true);
+    expect(marketRetry(2, outage)).toBe(false);
   });
 });
