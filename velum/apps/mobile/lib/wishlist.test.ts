@@ -1,9 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { VelumError, type Candidate, type VelumItem, type WishlistEntry } from '@velum/core';
 
 import {
   WISHLIST_NOTES_MAX_LENGTH,
   WISHLIST_TITLE_MAX_LENGTH,
+  addUnlessDuplicate,
   buildWishlistInput,
   classifyCommunityError,
   communitySearchText,
@@ -237,6 +238,43 @@ describe('doublons', () => {
     expect(findDuplicate(ALL, { domain: 'coin', title: 'Domaine Tempier Bandol 2019' })).toBeNull();
     expect(findDuplicate(ALL, { domain: 'wine', title: 'Domaine Tempier Bandol 2019' }, 'w1')).toBeNull();
     expect(findDuplicate(ALL, { domain: 'wine', title: '  ' })).toBeNull();
+  });
+});
+
+describe('addUnlessDuplicate — ajout depuis le bouton, les Candidats ou le sommelier', () => {
+  const created = entry({ id: 'w-new', title: 'Vin pour : tajine', kind: 'idea' });
+
+  it('doublon d’une envie en cours (liste fraîche) : rien n’est créé, l’envie existante est rendue', async () => {
+    const add = vi.fn(async () => created);
+    const outcome = await addUnlessDuplicate(
+      { domain: 'wine', title: '  domaine tempier BANDOL 2019', kind: 'idea', source: 'manual' },
+      { list: async () => ALL, add },
+    );
+    expect(outcome).toEqual({ entry: TEMPIER, duplicate: true });
+    expect(add).not.toHaveBeenCalled();
+  });
+
+  it('sans doublon (ou envie seulement obtenue) : l’envie est créée', async () => {
+    const add = vi.fn(async () => created);
+    const outcome = await addUnlessDuplicate(
+      { domain: 'wine', title: 'Château Talbot 2010', source: 'scan' },
+      { list: async () => ALL, add },
+    );
+    expect(outcome).toEqual({ entry: created, duplicate: false });
+    expect(add).toHaveBeenCalledWith({ domain: 'wine', title: 'Château Talbot 2010', source: 'scan' });
+  });
+
+  it('liste illisible : l’ajout est tenté quand même ; un refus de l’ajout remonte', async () => {
+    const list = async () => {
+      throw new VelumError('SOURCE_UNAVAILABLE', 'panne');
+    };
+    await expect(
+      addUnlessDuplicate({ domain: 'wine', title: 'Vin pour : tajine' }, { list, add: async () => created }),
+    ).resolves.toEqual({ entry: created, duplicate: false });
+    const refusal = new VelumError('INVALID_INPUT', 'Titre trop long');
+    await expect(
+      addUnlessDuplicate({ domain: 'wine', title: 'x' }, { list, add: () => Promise.reject(refusal) }),
+    ).rejects.toBe(refusal);
   });
 });
 

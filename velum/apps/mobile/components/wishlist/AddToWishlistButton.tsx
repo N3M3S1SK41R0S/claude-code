@@ -9,19 +9,22 @@
  *  - Succès : toast, puis le bouton devient « Ajouté — voir mes envies » et
  *    ouvre la liste de la catégorie (accès direct à la liste).
  *  - Échec : toast d'erreur explicite, le bouton reste utilisable.
+ * Règle d'ajout et cache partagés avec l'écran Candidats et le sommelier de
+ * cave : `useAddToWishlist`.
  */
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import type { VelumDomain, WishlistEntry, WishlistSource } from '@velum/core';
+import type { VelumDomain, WishlistSource } from '@velum/core';
 import { VButton, type VelumButtonVariant } from '@velum/ui';
 
 import { getVelumClient } from '../../lib/client';
 import { errorMessage } from '../../lib/errors';
 import { routes } from '../../lib/routes';
-import { WISHLIST_QUERY_KEY, draftToNewEntry, findDuplicate, upsertEntry } from '../../lib/wishlist';
+import { WISHLIST_QUERY_KEY, draftToNewEntry, findDuplicate } from '../../lib/wishlist';
 import { showToast } from '../../stores/toastStore';
+import { useAddToWishlist } from './useAddToWishlist';
 
 export interface AddToWishlistButtonProps {
   domain: VelumDomain;
@@ -47,7 +50,6 @@ export function AddToWishlistButton({
 }: AddToWishlistButtonProps) {
   const { t } = useTranslation();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const client = getVelumClient();
   const [justAdded, setJustAdded] = useState(false);
 
@@ -59,39 +61,8 @@ export function AddToWishlistButton({
   });
   const existing = listQuery.data ? findDuplicate(listQuery.data, { domain, title }) : null;
 
-  const mutation = useMutation({
-    mutationFn: async (): Promise<{ entry: WishlistEntry; duplicate: boolean }> => {
-      // Liste fraîche : une envie identique a pu être ajoutée ailleurs. Si la
-      // lecture échoue, on tente quand même l'ajout (le serveur tranchera).
-      let current: WishlistEntry[] | null = null;
-      try {
-        current = await queryClient.fetchQuery({
-          queryKey: WISHLIST_QUERY_KEY,
-          queryFn: () => client.wishlist.list(),
-        });
-      } catch {
-        current = null;
-      }
-      const duplicate = current ? findDuplicate(current, { domain, title }) : null;
-      if (duplicate) return { entry: duplicate, duplicate: true };
-      const entry = await client.wishlist.add(
-        draftToNewEntry({
-          domain,
-          title,
-          attributes: attributes ?? {},
-          source,
-          sourceItemId: sourceItemId ?? null,
-          notes: notes ?? null,
-        }),
-      );
-      return { entry, duplicate: false };
-    },
-    onSuccess: ({ entry, duplicate }) => {
-      // Mise à jour immédiate d'une liste déjà en cache, puis relecture.
-      queryClient.setQueryData<WishlistEntry[]>(WISHLIST_QUERY_KEY, (prev) =>
-        prev === undefined ? prev : upsertEntry(prev, entry),
-      );
-      void queryClient.invalidateQueries({ queryKey: WISHLIST_QUERY_KEY });
+  const mutation = useAddToWishlist({
+    onSuccess: ({ duplicate }) => {
       setJustAdded(!duplicate);
       showToast(
         duplicate ? t('wishlist.toast.duplicate') : t('wishlist.toast.added'),
@@ -125,7 +96,16 @@ export function AddToWishlistButton({
           showToast(t('wishlist.button.titleMissing'), 'danger');
           return;
         }
-        mutation.mutate();
+        mutation.mutate(
+          draftToNewEntry({
+            domain,
+            title,
+            attributes: attributes ?? {},
+            source,
+            sourceItemId: sourceItemId ?? null,
+            notes: notes ?? null,
+          }),
+        );
       }}
       accessibilityHint={t('wishlist.button.addHint', { domain: t(`domains.${domain}.name`) })}
     />

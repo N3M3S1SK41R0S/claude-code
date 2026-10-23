@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
   ConfidenceBadge,
@@ -24,17 +24,17 @@ import {
   VTextInput,
   velumSpacing,
 } from '@velum/ui';
-import { isVelumError, type PairingResult, type WishlistEntry } from '@velum/core';
+import { isVelumError, type NewWishlistEntry, type PairingResult } from '@velum/core';
 
 import { QuickPairingList } from '../components/cellar/QuickPairingList';
 import { Screen } from '../components/Screen';
+import { useAddToWishlist } from '../components/wishlist/useAddToWishlist';
 import { displayWineLabel, positionLabel, wishlistIdeaTitle } from '../lib/cellarPeak';
 import { getVelumClient } from '../lib/client';
 import { isOfflineWithoutData } from '../lib/collectionView';
 import { localPairingForItems } from '../lib/drinkNow';
 import { errorMessage } from '../lib/errors';
 import { routes } from '../lib/routes';
-import { WISHLIST_QUERY_KEY, findDuplicate, upsertEntry } from '../lib/wishlist';
 import { showToast } from '../stores/toastStore';
 
 /** Longueur minimale du plat avant la suggestion instantanée. */
@@ -48,13 +48,13 @@ function firstParam(value: string | string[] | undefined): string {
 export default function CellarSommelier() {
   const { t } = useTranslation();
   const router = useRouter();
-  const queryClient = useQueryClient();
   const client = getVelumClient();
   const params = useLocalSearchParams<{ dish?: string | string[] }>();
   const initialDish = firstParam(params.dish);
   const [dish, setDish] = useState(initialDish);
   const [planBlocked, setPlanBlocked] = useState(false);
-  const [wishSaved, setWishSaved] = useState<string | null>(null);
+  /** Plat dont les idées d'achat sont dans les envies (ajoutées, ou déjà présentes). */
+  const [wishSaved, setWishSaved] = useState<{ dish: string; duplicate: boolean } | null>(null);
 
   // Lien profond reçu alors que l'écran est déjà monté : on reprend le plat.
   useEffect(() => {
@@ -96,44 +96,30 @@ export default function CellarSommelier() {
     },
   });
 
-  const addWish = useMutation<{ entry: WishlistEntry; duplicate: boolean }, unknown, { dish: string; ideas: string[] }>({
-    mutationFn: async (input) => {
-      const title = wishlistIdeaTitle(input.ideas, t('cellar.quick.wishTitleFallback', { dish: input.dish }));
-      // Liste fraîche (même clé que « Mes envies ») : la même idée a pu être
-      // ajoutée lors d'une visite précédente. Lecture en échec : le serveur tranchera.
-      let current: WishlistEntry[] | null = null;
-      try {
-        current = await queryClient.fetchQuery({ queryKey: WISHLIST_QUERY_KEY, queryFn: () => client.wishlist.list() });
-      } catch {
-        current = null;
-      }
-      const duplicate = current ? findDuplicate(current, { domain: 'wine', title }) : null;
-      if (duplicate) return { entry: duplicate, duplicate: true };
-      const entry = await client.wishlist.add({
-        domain: 'wine',
-        kind: 'idea',
-        title,
-        notes: t('cellar.quick.wishNotes', { dish: input.dish }),
-        attributes: { pairingDish: input.dish, styles: input.ideas },
-        source: 'manual',
-      });
-      return { entry, duplicate: false };
-    },
-    onSuccess: ({ entry, duplicate }, input) => {
-      // « Mes envies » et la recherche globale partagent ce cache : mise à
-      // jour immédiate d'une liste déjà chargée, puis relecture.
-      queryClient.setQueryData<WishlistEntry[]>(WISHLIST_QUERY_KEY, (prev) =>
-        prev === undefined ? prev : upsertEntry(prev, entry),
-      );
-      void queryClient.invalidateQueries({ queryKey: WISHLIST_QUERY_KEY });
-      setWishSaved(input.dish);
+  // Même règle et même cache que « Ajouter à mes envies » (useAddToWishlist) :
+  // une idée déjà en cours (même titre normalisé) n'est jamais recréée, et
+  // « Mes envies » comme la recherche globale voient l'ajout aussitôt.
+  const addWish = useAddToWishlist({
+    onSuccess: ({ duplicate }) =>
       showToast(
         duplicate ? t('wishlist.toast.duplicate') : t('cellar.quick.wishAdded'),
         duplicate ? 'info' : 'success',
-      );
-    },
+      ),
     onError: (error) => showToast(errorMessage(error, t), 'danger'),
   });
+
+  const saveIdeas = (forDish: string, ideas: string[]) => {
+    const entry: NewWishlistEntry = {
+      domain: 'wine',
+      kind: 'idea',
+      title: wishlistIdeaTitle(ideas, t('cellar.quick.wishTitleFallback', { dish: forDish })),
+      notes: t('cellar.quick.wishNotes', { dish: forDish }),
+      attributes: { pairingDish: forDish, styles: ideas },
+      source: 'manual',
+    };
+    addWish.mutate(entry, { onSuccess: ({ duplicate }) => setWishSaved({ dish: forDish, duplicate }) });
+  };
+  const savedForDish = wishSaved !== null && wishSaved.dish === trimmedDish ? wishSaved : null;
 
   const refine = () => {
     if (trimmedDish.length === 0 || pairing.isPending) return;
@@ -216,19 +202,25 @@ export default function CellarSommelier() {
               {t('cellar.quick.buyTitle')}
             </VText>
             <VText variant="body">{quick.purchaseIdeas.join(' · ')}</VText>
-            <VButton
-              label={t('cellar.quick.addWish')}
-              variant="secondary"
-              onPress={() => addWish.mutate({ dish: trimmedDish, ideas: quick.purchaseIdeas })}
-              disabled={wishSaved === trimmedDish}
-              loading={addWish.isPending}
-              accessibilityHint={t('cellar.quick.addWishHint')}
-            />
-            {wishSaved === trimmedDish ? (
-              <VText variant="caption" tone="gold">
-                {t('cellar.quick.wishAdded')}
-              </VText>
-            ) : null}
+            {savedForDish === null ? (
+              <VButton
+                label={t('cellar.quick.addWish')}
+                variant="secondary"
+                onPress={() => saveIdeas(trimmedDish, quick.purchaseIdeas)}
+                disabled={addWish.isPending}
+                loading={addWish.isPending}
+                accessibilityHint={t('cellar.quick.addWishHint')}
+              />
+            ) : (
+              // Ajoutée, ou déjà dans les envies (doublon : rien n'a été créé) :
+              // accès direct à la liste, comme le bouton « Ajouter à mes envies ».
+              <VButton
+                label={savedForDish.duplicate ? t('wishlist.button.already') : t('wishlist.button.added')}
+                variant="ghost"
+                onPress={() => router.push(routes.wishlist('wine'))}
+                accessibilityHint={t('wishlist.button.openHint')}
+              />
+            )}
           </VCard>
         ) : null}
       </View>

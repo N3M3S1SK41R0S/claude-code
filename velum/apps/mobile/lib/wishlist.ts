@@ -280,6 +280,38 @@ export function findDuplicate(
   );
 }
 
+/** Issue d'un ajout aux envies : l'envie créée, ou l'envie en cours déjà présente. */
+export interface WishlistAddOutcome {
+  entry: WishlistEntry;
+  /** true : doublon (même catégorie, même titre normalisé) — rien n'a été créé. */
+  duplicate: boolean;
+}
+
+/**
+ * Ajoute une envie SAUF doublon — règle commune au bouton « Ajouter à mes
+ * envies », à l'écran Candidats et au sommelier de cave (hook
+ * `useAddToWishlist`). La liste est relue fraîche juste avant (une envie
+ * identique a pu être ajoutée ailleurs) ; si cette lecture échoue, l'ajout
+ * est tenté quand même : le serveur tranchera.
+ */
+export async function addUnlessDuplicate(
+  input: NewWishlistEntry,
+  deps: {
+    list: () => Promise<readonly WishlistEntry[]>;
+    add: (input: NewWishlistEntry) => Promise<WishlistEntry>;
+  },
+): Promise<WishlistAddOutcome> {
+  let current: readonly WishlistEntry[] | null = null;
+  try {
+    current = await deps.list();
+  } catch {
+    current = null;
+  }
+  const duplicate = current ? findDuplicate(current, { domain: input.domain, title: input.title }) : null;
+  if (duplicate) return { entry: duplicate, duplicate: true };
+  return { entry: await deps.add(input), duplicate: false };
+}
+
 /**
  * Doublon qui bloque l'enregistrement d'une MODIFICATION : seulement si
  * l'envie modifiée est en cours. Une envie obtenue peut coexister avec une

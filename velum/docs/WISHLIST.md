@@ -21,6 +21,7 @@ collection ».
 | Logique pure de l'app | `apps/mobile/lib/wishlist.ts` |
 | Écrans | `apps/mobile/app/wishlist/index.tsx`, `new.tsx`, `[id].tsx` |
 | Bouton réutilisable | `apps/mobile/components/wishlist/AddToWishlistButton.tsx` |
+| Ajout partagé (doublon + cache) | `apps/mobile/components/wishlist/useAddToWishlist.ts` (`addUnlessDuplicate` dans `lib/wishlist.ts`) |
 
 Colonnes de `wishlist_entries` (miroir exact de `WishlistRow`) :
 
@@ -142,6 +143,29 @@ Seuls les attributs d'**identité** sont copiés (`identityAttributes`) : jamais
 fiche d'analyse, les avertissements ni l'historique des corrections. Doublon →
 « Déjà dans vos envies » sans création ; succès → toast, puis le bouton devient
 « Ajouté — voir mes envies » (accès direct à la liste de la catégorie).
+
+### Ajout partagé (`useAddToWishlist`)
+
+Toute création d'envie hors formulaire passe par le même hook :
+`AddToWishlistButton`, l'écran **Candidats** (« Ajouter à mes envies » d'un
+objet scanné, source `scan`, attributs d'identité du domaine capturé) et le
+**sommelier de cave** (`/cellar-sommelier`, idée d'achat `kind: 'idea'`
+« Vin pour : … » quand rien dans la cave ne convient au plat). Règle unique
+(`addUnlessDuplicate`) :
+
+1. la liste est relue **fraîche** sous la clé `['wishlist']` (une envie
+   identique a pu être ajoutée ailleurs) ; si la lecture échoue, l'ajout est
+   tenté quand même — le serveur tranchera ;
+2. une envie **en cours** de même catégorie et de même titre normalisé
+   (`findDuplicate`) est un doublon : rien n'est créé, « Déjà dans vos
+   envies » ;
+3. sinon l'envie est créée ; dans les deux cas le cache `['wishlist']` est mis
+   à jour aussitôt puis relu (« Mes envies » et la recherche globale voient
+   l'ajout sans attendre).
+
+Chaque écran garde ses messages ; après l'ajout (ou le doublon), le sommelier
+remplace son bouton par « Ajouté — voir mes envies » / « Dans vos envies —
+voir », qui ouvre la liste des vins.
 
 ## 5. Mode démo
 

@@ -8,7 +8,10 @@
  *    l'enregistrement (plus lent) — action principale en saisie complète ;
  *  - « Corriger » : correction en texte des infos lues sur la photo, tracée ;
  *  - « Ajouter à mes envies » : garde l'idée sans l'ajouter à la collection
- *    (doublon détecté comme `AddToWishlistButton` : « Déjà dans vos envies »).
+ *    (même règle et même cache que `AddToWishlistButton`, via
+ *    `useAddToWishlist` : un doublon affiche « Déjà dans vos envies »).
+ *    Seuls les attributs d'identité du domaine capturé sont copiés
+ *    (`entryFromCandidate` → `identityAttributes(attributes, domain)`).
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -16,7 +19,7 @@ import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { VButton, VEmptyState, VSpinner, VText, velumSpacing } from '@velum/ui';
-import { VelumError, type Candidate, type VelumItem, type WishlistEntry } from '@velum/core';
+import { VelumError, type Candidate, type VelumItem } from '@velum/core';
 
 import { CandidateCard } from '../../components/capture/CandidateCard';
 import {
@@ -25,6 +28,7 @@ import {
   type CorrectionDraft,
 } from '../../components/capture/IdentityCorrectionForm';
 import { Screen } from '../../components/Screen';
+import { useAddToWishlist } from '../../components/wishlist/useAddToWishlist';
 import { itemToCandidate } from '../../lib/analysisState';
 import { useSession } from '../../lib/auth';
 import { countUnattached, secondsForDisplay, settledStoragePaths } from '../../lib/batchCapture';
@@ -41,13 +45,7 @@ import { isDemoMode } from '../../lib/env';
 import { errorMessage, velumErrorCode } from '../../lib/errors';
 import { routes } from '../../lib/routes';
 import { captureUploads } from '../../lib/uploadMedia';
-import {
-  WISHLIST_QUERY_KEY,
-  draftToNewEntry,
-  entryFromCandidate,
-  findDuplicate,
-  upsertEntry,
-} from '../../lib/wishlist';
+import { draftToNewEntry, entryFromCandidate } from '../../lib/wishlist';
 import { useCaptureStore } from '../../stores/captureStore';
 import { showToast } from '../../stores/toastStore';
 
@@ -160,34 +158,13 @@ export default function Candidates() {
     onError: handleError,
   });
 
-  // Même règle que `AddToWishlistButton` : une envie EN COURS de même catégorie
-  // et de même titre normalisé est un doublon — rien n'est créé.
-  const wish = useMutation({
-    mutationFn: async (candidate: Candidate): Promise<{ entry: WishlistEntry; duplicate: boolean }> => {
-      const client = getVelumClient();
-      const draft = entryFromCandidate({ ...candidate, domain });
-      // Liste fraîche (même clé de cache que l'écran « Mes envies ») ; si la
-      // lecture échoue, on tente quand même l'ajout.
-      let current: WishlistEntry[] | null = null;
-      try {
-        current = await queryClient.fetchQuery({
-          queryKey: WISHLIST_QUERY_KEY,
-          queryFn: () => client.wishlist.list(),
-        });
-      } catch {
-        current = null;
-      }
-      const duplicate = current ? findDuplicate(current, { domain: draft.domain, title: draft.title }) : null;
-      if (duplicate) return { entry: duplicate, duplicate: true };
-      return { entry: await client.wishlist.add(draftToNewEntry(draft)), duplicate: false };
-    },
-    onSuccess: ({ entry, duplicate }) => {
+  // Même règle que `AddToWishlistButton` (useAddToWishlist) : une envie EN
+  // COURS de même catégorie et de même titre normalisé est un doublon — rien
+  // n'est créé ; cache ['wishlist'] mis à jour puis relu.
+  const wish = useAddToWishlist({
+    onSuccess: ({ duplicate }) => {
       setBusy(null);
       setWished(duplicate ? 'duplicate' : 'added');
-      queryClient.setQueryData<WishlistEntry[]>(WISHLIST_QUERY_KEY, (prev) =>
-        prev === undefined ? prev : upsertEntry(prev, entry),
-      );
-      void queryClient.invalidateQueries({ queryKey: WISHLIST_QUERY_KEY });
       showToast(
         duplicate ? t('candidates.wishDuplicate') : t('candidates.wishAdded'),
         duplicate ? 'info' : 'success',
@@ -201,7 +178,9 @@ export default function Candidates() {
     setBusy({ id: candidate.id, kind });
     if (kind === 'quick') quickSave.mutate(candidate);
     else if (kind === 'full') fullSave.mutate(candidate);
-    else wish.mutate(candidate);
+    // Catégorie de la capture (pas celle lue par le modèle) : attributs
+    // d'identité de CE domaine seulement.
+    else wish.mutate(draftToNewEntry(entryFromCandidate({ ...candidate, domain })));
   };
 
   /** Candidat issu du formulaire (lecture corrigée et tracée, ou saisie assistée). */
