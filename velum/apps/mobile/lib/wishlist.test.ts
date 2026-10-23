@@ -285,6 +285,40 @@ describe('conversions', () => {
     });
   });
 
+  it('bouteille bue, quantité, colonnes d’import : jamais copiées vers l’envie ni vers le nouvel objet', () => {
+    const drunk = item({
+      attributes: {
+        producer: 'Domaine Tempier',
+        vintage: 2019,
+        color: 'rouge',
+        quantity: 3,
+        consumedAt: '2026-10-20T10:00:00Z',
+        price_paid: '45',
+        location: 'Cave A3',
+        analysis: { a: 1 },
+        analysisStatus: 'pending',
+      },
+    });
+    const draft = entryFromItem(drunk, { source: 'tasting' });
+    expect(draft.attributes).toEqual({ producer: 'Domaine Tempier', vintage: 2019, color: 'rouge' });
+
+    const candidate: Candidate = {
+      id: 'c1',
+      domain: 'wine',
+      label: 'Tempier 2019',
+      confidence: 0.7,
+      attributes: { producer: 'Domaine Tempier', quantity: 6 },
+    };
+    expect(entryFromCandidate(candidate).attributes).toEqual({ producer: 'Domaine Tempier' });
+
+    // Envie déjà enregistrée AVANT ce correctif (consumedAt, quantity) : nettoyée à la création.
+    const legacy = { ...TEMPIER, attributes: { ...TEMPIER.attributes, consumedAt: '2026-10-01T00:00:00Z', quantity: 3 } };
+    const created = newItemFromEntry(legacy, 'owner-1');
+    expect(created.attributes).not.toHaveProperty('consumedAt');
+    expect(created.attributes).not.toHaveProperty('quantity');
+    expect(created.attributes?.['analysisStatus']).toBe('pending');
+  });
+
   it('newItemFromEntry : fiche complète à charger, confiance et prix payés inconnus', () => {
     const newItem = newItemFromEntry(
       { ...TEMPIER, acquired: true, acquiredAt: '2026-09-12T18:30:00Z', attributes: { ...TEMPIER.attributes, analysis: { x: 1 } } },

@@ -50,6 +50,40 @@ describe('analysisState', () => {
     expect(identityAttributes({ quickEstimate: {}, year: 1849 })).toEqual({ year: 1849 });
   });
 
+  it('identityAttributes est une liste d’INCLUSION (jamais quantité, « bue », prix payé, emplacement)', () => {
+    const wine = {
+      producer: 'Domaine Tempier',
+      vintage: 2019,
+      grapes: [{ name: 'Mourvèdre', percent: 75 }],
+      cuvee: null,
+      quantity: 3,
+      consumedAt: '2026-10-20T10:00:00Z',
+      price_paid: '45',
+      location: 'Cave A3',
+      analysis: { a: 1 },
+      quickEstimate: { low: 1, high: 2 },
+      classification: ['Vin'],
+      corrections: [],
+    };
+    expect(identityAttributes(wine, 'wine')).toEqual({
+      producer: 'Domaine Tempier',
+      vintage: 2019,
+      grapes: [{ name: 'Mourvèdre', percent: 75 }],
+    });
+    // Sans domaine : clés d'identité de tous les domaines, toujours en inclusion.
+    expect(identityAttributes({ quantity: 3, consumedAt: 'x', year: 1849, title: 'Cérès' })).toEqual({
+      year: 1849,
+      title: 'Cérès',
+    });
+  });
+
+  it('itemToCandidate garde l’état de l’exemplaire lu par les sources de prix (grade, statut)', () => {
+    const coin = item({ country: 'France', type: '5 Francs Semeuse', grade: 'SUP', quantity: 2 }, { domain: 'coin' });
+    expect(itemToCandidate(coin).attributes).toEqual({ country: 'France', type: '5 Francs Semeuse', grade: 'SUP' });
+    const stamp = item({ catalogNumber: 'YT 3', status: 'oblitere', location: 'Classeur 2' });
+    expect(itemToCandidate(stamp).attributes).toEqual({ catalogNumber: 'YT 3', status: 'oblitere' });
+  });
+
   it('signale une fiche périmée après correction de l’identité', () => {
     const corrected = [{ field: 'year', from: 1850, to: 1849, at: '2026-05-02T00:00:00Z' }];
     expect(

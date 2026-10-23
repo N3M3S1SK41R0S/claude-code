@@ -128,7 +128,7 @@ export function sortWishlist(entries: readonly WishlistEntry[], sort: WishlistSo
 
 /** Document de recherche : titre + notes + attributs d'identité (sans données techniques). */
 export function wishlistSearchDocument(entry: WishlistEntry): SearchDocument {
-  return { title: entry.title, fields: [entry.notes, identityAttributes(entry.attributes)] };
+  return { title: entry.title, fields: [entry.notes, identityAttributes(entry.attributes, entry.domain)] };
 }
 
 export interface WishlistFilter {
@@ -310,14 +310,16 @@ function titleOrLabel(
 
 /**
  * Envie issue d'un objet de MA collection (« en racheter ») ou d'une note de
- * dégustation (`source: 'tasting'`). Seuls les attributs d'IDENTITÉ sont
- * copiés : ni la fiche complète, ni les avertissements, ni l'historique.
+ * dégustation (`source: 'tasting'`). Seuls les attributs d'IDENTITÉ du
+ * domaine sont copiés (liste d'inclusion) : ni la fiche complète, ni les
+ * avertissements, ni l'historique, ni ce qui décrit l'exemplaire possédé
+ * (quantité, « bouteille bue », prix payé, emplacement…).
  */
 export function entryFromItem(
   item: VelumItem,
   options: { source?: 'item' | 'tasting'; notes?: string | null } = {},
 ): WishlistDraft {
-  const attributes = identityAttributes(item.attributes);
+  const attributes = identityAttributes(item.attributes, item.domain);
   return {
     domain: item.domain,
     title: titleOrLabel(item.title, item.domain, attributes),
@@ -333,7 +335,7 @@ export function entryFromCandidate(
   candidate: Candidate,
   options: { notes?: string | null } = {},
 ): WishlistDraft {
-  const attributes = identityAttributes(candidate.attributes);
+  const attributes = identityAttributes(candidate.attributes, candidate.domain);
   return {
     domain: candidate.domain,
     title: titleOrLabel(candidate.label, candidate.domain, attributes),
@@ -366,14 +368,16 @@ export function draftToNewEntry(
  * Envie obtenue → nouvel objet de la collection. La fiche complète n'est PAS
  * générée ici (lente) : `analysisStatus: 'pending'` la fait proposer à la
  * demande sur la fiche objet. Confiance inconnue (null) plutôt qu'inventée ;
- * prix d'acquisition inconnu (le prix cible n'est pas le prix payé).
+ * prix d'acquisition inconnu (le prix cible n'est pas le prix payé). Seule
+ * l'identité est reprise (une envie enregistrée avant le filtrage d'inclusion
+ * est nettoyée ici).
  */
 export function newItemFromEntry(entry: WishlistEntry, ownerId: string): NewItem {
   return {
     ownerId,
     domain: entry.domain,
     title: entry.title,
-    attributes: { ...identityAttributes(entry.attributes), analysisStatus: 'pending' },
+    attributes: { ...identityAttributes(entry.attributes, entry.domain), analysisStatus: 'pending' },
     confidence: null,
     acquiredAt: entry.acquiredAt !== null ? entry.acquiredAt.slice(0, 10) : null,
     acquiredPrice: null,
@@ -573,7 +577,7 @@ export function buildWishlistInput(
   }
 
   const attributes: Record<string, unknown> =
-    base !== undefined && base.domain === domain ? identityAttributes(base.attributes) : {};
+    base !== undefined && base.domain === domain ? identityAttributes(base.attributes, domain) : {};
   for (const field of identityFieldsFor(domain, true)) {
     const raw = (values.identity[field.key] ?? '').trim();
     if (raw.length === 0) {

@@ -10,7 +10,14 @@
  * valeur corrigée, horodatée) : l'utilisateur garde la main, et le signal
  * nourrit l'amélioration de la reconnaissance — jamais de réécriture muette.
  */
-import type { VelumDomain } from '@velum/core';
+import type {
+  ArtAttributes,
+  CoinAttributes,
+  StampAttributes,
+  VelumDomain,
+  WatchAttributes,
+  WineAttributes,
+} from '@velum/core';
 
 export interface IdentityField {
   /** Clé d'attribut du domaine (items.attributes). */
@@ -80,6 +87,100 @@ export const IDENTITY_FIELDS: Record<VelumDomain, readonly IdentityField[]> = {
 export function identityFieldsFor(domain: VelumDomain, primaryOnly = false): IdentityField[] {
   const fields = IDENTITY_FIELDS[domain];
   return primaryOnly ? fields.filter((f) => f.primary === true) : [...fields];
+}
+
+// ── Attributs d'identité (liste d'INCLUSION) ─────────────────────────────────
+
+/*
+ * Attributs d'identité STRUCTURÉS documentés par domaine dans @velum/core
+ * (analysis/*.ts, interfaces `…Attributes`). Le type `Record<keyof …, true>`
+ * impose l'exhaustivité : un attribut ajouté au contrat doit l'être ici.
+ */
+const WINE_IDENTITY: Record<keyof WineAttributes, true> = {
+  producer: true,
+  winemaker: true,
+  winemakerRenown: true,
+  appellation: true,
+  cuvee: true,
+  vintage: true,
+  color: true,
+  grapes: true,
+  distinctiveness: true,
+  farming: true,
+  region: true,
+  country: true,
+  format: true,
+};
+const COIN_IDENTITY: Record<keyof CoinAttributes, true> = {
+  country: true,
+  issuer: true,
+  type: true,
+  year: true,
+  mintMark: true,
+  metal: true,
+  weightGrams: true,
+  diameterMm: true,
+  mintage: true,
+  numistaId: true,
+};
+const ART_IDENTITY: Record<keyof ArtAttributes, true> = {
+  artist: true,
+  attributionQualifier: true,
+  title: true,
+  technique: true,
+  support: true,
+  dimensionsCm: true,
+  estimatedPeriod: true,
+  school: true,
+  signatureDetected: true,
+};
+const STAMP_IDENTITY: Record<keyof StampAttributes, true> = {
+  country: true,
+  catalogNumber: true,
+  catalog: true,
+  title: true,
+  year: true,
+  faceValue: true,
+  color: true,
+  perforation: true,
+  watermark: true,
+  printingMethod: true,
+};
+const WATCH_IDENTITY: Record<keyof WatchAttributes, true> = {
+  brand: true,
+  model: true,
+  reference: true,
+  year: true,
+  gender: true,
+  caseMaterial: true,
+  caseDiameterMm: true,
+  dialColor: true,
+  bracelet: true,
+  crystal: true,
+  waterResistanceM: true,
+  boxPapers: true,
+  limitedEdition: true,
+};
+
+const STRUCTURED_IDENTITY: Record<VelumDomain, Record<string, true>> = {
+  wine: WINE_IDENTITY,
+  coin: COIN_IDENTITY,
+  art: ART_IDENTITY,
+  stamp: STAMP_IDENTITY,
+  watch: WATCH_IDENTITY,
+};
+
+/**
+ * Clés d'attributs qui décrivent l'IDENTITÉ d'un objet du domaine : champs
+ * d'identification éditables + attributs structurés du contrat. Liste
+ * d'INCLUSION : tout le reste (quantité, « bouteille bue », prix payé ou
+ * emplacement d'un import CSV, fiche, historique…) décrit l'exemplaire
+ * possédé ou l'analyse, jamais l'objet recherché.
+ */
+export function identityAttributeKeys(domain: VelumDomain): string[] {
+  const keys = new Set(IDENTITY_FIELDS[domain].map((field) => field.key));
+  for (const key of Object.keys(STRUCTURED_IDENTITY[domain])) keys.add(key);
+  return [...keys];
 }
 
 /** Valeurs texte des champs (pour pré-remplir un formulaire). */
@@ -189,6 +290,25 @@ export interface IdentityCorrection {
 /** Nombre maximal de corrections conservées dans l'historique d'un objet. */
 export const MAX_CORRECTIONS_KEPT = 30;
 
+/**
+ * Clé RÉSERVÉE sous laquelle est tracée la correction de la DÉSIGNATION de
+ * l'objet (`items.title`). Distincte de toute clé d'attribut : l'art (titre de
+ * l'œuvre) et le timbre (sujet) ont un champ d'identité nommé `title`, qui ne
+ * doit pas passer pour un simple renommage.
+ */
+export const DESIGNATION_FIELD = '@title';
+
+/**
+ * true si l'entrée d'historique porte sur la désignation. Les historiques
+ * d'avant la clé réservée tracent la désignation sous `title` : relus comme
+ * tels seulement pour un domaine SANS champ d'identité `title` (vin, pièce,
+ * montre) — ailleurs, l'entrée est relue comme le champ du domaine.
+ */
+export function isDesignationCorrection(domain: VelumDomain, field: string): boolean {
+  if (field === DESIGNATION_FIELD) return true;
+  return field === 'title' && !IDENTITY_FIELDS[domain].some((f) => f.key === 'title');
+}
+
 export interface CorrectionResult {
   attributes: Record<string, unknown>;
   title: string | null;
@@ -204,7 +324,9 @@ function scalar(value: unknown): string | number | null {
 /**
  * Applique les valeurs saisies aux attributs : champ vidé → clé supprimée,
  * nombres parsés, tout changement tracé dans `attributes.corrections`.
- * Le titre est corrigé s'il diffère (`title` vide → inchangé).
+ * La désignation est corrigée si elle diffère (`newTitle` vide → inchangée),
+ * tracée sous `designationField` : DESIGNATION_FIELD pour la fiche objet ;
+ * `title` par défaut (comportement historique, encore attendu par la capture).
  * Pré-condition : `validateIdentityValues` sans erreur.
  */
 export function applyIdentityCorrections(input: {
@@ -214,6 +336,7 @@ export function applyIdentityCorrections(input: {
   values: Record<string, string>;
   newTitle?: string;
   now: Date;
+  designationField?: string;
 }): CorrectionResult {
   const at = input.now.toISOString();
   const attributes: Record<string, unknown> = { ...input.attributes };
@@ -233,7 +356,7 @@ export function applyIdentityCorrections(input: {
   let title = input.title;
   const trimmedTitle = input.newTitle?.trim() ?? '';
   if (trimmedTitle.length > 0 && trimmedTitle !== (input.title ?? '')) {
-    corrections.push({ field: 'title', from: input.title, to: trimmedTitle, at });
+    corrections.push({ field: input.designationField ?? 'title', from: input.title, to: trimmedTitle, at });
     title = trimmedTitle;
   }
 
