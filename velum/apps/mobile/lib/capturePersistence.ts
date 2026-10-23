@@ -162,8 +162,9 @@ export function fullCaptureAttributes(
  * Correction AVANT enregistrement des infos lues sur la photo : champs
  * d'identification du domaine + libellé. Chaque changement est tracé dans
  * `attributes.corrections` (valeur lue → valeur saisie). Si l'identité change,
- * la fourchette indicative — calculée pour l'objet MAL lu — est retirée : la
- * valorisation lancée après l'enregistrement portera sur l'identité corrigée.
+ * la fourchette indicative et le classement — établis pour l'objet MAL lu —
+ * sont retirés : la valorisation lancée après l'enregistrement portera sur
+ * l'identité corrigée.
  * Pré-condition : `validateIdentityValues` sans erreur.
  */
 export function correctCandidate(input: {
@@ -198,13 +199,16 @@ export function correctCandidate(input: {
   const history = Array.isArray(original['corrections']) ? (original['corrections'] as unknown[]) : [];
   attributes['corrections'] = [...history, ...real].slice(-MAX_CORRECTIONS_KEPT);
 
+  // Identité corrigée : la fourchette ET le classement sont l'avis du modèle
+  // sur l'objet MAL lu — ni l'un ni l'autre ne suit l'objet corrigé.
   const identityChanged = real.some((c) => c.field !== 'title');
-  const { quickEstimate, ...rest } = input.candidate;
+  const { quickEstimate, classification, ...rest } = input.candidate;
   const corrected: Candidate = {
     ...rest,
     label: result.title ?? input.candidate.label,
     attributes,
     ...(quickEstimate !== undefined && !identityChanged ? { quickEstimate } : {}),
+    ...(classification !== undefined && !identityChanged ? { classification } : {}),
   };
   return { candidate: corrected, changed: true };
 }
