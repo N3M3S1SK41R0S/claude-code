@@ -1372,6 +1372,7 @@
       "certified": "Expertise requise",
       "certificationOptional": "Avant l’expédition, vous pouvez demander l’expertise de l’objet par un expert partenaire : elle a lieu si l’autre partie l’accepte, frais partagés par moitié.",
       "certificationAsked": "Demande d’expertise envoyée à l’autre partie.",
+      "shipBlocked": "Expédition en attente : une expertise est en cours sur cette commande (accord attendu ou expert à l’œuvre). Vous pourrez expédier une fois l’expertise tranchée.",
       "illegal": "Action impossible dans cet état.",
       "commission": "Commission {{rate}} figée à l’achat : {{amount}}, prélevée à la libération des fonds.",
       "cancel": "Annuler la commande",
@@ -1445,6 +1446,7 @@
       "certificationRequired": "Une certification par un expert partenaire conditionne l’expédition : les objets ne partent qu’une fois l’expertise rendue.",
       "certificationOptional": "Avant tout envoi, vous pouvez demander l’expertise de l’objet que vous recevez : elle a lieu si l’autre partie l’accepte, frais partagés par moitié.",
       "certificationAsked": "Demande d’expertise envoyée à l’autre partie.",
+      "shipBlocked": "Expédition en attente : une expertise est en cours sur cet échange (accord attendu ou expert à l’œuvre). Vous pourrez expédier une fois l’expertise tranchée.",
       "noCertification": "Aucune expertise pour cet échange.",
       "viewListing": "Voir l’annonce",
       "anonymity": "Vous apparaissez sous un pseudonyme ; les adresses d’expédition sont masquées par la plateforme. Ne communiquez jamais vos coordonnées.",
@@ -1500,7 +1502,7 @@
       "refuse": "Refuser",
       "cancel": "Annuler la demande",
       "cancelConfirm": "Annuler cette demande d’expertise ?",
-      "cancelThresholdConfirm": "Sans cette expertise obligatoire, l’annonce ne peut pas être publiée : elle sera retirée. Annuler ?",
+      "cancelThresholdConfirm": "Sans cette expertise obligatoire, l’annonce ne peut pas être publiée : elle repassera en brouillon. Annuler ?",
       "cancelYes": "Oui, annuler"
     },
     "activity": {
@@ -1522,6 +1524,8 @@
       "withdrawn": "Annonce retirée.",
       "viewListing": "Voir l’annonce",
       "pendingCertification": "Au-delà de 500 €, l’annonce est publiée après certification par un expert partenaire (frais à votre charge).",
+      "engaged": "Réservée : une transaction est en cours sur cette annonce (paiement reçu ou échange accepté). Elle ne peut plus être retirée.",
+      "draftHint": "Brouillon : l’annonce n’est pas publiée. Pour relancer l’expertise, retirez-la puis remettez l’objet en vente.",
       "listedOn": "Créée le {{date}} · commission {{rate}}"
     },
     "listing": {

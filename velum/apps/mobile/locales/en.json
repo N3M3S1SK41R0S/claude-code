@@ -1372,6 +1372,7 @@
       "certified": "Appraisal required",
       "certificationOptional": "Before shipping, you can request an appraisal of the item by a partner expert: it happens if the other party agrees, fee split equally.",
       "certificationAsked": "Appraisal request sent to the other party.",
+      "shipBlocked": "Shipping on hold: an appraisal is under way on this order (awaiting agreement or with the expert). You can ship once it is settled.",
       "illegal": "Action not possible in this state.",
       "commission": "{{rate}} commission fixed at purchase: {{amount}}, taken when funds are released.",
       "cancel": "Cancel the order",
@@ -1445,6 +1446,7 @@
       "certificationRequired": "A certification by a partner expert is required before shipping: items only leave once the appraisal is done.",
       "certificationOptional": "Before anything is shipped, you can request an appraisal of the item you receive: it happens if the other party agrees, fee split equally.",
       "certificationAsked": "Appraisal request sent to the other party.",
+      "shipBlocked": "Shipping on hold: an appraisal is under way on this trade (awaiting agreement or with the expert). You can ship once it is settled.",
       "noCertification": "No appraisal for this trade.",
       "viewListing": "View the listing",
       "anonymity": "You appear under a pseudonym; shipping addresses are hidden by the platform. Never share your contact details.",
@@ -1500,7 +1502,7 @@
       "refuse": "Decline",
       "cancel": "Cancel the request",
       "cancelConfirm": "Cancel this appraisal request?",
-      "cancelThresholdConfirm": "Without this required appraisal, the listing cannot be published: it will be withdrawn. Cancel?",
+      "cancelThresholdConfirm": "Without this required appraisal, the listing cannot be published: it will go back to draft. Cancel?",
       "cancelYes": "Yes, cancel"
     },
     "activity": {
@@ -1522,6 +1524,8 @@
       "withdrawn": "Listing withdrawn.",
       "viewListing": "View the listing",
       "pendingCertification": "Above €500, the listing is published after certification by a partner expert (fee at your charge).",
+      "engaged": "Reserved: a transaction is under way on this listing (payment received or trade accepted). It can no longer be withdrawn.",
+      "draftHint": "Draft: the listing is not published. To restart the appraisal, withdraw it, then list the item again.",
       "listedOn": "Created on {{date}} · {{rate}} commission"
     },
     "listing": {

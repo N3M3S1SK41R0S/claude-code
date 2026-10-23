@@ -123,10 +123,27 @@ const ORDER_RULES: readonly OrderRule[] = [
   { from: 'shipped', action: 'dispute', to: 'disputed', actors: ['buyer'] },
 ];
 
+/** Contexte d'une transaction connu de l'interface (certifications, horloge). */
+export interface ActionContext {
+  /**
+   * Une expertise est ouverte sur la transaction (accord attendu, demandée,
+   * en cours) : le serveur bloque l'expédition (has_open_certification).
+   */
+  hasOpenCertification?: boolean;
+  /** Horloge (ISO) : une proposition échue ne s'accepte plus. */
+  now?: string;
+}
+
 /** Actions proposées à l'utilisateur courant pour une commande. */
-export function orderActions(order: Pick<MarketOrder, 'role' | 'escrowState'>): OrderAction[] {
+export function orderActions(
+  order: Pick<MarketOrder, 'role' | 'escrowState'>,
+  context: ActionContext = {},
+): OrderAction[] {
   return ORDER_RULES.filter(
-    (rule) => rule.from === order.escrowState && rule.actors.includes(order.role),
+    (rule) =>
+      rule.from === order.escrowState &&
+      rule.actors.includes(order.role) &&
+      !(rule.action === 'ship' && context.hasOpenCertification === true),
   ).map((rule) => rule.action);
 }
 
@@ -170,7 +187,10 @@ type ExchangeView = Pick<
   | 'recipientTracking'
   | 'proposerReceived'
   | 'recipientReceived'
->;
+> & {
+  /** Échéance d'une proposition (expires_at), si le dépôt la fournit. */
+  expiresAt?: string | null;
+};
 
 /** Mon numéro de suivi (null si je n'ai pas encore expédié). */
 export function myTracking(ex: Pick<ExchangeProposal, 'role' | 'proposerTracking' | 'recipientTracking'>): string | null {
@@ -205,20 +225,29 @@ function hasText(value: string | null): boolean {
  *    (une fois qu'il l'a expédié) ; litige dès qu'un envoi a eu lieu, sinon
  *    annulation (« avant toute expédition ») ;
  *  - états terminaux et litige (arbitrage plateforme) : aucune action.
+ * Contexte : pas d'expédition tant qu'une expertise est ouverte, pas
+ * d'acceptation d'une proposition échue (même avant le passage du cron).
  */
-export function exchangeActions(ex: ExchangeView): ExchangeAction[] {
+export function exchangeActions(ex: ExchangeView, context: ActionContext = {}): ExchangeAction[] {
   const mine = hasText(myTracking(ex));
   const theirs = hasText(theirTracking(ex));
+  const shipBlocked = context.hasOpenCertification === true;
   switch (ex.state) {
-    case 'proposed':
-      return ex.role === 'recipient' ? ['accept', 'decline'] : ['withdraw'];
+    case 'proposed': {
+      const expired =
+        context.now !== undefined &&
+        typeof ex.expiresAt === 'string' &&
+        Date.parse(ex.expiresAt) <= Date.parse(context.now);
+      if (ex.role !== 'recipient') return ['withdraw'];
+      return expired ? ['decline'] : ['accept', 'decline'];
+    }
     case 'accepted':
-      return !ex.certificationRequired && !mine ? ['ship', 'cancel'] : ['cancel'];
+      return !ex.certificationRequired && !mine && !shipBlocked ? ['ship', 'cancel'] : ['cancel'];
     case 'awaiting_certification':
       return ['cancel'];
     case 'shipping': {
       const actions: ExchangeAction[] = [];
-      if (!mine) actions.push('ship');
+      if (!mine && !shipBlocked) actions.push('ship');
       if (theirs && !myReceived(ex)) actions.push('confirm_receipt');
       actions.push(mine || theirs ? 'dispute' : 'cancel');
       return actions;
@@ -317,19 +346,26 @@ export function exchangeTimeline(
 export type CertificationAction = 'agree' | 'refuse' | 'cancel';
 
 /**
- * Actions sur une demande de certification : l'autre partie accepte/refuse
- * une demande d'accord mutuel ; l'auteur peut annuler tant que l'expert n'a
- * pas rendu sa décision.
+ * Actions sur une demande de certification (miroir de
+ * enforce_certification_transition) : l'autre partie accepte/refuse une
+ * demande d'accord mutuel, son auteur la retire ; avant la décision de
+ * l'expert, l'auteur annule une démarche volontaire ou un accord mutuel, et
+ * le propriétaire une expertise de seuil d'ANNONCE SEULE — celle d'une
+ * commande ou d'un échange ne tombe qu'avec la transaction.
  */
 export function certificationActions(
-  c: Pick<CertificationRequest, 'status' | 'requestedByMe'>,
+  c: Pick<CertificationRequest, 'status' | 'requestedByMe' | 'reason' | 'orderId' | 'exchangeId'>,
 ): CertificationAction[] {
   switch (c.status) {
     case 'awaiting_agreement':
       return c.requestedByMe ? ['cancel'] : ['agree', 'refuse'];
     case 'requested':
-    case 'in_review':
-      return c.requestedByMe ? ['cancel'] : [];
+    case 'in_review': {
+      const listingOnly = c.orderId === null && c.exchangeId === null;
+      const cancellable =
+        c.requestedByMe && (c.reason !== 'threshold' || listingOnly);
+      return cancellable ? ['cancel'] : [];
+    }
     default:
       return [];
   }
@@ -404,16 +440,19 @@ export function itemCertifiedByExpert(
 
 // ── Annonces ─────────────────────────────────────────────────────────────────
 
-/** Commande qui réserve l'annonce (paiement capturé) ou l'a conclue. */
-const ORDER_HOLDS_LISTING: ReadonlySet<EscrowState> = new Set(['funds_held', 'shipped', 'disputed', 'released']);
-/** Échange qui réserve l'annonce (accepté, en cours) ou l'a conclue. */
-const EXCHANGE_HOLDS_LISTING: ReadonlySet<ExchangeState> = new Set([
+/** Commande qui RÉSERVE l'annonce (listing_is_engaged : paiement capturé, jusqu'au litige). */
+const ORDER_ENGAGES_LISTING: ReadonlySet<EscrowState> = new Set(['funds_held', 'shipped', 'disputed']);
+/** Échange qui RÉSERVE l'annonce (listing_is_engaged : accepté, en cours). */
+const EXCHANGE_ENGAGES_LISTING: ReadonlySet<ExchangeState> = new Set([
   'accepted',
   'awaiting_certification',
   'shipping',
   'disputed',
-  'completed',
 ]);
+/** Commande qui réserve l'annonce ou l'a conclue (vendue). */
+const ORDER_HOLDS_LISTING: ReadonlySet<EscrowState> = new Set([...ORDER_ENGAGES_LISTING, 'released']);
+/** Échange qui réserve l'annonce ou l'a conclue (échangée). */
+const EXCHANGE_HOLDS_LISTING: ReadonlySet<ExchangeState> = new Set([...EXCHANGE_ENGAGES_LISTING, 'completed']);
 
 export interface ListingAvailability {
   canBuy: boolean;
@@ -459,23 +498,72 @@ export function listingAvailability(
   };
 }
 
-/** Une annonce peut être retirée tant qu'elle n'est pas vendue / échangée. */
-export function canWithdrawListing(status: ListingStatus): boolean {
-  return status === 'draft' || status === 'pending_certification' || status === 'active';
+/**
+ * Une annonce peut être retirée tant qu'elle n'est ni vendue, ni échangée,
+ * ni RÉSERVÉE par une transaction en cours (statut figé côté serveur).
+ */
+export function canWithdrawListing(status: ListingStatus, engaged = false): boolean {
+  return !engaged && (status === 'draft' || status === 'pending_certification' || status === 'active');
+}
+
+/**
+ * MON annonce réservée (miroir partiel de listing_is_engaged, d'après mes
+ * transactions) : commande au paiement capturé jusqu'au litige, ou échange
+ * accepté en cours. (Le cas de l'objet de l'annonce proposé ailleurs n'est
+ * pas visible ici : le serveur reste l'arbitre.)
+ */
+export function myListingEngaged(
+  listingId: string,
+  orders: readonly Pick<MarketOrder, 'listingId' | 'escrowState'>[],
+  exchanges: readonly Pick<ExchangeProposal, 'listingId' | 'state'>[],
+): boolean {
+  return (
+    orders.some((o) => o.listingId === listingId && ORDER_ENGAGES_LISTING.has(o.escrowState)) ||
+    exchanges.some((e) => e.listingId === listingId && EXCHANGE_ENGAGES_LISTING.has(e.state))
+  );
 }
 
 // ── Compteur « à traiter » ───────────────────────────────────────────────────
 
 /** Nombre d'éléments qui attendent une action de MA part (badge « Mon activité »). */
 export function pendingActionCount(input: {
-  orders?: readonly Pick<MarketOrder, 'role' | 'escrowState'>[];
-  exchanges?: readonly ExchangeView[];
-  certifications?: readonly Pick<CertificationRequest, 'status' | 'requestedByMe'>[];
+  orders?: readonly (Pick<MarketOrder, 'role' | 'escrowState'> & { id?: string })[];
+  exchanges?: readonly (ExchangeView & { id?: string })[];
+  certifications?: readonly CertificationContext[];
+  now?: string;
 }): number {
-  const orders = (input.orders ?? []).filter(orderNeedsMe).length;
-  const exchanges = (input.exchanges ?? []).filter(exchangeNeedsMe).length;
-  const certifications = (input.certifications ?? []).filter(certificationNeedsMe).length;
+  const certs = input.certifications ?? [];
+  const orders = (input.orders ?? []).filter((o) =>
+    orderNeedsMe(o, { hasOpenCertification: o.id !== undefined && hasOpenCertificationOn(certs, { orderId: o.id }) }),
+  ).length;
+  const exchanges = (input.exchanges ?? []).filter((e) =>
+    exchangeNeedsMe(e, {
+      hasOpenCertification: e.id !== undefined && hasOpenCertificationOn(certs, { exchangeId: e.id }),
+      ...(input.now !== undefined ? { now: input.now } : {}),
+    }),
+  ).length;
+  const certifications = certs.filter((c) => certificationNeedsMe(c)).length;
   return orders + exchanges + certifications;
+}
+
+/** Certification vue avec son contexte (commande / échange), quand il est connu. */
+type CertificationContext = Pick<CertificationRequest, 'status' | 'requestedByMe'> &
+  Partial<Pick<CertificationRequest, 'orderId' | 'exchangeId'>>;
+
+/**
+ * Miroir de has_open_certification : une expertise ouverte (accord attendu,
+ * demandée, en cours) sur la commande ou l'échange bloque l'expédition.
+ */
+export function hasOpenCertificationOn(
+  certifications: readonly CertificationContext[],
+  target: { orderId?: string; exchangeId?: string },
+): boolean {
+  return certifications.some(
+    (c) =>
+      OPEN_CERTIFICATION.has(c.status) &&
+      ((target.orderId !== undefined && c.orderId === target.orderId) ||
+        (target.exchangeId !== undefined && c.exchangeId === target.exchangeId)),
+  );
 }
 
 // ── Erreurs ──────────────────────────────────────────────────────────────────
@@ -533,22 +621,22 @@ export function partitionActivity<T>(
 ): { current: T[]; history: T[] } {
   const current = entries.filter((e) => !closed(e));
   return {
-    current: [...current.filter(needsMe), ...current.filter((e) => !needsMe(e))],
-    history: entries.filter(closed),
+    current: [...current.filter((e) => needsMe(e)), ...current.filter((e) => !needsMe(e))],
+    history: entries.filter((e) => closed(e)),
   };
 }
 
 /** true si la commande attend une action principale de ma part. */
-export function orderNeedsMe(o: Pick<MarketOrder, 'role' | 'escrowState'>): boolean {
-  return orderActions(o).some((a) => PRIMARY_ORDER_ACTIONS.has(a));
+export function orderNeedsMe(o: Pick<MarketOrder, 'role' | 'escrowState'>, context: ActionContext = {}): boolean {
+  return orderActions(o, context).some((a) => PRIMARY_ORDER_ACTIONS.has(a));
 }
 
 /** true si l'échange attend une action principale de ma part. */
-export function exchangeNeedsMe(e: ExchangeView): boolean {
-  return exchangeActions(e).some((a) => PRIMARY_EXCHANGE_ACTIONS.has(a));
+export function exchangeNeedsMe(e: ExchangeView, context: ActionContext = {}): boolean {
+  return exchangeActions(e, context).some((a) => PRIMARY_EXCHANGE_ACTIONS.has(a));
 }
 
 /** true si la certification attend MON accord. */
 export function certificationNeedsMe(c: Pick<CertificationRequest, 'status' | 'requestedByMe'>): boolean {
-  return certificationActions(c).includes('agree');
+  return c.status === 'awaiting_agreement' && !c.requestedByMe;
 }

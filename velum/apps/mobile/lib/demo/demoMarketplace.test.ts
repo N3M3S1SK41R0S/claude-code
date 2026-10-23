@@ -156,13 +156,19 @@ describe('démo marketplace — mise en vente (règles @velum/config)', () => {
     await expectInvalid(repo.withdrawListing('demo-listing-1')); // pas la mienne
   });
 
-  it('annuler l’expertise obligatoire retire l’annonce en attente', async () => {
+  it('annuler l’expertise obligatoire repasse l’annonce en brouillon (comme le serveur)', async () => {
     const repo = setup();
     const cert = (await repo.myCertifications()).find((c) => c.listingId === 'demo-mine-2');
     expect(cert?.status).toBe('in_review');
     await repo.cancelCertification(cert?.id ?? '');
     const mine = await repo.myListings();
-    expect(mine.find((l) => l.id === 'demo-mine-2')?.status).toBe('withdrawn');
+    expect(mine.find((l) => l.id === 'demo-mine-2')?.status).toBe('draft');
+  });
+
+  it('une annonce réservée (paiement capturé) ne se retire pas', async () => {
+    const repo = setup();
+    // demo-mine-5 : commande demo-order-4 sous séquestre.
+    await expectInvalid(repo.withdrawListing('demo-mine-5'));
   });
 });
 
@@ -324,6 +330,14 @@ describe('démo marketplace — certifications et messages', () => {
     expect(order?.certificationRequired).toBe(true);
     // Miroir de has_open_certification : expédition bloquée tant que l'expert n'a pas rendu sa décision.
     await expectInvalid(repo.advanceOrder('demo-order-4', 'shipped', { trackingNumber: 'LL123456789FR' }));
+  });
+
+  it('expertise ouverte sur un échange : pas d’expédition tant qu’elle n’est pas tranchée', async () => {
+    const repo = setup();
+    await repo.respondExchange('demo-exchange-1', true);
+    await repo.requestCertification({ reason: 'mutual_agreement', exchangeId: 'demo-exchange-1' });
+    // Accord attendu (awaiting_agreement) : has_open_certification bloque déjà l'envoi.
+    await expectInvalid(repo.shipExchange('demo-exchange-1', 'LL123456789FR'));
   });
 
   it('échange : expertise d’un commun accord seulement une fois accepté, avant tout envoi', async () => {

@@ -36,6 +36,7 @@ import {
   EXCHANGE_TONE,
   canRequestExchangeCertification,
   exchangeActions,
+  hasOpenCertificationOn,
   isClosed,
   marketLabelKeys,
   myCashPayment,
@@ -51,7 +52,14 @@ import { showToast } from '../../../stores/toastStore';
 
 type Panel = 'ship' | 'dispute' | 'decline' | 'withdraw' | 'cancel' | null;
 
-function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
+function ExchangeActions({
+  exchange,
+  hasOpenCertification,
+}: {
+  exchange: ExchangeProposal;
+  /** Expertise ouverte : le serveur bloque l'expédition (has_open_certification). */
+  hasOpenCertification: boolean;
+}) {
   const { t, i18n } = useTranslation();
   const client = getVelumClient();
   const invalidate = useInvalidateCommunity();
@@ -59,7 +67,8 @@ function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
   const sales = useCompletedSales();
   const [panel, setPanel] = useState<Panel>(null);
   const [reason, setReason] = useState('');
-  const actions = exchangeActions(exchange);
+  const actions = exchangeActions(exchange, { hasOpenCertification, now: new Date().toISOString() });
+  const shipBlocked = exchange.state === 'shipping' && hasOpenCertification && myTracking(exchange) === null;
 
   const run = useMutation({
     mutationFn: (action: Exclude<ExchangeAction, 'ship'>) => {
@@ -103,7 +112,7 @@ function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
   if (actions.length === 0) {
     return (
       <VText variant="caption" tone="dim">
-        {t(`community.exchange.waiting.${exchange.state}`)}
+        {shipBlocked ? t('community.exchange.shipBlocked') : t(`community.exchange.waiting.${exchange.state}`)}
       </VText>
     );
   }
@@ -127,6 +136,9 @@ function ExchangeActions({ exchange }: { exchange: ExchangeProposal }) {
 
   return (
     <View style={styles.actions}>
+      {shipBlocked ? (
+        <Notice tone="warning">{t('community.exchange.shipBlocked')}</Notice>
+      ) : null}
       {actions.includes('accept') ? (
         <>
           <VText variant="caption" tone="dim">
@@ -265,6 +277,7 @@ function ExchangeDetail({ id }: { id: string }) {
   const theirValue = iAmProposer ? exchange.listingValue : exchange.offeredValue;
   const cash = myCashPayment(exchange);
   const related = (certifications.data ?? []).filter((c) => c.exchangeId === id);
+  const hasOpenCertification = hasOpenCertificationOn(related, { exchangeId: id });
   // Miroir de request_certification : échange accepté, avant tout envoi, sur
   // l'objet que je reçois (mes demandes lues d'abord : jamais de doublon).
   const canAskCertification =
@@ -306,7 +319,7 @@ function ExchangeDetail({ id }: { id: string }) {
         </View>
 
         {/* Actions en tête. */}
-        <ExchangeActions exchange={exchange} />
+        <ExchangeActions exchange={exchange} hasOpenCertification={hasOpenCertification} />
 
         <VCard style={styles.card}>
           <AmountRows rows={rows} />

@@ -734,7 +734,8 @@ export function createDemoMarketplaceRepo(
   };
 
   const requireExchangeAction = (e: DemoExchange, action: ExchangeAction) => {
-    if (!exchangeActions(exchangeView(e)).includes(action)) {
+    const context = { hasOpenCertification: hasOpenCertification({ exchangeId: e.id }) };
+    if (!exchangeActions(exchangeView(e), context).includes(action)) {
       invalid(`Action « ${action} » impossible dans l’état ${e.state}`);
     }
   };
@@ -909,6 +910,7 @@ export function createDemoMarketplaceRepo(
       const l = findListing(listingId);
       if (l.sellerId !== DEMO_OWNER) invalid('Annonce introuvable');
       if (!canWithdrawListing(l.status)) invalid('Annonce déjà vendue, échangée ou retirée');
+      if (isEngaged(l.id)) invalid('Annonce engagée dans une transaction en cours : statut, prix et nature sont figés');
       l.status = 'withdrawn';
       cancelOpenCertifications((c) => c.listingId === l.id);
       return { ...l };
@@ -1386,10 +1388,11 @@ export function createDemoMarketplaceRepo(
         e.state = 'shipping';
         touch(e);
       }
-      // Sans l'expertise obligatoire, l'annonce ne peut pas être publiée : retrait.
-      if (c.reason === 'threshold' && c.listingId) {
+      // Sans l'expertise obligatoire, l'annonce ne peut pas être publiée :
+      // elle repasse en brouillon (certification_after_change).
+      if (c.reason === 'threshold' && c.listingId && c.orderId === null && c.exchangeId === null) {
         const l = listings.find((x) => x.id === c.listingId);
-        if (l && l.status === 'pending_certification') l.status = 'withdrawn';
+        if (l && l.status === 'pending_certification' && !l.certified) l.status = 'draft';
       }
       return certificationView(c);
     },

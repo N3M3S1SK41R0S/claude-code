@@ -20,6 +20,7 @@ import {
   ESCROW_TONE,
   PRIMARY_ORDER_ACTIONS,
   canRequestOrderCertification,
+  hasOpenCertificationOn,
   marketLabelKeys,
   orderActionTarget,
   orderActions,
@@ -28,6 +29,7 @@ import {
 import { showToast } from '../../stores/toastStore';
 import { MessageThread } from './MessageThread';
 import { ShipPanel, type Shipment } from './ShipPanel';
+import { Notice } from './controls';
 import { useInvalidateCommunity, useMarketErrorToast, useMyCertifications } from './hooks';
 
 type Panel = 'ship' | 'dispute' | 'cancel' | null;
@@ -50,9 +52,12 @@ export function OrderCard({ order }: { order: MarketOrder }) {
   const [showThread, setShowThread] = useState(false);
   const certifications = useMyCertifications();
 
-  const actions = orderActions(order);
-  const isSeller = order.role === 'seller';
   const related = (certifications.data ?? []).filter((c) => c.orderId === order.id);
+  // Expertise ouverte (même un accord attendu) : le serveur bloque l'expédition.
+  const hasOpenCertification = hasOpenCertificationOn(related, { orderId: order.id });
+  const actions = orderActions(order, { hasOpenCertification });
+  const isSeller = order.role === 'seller';
+  const shipBlocked = isSeller && order.escrowState === 'funds_held' && hasOpenCertification;
   // Expertise d'un commun accord : demandée SUR LA COMMANDE, avant expédition
   // (seul contexte accepté par le serveur hors vendeur). Mes demandes lues
   // d'abord, pour ne jamais proposer un doublon.
@@ -130,6 +135,9 @@ export function OrderCard({ order }: { order: MarketOrder }) {
       <VText variant="caption" tone="dim">
         {t(`community.order.hint.${order.escrowState}.${order.role}`)}
       </VText>
+      {shipBlocked ? (
+        <Notice tone="warning">{t('community.order.shipBlocked')}</Notice>
+      ) : null}
       {isSeller ? (
         <VText variant="caption" tone="dim">
           {t('community.order.commission', {

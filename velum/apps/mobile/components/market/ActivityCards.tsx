@@ -1,7 +1,8 @@
 /**
- * Cartes de « Mon activité » : mes annonces (statut, retrait), mes échanges
- * (résumé cliquable vers le détail) et mes certifications (accord mutuel,
- * annulation, statut, frais). Actions limitées à celles légales pour moi.
+ * Cartes de « Mon activité » : mes annonces (statut, retrait — sauf annonce
+ * réservée), mes échanges (résumé cliquable vers le détail) et mes
+ * certifications (accord mutuel, annulation selon motif et contexte, statut,
+ * frais). Actions limitées à celles que le serveur accepte pour moi.
  */
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -31,7 +32,16 @@ import { useInvalidateCommunity, useMarketErrorToast } from './hooks';
 
 // ── Mes annonces ─────────────────────────────────────────────────────────────
 
-export function MyListingCard({ listing, onOpen }: { listing: ListingRecord; onOpen: () => void }) {
+export function MyListingCard({
+  listing,
+  onOpen,
+  engaged = false,
+}: {
+  listing: ListingRecord;
+  onOpen: () => void;
+  /** Réservée par une transaction en cours (lib/marketState `myListingEngaged`). */
+  engaged?: boolean;
+}) {
   const { t, i18n } = useTranslation();
   const client = getVelumClient();
   const invalidate = useInvalidateCommunity();
@@ -71,6 +81,8 @@ export function MyListingCard({ listing, onOpen }: { listing: ListingRecord; onO
       {listing.status === 'pending_certification' ? (
         <Notice tone="warning">{t('community.activity.pendingCertification')}</Notice>
       ) : null}
+      {listing.status === 'draft' ? <Notice tone="warning">{t('community.activity.draftHint')}</Notice> : null}
+      {engaged ? <Notice>{t('community.activity.engaged')}</Notice> : null}
       <VText variant="caption" tone="dim">
         {t('community.activity.listedOn', {
           date: formatDate(listing.createdAt),
@@ -80,7 +92,7 @@ export function MyListingCard({ listing, onOpen }: { listing: ListingRecord; onO
       {listing.status === 'active' ? (
         <VButton label={t('community.activity.viewListing')} variant="secondary" onPress={onOpen} />
       ) : null}
-      {canWithdrawListing(listing.status) ? (
+      {canWithdrawListing(listing.status, engaged) ? (
         confirming ? (
           <View style={styles.panel}>
             <VText variant="body">{t('community.activity.withdrawConfirm')}</VText>
@@ -102,9 +114,20 @@ export function MyListingCard({ listing, onOpen }: { listing: ListingRecord; onO
 
 // ── Mes échanges ─────────────────────────────────────────────────────────────
 
-export function ExchangeSummaryCard({ exchange, onOpen }: { exchange: ExchangeProposal; onOpen: () => void }) {
+export function ExchangeSummaryCard({
+  exchange,
+  onOpen,
+  hasOpenCertification = false,
+}: {
+  exchange: ExchangeProposal;
+  onOpen: () => void;
+  /** Expertise ouverte : l'expédition attend l'expert (pas « à traiter »). */
+  hasOpenCertification?: boolean;
+}) {
   const { t } = useTranslation();
-  const toDo = exchangeActions(exchange).some((a) => PRIMARY_EXCHANGE_ACTIONS.has(a));
+  const toDo = exchangeActions(exchange, { hasOpenCertification, now: new Date().toISOString() }).some((a) =>
+    PRIMARY_EXCHANGE_ACTIONS.has(a),
+  );
   const mineTitle = (exchange.role === 'proposer' ? exchange.offeredTitle : exchange.listingTitle) ?? t('common.unknown');
   const theirTitle = (exchange.role === 'proposer' ? exchange.listingTitle : exchange.offeredTitle) ?? t('common.unknown');
   const roleLabel = exchange.role === 'proposer' ? t('community.exchange.sent') : t('community.exchange.received');
@@ -209,7 +232,10 @@ export function CertificationCard({ certification }: { certification: Certificat
         confirmCancel ? (
           <View style={styles.panel}>
             <VText variant="body">
-              {certification.reason === 'threshold' && certification.listingId
+              {certification.reason === 'threshold' &&
+              certification.listingId !== null &&
+              certification.orderId === null &&
+              certification.exchangeId === null
                 ? t('community.certification.cancelThresholdConfirm')
                 : t('community.certification.cancelConfirm')}
             </VText>
