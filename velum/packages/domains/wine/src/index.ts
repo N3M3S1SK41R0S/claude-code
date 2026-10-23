@@ -21,6 +21,33 @@ export {
   type AnalyzedCellarWine,
 } from './cellar.ts';
 export {
+  peakStatus,
+  validDrinkWindow,
+  isPeakStatus,
+  cellarAtPeak,
+  comparePeakEntries,
+  mostUrgentPeakWine,
+  countByPeakStatus,
+  parseCellarSlotText,
+  formatCellarLocationShort,
+  DRINKABLE_STATUSES,
+  type CellarAtPeakOptions,
+  type CellarSlotParts,
+} from './peak.ts';
+export {
+  localPairing,
+  localPairingReason,
+  classifyWine,
+  dishCategories,
+  normalizeDishText,
+  LOCAL_PAIRING_THRESHOLD,
+  LOCAL_PAIRING_MAX_SCORE,
+  WINE_FAMILY_LABELS_FR,
+  DISH_CATEGORY_LABELS_FR,
+  type LocalPairingOptions,
+  type WineClassification,
+} from './localPairing.ts';
+export {
   buildBlindTastingSession,
   BLIND_TASTING_STEPS,
   type BlindTastingWine,

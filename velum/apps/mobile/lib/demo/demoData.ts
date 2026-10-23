@@ -25,6 +25,8 @@ import {
   type SheetRecognitionResult,
 } from '@velum/core';
 
+import { demoWineAnalysis } from '../cellarPeakDemo';
+
 export const DEMO_OWNER = 'demo-user';
 
 export function nowIso(): string {
@@ -442,8 +444,15 @@ function makeItem(domain: VelumDomain, title: string, extra: Partial<VelumItem> 
 
 export function seedItems(): VelumItem[] {
   return [
-    makeItem('wine', 'Bandol Domaine Tempier 2016', { storageLocation: 'Cave — casier B3', attributes: { vintage: 2016, analysis: wineAnalysis('Domaine Tempier') } }),
-    makeItem('wine', 'Châteauneuf-du-Pape 2019', { storageLocation: 'Rangée 3 · Colonne 4 · Place 2', attributes: { vintage: 2019, analysis: wineAnalysis('Châteauneuf-du-Pape') } }),
+    // Cave démo : fenêtres d'apogée relatives à l'année en cours (tous les
+    // statuts « à boire » sont visibles) et emplacements structurés ou libres.
+    makeItem('wine', 'Bandol Domaine Tempier 2016', { storageLocation: 'Rangée 2 · Colonne 4 · Place 1', attributes: { vintage: 2016, color: 'rouge', quantity: 3, analysis: demoWineAnalysis(wineAnalysis('Domaine Tempier'), { window: [-6, 0], color: 'rouge', appellation: 'Bandol', region: 'Provence', vintage: 2016, foodPairings: ['gigot d’agneau', 'daube provençale', 'fromages affinés'] }) } }),
+    makeItem('wine', 'Châteauneuf-du-Pape 2019', { storageLocation: 'Rangée 3 · Colonne 4 · Place 2', attributes: { vintage: 2019, color: 'rouge', quantity: 2, analysis: demoWineAnalysis(wineAnalysis('Châteauneuf-du-Pape'), { window: [-2, 8], color: 'rouge', appellation: 'Châteauneuf-du-Pape', region: 'Vallée du Rhône', vintage: 2019, foodPairings: ['côte de bœuf', 'civet de sanglier', 'daube'] }) } }),
+    makeItem('wine', 'Sancerre Vacheron 2021', { storageLocation: 'Cave — casier B3', attributes: { vintage: 2021, color: 'blanc', quantity: 1, analysis: demoWineAnalysis(wineAnalysis('Domaine Vacheron'), { window: [-4, -1], color: 'blanc', appellation: 'Sancerre', region: 'Loire', vintage: 2021, foodPairings: ['crottin de Chavignol', 'huîtres', 'poisson grillé'] }) } }),
+    makeItem('wine', 'Sauternes Château Suduiraut 2011', { attributes: { vintage: 2011, color: 'blanc', quantity: 2, analysis: demoWineAnalysis(wineAnalysis('Château Suduiraut'), { window: [-6, 20], color: 'blanc', appellation: 'Sauternes', region: 'Bordeaux', vintage: 2011, foodPairings: ['foie gras', 'roquefort', 'tarte Tatin'] }) } }),
+    makeItem('wine', 'Pauillac Château Pichon Baron 2019', { storageLocation: 'Rangée 1 · Colonne 2', attributes: { vintage: 2019, color: 'rouge', quantity: 6, analysis: demoWineAnalysis(wineAnalysis('Château Pichon Baron'), { window: [1, 25], color: 'rouge', appellation: 'Pauillac', region: 'Bordeaux', vintage: 2019, foodPairings: ['côte de bœuf', 'carré d’agneau', 'cèpes'] }) } }),
+    makeItem('wine', 'Barolo Bartolo Mascarello 2020', { storageLocation: 'Rangée 4 · Colonne 1 · Place 3', attributes: { vintage: 2020, color: 'rouge', quantity: 1, analysis: demoWineAnalysis(wineAnalysis('Bartolo Mascarello'), { window: [3, 25], color: 'rouge', appellation: 'Barolo', region: 'Piémont', vintage: 2020, foodPairings: ['risotto à la truffe', 'gibier'] }) } }),
+    makeItem('wine', 'Crozes-Hermitage 2022', { storageLocation: 'Rangée 2 · Colonne 1', attributes: { vintage: 2022, color: 'rouge' } }),
     makeItem('coin', '5 Francs Semeuse argent 1960', { storageLocation: 'Médaillier — plateau 2', attributes: { grade: 'SUP', year: 1960, analysis: coinAnalysis('5 Francs Semeuse') } }),
     makeItem('art', 'École provençale — Paysage aux oliviers', { storageLocation: 'Salon', confidence: 0.62, attributes: { analysis: artAnalysis('Paysage aux oliviers') } }),
     makeItem('stamp', 'Semeuse lignée 15c vert — YT 130', { storageLocation: 'Album 1 — page 12', attributes: { catalogNumber: 'YT 130', analysis: stampAnalysis('YT 130') } }),

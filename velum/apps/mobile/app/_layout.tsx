@@ -21,6 +21,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import { ToastHost } from '../components/Toast';
 import { AuthProvider, useSession } from '../lib/auth';
 import { getVelumClient } from '../lib/client';
+import { useNotificationLinks } from '../lib/notificationLinksHook';
 import { clearPersistedCache, persistOptions, queryClient } from '../lib/queryClient';
 import { useSettingsStore } from '../stores/settingsStore';
 
@@ -80,6 +81,7 @@ function SeniorBridge({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
+  useNotificationLinks();
   return (
     <SafeAreaProvider>
       <PersistQueryClientProvider client={queryClient} persistOptions={persistOptions}>
