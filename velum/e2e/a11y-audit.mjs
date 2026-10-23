@@ -31,13 +31,14 @@ const SCREENS = [
   { name: 'item-stamp', path: '/item/demo-stamp', auth: true, expect: 'Valorisation', title: 'Fiche — VELUM' },
   { name: 'item-art', path: '/item/demo-art', auth: true, expect: 'Valorisation', title: 'Fiche — VELUM' },
   { name: 'item-watch', path: '/item/demo-watch', auth: true, expect: 'Valorisation', title: 'Fiche — VELUM' },
-  { name: 'profile', path: '/profile', auth: true, expect: 'Compte Démo VELUM', title: 'Profil — VELUM' },
-  // Espaces ajoutés en octobre 2026.
+  // Espaces ajoutés en octobre 2026 (avant le profil, qui doit rester le DERNIER
+  // écran : l'étape finale y bascule la langue).
   { name: 'wishlist', path: '/wishlist', auth: true, expect: 'Domaine Tempier Bandol La Tourtine 2019', title: 'Mes envies — VELUM' },
   { name: 'cellar-peak', path: '/cellar-peak', auth: true, expect: 'Mes vins à leur apogée', title: 'Vins à leur apogée — VELUM' },
   { name: 'search', path: '/search?q=tempier', auth: true, expect: 'Ma collection', title: 'Rechercher partout — VELUM' },
   { name: 'community-listing', path: '/community/listing/lst-1', auth: true, expect: 'Napoléon III 20 Francs Or 1868', title: 'Échanges & ventes — VELUM' },
   { name: 'community-activity', path: '/community?tab=activity', auth: true, expect: 'Mon activité', title: 'Échanges & ventes — VELUM' },
+  { name: 'profile', path: '/profile', auth: true, expect: 'Compte Démo VELUM', title: 'Profil — VELUM' },
 ];
 
 // Tags WCAG 2.0/2.1/2.2 niveaux A et AA.
