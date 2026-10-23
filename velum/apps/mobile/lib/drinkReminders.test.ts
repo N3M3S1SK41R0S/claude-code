@@ -8,8 +8,10 @@ import {
   buildReminderContent,
   buildWeeklyContent,
   contentKey,
+  createSerialQueue,
   DEFAULT_DRINK_REMINDER_PREFS,
   DRINK_REMINDER_ROUTE,
+  drinkReminderIdsToCancel,
   formatReminderTime,
   formatReminderWhen,
   nextReminderDate,
@@ -17,7 +19,9 @@ import {
   oneShotStatus,
   parseTimeInput,
   pickReminderWine,
+  resetDrinkReminders,
   toExpoWeekday,
+  type DrinkReminderPrefs,
 } from './drinkReminders';
 
 function translator(catalog: unknown): Translate {
@@ -118,7 +122,7 @@ describe('contenu de la notification', () => {
     expect(content).toEqual({
       title: 'Dernière année d’apogée',
       body: 'Ce soir : Bandol Tempier 2015 (Rangée 2 · Col. 4) — accord : gigot d’agneau',
-      data: { url: DRINK_REMINDER_ROUTE, itemId: 'bandol' },
+      data: { url: DRINK_REMINDER_ROUTE, itemId: 'bandol', kind: 'drink-oneshot' },
     });
     expect(DRINK_REMINDER_ROUTE).toBe('/cellar-peak');
   });
@@ -132,10 +136,19 @@ describe('contenu de la notification', () => {
     expect(buildReminderContent(null, local(23, 19), tFr)).toBeNull();
   });
 
+  it('vin sans libellé : nom traduit dans la notification (FR / EN)', () => {
+    const unlabeled = { ...bandol, label: '', storageLocation: undefined, suggestedDishes: [] };
+    expect(buildReminderContent(unlabeled, local(23, 19), tFr)?.body).toBe('Ce soir : Vin sans étiquette');
+    expect(buildReminderContent(unlabeled, local(23, 19), tEn)?.body).toBe('Tonight: Unlabelled wine');
+    expect(buildWeeklyContent([unlabeled], tEn).body).toContain('Unlabelled wine');
+  });
+
   it('rappel hebdomadaire : décompte et vin en tête, ou message neutre', () => {
     const weekly = buildWeeklyContent([soon, bandol], tFr);
     expect(weekly.body).toBe('1 vin(s) à boire — en tête : Bandol Tempier 2015 (Rangée 2 · Col. 4)');
     expect(weekly.data.url).toBe('/cellar-peak');
+    expect(weekly.data.kind).toBe('drink-weekly');
+    expect(buildWeeklyContent([], tFr).data.kind).toBe('drink-weekly');
     expect(buildWeeklyContent([], tFr).body).not.toMatch(/^!/);
     expect(contentKey(weekly)).toBe(`${weekly.title}\n${weekly.body}`);
   });
@@ -166,5 +179,130 @@ describe('préférences persistées', () => {
     expect(oneShotStatus(prefs, local(23, 10))).toBe('scheduled');
     expect(oneShotStatus(prefs, local(23, 20))).toBe('delivered');
     expect(oneShotStatus(DEFAULT_DRINK_REMINDER_PREFS, local(23, 10))).toBe('none');
+  });
+});
+
+describe('perte de session : rappels annulés et préférences remises à zéro', () => {
+  const scheduledPrefs: DrinkReminderPrefs = {
+    ...DEFAULT_DRINK_REMINDER_PREFS,
+    preset: 'custom',
+    customHour: 21,
+    oneShotId: 'one-1',
+    oneShotAt: local(23, 19).toISOString(),
+    oneShotLabel: 'Bandol Tempier 2015',
+    weekly: true,
+    weeklyId: 'week-1',
+    weeklyContentKey: 'clé',
+  };
+
+  it('efface D’ABORD les préférences (rien de l’ancien compte), puis annule tous les rappels connus', async () => {
+    let prefs = scheduledPrefs;
+    const events: string[] = [];
+    await resetDrinkReminders({
+      readPrefs: () => prefs,
+      writePrefs: (next) => {
+        events.push('write');
+        prefs = next;
+      },
+      cancelAll: async (ids) => {
+        events.push(`cancel:${ids.join(',')}`);
+      },
+    });
+    expect(events).toEqual(['write', 'cancel:one-1,week-1']);
+    expect(prefs).toEqual(DEFAULT_DRINK_REMINDER_PREFS);
+    expect(prefs.oneShotLabel).toBeNull();
+    expect(prefs.weekly).toBe(false);
+  });
+
+  it('une annulation native en échec ne bloque jamais la déconnexion (best effort)', async () => {
+    let prefs = scheduledPrefs;
+    await expect(
+      resetDrinkReminders({
+        readPrefs: () => prefs,
+        writePrefs: (next) => {
+          prefs = next;
+        },
+        cancelAll: () => Promise.reject(new Error('natif indisponible')),
+      }),
+    ).resolves.toBeUndefined();
+    expect(prefs).toEqual(DEFAULT_DRINK_REMINDER_PREFS);
+  });
+
+  it('sans rappel programmé : aucun identifiant, balayage quand même (orphelins)', async () => {
+    const seen: string[][] = [];
+    await resetDrinkReminders({
+      readPrefs: () => DEFAULT_DRINK_REMINDER_PREFS,
+      writePrefs: () => undefined,
+      cancelAll: async (ids) => {
+        seen.push([...ids]);
+      },
+    });
+    expect(seen).toEqual([[]]);
+  });
+});
+
+describe('notifications programmées à annuler', () => {
+  const scheduled = [
+    { identifier: 'week-new', data: { url: DRINK_REMINDER_ROUTE, kind: 'drink-weekly' } },
+    { identifier: 'week-orphan', data: { url: DRINK_REMINDER_ROUTE, kind: 'drink-weekly', itemId: 'x' } },
+    { identifier: 'one', data: { url: DRINK_REMINDER_ROUTE, kind: 'drink-oneshot' } },
+    // Version antérieure (sans `kind`) : rappel « à boire » quand même.
+    { identifier: 'legacy', data: { url: DRINK_REMINDER_ROUTE, itemId: 'bandol' } },
+    { identifier: 'legacy-oneshot', data: { url: DRINK_REMINDER_ROUTE } },
+    { identifier: 'other', data: { url: '/community' } },
+    { identifier: 'nothing', data: null },
+  ];
+
+  it('déconnexion : tous les rappels « à boire », jamais les autres notifications', () => {
+    expect(drinkReminderIdsToCancel(scheduled, 'all')).toEqual([
+      'week-new',
+      'week-orphan',
+      'one',
+      'legacy',
+      'legacy-oneshot',
+    ]);
+  });
+
+  it('reprogrammation hebdomadaire : tous les hebdomadaires (doublons orphelins compris), jamais le ponctuel en cours', () => {
+    expect(drinkReminderIdsToCancel(scheduled, 'weekly', 'legacy-oneshot')).toEqual([
+      'week-new',
+      'week-orphan',
+      'legacy',
+    ]);
+  });
+});
+
+describe('file en série des opérations sur les rappels', () => {
+  it('deux reprogrammations concurrentes (Profil + « Mes vins à leur apogée ») ne s’entrelacent jamais', async () => {
+    const run = createSerialQueue();
+    const log: string[] = [];
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const first = run(async () => {
+      log.push('A:début');
+      await gate;
+      log.push('A:fin');
+      return 'A';
+    });
+    const second = run(async () => {
+      log.push('B:début');
+      return 'B';
+    });
+    await Promise.resolve();
+    expect(log).toEqual(['A:début']);
+    release();
+    await expect(first).resolves.toBe('A');
+    await expect(second).resolves.toBe('B');
+    expect(log).toEqual(['A:début', 'A:fin', 'B:début']);
+  });
+
+  it('une opération en échec ne bloque pas les suivantes', async () => {
+    const run = createSerialQueue();
+    const failed = run(() => Promise.reject(new Error('boum')));
+    const next = run(async () => 'ok');
+    await expect(failed).rejects.toThrow('boum');
+    await expect(next).resolves.toBe('ok');
   });
 });

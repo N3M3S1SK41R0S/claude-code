@@ -8,7 +8,10 @@
   "rewrites": [
     { "source": "/item/:id", "destination": "/item/[id]" },
     { "source": "/capture/:domain", "destination": "/capture/[domain]" },
-    { "source": "/arbiter/:id", "destination": "/arbiter/[id]" }
+    { "source": "/arbiter/:id", "destination": "/arbiter/[id]" },
+    { "source": "/community/listing/:id", "destination": "/community/listing/[id]" },
+    { "source": "/community/exchange/:id", "destination": "/community/exchange/[id]" },
+    { "source": "/wishlist/:id", "destination": "/wishlist/[id]" }
   ],
   "headers": [
     {

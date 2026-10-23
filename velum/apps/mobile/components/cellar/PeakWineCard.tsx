@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import type { CellarPeakEntry } from '@velum/core';
 import { VBadge, VButton, VCard, VText, useSeniorMode, velumColors, velumSpacing } from '@velum/ui';
 
-import { peakStatusTone, positionLabel, vintageToShow } from '../../lib/cellarPeak';
+import { displayWineLabel, peakStatusTone, positionLabel, vintageToShow } from '../../lib/cellarPeak';
 
 export interface PeakWineCardProps {
   entry: CellarPeakEntry;
@@ -38,7 +38,7 @@ export function PeakWineCard({ entry, onPairTonight, onOpenItem, onEditPosition 
         </VText>
       </View>
 
-      <VText variant="heading">{entry.label}</VText>
+      <VText variant="heading">{displayWineLabel(entry.label, t)}</VText>
 
       {position ? (
         <View

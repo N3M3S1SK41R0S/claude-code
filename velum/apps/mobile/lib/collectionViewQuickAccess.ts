@@ -61,6 +61,11 @@ export interface CollectionQuickAccessInput {
   /** La collection contient au moins un vin. */
   hasWine: boolean;
   activeDomains: readonly VelumDomain[];
+  /**
+   * Échanges & ventes ouverts (drapeau produit enableMarketplace, cf.
+   * marketplaceEnabled) : coupé, aucune tuile n'y mène.
+   */
+  marketplace: boolean;
 }
 
 /**
@@ -79,10 +84,10 @@ export function collectionQuickAccess(
   if (input.hasWine) {
     entries.push({ id: 'cellarPeak', href: routes.cellarPeak(), icon: 'hourglass' });
   }
-  entries.push(
-    { id: 'sommelier', href: routes.cellarSommelier(), icon: 'restaurant' },
-    { id: 'community', href: routes.community(), icon: 'swap-horizontal' },
-  );
+  entries.push({ id: 'sommelier', href: routes.cellarSommelier(), icon: 'restaurant' });
+  if (input.marketplace) {
+    entries.push({ id: 'community', href: routes.community(), icon: 'swap-horizontal' });
+  }
   const batchDomain = batchCaptureDomain(input.activeDomains);
   if (batchDomain !== null) {
     entries.push({ id: 'batch', href: routes.captureBatch(batchDomain), icon: 'layers' });
@@ -109,10 +114,11 @@ export type HomeQuickAccessId =
  * Accès rapides de l'accueil, organisés autour des espaces : capturer (scan
  * éclair / mode classeur), ma collection, mes envies, échanges & ventes, vins
  * à l'apogée, marché & alertes. La recherche globale a son propre champ en
- * tête d'écran.
+ * tête d'écran. Échanges & ventes : seulement si le drapeau produit est actif.
  */
 export function homeQuickAccess(
   activeDomains: readonly VelumDomain[],
+  options: { marketplace: boolean },
 ): QuickAccessEntry<HomeQuickAccessId>[] {
   const entries: QuickAccessEntry<HomeQuickAccessId>[] = [
     { id: 'capture', href: routes.captureTab(), icon: 'camera', gilded: true },
@@ -124,8 +130,10 @@ export function homeQuickAccess(
   entries.push(
     { id: 'collection', href: routes.collection(), icon: 'albums' },
     { id: 'wishlist', href: routes.wishlist(), icon: 'heart' },
-    { id: 'community', href: routes.community(), icon: 'swap-horizontal' },
   );
+  if (options.marketplace) {
+    entries.push({ id: 'community', href: routes.community(), icon: 'swap-horizontal' });
+  }
   if (activeDomains.includes('wine')) {
     entries.push({ id: 'cellarPeak', href: routes.cellarPeak(), icon: 'hourglass' });
   }

@@ -7,6 +7,7 @@ import {
   carnetSearch,
   collectionHref,
   drinkNowPreview,
+  isOfflineWithoutData,
   groupByDomain,
   itemValue,
   parseCollectionSort,
@@ -232,6 +233,18 @@ describe('drinkNowPreview', () => {
     expect(preview.total).toBe(5);
     expect(drinkNowPreview([signal('a')]).hidden).toBe(0);
     expect(drinkNowPreview(['a', 'b'].map(signal), 0).shown).toHaveLength(2);
+  });
+});
+
+describe('isOfflineWithoutData — lecture en pause hors-ligne', () => {
+  it('pause sans donnée (ni cache) : état hors-ligne, jamais « vide »', () => {
+    expect(isOfflineWithoutData({ fetchStatus: 'paused', data: undefined })).toBe(true);
+  });
+
+  it('cache disponible, chargement en cours ou lecture terminée : pas d’état hors-ligne', () => {
+    expect(isOfflineWithoutData({ fetchStatus: 'paused', data: [] })).toBe(false);
+    expect(isOfflineWithoutData({ fetchStatus: 'fetching', data: undefined })).toBe(false);
+    expect(isOfflineWithoutData({ fetchStatus: 'idle', data: undefined })).toBe(false);
   });
 });
 

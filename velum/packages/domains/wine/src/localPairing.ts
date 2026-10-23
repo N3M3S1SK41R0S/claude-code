@@ -316,11 +316,27 @@ const DISH_RULES: readonly DishRule[] = [
   },
 ];
 
-/** Locutions qui provoqueraient de faux indices (« pommes de terre » n'est pas un dessert). */
+/**
+ * Locutions qui provoqueraient de faux indices : « pommes de terre » n'est
+ * pas un dessert, le « foie gras de canard » n'est pas un plat de canard, un
+ * « carpaccio de saumon » ou un « steak de thon » n'est pas du bœuf.
+ */
 const NEUTRALIZED_PHRASES: readonly [RegExp, string][] = [
   [/\bpommes? (de terre|frites|sautees|dauphines?|vapeur|puree|allumettes|duchesses?|anna|boulangeres?|fondantes?)\b/g, 'patates'],
   [/\bfeuilles? de chene\b/g, 'salade'],
+  [/\bfoie gras (de canard|d oie)\b/g, 'foie gras'],
+  [
+    /\b(carpaccio|steak|tartare|pave)s? de (saumon|thon|truite|cabillaud|lotte|merlu|saint jacques|st jacques|dorade|daurade|bar|poisson|espadon)\b/g,
+    '$2',
+  ],
 ];
+
+/**
+ * « pâté(s) » (charcuterie) ≠ « pâtes » : la distinction ne tient qu'à
+ * l'accent, perdu à la normalisation — on la fait AVANT. Garde explicite
+ * plutôt que `\b`, qui ne voit pas de frontière après « é » sans drapeau u.
+ */
+const PATE_CHARCUTERIE = /(^|[^a-zà-ÿ])p[âa]tés?(?![a-zà-ÿ])/g;
 
 const STOPWORDS: ReadonlySet<string> = new Set([
   'avec', 'sans', 'sauce', 'plat', 'plats', 'maison', 'facon', 'recette', 'petit', 'petits',
@@ -332,6 +348,7 @@ const STOPWORDS: ReadonlySet<string> = new Set([
 export function normalizeDishText(value: string): string {
   let text = value
     .toLowerCase()
+    .replace(PATE_CHARCUTERIE, '$1terrine')
     .replace(/œ/g, 'oe')
     .replace(/æ/g, 'ae')
     .normalize('NFD')
@@ -394,13 +411,40 @@ export function dishCategories(dish: string): DishCategory[] {
   return uniqueCategories(activeRules(normalizeDishText(dish)));
 }
 
-/** Poids voulu de chaque famille : maximum sur les règles actives. */
-function wantedWeights(rules: readonly DishRule[]): FamilyWeights {
+/**
+ * Familles qu'un mode de cuisson ou une cuisine (règle 'style') ne peut PAS
+ * imposer face à l'ingrédient principal : « dorade grillée » ou « brochettes
+ * de Saint-Jacques » ne réclament pas un rouge parce que c'est grillé.
+ */
+const STYLE_CLASHES: Partial<Record<DishCategory, readonly WineFamily[]>> = {
+  fish: ['red_medium', 'red_structured'],
+  shellfish: ['red_light', 'red_medium', 'red_structured'],
+  foie_gras: ['red_light', 'red_medium', 'red_structured'],
+};
+
+/** Familles en conflit avec les ingrédients principaux actifs. */
+function clashedFamilies(rules: readonly DishRule[]): ReadonlySet<WineFamily> {
+  const clashed = new Set<WineFamily>();
+  for (const rule of rules) {
+    if (rule.level !== 'main') continue;
+    for (const family of STYLE_CLASHES[rule.category] ?? []) clashed.add(family);
+  }
+  return clashed;
+}
+
+/** Poids d'une famille pour une règle (0 : style en conflit avec l'ingrédient). */
+function ruleWeight(rule: DishRule, family: WineFamily, clashed: ReadonlySet<WineFamily>): number {
+  if (rule.level === 'style' && clashed.has(family)) return 0;
+  return rule.families[family] ?? 0;
+}
+
+/** Poids voulu de chaque famille : maximum sur les règles actives (hors conflits). */
+function wantedWeights(rules: readonly DishRule[], clashed: ReadonlySet<WineFamily>): FamilyWeights {
   const weights: FamilyWeights = {};
   for (const rule of rules) {
     for (const family of FAMILIES) {
-      const w = rule.families[family];
-      if (w !== undefined && w > (weights[family] ?? 0)) weights[family] = w;
+      const w = ruleWeight(rule, family, clashed);
+      if (w > 0 && w > (weights[family] ?? 0)) weights[family] = w;
     }
   }
   return weights;
@@ -457,7 +501,7 @@ const RED_GROUPS: readonly KeywordGroup[] = [
     weights: { red_medium: 1, red_light: 0.5, red_structured: 0.55 },
   },
   {
-    keywords: ['pauillac', 'margaux', 'saint julien', 'saint estephe', 'pessac leognan', 'graves', 'saint emilion', 'pomerol', 'bandol', 'madiran', 'cahors', 'irouleguy', 'hermitage', 'cote rotie', 'cornas', 'chateauneuf du pape', 'chateauneuf', 'gigondas', 'barolo', 'barbaresco', 'brunello', 'amarone', 'ribera del duero', 'priorat', 'toro', 'taurasi', 'aglianico', 'cabernet sauvignon', 'cabernet', 'syrah', 'shiraz', 'mourvedre', 'tannat', 'malbec', 'nebbiolo', 'napa', 'bolgheri', 'collioure', 'pecharmant'],
+    keywords: ['pauillac', 'margaux', 'saint julien', 'saint estephe', 'pessac leognan', 'graves', 'saint emilion', 'pomerol', 'bandol', 'madiran', 'cahors', 'irouleguy', 'hermitage', 'cote rotie', 'cornas', 'chateauneuf du pape', 'chateauneuf', 'gigondas', 'barolo', 'barbaresco', 'brunello', 'amarone', 'ribera del duero', 'priorat', 'toro', 'taurasi', 'aglianico', 'cabernet sauvignon', 'cabernet', 'syrah', 'shiraz', 'mourvedre', 'tannat', 'malbec', 'nebbiolo', 'napa', 'bolgheri', 'collioure', 'pecharmant', 'maury sec'],
     weights: { red_structured: 1, red_medium: 0.65 },
   },
 ];
@@ -585,10 +629,18 @@ function computeClassification(
   const color = colorOf(wine.color, primaryText);
 
   let weights: FamilyWeights = {};
+  // Appellations de rouges SECS homonymes d'un liquoreux ou d'un VDN
+  // (« Cadillac Côtes de Bordeaux », « Maury sec ») : neutralisées pour les
+  // groupes spéciaux, elles restent lues par les groupes rouges.
+  const specialText =
+    color === 'red' || color === null
+      ? primaryText.replace(/\bcadillac cotes de bordeaux\b/g, 'cotes de bordeaux').replace(/\bmaury sec\b/g, 'roussillon')
+      : primaryText;
   const special =
-    groupWeights(primaryText, FORTIFIED_GROUPS) ??
-    groupWeights(primaryText, SWEET_GROUPS) ??
-    (color === 'sparkling' || color === null ? groupWeights(primaryText, SPARKLING_GROUPS) : null);
+    groupWeights(specialText, FORTIFIED_GROUPS) ??
+    groupWeights(specialText, SWEET_GROUPS) ??
+    // Un Champagne déclaré « blanc » ou « rosé » reste un effervescent.
+    (color !== 'red' && color !== 'orange' ? groupWeights(specialText, SPARKLING_GROUPS) : null);
 
   if (hasKeyword(primaryText, 'jurancon sec')) {
     weights = { white_aromatic: 1, white_crisp: 0.5 };
@@ -757,7 +809,11 @@ export function localPairing(
   const normalized = normalizeDishText(trimmedDish);
   const rules = activeRules(normalized);
   const categories = uniqueCategories(rules);
-  const wanted = wantedWeights(rules);
+  const clashed = clashedFamilies(rules);
+  const wanted = wantedWeights(rules, clashed);
+  // Recoupement ZAPPA d'un vin de famille en conflit : par l'ingrédient seul
+  // (un rouge « grillades » ne s'impose pas sur une dorade grillée).
+  const ingredientCategories = uniqueCategories(rules.filter((rule) => rule.level !== 'style'));
   const wantedFamilies = FAMILIES.filter((family) => (wanted[family] ?? 0) >= 0.5).sort(
     (a, b) => (wanted[b] ?? 0) - (wanted[a] ?? 0) || FAMILIES.indexOf(a) - FAMILIES.indexOf(b),
   );
@@ -780,14 +836,19 @@ export function localPairing(
       if (family !== null && fit > 0) {
         let bestRuleWeight = 0;
         for (const rule of rules) {
-          const w = rule.families[family] ?? 0;
+          const w = ruleWeight(rule, family, clashed);
           if (w > bestRuleWeight) {
             bestRuleWeight = w;
             dishCategory = rule.category;
           }
         }
       }
-      const zappa = zappaOverlap(dishTokens, categories, wine.foodPairings);
+      const retained = fit > 0 ? family : classification.family;
+      const zappa = zappaOverlap(
+        dishTokens,
+        retained !== null && clashed.has(retained) ? ingredientCategories : categories,
+        wine.foodPairings,
+      );
       const phase = peakStatus(wine.drinkWindow, year);
       const raw =
         categories.length > 0
@@ -806,12 +867,12 @@ export function localPairing(
           ? { quantity: wine.quantity }
           : {}),
         score,
-        family: fit > 0 ? family : classification.family,
+        family: retained,
         dishCategory,
         ...(zappa.pairing && zappa.score >= 0.5 ? { matchedPairing: zappa.pairing } : {}),
         peakStatus: phase,
         reason: localPairingReason({
-          family: fit > 0 ? family : classification.family,
+          family: retained,
           dishCategory,
           ...(zappa.pairing && zappa.score >= 0.5 ? { matchedPairing: zappa.pairing } : {}),
           peakStatus: phase,

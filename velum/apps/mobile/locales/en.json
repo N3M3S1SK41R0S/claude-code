@@ -652,6 +652,7 @@
     "emptyCta": "Capture an object",
     "itemsCount": "{{count}} object(s)",
     "offlineNotice": "Offline: cached data, {{count}} pending change(s).",
+    "offlineUnloaded": "Offline: your collection has not been loaded on this device yet. It will appear as soon as you are back online.",
     "searchLabel": "Search my collection",
     "searchGlobal": "Search everywhere",
     "searchGlobalHint": "Opens search across the collection, wishlist and trade & sell",
@@ -754,6 +755,44 @@
       "certificationsHint": "Above €500 or by agreement of both parties"
     },
     "privacyContact": "Email {{email}} to exercise my rights"
+  },
+  "privacy": {
+    "controller": {
+      "title": "1. Data controller",
+      "body": "VELUM (publisher: KAIROS — full details in the legal notice) is the controller of the data collected by the app. Contact: privacy@velum.app."
+    },
+    "data": {
+      "title": "2. Data collected",
+      "body": "Account (email, display name, language); photos and descriptions of the items you choose to submit; your collection (records, valuations, alerts, storage locations); your wishlist and ideas (title, category, target price, notes); subscription data (via RevenueCat); minimal technical data needed to run the service. Trades & sales (Platinum plan): a randomly assigned member pseudonym (“Collector XXXX”), your listings, orders, trade proposals and certification requests, the messages exchanged with the other party (contact details — email, phone, address, links — automatically masked as they are written) and the ledger of your commissions, fees and payouts. “Ready to drink” reminders are LOCAL notifications: the wine’s name and location stay on your device and nothing is sent to our servers. No advertising data, no cross-app tracking."
+    },
+    "purposes": {
+      "title": "3. Purposes and legal bases",
+      "body": "Identification and valuation of your items by a third-party AI service: explicit CONSENT (GDPR 6.1.a), obtained before the first upload and revocable at any time in Profile. Management of your account, collection, wishlist and subscription; trades & sales (listings, orders, trades, certification, messaging, commission ledger): performance of the contract (6.1.b). “Ready to drink” reminders and notifications: consent through the system notification permission, revocable at any time. Accounting and tax obligations: legal obligation (6.1.c). Security and abuse prevention: legitimate interest (6.1.f)."
+    },
+    "processors": {
+      "title": "4. Processors and recipients",
+      "body": "Supabase (data hosting, European Union); Anthropic (AI image analysis — photos are sent only with your consent and are not used for training without agreement); RevenueCat (subscriptions); Expo (push notifications). A data processing agreement (DPA) governs each processor. Trades & sales: other members only see your pseudonym and what you send them (listing, messages with contact details removed) — never your name, email or address; partner experts handling a certification receive only the information needed to authenticate the item; a payment provider will be involved once online payments are enabled. Your wishlist and your “ready to drink” reminders are shared with no one."
+    },
+    "retention": {
+      "title": "5. Retention periods",
+      "body": "Your account, collection, wishlist and trades & sales data are kept while your account is active; a message thread is deleted together with its transaction. Photos submitted for analysis are not kept by the AI service beyond processing. “Ready to drink” reminders stay on the device until they are cancelled, at the latest when you sign out or delete your account. When the account is deleted, all data is purged immediately (see §6), except billing data that the law requires us to keep."
+    },
+    "rights": {
+      "title": "6. Your rights",
+      "body": "Access, rectification, erasure, portability (in-app CSV/PDF export), restriction, objection and withdrawal of consent at any time. ACCOUNT DELETION is available directly in the app (Profile → Delete my account): it immediately purges the account, the collection, the wishlist, the pseudonym, the related listings, transactions, messages, certifications and ledger, the photos and the counters, and cancels the “ready to drink” reminders scheduled on the device. You may lodge a complaint with the CNIL."
+    },
+    "security": {
+      "title": "7. Security",
+      "body": "Encryption in transit (TLS) and at rest, strict per-user data isolation (Row Level Security), API keys confined to the server, access logging. No sensitive data is stored unencrypted on the device."
+    },
+    "minors": {
+      "title": "8. Minors",
+      "body": "VELUM is not intended for children under 16 and does not knowingly collect their data."
+    },
+    "contact": {
+      "title": "9. Contact",
+      "body": "privacy@velum.app — data protection officer (DPO): to be completed before publication. Version of 23 October 2026."
+    }
   },
   "paywall": {
     "title": "VELUM plans",
@@ -938,12 +977,14 @@
     "emptyCellar": "Your cellar is empty: scan your first bottles to activate the sommelier.",
     "sommelierIntro": "Enter a dish: a quick suggestion from your cellar appears right away, then refine it with the AI sommelier if needed.",
     "quantity": "{{count}} bottle(s)",
+    "unlabeledWine": "Unlabelled wine",
     "quick": {
       "title": "Quick suggestion",
       "hint": "Instant match from your cellar — no AI, works offline.",
       "typeMore": "Type at least 3 letters for an instant suggestion.",
       "loading": "Reading your cellar…",
       "loadError": "Your cellar could not be read for the quick suggestion.",
+      "offlineUnloaded": "Offline: your cellar has not been loaded on this device yet — quick suggestions will return once you are back online.",
       "emptyCellar": "Your cellar is empty: scan your bottles to get suggestions.",
       "unrecognized": "Dish not recognised by the quick suggestion: name the main ingredient (lamb, fish, goat’s cheese…) or refine with the AI sommelier.",
       "nothingSuitable": "Nothing in your cellar is a real match for this dish.",
@@ -957,7 +998,7 @@
       "reasonUnknownStyle": "Wine style unknown",
       "reasonZappa": "its sheet suggests “{{pairing}}”",
       "openItem": "Open sheet",
-      "openItemA11y": "Open the sheet of {{label}}"
+      "scoreA11y": "Relevance: {{score}}"
     },
     "refine": {
       "title": "AI sommelier",
@@ -1058,6 +1099,7 @@
     "quickNone": "Nothing suitable in your cellar for this dish.",
     "quickUnrecognized": "Dish not recognised: the AI sommelier can refine it.",
     "quickLoadError": "Cellar unreadable for the quick suggestion.",
+    "quickOffline": "Offline: cellar not loaded on this device yet.",
     "aiHint": "For refined course-by-course pairings, compose with the AI sommelier (Gold or Platinum plan)."
   },
   "cellarPeak": {
@@ -1066,6 +1108,7 @@
     "intro": "Your whole cellar sorted by urgency, with where each bottle is stored. Computed locally, up to date every time you open it.",
     "emptyCellarTitle": "No wine in your cellar",
     "emptyCellarMessage": "Scan your bottles: VELUM will work out their peak and tell you which ones to open.",
+    "offlineUnloaded": "Offline: your cellar has not been loaded on this device yet. It will appear as soon as you are back online.",
     "scanWine": "Scan a wine",
     "noneAtPeak": "No wine to drink right now.",
     "noneMatching": "No wine matches these filters.",
@@ -1182,6 +1225,7 @@
     "channelName": "“Drink now” reminders",
     "loading": "Reading your cellar…",
     "loadError": "Cellar unreadable: the reminder cannot pick a wine.",
+    "offlineUnloaded": "Offline: your cellar has not been loaded yet — you can schedule the reminder once you are back online.",
     "weekday": {
       "1": "Sunday",
       "2": "Monday",
@@ -1875,6 +1919,7 @@
     "placeholder": "Object, wine, wish, listing…",
     "intro": "Find an object from your collection, a wish or a trade & sell listing directly: name, vintage, location, note…",
     "searching": "Searching…",
+    "partial": "Incomplete results: one source did not respond.",
     "noResultHint": "Check the spelling or try another word.",
     "sectionEmpty": "No result in this section.",
     "sections": {

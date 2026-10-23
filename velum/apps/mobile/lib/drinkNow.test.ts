@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { VelumItem, WineAnalysisPayload } from '@velum/core';
 import {
   cellarPeakForItems,
+  drinkNowBannerEntries,
   drinkNowForItems,
   localPairingForItems,
   toAnalyzedCellarWines,
@@ -70,6 +71,33 @@ describe('drinkNowForItems', () => {
   });
 });
 
+describe('drinkNowBannerEntries — bandeau « à boire » de la Collection', () => {
+  const cellar = [
+    item({ id: 'peak', title: 'Chinon 2020', attributes: { analysis: payload(2022, 2030) } }),
+    item({ id: 'past', title: 'Sancerre 2018', attributes: { analysis: payload(2015, 2024) } }),
+    item({ id: 'closing', title: 'Bandol 2015', attributes: { analysis: payload(2020, 2026) } }),
+    item({ id: 'soon', title: 'Pauillac 2019', attributes: { analysis: payload(2027, 2040) } }),
+    item({ id: 'young', title: 'Barolo 2021', attributes: { analysis: payload(2031, 2045) } }),
+  ];
+
+  it('même règle que « Mes vins à leur apogée » : fenêtre dépassée comprise, urgents d’abord, jamais « l’an prochain »', () => {
+    const banner = drinkNowBannerEntries(cellar, 2026);
+    expect(banner.map((e) => [e.itemId, e.status])).toEqual([
+      ['past', 'past'],
+      ['closing', 'closing'],
+      ['peak', 'peak'],
+    ]);
+    const screen = cellarPeakForItems(cellar, 2026).entries.filter((e) => e.status !== 'soon');
+    expect(banner.map((e) => e.itemId)).toEqual(screen.map((e) => e.itemId));
+  });
+
+  it('une cave où tous les vins sont dépassés affiche quand même le bandeau', () => {
+    const banner = drinkNowBannerEntries([cellar[1] as VelumItem], 2026);
+    expect(banner.map((e) => e.itemId)).toEqual(['past']);
+    expect(banner[0]?.suggestedDishes).toContain('gigot d’agneau');
+  });
+});
+
 describe('toCellarWineEntries — inventaire de cave local', () => {
   it('lit attributs directs puis fiche ZAPPA, sans deviner les champs invalides', () => {
     const analysis = {
@@ -109,6 +137,12 @@ describe('toCellarWineEntries — inventaire de cave local', () => {
       },
       { itemId: 'b', label: 'Sans fiche', grapes: ['syrah'] },
     ]);
+  });
+
+  it('sans titre ni producteur, cuvée ou millésime : libellé vide, traduit à l’affichage (jamais de français en dur)', () => {
+    const analysis = { ...payload(2020, 2030), identification: {} };
+    const [entry] = toCellarWineEntries([item({ title: null, attributes: { analysis } })]);
+    expect(entry?.label).toBe('');
   });
 
   it('ignore une fenêtre inversée (jamais d’apogée à tort)', () => {

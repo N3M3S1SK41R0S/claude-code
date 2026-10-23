@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
   ConfidenceBadge,
@@ -24,15 +24,17 @@ import {
   VTextInput,
   velumSpacing,
 } from '@velum/ui';
-import { isVelumError, type PairingResult } from '@velum/core';
+import { isVelumError, type PairingResult, type WishlistEntry } from '@velum/core';
 
 import { QuickPairingList } from '../components/cellar/QuickPairingList';
 import { Screen } from '../components/Screen';
-import { positionLabel, wishlistIdeaTitle } from '../lib/cellarPeak';
+import { displayWineLabel, positionLabel, wishlistIdeaTitle } from '../lib/cellarPeak';
 import { getVelumClient } from '../lib/client';
+import { isOfflineWithoutData } from '../lib/collectionView';
 import { localPairingForItems } from '../lib/drinkNow';
 import { errorMessage } from '../lib/errors';
 import { routes } from '../lib/routes';
+import { WISHLIST_QUERY_KEY, findDuplicate, upsertEntry } from '../lib/wishlist';
 import { showToast } from '../stores/toastStore';
 
 /** Longueur minimale du plat avant la suggestion instantanée. */
@@ -46,6 +48,7 @@ function firstParam(value: string | string[] | undefined): string {
 export default function CellarSommelier() {
   const { t } = useTranslation();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const client = getVelumClient();
   const params = useLocalSearchParams<{ dish?: string | string[] }>();
   const initialDish = firstParam(params.dish);
@@ -93,19 +96,41 @@ export default function CellarSommelier() {
     },
   });
 
-  const addWish = useMutation({
-    mutationFn: async (input: { dish: string; ideas: string[] }) =>
-      client.wishlist.add({
+  const addWish = useMutation<{ entry: WishlistEntry; duplicate: boolean }, unknown, { dish: string; ideas: string[] }>({
+    mutationFn: async (input) => {
+      const title = wishlistIdeaTitle(input.ideas, t('cellar.quick.wishTitleFallback', { dish: input.dish }));
+      // Liste fraîche (même clé que « Mes envies ») : la même idée a pu être
+      // ajoutée lors d'une visite précédente. Lecture en échec : le serveur tranchera.
+      let current: WishlistEntry[] | null = null;
+      try {
+        current = await queryClient.fetchQuery({ queryKey: WISHLIST_QUERY_KEY, queryFn: () => client.wishlist.list() });
+      } catch {
+        current = null;
+      }
+      const duplicate = current ? findDuplicate(current, { domain: 'wine', title }) : null;
+      if (duplicate) return { entry: duplicate, duplicate: true };
+      const entry = await client.wishlist.add({
         domain: 'wine',
         kind: 'idea',
-        title: wishlistIdeaTitle(input.ideas, t('cellar.quick.wishTitleFallback', { dish: input.dish })),
+        title,
         notes: t('cellar.quick.wishNotes', { dish: input.dish }),
         attributes: { pairingDish: input.dish, styles: input.ideas },
         source: 'manual',
-      }),
-    onSuccess: (_entry, input) => {
+      });
+      return { entry, duplicate: false };
+    },
+    onSuccess: ({ entry, duplicate }, input) => {
+      // « Mes envies » et la recherche globale partagent ce cache : mise à
+      // jour immédiate d'une liste déjà chargée, puis relecture.
+      queryClient.setQueryData<WishlistEntry[]>(WISHLIST_QUERY_KEY, (prev) =>
+        prev === undefined ? prev : upsertEntry(prev, entry),
+      );
+      void queryClient.invalidateQueries({ queryKey: WISHLIST_QUERY_KEY });
       setWishSaved(input.dish);
-      showToast(t('cellar.quick.wishAdded'), 'success');
+      showToast(
+        duplicate ? t('wishlist.toast.duplicate') : t('cellar.quick.wishAdded'),
+        duplicate ? 'info' : 'success',
+      );
     },
     onError: (error) => showToast(errorMessage(error, t), 'danger'),
   });
@@ -163,6 +188,10 @@ export default function CellarSommelier() {
               {t('cellar.quick.loading')}
             </VText>
           </View>
+        ) : isOfflineWithoutData(itemsQuery) ? (
+          <VText variant="body" tone="dim">
+            {t('cellar.quick.offlineUnloaded')}
+          </VText>
         ) : itemsQuery.isError && itemsQuery.data === undefined ? (
           <View style={styles.inline}>
             <VText variant="body" tone="danger" style={styles.flex}>
@@ -251,7 +280,7 @@ export default function CellarSommelier() {
                 <VCard key={reco.itemId} style={styles.card} onPress={() => openItem(reco.itemId)}>
                   <View style={styles.recoHeader}>
                     <VText variant="heading" tone="gold" style={styles.flex}>
-                      {reco.label}
+                      {displayWineLabel(reco.label, t)}
                     </VText>
                     <ConfidenceBadge value={reco.score} />
                   </View>

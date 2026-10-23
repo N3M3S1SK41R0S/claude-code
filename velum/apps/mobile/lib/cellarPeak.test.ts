@@ -7,6 +7,8 @@ import {
   availableColorGroups,
   colorGroupOf,
   describePosition,
+  displayWineLabel,
+  effectiveColorFilter,
   filterPeakEntries,
   formatPosition,
   localSuggestionReason,
@@ -16,6 +18,7 @@ import {
   positionFormFrom,
   positionFormToLocation,
   positionLabel,
+  quickSuggestionA11yLabel,
   vintageToShow,
   wishlistIdeaTitle,
   type Translate,
@@ -116,10 +119,29 @@ describe('statuts, couleurs et filtres', () => {
     expect(peakSummary(entries)).toEqual({ past: 0, closing: 1, peak: 2, soon: 1 });
   });
 
+  it('filtre couleur effectif : jamais un filtre invisible ni une couleur disparue (dernier blanc supprimé)', () => {
+    expect(effectiveColorFilter('white', ['red', 'white'])).toBe('white');
+    // Le dernier blanc a été supprimé : puces masquées, filtre levé.
+    expect(effectiveColorFilter('white', ['red'])).toBeNull();
+    // Couleur disparue mais puces toujours visibles : filtre levé aussi.
+    expect(effectiveColorFilter('white', ['red', 'other'])).toBeNull();
+    // Une seule couleur : puces masquées, aucun filtre caché.
+    expect(effectiveColorFilter('red', ['red'])).toBeNull();
+    expect(effectiveColorFilter(null, ['red', 'white'])).toBeNull();
+  });
+
   it('millésime affiché seulement s’il manque au libellé', () => {
     expect(vintageToShow({ label: 'Bandol 2015', vintage: 2015 })).toBeNull();
     expect(vintageToShow({ label: 'Domaine Tempier', vintage: 2015 })).toBe(2015);
     expect(vintageToShow({ label: 'X' })).toBeNull();
+  });
+});
+
+describe('libellé affiché d’un vin', () => {
+  it('libellé vide → « Vin sans étiquette » / « Unlabelled wine »', () => {
+    expect(displayWineLabel('Bandol 2015', tFr)).toBe('Bandol 2015');
+    expect(displayWineLabel('', tFr)).toBe('Vin sans étiquette');
+    expect(displayWineLabel('  ', tEn)).toBe('Unlabelled wine');
   });
 });
 
@@ -153,6 +175,23 @@ describe('raison localisée d’une suggestion rapide', () => {
       for (const s of ['past', 'closing', 'peak', 'soon', 'young']) expect(t(`cellar.peakReason.${s}`)).not.toMatch(/^!/);
       for (const s of ['past', 'closing', 'peak', 'soon']) expect(t(`cellarPeak.status.${s}`)).not.toMatch(/^!/);
     }
+  });
+
+  it('libellé accessible complet : vin, emplacement, pertinence, raison et quantité (rien n’est masqué)', () => {
+    const located = { ...suggestion, storageLocation: 'Rangée 2 · Colonne 4 · Place 1', quantity: 3 };
+    expect(quickSuggestionA11yLabel(located, tFr, { label: 'Bandol Tempier 2015', score: '91 %' })).toBe(
+      'Bandol Tempier 2015. Emplacement : Rangée 2 · Colonne 4 · Place 1. Pertinence : 91 %. ' +
+        'Rouge structuré, accord classique avec l’agneau · cité par sa fiche : « gigot d’agneau » · dernière année d’apogée. ' +
+        '3 bouteille(s)',
+    );
+    // Forme compacte (menu d'événement) : sans raison ni quantité, emplacement toujours lu.
+    expect(quickSuggestionA11yLabel(located, tEn, { label: 'Bandol', score: '91 %', compact: true })).toBe(
+      'Bandol. Location: Row 2 · Column 4 · Slot 1. Relevance: 91 %',
+    );
+    // Sans emplacement : aucune mention vide.
+    expect(quickSuggestionA11yLabel(suggestion, tFr, { label: 'Bandol', score: '90 %', compact: true })).toBe(
+      'Bandol. Pertinence : 90 %',
+    );
   });
 
   it('titre d’idée d’envie borné, avec repli', () => {

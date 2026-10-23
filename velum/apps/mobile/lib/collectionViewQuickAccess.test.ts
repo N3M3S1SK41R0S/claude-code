@@ -20,7 +20,7 @@ describe('batchCaptureDomain', () => {
 
 describe('collectionQuickAccess', () => {
   it('avec du vin : 8 accès, outils de cave inclus, liens via routes', () => {
-    const entries = collectionQuickAccess({ hasWine: true, activeDomains: ALL });
+    const entries = collectionQuickAccess({ hasWine: true, activeDomains: ALL, marketplace: true });
     expect(entries.map((e) => e.id)).toEqual([
       'carnet',
       'wishlist',
@@ -40,25 +40,25 @@ describe('collectionQuickAccess', () => {
   });
 
   it('sans vin : pas d’apogée ni d’outils de dégustation, le sommelier reste', () => {
-    const ids = collectionQuickAccess({ hasWine: false, activeDomains: ALL }).map((e) => e.id);
+    const ids = collectionQuickAccess({ hasWine: false, activeDomains: ALL, marketplace: true }).map((e) => e.id);
     expect(ids).toEqual(['carnet', 'wishlist', 'sommelier', 'community', 'batch']);
   });
 
   it('identifiants uniques et une seule action mise en avant', () => {
-    const entries = collectionQuickAccess({ hasWine: true, activeDomains: ALL });
+    const entries = collectionQuickAccess({ hasWine: true, activeDomains: ALL, marketplace: true });
     expect(new Set(entries.map((e) => e.id)).size).toBe(entries.length);
     expect(entries.filter((e) => e.gilded)).toHaveLength(1);
   });
 
   it('sans domaine actif : pas de mode classeur', () => {
-    const ids = collectionQuickAccess({ hasWine: false, activeDomains: [] }).map((e) => e.id);
+    const ids = collectionQuickAccess({ hasWine: false, activeDomains: [], marketplace: true }).map((e) => e.id);
     expect(ids).not.toContain('batch');
   });
 });
 
 describe('homeQuickAccess', () => {
   it('organise l’accueil autour des espaces, capture en tête', () => {
-    const entries = homeQuickAccess(ALL);
+    const entries = homeQuickAccess(ALL, { marketplace: true });
     expect(entries.map((e) => e.id)).toEqual([
       'capture',
       'batch',
@@ -75,8 +75,24 @@ describe('homeQuickAccess', () => {
   });
 
   it('masque « Vins à l’apogée » si le module Vin est désactivé', () => {
-    const ids = homeQuickAccess(['coin', 'stamp']).map((e) => e.id);
+    const ids = homeQuickAccess(['coin', 'stamp'], { marketplace: true }).map((e) => e.id);
     expect(ids).not.toContain('cellarPeak');
     expect(ids).toContain('batch');
+  });
+});
+
+describe('drapeau produit enableMarketplace', () => {
+  it('coupé : aucune tuile « Échanges & ventes », ni dans la Collection ni à l’accueil', () => {
+    const collection = collectionQuickAccess({ hasWine: true, activeDomains: ALL, marketplace: false }).map((e) => e.id);
+    expect(collection).not.toContain('community');
+    expect(collection).toContain('wishlist');
+    const home = homeQuickAccess(ALL, { marketplace: false }).map((e) => e.id);
+    expect(home).not.toContain('community');
+    expect(home).toContain('market');
+  });
+
+  it('actif : la tuile mène aux échanges & ventes', () => {
+    const home = homeQuickAccess(ALL, { marketplace: true });
+    expect(home.find((e) => e.id === 'community')?.href).toBe(routes.community());
   });
 });

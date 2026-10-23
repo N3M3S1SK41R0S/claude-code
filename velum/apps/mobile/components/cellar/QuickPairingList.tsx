@@ -6,9 +6,14 @@
 import { StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { LocalPairingSuggestion } from '@velum/core';
-import { ConfidenceBadge, VCard, VText, velumSpacing } from '@velum/ui';
+import { ConfidenceBadge, VCard, VText, formatConfidence, velumSpacing } from '@velum/ui';
 
-import { localSuggestionReason, positionLabel } from '../../lib/cellarPeak';
+import {
+  displayWineLabel,
+  localSuggestionReason,
+  positionLabel,
+  quickSuggestionA11yLabel,
+} from '../../lib/cellarPeak';
 
 export interface QuickPairingListProps {
   suggestions: readonly LocalPairingSuggestion[];
@@ -23,12 +28,17 @@ export function QuickPairingList({ suggestions, onOpenItem, compact = false }: Q
     <View style={styles.list}>
       {suggestions.map((suggestion) => {
         const position = positionLabel(suggestion.storageLocation, t);
-        const label = suggestion.label.length > 0 ? suggestion.label : t('common.unknown');
+        const label = displayWineLabel(suggestion.label, t);
         return (
           <VCard
             key={suggestion.itemId}
             onPress={() => onOpenItem(suggestion.itemId)}
-            accessibilityLabel={t('cellar.quick.openItemA11y', { label })}
+            // La carte pressable regroupe ses enfants : le libellé doit tout dire.
+            accessibilityLabel={quickSuggestionA11yLabel(suggestion, t, {
+              label,
+              score: formatConfidence(suggestion.score),
+              compact,
+            })}
             accessibilityHint={t('cellar.quick.openItem')}
             style={compact ? styles.compactCard : styles.card}
           >

@@ -31,12 +31,15 @@ import { Screen } from '../components/Screen';
 import { SearchField } from '../components/search/SearchField';
 import {
   availableColorGroups,
+  displayWineLabel,
+  effectiveColorFilter,
   filterPeakEntries,
   peakStatusTone,
   peakSummary,
   type ColorGroup,
 } from '../lib/cellarPeak';
 import { getVelumClient } from '../lib/client';
+import { isOfflineWithoutData } from '../lib/collectionView';
 import { cellarPeakForItems } from '../lib/drinkNow';
 import { errorMessage } from '../lib/errors';
 import { routes } from '../lib/routes';
@@ -72,14 +75,11 @@ export default function CellarPeak() {
   const report = useMemo(() => cellarPeakForItems(wines, year), [wines, year, updatedAt]);
   const summary = useMemo(() => peakSummary(report.entries), [report.entries]);
   const colorGroups = useMemo(() => availableColorGroups(report.entries), [report.entries]);
+  // Couleur disparue de la cave (vin supprimé, déplacé) : filtre levé, les puces restent cohérentes.
+  const activeColor = effectiveColorFilter(color === 'all' ? null : color, colorGroups);
   const visible = useMemo(
-    () =>
-      filterPeakEntries(report.entries, {
-        query,
-        color: color === 'all' ? null : color,
-        includeSoon,
-      }),
-    [report.entries, query, color, includeSoon],
+    () => filterPeakEntries(report.entries, { query, color: activeColor, includeSoon }),
+    [report.entries, query, activeColor, includeSoon],
   );
   const titleById = useMemo(() => new Map(wines.map((w) => [w.id, w.title ?? t('common.unknown')])), [wines, t]);
   const drinkableCount = summary.past + summary.closing + summary.peak;
@@ -89,6 +89,17 @@ export default function CellarPeak() {
       <Screen scroll={false} title={t('cellarPeak.title')} backFallback={routes.collection()}>
         <View style={styles.center}>
           <VSpinner />
+        </View>
+      </Screen>
+    );
+  }
+
+  // Hors-ligne sans cache : jamais « cave vide ».
+  if (isOfflineWithoutData(itemsQuery)) {
+    return (
+      <Screen scroll={false} title={t('cellarPeak.title')} backFallback={routes.collection()}>
+        <View style={styles.center}>
+          <VEmptyState title={t('cellarPeak.title')} message={t('cellarPeak.offlineUnloaded')} />
         </View>
       </Screen>
     );
@@ -170,7 +181,7 @@ export default function CellarPeak() {
       {colorOptions.length > 2 ? (
         <ChoiceChips<ColorChoice>
           label={t('cellarPeak.colorFilter')}
-          value={color}
+          value={activeColor ?? 'all'}
           onChange={setColor}
           options={colorOptions}
         />
@@ -206,7 +217,11 @@ export default function CellarPeak() {
             onPairTonight={(dish) => router.push(routes.cellarSommelier(dish) as Href)}
             onOpenItem={() => router.push(routes.item(entry.itemId) as Href)}
             onEditPosition={() =>
-              setEditing({ itemId: entry.itemId, label: entry.label, location: entry.storageLocation })
+              setEditing({
+                itemId: entry.itemId,
+                label: displayWineLabel(entry.label, t),
+                location: entry.storageLocation,
+              })
             }
           />
         ))

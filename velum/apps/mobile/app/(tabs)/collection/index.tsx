@@ -41,6 +41,7 @@ import {
   DEFAULT_COLLECTION_SORT,
   buildCollectionView,
   drinkNowPreview,
+  isOfflineWithoutData,
   parseDomainParam,
   parseTextParam,
   showsResultCount,
@@ -50,9 +51,10 @@ import {
   collectionQuickAccess,
   type CollectionQuickAccessId,
 } from '../../../lib/collectionViewQuickAccess';
-import { drinkNowForItems } from '../../../lib/drinkNow';
+import { displayWineLabel, positionLabel } from '../../../lib/cellarPeak';
+import { drinkNowBannerEntries } from '../../../lib/drinkNow';
 import { errorMessage } from '../../../lib/errors';
-import { getActiveDomains } from '../../../lib/features';
+import { getActiveDomains, marketplaceEnabled } from '../../../lib/features';
 import { globalSearchHref } from '../../../lib/globalSearch';
 import { formatEUR } from '../../../lib/i18n';
 import { routes } from '../../../lib/routes';
@@ -148,16 +150,17 @@ export default function Collection() {
     [failedValuationItemIds, items, latestByItem],
   );
 
-  // Intelligence de cave — sens 2 : vins à leur apogée (calcul local).
+  // Intelligence de cave — sens 2 : vins à boire (calcul local), même règle
+  // et même ordre que « Mes vins à leur apogée » (fenêtre dépassée comprise).
   const hasWine = useMemo(() => items.some((i) => i.domain === 'wine'), [items]);
   const drinkNow = useMemo(
-    () => drinkNowPreview(drinkNowForItems(items, new Date().getFullYear())),
+    () => drinkNowPreview(drinkNowBannerEntries(items, new Date().getFullYear())),
     [items],
   );
 
   const quickTiles: QuickAccessTile[] = useMemo(
     () =>
-      collectionQuickAccess({ hasWine, activeDomains: domains }).map((entry) => ({
+      collectionQuickAccess({ hasWine, activeDomains: domains, marketplace: marketplaceEnabled() }).map((entry) => ({
         key: entry.id,
         label: t(QUICK_LABEL_KEYS[entry.id].label),
         hint: t(QUICK_LABEL_KEYS[entry.id].hint),
@@ -189,6 +192,17 @@ export default function Collection() {
       <Screen scroll={false} back={false}>
         <View style={styles.center}>
           <VSpinner />
+        </View>
+      </Screen>
+    );
+  }
+
+  // Hors-ligne sans cache : jamais « collection vide » (la lecture reprendra au retour du réseau).
+  if (isOfflineWithoutData(query)) {
+    return (
+      <Screen scroll={false} back={false}>
+        <View style={styles.center}>
+          <VEmptyState title={t('collection.title')} message={t('collection.offlineUnloaded')} />
         </View>
       </Screen>
     );
@@ -334,21 +348,26 @@ export default function Collection() {
               <VText variant="heading" tone="gold" accessibilityRole="header">
                 {t('cellar.drinkNowTitle', { count: drinkNow.total })}
               </VText>
-              {drinkNow.shown.map((signal) => (
-                <VListRow
-                  key={signal.itemId}
-                  title={signal.label}
-                  subtitle={
-                    t('cellar.drinkNowWindow', { from: signal.windowFrom, to: signal.windowTo }) +
-                    (signal.suggestedDishes.length > 0
-                      ? ` · ${t('cellar.drinkNowDishes', {
-                          dishes: signal.suggestedDishes.slice(0, 2).join(', '),
-                        })}`
-                      : '')
-                  }
-                  onPress={() => router.push(routes.item(signal.itemId))}
-                />
-              ))}
+              {drinkNow.shown.map((entry) => {
+                const position = positionLabel(entry.storageLocation, t, { short: true });
+                return (
+                  <VListRow
+                    key={entry.itemId}
+                    title={displayWineLabel(entry.label, t)}
+                    subtitle={[
+                      t(`cellarPeak.status.${entry.status}`),
+                      t('cellar.drinkNowWindow', { from: entry.windowFrom, to: entry.windowTo }),
+                      position,
+                      entry.suggestedDishes.length > 0
+                        ? t('cellar.drinkNowDishes', { dishes: entry.suggestedDishes.slice(0, 2).join(', ') })
+                        : null,
+                    ]
+                      .filter((part): part is string => part !== null)
+                      .join(' · ')}
+                    onPress={() => router.push(routes.item(entry.itemId))}
+                  />
+                );
+              })}
               <VButton
                 label={
                   drinkNow.hidden > 0

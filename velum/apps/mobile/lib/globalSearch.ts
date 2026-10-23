@@ -252,12 +252,17 @@ export type GlobalSearchOutcome =
   | 'results'
   /** Toutes les sections interrogeables ont répondu : rien nulle part. */
   | 'noResult'
-  /** Rien pour l'instant, mais une section charge ou est en panne : pas de verdict. */
-  | 'incomplete';
+  /** Rien pour l'instant et une section charge encore : recherche en cours. */
+  | 'loading'
+  /**
+   * Rien trouvé, plus rien ne charge, mais une section est en panne :
+   * résultats partiels (jamais « en cours » ni « aucun résultat »).
+   */
+  | 'partial';
 
-/** true si la section n'a pas (encore) pu répondre : chargement ou panne. */
-function isPending(section: SectionState<unknown>): boolean {
-  if (section.status === 'loading' || section.status === 'error') return true;
+/** true si la section n'a pas pu répondre (panne). */
+function isFailed(section: SectionState<unknown>): boolean {
+  if (section.status === 'error') return true;
   // Une fonction pas encore câblée n'est pas interrogeable (comme une section
   // verrouillée) ; une panne ou un plan illisible, si.
   return section.status === 'unavailable' && section.issue !== 'notYetAvailable';
@@ -267,19 +272,23 @@ function isPending(section: SectionState<unknown>): boolean {
  * Verdict global. « Aucun résultat » n'est affirmé que si CHAQUE section
  * interrogeable a effectivement répondu (une section verrouillée par l'offre,
  * pas encore câblée ou non interrogée faute de requête suffisante ne compte
- * pas) ; une panne ou un chargement en cours rend le verdict « incomplet ».
+ * pas) ; un chargement en cours donne « en cours », une panne sans chargement
+ * « résultats partiels ».
  */
 export function globalSearchOutcome(
   query: string,
   sections: readonly SectionState<unknown>[],
 ): GlobalSearchOutcome {
   if (!isSearchableQuery(query)) return 'idle';
-  let pending = false;
+  let loading = false;
+  let failed = false;
   for (const section of sections) {
     if (section.status === 'ready' && section.slice.total > 0) return 'results';
-    if (isPending(section)) pending = true;
+    if (section.status === 'loading') loading = true;
+    if (isFailed(section)) failed = true;
   }
-  return pending ? 'incomplete' : 'noResult';
+  if (loading) return 'loading';
+  return failed ? 'partial' : 'noResult';
 }
 
 /** Total affiché (« n résultat(s) ») : somme des sections prêtes. */

@@ -30,6 +30,7 @@ import { loadCarnetData, type CarnetData } from '../lib/carnetData';
 import { getVelumClient } from '../lib/client';
 import { collectionHref, parseTextParam } from '../lib/collectionView';
 import { errorMessage } from '../lib/errors';
+import { marketplaceEnabled } from '../lib/features';
 import {
   WISHLIST_LIST_KEY,
   catalogueAccess,
@@ -47,6 +48,7 @@ import {
 import { formatEUR, formatMoney } from '../lib/i18n';
 import { usePlan } from '../lib/plan';
 import { routes } from '../lib/routes';
+import { formatTargetPrice } from '../lib/wishlist';
 
 /** Délai avant d'interroger le catalogue serveur pendant la saisie. */
 const CATALOGUE_DEBOUNCE_MS = 350;
@@ -118,7 +120,7 @@ function SectionStatus<T>({
 }
 
 export default function GlobalSearch() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const client = getVelumClient();
   const planState = usePlan();
@@ -145,6 +147,8 @@ export default function GlobalSearch() {
     queryFn: () => client.wishlist.list(),
   });
 
+  // Échanges & ventes coupés par le drapeau produit : section absente, aucun appel.
+  const marketplace = marketplaceEnabled();
   const access = catalogueAccess(
     planState.status === 'ready'
       ? { status: 'ready', community: planState.entitlements.community }
@@ -154,7 +158,7 @@ export default function GlobalSearch() {
   const marketQuery = useQuery<CatalogueListing[]>({
     queryKey: catalogueSearchKey(catalogueQuery ?? { text: '' }),
     queryFn: () => client.marketplace.catalogue(catalogueQuery ?? undefined),
-    enabled: access === 'open' && catalogueQuery !== null,
+    enabled: marketplace && access === 'open' && catalogueQuery !== null,
     retry: catalogueRetry,
     staleTime: 30 * 1000,
   });
@@ -178,6 +182,7 @@ export default function GlobalSearch() {
     [query, wishlistQuery.status, wishlistQuery.data, wishlistQuery.error],
   );
   const marketState: SectionState<CatalogueListing> = useMemo(() => {
+    if (!marketplace) return { status: 'idle' };
     // Saisie en cours, pas encore envoyée au serveur : chargement honnête.
     if (catalogueQueryFor(text) !== null && debouncedQuery !== text && access === 'open') {
       return { status: 'loading' };
@@ -189,6 +194,7 @@ export default function GlobalSearch() {
       catalogue: { status: marketQuery.status, data: marketQuery.data, error: marketQuery.error },
     });
   }, [
+    marketplace,
     text,
     debouncedQuery,
     access,
@@ -218,7 +224,8 @@ export default function GlobalSearch() {
   const wishSubtitle = (entry: WishlistEntry): string => {
     const parts = [t(`domains.${entry.domain}.name`), t(`globalSearch.wishKind.${entry.kind}`)];
     if (entry.targetPrice !== null) {
-      parts.push(t('globalSearch.targetPrice', { price: formatEUR(entry.targetPrice) }));
+      // Prix cible au centime près (jamais arrondi comme une estimation).
+      parts.push(t('globalSearch.targetPrice', { price: formatTargetPrice(entry.targetPrice, i18n.language) }));
     }
     if (entry.acquired) parts.push(t('globalSearch.acquired'));
     return parts.join(' · ');
@@ -234,6 +241,7 @@ export default function GlobalSearch() {
 
   /** Section « Échanges & ventes » repliée : offre, fonction à venir, panne. */
   const marketCollapsed = (() => {
+    if (!marketplace) return null;
     if (marketState.status === 'idle' && trimmed.length > 0) {
       return (
         <VText variant="body" tone="dim">
@@ -302,6 +310,10 @@ export default function GlobalSearch() {
               {t('globalSearch.noResultHint')}
             </VText>
           </VCard>
+        ) : outcome === 'partial' ? (
+          <VText variant="caption" tone="dim">
+            {t('globalSearch.partial')}
+          </VText>
         ) : (
           <VText variant="caption" tone="dim">
             {t('globalSearch.searching')}
@@ -358,7 +370,7 @@ export default function GlobalSearch() {
                       key={entry.id}
                       title={entry.title}
                       subtitle={wishSubtitle(entry)}
-                      onPress={() => router.push(routes.wishlist(entry.domain))}
+                      onPress={() => router.push(routes.wishlistEntry(entry.id))}
                     />
                   ))}
                   {hasMore ? (
@@ -373,45 +385,47 @@ export default function GlobalSearch() {
             />
           </View>
 
-          {/* ÉCHANGES & VENTES */}
-          <View style={styles.section}>
-            <SectionHeader
-              title={t('globalSearch.sections.market')}
-              count={marketState.status === 'ready' ? marketState.slice.total : null}
-            />
-            {marketCollapsed ?? (
-              <SectionStatus
-                state={marketState}
-                onRetry={() => void marketQuery.refetch()}
-                renderReady={(results, count, hasMore) => (
-                  <>
-                    {results.map((listing) => (
-                      <VListRow
-                        key={listing.id}
-                        title={listing.title ?? t('common.unknown')}
-                        subtitle={listingSubtitle(listing)}
-                        right={
-                          listing.certified ? (
-                            <VBadge label={t('globalSearch.certified')} tone="gold" />
-                          ) : undefined
-                        }
-                        onPress={() => router.push(routes.listing(listing.id))}
-                      />
-                    ))}
-                    <VButton
-                      label={
-                        hasMore
-                          ? t('globalSearch.seeAllMarketCount', { count })
-                          : t('globalSearch.seeAllMarket')
-                      }
-                      variant="ghost"
-                      onPress={() => router.push(routes.community(null, undefined, trimmed))}
-                    />
-                  </>
-                )}
+          {/* ÉCHANGES & VENTES (si le marché est ouvert) */}
+          {marketplace ? (
+            <View style={styles.section}>
+              <SectionHeader
+                title={t('globalSearch.sections.market')}
+                count={marketState.status === 'ready' ? marketState.slice.total : null}
               />
-            )}
-          </View>
+              {marketCollapsed ?? (
+                <SectionStatus
+                  state={marketState}
+                  onRetry={() => void marketQuery.refetch()}
+                  renderReady={(results, count, hasMore) => (
+                    <>
+                      {results.map((listing) => (
+                        <VListRow
+                          key={listing.id}
+                          title={listing.title ?? t('common.unknown')}
+                          subtitle={listingSubtitle(listing)}
+                          right={
+                            listing.certified ? (
+                              <VBadge label={t('globalSearch.certified')} tone="gold" />
+                            ) : undefined
+                          }
+                          onPress={() => router.push(routes.listing(listing.id))}
+                        />
+                      ))}
+                      <VButton
+                        label={
+                          hasMore
+                            ? t('globalSearch.seeAllMarketCount', { count })
+                            : t('globalSearch.seeAllMarket')
+                        }
+                        variant="ghost"
+                        onPress={() => router.push(routes.community(null, undefined, trimmed))}
+                      />
+                    </>
+                  )}
+                />
+              )}
+            </View>
+          ) : null}
         </>
       ) : null}
 

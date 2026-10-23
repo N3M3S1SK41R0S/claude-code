@@ -53,6 +53,11 @@ export function formatPosition(
   return parts.join(' · ');
 }
 
+/** Libellé d'un vin à l'écran ou dans un rappel : repli traduit s'il est vide. */
+export function displayWineLabel(label: string, t: Translate): string {
+  return label.trim().length > 0 ? label : t('cellar.unlabeledWine');
+}
+
 /** Raccourci : emplacement brut → libellé localisé (ou null). */
 export function positionLabel(
   location: string | null | undefined,
@@ -161,6 +166,15 @@ export function availableColorGroups(entries: readonly CellarPeakEntry[]): Color
   return COLOR_GROUP_ORDER.filter((group) => present.has(group));
 }
 
+/**
+ * Filtre couleur réellement appliqué : les puces ne s'affichent qu'à partir
+ * de deux couleurs — un filtre qu'aucune puce visible ne peut lever (dernier
+ * vin de la couleur supprimé ou déplacé) est ignoré, jamais « aucun vin ».
+ */
+export function effectiveColorFilter(color: ColorGroup | null, groups: readonly ColorGroup[]): ColorGroup | null {
+  return color !== null && groups.length >= 2 && groups.includes(color) ? color : null;
+}
+
 export interface PeakFilters {
   query: string;
   color: ColorGroup | null;
@@ -218,6 +232,28 @@ export function localSuggestionReason(suggestion: LocalPairingSuggestion, t: Tra
     parts.push(t(`cellar.peakReason.${suggestion.peakStatus}`));
   }
   return parts.join(' · ');
+}
+
+/**
+ * Libellé accessible d'une suggestion rapide (carte pressable) : le lecteur
+ * d'écran ne lit QUE ce libellé, il doit donc porter tout ce que la carte
+ * montre — vin, emplacement, pertinence, raison et quantité (forme complète).
+ * `score` : pertinence déjà formatée (formatConfidence).
+ */
+export function quickSuggestionA11yLabel(
+  suggestion: LocalPairingSuggestion,
+  t: Translate,
+  options: { label: string; score: string; compact?: boolean },
+): string {
+  const position = positionLabel(suggestion.storageLocation, t);
+  const parts = [
+    options.label,
+    position ? t('cellar.location', { location: position }) : null,
+    t('cellar.quick.scoreA11y', { score: options.score }),
+    options.compact ? null : localSuggestionReason(suggestion, t),
+    !options.compact && suggestion.quantity !== undefined ? t('cellar.quantity', { count: suggestion.quantity }) : null,
+  ];
+  return parts.filter((part): part is string => part !== null && part.length > 0).join('. ');
 }
 
 /** Titre d'une idée d'envie à partir des styles à acheter (borné). */

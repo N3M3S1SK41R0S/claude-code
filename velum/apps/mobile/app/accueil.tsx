@@ -27,7 +27,7 @@ import { Screen } from '../components/Screen';
 import { QuickAccessGrid, type QuickAccessTile } from '../components/home/QuickAccessGrid';
 import { SearchLauncher } from '../components/home/SearchLauncher';
 import { homeQuickAccess, type HomeQuickAccessId } from '../lib/collectionViewQuickAccess';
-import { getActiveDomains } from '../lib/features';
+import { getActiveDomains, marketplaceEnabled } from '../lib/features';
 import { globalSearchHref } from '../lib/globalSearch';
 import { usePlan } from '../lib/plan';
 
@@ -69,7 +69,7 @@ export default function Accueil() {
           ? t('accueil.quick.communityHint')
           : t('accueil.quick.communityLocked');
 
-  const tiles: QuickAccessTile[] = homeQuickAccess(domains).map((entry) => {
+  const tiles: QuickAccessTile[] = homeQuickAccess(domains, { marketplace: marketplaceEnabled() }).map((entry) => {
     const keys = TILE_KEYS[entry.id];
     const caption = entry.id === 'community' ? communityCaption : t(keys.caption);
     return {

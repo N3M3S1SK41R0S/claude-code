@@ -266,16 +266,23 @@ describe('verdict global', () => {
   });
 
   it('une panne ou un chargement empêche d’affirmer « aucun résultat »', () => {
-    expect(globalSearchOutcome('x', [ready(0), { status: 'error', error: null }])).toBe(
-      'incomplete',
-    );
-    expect(globalSearchOutcome('x', [ready(0), { status: 'loading' }])).toBe('incomplete');
+    expect(globalSearchOutcome('x', [ready(0), { status: 'loading' }])).toBe('loading');
+    expect(globalSearchOutcome('x', [ready(0), { status: 'error', error: null }])).toBe('partial');
     expect(
       globalSearchOutcome('x', [ready(0), { status: 'unavailable', issue: 'failed', error: null }]),
-    ).toBe('incomplete');
+    ).toBe('partial');
     expect(
       globalSearchOutcome('x', [ready(0), { status: 'unavailable', issue: 'planError', error: null }]),
-    ).toBe('incomplete');
+    ).toBe('partial');
+  });
+
+  it('une panne seule n’est jamais présentée comme une recherche en cours', () => {
+    // Collection prête à 0, envies en panne : plus rien ne charge → résultats partiels.
+    expect(globalSearchOutcome('xyz', [ready(0), { status: 'error', error: new Error('boum') }, { status: 'idle' }])).toBe(
+      'partial',
+    );
+    // Tant qu'une section charge encore, la recherche est en cours (même avec une panne ailleurs).
+    expect(globalSearchOutcome('xyz', [{ status: 'loading' }, { status: 'error', error: null }])).toBe('loading');
   });
 
   it('globalSearchTotal additionne les sections prêtes', () => {
