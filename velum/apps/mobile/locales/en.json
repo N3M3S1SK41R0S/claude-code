@@ -725,6 +725,167 @@
     "denied": "Declined",
     "notAsked": "Not asked yet"
   },
+  "wishlist": {
+    "title": "My wishlist",
+    "intro": "What you would like to acquire later, and ideas to explore — by category.",
+    "add": "Add a wish",
+    "addHint": "Opens the add form in the displayed category",
+    "segments": {
+      "label": "Show",
+      "wish": "Wishes",
+      "idea": "Ideas",
+      "acquired": "Acquired",
+      "withCount": "{{label}} ({{count}})"
+    },
+    "sort": {
+      "label": "Sort by",
+      "priority": "Priority",
+      "recent": "Recent",
+      "targetPrice": "Target price"
+    },
+    "kind": {
+      "label": "Type",
+      "wish": "Wish",
+      "idea": "Idea",
+      "wishHint": "An item I want to acquire",
+      "ideaHint": "A lead to explore, an inspiration"
+    },
+    "priority": {
+      "label": "Priority",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "badgeLow": "Low priority",
+      "badgeMedium": "Medium priority",
+      "badgeHigh": "High priority"
+    },
+    "source": {
+      "manual": "Entered manually",
+      "item": "From my collection",
+      "scan": "From a scan",
+      "tasting": "From a tasting",
+      "market": "From the community",
+      "label": "Origin: {{source}}"
+    },
+    "stats": {
+      "summary": "{{wishes}} wish(es) · {{ideas}} idea(s) · {{acquired}} acquired",
+      "budget": "Target budget for wishes: {{amount}}"
+    },
+    "search": {
+      "label": "Search my wishlist",
+      "placeholder": "Title, producer, note…",
+      "otherSegment": "{{count}} in “{{segment}}”",
+      "everywhere": "Search all categories ({{count}})"
+    },
+    "row": {
+      "targetPrice": "Target price: {{price}}",
+      "acquiredOn": "Acquired on {{date}}",
+      "openHint": "Opens the wish: acquired, community, edit"
+    },
+    "empty": {
+      "title": "Your wishlist is empty",
+      "message": "Note what you would like to acquire later or ideas to explore. Example: a wine tasted at friends’ — “Domaine Tempier, Bandol 2019”, target price €60.",
+      "cta": "Add my first wish",
+      "segment": "Nothing in “{{segment}}” yet."
+    },
+    "loadError": "Your wishlist could not be loaded.",
+    "staleWarning": "The list could not be refreshed: it may be incomplete.",
+    "form": {
+      "createTitle": "New wish",
+      "editTitle": "Edit wish",
+      "category": "Category",
+      "title": "Title (required)",
+      "titlePlaceholder": "E.g. what you are looking for",
+      "titlePlaceholderWine": "E.g. Domaine Tempier, Bandol 2019",
+      "identityShow": "Add identification details (optional)",
+      "identityHide": "Hide identification",
+      "identityHint": "If the title is empty, it is built from these fields.",
+      "notes": "Notes — why I liked it",
+      "notesPlaceholder": "E.g. tasted at friends’, superb with lamb",
+      "targetPrice": "Target price in € (optional)",
+      "targetPricePlaceholder": "E.g. 60 or 59.90",
+      "create": "Add to my wishlist",
+      "save": "Save",
+      "cancel": "Discard changes",
+      "invalid": "Please check the highlighted fields."
+    },
+    "errors": {
+      "titleRequired": "Enter a title (or at least one identification field).",
+      "titleTooLong": "Title too long (200 characters maximum).",
+      "notesTooLong": "Notes too long (2000 characters maximum).",
+      "priceInvalid": "Invalid price — enter a positive amount, e.g. 60 or 59.90."
+    },
+    "duplicate": {
+      "title": "Already in your wishlist",
+      "message": "“{{title}}” is already among your open wishes in this category.",
+      "view": "View the existing wish"
+    },
+    "toast": {
+      "added": "Added to your wishlist.",
+      "updated": "Wish updated.",
+      "deleted": "Wish deleted.",
+      "acquired": "Well done! Wish marked as acquired.",
+      "reopened": "Moved back to your wishes.",
+      "addedToCollection": "Added to your collection — the full sheet will load on demand.",
+      "duplicate": "Already in your wishlist."
+    },
+    "detail": {
+      "notFoundTitle": "Wish not found",
+      "notFoundMessage": "It may have been deleted.",
+      "backToList": "View my wishlist",
+      "identity": "Identification",
+      "notes": "Notes",
+      "targetPrice": "Target price",
+      "noTargetPrice": "No target price",
+      "createdAt": "Added on {{date}}",
+      "field": "{{label}}: {{value}}",
+      "acquiredTitle": "Wish fulfilled!",
+      "acquiredMessage": "Acquired on {{date}}. Add it to your collection to track and value it."
+    },
+    "actions": {
+      "markAcquired": "I got it",
+      "markAcquiredHint": "Marks the wish as acquired and offers to add it to your collection",
+      "reopen": "Move back to my wishes",
+      "addToCollection": "Add to my collection",
+      "addToCollectionHint": "Creates the item in your collection; the full sheet loads on demand",
+      "searchCommunity": "Search the community",
+      "searchCommunityHint": "Opens trades and sales in this category, search pre-filled",
+      "checkCommunity": "Available in the community?",
+      "checkCommunityHint": "Looks for up to 3 matching listings",
+      "edit": "Edit",
+      "delete": "Delete",
+      "viewSourceItem": "View the original item",
+      "viewInCollection": "View in my collection"
+    },
+    "deleteConfirm": {
+      "title": "Delete this wish?",
+      "message": "“{{title}}” will be permanently removed from your list.",
+      "confirm": "Delete permanently",
+      "cancel": "Keep"
+    },
+    "community": {
+      "checking": "Looking for listings…",
+      "found": "{{count}} matching listing(s)",
+      "none": "No matching listing for now.",
+      "listing": "{{price}} · {{alias}}",
+      "certified": "VELUM authenticated",
+      "openListingHint": "Opens the listing in the community",
+      "seeAll": "See all listings",
+      "plan": "Trading and selling between collectors is part of the Platine plan.",
+      "seePlans": "See plans",
+      "notYet": "Community search is not available yet. Please try again soon.",
+      "unavailable": "Community temporarily unavailable.",
+      "generic": "The check failed."
+    },
+    "button": {
+      "add": "Add to my wishlist",
+      "addHint": "Keeps this item in your “{{domain}}” wishlist",
+      "already": "In your wishlist — view",
+      "added": "Added — view my wishlist",
+      "openHint": "Opens your wishlist for this category",
+      "titleMissing": "Cannot add: title missing."
+    }
+  },
   "calibration": {
     "inProgress": "Calibration in progress",
     "inProgressHint": "{{count}} prediction(s) checked against realized prices — proof shows at 30.",
