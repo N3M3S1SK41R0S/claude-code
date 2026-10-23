@@ -7,6 +7,7 @@
  *    (« Suggestion rapide » du sommelier, sans IA).
  */
 import type {
+  CellarPeakEntry,
   CellarPeakReport,
   CellarWineEntry,
   DrinkNowSuggestion,
@@ -132,6 +133,15 @@ export function cellarPeakForItems(
   options?: CellarAtPeakOptions,
 ): CellarPeakReport {
   return cellarAtPeak(toCellarWineEntries(items), year, options);
+}
+
+/**
+ * Bandeau « à boire » de la Collection : MÊME règle et même ordre que
+ * « Mes vins à leur apogée » et le rappel hebdomadaire — fenêtre dépassée,
+ * dernière année et apogée (jamais « l'an prochain »), urgents d'abord.
+ */
+export function drinkNowBannerEntries(items: readonly VelumItem[], year: number): CellarPeakEntry[] {
+  return cellarPeakForItems(items, year, { includeSoon: false }).entries;
 }
 
 /** Plat → vins de ma cave, instantanément et hors-ligne (sans IA). */

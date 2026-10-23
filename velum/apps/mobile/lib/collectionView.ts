@@ -12,7 +12,7 @@
  *  - « aucun résultat » est un état DISTINCT de la collection vide : on ne dit
  *    jamais « collection vide » quand seul un filtre ne correspond à rien.
  */
-import type { DrinkNowSuggestion, ValuationRecord, VelumDomain, VelumItem } from '@velum/core';
+import type { CellarPeakEntry, ValuationRecord, VelumDomain, VelumItem } from '@velum/core';
 
 import { normalizeText, searchItems, tokenize } from './search';
 
@@ -200,18 +200,15 @@ export function showsResultCount(view: CollectionView): boolean {
   return view.kind === 'results' || (view.kind === 'grouped' && view.filtered);
 }
 
-export interface DrinkNowPreview {
-  shown: DrinkNowSuggestion[];
+export interface DrinkNowPreview<T = CellarPeakEntry> {
+  shown: T[];
   /** Vins non affichés dans le bandeau (« Voir tout »). */
   hidden: number;
   total: number;
 }
 
 /** Bandeau « à boire » compact : les `limit` premiers (déjà triés par urgence). */
-export function drinkNowPreview(
-  signals: readonly DrinkNowSuggestion[],
-  limit: number = DRINK_NOW_PREVIEW_LIMIT,
-): DrinkNowPreview {
+export function drinkNowPreview<T>(signals: readonly T[], limit: number = DRINK_NOW_PREVIEW_LIMIT): DrinkNowPreview<T> {
   const safeLimit = Number.isInteger(limit) && limit > 0 ? limit : DRINK_NOW_PREVIEW_LIMIT;
   const shown = signals.slice(0, safeLimit);
   return { shown, hidden: signals.length - shown.length, total: signals.length };
