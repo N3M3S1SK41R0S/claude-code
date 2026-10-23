@@ -257,7 +257,8 @@ offert par l'auteur. À la conclusion : annonce `exchanged`, annonce
 Cycle : `awaiting_agreement → requested → in_review → certified | rejected`,
 `cancelled` avant la décision (refus de l'accord, retrait par le demandeur,
 abandon d'une certification de seuil d'annonce ⇒ annonce en brouillon ; une
-certification de seuil d'**échange** ne s'annule qu'en annulant l'échange).
+certification de seuil d'**échange** ne s'annule qu'en annulant l'échange, ou
+par le serveur quand l'objet est certifié par ailleurs — l'échange continue).
 L'expert partenaire agit via des fonctions **service_role** :
 `assign_certification_expert(id, frais)` puis
 `decide_certification(id, certifié, rapport, avis, frais)` — comme
@@ -283,9 +284,13 @@ après, il exige **une** nouvelle expertise, une seule (le titre d'une demande
 n'est jamais réécrit à la décision de l'expert). Une certification qui suit
 l'objet (sur l'annonce, une commande ou un échange) publie aussi ses annonces
 en attente de certification avec la référence, puis **annule** ses autres
-demandes « seuil » d'annonce encore ouvertes, devenues sans objet (aucune
-seconde expertise facturée) ; une telle demande ne bloque jamais
-l'expédition. Deux décisions ex aequo (même horodatage) : le refus
+demandes « seuil » encore ouvertes — d'annonce comme d'**échange** —,
+devenues sans objet (aucune seconde expertise ni aucun frais, même déjà
+confiées à un expert) ; une demande « seuil » d'annonce restée ouverte sur
+un objet certifié ne bloque jamais l'expédition. L'échange dont la demande
+est ainsi close n'est **pas** annulé : il passe en expédition dès qu'aucune
+autre expertise n'y est en cours, et l'autre partie est prévenue que l'objet
+qu'elle reçoit est certifié. Deux décisions ex aequo (même horodatage) : le refus
 l'emporte. Un **refus** annule toute transaction non
 expédiée sur l'objet, le dépublie quel que soit le motif ou le contexte et
 reste mémorisé : toute republication passe par une nouvelle certification.

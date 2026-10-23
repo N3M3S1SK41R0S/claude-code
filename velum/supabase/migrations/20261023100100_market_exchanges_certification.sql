@@ -2339,6 +2339,7 @@ declare
   end;
   v_order record;
   v_ref text;
+  v_closed record;
 begin
   if new.status is not distinct from old.status then
     return null;
@@ -2365,9 +2366,15 @@ begin
     -- La certification suit l'objet (_market_item_certification_ref) : ses
     -- annonces en attente de certification, sans référence, la reprennent
     -- (mise à jour de confiance ⇒ statut recalculé), PUIS les autres demandes
-    -- « seuil » de l'annonce seule encore ouvertes pour cet objet du
-    -- propriétaire, devenues sans objet, sont annulées (jamais une seconde
-    -- expertise facturée ; l'annonce, déjà référencée, reste publiée).
+    -- « seuil » encore ouvertes pour cet objet du propriétaire — de l'annonce
+    -- seule comme d'un ÉCHANGE —, devenues sans objet, sont annulées par le
+    -- serveur, même confiées à un expert : jamais une seconde expertise ni
+    -- de frais au registre (seule une décision en inscrit). L'annonce, déjà
+    -- référencée, reste publiée ; l'annulation d'une demande d'échange
+    -- n'annule pas l'échange : elle le relance (branche « cancelled »,
+    -- _exchange_resume_after_certification ⇒ expédition dès qu'aucune autre
+    -- expertise n'y est en cours) et l'autre partie apprend que l'objet
+    -- qu'elle reçoit est certifié.
     v_ref := public._market_item_certification_ref(new.item_id, new.owner_id);
     if v_ref is not null then
       update public.listings l set expert_appraisal_ref = v_ref
@@ -2375,13 +2382,21 @@ begin
           and l.seller_id = new.owner_id
           and l.status = 'pending_certification'
           and l.expert_appraisal_ref is null;
-      update public.certification_requests c set status = 'cancelled'
-        where c.id <> new.id
-          and c.item_id = new.item_id
-          and c.owner_id = new.owner_id
-          and c.order_id is null and c.exchange_id is null
-          and c.reason = 'threshold'
-          and c.status in ('awaiting_agreement', 'requested', 'in_review');
+      for v_closed in
+        update public.certification_requests c set status = 'cancelled'
+          where c.id <> new.id
+            and c.item_id = new.item_id
+            and c.owner_id = new.owner_id
+            and c.order_id is null
+            and c.reason = 'threshold'
+            and c.status in ('awaiting_agreement', 'requested', 'in_review')
+          returning c.exchange_id, c.counterparty_id, c.item_title
+      loop
+        if v_closed.exchange_id is not null then
+          perform public.market_notify(v_closed.counterparty_id, 'Objet certifié par un expert',
+            coalesce(v_closed.item_title, 'l’objet'));
+        end if;
+      end loop;
     end if;
     if new.exchange_id is not null then
       perform public._exchange_resume_after_certification(new.exchange_id);

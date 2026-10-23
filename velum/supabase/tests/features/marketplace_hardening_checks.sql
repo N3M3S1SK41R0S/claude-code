@@ -49,7 +49,9 @@
 --       en double d'un objet dont l'annonce est en expertise refusée ;
 --   X23 toute demande d'expertise d'un objet (commande, échange, « seuil »
 --       d'échange) enregistre son titre ACTUEL : objet renommé, certifié,
---       transaction annulée ⇒ annonce publiée, aucune seconde expertise.
+--       transaction annulée ⇒ annonce publiée, aucune seconde expertise ;
+--   X24 objet certifié par la demande de son annonce : la demande « seuil »
+--       de l'échange, sans objet, est close sans frais, l'échange expédie.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 \set ON_ERROR_STOP on
@@ -2717,6 +2719,125 @@ begin
     raise exception 'X23d : aucune seconde expertise attendue (% demande(s) en trop)', v_count;
   end if;
   raise notice 'OK X23 — demandes d''expertise (commande, échange, « seuil » d''échange) au titre actuel de l''objet : certification conservée, aucune seconde expertise';
+end
+$$;
+
+-- ── X24. Objet certifié par la demande de son annonce : la demande « seuil »
+-- de l'échange, devenue sans objet, est close ─────────────────────────────────
+-- Miroir de X20. L'objet offert X a une annonce LX en attente de
+-- certification ; l'échange accepté ouvre SA demande « seuil » pour X, déjà
+-- confiée à un expert (frais annoncés). L'expert certifie D'ABORD la demande
+-- de LX : celle de l'échange est annulée par le serveur (ni seconde
+-- expertise, ni frais au registre), l'échange — jamais annulé — passe en
+-- expédition, l'autre partie apprend que l'objet est certifié et les deux
+-- parties expédient.
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000127', '81000000-0000-4000-8000-000000000001', 'coin', 'Écu d''Henri III'),
+  ('92000000-0000-4000-8000-000000000127', '82000000-0000-4000-8000-000000000002', 'coin', 'Liard de Lorraine');
+
+do $$
+declare
+  v_ex uuid;
+  v_lx_cert uuid;
+  v_ex_cert uuid;
+  v_row record;
+  v_count integer;
+begin
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a2400000-0000-4000-8000-000000000127', '91000000-0000-4000-8000-000000000127',
+     '81000000-0000-4000-8000-000000000001', 300);
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  insert into public.listings (id, item_id, seller_id, ask_price, kind) values
+    ('a2400000-0000-4000-8000-000000000227', '92000000-0000-4000-8000-000000000127',
+     '82000000-0000-4000-8000-000000000002', 300, 'exchange');
+  reset role;
+  perform set_config('velum.uid', '', true);
+  insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, sources)
+  values ('91000000-0000-4000-8000-000000000127', 2000, 1800, 2200, 1700, 2300, 70, '[]');
+  select id into v_lx_cert from public.certification_requests
+  where listing_id = 'a2400000-0000-4000-8000-000000000127' and exchange_id is null
+    and reason = 'threshold' and status = 'requested';
+  if v_lx_cert is null then
+    raise exception 'X24 : demande « seuil » de l''annonce suspendue attendue';
+  end if;
+
+  set local role authenticated;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select id into v_ex from public.propose_exchange(
+    'a2400000-0000-4000-8000-000000000227', '91000000-0000-4000-8000-000000000127', 300);
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  if (select e.state from public.respond_exchange(v_ex, true) e) <> 'awaiting_certification' then
+    raise exception 'X24 : échange en attente de certification attendu';
+  end if;
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select id into v_ex_cert from public.certification_requests
+  where exchange_id = v_ex and reason = 'threshold' and status = 'requested';
+  if v_ex_cert is null then
+    raise exception 'X24 : demande « seuil » de l''échange attendue';
+  end if;
+  -- Demande de l'échange confiée à un expert, frais annoncés.
+  perform public.assign_certification_expert(v_ex_cert, 75);
+
+  -- L'expert certifie d'abord la demande de l'annonce.
+  perform public.decide_certification(v_lx_cert, true, 'expertises/alice/ecu-henri-iii.pdf', 'Authentique', 80);
+  select status into v_row from public.certification_requests where id = v_ex_cert;
+  if v_row.status <> 'cancelled' then
+    raise exception 'X24 : demande « seuil » de l''échange, sans objet, close attendue (vu %)', v_row.status;
+  end if;
+  if (select state from public.exchange_proposals where id = v_ex) <> 'shipping' then
+    raise exception 'X24 : échange en phase d''expédition attendu (vu %)',
+      (select state from public.exchange_proposals where id = v_ex);
+  end if;
+  -- Une seule expertise, un seul frais au registre (celui de l'annonce).
+  select count(*) into v_count from public.certification_requests
+  where item_id = '91000000-0000-4000-8000-000000000127' and status = 'certified';
+  if v_count <> 1 then
+    raise exception 'X24 : une seule expertise certifiée attendue (%)', v_count;
+  end if;
+  select count(*) into v_count from public.platform_ledger
+  where certification_id = v_ex_cert;
+  if v_count <> 0 then
+    raise exception 'X24 : aucun frais pour la demande close attendu (% écriture(s))', v_count;
+  end if;
+  select count(*) into v_count from public.platform_ledger
+  where certification_id = v_lx_cert and member_id = '81000000-0000-4000-8000-000000000001'
+    and kind = 'certification_fee' and amount = 80;
+  if v_count <> 1 then
+    raise exception 'X24 : frais de l''expertise de l''annonce au propriétaire attendus (% écriture(s))', v_count;
+  end if;
+  -- L'autre partie de l'échange apprend que l'objet est certifié.
+  select count(*) into v_count from public.notifications
+  where owner_id = '82000000-0000-4000-8000-000000000002'
+    and title = 'Objet certifié par un expert' and body = 'Écu d''Henri III';
+  if v_count <> 1 then
+    raise exception 'X24 : autre partie prévenue de la certification attendue (% notification(s))', v_count;
+  end if;
+  if public.has_open_certification(null, v_ex) then
+    raise exception 'X24 : expédition non bloquée attendue';
+  end if;
+
+  -- Les deux parties expédient.
+  set local role authenticated;
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select * into v_row from public.my_exchanges(v_ex);
+  if v_row.shipment_blocked is distinct from false or v_row.offered_item_certified is distinct from true then
+    raise exception 'X24 : destinataire ⇒ expédition débloquée, objet reçu certifié attendus (%)', row_to_json(v_row);
+  end if;
+  select * into v_row from public.ship_exchange(v_ex, '6A12345678924', 'Colissimo');
+  if v_row.recipient_tracking is distinct from '6A12345678924' then
+    raise exception 'X24 : expédition du destinataire attendue (%)', row_to_json(v_row);
+  end if;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select * into v_row from public.ship_exchange(v_ex, '6A12345678925', 'Colissimo');
+  if v_row.proposer_tracking is distinct from '6A12345678925' then
+    raise exception 'X24 : expédition de l''auteur attendue (%)', row_to_json(v_row);
+  end if;
+  reset role;
+  perform set_config('velum.uid', '', true);
+  raise notice 'OK X24 — objet certifié sur son annonce : demande « seuil » de l''échange close sans frais, échange expédié';
 end
 $$;
 
