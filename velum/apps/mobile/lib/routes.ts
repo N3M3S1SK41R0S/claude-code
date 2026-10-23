@@ -31,9 +31,9 @@ export const routes = {
   cellarPeak: () => '/cellar-peak',
   /** Plat → vins (de ma cave d'abord) ; `dish` pré-remplit la recherche. */
   cellarSommelier: (dish?: string) => withQuery('/cellar-sommelier', { dish }),
-  /** Plateformes d'échange et de vente, filtrées par catégorie / mode. */
-  community: (domain?: VelumDomain | null, mode?: 'sale' | 'exchange') =>
-    withQuery('/community', { domain: domain ?? undefined, mode }),
+  /** Plateformes d'échange et de vente, filtrées par catégorie / mode / texte. */
+  community: (domain?: VelumDomain | null, mode?: 'sale' | 'exchange', text?: string) =>
+    withQuery('/community', { domain: domain ?? undefined, mode, text }),
   listing: (id: string) => `/community/listing/${encodeURIComponent(id)}`,
   /** Mise en vente / à l'échange d'un objet de ma collection. */
   sell: (itemId: string) => withQuery('/community/sell', { itemId }),
