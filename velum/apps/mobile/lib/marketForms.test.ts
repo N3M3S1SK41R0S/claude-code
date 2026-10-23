@@ -1,10 +1,18 @@
 import { describe, expect, it } from 'vitest';
+import {
+  MARKET_CARRIERS as API_MARKET_CARRIERS,
+  MARKET_MAX_AMOUNT,
+  MARKET_MIN_ASK_PRICE,
+  normalizeTrackingNumber as apiNormalizeTrackingNumber,
+} from '@velum/api-client';
 import { REDACTION_TOKEN } from '@velum/config';
 import type { VelumItem } from '@velum/core';
 
 import {
   MARKET_CARRIERS,
+  amountProblemMessage,
   amountToInput,
+  checkMarketAmount,
   estimateFromValuation,
   exchangePreview,
   formatPrice,
@@ -44,9 +52,30 @@ describe('parseFrenchAmount', () => {
     expect(parseFrenchAmount(raw)).toBeNull();
   });
 
-  it('positif strict pour un prix', () => {
+  it('prix ou valeur déclarée : bornes serveur (1 € minimum, numeric(14, 2) maximum)', () => {
+    expect(MARKET_MIN_ASK_PRICE).toBe(1);
     expect(parsePositiveAmount('0')).toBeNull();
-    expect(parsePositiveAmount('0,01')).toBe(0.01);
+    expect(parsePositiveAmount('0,01')).toBeNull();
+    expect(parsePositiveAmount('0,99')).toBeNull();
+    expect(parsePositiveAmount('1')).toBe(1);
+    expect(parsePositiveAmount('0,995')).toBe(1); // arrondi au centime d’abord, comme numeric(14, 2)
+    expect(parsePositiveAmount('999 999 999 999,99')).toBe(MARKET_MAX_AMOUNT);
+    expect(parsePositiveAmount('1 000 000 000 000')).toBeNull();
+    expect(checkMarketAmount('abc')).toEqual({ ok: false, problem: 'invalid' });
+    expect(checkMarketAmount('')).toEqual({ ok: false, problem: 'invalid' });
+    expect(checkMarketAmount('0,50')).toEqual({ ok: false, problem: 'belowMin' });
+    expect(checkMarketAmount('1 000 000 000 000')).toEqual({ ok: false, problem: 'aboveMax' });
+    expect(checkMarketAmount('1 250,50')).toEqual({ ok: true, value: 1250.5 });
+  });
+
+  it('message clair d’un montant refusé : minimum et maximum chiffrés', () => {
+    const below = amountProblemMessage('belowMin', 'fr');
+    expect(below.key).toBe('community.amountBelowMin');
+    expect(plain(below.params?.['min'] ?? '')).toBe('1 €');
+    const above = amountProblemMessage('aboveMax', 'fr');
+    expect(above.key).toBe('community.amountAboveMax');
+    expect(plain(above.params?.['max'] ?? '')).toBe('999 999 999 999,99 €');
+    expect(amountProblemMessage('invalid', 'en')).toEqual({ key: 'community.invalidAmount' });
   });
 
   it('pré-remplit un champ à partir d’une valeur', () => {
@@ -287,6 +316,42 @@ describe('expédition', () => {
     expect(normalizeTrackingNumber('AB1')).toBeNull();
     expect(normalizeTrackingNumber('appelez-moi@exemple.com')).toBeNull();
     expect(normalizeTrackingNumber('Colis remis en main propre')).toBeNull();
+  });
+
+  it('une seule liste de transporteurs : celle de @velum/api-client (réplique de market_carriers())', () => {
+    expect(MARKET_CARRIERS).toBe(API_MARKET_CARRIERS);
+    expect(MARKET_CARRIERS).not.toContain('Royal Mail');
+  });
+
+  it('règle UI (au moins un chiffre) = sous-ensemble strict du format serveur', () => {
+    const samples = [
+      ' 6a 1234 5678 901 ',
+      'LL123456789FR',
+      'ab-1234',
+      'ABCD',
+      'abcd-efgh',
+      '1234',
+      '-1234',
+      'A'.repeat(39) + '1',
+      'A'.repeat(40) + '1',
+      'écrivez-moi',
+      'bob@yahoo.fr',
+      'www.site.fr',
+      '',
+    ];
+    for (const sample of samples) {
+      const ui = normalizeTrackingNumber(sample);
+      if (ui !== null) {
+        // Tout suivi accepté par l’UI l’est par le dépôt / le serveur, à l’identique.
+        expect(apiNormalizeTrackingNumber(sample)).toBe(ui);
+        expect(ui).toMatch(/^[A-Z0-9][A-Z0-9-]{3,39}$/);
+        expect(ui).toMatch(/[0-9]/);
+      }
+    }
+    expect(normalizeTrackingNumber('ABCD')).toBeNull(); // valide côté serveur, sans chiffre : refusé ici
+    expect(apiNormalizeTrackingNumber('ABCD')).toBe('ABCD');
+    expect(normalizeTrackingNumber('-1234')).toBeNull();
+    expect(normalizeTrackingNumber('A'.repeat(40) + '1')).toBeNull();
   });
 
   it('n’envoie que le suivi et le transporteur choisi — jamais de date de livraison', () => {

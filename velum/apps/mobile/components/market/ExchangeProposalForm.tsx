@@ -15,6 +15,7 @@ import { VButton, VCard, VSpinner, VText, VTextInput, velumSpacing } from '@velu
 
 import { getVelumClient } from '../../lib/client';
 import {
+  amountProblemMessage,
   amountToInput,
   estimateFromValuation,
   exchangePreview,
@@ -117,7 +118,12 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
     onError,
   });
 
-  const valueError = value.trim().length > 0 && preview.offeredValue === null ? t('community.invalidAmount') : undefined;
+  // Motif précis (illisible, sous 1 €, au-delà du maximum serveur).
+  const valueProblem =
+    value.trim().length > 0 && preview.offeredValueProblem !== null
+      ? amountProblemMessage(preview.offeredValueProblem, locale)
+      : null;
+  const valueError = valueProblem !== null ? t(valueProblem.key, valueProblem.params) : undefined;
   const cashError = preview.cashAdjustment === null ? t('community.invalidAmount') : undefined;
   const canSubmit = item !== null && preview.offeredValue !== null && preview.cashAdjustment !== null;
 

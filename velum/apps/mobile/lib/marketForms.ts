@@ -19,6 +19,13 @@ import {
   type ExchangeCommission,
   type SaleBreakdown,
 } from '@velum/config';
+import {
+  MARKET_CARRIERS,
+  MARKET_MAX_AMOUNT,
+  MARKET_MIN_ASK_PRICE,
+  normalizeTrackingNumber as normalizeServerTracking,
+  type MarketCarrier,
+} from '@velum/api-client';
 import type { ListingKind, ValuationRecord, VelumDomain, VelumItem } from '@velum/core';
 
 import { isForSale, isOpenToExchange } from './marketState';
@@ -59,10 +66,50 @@ export function parseFrenchAmount(raw: string): number | null {
   return Number.isFinite(value) ? roundCents(value) : null;
 }
 
-/** Montant strictement positif, ou null. */
-export function parsePositiveAmount(raw: string): number | null {
+/**
+ * Motif de refus d'un montant saisi : illisible, sous le minimum
+ * (MARKET_MIN_ASK_PRICE, 1 €), au-delà du plus grand montant représentable
+ * côté serveur (MARKET_MAX_AMOUNT, numeric(14, 2)).
+ */
+export type AmountProblem = 'invalid' | 'belowMin' | 'aboveMax';
+
+export type AmountCheck = { ok: true; value: number } | { ok: false; problem: AmountProblem };
+
+/**
+ * Prix demandé ou valeur déclarée saisi → montant accepté par le serveur
+ * (bornes de @velum/api-client : market_min_ask_price_eur() et numeric(14, 2)),
+ * ou le motif du refus pour un message clair.
+ */
+export function checkMarketAmount(raw: string): AmountCheck {
   const value = parseFrenchAmount(raw);
-  return value !== null && value > 0 ? value : null;
+  if (value === null) return { ok: false, problem: 'invalid' };
+  if (value < MARKET_MIN_ASK_PRICE) return { ok: false, problem: 'belowMin' };
+  if (value > MARKET_MAX_AMOUNT) return { ok: false, problem: 'aboveMax' };
+  return { ok: true, value };
+}
+
+/**
+ * Prix ou valeur déclarée valide (≥ MARKET_MIN_ASK_PRICE, ≤ MARKET_MAX_AMOUNT),
+ * ou null — le motif s'obtient par `checkMarketAmount`.
+ */
+export function parsePositiveAmount(raw: string): number | null {
+  const check = checkMarketAmount(raw);
+  return check.ok ? check.value : null;
+}
+
+/** Message (clé i18n + paramètres) d'un montant refusé — minimum et maximum chiffrés. */
+export function amountProblemMessage(
+  problem: AmountProblem,
+  locale: string,
+): { key: string; params?: Record<string, string> } {
+  switch (problem) {
+    case 'belowMin':
+      return { key: 'community.amountBelowMin', params: { min: formatPrice(MARKET_MIN_ASK_PRICE, locale) } };
+    case 'aboveMax':
+      return { key: 'community.amountAboveMax', params: { max: formatPrice(MARKET_MAX_AMOUNT, locale) } };
+    default:
+      return { key: 'community.invalidAmount' };
+  }
 }
 
 /** Valeur pré-remplie dans un champ (entier si possible, virgule décimale). */
@@ -134,6 +181,8 @@ export type SellCertification = 'required' | 'voluntary' | 'none' | 'already';
 export interface SellPreview {
   /** Prix demandé / valeur déclarée saisi (null si invalide). */
   value: number | null;
+  /** Motif du refus de la saisie (null si valide). */
+  valueProblem: AmountProblem | null;
   commissionRate: number;
   nextTier: NextCommissionTier | null;
   /** Décomposition de la vente (null pour un échange seul ou un prix invalide). */
@@ -155,7 +204,8 @@ export function sellPreview(input: {
   /** Objet déjà certifié par un expert (lib/marketState `itemCertifiedByExpert`). */
   alreadyCertified?: boolean;
 }): SellPreview {
-  const value = parsePositiveAmount(input.priceInput);
+  const check = checkMarketAmount(input.priceInput);
+  const value = check.ok ? check.value : null;
   const rule = certificationRequirement({
     value: value ?? 0,
     estimatedValue: input.estimatedValue,
@@ -177,6 +227,7 @@ export function sellPreview(input: {
       : estimateCertificationFee(requirement.referenceValue);
   return {
     value,
+    valueProblem: check.ok ? null : check.problem,
     commissionRate: commissionRateFor(input.completedSales),
     nextTier: nextCommissionTier(input.completedSales),
     sale:
@@ -204,13 +255,16 @@ export type CashDirection = 'add' | 'ask';
 export function signedCashAdjustment(direction: CashDirection, amountInput: string): number | null {
   if (amountInput.trim().length === 0) return 0;
   const amount = parseFrenchAmount(amountInput);
-  if (amount === null) return null;
+  // Au-delà de numeric(14, 2) : refus local (jamais présenté comme une panne).
+  if (amount === null || amount > MARKET_MAX_AMOUNT) return null;
   if (amount === 0) return 0;
   return direction === 'add' ? amount : -amount;
 }
 
 export interface ExchangePreview {
   offeredValue: number | null;
+  /** Motif du refus de la valeur déclarée saisie (null si valide). */
+  offeredValueProblem: AmountProblem | null;
   cashAdjustment: number | null;
   /** Ma commission (sur la valeur de l'objet que je cède), figée à l'acceptation. */
   myCommission: ExchangeCommission | null;
@@ -249,7 +303,8 @@ export function exchangePreview(input: {
   completedSales: number;
   mutualCertification?: boolean;
 }): ExchangePreview {
-  const offeredValue = parsePositiveAmount(input.offeredValueInput);
+  const offeredCheck = checkMarketAmount(input.offeredValueInput);
+  const offeredValue = offeredCheck.ok ? offeredCheck.value : null;
   const cashAdjustment = signedCashAdjustment(input.cashDirection, input.cashInput);
   // Objet par objet, comme le serveur : mon objet = max(valeur déclarée,
   // estimation) ; l'objet de l'annonce = sa valeur déclarée ; un objet déjà
@@ -282,6 +337,7 @@ export function exchangePreview(input: {
       : 0;
   return {
     offeredValue,
+    offeredValueProblem: offeredCheck.ok ? null : offeredCheck.problem,
     cashAdjustment,
     myCommission: offeredValue !== null ? exchangeCommission(offeredValue, input.completedSales) : null,
     requirement,
@@ -307,21 +363,28 @@ export function sortItemsForExchange(
 // ── Expédition ───────────────────────────────────────────────────────────────
 
 /**
- * Transporteurs proposés à l'expédition : liste FERMÉE (pas de texte libre,
- * donc aucun canal de coordonnées).
+ * Transporteurs proposés à l'expédition : la liste FERMÉE de @velum/api-client,
+ * réplique testée de market_carriers() (SQL) — une seule liste pour l'UI, le
+ * dépôt et le serveur ; pas de texte libre, donc aucun canal de coordonnées.
  */
-export const MARKET_CARRIERS = ['La Poste', 'Colissimo', 'Chronopost', 'Mondial Relay', 'DHL', 'UPS', 'FedEx'] as const;
-export type MarketCarrier = (typeof MARKET_CARRIERS)[number];
+export { MARKET_CARRIERS, type MarketCarrier };
 
 /**
  * Numéro de suivi saisi → forme normalisée (blancs retirés, majuscules), ou
- * null s'il ne ressemble pas à un numéro de suivi (4 à 40 lettres, chiffres
- * ou tirets, au moins un chiffre) : une phrase, un e-mail ou un lien ne
- * passent pas.
+ * null s'il ne ressemble pas à un numéro de suivi. Règle du dépôt et du
+ * serveur (normalizeTrackingNumber de @velum/api-client : lettres, chiffres
+ * et tirets, 4 à 40 caractères, ^[A-Z0-9][A-Z0-9-]{3,39}$), plus STRICTE
+ * ici : au moins un chiffre — sous-ensemble du format serveur, jamais plus
+ * permissive. Une phrase, un e-mail ou un lien ne passent pas.
  */
 export function normalizeTrackingNumber(raw: string): string | null {
-  const value = raw.replace(/\s+/g, '').toUpperCase();
-  return /^(?=.*[0-9])[A-Z0-9][A-Z0-9-]{3,39}$/.test(value) ? value : null;
+  let value: string;
+  try {
+    value = normalizeServerTracking(raw);
+  } catch {
+    return null;
+  }
+  return /[0-9]/.test(value) ? value : null;
 }
 
 /**

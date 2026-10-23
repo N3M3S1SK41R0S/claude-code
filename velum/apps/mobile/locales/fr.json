@@ -1297,6 +1297,8 @@
     "listed": "Annonce publiée.",
     "invalidPrice": "Prix invalide.",
     "invalidAmount": "Montant invalide (ex. 1 250,50).",
+    "amountBelowMin": "Montant minimum : {{min}}.",
+    "amountAboveMax": "Montant trop élevé : {{max}} au plus.",
     "notYetAvailable": "Cette fonction arrive très bientôt sur le serveur. Réessayez plus tard.",
     "offlineTitle": "Hors-ligne",
     "offline": "Hors-ligne : ces informations s’afficheront dès le retour du réseau.",

@@ -30,6 +30,7 @@ import {
 } from '../../components/market/hooks';
 import { getVelumClient } from '../../lib/client';
 import {
+  amountProblemMessage,
   amountToInput,
   estimateFromValuation,
   formatPrice,
@@ -126,7 +127,12 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
   });
 
   const locked = publish.isPending;
-  const priceError = price.trim().length > 0 && preview.value === null ? t('community.invalidPrice') : undefined;
+  // Motif précis (illisible, sous 1 €, au-delà du maximum serveur) : jamais un simple « invalide ».
+  const priceProblem =
+    price.trim().length > 0 && preview.valueProblem !== null
+      ? amountProblemMessage(preview.valueProblem, locale)
+      : null;
+  const priceError = priceProblem !== null ? t(priceProblem.key, priceProblem.params) : undefined;
 
   const rows: AmountRow[] = [];
   if (preview.sale !== null) {

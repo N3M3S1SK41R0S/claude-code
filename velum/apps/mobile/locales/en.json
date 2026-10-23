@@ -1297,6 +1297,8 @@
     "listed": "Listing published.",
     "invalidPrice": "Invalid price.",
     "invalidAmount": "Invalid amount (e.g. 1,250.50).",
+    "amountBelowMin": "Minimum amount: {{min}}.",
+    "amountAboveMax": "Amount too high: {{max}} at most.",
     "notYetAvailable": "This feature is coming to the server very soon. Please try again later.",
     "offlineTitle": "Offline",
     "offline": "Offline: this information will appear as soon as you are back online.",
