@@ -7,7 +7,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
-DB=velum_sql_check
+# Base temporaire ; surchargeable pour exécuter plusieurs validations en parallèle.
+DB=${VELUM_SQL_DB:-velum_sql_check}
 if [[ $(id -un) == 'postgres' ]]; then
   PG_RUN=()
 else
@@ -112,6 +113,15 @@ run_sql_file "tests d'idempotence des alertes" supabase/tests/alert_idempotency_
 
 echo "· tests de comportement (RLS, quota, Platine, storage, purge)"
 run_sql_file "tests RLS et comportement" supabase/tests/rls_checks.sql
+
+# Tests par fonctionnalité, découverts automatiquement (ordre alphabétique) :
+# chaque chantier ajoute son fichier sans modifier ce script.
+shopt -s nullglob
+for feature_checks in supabase/tests/features/*.sql; do
+  echo "· tests ${feature_checks##*/}"
+  run_sql_file "tests ${feature_checks##*/}" "$feature_checks"
+done
+shopt -u nullglob
 
 rm -f "$COMMAND_LOG" "$PLAN_FILE" "$DIAGNOSTIC_FILE"
 

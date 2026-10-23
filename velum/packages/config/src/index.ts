@@ -192,3 +192,7 @@ export function readClientEnv(env: Record<string, string | undefined>): ClientEn
   }
   return { supabaseUrl, supabaseAnonKey };
 }
+
+// Règles pures des plateformes d'échange et de vente (commission, certification,
+// anonymat) — voir ./marketplace.ts.
+export * from './marketplace';
