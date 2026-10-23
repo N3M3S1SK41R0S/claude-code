@@ -770,6 +770,9 @@ export function createDemoMarketplaceRepo(
       // MON objet offert : à l'auteur seulement (jamais l'objet d'autrui, anonymat oblige).
       offeredItemId: role === 'proposer' ? e.offeredItemId : null,
       offeredItemCertified: itemCertificationRef(e.offeredItemId, e.proposerId) !== null,
+      // Comme my_exchanges (has_open_certification) : verdict calculé ici, même
+      // quand l'expertise porte sur l'annonce de l'autre partie (invisible à l'interface).
+      shipmentBlocked: shipmentBlocked({ exchangeId: e.id }),
       proposerTracking: e.proposerTracking,
       recipientTracking: e.recipientTracking,
       proposerReceived: e.proposerReceived,

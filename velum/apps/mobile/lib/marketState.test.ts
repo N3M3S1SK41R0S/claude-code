@@ -417,6 +417,27 @@ describe('certifications et annonces', () => {
       }),
     ).toBe(0);
   });
+
+  it('expertise de l’annonce de l’AUTRE partie (invisible ici) : le verdict serveur shipmentBlocked bloque aussi', () => {
+    // Rejeu de la revue : A expertise volontairement son annonce l-1 puis accepte l'échange de B.
+    // B (auteur) ne voit pas cette expertise (my_certifications = []) : seul le serveur la signale.
+    const proposer = exchange({ id: 'ex-1', listingId: 'l-1', role: 'proposer', state: 'shipping', shipmentBlocked: true });
+    expect(hasOpenCertificationOn([], { exchangeId: 'ex-1', listingIds: shipmentListingIds(proposer) })).toBe(false);
+    // Ni « Expédier » ni pastille « à traiter » (seule l'annulation reste)…
+    expect(exchangeActions(proposer)).toEqual(['cancel']);
+    expect(exchangeActions({ ...proposer, state: 'accepted' })).toEqual(['cancel']);
+    expect(exchangeNeedsMe(proposer)).toBe(false);
+    expect(pendingActionCount({ exchanges: [proposer], certifications: [], listings: [] })).toBe(0);
+    // … et le destinataire, pour l'expertise de l'annonce de l'objet offert par l'auteur, de même.
+    const recipient = exchange({ id: 'ex-2', role: 'recipient', state: 'shipping', shipmentBlocked: true });
+    expect(exchangeActions(recipient)).toEqual(['cancel']);
+    expect(pendingActionCount({ exchanges: [recipient] })).toBe(0);
+    // L'autre partie a déjà expédié : la réception reste à confirmer (rien n'est bloqué de ce côté).
+    expect(exchangeActions({ ...recipient, proposerTracking: 'XY1' })).toEqual(['confirm_receipt', 'dispute']);
+    // Verdict absent ou négatif : le miroir local décide seul (comportement inchangé).
+    expect(exchangeActions({ ...proposer, shipmentBlocked: false })).toEqual(['ship', 'cancel']);
+    expect(pendingActionCount({ exchanges: [{ ...proposer, shipmentBlocked: false }] })).toBe(1);
+  });
 });
 
 describe('expertise d’un commun accord : demandée sur la transaction (miroir de request_certification)', () => {
@@ -474,6 +495,25 @@ describe('expertise d’un commun accord : demandée sur la transaction (miroir 
     expect(
       canRequestExchangeCertification(exchange({ state: 'shipping', role: 'recipient', offeredItemCertified: false }), []),
     ).toBe(true);
+  });
+
+  it('échange : expédition bloquée par une expertise INVISIBLE (annonce de l’autre partie) ⇒ pas de doublon proposé', () => {
+    // Le serveur bloque, mes certifications n'expliquent rien : l'expertise porte sur
+    // l'annonce de l'autre partie, donc sur l'objet que je reçois.
+    const hidden = { state: 'shipping' as const, shipmentBlocked: true };
+    expect(canRequestExchangeCertification(exchange({ ...hidden, role: 'proposer' }), [])).toBe(false);
+    expect(canRequestExchangeCertification(exchange({ ...hidden, role: 'recipient' }), [])).toBe(false);
+    expect(canRequestExchangeCertification(exchange({ ...hidden, role: 'proposer' }), [], { visibleBlock: false })).toBe(
+      false,
+    );
+    // Blocage expliqué par MES expertises (mon objet : seuil de l'échange, démarche sur mon
+    // annonce) : l'objet que je reçois reste à expertiser d'un commun accord.
+    expect(canRequestExchangeCertification(exchange(hidden), [cert({ reason: 'threshold', status: 'requested' })])).toBe(
+      true,
+    );
+    expect(canRequestExchangeCertification(exchange(hidden), [], { visibleBlock: true })).toBe(true);
+    // Verdict absent ou négatif : inchangé.
+    expect(canRequestExchangeCertification(exchange({ state: 'shipping', shipmentBlocked: false }), [])).toBe(true);
   });
 
   it('commande : avant expédition, une seule demande ouverte, rien après certification', () => {

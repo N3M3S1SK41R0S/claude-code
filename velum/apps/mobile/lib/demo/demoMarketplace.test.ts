@@ -335,6 +335,32 @@ describe('démo marketplace — alignement sur les règles serveur', () => {
     expect((await repo.myListings()).find((l) => l.id === 'demo-mine-1')).toMatchObject({ status: 'draft', certified: false });
   });
 
+  it('vue d’échange : shipmentBlocked reflète la règle d’expédition bloquée (comme my_exchanges)', async () => {
+    const repo = setup();
+    const view = async () => (await repo.myExchanges()).find((e) => e.id === 'demo-exchange-1');
+    expect((await view())?.shipmentBlocked).toBe(false);
+    const voluntary = await repo.requestCertification({ reason: 'voluntary', listingId: 'demo-mine-1' });
+    await repo.respondExchange('demo-exchange-1', true);
+    const blocked = await view();
+    expect(blocked?.shipmentBlocked).toBe(true);
+    if (blocked === undefined) return;
+    // Le verdict seul suffit à l'interface (sans relire les certifications) : pas d'envoi ;
+    // sans expertise visible qui l'explique, pas d'expertise d'un commun accord (doublon).
+    expect(exchangeActions(blocked)).not.toContain('ship');
+    expect(canRequestExchangeCertification(blocked, [])).toBe(false);
+    // Ici l'expertise porte sur MON annonce (visible) : l'objet que je reçois reste expertisable.
+    const visibleBlock = hasOpenCertificationOn(await repo.myCertifications(), {
+      exchangeId: blocked.id,
+      listingIds: shipmentListingIds(blocked, await repo.myListings()),
+    });
+    expect(visibleBlock).toBe(true);
+    expect(canRequestExchangeCertification(blocked, [], { visibleBlock })).toBe(true);
+    await repo.decideCertification(voluntary.id, { certified: true });
+    const freed = await view();
+    expect(freed?.shipmentBlocked).toBe(false);
+    if (freed !== undefined) expect(exchangeActions(freed)).toContain('ship');
+  });
+
   it('expertise de l’annonce tranchée (certifiée) : l’expédition reprend', async () => {
     const repo = setup();
     const voluntary = await repo.requestCertification({ reason: 'voluntary', listingId: 'demo-mine-1' });
