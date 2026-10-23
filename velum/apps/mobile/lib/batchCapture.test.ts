@@ -4,7 +4,9 @@ import {
   PRIMARY_ROLE,
   QUICK_JPEG_QUALITY,
   SHEET_JPEG_QUALITY,
+  classificationText,
   createUploadTracker,
+  formatEstimateRange,
   mediaForRecognition,
   secondsForDisplay,
   settledStoragePaths,
@@ -54,6 +56,9 @@ describe('createUploadTracker', () => {
     tracker.forget('data:a');
     expect(tracker.peek('data:a')).toBeUndefined();
     expect(tracker.wait('data:a')).toBeUndefined();
+    await tracker.start('data:b');
+    tracker.clear();
+    expect(tracker.peek('data:b')).toBeUndefined();
   });
 });
 
@@ -129,6 +134,18 @@ describe('chronométrage et réglages', () => {
     expect(secondsForDisplay(2349)).toBe(2.3);
     expect(secondsForDisplay(-5)).toBe(0);
     expect(secondsForDisplay(Number.NaN)).toBe(0);
+  });
+
+  it('fourchette lisible : centimes pour les petites valeurs, euros sinon', () => {
+    const plain = (s: string) => s.replace(/[  ]/g, ' ');
+    expect(plain(formatEstimateRange({ low: 40, high: 90, currency: 'EUR' }, 'fr'))).toBe('40 € – 90 €');
+    expect(plain(formatEstimateRange({ low: 0.3, high: 0.8, currency: 'EUR' }, 'fr'))).toBe('0,30 € – 0,80 €');
+    expect(plain(formatEstimateRange({ low: 1200, high: 1500, currency: 'EUR' }, 'en'))).toBe('€1,200 – €1,500');
+  });
+
+  it('classement en fil d’Ariane', () => {
+    expect(classificationText(['France', ' ', 'Cérès', '1849–1850'])).toBe('France › Cérès › 1849–1850');
+    expect(classificationText(undefined)).toBe('');
   });
 
   it('qualité plus élevée pour une planche ; cliché principal par domaine', () => {

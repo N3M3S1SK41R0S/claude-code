@@ -7,6 +7,7 @@ import {
   RELIABLE_CONFIDENCE,
   batchReducer,
   batchSummary,
+  displayOrder,
   effectiveCandidate,
   isBinderFirst,
   isReliable,
@@ -14,6 +15,7 @@ import {
   reliableRows,
   statusForCandidates,
   supportsSheet,
+  unsavedCount,
   type BatchAction,
   type BatchState,
 } from './batchQueue';
@@ -27,7 +29,13 @@ function run(actions: BatchAction[], from: BatchState = EMPTY_BATCH): BatchState
 }
 
 function shot(id: string): BatchAction {
-  return { type: 'enqueue', id, source: 'shot', thumbnailUri: `file://${id}.jpg`, media: [{ role: 'front' }] };
+  return {
+    type: 'enqueue',
+    id,
+    source: 'shot',
+    thumbnailUri: `file://${id}.jpg`,
+    media: [{ role: 'front', base64: `data:${id}` }],
+  };
 }
 
 function row(state: BatchState, id: string) {
@@ -59,7 +67,7 @@ describe('batchReducer — série', () => {
   it('pending → running → identified, tri et top 3 des candidats', () => {
     const state = run([
       shot('a'),
-      { type: 'uploaded', id: 'a', role: 'front', storagePath: 'u/a.jpg' },
+      { type: 'uploaded', photo: 'data:a', storagePath: 'u/a.jpg' },
       { type: 'start', id: 'a' },
       {
         type: 'recognized',
@@ -71,7 +79,7 @@ describe('batchReducer — série', () => {
     expect(a.status).toBe('identified');
     expect(a.attempts).toBe(1);
     expect(a.candidates.map((c) => c.label)).toEqual(['y', 'z', 'w']);
-    expect(a.media).toEqual([{ role: 'front', storagePath: 'u/a.jpg' }]);
+    expect(a.media).toEqual([{ role: 'front', base64: 'data:a', storagePath: 'u/a.jpg' }]);
     expect(effectiveCandidate(a)?.label).toBe('y');
   });
 
@@ -157,15 +165,21 @@ describe('batchReducer — planche', () => {
   it('remplace la photo de planche par une ligne par objet, à sa place', () => {
     const state = run([
       shot('avant'),
-      { type: 'enqueue', id: 'p', source: 'sheet', thumbnailUri: 'file://p.jpg', media: [{ role: 'detail', storagePath: 'u/p.jpg' }] },
+      { type: 'enqueue', id: 'p', source: 'sheet', thumbnailUri: 'file://p.jpg', media: [{ role: 'front', base64: 'data:p' }] },
       shot('après'),
       { type: 'start', id: 'p' },
       { type: 'sheetRecognized', id: 'p', detections, truncated: true },
+      // Téléversement terminé APRÈS la reconnaissance : chaque objet reçoit le chemin.
+      { type: 'uploaded', photo: 'data:p', storagePath: 'u/p.jpg' },
     ]);
     expect(state.rows.map((r) => r.id)).toEqual(['avant', 'p-0', 'p-1', 'p-2', 'après']);
     const first = row(state, 'p-0');
     expect(first).toMatchObject({ source: 'detection', status: 'identified', position: 'case 1', thumbnailUri: 'file://p.jpg' });
-    expect(first.media).toEqual([{ role: 'detail', storagePath: 'u/p.jpg' }]);
+    expect(first.media).toEqual([{ role: 'detail', base64: 'data:p', storagePath: 'u/p.jpg' }]);
+    expect(row(state, 'p-2').media[0]?.storagePath).toBe('u/p.jpg');
+    expect(row(state, 'avant').media[0]?.storagePath).toBeUndefined();
+    // Un chemin déjà connu ne recrée pas l'état.
+    expect(batchReducer(state, { type: 'uploaded', photo: 'data:p', storagePath: 'u/p.jpg' })).toBe(state);
     expect(row(state, 'p-1').status).toBe('uncertain');
     expect(state.truncatedSheets).toEqual(['p']);
     // Les objets détectés ne se « réessaient » pas un par un.
@@ -186,6 +200,47 @@ describe('batchReducer — planche', () => {
   it('une ligne de planche ne reçoit pas de candidats « objet seul »', () => {
     const state = run([{ type: 'enqueue', id: 'p', source: 'sheet', media: [] }, { type: 'start', id: 'p' }]);
     expect(batchReducer(state, { type: 'recognized', id: 'p', candidates: [candidate('x', 0.9)] })).toBe(state);
+  });
+});
+
+describe('ordre d’affichage et lignes restantes', () => {
+  it('prise la plus récente en haut, objets d’une planche dans l’ordre de lecture', () => {
+    const detections: SheetDetection[] = [0, 1, 2].map((index) => ({
+      index,
+      candidates: [candidate(`t${index}`, 0.8)],
+      needsAssistedEntry: false,
+    }));
+    const state = run([
+      shot('a'),
+      { type: 'enqueue', id: 'p', source: 'sheet', media: [{ role: 'detail', base64: 'data:p' }] },
+      shot('b'),
+      { type: 'start', id: 'p' },
+      { type: 'sheetRecognized', id: 'p', detections, truncated: false },
+    ]);
+    expect(displayOrder(state).map((r) => r.id)).toEqual(['b', 'p-0', 'p-1', 'p-2', 'a']);
+    expect(row(state, 'p-1').groupId).toBe('p');
+  });
+
+  it('compte ce qui serait perdu en quittant (ni enregistré, ni ignoré)', () => {
+    let state = run([
+      shot('a'),
+      shot('b'),
+      shot('c'),
+      { type: 'start', id: 'a' },
+      { type: 'recognized', id: 'a', candidates: [candidate('x', 0.9)] },
+      { type: 'start', id: 'b' },
+      { type: 'failed', id: 'b', errorCode: 'X' },
+    ]);
+    expect(unsavedCount(state)).toBe(3);
+    state = run(
+      [
+        { type: 'saving', id: 'a' },
+        { type: 'saved', id: 'a', itemId: 'i' },
+        { type: 'skip', id: 'b' },
+      ],
+      state,
+    );
+    expect(unsavedCount(state)).toBe(1);
   });
 });
 

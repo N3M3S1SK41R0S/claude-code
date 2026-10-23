@@ -1,33 +1,43 @@
 /**
- * Modal de capture par domaine : caméra avec guides de cadrage multi-clichés
- * (rôles MediaRole propres au domaine), import galerie, saisie texte libre,
- * import de fichier CSV/JSON. Les photos sont téléversées avant `recognize` et
- * leurs chemins restent dans le brouillon jusqu'à la création de l'objet.
+ * Capture d'un objet, en deux modes :
+ *  - « Scan éclair » (défaut) : UNE photo, l'identification démarre aussitôt
+ *    (identification + classement + fourchette indicative en un appel) ;
+ *  - « Saisie complète » : tous les clichés du domaine (guides de cadrage par
+ *    rôle), texte libre ou import CSV/JSON, puis « Analyser ».
+ * Le téléversement de chaque photo démarre dès la prise de vue ; la
+ * reconnaissance ne l'attend pas (voir lib/batchCapture.ts).
  */
-import { useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
-import * as ImagePicker from 'expo-image-picker';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { VButton, VText, VTextInput, velumColors, velumSpacing } from '@velum/ui';
+import { VButton, VText, VTextInput, velumSpacing } from '@velum/ui';
 import type { CaptureInput, MediaRole, VelumDomain } from '@velum/core';
 
 import { AiConsentModal } from '../../components/AiConsentModal';
 import { MediaCapturePreview } from '../../components/MediaCapturePreview';
 import { Screen } from '../../components/Screen';
-import { WebCamera } from '../../components/WebCamera';
+import { SegmentedChoice } from '../../components/capture/SegmentedChoice';
+import { ShutterCamera, type CapturedShot } from '../../components/capture/ShutterCamera';
+import {
+  PRIMARY_ROLE,
+  QUICK_JPEG_QUALITY,
+  QUICK_MAX_EDGE,
+  mediaForRecognition,
+  startStopwatch,
+} from '../../lib/batchCapture';
 import { getVelumClient } from '../../lib/client';
 import { errorMessage, velumErrorCode } from '../../lib/errors';
-import { uploadCaptureMedia } from '../../lib/uploadMedia';
-import { useCaptureStore } from '../../stores/captureStore';
+import { routes } from '../../lib/routes';
+import { captureUploads } from '../../lib/uploadMedia';
+import { useCaptureStore, type CaptureMode, type DraftMedia } from '../../stores/captureStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { showToast } from '../../stores/toastStore';
 
-/** Guides de cadrage : rôles de clichés attendus par domaine (§6.1.2). */
+/** Guides de cadrage : rôles de clichés attendus par domaine (§6.1.2), saisie complète. */
 const DOMAIN_ROLES: Record<VelumDomain, MediaRole[]> = {
   wine: ['label', 'capsule'],
   coin: ['obverse', 'reverse', 'edge'],
@@ -37,6 +47,10 @@ const DOMAIN_ROLES: Record<VelumDomain, MediaRole[]> = {
 };
 
 const DOMAINS: VelumDomain[] = ['wine', 'coin', 'art', 'stamp', 'watch'];
+
+/** Qualité JPEG de la saisie complète (plusieurs clichés détaillés). */
+const FULL_JPEG_QUALITY = 0.7;
+const FULL_MAX_EDGE = 2000;
 
 type Tab = 'photo' | 'text' | 'file';
 
@@ -68,12 +82,13 @@ function parseRows(content: string, name: string): Record<string, unknown>[] {
 export default function CaptureModal() {
   const { t } = useTranslation();
   const router = useRouter();
-  const params = useLocalSearchParams<{ domain: string }>();
+  const params = useLocalSearchParams<{ domain: string; mode?: string }>();
   const domain: VelumDomain = DOMAINS.includes(params.domain as VelumDomain)
     ? (params.domain as VelumDomain)
     : 'wine';
+  const mode: CaptureMode = params.mode === 'full' ? 'full' : 'quick';
 
-  const roles = DOMAIN_ROLES[domain];
+  const roles = mode === 'full' ? DOMAIN_ROLES[domain] : [PRIMARY_ROLE[domain]];
   const [tab, setTab] = useState<Tab>('photo');
   const [submitting, setSubmitting] = useState(false);
   // Consentement IA : photo et texte partent au LLM ; l'import fichier est
@@ -83,63 +98,86 @@ export default function CaptureModal() {
   const consentNeeded = (tab === 'photo' || tab === 'text') && aiConsent === null;
   const consentDenied = (tab === 'photo' || tab === 'text') && aiConsent === false;
   const [activeRole, setActiveRole] = useState<MediaRole>(roles[0] ?? 'detail');
-  const [permission, requestPermission] = useCameraPermissions();
-  const cameraRef = useRef<CameraView>(null);
 
+  const storeDomain = useCaptureStore((s) => s.domain);
   const media = useCaptureStore((s) => s.media);
   const text = useCaptureStore((s) => s.text);
   const fileRows = useCaptureStore((s) => s.fileRows);
   const fileName = useCaptureStore((s) => s.fileName);
+  const setDomain = useCaptureStore((s) => s.setDomain);
+  const setMode = useCaptureStore((s) => s.setMode);
   const addMedia = useCaptureStore((s) => s.addMedia);
   const setMediaStoragePath = useCaptureStore((s) => s.setMediaStoragePath);
   const setText = useCaptureStore((s) => s.setText);
   const setFileRows = useCaptureStore((s) => s.setFileRows);
   const setRecognition = useCaptureStore((s) => s.setRecognition);
 
+  // Lien direct (/capture/stamp?mode=full) : le brouillon suit l'URL.
+  useEffect(() => {
+    if (storeDomain !== domain) setDomain(domain);
+  }, [storeDomain, domain, setDomain]);
+  useEffect(() => {
+    setMode(mode);
+    const modeRoles = mode === 'full' ? DOMAIN_ROLES[domain] : [PRIMARY_ROLE[domain]];
+    setActiveRole((current) => (modeRoles.includes(current) ? current : (modeRoles[0] ?? 'detail')));
+  }, [mode, domain, setMode]);
+
   const recognizeMutation = useMutation({
     mutationFn: (input: CaptureInput) => getVelumClient().edge.recognize(domain, input),
   });
   const pending = submitting || recognizeMutation.isPending;
 
-  /** Ajoute un cliché et avance vers le rôle suivant restant (multi-clichés). */
-  const acceptShot = (dataUrl: string) => {
+  const identify = async (shots: DraftMedia[], currentTab: Tab) => {
     if (pending) return;
-    addMedia({ role: activeRole, base64: dataUrl, uri: dataUrl });
-    const remaining = roles.find(
-      (role) => role !== activeRole && !media.some((m) => m.role === role),
-    );
+    if ((currentTab === 'photo' || currentTab === 'text') && aiConsent !== true) {
+      showToast(t('aiConsent.declinedBanner'), 'info');
+      return;
+    }
+    if (
+      (currentTab === 'photo' && shots.length === 0) ||
+      (currentTab === 'text' && text.trim().length === 0) ||
+      (currentTab === 'file' && fileRows.length === 0)
+    ) {
+      showToast(t('capture.noInput'), 'info');
+      return;
+    }
+
+    setSubmitting(true);
+    const watch = startStopwatch(() => Date.now());
+    try {
+      const input: CaptureInput =
+        currentTab === 'photo'
+          ? // Photo déjà téléversée → chemin ; téléversement en cours → base64, sans attendre.
+            { kind: 'photo', media: mediaForRecognition(shots, captureUploads) }
+          : currentTab === 'text'
+            ? { kind: 'text', text: text.trim() }
+            : { kind: 'file', fileRows };
+      const result = await recognizeMutation.mutateAsync(input);
+      setRecognition(result, watch.elapsed());
+      router.push(routes.candidates());
+    } catch (error) {
+      showToast(errorMessage(error, t), 'danger');
+      if (velumErrorCode(error) === 'BUDGET_EXCEEDED') router.push(routes.paywall());
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  /** Cliché accepté : téléversement immédiat ; en scan éclair, identification aussitôt. */
+  const acceptShot = (shot: CapturedShot) => {
+    if (pending) return;
+    const draft: DraftMedia = { role: activeRole, base64: shot.dataUrl, uri: shot.uri };
+    addMedia(draft);
+    void captureUploads.start(shot.dataUrl).then((path) => {
+      if (path) setMediaStoragePath(draft.role, draft.base64, path);
+    });
+    if (mode === 'quick') {
+      void identify(useCaptureStore.getState().media, 'photo');
+      return;
+    }
+    const current = useCaptureStore.getState().media;
+    const remaining = roles.find((role) => role !== activeRole && !current.some((m) => m.role === role));
     if (remaining) setActiveRole(remaining);
-  };
-
-  const takePhoto = async () => {
-    if (pending) return;
-    try {
-      const photo = await cameraRef.current?.takePictureAsync({ base64: true, quality: 0.7 });
-      if (!photo?.base64) return;
-      acceptShot(`data:image/jpeg;base64,${photo.base64}`);
-    } catch (error) {
-      showToast(errorMessage(error, t), 'danger');
-    }
-  };
-
-  const pickFromGallery = async () => {
-    if (pending) return;
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
-        base64: true,
-        quality: 0.7,
-      });
-      const asset = result.assets?.[0];
-      if (result.canceled || !asset?.base64 || pending) return;
-      addMedia({
-        role: activeRole,
-        base64: `data:image/jpeg;base64,${asset.base64}`,
-        uri: asset.uri,
-      });
-    } catch (error) {
-      showToast(errorMessage(error, t), 'danger');
-    }
   };
 
   const pickFile = async () => {
@@ -160,181 +198,86 @@ export default function CaptureModal() {
     }
   };
 
-  const analyze = async () => {
+  const switchMode = (next: CaptureMode) => {
     if (pending) return;
-    if ((tab === 'photo' || tab === 'text') && aiConsent !== true) {
-      showToast(t('aiConsent.declinedBanner'), 'info');
-      return;
-    }
-    if (
-      (tab === 'photo' && media.length === 0) ||
-      (tab === 'text' && text.trim().length === 0) ||
-      (tab === 'file' && fileRows.length === 0)
-    ) {
-      showToast(t('capture.noInput'), 'info');
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      let input: CaptureInput;
-      if (tab === 'photo') {
-        // Un chemin déjà téléversé est réutilisé après une erreur de reconnaissance :
-        // aucun doublon Storage n'est créé lors d'une nouvelle tentative.
-        const uploaded = await Promise.all(
-          media.map(async (entry) => {
-            const path = entry.storagePath ?? (await uploadCaptureMedia(entry.base64));
-            if (path !== null && entry.storagePath !== path) {
-              // Défense contre une ancienne promesse d'upload qui se terminerait après
-              // le remplacement du cliché du même rôle.
-              setMediaStoragePath(entry.role, entry.base64, path);
-            }
-            return { media: entry, path };
-          }),
-        );
-        input = {
-          kind: 'photo',
-          media: uploaded.map(({ media: entry, path }) =>
-            path === null
-              ? { role: entry.role, storagePath: '', base64: entry.base64 }
-              : { role: entry.role, storagePath: path },
-          ),
-        };
-      } else if (tab === 'text') {
-        input = { kind: 'text', text: text.trim() };
-      } else {
-        input = { kind: 'file', fileRows };
-      }
-
-      const result = await recognizeMutation.mutateAsync(input);
-      setRecognition(result);
-      router.push('/capture/candidates');
-    } catch (error) {
-      if (velumErrorCode(error) === 'BUDGET_EXCEEDED') {
-        showToast(errorMessage(error, t), 'danger');
-        router.push('/paywall');
-      } else {
-        showToast(errorMessage(error, t), 'danger');
-      }
-    } finally {
-      setSubmitting(false);
-    }
+    router.setParams({ mode: next });
   };
 
-  const renderPhotoTab = () => {
-    if (Platform.OS === 'web') {
-      return (
-        <View style={styles.cameraBlock} pointerEvents={pending ? 'none' : 'auto'}>
-          <WebCamera
-            onCapture={acceptShot}
-            labels={{
-              takePhoto: t('capture.takePhoto'),
-              starting: t('capture.cameraStarting'),
-              denied: t('capture.cameraDeniedWeb'),
-              useNativeCamera: t('capture.useNativeCamera'),
-            }}
-            guide={
-              <>
-                <VText variant="caption" tone="gold" center>
-                  {t('capture.guideTitle', { role: t(`roles.${activeRole}`) })}
-                </VText>
-                <VText variant="caption" tone="dim" center>
-                  {t('capture.guideHint')}
-                </VText>
-              </>
-            }
-          />
-          <MediaCapturePreview
-            roles={roles}
-            media={media}
-            activeRole={activeRole}
-            roleLabel={(role) => t(`roles.${role}`)}
-            onSelectRole={(role) => {
-              if (!pending) setActiveRole(role);
-            }}
-          />
-          <VText variant="caption" tone="dim" center>
-            {t('capture.photosCount', { done: media.length, total: roles.length })}
-          </VText>
-          <VButton
-            label={t('capture.fromGallery')}
-            variant="ghost"
-            onPress={() => void pickFromGallery()}
-          />
-        </View>
-      );
-    }
-    if (!permission?.granted) {
-      return (
-        <View style={styles.cameraFallback} pointerEvents={pending ? 'none' : 'auto'}>
-          <VText variant="heading" center>
-            {t('capture.cameraPermissionTitle')}
-          </VText>
-          <VText variant="body" tone="dim" center>
-            {t('capture.cameraPermissionMessage')}
-          </VText>
-          <VButton label={t('capture.cameraPermissionButton')} onPress={() => void requestPermission()} />
-          <VButton label={t('capture.fromGallery')} variant="secondary" onPress={() => void pickFromGallery()} />
-        </View>
-      );
-    }
-    return (
-      <View style={styles.cameraBlock} pointerEvents={pending ? 'none' : 'auto'}>
-        <View style={styles.cameraFrame}>
-          <CameraView ref={cameraRef} style={styles.camera} facing="back" />
-          <View pointerEvents="none" style={styles.guide}>
-            <VText variant="caption" tone="gold" center>
-              {t('capture.guideTitle', { role: t(`roles.${activeRole}`) })}
-            </VText>
+  const guide = (
+    <>
+      <VText variant="caption" tone="gold" center>
+        {t('capture.guideTitle', { role: t(`roles.${activeRole}`) })}
+      </VText>
+      <VText variant="caption" tone="dim" center>
+        {t(`capture.tips.${domain}`)}
+      </VText>
+    </>
+  );
+
+  const renderPhotoTab = () => (
+    <ShutterCamera
+      onCapture={acceptShot}
+      quality={mode === 'quick' ? QUICK_JPEG_QUALITY : FULL_JPEG_QUALITY}
+      maxEdge={mode === 'quick' ? QUICK_MAX_EDGE : FULL_MAX_EDGE}
+      shutterLabel={mode === 'quick' ? t('capture.shootAndIdentify') : t('capture.takePhoto')}
+      galleryLabel={t('capture.fromGallery')}
+      guide={guide}
+      disabled={pending}
+      belowViewfinder={
+        mode === 'full' ? (
+          <>
+            <MediaCapturePreview
+              roles={roles}
+              media={media}
+              activeRole={activeRole}
+              roleLabel={(role) => t(`roles.${role}`)}
+              onSelectRole={(role) => {
+                if (!pending) setActiveRole(role);
+              }}
+            />
             <VText variant="caption" tone="dim" center>
-              {t('capture.guideHint')}
+              {t('capture.photosCount', { done: media.length, total: roles.length })}
             </VText>
-          </View>
-        </View>
-        <MediaCapturePreview
-          roles={roles}
-          media={media}
-          activeRole={activeRole}
-          roleLabel={(role) => t(`roles.${role}`)}
-          onSelectRole={(role) => {
-            if (!pending) setActiveRole(role);
-          }}
-        />
-        <VText variant="caption" tone="dim" center>
-          {t('capture.photosCount', { done: media.length, total: roles.length })}
-        </VText>
-        <View style={styles.actions}>
-          <VButton label={t('capture.takePhoto')} onPress={() => void takePhoto()} />
-          <VButton label={t('capture.fromGallery')} variant="ghost" onPress={() => void pickFromGallery()} />
-        </View>
-      </View>
-    );
-  };
+          </>
+        ) : (
+          <VText variant="caption" tone="dim" center>
+            {t('capture.quickShotHint')}
+          </VText>
+        )
+      }
+    />
+  );
 
   return (
-    <Screen>
-      <VText variant="title">{t(`domains.${domain}.name`)}</VText>
-      <VText variant="caption" tone="dim">
-        {t(`domains.${domain}.subtitle`)}
+    <Screen title={t(`domains.${domain}.name`)}>
+      <SegmentedChoice
+        accessibilityLabel={t('capture.modesLabel')}
+        value={mode}
+        onChange={switchMode}
+        disabled={pending}
+        options={[
+          { value: 'quick', label: t('capture.modeQuick'), hint: t('capture.modeQuickHint') },
+          { value: 'full', label: t('capture.modeFull'), hint: t('capture.modeFullHint') },
+        ]}
+      />
+      <VText variant="caption" tone="dim" style={styles.modeHint}>
+        {mode === 'quick' ? t('capture.modeQuickHint') : t('capture.modeFullHint')}
       </VText>
 
-      <View style={styles.tabs} accessibilityRole="tablist" pointerEvents={pending ? 'none' : 'auto'}>
-        {(['photo', 'text', 'file'] as Tab[]).map((tabId) => (
-          <Pressable
-            key={tabId}
-            onPress={() => {
-              if (!pending) setTab(tabId);
-            }}
-            accessibilityRole="tab"
-            accessibilityLabel={t(`capture.tab${tabId.charAt(0).toUpperCase()}${tabId.slice(1)}`)}
-            accessibilityState={{ selected: tab === tabId, disabled: pending }}
-            style={[styles.tab, tab === tabId && styles.tabActive]}
-          >
-            <VText variant="body" tone={tab === tabId ? 'gold' : 'dim'} center>
-              {t(`capture.tab${tabId.charAt(0).toUpperCase()}${tabId.slice(1)}`)}
-            </VText>
-          </Pressable>
-        ))}
+      <View style={styles.tabs}>
+        <SegmentedChoice
+          accessibilityLabel={t('capture.inputLabel')}
+          value={tab}
+          onChange={(next) => {
+            if (!pending) setTab(next);
+          }}
+          disabled={pending}
+          options={[
+            { value: 'photo', label: t('capture.tabPhoto') },
+            { value: 'text', label: t('capture.tabText') },
+            { value: 'file', label: t('capture.tabFile') },
+          ]}
+        />
       </View>
 
       {consentDenied ? (
@@ -343,6 +286,14 @@ export default function CaptureModal() {
             {t('aiConsent.declinedBanner')}
           </VText>
           <VButton label={t('capture.tabFile')} variant="secondary" onPress={() => setTab('file')} />
+        </View>
+      ) : null}
+
+      {pending ? (
+        <View style={styles.identifying} accessibilityLiveRegion="polite">
+          <VText variant="body" tone="gold" center>
+            {t('capture.identifying')}
+          </VText>
         </View>
       ) : null}
 
@@ -373,17 +324,24 @@ export default function CaptureModal() {
         </View>
       ) : null}
 
-      <View style={styles.analyze}>
+      {/* En scan éclair photo, la prise de vue lance l'identification : pas de bouton en plus. */}
+      {mode === 'full' || tab !== 'photo' ? (
+        <View style={styles.analyze}>
+          <VButton
+            label={pending ? t('capture.analyzing') : t('capture.analyze')}
+            onPress={() => void identify(media, tab)}
+            loading={pending}
+          />
+        </View>
+      ) : null}
+
+      <View style={styles.more}>
         <VButton
-          label={pending ? t('capture.analyzing') : t('capture.analyze')}
-          onPress={() => void analyze()}
-          loading={pending}
-        />
-        <VButton
-          label={t('common.cancel')}
+          label={t('capture.modeBatch')}
+          accessibilityHint={t('capture.modeBatchHint')}
           variant="ghost"
           onPress={() => {
-            if (!pending) router.back();
+            if (!pending) router.push(routes.captureBatch(domain));
           }}
         />
       </View>
@@ -398,42 +356,10 @@ export default function CaptureModal() {
 }
 
 const styles = StyleSheet.create({
-  tabs: {
-    flexDirection: 'row',
-    marginTop: velumSpacing.lg,
-    marginBottom: velumSpacing.md,
-    borderRadius: 12,
-    backgroundColor: velumColors.ink.raised,
-    padding: 4,
-    gap: 4,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: velumSpacing.sm,
-    borderRadius: 9,
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  tabActive: { backgroundColor: velumColors.ink.soft, borderWidth: 1, borderColor: velumColors.gold.faint },
-  cameraBlock: { gap: velumSpacing.sm },
-  cameraFrame: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: velumColors.ink.border,
-  },
-  camera: { height: 320 },
-  guide: {
-    position: 'absolute',
-    bottom: velumSpacing.sm,
-    left: velumSpacing.sm,
-    right: velumSpacing.sm,
-    backgroundColor: 'rgba(20, 9, 11, 0.75)',
-    borderRadius: 8,
-    padding: velumSpacing.sm,
-  },
-  cameraFallback: { gap: velumSpacing.md, paddingVertical: velumSpacing.xl },
-  actions: { gap: velumSpacing.sm },
+  modeHint: { marginTop: velumSpacing.xs },
+  tabs: { marginTop: velumSpacing.md, marginBottom: velumSpacing.md },
+  identifying: { paddingVertical: velumSpacing.sm },
   block: { gap: velumSpacing.md, paddingVertical: velumSpacing.md },
-  analyze: { marginTop: velumSpacing.xl, gap: velumSpacing.sm },
+  analyze: { marginTop: velumSpacing.lg, gap: velumSpacing.sm },
+  more: { marginTop: velumSpacing.md },
 });

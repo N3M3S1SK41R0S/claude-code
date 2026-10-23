@@ -17,7 +17,7 @@
  *  3. un téléversement en échec retombe sur le base64 (comportement existant).
  * Les photos sont aussi plus légères (qualité adaptée au mode, ci-dessous).
  */
-import type { CaptureMedia, MediaRole, VelumDomain } from '@velum/core';
+import type { CaptureMedia, MediaRole, QuickEstimate, VelumDomain } from '@velum/core';
 
 /** Qualité JPEG d'une prise « un objet » : lisibilité des légendes conservée, poids réduit. */
 export const QUICK_JPEG_QUALITY = 0.6;
@@ -53,6 +53,8 @@ export interface UploadTracker {
   /** Attend le téléversement s'il a été lancé ; `undefined` sinon. */
   wait(dataUrl: string): Promise<string | null> | undefined;
   forget(dataUrl: string): void;
+  /** Oublie tout (nouvelle capture) : libère les photos gardées en mémoire. */
+  clear(): void;
 }
 
 export function createUploadTracker(upload: (dataUrl: string) => Promise<string | null>): UploadTracker {
@@ -79,6 +81,10 @@ export function createUploadTracker(upload: (dataUrl: string) => Promise<string 
     forget(dataUrl) {
       promises.delete(dataUrl);
       states.delete(dataUrl);
+    },
+    clear() {
+      promises.clear();
+      states.clear();
     },
   };
 }
@@ -144,4 +150,25 @@ export function startStopwatch(now: () => number): Stopwatch {
 export function secondsForDisplay(ms: number): number {
   if (!Number.isFinite(ms) || ms < 0) return 0;
   return Math.round(ms / 100) / 10;
+}
+
+/**
+ * Fourchette indicative lisible (« 40 € – 90 € », « 0,30 € – 0,80 € ») : les
+ * centimes ne sont montrés que pour les petites valeurs (timbres, monnaies
+ * courantes), où les arrondir à l'euro effacerait l'information.
+ */
+export function formatEstimateRange(estimate: QuickEstimate, locale: string): string {
+  const digits = estimate.high < 10 ? 2 : 0;
+  const format = new Intl.NumberFormat(locale.startsWith('en') ? 'en-GB' : 'fr-FR', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  });
+  return `${format.format(estimate.low)} – ${format.format(estimate.high)}`;
+}
+
+/** Classement affiché en fil d'Ariane (« France › Cérès › 1849–1850 »). */
+export function classificationText(levels: readonly string[] | undefined): string {
+  return (levels ?? []).filter((level) => level.trim() !== '').join(' › ');
 }

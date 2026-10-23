@@ -49,6 +49,15 @@ export function isBinderFirst(domain: VelumDomain): boolean {
   return supportsSheet(domain);
 }
 
+/**
+ * Photo d'une ligne : rôle, chemin Storage une fois téléversée, et data URL
+ * (clé du téléversement en cours — la même chaîne est partagée, pas copiée,
+ * entre une planche et ses objets détectés).
+ */
+export interface BatchMedia extends CapturedMediaReference {
+  base64?: string;
+}
+
 export type BatchRowStatus =
   | 'pending'
   | 'running'
@@ -66,6 +75,10 @@ export interface BatchRow {
   id: string;
   /** Ordre d'affichage stable. */
   seq: number;
+  /** Prise d'origine : la ligne elle-même, ou la planche dont l'objet est issu. */
+  groupId: string;
+  /** Rang de la prise d'origine (une planche éclatée garde sa place). */
+  groupSeq: number;
   source: BatchRowSource;
   status: BatchRowStatus;
   /** Vignette locale (URI ou data URL). */
@@ -73,7 +86,7 @@ export interface BatchRow {
   /** Position sur la planche (ligne `detection`). */
   position?: string;
   /** Photo(s) à rattacher à l'objet (chemin Storage connu après téléversement). */
-  media: CapturedMediaReference[];
+  media: BatchMedia[];
   candidates: Candidate[];
   /** Candidat retenu parmi `candidates` (0 = le plus probable). */
   chosenIndex: number;
@@ -99,8 +112,9 @@ export interface BatchState {
 export const EMPTY_BATCH: BatchState = { rows: [], nextSeq: 0, truncatedSheets: [] };
 
 export type BatchAction =
-  | { type: 'enqueue'; id: string; source: 'shot' | 'sheet'; thumbnailUri?: string; media: CapturedMediaReference[] }
-  | { type: 'uploaded'; id: string; role: CapturedMediaReference['role']; storagePath: string }
+  | { type: 'enqueue'; id: string; source: 'shot' | 'sheet'; thumbnailUri?: string; media: BatchMedia[] }
+  /** Téléversement terminé : toutes les lignes portant cette photo reçoivent le chemin. */
+  | { type: 'uploaded'; photo: string; storagePath: string }
   | { type: 'start'; id: string }
   | { type: 'recognized'; id: string; candidates: Candidate[] }
   | { type: 'sheetRecognized'; id: string; detections: SheetDetection[]; truncated: boolean }
@@ -151,6 +165,8 @@ export function batchReducer(state: BatchState, action: BatchAction): BatchState
       const row: BatchRow = {
         id: action.id,
         seq: state.nextSeq,
+        groupId: action.id,
+        groupSeq: state.nextSeq,
         source: action.source,
         status: 'pending',
         ...(action.thumbnailUri !== undefined ? { thumbnailUri: action.thumbnailUri } : {}),
@@ -162,11 +178,20 @@ export function batchReducer(state: BatchState, action: BatchAction): BatchState
       return { ...state, rows: [...state.rows, row], nextSeq: state.nextSeq + 1 };
     }
 
-    case 'uploaded':
-      return updateRow(state, action.id, (row) => ({
-        ...row,
-        media: row.media.map((m) => (m.role === action.role ? { ...m, storagePath: action.storagePath } : m)),
-      }));
+    case 'uploaded': {
+      let changed = false;
+      const rows = state.rows.map((row) => {
+        if (!row.media.some((m) => m.base64 === action.photo && m.storagePath !== action.storagePath)) {
+          return row;
+        }
+        changed = true;
+        return {
+          ...row,
+          media: row.media.map((m) => (m.base64 === action.photo ? { ...m, storagePath: action.storagePath } : m)),
+        };
+      });
+      return changed ? { ...state, rows } : state;
+    }
 
     case 'start':
       return updateRow(state, action.id, (row) =>
@@ -193,6 +218,8 @@ export function batchReducer(state: BatchState, action: BatchAction): BatchState
         return {
           id: `${sheet.id}-${detection.index}`,
           seq: seq++,
+          groupId: sheet.id,
+          groupSeq: sheet.groupSeq,
           source: 'detection',
           status: detection.needsAssistedEntry ? 'uncertain' : statusForCandidates(candidates),
           ...(sheet.thumbnailUri !== undefined ? { thumbnailUri: sheet.thumbnailUri } : {}),
@@ -288,6 +315,21 @@ export function batchReducer(state: BatchState, action: BatchAction): BatchState
       };
     }
   }
+}
+
+/**
+ * Ordre d'affichage : la prise la plus récente en haut (retour immédiat sous
+ * la caméra), mais les objets d'une même planche dans leur ordre de lecture.
+ */
+export function displayOrder(state: BatchState): BatchRow[] {
+  return [...state.rows].sort((a, b) =>
+    a.groupSeq !== b.groupSeq ? b.groupSeq - a.groupSeq : a.seq - b.seq,
+  );
+}
+
+/** Lignes encore à traiter avant de quitter (rien n'est perdu en silence). */
+export function unsavedCount(state: BatchState): number {
+  return state.rows.filter((row) => row.status !== 'saved' && row.status !== 'skipped').length;
 }
 
 /** Candidat qui sera enregistré : correction de l'utilisateur, sinon choix. */

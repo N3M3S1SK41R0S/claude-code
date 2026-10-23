@@ -14,6 +14,9 @@ export interface WebCameraProps {
     denied: string;
     useNativeCamera: string;
   };
+  maxEdge?: number;
+  quality?: number;
+  height?: number;
 }
 
 export function WebCamera(_props: WebCameraProps): ReactNode {
