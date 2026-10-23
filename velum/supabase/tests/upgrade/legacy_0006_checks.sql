@@ -27,7 +27,12 @@
 --      brouillon) ;
 --   U9 un seul paiement capturé par objet : commande expédiée ou en litige,
 --      sinon le plus ancien ; les autres annulés (remboursement), acheteurs
---      et vendeur prévenus.
+--      et vendeur prévenus ;
+--   U10 membre dont l'offre Platine a expiré sous 0006 : annonces ouvertes
+--      non engagées RETIRÉES (comme à la fin d'abonnement, vendeur prévenu ;
+--      commandes en attente annulées, acheteuse prévenue), jamais suspendues
+--      ni soumises à une expertise « seuil » à ses frais ; annonce engagée
+--      intacte, retirée quand sa transaction se termine sans vente.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 \set ON_ERROR_STOP on
@@ -483,6 +488,67 @@ begin
     end if;
   end loop;
   raise notice 'OK U9 — un seul paiement capturé par objet : les autres annulés (remboursement), acheteurs prévenus';
+end
+$$;
+
+-- ── U10. Offre Platine expirée sous 0006 : annonces retirées, jamais suspendues ─
+do $$
+declare
+  v_row record;
+  v_count integer;
+begin
+  for v_row in
+    select l.id, l.status from public.listings l
+    where l.id in ('d5000000-0000-4000-8000-000000000001', 'd5000000-0000-4000-8000-000000000002')
+  loop
+    if v_row.status <> 'withdrawn' then
+      raise exception 'U10 : annonce d''un membre sans Platine retirée attendue (%)', row_to_json(v_row);
+    end if;
+  end loop;
+  select count(*) into v_count from public.certification_requests
+  where owner_id = 'b5000000-0000-4000-8000-000000000005';
+  if v_count <> 0 then
+    raise exception 'U10 : aucune expertise « seuil » à la charge d''un membre sans Platine attendue (%)', v_count;
+  end if;
+  select count(*) into v_count from public.notifications
+  where owner_id = 'b5000000-0000-4000-8000-000000000005'
+    and title = 'Annonces retirées' and body like 'Votre offre Platine a pris fin : 2 annonce(s)%';
+  if v_count <> 1 then raise exception 'U10 : vendeur prévenu du retrait attendu (%)', v_count; end if;
+  select count(*) into v_count from public.notifications
+  where owner_id = 'b5000000-0000-4000-8000-000000000005'
+    and title in ('Certification d’expert requise', 'Badge « authentifié VELUM » retiré');
+  if v_count <> 0 then raise exception 'U10 : aucune suspension notifiée attendue (%)', v_count; end if;
+  -- Commande en attente de l'annonce retirée : annulée, acheteuse prévenue.
+  select escrow_state into v_row from public.orders where id = 'e5000000-0000-4000-8000-000000000001';
+  if v_row.escrow_state <> 'cancelled' then
+    raise exception 'U10 : commande en attente de l''annonce retirée annulée attendue, vu %', v_row.escrow_state;
+  end if;
+  select count(*) into v_count from public.notifications
+  where owner_id = 'b3000000-0000-4000-8000-000000000003' and title = 'Commande annulée'
+    and body like '%Omega Constellation%n’est plus publiée%';
+  if v_count <> 1 then raise exception 'U10 : acheteuse prévenue de l''annulation attendue (%)', v_count; end if;
+
+  -- Annonce engagée (paiement capturé) : la transaction se poursuit ; si elle
+  -- se termine sans vente, l'annonce est retirée, sans expertise.
+  select status into v_row from public.listings where id = 'd5000000-0000-4000-8000-000000000003';
+  if v_row.status <> 'active' then
+    raise exception 'U10 : annonce engagée intacte attendue, vu %', v_row.status;
+  end if;
+  set local role authenticated;
+  perform set_config('velum.uid', 'b2000000-0000-4000-8000-000000000002', true);
+  perform public.advance_market_order('e5000000-0000-4000-8000-000000000002', 'cancelled');
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select status into v_row from public.listings where id = 'd5000000-0000-4000-8000-000000000003';
+  if v_row.status <> 'withdrawn' then
+    raise exception 'U10 : annonce libérée d''un membre sans Platine retirée attendue, vu %', v_row.status;
+  end if;
+  select count(*) into v_count from public.certification_requests
+  where owner_id = 'b5000000-0000-4000-8000-000000000005';
+  if v_count <> 0 then
+    raise exception 'U10 : aucune expertise après la libération attendue (%)', v_count;
+  end if;
+  raise notice 'OK U10 — offre Platine expirée sous 0006 : annonces retirées (vendeur et acheteuse prévenus), aucune expertise à ses frais';
 end
 $$;
 

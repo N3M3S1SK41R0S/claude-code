@@ -42,7 +42,9 @@
 --   X19 objet certifié pendant la réservation (commande, échange) : annonce
 --       libérée publiée avec la référence, aucune expertise « seuil » ;
 --   X20 certification d'un objet : demandes « seuil » de ses annonces
---       annulées, référence posée, expédition jamais bloquée par elles.
+--       annulées, référence posée, expédition jamais bloquée par elles ;
+--   X21 fin sans vente chez un membre sans Platine : annonces libérées
+--       retirées (comme à la fin d'abonnement), aucune expertise à ses frais.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 \set ON_ERROR_STOP on
@@ -1526,17 +1528,30 @@ begin
   perform public._mkh_expect_error(
     $q$select * from public.request_certification('voluntary', p_listing => 'a9000000-0000-4000-8000-000000000002')$q$,
     'VL402');
+  perform public._mkh_expect_error(format('select * from public.respond_exchange(%L, true)', v_ex_on_mine), 'VL402');
+  -- Annonce réservée d'un membre hors Platine : jamais achetable par un tiers.
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  perform public._mkh_expect_error(
+    $q$select * from public.market_buy('a9000000-0000-4000-8000-000000000005')$q$, '%hors offre Platine%');
   -- La transaction en cours, elle, se poursuit : l'acheteuse annule ; l'annonce
-  -- redevenue libre n'est plus proposée (vendeur hors Platine).
+  -- redevenue libre est RETIRÉE comme à la fin d'abonnement (vendeur prévenu),
+  -- la proposition en attente sur elle déclinée.
   perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
   perform public.advance_market_order(v_order, 'cancelled');
   select count(*) into v_count from public.market_catalogue()
   where id = 'a9000000-0000-4000-8000-000000000005';
   if v_count <> 0 then raise exception 'X13 : annonce d''un membre hors Platine au catalogue'; end if;
   perform public._mkh_expect_error(
-    $q$select * from public.market_buy('a9000000-0000-4000-8000-000000000005')$q$, '%hors offre Platine%');
-  perform set_config('velum.uid', '85000000-0000-4000-8000-000000000005', true);
-  perform public._mkh_expect_error(format('select * from public.respond_exchange(%L, true)', v_ex_on_mine), 'VL402');
+    $q$select * from public.market_buy('a9000000-0000-4000-8000-000000000005')$q$, '%Annonce non disponible%');
+  reset role;
+  perform set_config('velum.uid', '', true);
+  select status into v_state from public.listings where id = 'a9000000-0000-4000-8000-000000000005';
+  if v_state <> 'withdrawn' then raise exception 'X13 : annonce libérée retirée attendue, vu %', v_state; end if;
+  select state into v_state from public.exchange_proposals where id = v_ex_on_mine;
+  if v_state <> 'declined' then raise exception 'X13 : proposition sur l''annonce retirée déclinée attendue, vu %', v_state; end if;
+  select count(*) into v_count from public.notifications
+  where owner_id = '85000000-0000-4000-8000-000000000005' and title = 'Annonces retirées';
+  if v_count <> 2 then raise exception 'X13 : vendeur prévenu des deux retraits attendu (%)', v_count; end if;
   raise notice 'OK X13 — fin d''abonnement : annonces retirées, propositions retirées, actions refusées';
 end
 $$;
@@ -2315,6 +2330,93 @@ begin
   update public.certification_requests set status = 'cancelled' where id = v_lx_cert;
   perform set_config('session_replication_role', 'origin', true);
   raise notice 'OK X20 — objet certifié : demandes « seuil » redondantes de ses annonces annulées, référence posée, expéditions possibles';
+end
+$$;
+
+-- ── X21. Fin sans vente chez un membre SANS offre Platine ───────────────────
+-- La fin d'abonnement épargne les annonces engagées (profile_after_plan_change) ;
+-- libérées par une transaction terminée sans vente, elles sont RETIRÉES comme
+-- à la fin d'abonnement (vendeur prévenu) — jamais réévaluées : ni suspension,
+-- ni expertise « seuil » ouverte à ses frais.
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('88000000-0000-4000-8000-000000000001', 'gaspard@harden.test', '{"display_name":"Gaspard"}');
+update public.profiles set plan = 'platine' where id = '88000000-0000-4000-8000-000000000001';
+insert into public.items (id, owner_id, domain, title) values
+  ('98000000-0000-4000-8000-000000000001', '88000000-0000-4000-8000-000000000001', 'coin', 'Double louis 1640'),
+  ('98000000-0000-4000-8000-000000000002', '88000000-0000-4000-8000-000000000001', 'coin', 'Quart d''écu 1590'),
+  ('93000000-0000-4000-8000-000000000108', '83000000-0000-4000-8000-000000000003', 'coin', 'Teston de Lorraine');
+
+do $$
+declare
+  v_order uuid;
+  v_ex uuid;
+  v_row record;
+  v_count integer;
+begin
+  set local role authenticated;
+  perform set_config('velum.uid', '88000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price, kind) values
+    ('a2100000-0000-4000-8000-000000000001', '98000000-0000-4000-8000-000000000001',
+     '88000000-0000-4000-8000-000000000001', 300, 'sale'),
+    ('a2100000-0000-4000-8000-000000000002', '98000000-0000-4000-8000-000000000002',
+     '88000000-0000-4000-8000-000000000001', 300, 'exchange');
+  -- Vente payée et échange accepté : annonces réservées.
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select id into v_order from public.market_buy('a2100000-0000-4000-8000-000000000001');
+  perform public.advance_market_order(v_order, 'funds_held');
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  select id into v_ex from public.propose_exchange(
+    'a2100000-0000-4000-8000-000000000002', '93000000-0000-4000-8000-000000000108', 250);
+  perform set_config('velum.uid', '88000000-0000-4000-8000-000000000001', true);
+  perform public.respond_exchange(v_ex, true);
+
+  -- Fin d'abonnement (service) : annonces engagées épargnées ; estimations
+  -- au-delà du seuil pendant la réservation.
+  reset role;
+  perform set_config('velum.uid', '', true);
+  update public.profiles set plan = 'free' where id = '88000000-0000-4000-8000-000000000001';
+  if (select count(*) from public.listings
+      where seller_id = '88000000-0000-4000-8000-000000000001' and status = 'active') <> 2 then
+    raise exception 'X21 : annonces engagées épargnées par la fin d''abonnement attendues';
+  end if;
+  insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, ci95_high, reliability, sources)
+  select v.item_id, 2000, 1800, 2200, 1700, 2300, 70, '[]'
+  from (values ('98000000-0000-4000-8000-000000000001'::uuid), ('98000000-0000-4000-8000-000000000002')) as v(item_id);
+
+  -- Fins sans vente : l'acheteur annule, l'échange est annulé.
+  set local role authenticated;
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  perform public.advance_market_order(v_order, 'cancelled');
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  perform public.cancel_exchange(v_ex);
+  reset role;
+  perform set_config('velum.uid', '', true);
+
+  for v_row in
+    select l.id, l.status from public.listings l
+    where l.id in ('a2100000-0000-4000-8000-000000000001', 'a2100000-0000-4000-8000-000000000002')
+  loop
+    if v_row.status <> 'withdrawn' then
+      raise exception 'X21 : annonce libérée d''un membre sans Platine retirée attendue (%)', row_to_json(v_row);
+    end if;
+  end loop;
+  select count(*) into v_count from public.certification_requests
+  where owner_id = '88000000-0000-4000-8000-000000000001';
+  if v_count <> 0 then
+    raise exception 'X21 : aucune expertise « seuil » à la charge d''un membre sans Platine attendue (% demande(s))', v_count;
+  end if;
+  select count(*) into v_count from public.notifications
+  where owner_id = '88000000-0000-4000-8000-000000000001'
+    and title = 'Annonces retirées' and body like 'Votre offre Platine a pris fin : 1 annonce(s)%';
+  if v_count <> 2 then
+    raise exception 'X21 : vendeur prévenu de chaque retrait attendu (% notification(s))', v_count;
+  end if;
+  select count(*) into v_count from public.notifications
+  where owner_id = '88000000-0000-4000-8000-000000000001' and title = 'Certification d’expert requise';
+  if v_count <> 0 then
+    raise exception 'X21 : aucune suspension notifiée attendue (% notification(s))', v_count;
+  end if;
+  raise notice 'OK X21 — fin sans vente chez un membre sans Platine : annonces libérées retirées, aucune expertise à ses frais';
 end
 $$;
 

@@ -1327,6 +1327,11 @@ create trigger valuations_recheck_listing_certification
 --    vendeur ⇒ conservée (objet renommé depuis : une republication par le
 --    vendeur la recalculera) ;
 --  - sinon (référence saisie par le vendeur sous 0006) ⇒ effacée.
+-- Vendeur SANS offre Platine (abonnement terminé pendant la réservation :
+-- profile_after_plan_change avait épargné l'annonce engagée) : ses annonces
+-- libérées sont d'abord RETIRÉES, comme à la fin d'abonnement (même
+-- notification), jamais réévaluées — ni suspension, ni expertise « seuil »
+-- à ses frais.
 create or replace function public._market_recheck_freed_listings(p_item uuid, p_owner uuid)
 returns void
 language plpgsql
@@ -1335,9 +1340,25 @@ set search_path = public
 as $$
 declare
   r record;
+  v_withdrawn integer;
 begin
   if p_item is null then
     return;
+  end if;
+  update public.listings l set status = 'withdrawn'
+   where l.item_id = p_item
+     and l.seller_id = p_owner
+     and l.status in ('active', 'pending_certification')
+     and not public.listing_is_engaged(l.id)
+     and not public.can_list_on_marketplace(l.seller_id);
+  get diagnostics v_withdrawn = row_count;
+  if v_withdrawn > 0 then
+    perform public.market_notify(
+      p_owner,
+      'Annonces retirées',
+      format(
+        'Votre offre Platine a pris fin : %s annonce(s) ont été retirées des plateformes d’échange et de vente. Les transactions en cours se poursuivent.',
+        v_withdrawn));
   end if;
   for r in
     -- Ré-évaluation par le trigger des annonces (statut demandé : 'active').
@@ -2547,6 +2568,12 @@ grant execute on function public.release_due_orders() to service_role;
 -- annonces ouvertes et NON ENGAGÉES repassent par enforce_listing_rules
 -- (acteur de confiance : statut recalculé, référence non réécrite), dans cet
 -- ordre :
+--  0. un membre dont l'offre Platine a expiré sous 0006 (aucun retrait à
+--     l'époque) ne vend plus : ses annonces publiées ou en attente de
+--     certification sont RETIRÉES, comme à la fin d'abonnement
+--     (profile_after_plan_change, même notification ; commandes non payées
+--     annulées, acheteurs prévenus) — jamais suspendues ni soumises à une
+--     expertise « seuil » à ses frais ;
 --  1. la référence d'expertise 0003/0006, saisie par le vendeur lui-même
 --     (« rapport d'expertise fourni par le vendeur »), est effacée faute de
 --     décision d'expert VELUM (R3 : le badge ne se déclare pas) ;
@@ -2573,8 +2600,28 @@ declare
     join public.listings l on l.id = o.listing_id
     where o.escrow_state = 'pending_payment'
       and l.status = 'active');
+  v_sellers uuid[] := '{}';
   r record;
 begin
+  for r in
+    update public.listings l set status = 'withdrawn'
+    where l.status in ('active', 'pending_certification')
+      and not public.can_list_on_marketplace(l.seller_id)
+      and not public.listing_is_engaged(l.id)
+    returning l.seller_id
+  loop
+    v_sellers := v_sellers || r.seller_id;
+  end loop;
+  for r in
+    select s.seller_id, count(*) as withdrawn
+    from unnest(v_sellers) as s(seller_id)
+    group by s.seller_id
+  loop
+    perform public.market_notify(r.seller_id, 'Annonces retirées',
+      format('Votre offre Platine a pris fin : %s annonce(s) ont été retirées des plateformes d’échange et de vente. Les transactions en cours se poursuivent.',
+        r.withdrawn));
+  end loop;
+
   for r in
     update public.listings l
     set expert_appraisal_ref = null,
@@ -2610,6 +2657,7 @@ begin
     where l.status = 'active'
       and l.expert_appraisal_ref is null
       and not public.listing_is_engaged(l.id)
+      and public.can_list_on_marketplace(l.seller_id)
       -- Même décision que le trigger (référence nulle : suspendue si exigée).
       and (select s.required
            from public.listing_certification_snapshot(l.item_id, l.seller_id, l.ask_price) s)
@@ -2623,14 +2671,19 @@ begin
   end loop;
 
   for r in
-    select o.buyer_id, l.title
+    select o.buyer_id, l.title, l.status
     from public.orders o
     join public.listings l on l.id = o.listing_id
     where o.id = any (v_pending) and o.escrow_state = 'cancelled'
   loop
     perform public.market_notify(r.buyer_id, 'Commande annulée',
-      format('L’annonce « %s » est suspendue jusqu’à sa certification par un expert : votre commande en attente de paiement est annulée.',
-        coalesce(r.title, 'objet')));
+      case when r.status = 'withdrawn' then
+        format('L’annonce « %s » n’est plus publiée : votre commande en attente de paiement est annulée.',
+          coalesce(r.title, 'objet'))
+      else
+        format('L’annonce « %s » est suspendue jusqu’à sa certification par un expert : votre commande en attente de paiement est annulée.',
+          coalesce(r.title, 'objet'))
+      end);
   end loop;
   perform public.market_system_end(v_prev);
 end
