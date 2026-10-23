@@ -32,10 +32,11 @@ import { getVelumClient } from '../../lib/client';
 import {
   amountProblemMessage,
   amountToInput,
-  estimateFromValuation,
   formatPrice,
   formatRate,
+  latestEstimate,
   redactionPreview,
+  referenceEstimate,
   sellPreview,
 } from '../../lib/marketForms';
 import { commissionBasisNoticeKey, isBestTier } from '../../lib/marketCommission';
@@ -54,11 +55,16 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
   const commission = useCommissionBasis();
   const locale = i18n.language;
 
-  const latest = useQuery({
-    queryKey: ['valuations', item.id, 'latest'],
-    queryFn: () => client.valuations.latest(item.id),
+  // Historique des estimations : la plus RÉCENTE pré-remplit le prix ; la plus
+  // HAUTE des 18 derniers mois (dates futures ignorées) décide du seuil
+  // d'expertise, comme le serveur (_market_reference_value).
+  const history = useQuery({
+    queryKey: ['valuations', item.id, 'history'],
+    queryFn: () => client.valuations.history(item.id),
   });
-  const estimate = estimateFromValuation(latest.data);
+  const nowIso = new Date().toISOString();
+  const estimate = history.data ? latestEstimate(history.data, nowIso) : null;
+  const reference = history.data ? referenceEstimate(history.data, nowIso) : null;
 
   const [kind, setKind] = useState<ListingKind>('sale');
   const [price, setPrice] = useState('');
@@ -86,7 +92,7 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
     kind,
     priceInput: price,
     commission: commission.basis,
-    estimatedValue: estimate,
+    estimatedValue: reference,
     voluntaryCertification: voluntary,
     alreadyCertified,
   });
@@ -216,7 +222,7 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
         placeholder="250"
         error={priceError}
       />
-      {latest.isLoading ? (
+      {history.isLoading ? (
         <VSpinner />
       ) : estimate !== null ? (
         <VText variant="caption" tone="dim">
@@ -224,7 +230,7 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
         </VText>
       ) : (
         <VText variant="caption" tone="dim">
-          {latest.isError ? t('community.estimateUnavailable') : t('community.noEstimate')}
+          {history.isError ? t('community.estimateUnavailable') : t('community.noEstimate')}
         </VText>
       )}
 
@@ -276,7 +282,9 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
       )}
       {preview.requirement.required && preview.value !== null && preview.requirement.referenceValue > preview.value ? (
         <VText variant="caption" tone="dim">
-          {t('community.sellForm.estimateRule')}
+          {t('community.sellForm.estimateRule', {
+            amount: formatPrice(preview.requirement.referenceValue, locale),
+          })}
         </VText>
       ) : null}
 
@@ -316,7 +324,8 @@ function SellForm({ item, onChangeItem }: { item: VelumItem; onChangeItem: () =>
           preview.certification === 'required' ? t('community.sellForm.publishAfterCertification') : t('community.publish')
         }
         onPress={() => publish.mutate()}
-        disabled={preview.value === null || locked}
+        // Estimations en cours de lecture : le seuil d'expertise n'est pas encore connu.
+        disabled={preview.value === null || locked || history.isLoading}
         loading={publish.isPending}
       />
     </View>

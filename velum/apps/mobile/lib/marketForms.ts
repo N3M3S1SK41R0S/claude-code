@@ -125,6 +125,66 @@ export function amountToInput(value: number | null | undefined): string {
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace('.', ',');
 }
 
+/**
+ * Fenêtre des estimations VELUM retenues pour le seuil de certification, en
+ * mois — réplique de market_valuation_window() (relue par les tests).
+ */
+export const MARKET_VALUATION_WINDOW_MONTHS = 18;
+
+type EstimatePoint = Pick<ValuationRecord, 'central' | 'valuedAt'>;
+
+/** `date` moins `months` mois civils (jour borné à la fin du mois, comme `- interval` en SQL). */
+function minusMonths(date: Date, months: number): Date {
+  const target = new Date(date.getTime());
+  const day = date.getUTCDate();
+  target.setUTCDate(1);
+  target.setUTCMonth(target.getUTCMonth() - months);
+  const daysInMonth = new Date(Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)).getUTCDate();
+  target.setUTCDate(Math.min(day, daysInMonth));
+  return target;
+}
+
+/** Estimations valides de la fenêtre : montant > 0, datées ni dans le futur ni trop anciennes. */
+function estimatesInWindow(history: readonly EstimatePoint[], now: string | Date): { central: number; at: number }[] {
+  const nowDate = typeof now === 'string' ? new Date(now) : now;
+  const nowMs = nowDate.getTime();
+  if (!Number.isFinite(nowMs)) return [];
+  const floor = minusMonths(nowDate, MARKET_VALUATION_WINDOW_MONTHS).getTime();
+  const points: { central: number; at: number }[] = [];
+  for (const v of history) {
+    const at = Date.parse(v.valuedAt);
+    if (!Number.isFinite(v.central) || v.central <= 0 || !Number.isFinite(at)) continue;
+    // Date future (invalide) ou hors fenêtre : ignorée, comme _market_reference_value.
+    if (at > nowMs || at <= floor) continue;
+    points.push({ central: v.central, at });
+  }
+  return points;
+}
+
+/**
+ * Estimation de RÉFÉRENCE pour le seuil de certification : la PLUS HAUTE des
+ * estimations VELUM des 18 derniers mois (dates futures ignorées) — même
+ * règle que _market_reference_value côté serveur : une estimation basse
+ * postérieure ne masque pas une estimation haute récente. null si aucune.
+ */
+export function referenceEstimate(history: readonly EstimatePoint[], now: string | Date): number | null {
+  const points = estimatesInWindow(history, now);
+  if (points.length === 0) return null;
+  // Non arrondie : comparée telle quelle au seuil, comme côté serveur.
+  return Math.max(...points.map((p) => p.central));
+}
+
+/**
+ * Estimation VELUM la plus RÉCENTE de la fenêtre (pré-remplissage et rappel
+ * sous le champ), dates futures ignorées ; null si aucune.
+ */
+export function latestEstimate(history: readonly EstimatePoint[], now: string | Date): number | null {
+  const points = estimatesInWindow(history, now);
+  let latest: { central: number; at: number } | null = null;
+  for (const p of points) if (latest === null || p.at > latest.at) latest = p;
+  return latest === null ? null : roundCents(latest.central);
+}
+
 /** Estimation VELUM retenue depuis la dernière valorisation (null si absente). */
 export function estimateFromValuation(valuation: Pick<ValuationRecord, 'central'> | null | undefined): number | null {
   if (!valuation || !Number.isFinite(valuation.central) || valuation.central <= 0) return null;

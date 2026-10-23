@@ -17,11 +17,12 @@ import { getVelumClient } from '../../lib/client';
 import {
   amountProblemMessage,
   amountToInput,
-  estimateFromValuation,
   exchangePreview,
   formatPrice,
   formatRate,
+  latestEstimate,
   redactionPreview,
+  referenceEstimate,
   type CashDirection,
 } from '../../lib/marketForms';
 import { commissionBasisNoticeKey } from '../../lib/marketCommission';
@@ -61,12 +62,17 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
   const [message, setMessage] = useState('');
 
   const itemId = item?.id ?? '';
-  const latest = useQuery({
-    queryKey: ['valuations', itemId, 'latest'],
-    queryFn: () => client.valuations.latest(itemId),
+  // Historique des estimations : la plus RÉCENTE pré-remplit la valeur ; la
+  // plus HAUTE des 18 derniers mois (dates futures ignorées) décide du seuil
+  // d'expertise de mon objet, comme le serveur (_market_reference_value).
+  const history = useQuery({
+    queryKey: ['valuations', itemId, 'history'],
+    queryFn: () => client.valuations.history(itemId),
     enabled: itemId.length > 0,
   });
-  const estimate = estimateFromValuation(latest.data);
+  const nowIso = new Date().toISOString();
+  const estimate = history.data ? latestEstimate(history.data, nowIso) : null;
+  const reference = history.data ? referenceEstimate(history.data, nowIso) : null;
 
   // Pré-remplit la valeur déclarée avec l'estimation, sans écraser une saisie.
   useEffect(() => {
@@ -86,7 +92,7 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
     listingValue: listing.askPrice,
     listingCertified: listing.certified,
     offeredValueInput: value,
-    offeredEstimate: estimate,
+    offeredEstimate: reference,
     offeredCertified,
     cashDirection: direction,
     cashInput: cash,
@@ -129,7 +135,9 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
       : null;
   const valueError = valueProblem !== null ? t(valueProblem.key, valueProblem.params) : undefined;
   const cashError = preview.cashAdjustment === null ? t('community.invalidAmount') : undefined;
-  const canSubmit = item !== null && preview.offeredValue !== null && preview.cashAdjustment !== null;
+  // Estimations en cours de lecture : le seuil d'expertise de mon objet n'est pas encore connu.
+  const canSubmit =
+    item !== null && preview.offeredValue !== null && preview.cashAdjustment !== null && !history.isLoading;
 
   const rows: AmountRow[] = [];
   if (preview.myCommission !== null) {
@@ -208,7 +216,7 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
             placeholder="250"
             error={valueError}
           />
-          {latest.isLoading ? (
+          {history.isLoading ? (
             <VSpinner />
           ) : estimate !== null ? (
             <VText variant="caption" tone="dim">
@@ -216,7 +224,7 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
             </VText>
           ) : (
             <VText variant="caption" tone="dim">
-              {latest.isError ? t('community.estimateUnavailable') : t('community.noEstimate')}
+              {history.isError ? t('community.estimateUnavailable') : t('community.noEstimate')}
             </VText>
           )}
 

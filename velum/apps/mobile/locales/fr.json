@@ -1683,7 +1683,7 @@
       "bestTier": "Vous bénéficiez du taux le plus bas.",
       "certificationRequired": "Expertise obligatoire au-delà de {{threshold}} — annonce publiée après certification par un expert partenaire, frais à votre charge (indicatif : {{fee}}).",
       "alreadyCertified": "Objet déjà authentifié par un expert : l’annonce sera publiée avec le badge, sans nouvelle expertise.",
-      "estimateRule": "Le seuil s’applique au plus élevé du prix saisi et de l’estimation VELUM.",
+      "estimateRule": "Le seuil s’applique au plus élevé du prix saisi et de la plus haute estimation VELUM des 18 derniers mois ({{amount}}).",
       "voluntary": "Faire authentifier mon objet",
       "voluntaryHint": "Badge « Authentifié VELUM » après expertise, frais à votre charge.",
       "voluntaryFailed": "Annonce publiée, mais la demande d’expertise a échoué : renouvelez-la plus tard.",

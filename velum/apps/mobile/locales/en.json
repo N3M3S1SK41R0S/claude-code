@@ -1683,7 +1683,7 @@
       "bestTier": "You already enjoy the lowest rate.",
       "certificationRequired": "Expert appraisal required above {{threshold}} — listing published after certification by a partner expert, fee at your charge (indicative: {{fee}}).",
       "alreadyCertified": "Item already authenticated by an expert: the listing will be published with the badge, with no new appraisal.",
-      "estimateRule": "The threshold applies to the higher of the price entered and the VELUM estimate.",
+      "estimateRule": "The threshold applies to the higher of the price entered and the highest VELUM estimate of the last 18 months ({{amount}}).",
       "voluntary": "Have my item authenticated",
       "voluntaryHint": "“VELUM authenticated” badge after appraisal, fee at your charge.",
       "voluntaryFailed": "Listing published, but the appraisal request failed: request it again later.",

@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   MARKET_CARRIERS as API_MARKET_CARRIERS,
@@ -12,6 +15,7 @@ import { FALLBACK_COMMISSION_BASIS, commissionBasis, type CommissionBasis } from
 
 import {
   MARKET_CARRIERS,
+  MARKET_VALUATION_WINDOW_MONTHS,
   amountProblemMessage,
   amountToInput,
   checkMarketAmount,
@@ -19,12 +23,14 @@ import {
   exchangePreview,
   formatPrice,
   formatRate,
+  latestEstimate,
   nextCommissionTier,
   normalizeTrackingNumber,
   orderCommission,
   parseFrenchAmount,
   parsePositiveAmount,
   redactionPreview,
+  referenceEstimate,
   sellPreview,
   shipmentInput,
   signedCashAdjustment,
@@ -108,6 +114,62 @@ describe('parseFrenchAmount', () => {
     expect(formatPrice(12, 'fr', 'XX')).toBe('12 XX');
     expect(plain(formatRate(0.05, 'fr'))).toBe('5 %');
     expect(formatRate(0.035, 'en')).toBe('3.5%');
+  });
+});
+
+describe('estimation de référence (miroir de _market_reference_value)', () => {
+  const NOW = '2026-10-23T10:00:00Z';
+  const v = (central: number, valuedAt: string) => ({ central, valuedAt });
+
+  it('fenêtre répliquée de market_valuation_window() (SQL)', () => {
+    const sql = readFileSync(
+      join(
+        dirname(fileURLToPath(import.meta.url)),
+        '../../../supabase/migrations/20261023100100_market_exchanges_certification.sql',
+      ),
+      'utf8',
+    );
+    const match = /function public\.market_valuation_window\(\)[\s\S]*?interval '(\d+) months'/.exec(sql);
+    expect(Number(match?.[1])).toBe(MARKET_VALUATION_WINDOW_MONTHS);
+  });
+
+  it('MAX des 18 derniers mois : une estimation basse postérieure ne masque pas la haute', () => {
+    const history = [v(300, '2026-10-01T00:00:00Z'), v(900, '2026-03-01T00:00:00Z'), v(450, '2025-12-01T00:00:00Z')];
+    expect(referenceEstimate(history, NOW)).toBe(900);
+    expect(latestEstimate(history, NOW)).toBe(300);
+  });
+
+  it('dates futures et estimations hors fenêtre ignorées ; montants invalides écartés', () => {
+    const history = [
+      v(5000, '2026-12-01T00:00:00Z'), // future : invalide
+      v(4000, '2025-04-23T10:00:00Z'), // exactement 18 mois : hors fenêtre (> now − 18 mois)
+      v(3000, '2025-04-23T10:00:01Z'), // juste dans la fenêtre
+      v(Number.NaN, '2026-10-01T00:00:00Z'),
+      v(0, '2026-10-02T00:00:00Z'),
+      v(200, 'date illisible'),
+    ];
+    expect(referenceEstimate(history, NOW)).toBe(3000);
+    expect(latestEstimate(history, NOW)).toBe(3000);
+    expect(referenceEstimate([v(5000, '2026-12-01T00:00:00Z')], NOW)).toBeNull();
+    expect(referenceEstimate([], NOW)).toBeNull();
+  });
+
+  it('fin de mois bornée comme en SQL (31 août − 18 mois = 28 février)', () => {
+    const now = '2027-08-31T12:00:00Z';
+    expect(referenceEstimate([v(700, '2026-02-28T12:00:00Z')], now)).toBeNull();
+    expect(referenceEstimate([v(700, '2026-02-28T12:00:01Z')], now)).toBe(700);
+  });
+
+  it('seuil de la mise en vente sur cette référence (sous-déclaration impossible)', () => {
+    const history = [v(300, '2026-10-01T00:00:00Z'), v(900, '2026-03-01T00:00:00Z')];
+    const p = sellPreview({
+      kind: 'sale',
+      priceInput: '320',
+      commission: server(0),
+      estimatedValue: referenceEstimate(history, NOW),
+      voluntaryCertification: false,
+    });
+    expect(p.requirement).toEqual({ required: true, reason: 'threshold', referenceValue: 900 });
   });
 });
 
