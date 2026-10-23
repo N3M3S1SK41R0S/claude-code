@@ -71,8 +71,11 @@ insert into public.valuations (item_id, central, ci80_low, ci80_high, ci95_low, 
   ('62000000-0000-4000-8000-000000000003', 800, 700, 900, 650, 950, 70, '[]', now() - interval '1 day');
 
 -- ── 1. Masquage des coordonnées : réplique EXACTE de redactContactInfo ──────
--- Sorties attendues calculées par la fonction TypeScript de @velum/config
--- (les 11 vecteurs de marketplace.test.ts + cas limites).
+-- Vecteurs PARTAGÉS : sorties attendues calculées par la fonction TypeScript
+-- de @velum/config ; packages/config/src/marketplace.test.ts relit ce bloc et
+-- exige la même sortie côté JavaScript (ajouter un vecteur ici l'ajoute aux
+-- deux suites ; mettre à jour le compteur ci-dessous). Pas d'antislash dans
+-- les littéraux (le lecteur JS ne les interprète pas).
 do $$
 declare
   r record;
@@ -81,89 +84,173 @@ begin
   for r in
     select v.input, v.expected
     from (values
+      -- E-mails : l’adresse ENTIÈRE disparaît, partie locale comprise (casse, accents, maquillages).
       ('Écrivez-moi à jean.dupont@gmail.com svp',
-       'Écrivez-moi à jean.dupont@[coordonnées masquées] svp'),
+       'Écrivez-moi à [coordonnées masquées] svp'),
+      ('Contact : JEAN.DUPONT@GMAIL.COM',
+       'Contact : [coordonnées masquées]'),
+      ('jérôme@exemple.fr',
+       '[coordonnées masquées]'),
+      ('écrivez à marie_l@orange.fr ou au 07 81 22 33 44',
+       'écrivez à [coordonnées masquées] ou au [coordonnées masquées]'),
       ('jean point dupont arobase gmail point com',
-       'jean point [coordonnées masquées]'),
-      ('Tel 06 12 34 56 78',
-       'Tel [coordonnées masquées]'),
-      ('+33612345678',
        '[coordonnées masquées]'),
-      ('06.12.34.56.78',
+      ('écrire à paul (at) mail (dot) fr',
+       'écrire à [coordonnées masquées]'),
+      ('ÉCRIRE À PAUL (AT) MAIL (DOT) FR',
+       'ÉCRIRE À [coordonnées masquées]'),
+      ('Merci d’écrire à jean . dupont @ gmail . com',
+       'Merci d’écrire à [coordonnées masquées]'),
+      ('Mon adresse : jean.dupont @gmail.com',
+       'Mon adresse : [coordonnées masquées]'),
+      ('paul[arobase]mail[point]fr ou jean[at]gmail[dot]com',
+       '[coordonnées masquées] ou [coordonnées masquées]'),
+      ('écrivez à jean_dupont arrobase hotmail point fr',
+       'écrivez à [coordonnées masquées]'),
+      ('contact : jean at gmail dot com',
+       'contact : [coordonnées masquées]'),
+      ('écrivez à jean arobase gmail, merci',
+       'écrivez à [coordonnées masquées], merci'),
+      ('Écrivez à jean@gmail.com. Merci !',
+       'Écrivez à [coordonnées masquées]. Merci !'),
+      ('https://nom@site.fr/x et mailto:jean@x.fr',
+       '[coordonnées masquées] et mailto:[coordonnées masquées]'),
+      ('contact@www.site.fr',
        '[coordonnées masquées]'),
+      -- URL, www, domaines nus (sous-domaines, .co.uk), WhatsApp / Telegram.
       ('voir https://exemple.fr/annonce',
        'voir [coordonnées masquées]'),
       ('mon site www.collection-pierre.fr',
        'mon site [coordonnées masquées]'),
       ('passez sur monshop.com',
        'passez sur [coordonnées masquées]'),
-      ('IBAN FR76 3000 6000 0112 3456 7890 189',
-       'IBAN [coordonnées masquées]'),
-      ('insta @pierre_collect',
-       'insta [coordonnées masquées]'),
-      ('RDV au 12 rue de la Paix',
-       'RDV au [coordonnées masquées]'),
-      ('Château Margaux 2015, 75 cl, cote YT 1234, 20 Francs or 1868 — 320 €',
-       'Château Margaux 2015, 75 cl, cote YT 1234, 20 Francs or 1868 — 320 €'),
-      ('Contact : JEAN.DUPONT@GMAIL.COM',
-       'Contact : JEAN.DUPONT@[coordonnées masquées]'),
-      ('jérôme@exemple.fr',
-       'jérôme@[coordonnées masquées]'),
-      (E'Appelez le 06 12 34 56 78',
-       'Appelez le [coordonnées masquées]'),
-      ('Rendez-vous 3 bis, avenue Foch à Paris',
-       'Rendez-vous [coordonnées masquées]'),
-      ('mon insta: @Collect.Pierre',
-       'mon insta: [coordonnées masquées]'),
       ('Visitez https://exemple.fr/a?b=1 puis www.test.org',
        'Visitez [coordonnées masquées] puis [coordonnées masquées]'),
-      ('Lot de 3 pièces, 1868-1870, réf. 12345',
-       'Lot de 3 pièces, [coordonnées masquées], réf. 12345'),
-      ('tel: 0033 6 12 34 56 78',
-       'tel: [coordonnées masquées]'),
-      ('écrire à paul (at) mail (dot) fr',
-       'écrire à [coordonnées masquées]'),
-      ('ÉCRIRE À PAUL (AT) MAIL (DOT) FR',
-       'ÉCRIRE À [coordonnées masquées]'),
+      ('voir achat-vente.fr/annonce/12 ou site.co.uk',
+       'voir [coordonnées masquées] ou [coordonnées masquées]'),
+      ('-abc.com et x-y.net/page',
+       '-[coordonnées masquées] et [coordonnées masquées]'),
+      ('château-margaux.fr',
+       '[coordonnées masquées]'),
+      ('wa.me/33612345678 et t.me/pierre_collect',
+       '[coordonnées masquées] et [coordonnées masquées]'),
+      -- IBAN, insensibles à la casse, masqués en entier.
+      ('IBAN FR76 3000 6000 0112 3456 7890 189',
+       'IBAN [coordonnées masquées]'),
       ('IBAN : DE89 3704 0044 0532 0130 00',
        'IBAN : [coordonnées masquées]'),
       ('iban fr76 3000 6000 0112 3456 7890 189',
-       'iban fr[coordonnées masquées]'),
-      ('adresse: 12, rue des Lilas 75011',
-       'adresse: [coordonnées masquées]75011'),
-      ('voir achat-vente.fr/annonce/12 ou site.co.uk',
-       'voir [coordonnées masquées] ou [coordonnées masquées].uk'),
-      ('Prix 1.250,00 € — échange possible contre un 10 Francs Coq',
-       'Prix 1.250,00 € — échange possible contre un 10 Francs Coq'),
+       'iban [coordonnées masquées]'),
+      ('IBAN GB29 NWBK 6016 1331 9268 19',
+       'IBAN [coordonnées masquées]'),
+      -- Téléphones : séparateurs . - / _ – et blancs (dont insécables), parenthèses, international.
+      ('Tel 06 12 34 56 78',
+       'Tel [coordonnées masquées]'),
+      ('+33612345678',
+       '[coordonnées masquées]'),
+      ('06.12.34.56.78',
+       '[coordonnées masquées]'),
+      -- Espaces insécables U+00A0 (caractères bruts) entre les paires.
+      (E'Appelez le 06 12 34 56 78',
+       'Appelez le [coordonnées masquées]'),
+      -- Typographie française : U+00A0 avant « : », fines insécables U+202F entre les paires.
+      ('Tél : 06 12 34 56 78',
+       'Tél : [coordonnées masquées]'),
+      ('tel: 0033 6 12 34 56 78',
+       'tel: [coordonnées masquées]'),
       ('appelez-moi au (06) 12 34 56 78 après 18h',
-       'appelez-moi au ([coordonnées masquées] après 18h'),
+       'appelez-moi au [coordonnées masquées] après 18h'),
+      ('06-12-34-56-78, 06/12/34/56/78 et 0612345678',
+       '[coordonnées masquées], [coordonnées masquées] et [coordonnées masquées]'),
+      ('06–12–34–56–78 ou 06_12_34_56_78',
+       '[coordonnées masquées] ou [coordonnées masquées]'),
+      ('0 6 1 2 3 4 5 6 7 8',
+       '[coordonnées masquées]'),
+      ('+33 (0)6 12 34 56 78',
+       '[coordonnées masquées]'),
+      ('+1 (555) 123-4567 ou +44 20 7946 0958',
+       '[coordonnées masquées] ou [coordonnées masquées]'),
+      ('mon WhatsApp 33612345678',
+       'mon WhatsApp [coordonnées masquées]'),
+      ('Tél : 6 12 34 56 78',
+       'Tél : [coordonnées masquées]'),
+      ('mobile belge 0470 12 34 56, suisse 079 123 45 67',
+       'mobile belge [coordonnées masquées], suisse [coordonnées masquées]'),
+      -- Pseudonymes de réseaux sociaux.
+      ('insta @pierre_collect',
+       'insta [coordonnées masquées]'),
+      ('mon insta: @Collect.Pierre',
+       'mon insta: [coordonnées masquées]'),
+      ('Suivez @pierre.collect sur insta',
+       'Suivez [coordonnées masquées] sur insta'),
+      ('Suivez @jérôme.collect.',
+       'Suivez [coordonnées masquées].'),
+      -- Adresses postales : le nom de voie part, le code postal qui suit peut rester.
+      ('RDV au 12 rue de la Paix',
+       'RDV au [coordonnées masquées]'),
+      ('Rendez-vous 3 bis, avenue Foch à Paris',
+       'Rendez-vous [coordonnées masquées]'),
+      ('adresse: 12, rue des Lilas 75011',
+       'adresse: [coordonnées masquées] 75011'),
       ('RDV 4 Allée des Érables, Lyon',
        'RDV [coordonnées masquées], Lyon'),
-      ('écrivez à marie_l@orange.fr ou au 07 81 22 33 44',
-       'écrivez à marie_l@[coordonnées masquées] ou au [coordonnées masquées]'),
-      ('-abc.com et x-y.net/page',
-       '-[coordonnées masquées] et [coordonnées masquées]'),
+      ('10 av. de l’Église Saint-Michel',
+       '[coordonnées masquées]'),
+      ('12 ALLÉE DES ÉRABLES',
+       '[coordonnées masquées]'),
+      -- Textes de collectionneur INTACTS : années, plages d’années, prix, cotes, tirages, références, dates.
+      ('Château Margaux 2015, 75 cl, cote YT 1234, 20 Francs or 1868 — 320 €',
+       'Château Margaux 2015, 75 cl, cote YT 1234, 20 Francs or 1868 — 320 €'),
+      ('Lot de 3 pièces, 1868-1870, réf. 12345',
+       'Lot de 3 pièces, 1868-1870, réf. 12345'),
+      ('Pièces 1868 - 1870 et 1868/1870',
+       'Pièces 1868 - 1870 et 1868/1870'),
+      ('Prix 1.250,00 € — échange possible contre un 10 Francs Coq',
+       'Prix 1.250,00 € — échange possible contre un 10 Francs Coq'),
+      ('Prix 12 500 € ou 1 250 000 €, tirage 125/500',
+       'Prix 12 500 € ou 1 250 000 €, tirage 125/500'),
       ('Cote Yvert n° 33, état TB, 2 timbres',
-       'Cote Yvert n° 33, état TB, 2 timbres')
+       'Cote Yvert n° 33, état TB, 2 timbres'),
+      ('Remise en main propre le 05/11/2026 14:00',
+       'Remise en main propre le 05/11/2026 14:00'),
+      ('Omega Speedmaster 1969, numéro de série 45123456',
+       'Omega Speedmaster 1969, numéro de série 45123456'),
+      ('Napoléon III 20 Francs Or 1868, KM# 801.1, Gadoury 1062',
+       'Napoléon III 20 Francs Or 1868, KM# 801.1, Gadoury 1062'),
+      ('Château Latour 1982 – 6 bouteilles, 750 ml, lot 2023-0456',
+       'Château Latour 1982 – 6 bouteilles, 750 ml, lot 2023-0456'),
+      ('Écu 1726, 29,5 g, Ø 41 mm, tranche cannelée',
+       'Écu 1726, 29,5 g, Ø 41 mm, tranche cannelée'),
+      ('Réf. 116610LN, boîte et papiers, 2019',
+       'Réf. 116610LN, boîte et papiers, 2019'),
+      ('réf AB12 collectionneur passionné',
+       'réf AB12 collectionneur passionné'),
+      ('Superbe pièce mise au point par la Monnaie, point de vue unique',
+       'Superbe pièce mise au point par la Monnaie, point de vue unique'),
+      ('Très beau.De plus, état superbe',
+       'Très beau.De plus, état superbe'),
+      -- Point fixe : un masquage qui en révèle un autre au passage suivant (idempotence).
+      ('réf 3000003000www.exemple',
+       'réf [coordonnées masquées][coordonnées masquées]')
     ) as v(input, expected)
   loop
     if public.redact_contact_info(r.input) is distinct from r.expected then
       raise exception 'masquage : « % » → « % », attendu « % »',
         r.input, public.redact_contact_info(r.input), r.expected;
     end if;
-    -- Idempotence : le jeton ne correspond à aucun motif.
+    -- Idempotence : la sortie est un point fixe de la série de motifs.
     if public.redact_contact_info(r.expected) is distinct from r.expected then
       raise exception 'masquage non idempotent pour « % »', r.expected;
     end if;
     v_count := v_count + 1;
   end loop;
-  if v_count <> 32 then
-    raise exception 'masquage : 32 vecteurs attendus, % rejoués', v_count;
+  if v_count <> 69 then
+    raise exception 'masquage : 69 vecteurs attendus, % rejoués', v_count;
   end if;
   if public.redact_contact_info(null) is not null then
     raise exception 'masquage : null doit rester null';
   end if;
-  raise notice 'OK M1 — masquage SQL identique à redactContactInfo (32 vecteurs, idempotent)';
+  raise notice 'OK M1 — masquage SQL identique à redactContactInfo (69 vecteurs, idempotent)';
 end
 $$;
 
@@ -249,7 +336,7 @@ begin
     raise exception 'L1 : publiée attendue, vu %', v_status;
   end if;
   if v_desc <> 'Très bel exemplaire, appelez-moi au [coordonnées masquées]'
-     or v_wishes not like '%[coordonnées masquées]%' or v_wishes like '%gmail%' then
+     or v_wishes <> 'Pièces or Second Empire — écrivez à [coordonnées masquées]' then
     raise exception 'L1 : textes non expurgés (« % » / « % »)', v_desc, v_wishes;
   end if;
 
@@ -699,7 +786,8 @@ begin
     '71000000-0000-4000-8000-000000000001', '62000000-0000-4000-8000-000000000001', 300, 20,
     'Bonjour, écrivez-moi à paul.durand@free.fr');
   v_ex := v_row.id;
-  if v_row.state <> 'proposed' or v_row.role <> 'proposer' or v_row.message like '%free.fr%'
+  if v_row.state <> 'proposed' or v_row.role <> 'proposer'
+     or v_row.message <> 'Bonjour, écrivez-moi à [coordonnées masquées]'
      or v_row.my_commission is not null or v_row.listing_value <> 320 then
     raise exception 'proposition : vue incorrecte (%)', row_to_json(v_row);
   end if;
