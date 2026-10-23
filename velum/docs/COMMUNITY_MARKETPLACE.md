@@ -225,7 +225,11 @@ offert par l'auteur. À la conclusion : annonce `exchanged`, annonce
   outre `offered_item_certified` (`offeredItemCertified` : l'objet **offert**
   est déjà certifié, le destinataire ne peut plus en demander l'expertise) et
   `offered_item_id` (`offeredItemId`) : **mon** objet offert, renseigné pour
-  l'**auteur** seulement (null pour le destinataire — jamais l'objet d'autrui).
+  l'**auteur** seulement (null pour le destinataire — jamais l'objet d'autrui),
+  et `shipment_blocked` (`shipmentBlocked`) : une expertise en cours bloque
+  l'expédition (`has_open_certification`), y compris celle de l'annonce de
+  l'**autre** partie, absente de `my_certifications` — un booléen, jamais
+  l'expertise ni son demandeur.
 - **Masquage des coordonnées** (`redact_contact_info`, réplique exacte de
   `redactContactInfo`) : e-mails ENTIERS, partie locale comprise (accents,
   majuscules, maquillages « arobase », « (at) », « [at] », « point »,
@@ -277,12 +281,15 @@ l'objet (sur l'annonce, une commande ou un échange) publie aussi ses annonces
 en attente de certification avec la référence, puis **annule** ses autres
 demandes « seuil » d'annonce encore ouvertes, devenues sans objet (aucune
 seconde expertise facturée) ; une telle demande ne bloque jamais
-l'expédition. Deux décisions ex aequo (même horodatage) : le refus l'emporte. Un **refus** annule toute transaction non
+l'expédition. Deux décisions ex aequo (même horodatage) : le refus
+l'emporte. Un **refus** annule toute transaction non
 expédiée sur l'objet, le dépublie quel que soit le motif ou le contexte et
 reste mémorisé : toute republication passe par une nouvelle certification.
 L'expédition étant bloquée tant qu'une expertise est ouverte sur la
 transaction **ou sur l'annonce qu'elle engage**, un refus trouve normalement
-la transaction non expédiée. Une transaction **déjà expédiée** (ou en litige)
+la transaction non expédiée ; pendant une expertise de l'annonce seule
+(volontaire, « seuil »), une seconde expertise du même objet sur la commande
+ou l'échange est refusée. Une transaction **déjà expédiée** (ou en litige)
 reste en place : son acheteur, ou l'autre partie de l'échange, est prévenu du
 refus pour ouvrir un litige, et l'annonce qu'elle réserve n'est pas modifiée
 (ni statut, ni référence, aucune demande « seuil ») ; si elle se termine

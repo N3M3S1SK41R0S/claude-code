@@ -633,6 +633,11 @@ export interface ExchangeRow {
   expires_at?: string | null;
   created_at: string;
   updated_at: string;
+  /**
+   * Une expertise en cours bloque l'expédition (has_open_certification),
+   * y compris sur l'annonce de l'autre partie (ExchangeProposal.shipmentBlocked).
+   */
+  shipment_blocked?: boolean | null;
 }
 
 export function rowToExchangeProposal(row: ExchangeRow): ExchangeProposal {
@@ -662,6 +667,9 @@ export function rowToExchangeProposal(row: ExchangeRow): ExchangeProposal {
     ...(typeof row.offered_item_certified === 'boolean'
       ? { offeredItemCertified: row.offered_item_certified }
       : {}),
+    // Calculé par le serveur ; absent (serveur antérieur) : omis, jamais
+    // « non bloquée » présumé.
+    ...(typeof row.shipment_blocked === 'boolean' ? { shipmentBlocked: row.shipment_blocked } : {}),
     proposerTracking: row.proposer_tracking ?? null,
     recipientTracking: row.recipient_tracking ?? null,
     proposerReceived: row.proposer_received === true,

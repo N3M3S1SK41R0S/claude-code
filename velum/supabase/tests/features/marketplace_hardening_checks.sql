@@ -44,7 +44,9 @@
 --   X20 certification d'un objet : demandes « seuil » de ses annonces
 --       annulées, référence posée, expédition jamais bloquée par elles ;
 --   X21 fin sans vente chez un membre sans Platine : annonces libérées
---       retirées (comme à la fin d'abonnement), aucune expertise à ses frais.
+--       retirées (comme à la fin d'abonnement), aucune expertise à ses frais ;
+--   X22 shipment_blocked (my_exchanges) exposé aux deux parties ; expertise
+--       en double d'un objet dont l'annonce est en expertise refusée.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 \set ON_ERROR_STOP on
@@ -2417,6 +2419,125 @@ begin
     raise exception 'X21 : aucune suspension notifiée attendue (% notification(s))', v_count;
   end if;
   raise notice 'OK X21 — fin sans vente chez un membre sans Platine : annonces libérées retirées, aucune expertise à ses frais';
+end
+$$;
+
+-- ── X22. shipment_blocked : l'expédition bloquée, exposée aux deux parties ──
+-- Une expertise de l'annonce seule (volontaire, « seuil ») n'apparaît pas
+-- dans my_certifications de l'autre partie (ni propriétaire, ni demandeur) ;
+-- my_exchanges expose donc la réponse du serveur, un booléen sans identité
+-- (has_open_certification). Une expertise en double du même objet, pendant
+-- celle de son annonce, est refusée (échange et commande).
+insert into public.items (id, owner_id, domain, title) values
+  ('91000000-0000-4000-8000-000000000109', '81000000-0000-4000-8000-000000000001', 'coin', 'Écu de Louis XV'),
+  ('91000000-0000-4000-8000-000000000110', '81000000-0000-4000-8000-000000000001', 'coin', 'Sol de Louis XIV'),
+  ('91000000-0000-4000-8000-000000000111', '81000000-0000-4000-8000-000000000001', 'coin', 'Liard de Louis XIII'),
+  ('93000000-0000-4000-8000-000000000109', '83000000-0000-4000-8000-000000000003', 'coin', 'Teston Henri II'),
+  ('93000000-0000-4000-8000-000000000110', '83000000-0000-4000-8000-000000000003', 'coin', 'Douzain Henri III');
+
+do $$
+declare
+  v_ex uuid;
+  v_ex2 uuid;
+  v_order uuid;
+  v_cert uuid;
+  v_cert2 uuid;
+  v_row record;
+begin
+  set local role authenticated;
+  -- (a) Annonce visée en expertise volontaire, échange accepté.
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  insert into public.listings (id, item_id, seller_id, ask_price, kind) values
+    ('a2200000-0000-4000-8000-000000000109', '91000000-0000-4000-8000-000000000109',
+     '81000000-0000-4000-8000-000000000001', 200, 'sale_or_exchange'),
+    ('a2200000-0000-4000-8000-000000000110', '91000000-0000-4000-8000-000000000110',
+     '81000000-0000-4000-8000-000000000001', 150, 'exchange'),
+    ('a2200000-0000-4000-8000-000000000111', '91000000-0000-4000-8000-000000000111',
+     '81000000-0000-4000-8000-000000000001', 120, 'sale');
+  select c.id into v_cert
+  from public.request_certification('voluntary', p_listing => 'a2200000-0000-4000-8000-000000000109') c;
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  select id into v_ex from public.propose_exchange(
+    'a2200000-0000-4000-8000-000000000109', '93000000-0000-4000-8000-000000000109', 180);
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select * into v_row from public.respond_exchange(v_ex, true);
+  if v_row.state <> 'shipping' or v_row.shipment_blocked is distinct from true then
+    raise exception 'X22 : destinataire ⇒ expédition bloquée attendue (%)', row_to_json(v_row);
+  end if;
+  -- L'auteur ne voit pas l'expertise de l'annonce d'autrui, mais le blocage.
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  if exists (select 1 from public.my_certifications() c where c.id = v_cert) then
+    raise exception 'X22 : expertise de l''annonce d''autrui visible de l''auteur';
+  end if;
+  select * into v_row from public.my_exchanges(v_ex);
+  if v_row.role <> 'proposer' or v_row.shipment_blocked is distinct from true then
+    raise exception 'X22 : auteur ⇒ expédition bloquée attendue (%)', row_to_json(v_row);
+  end if;
+  perform public._mkh_expect_error(
+    format('select * from public.ship_exchange(%L, ''CH-22A'')', v_ex), '%Expédition bloquée%');
+  -- Seconde expertise du même objet (accord mutuel) : refusée.
+  perform public._mkh_expect_error(
+    format('select * from public.request_certification(''mutual_agreement'', p_exchange => %L)', v_ex),
+    '%déjà en cours%');
+
+  -- (b) Objet OFFERT dont l'annonce est en expertise volontaire.
+  insert into public.listings (id, item_id, seller_id, ask_price) values
+    ('a2200000-0000-4000-8000-000000000210', '93000000-0000-4000-8000-000000000110',
+     '83000000-0000-4000-8000-000000000003', 140);
+  select c.id into v_cert2
+  from public.request_certification('voluntary', p_listing => 'a2200000-0000-4000-8000-000000000210') c;
+  select id into v_ex2 from public.propose_exchange(
+    'a2200000-0000-4000-8000-000000000110', '93000000-0000-4000-8000-000000000110', 140);
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  select * into v_row from public.respond_exchange(v_ex2, true);
+  if v_row.state <> 'shipping' or v_row.shipment_blocked is distinct from true then
+    raise exception 'X22 : destinataire (objet offert en expertise) ⇒ expédition bloquée attendue (%)',
+      row_to_json(v_row);
+  end if;
+  perform public._mkh_expect_error(
+    format('select * from public.request_certification(''mutual_agreement'', p_exchange => %L)', v_ex2),
+    '%déjà en cours%');
+
+  -- (c) Commande sur une annonce en expertise volontaire : seconde expertise
+  -- refusée, à la demande de l'acheteur comme du vendeur.
+  select c.id into v_row
+  from public.request_certification('voluntary', p_listing => 'a2200000-0000-4000-8000-000000000111') c;
+  perform set_config('velum.uid', '82000000-0000-4000-8000-000000000002', true);
+  select id into v_order from public.market_buy('a2200000-0000-4000-8000-000000000111');
+  perform public._mkh_expect_error(
+    format('select * from public.request_certification(''mutual_agreement'', p_order => %L)', v_order),
+    '%déjà en cours%');
+  perform public.advance_market_order(v_order, 'funds_held');
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  perform public._mkh_expect_error(
+    format('select * from public.request_certification(''mutual_agreement'', p_order => %L)', v_order),
+    '%déjà en cours%');
+
+  -- Expertises décidées : plus de blocage, des deux côtés.
+  reset role;
+  perform set_config('velum.uid', '', true);
+  perform public.decide_certification(v_cert, true, 'expertises/alice/ecu-louis-xv.pdf', 'Authentique', 60);
+  perform public.decide_certification(v_cert2, true, 'expertises/chloe/douzain.pdf', 'Authentique', 60);
+  set local role authenticated;
+  perform set_config('velum.uid', '83000000-0000-4000-8000-000000000003', true);
+  for v_row in select * from public.my_exchanges() e where e.id in (v_ex, v_ex2) loop
+    if v_row.shipment_blocked is distinct from false then
+      raise exception 'X22 : expertise décidée ⇒ expédition débloquée attendue (%)', row_to_json(v_row);
+    end if;
+  end loop;
+  select * into v_row from public.ship_exchange(v_ex, '6A12345678903', 'Colissimo');
+  if v_row.proposer_tracking is distinct from '6A12345678903' then
+    raise exception 'X22 : expédition de l''auteur attendue (%)', row_to_json(v_row);
+  end if;
+  perform set_config('velum.uid', '81000000-0000-4000-8000-000000000001', true);
+  for v_row in select * from public.my_exchanges() e where e.id in (v_ex, v_ex2) loop
+    if v_row.shipment_blocked is distinct from false then
+      raise exception 'X22 : destinataire ⇒ expédition débloquée attendue (%)', row_to_json(v_row);
+    end if;
+  end loop;
+  reset role;
+  perform set_config('velum.uid', '', true);
+  raise notice 'OK X22 — shipment_blocked exposé aux deux parties ; expertise en double d''un objet en cours d''expertise refusée';
 end
 $$;
 
