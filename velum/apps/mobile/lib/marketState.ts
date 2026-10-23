@@ -520,6 +520,37 @@ export function listingAvailability(
   };
 }
 
+/** Annonce OUVERTE (une seule par objet : _market_item_has_open_listing). */
+const OPEN_LISTING: ReadonlySet<ListingStatus> = new Set(['draft', 'pending_certification', 'active']);
+/** Annonce conclue : l'objet est CÉDÉ (_market_item_ceded). */
+const CEDED_LISTING: ReadonlySet<ListingStatus> = new Set(['sold', 'exchanged']);
+
+export interface ItemMarketBlock {
+  /** 'ceded' : déjà vendu ou échangé ; 'openListing' : une annonce est déjà en cours. */
+  reason: 'ceded' | 'openListing';
+  /** Annonce en cause (lien « Voir l'annonce »). */
+  listingId: string;
+}
+
+/**
+ * Objet de MA collection qui ne peut pas être (re)mis en vente — miroir des
+ * refus d'enforce_listing_rules d'après mes annonces : déjà CÉDÉ (annonce
+ * vendue ou échangée) ou déjà une annonce OUVERTE (brouillon, en attente
+ * d'expertise, publiée). Un objet cédé ne s'offre pas non plus à l'échange.
+ * Seules mes annonces sont connues ici (un échange conclu où j'ai OFFERT
+ * l'objet n'en expose pas l'identifiant) : le serveur reste l'arbitre.
+ */
+export function itemMarketBlock(
+  itemId: string,
+  listings: readonly Pick<ListingRecord, 'id' | 'itemId' | 'status'>[],
+): ItemMarketBlock | null {
+  const ofItem = listings.filter((l) => l.itemId !== '' && l.itemId === itemId);
+  const ceded = ofItem.find((l) => CEDED_LISTING.has(l.status));
+  if (ceded) return { reason: 'ceded', listingId: ceded.id };
+  const open = ofItem.find((l) => OPEN_LISTING.has(l.status));
+  return open ? { reason: 'openListing', listingId: open.id } : null;
+}
+
 /**
  * Une annonce peut être retirée tant qu'elle n'est ni vendue, ni échangée,
  * ni RÉSERVÉE par une transaction en cours (statut figé côté serveur).

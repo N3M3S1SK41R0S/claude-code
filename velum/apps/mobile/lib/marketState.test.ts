@@ -35,6 +35,7 @@ import {
   isNotYetAvailable,
   isOpenToExchange,
   itemCertifiedByExpert,
+  itemMarketBlock,
   listingAvailability,
   marketLabelKeys,
   marketRetry,
@@ -425,6 +426,30 @@ describe('expertise d’un commun accord : demandée sur la transaction (miroir 
     expect(canRequestOrderCertification(order('funds_held'), [{ status: 'awaiting_agreement' }])).toBe(false);
     expect(canRequestOrderCertification(order('funds_held'), [{ status: 'certified' }])).toBe(false);
     expect(canRequestOrderCertification(order('funds_held'), [{ status: 'cancelled' }])).toBe(true);
+  });
+});
+
+describe('objet non remettable en vente (miroir d’enforce_listing_rules)', () => {
+  const l = (id: string, itemId: string, status: ListingStatus) => ({ id, itemId, status });
+
+  it('annonce ouverte (brouillon, en attente d’expertise, publiée) : une seule par objet', () => {
+    for (const status of ['draft', 'pending_certification', 'active'] as ListingStatus[]) {
+      expect(itemMarketBlock('it-1', [l('l-1', 'it-1', status)])).toEqual({ reason: 'openListing', listingId: 'l-1' });
+    }
+  });
+
+  it('objet cédé (annonce vendue ou échangée) : prioritaire, jamais réannonçable', () => {
+    expect(itemMarketBlock('it-1', [l('l-1', 'it-1', 'sold')])).toEqual({ reason: 'ceded', listingId: 'l-1' });
+    expect(
+      itemMarketBlock('it-1', [l('l-2', 'it-1', 'active'), l('l-1', 'it-1', 'exchanged')]),
+    ).toEqual({ reason: 'ceded', listingId: 'l-1' });
+  });
+
+  it('annonce retirée, autre objet ou annonce détachée : libre', () => {
+    expect(itemMarketBlock('it-1', [l('l-1', 'it-1', 'withdrawn')])).toBeNull();
+    expect(itemMarketBlock('it-1', [l('l-1', 'it-2', 'active')])).toBeNull();
+    expect(itemMarketBlock('', [l('l-1', '', 'sold')])).toBeNull();
+    expect(itemMarketBlock('it-1', [])).toBeNull();
   });
 });
 

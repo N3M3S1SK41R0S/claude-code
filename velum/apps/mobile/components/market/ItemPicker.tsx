@@ -2,6 +2,8 @@
  * Choix d'un objet de MA collection (proposition d'échange, mise en vente) :
  * recherche locale insensible aux accents, objets de la catégorie visée en
  * tête, liste courte dépliable (peu de défilement), groupe radio accessible.
+ * Un objet indisponible (annonce déjà ouverte, objet déjà cédé…) reste
+ * visible mais DÉSACTIVÉ, avec son motif, après les objets disponibles.
  */
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -41,9 +43,11 @@ export interface ItemPickerProps {
   /** Restreint à une catégorie. */
   onlyDomain?: VelumDomain | null;
   label: string;
+  /** Motif d'indisponibilité d'un objet (ligne désactivée), null s'il est disponible. */
+  blockReason?: (item: VelumItem) => string | null;
 }
 
-export function ItemPicker({ selectedId, onSelect, preferredDomain, onlyDomain, label }: ItemPickerProps) {
+export function ItemPicker({ selectedId, onSelect, preferredDomain, onlyDomain, label, blockReason }: ItemPickerProps) {
   const { t } = useTranslation();
   const items = useMyItems();
   return (
@@ -55,6 +59,7 @@ export function ItemPicker({ selectedId, onSelect, preferredDomain, onlyDomain, 
           onSelect={onSelect}
           preferredDomain={preferredDomain}
           label={label}
+          blockReason={blockReason}
         />
       )}
     </AsyncBlock>
@@ -67,12 +72,14 @@ function PickerList({
   onSelect,
   preferredDomain,
   label,
+  blockReason,
 }: {
   items: VelumItem[];
   selectedId: string | null;
   onSelect: (item: VelumItem) => void;
   preferredDomain: VelumDomain | null;
   label: string;
+  blockReason?: (item: VelumItem) => string | null;
 }) {
   const { t } = useTranslation();
   const { senior, scale } = useSeniorMode();
@@ -81,8 +88,11 @@ function PickerList({
 
   const ordered = useMemo(() => {
     const sorted = sortItemsForExchange(items, preferredDomain);
-    return query.trim().length > 0 ? searchItems(sorted, query) : sorted;
-  }, [items, preferredDomain, query]);
+    const found = query.trim().length > 0 ? searchItems(sorted, query) : sorted;
+    // Disponibles d'abord, indisponibles (désactivés, avec motif) ensuite.
+    const reasonOf = (item: VelumItem) => blockReason?.(item) ?? null;
+    return [...found.filter((i) => reasonOf(i) === null), ...found.filter((i) => reasonOf(i) !== null)];
+  }, [items, preferredDomain, query, blockReason]);
   const visible = expanded ? ordered : ordered.slice(0, VISIBLE);
 
   if (items.length === 0) {
@@ -100,18 +110,29 @@ function PickerList({
       ) : null}
       <View accessibilityRole="radiogroup" accessibilityLabel={label} style={styles.list}>
         {visible.map((item) => {
-          const selected = item.id === selectedId;
+          const reason = blockReason?.(item) ?? null;
+          const disabled = reason !== null;
+          const selected = !disabled && item.id === selectedId;
           const title = item.title ?? t('common.unknown');
           const category = t(`domains.${item.domain}.name`);
           return (
             <Pressable
               key={item.id}
-              onPress={() => onSelect(item)}
+              onPress={() => {
+                if (!disabled) onSelect(item);
+              }}
+              disabled={disabled}
               accessibilityRole="radio"
-              accessibilityLabel={`${title}, ${category}`}
-              accessibilityState={{ selected, checked: selected }}
+              accessibilityLabel={disabled ? `${title}, ${category}, ${reason}` : `${title}, ${category}`}
+              accessibilityState={{ selected, checked: selected, disabled }}
               aria-checked={selected}
-              style={[styles.row, { minHeight: senior ? 56 : 44 }, selected ? styles.rowSelected : null]}
+              aria-disabled={disabled}
+              style={[
+                styles.row,
+                { minHeight: senior ? 56 : 44 },
+                selected ? styles.rowSelected : null,
+                disabled ? styles.rowDisabled : null,
+              ]}
             >
               <Ionicons
                 name={selected ? 'radio-button-on' : 'radio-button-off'}
@@ -125,6 +146,11 @@ function PickerList({
                 <VText variant="caption" tone="dim">
                   {category}
                 </VText>
+                {reason !== null ? (
+                  <VText variant="caption" tone="dim">
+                    {reason}
+                  </VText>
+                ) : null}
               </View>
             </Pressable>
           );
@@ -161,5 +187,6 @@ const styles = StyleSheet.create({
     backgroundColor: velumColors.ink.soft,
   },
   rowSelected: { borderColor: velumColors.gold.DEFAULT, backgroundColor: velumColors.ink.raised },
+  rowDisabled: { opacity: 0.55 },
   flex: { flex: 1 },
 });

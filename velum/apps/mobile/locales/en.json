@@ -1656,7 +1656,9 @@
       "emptyCategory": "No items in this category.",
       "search": "Search my collection",
       "more": "Show {{count}} more item(s)",
-      "less": "Show less"
+      "less": "Show less",
+      "blockedOpen": "Already has a listing in progress (draft, awaiting appraisal or published)",
+      "blockedCeded": "Already parted with (sale or trade completed)"
     },
     "sellForm": {
       "title": "Sell or trade",
@@ -1665,6 +1667,10 @@
       "item": "Item",
       "changeItem": "Change item",
       "itemNotFound": "Item not found in your collection",
+      "blockedTitle": "Cannot be listed",
+      "blockedOpen": "This item already has a listing in progress (draft, awaiting appraisal or published): withdraw it first to list the item again.",
+      "blockedCeded": "This item has already been parted with (sale or trade completed): it can no longer be listed or offered in a trade.",
+      "viewListing": "View the listing",
       "kind": "Listing type",
       "kindSale": "Sale",
       "kindExchange": "Trade",

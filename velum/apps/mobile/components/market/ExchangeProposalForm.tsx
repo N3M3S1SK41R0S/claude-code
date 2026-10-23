@@ -26,7 +26,7 @@ import {
   type CashDirection,
 } from '../../lib/marketForms';
 import { commissionBasisNoticeKey } from '../../lib/marketCommission';
-import { itemCertifiedByExpert } from '../../lib/marketState';
+import { itemCertifiedByExpert, itemMarketBlock } from '../../lib/marketState';
 import { showToast } from '../../stores/toastStore';
 import { AmountRows, Notice, Segmented, type AmountRow } from './controls';
 import {
@@ -187,6 +187,12 @@ export function ExchangeProposalForm({ listing, onProposed, onCancel }: Exchange
           }}
           preferredDomain={listing.domain}
           label={t('community.proposal.pickItem')}
+          // Objet déjà cédé (vente ou échange conclu) : le serveur refuse de le proposer.
+          blockReason={(candidate) =>
+            itemMarketBlock(candidate.id, myListings.data ?? [])?.reason === 'ceded'
+              ? t('community.picker.blockedCeded')
+              : null
+          }
         />
       ) : (
         // Objet choisi : liste repliée (moins de défilement), changement en un geste.
