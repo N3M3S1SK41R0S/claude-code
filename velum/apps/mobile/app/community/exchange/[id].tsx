@@ -306,16 +306,20 @@ function ExchangeDetail({ id }: { id: string }) {
   const related = (certifications.data ?? []).filter((c) => c.exchangeId === id);
   // Expertise ouverte sur l'échange, ou sur l'une de ses annonces elle-même
   // (annonce visée, mes annonces de l'objet que j'offre — R7) : le serveur
-  // bloque l'expédition.
-  const hasOpenCertification = hasOpenCertificationOn(certifications.data ?? [], {
+  // bloque l'expédition. Miroir local d'abord (mes certifications)…
+  const visibleBlock = hasOpenCertificationOn(certifications.data ?? [], {
     exchangeId: id,
     listingIds: shipmentListingIds(exchange, myListings.data ?? []),
   });
+  // … plus le verdict du serveur : l'expertise de l'annonce de l'autre partie
+  // ne m'est pas visible, elle bloque pourtant l'envoi.
+  const hasOpenCertification = exchange.shipmentBlocked === true || visibleBlock;
   // Miroir de request_certification : échange accepté, avant tout envoi, sur
   // l'objet que je reçois (mes demandes lues d'abord : jamais de doublon) —
-  // jamais sur un objet déjà authentifié (celui de l'annonce ou celui offert).
+  // jamais sur un objet déjà authentifié (celui de l'annonce ou celui offert),
+  // ni déjà en expertise sur l'annonce de l'autre partie (blocage inexpliqué ici).
   const canAskCertification =
-    certifications.data !== undefined && canRequestExchangeCertification(exchange, related);
+    certifications.data !== undefined && canRequestExchangeCertification(exchange, related, { visibleBlock });
 
   const rows: AmountRow[] = [
     { label: t('community.exchange.youGive', { title: mineTitle }), value: formatPrice(mineValue, locale, exchange.currency) },

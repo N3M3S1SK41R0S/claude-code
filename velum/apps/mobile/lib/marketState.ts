@@ -193,6 +193,7 @@ type ExchangeView = Pick<
   | 'recipientTracking'
   | 'proposerReceived'
   | 'recipientReceived'
+  | 'shipmentBlocked'
 > & {
   /** Échéance d'une proposition (ExchangeProposal.expiresAt), si le dépôt la fournit. */
   expiresAt?: string | null;
@@ -253,13 +254,15 @@ export function isExchangeExpired(
  *    (une fois qu'il l'a expédié) ; litige dès qu'un envoi a eu lieu, sinon
  *    annulation (« avant toute expédition ») ;
  *  - états terminaux et litige (arbitrage plateforme) : aucune action.
- * Contexte : pas d'expédition tant qu'une expertise est ouverte, pas
+ * Contexte : pas d'expédition tant qu'une expertise est ouverte — miroir
+ * local (`hasOpenCertification`) OU verdict du serveur (`shipmentBlocked`,
+ * seul à voir l'expertise de l'annonce de l'autre partie) —, pas
  * d'acceptation d'une proposition échue (même avant le passage du cron).
  */
 export function exchangeActions(ex: ExchangeView, context: ActionContext = {}): ExchangeAction[] {
   const mine = hasText(myTracking(ex));
   const theirs = hasText(theirTracking(ex));
-  const shipBlocked = context.hasOpenCertification === true;
+  const shipBlocked = context.hasOpenCertification === true || ex.shipmentBlocked === true;
   switch (ex.state) {
     case 'proposed': {
       if (ex.role !== 'recipient') return ['withdraw'];
@@ -407,18 +410,32 @@ const OPEN_CERTIFICATION: ReadonlySet<CertificationStatus> = new Set(['awaiting_
  * (_market_item_certification_ref) : l'objet de l'annonce pour l'auteur
  * (`listingCertified`), l'objet offert pour le destinataire
  * (`offeredItemCertified`). Information absente : le serveur tranche.
+ * Refusée aussi quand le serveur bloque l'expédition (`shipmentBlocked`) sans
+ * que MES expertises l'expliquent (`related` ouvertes, `visibleBlock` : miroir
+ * local hasOpenCertificationOn) : seules les expertises de mes propres
+ * annonces me sont visibles, celle-ci porte donc sur l'annonce de l'autre
+ * partie — l'objet que je reçois, déjà en expertise (doublon).
  */
 export function canRequestExchangeCertification(
   ex: Pick<
     ExchangeProposal,
-    'role' | 'state' | 'proposerTracking' | 'recipientTracking' | 'listingCertified' | 'offeredItemCertified'
+    | 'role'
+    | 'state'
+    | 'proposerTracking'
+    | 'recipientTracking'
+    | 'listingCertified'
+    | 'offeredItemCertified'
+    | 'shipmentBlocked'
   >,
   related: readonly Pick<CertificationRequest, 'reason' | 'status' | 'requestedByMe'>[],
+  context: { visibleBlock?: boolean } = {},
 ): boolean {
   const ongoing = ex.state === 'accepted' || ex.state === 'awaiting_certification' || ex.state === 'shipping';
   if (!ongoing || ex.proposerTracking !== null || ex.recipientTracking !== null) return false;
   const receivedCertified = ex.role === 'proposer' ? ex.listingCertified : ex.offeredItemCertified;
   if (receivedCertified === true) return false;
+  const visibleBlock = context.visibleBlock === true || related.some((c) => OPEN_CERTIFICATION.has(c.status));
+  if (ex.shipmentBlocked === true && !visibleBlock) return false;
   const onReceivedItem = (c: Pick<CertificationRequest, 'reason' | 'requestedByMe'>) =>
     (c.reason === 'threshold' && !c.requestedByMe) || (c.reason === 'mutual_agreement' && c.requestedByMe);
   return !related.some((c) => onReceivedItem(c) && (OPEN_CERTIFICATION.has(c.status) || c.status === 'certified'));
@@ -712,16 +729,18 @@ export function pendingActionCount(input: {
         }),
     }),
   ).length;
+  // Verdict du serveur (`shipmentBlocked`, lu par exchangeActions) OU miroir local.
   const exchanges = (input.exchanges ?? []).filter((e) =>
     exchangeNeedsMe(e, {
       hasOpenCertification:
-        e.id !== undefined &&
-        hasOpenCertificationOn(certs, {
-          exchangeId: e.id,
-          ...(e.listingId !== undefined
-            ? { listingIds: shipmentListingIds({ ...e, listingId: e.listingId }, input.listings) }
-            : {}),
-        }),
+        e.shipmentBlocked === true ||
+        (e.id !== undefined &&
+          hasOpenCertificationOn(certs, {
+            exchangeId: e.id,
+            ...(e.listingId !== undefined
+              ? { listingIds: shipmentListingIds({ ...e, listingId: e.listingId }, input.listings) }
+              : {}),
+          })),
       ...(input.now !== undefined ? { now: input.now } : {}),
     }),
   ).length;

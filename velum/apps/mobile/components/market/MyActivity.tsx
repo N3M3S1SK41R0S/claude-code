@@ -90,8 +90,10 @@ export function MyActivity() {
   // Expertises ouvertes : elles bloquent l'expédition (rien « à traiter » alors).
   const certs = certifications.data ?? [];
   const now = new Date().toISOString();
-  // Expertise de l'annonce elle-même (R7) : annonce visée, et mes annonces de l'objet que j'offre.
+  // Expertise de l'annonce elle-même (R7) : annonce visée, et mes annonces de l'objet que j'offre ;
+  // verdict du serveur en plus (expertise de l'annonce de l'autre partie, invisible ici).
   const exchangeBlocked = (e: ExchangeProposal) =>
+    e.shipmentBlocked === true ||
     hasOpenCertificationOn(certs, { exchangeId: e.id, listingIds: shipmentListingIds(e, listings.data ?? []) });
 
   return (
